@@ -1,0 +1,68 @@
+{
+  "anthropic_version": "vertex-2023-10-16",
+  "max_tokens": 20000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What's the weather like in San Francisco?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "toolu_weather",
+          "name": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_weather",
+          "content": "65 F and sunny"
+        },
+        {
+          "type": "text",
+          "text": "Give me the answer in one sentence."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "The weather in San Francisco is 65°F and sunny."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ]
+}
