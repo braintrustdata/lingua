@@ -97,8 +97,7 @@ export const paramsCases: TestCaseCollection = {
             },
             {
               type: "input_file",
-              file_url:
-                "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+              file_url: "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
             },
           ],
         },
