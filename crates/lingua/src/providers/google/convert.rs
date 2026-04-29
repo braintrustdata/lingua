@@ -30,7 +30,7 @@ use crate::universal::request::{
 };
 use crate::universal::response::{FinishReason, UniversalUsage};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
-use crate::util::media::parse_base64_data_url;
+use crate::util::media::{mime_type_from_url, parse_base64_data_url};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
@@ -419,10 +419,16 @@ impl TryFromLLM<Message> for GoogleContent {
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
+                                        // Vertex AI rejects file_data with empty mimeType; fall
+                                        // back to URL inference (extension or S3 presigned
+                                        // content-type), then DEFAULT_MIME_TYPE.
+                                        let mime_type = media_type
+                                            .or_else(|| mime_type_from_url(&data))
+                                            .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
-                                                mime_type: media_type,
+                                                mime_type: Some(mime_type),
                                             }),
                                             ..Default::default()
                                         });
@@ -1250,6 +1256,73 @@ mod tests {
         let parts = content.parts.unwrap();
         assert_eq!(parts.len(), 1);
         assert_eq!(parts[0].text.as_deref(), Some("Hello"));
+    }
+
+    fn image_url_message(url: &str, media_type: Option<String>) -> Message {
+        Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: Value::String(url.to_string()),
+                media_type,
+                provider_options: None,
+            }]),
+        }
+    }
+
+    #[test]
+    fn test_image_url_with_no_media_type() {
+        // Vertex AI rejects file_data with empty mimeType. When an OpenAI
+        // chat-completions image_url with an HTTPS URL flows in, media_type
+        // arrives as None. The converter must infer or default it.
+        let message = image_url_message("https://example.com/photo.jpg", None);
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        assert_eq!(parts.len(), 1);
+        let fd = parts[0].file_data.as_ref().expect("expected file_data");
+        assert_eq!(
+            fd.file_uri.as_deref(),
+            Some("https://example.com/photo.jpg")
+        );
+        assert_eq!(fd.mime_type.as_deref(), Some("image/jpeg"));
+    }
+
+    #[test]
+    fn test_image_url_with_caller_supplied_media_type_wins() {
+        // Caller-supplied media_type takes precedence over URL inference.
+        let message = image_url_message(
+            "https://example.com/photo.jpg",
+            Some("image/png".to_string()),
+        );
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let fd = content.parts.unwrap()[0]
+            .file_data
+            .as_ref()
+            .cloned()
+            .expect("expected file_data");
+        assert_eq!(fd.mime_type.as_deref(), Some("image/png"));
+    }
+
+    #[test]
+    fn test_image_url_no_extension_falls_back_to_default() {
+        let message = image_url_message("https://example.com/no-extension", None);
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let fd = content.parts.unwrap()[0]
+            .file_data
+            .as_ref()
+            .cloned()
+            .expect("expected file_data");
+        assert_eq!(fd.mime_type.as_deref(), Some(DEFAULT_MIME_TYPE));
+    }
+
+    #[test]
+    fn test_image_data_url_unaffected() {
+        // Regression guard: data URL still emits inline_data with parsed mime.
+        let message = image_url_message("data:image/png;base64,iVBORw0KGgo=", None);
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let part = &content.parts.unwrap()[0];
+        assert!(part.file_data.is_none());
+        let blob = part.inline_data.as_ref().expect("expected inline_data");
+        assert_eq!(blob.mime_type.as_deref(), Some("image/png"));
+        assert_eq!(blob.data.as_deref(), Some("iVBORw0KGgo="));
     }
 
     #[test]

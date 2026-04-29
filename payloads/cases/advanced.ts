@@ -125,6 +125,58 @@ export const advancedCases: TestCaseCollection = {
     },
   },
 
+  // Pins converter behavior for an HTTPS image URL with no caller-supplied
+  // media type. Vertex AI v1 rejects file_data with empty mimeType, so the
+  // Google adapter must infer or default it. The existing multimodalRequest
+  // case asserts inlineData (a different code path) and does not exercise
+  // this converter branch.
+  multimodalRequestUrlImage: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "What do you see in this image?",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+          ],
+        },
+      ],
+      max_completion_tokens: 300,
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "What do you see in this image?" },
+            {
+              fileData: {
+                fileUri:
+                  "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+                mimeType: "image/jpeg",
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 300,
+      },
+    },
+    bedrock: null,
+  },
+
   complexReasoningRequest: {
     responses: {
       model: OPENAI_RESPONSES_MODEL,

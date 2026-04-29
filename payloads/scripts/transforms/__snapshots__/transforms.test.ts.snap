@@ -7121,6 +7121,31 @@ exports[`chat-completions → anthropic > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > multimodalRequestUrlImage > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
 exports[`chat-completions → anthropic > nMultipleCompletionsParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9462,6 +9487,7 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
         {
           "fileData": {
             "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            "mimeType": "image/jpeg",
           },
         },
       ],
@@ -9501,6 +9527,32 @@ exports[`chat-completions → google > multimodalRequest > response 1`] = `
     "prompt_tokens": 267,
     "total_tokens": 563,
   },
+}
+`;
+
+exports[`chat-completions → google > multimodalRequestUrlImage > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What do you see in this image?",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            "mimeType": "image/jpeg",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 300,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
 }
 `;
 
@@ -12164,6 +12216,28 @@ exports[`chat-completions → responses > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`chat-completions → responses > multimodalRequestUrlImage > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "input_text",
+        },
+        {
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`chat-completions → responses > nMultipleCompletionsParam > request 1`] = `
 {
   "input": [
@@ -14619,6 +14693,31 @@ The spacing between contour lines indicates the steepness of the terrain - close
 }
 `;
 
+exports[`google → anthropic > multimodalRequestUrlImage > request 1`] = `
+{
+  "max_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "source": {
+            "type": "url",
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
 exports[`google → anthropic > parallelToolCallsRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -16867,6 +16966,30 @@ exports[`google → chat-completions > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`google → chat-completions > multimodalRequestUrlImage > request 1`] = `
+{
+  "max_completion_tokens": 300,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "text",
+        },
+        {
+          "image_url": {
+            "url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          },
+          "type": "image_url",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
 exports[`google → chat-completions > parallelToolCallsRequest > request 1`] = `
 {
   "messages": [
@@ -19036,6 +19159,28 @@ exports[`google → responses > multimodalRequest > response 1`] = `
     "thoughtsTokenCount": 256,
     "totalTokenCount": 272,
   },
+}
+`;
+
+exports[`google → responses > multimodalRequestUrlImage > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+          "type": "input_text",
+        },
+        {
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+          "type": "input_image",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 300,
+  "model": "gpt-5-nano",
 }
 `;
 
