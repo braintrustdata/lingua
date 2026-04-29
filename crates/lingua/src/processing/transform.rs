@@ -21,7 +21,8 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json::Value;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta,
 };
 use thiserror::Error;
 
@@ -382,6 +383,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
         AssistantContent::Array(parts) => {
             let mut text = String::new();
             let mut reasoning = Vec::new();
+            let mut tool_calls = Vec::new();
 
             for part in parts {
                 match part {
@@ -393,15 +395,32 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             content: Some(text.clone()),
                         });
                     }
-                    AssistantContentPart::File { .. }
-                    | AssistantContentPart::ToolCall { .. }
-                    | AssistantContentPart::ToolResult { .. } => {}
+                    AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        arguments,
+                        ..
+                    } => {
+                        let tool_call_index = tool_calls.len() as u32;
+                        tool_calls.push(UniversalToolCallDelta {
+                            index: Some(tool_call_index),
+                            id: Some(tool_call_id.clone()),
+                            call_type: Some("function".to_string()),
+                            function: Some(UniversalToolFunctionDelta {
+                                name: Some(tool_name.clone()),
+                                arguments: Some(arguments.to_string()),
+                            }),
+                        });
+                    }
+                    AssistantContentPart::File { .. } | AssistantContentPart::ToolResult { .. } => {
+                    }
                 }
             }
 
             UniversalStreamDelta {
                 role: Some("assistant".to_string()),
                 content: (!text.is_empty()).then_some(text),
+                tool_calls,
                 reasoning,
                 ..Default::default()
             }
@@ -787,6 +806,63 @@ mod tests {
                 .and_then(|delta| delta.get("content"))
                 .and_then(Value::as_str),
             Some("Hello from Vertex")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_stream_chunk_accepts_full_anthropic_tool_call_message() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_test",
+                "name": "get_weather",
+                "input": {
+                    "location": "San Francisco, CA"
+                }
+            }],
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions).unwrap();
+        let output_bytes = result.into_bytes();
+        let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
+
+        let tool_call = output
+            .get("choices")
+            .and_then(Value::as_array)
+            .and_then(|choices| choices.first())
+            .and_then(|choice| choice.get("delta"))
+            .and_then(|delta| delta.get("tool_calls"))
+            .and_then(Value::as_array)
+            .and_then(|tool_calls| tool_calls.first())
+            .unwrap();
+
+        assert_eq!(
+            tool_call
+                .get("function")
+                .and_then(|function| function.get("name"))
+                .and_then(Value::as_str),
+            Some("get_weather")
+        );
+        assert_eq!(
+            output
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("finish_reason"))
+                .and_then(Value::as_str),
+            Some("tool_calls")
         );
     }
 
