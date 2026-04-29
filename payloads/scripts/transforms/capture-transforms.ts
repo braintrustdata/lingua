@@ -5,6 +5,7 @@ import { dirname } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
+import { executeVertexAnthropic } from "../providers/vertex-anthropic";
 import {
   TRANSFORM_PAIRS,
   STREAMING_PAIRS,
@@ -129,6 +130,26 @@ async function callProvider(
       );
     case "google":
       return callGoogleProvider(request, { stream });
+    case "vertex-anthropic": {
+      const result = await executeVertexAnthropic(
+        "transform",
+        request as unknown as Anthropic.MessageCreateParams,
+        { stream }
+      );
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      if (stream) {
+        if (!result.streamingResponse) {
+          throw new Error("Vertex Anthropic streaming response is missing");
+        }
+        return result.streamingResponse;
+      }
+      if (!result.response) {
+        throw new Error("Vertex Anthropic response is missing");
+      }
+      return result.response;
+    }
   }
 }
 /* eslint-enable @typescript-eslint/consistent-type-assertions */

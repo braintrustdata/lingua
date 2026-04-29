@@ -1,0 +1,32 @@
+[
+  {
+    "model": "claude-haiku-4-5-20251001",
+    "id": "msg_vrtx_01XoqBFMqLFKFcZJDx154gVA",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "This is a straightforward factual question. The capital of France is Paris.",
+        "signature": "EpICCmUIDRACGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMAr7FUSDMz+0vKrgcGgyO5mKvG3W8xDI51mAiMOZZ8ws01FY4vFqbrAmEvRK1DImuxnr2yxGDTsWQPpuent9R54acDzaNHvdI+u4KnypbK2B3J+XK/8xhaWyDfUkBrKzlEwhHfuMx+6K9ogWS6T4rFWLEnKZdbrS4SPl6iBVxC0a6VFKU52+COlrE5qSk2EGT99L7xh2Dka96MPjH2SJ2FlmZAb3hMzDr7BgB"
+      },
+      {
+        "type": "text",
+        "text": "The capital of France is Paris."
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "stop_details": null,
+    "usage": {
+      "input_tokens": 43,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 34
+    }
+  }
+]

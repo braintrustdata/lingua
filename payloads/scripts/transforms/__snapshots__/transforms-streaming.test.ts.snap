@@ -5479,6 +5479,78 @@ data: [DONE]
 "
 `;
 
+exports[`streaming: chat-completions → vertex-anthropic > complexReasoningRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"# Digital Clock Digit Analysis\\n\\nLet me work through this systematically by counting how often each digit (0-9) appears in a 24-hour cycle.\\n\\n## Breaking Down the Clock Format: HH:MM\\n\\n**Hours: 00-23** (24 values)\\n**Minutes: 00-59** (60 values)\\n**Total times in 24 hours: 1,440**\\n\\nEach time displays 4 digits (ignoring the colon).\\n\\n---\\n\\n## Counting Each Digit\\n\\nLet me count occurrences in each position:\\n\\n### **Hours (00-23):**\\n- **0**: 00, 01-09, 10, 20 = 11 times\\n- **1**: 01, 10-19 = 11 times\\n- **2**: 02, 12, 20-23 = 6 times\\n- **3-9**: 03-09, 13-19, 23 = 1 time each (7 digits × 1 = 7)\\n\\n### **Minutes (00-59):**\\n- Each digit appears equally in the **ones place**: 6 times each (0,10,20,30,40,50 for the digit 0, etc.)\\n- **Tens place**: 0 appears 10 times (00-09), 1-5 each appear 10 times (10-19, 20-29, etc.)\\n\\n**Minutes digit totals:**\\n- **0**: 10 + 6 = 16 times\\n- **1-5**: 10 + 6 = 16 times each\\n- **6-9**: 0 + 6 = 6 times each\\n\\n---\\n\\n## Total Counts (per 24-hour period)\\n\\n| Digit | Hours | Minutes | Total |\\n|-------|-------|---------|-------|\\n| **0** | 11 | 16 | **27** |\\n| **1** | 11 | 16 | **27** |\\n| **2** | 6 | 16 | **22** |\\n| **3** | 1 | 16 | **17** |\\n| **4** | 1 | 16 | **17** |\\n| **5** | 1 | 16 | **17** |\\n| **6** | 1 | 6 | **7** |\\n| **7** | 1 | 6 | **7** |\\n| **8** | 1 | 6 | **7** |\\n| **9** | 1 | 6 | **7** |\\n\\n**Total digits displayed: 5,760** (1,440 times × 4 digits)\\n\\n---\\n\\n## Results\\n\\n**🏆 MOST COMMON: 0 and 1** (tied)\\n- **27 occurrences each**\\n- **Percentage: 27/5,760 = 0.469% each**\\n\\n**📉 RAREST: 6, 7, 8, and 9** (tied)\\n- **7 occurrences each**\\n- **Percentage: 7/5,760 = 0.122% each**\\n\\nThe most common digits are **2.7x more frequent** than the rarest digits!","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01A5DSLSPNjSvHWzeMVs6E23","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":765,"prompt_tokens":80,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":845}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > parallelToolCallsRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"Here's the current weather for both cities:\\n\\n**San Francisco, CA:** 65°F and sunny ☀️\\n\\n**New York, NY:** 45°F and cloudy ☁️\\n\\nSan Francisco is enjoying nice sunny weather, while New York is cooler and cloudy today.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_019mDvTnrEKMjT8ePHqdfxXW","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":67,"prompt_tokens":757,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":824}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > reasoningRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"# Average Speed Calculation\\n\\n## Step 1: Find the distance for each segment\\n\\n**First segment:**\\n- Speed = 60 mph, Time = 2 hours\\n- Distance = Speed × Time = 60 × 2 = **120 miles**\\n\\n**Second segment:**\\n- Speed = 80 mph, Time = 1 hour\\n- Distance = Speed × Time = 80 × 1 = **80 miles**\\n\\n## Step 2: Find total distance and total time\\n\\n- **Total distance** = 120 + 80 = **200 miles**\\n- **Total time** = 2 + 1 = **3 hours**\\n\\n## Step 3: Calculate average speed\\n\\n$$\\\\text{Average Speed} = \\\\frac{\\\\text{Total Distance}}{\\\\text{Total Time}} = \\\\frac{200}{3} = \\\\boxed{66.67 \\\\text{ mph}}$$\\n\\n**The average speed is approximately 66.67 mph** (or 66⅔ mph)","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_019F1t95kVe8RrfswTc8EgNE","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":235,"prompt_tokens":45,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":280}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > reasoningRequestTruncated > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"# Average Speed Calculation\\n\\n## Step 1: Find the distance for each segment\\n\\n**First segment:**\\n- Speed = 60 mph\\n- Time = 2 hours\\n- Distance = 60 × 2 = **120 miles**\\n\\n**Second segment:**\\n- Speed = 80 mph\\n- Time = 1 hour\\n- Distance = 80 × 1 = **80 miles**\\n\\n## Step 2: Calculate","role":"assistant"},"finish_reason":"length","index":0}],"id":"msg_vrtx_01LthCz3Sw55cboppaR29f7a","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":100,"prompt_tokens":45,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":145}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > reasoningWithOutput > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"The sky is typically **blue** during the day. This happens because of a phenomenon called Rayleigh scattering, where shorter blue wavelengths of sunlight scatter more in Earth's atmosphere than longer red wavelengths.\\n\\nHowever, the sky can appear different colors depending on conditions:\\n- **Red, orange, or pink** at sunrise and sunset\\n- **Gray or white** on cloudy days\\n- **Deep purple or black** at night (when the sun isn't illuminating the atmosphere)\\n- **Other colors** during unusual atmospheric conditions","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01GyPUGfsSZFcEtrNApDrsFn","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":120,"prompt_tokens":13,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":133}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > simpleRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"The capital of France is Paris.","reasoning":[{"content":"This is a straightforward factual question. The capital of France is Paris."}],"reasoning_signature":"EpICCmUIDRACGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMAr7FUSDMz+0vKrgcGgyO5mKvG3W8xDI51mAiMOZZ8ws01FY4vFqbrAmEvRK1DImuxnr2yxGDTsWQPpuent9R54acDzaNHvdI+u4KnypbK2B3J+XK/8xhaWyDfUkBrKzlEwhHfuMx+6K9ogWS6T4rFWLEnKZdbrS4SPl6iBVxC0a6VFKU52+COlrE5qSk2EGT99L7xh2Dka96MPjH2SJ2FlmZAb3hMzDr7BgB","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01XoqBFMqLFKFcZJDx154gVA","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":34,"prompt_tokens":43,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":77}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > simpleRequestTruncated > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"#","role":"assistant"},"finish_reason":"length","index":0}],"id":"msg_vrtx_01ENevW1uW1SS1joqgMK9iEM","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":16,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":17}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > systemMessageArrayContent > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"I don't have access to real-time data or the ability to query the project_logs dataset directly. However, I can help you analyze errors if you provide me with:\\n\\n1. **Log data or error logs** - You can share recent log entries, error messages, or export data from your project_logs dataset\\n2. **Specific timeframe** - What does \\"recently\\" mean for your use case? (last hour, day, week?)\\n3. **Error types** - Are you looking for specific error categories, severity levels, or system components?\\n\\n**To get this information yourself, you could:**\\n- Query your project_logs (abc-123) dataset for recent entries with error status\\n- Filter by timestamp for your desired timeframe\\n- Export results in CSV or JSON format\\n- Share that data with me for analysis\\n\\nOnce you provide the data, I can help you:\\n- Identify error patterns\\n- Categorize errors by type or severity\\n- Spot trends over time\\n- Suggest root causes or solutions\\n\\nWould you like to share some log data for me to analyze?","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01U5ew21BjvhDEfq9wzwk98y","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":236,"prompt_tokens":33,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":269}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > toolCallRequest > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","name":"get_weather"},"id":"toolu_vrtx_015Qgfv7vuGwPs8SCbE6E6gD","index":0,"type":"function"}]},"finish_reason":"tool_calls","index":0}],"id":"msg_vrtx_01TetNEbDFXXgi8sKFmZC9wQ","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":57,"prompt_tokens":585,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":642}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: google → chat-completions > complexReasoningRequest > streaming 1`] = `
 "data: {"candidates":[{"content":{"parts":[{"text":""}],"role":"model"},"index":0}],"modelVersion":"gpt-5-nano-2025-08-07","responseId":"chatcmpl-DRi706kb2JWpOZWiGTFmtj9yjVTJF"}
 

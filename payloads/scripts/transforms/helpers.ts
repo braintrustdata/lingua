@@ -25,13 +25,15 @@ import {
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
+  VERTEX_ANTHROPIC_MODEL,
 } from "../../cases/models";
 
 export type SourceFormat =
   | "chat-completions"
   | "responses"
   | "anthropic"
-  | "google";
+  | "google"
+  | "vertex-anthropic";
 export type WasmFormat = "OpenAI" | "Responses" | "Anthropic" | "Google";
 
 export interface TransformPair {
@@ -134,6 +136,7 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_request,
   anthropic: validate_anthropic_request,
   google: validate_google_request,
+  "vertex-anthropic": validate_anthropic_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
@@ -141,6 +144,7 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   responses: validate_responses_response,
   anthropic: validate_anthropic_response,
   google: validate_google_response,
+  "vertex-anthropic": validate_anthropic_response,
 };
 
 interface TransformResultData {
@@ -249,6 +253,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
+  "vertex-anthropic": VERTEX_ANTHROPIC_MODEL,
 };
 
 export function getTargetModelForCase(
@@ -360,6 +365,12 @@ export const STREAMING_PAIRS: TransformPair[] = [
     target: "chat-completions",
     wasmSource: "Google",
     wasmTarget: "OpenAI",
+  },
+  {
+    source: "chat-completions",
+    target: "vertex-anthropic",
+    wasmSource: "OpenAI",
+    wasmTarget: "Anthropic",
   },
 ];
 
