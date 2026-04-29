@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Da43BfmgyonCMq2T9lcSkTNlWalMh",
+  "object": "chat.completion",
+  "created": 1777487749,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Nice image. What would you like to do next? Here are some options. Pick one (or tell me your goal) and I’ll help.\n\n- Caption ideas for social media\n  Funny:\n  - \"Just another day of expert lounging.\"\n  - \"I wasn’t sleeping, I was posing.\"\n  - \"If I fits, I sits.\" \n  - \"Table, meet fur-iture.\"\n  Cute:\n  - \"Chillin’ in the sun and soaking up the vibes.\"\n  - \"Head tilted, heart full.\"\n  - \"Paws on the table, paws-itively adorable.\"\n  Wholesome:\n  - \"Home is where my paws rest.\"\n  - \"A calm moment with my favorite human.\"\n  - \"Curious eyes, cozy life.\"\n- Alt text for accessibility\n  - “A tabby cat with amber eyes lying on a wooden table, front paws stretched forward, head tilted, indoors with a blurred background.”\n- Quick photo edit tips\n  - Crop to place the eyes near the top third of the frame (rule of thirds).\n  - Slightly boost sharpness on the eyes, and adjust white balance to emphasize warm wood tones.\n  - Increase contrast a touch to make the cat pop against the background.\n  - If needed, blur the background a bit more to reduce distractions.\n- Short story or caption in a particular style (romantic, humorous, etc.)\n- Use in a blog or product page (SEO-friendly caption): I can craft a caption that includes keywords like “cat photo,” “tabby cat,” “home decor,” etc.\n\nIf you tell me which option you want, I’ll generate specific captions, edits, or text tailored to your goal.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 395,
+    "completion_tokens": 1575,
+    "total_tokens": 1970,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1216,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

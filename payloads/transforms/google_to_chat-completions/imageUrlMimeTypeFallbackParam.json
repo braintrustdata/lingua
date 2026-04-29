@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Da43PbF4DOvFoQFx0wA2eNJc93lCo",
+  "object": "chat.completion",
+  "created": 1777487763,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A domestic short-haired tabby cat lies on a polished wooden surface, resting its front paws and tilting its head. It has gray-brown striped fur, big amber eyes, a pink nose, and long white whiskers. The background is softly blurred, suggesting an indoor room, giving a cozy, candid moment.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 317,
+    "completion_tokens": 458,
+    "total_tokens": 775,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

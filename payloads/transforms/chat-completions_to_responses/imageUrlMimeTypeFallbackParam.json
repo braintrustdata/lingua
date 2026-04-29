@@ -1,0 +1,78 @@
+{
+  "id": "resp_037275c675122e4e0069f24f93c408819f808282ec47178efe",
+  "object": "response",
+  "created_at": 1777487764,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1777487769,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_037275c675122e4e0069f24f94bdf0819fb5c085e6e52cb974",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_037275c675122e4e0069f24f993600819fa2278e74d188f072",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "A cute tabby cat with striped fur is lying on a warm wooden surface, front paws crossed and head tilted, looking directly at the camera with big amber eyes. Its ears are perked and whiskers are prominent, giving a curious, relaxed expression. The background is softly blurred, suggesting an indoor setting with furniture."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 316,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 511,
+    "output_tokens_details": {
+      "reasoning_tokens": 384
+    },
+    "total_tokens": 827
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "A cute tabby cat with striped fur is lying on a warm wooden surface, front paws crossed and head tilted, looking directly at the camera with big amber eyes. Its ears are perked and whiskers are prominent, giving a curious, relaxed expression. The background is softly blurred, suggesting an indoor setting with furniture."
+}

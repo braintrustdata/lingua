@@ -1,0 +1,78 @@
+{
+  "id": "resp_0aa36e242864a86a0069f24f9835d481a3bdc77bf88f84df2e",
+  "object": "response",
+  "created_at": 1777487768,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1777487773,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0aa36e242864a86a0069f24f9937fc81a3b6d293dd123d1bdd",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0aa36e242864a86a0069f24f9d011081a38026e61bd573f9d4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "A cute tabby cat lies stretched out on a wooden surface, facing the camera. It has striped brown-gray fur, large amber eyes, and long white whiskers. Its front paws are extended forward, and its head is slightly tilted to the side, with a soft, indoor background blurred behind it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 316,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 460,
+    "output_tokens_details": {
+      "reasoning_tokens": 384
+    },
+    "total_tokens": 776
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "A cute tabby cat lies stretched out on a wooden surface, facing the camera. It has striped brown-gray fur, large amber eyes, and long white whiskers. Its front paws are extended forward, and its head is slightly tilted to the side, with a soft, indoor background blurred behind it."
+}

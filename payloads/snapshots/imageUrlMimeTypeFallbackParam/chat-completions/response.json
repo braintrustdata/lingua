@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Da436vOunFgj1mgi3l2JZ9hywDDek",
+  "object": "chat.completion",
+  "created": 1777487744,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A tabby cat is lounging on a smooth wooden table, with its front paws stretched forward. It has striped brown/gray fur, long white whiskers, and large amber eyes that are looking toward the camera with a curious, tilted head. The background is softly blurred, suggesting an indoor, home setting.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 317,
+    "completion_tokens": 456,
+    "total_tokens": 773,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 384,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -1,0 +1,22 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "This is a charming and close-up portrait of a domestic tabby cat, captured with a shallow depth of field that puts the cat in sharp focus against a soft, blurred background.\n\nThe cat is lying down on a light-colored wooden surface, likely a floor or tabletop. Its head is prominently featured, tilted significantly to its left (the viewer's right), which gives it a highly curious and engaging expression.\n\nKey features of the cat include:\n*   **Fur:** It has soft, medium-length fur with classic brown and dark grey tabby stripes and swirls, particularly noticeable on its head, ears, and visible paw.\n*   **Eyes:** Its most striking features are its large, round, and luminous amber-yellow eyes. The pupils are widely dilated, reflecting bright light sources (possibly windows), which gives it an alert, wide-eyed, and almost surprised or intensely focused look.\n*   **Nose:** A small, delicate pinkish-brown nose is visible at the center of its face.\n*   **Whiskers:** Long, prominent white whiskers fan out from its muzzle, adding to its expressiveness.\n*   **Ears:** Its pointed ears are perked up, further conveying alertness and attention.\n*   **Paws:** One striped paw is visible in the foreground, resting gently on the wooden surface.\n\nThe background on the left side is a soft, blurry expanse of light blue-grey, suggesting a plain wall. The background on the right is a blur of darker, indistinct shapes and colors, hinting at furniture or shelves in an indoor environment.\n\nThe overall impression is one of adorable curiosity and direct engagement, with the cat's tilted head and wide eyes making it appear deeply interested in something, likely the camera or the viewer."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "candidatesTokenCount": 366,
+    "thoughtsTokenCount": 1109
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "k0_yafK-CZ3c_uMP3-HdgAg"
+}
