@@ -1,0 +1,32 @@
+{
+  "anthropic_version": "vertex-2023-10-16",
+  "max_tokens": 20000,
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 1024
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Think briefly, then answer with exactly this sentence: Signature captured."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "The user is asking me to think briefly and then respond with exactly the sentence \"Signature captured.\"\n\nThis is a straightforward instruction. They want me to:\n1. Think briefly (which I'm doing now)\n2. Answer with exactly this sentence: \"Signature captured.\"\n\nI should follow these instructions exactly as given.",
+          "signature": "EoEECmUIDRACGAIqQJXcCeCvCPzKEXDnPpQmaF9nF1qMDyc0XTr4tdEY4qBxydsH3h/ZOYtuSBksqmvPzPbiXxNIc/UB/N0FKOcE8qAyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIM3zRVqIw4xfMxUg8cGgweO89WD53n0BTP+2YiMIujckjgpXq9WHMW6lA8BZyRXtUzu8x3RIwsmYfhczXLKvdseqdukfJdvaUPfl/YAirJAmFbu555LBZZG8+TM8I6RZIFVLeMSAqKERSv0igFl5jOrHdcCxM7YEpEPMAB1hepGrKm2t2aO57AeR/gwlc6BcJsLY9rO5JySGHIaZuV7sbHRVTq+49snjUDldEwuI4j+aTlj57HoRVOYneQpfc7z3GvgvF+/6H99b8+Oo7lO0EYvOiDnGAmS2Ol+9oKgeOCD88zL1xOIT4CTNJzah+zPW7b4qkCLklJ1XZqsESj7X0XRK4vc0rJt5a2QPY4j28jaErgD1KTYPyp5bgNGH5qDxjJpsbo42wZ12XwksskY8W9CR4+TWZUvu39uBelhwMEYNR/yQoaS1ltl7yu2q8iL/EOR4WhTvtkH8//o9ii3Ih9W1jWb8fZKpNElJfzJlmZ/UMHc8U03CsfYIuq+wT6cvTXXNY3/as+ZdpKiRyArnasDII5mvJLxfayGAE="
+        },
+        {
+          "type": "text",
+          "text": "Signature captured."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

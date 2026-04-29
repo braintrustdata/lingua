@@ -1,0 +1,30 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "id": "msg_vrtx_01NkVzeai5h2kFaLt3PpxKKG",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The user is asking what they should do next. However, I was given specific instructions in the first message to \"Think briefly, then answer with exactly this sentence: Signature captured.\"\n\nThat instruction was specifically about how to respond to the first prompt. The user is now asking a follow-up question, which is a new context. I should not be bound to repeat that same sentence for every response - that instruction was for that specific situation.\n\nHowever, let me reconsider. The user might be testing whether I'll blindly follow the initial instruction for all subsequent responses. That would not be helpful. I should respond naturally to this new question.\n\nI should provide a helpful response about what they might do next, since I don't have specific context about what preceded the \"signature captured\" response. I'll ask for clarification or provide general helpful guidance.",
+      "signature": "EsQICmUIDRACGAIqQOkDdkvRyH5/bk2tw1K3Nr97nHXPiWkZ+7pTb59RBWiJk++PrVhYFcW86lqI6x1FA6lC5xYD7+wVQmTHrZJXTqQyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMk92GUvhlyC655k+sGgyK1IbTDoDn+HJB1hYiMEU60bHEz5TbslBmsonHLu/TUM+krBRVdJuRJJCOWFupsXyiIzdqoKZzalNPBKATXCqMByiRauWeVsnDBsKSyLQ7e+NMyGlqcXQ3/buF/whxdLx0nDxMH/MWMqYLsohXplN14jDmiYyudv6c8ACe8KUDQk4v9lTYYS8akMqJIVtNxsP30CuMD2zumlO8mghanIfp/sOT6oa1Ot/vGXEcMjUlDJxY6SvmmXz+CANIAzwYGkiy/3B9B6t+WoUjtd8hiKdVWZg1+9OejQiUyA2olkSQwZlCPvJ0MtdXSqiIYyL6gO6kAX5/9dGcx69Lu/UcqPBiMqcAHEce+iZztK68yUCifHTkfdwjCmHEisVJMqTShicNUOy76vp2pGsBQqwYpUv5vVRR0WQZnzUkRJg/DNg/Xdt2FkL2siiWsOkD58VqDhlAg3rE5BuY/M5djHhWGpzzPD8SB/06xGIjuNfpDvvgjciwiaM6zrBFo+EgRGgRIdAZsdx55+1TvtInY1/w1W0o60JJkxwF3jkid/8yO6gMIqjFJyKbflVZrK3GWwE6PZ/faaG+Hc4PiYxczv9UmKhbou0E4ao/bnagj5PsP7/JtrTCLaS1L/Tg6fcxb04TNcpvVa/5c52VaUOzwoAx7yOy1UIhsAmSG1J7ckf39dJevvysiG+++JGJQUvDaIDzJMeb8q6X2N08QOJX4f8EhJ8bH5Npj2go1Js2FFdqM+tbroXMEmN26sQX6puZ4Dt7ZKMUrhv/yt9cLbAjxUMYFrKx5zdMfP2Rffhn+4KDrcI2Gze1tvZTZZd9y+UgIKsDttrM9doDB/xvKtpFn5h1cj2ath1sY5L06D3O68OFt7pXr6w/Ze/Y2Db3ZStuMw5ynPir/MHwEO7bbrN7P7fhY0CEBWP2/8io3SeoOvKWk0I3TUqpQwcDGx+kU5PdpsCQawA7F/NFu1/JMGjVkZ9PT+dYFHwV3cWlq8WG4h7BwEsz4wrZrJNUxdTd5HajJGRMh18OJAL0xetEYw/pcARe3PYrGjUbqdrqro/aBw3IghAPGLm8peFrfImXcsBWxUI1/ftUXmNOCNXGNrBqN7YX+R0Nx+q05iuOiEaVZjPNOQWJ+cB91Y4tuKv8/+U7rNRV0HWXKh6ZoPiqWBtRyWCPqafXNotUuYkL71SpiO7lAo/1UA9AjUvdA6RiNEWTCPnkk+5XercmuPyuXQMJu/8P10lM3ZOBAxC4Icto3Mhtu185ROuBm6OiL5icHQFKi4UQ1wt0MM3Zpf2DgK/7lQV3GAE="
+    },
+    {
+      "type": "text",
+      "text": "I don't have context about what process you're in. Could you provide more details about what you're working on? For example:\n\n- Are you signing a document?\n- Is this part of a software application?\n- Are you completing a form?\n\nWith more information, I can give you better guidance on the next steps."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 66,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 256
+  }
+}

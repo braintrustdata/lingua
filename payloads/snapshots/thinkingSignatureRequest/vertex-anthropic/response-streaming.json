@@ -1,0 +1,32 @@
+[
+  {
+    "model": "claude-haiku-4-5-20251001",
+    "id": "msg_vrtx_01F55uSN1tGuSzzdht8aevtP",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user is asking me to think briefly and then respond with exactly the sentence \"Signature captured.\"\n\nThis seems like a straightforward request. They want me to acknowledge something and then provide that specific response. Let me think briefly as requested and then provide the exact sentence they asked for.",
+        "signature": "EoAECmUIDRACGAIqQNgjdoPlcQkWCscTsimhcJtjhvwOmkgLzOW7cD+iQ3dOZuLDenNZWoYgVd74857CIyn5Ba6KH1FoQV9nIUBxo50yGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMcxG8dvztq9EfQyMgGgxeE8Mu44yEuGFnoXoiMB7EPDovVKw34JZdT8ocKptndMttNN3/j4HKQ22D8hcRhKB/T+xCPZ2UDDCa7e+cLirIAkf+CmqXu8e4exI5RYEeRAmzBaryctnS+fCuvJjjPyc5X9NPlM9LdIoOFYCuIRtsDgUVjA4/cOjy186PziuGxLlREeMUQz7AupKS4iwswhQwVnh+JUltWGeHIoeql+8EkXaqqs6J/pV4/3OaelLQnI69ooMhf9cQ9yQBziinikhmgwnpbPdZVJRd+/EKw3480IVF+zcD2rW0gXlYgXnY95tdNrxWtkVZYeG5hHJMV/MAkMka2Pz/2hLf3iDlovQ8qsNqHoSRT07/0pdLH/j+zMC+/SIpPPyw/TXmTYc9k8sQGWEEYo1FY2Nxb7iwxYeqsMpJ+je/xXDj7KElpIZlkUGm3oBLZSzWoobIT2NlgUY4PuupeYNaxlfOKiiAy8ud2SbdeyE8j+gh21fHb38mf5VmzP5nT5z0NMYkj+aOlBeahKRE5w2tRrMYAQ=="
+      },
+      {
+        "type": "text",
+        "text": "Signature captured."
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "stop_details": null,
+    "usage": {
+      "input_tokens": 50,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 73
+    }
+  }
+]

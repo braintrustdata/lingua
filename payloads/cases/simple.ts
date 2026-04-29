@@ -270,6 +270,30 @@ export const simpleCases: TestCaseCollection = {
     },
   },
 
+  thinkingSignatureRequest: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": null,
+    "vertex-anthropic": {
+      model: VERTEX_ANTHROPIC_MODEL,
+      max_tokens: 20_000,
+      thinking: {
+        type: "enabled",
+        budget_tokens: 1024,
+      },
+      messages: [
+        {
+          role: "user",
+          content:
+            "Think briefly, then answer with exactly this sentence: Signature captured.",
+        },
+      ],
+    },
+  },
+
   simpleRequestTruncated: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

@@ -401,6 +401,72 @@ export function buildSse(rawChunks: unknown[], wasmSource: WasmFormat): string {
   return body.concat(session.finishSse()).join("");
 }
 
+export interface ParsedSseEvent {
+  event?: string;
+  data: unknown;
+}
+
+export function parseSseEvents(sse: string): ParsedSseEvent[] {
+  return sse
+    .trim()
+    .split("\n\n")
+    .filter((eventBlock) => eventBlock.trim() !== "")
+    .flatMap((eventBlock) => {
+      const lines = eventBlock.split("\n");
+      const event = lines
+        .find((line) => line.startsWith("event: "))
+        ?.slice("event: ".length);
+      const data = lines
+        .filter((line) => line.startsWith("data: "))
+        .map((line) => line.slice("data: ".length))
+        .join("\n");
+
+      if (data === "" || data === "[DONE]") {
+        return [];
+      }
+
+      return {
+        event,
+        data: JSON.parse(data),
+      };
+    });
+}
+
+export function hasJsonString(
+  value: unknown,
+  key: string,
+  expected: string
+): boolean {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  return Object.entries(value).some(([childKey, child]) => {
+    if (childKey === key && child === expected) {
+      return true;
+    }
+    return hasJsonString(child, key, expected);
+  });
+}
+
+export function findJsonString(
+  value: unknown,
+  key: string
+): string | undefined {
+  if (typeof value !== "object" || value === null) {
+    return undefined;
+  }
+  for (const [childKey, child] of Object.entries(value)) {
+    if (childKey === key && typeof child === "string") {
+      return child;
+    }
+    const nested = findJsonString(child, key);
+    if (nested) {
+      return nested;
+    }
+  }
+  return undefined;
+}
+
 async function readJsonRequest(req: IncomingMessage): Promise<unknown> {
   const chunks: Uint8Array[] = [];
 
