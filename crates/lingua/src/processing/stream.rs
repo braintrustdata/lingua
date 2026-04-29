@@ -66,6 +66,10 @@ impl StreamTransformSession {
         }
     }
 
+    pub fn target_format(&self) -> ProviderFormat {
+        self.target_format
+    }
+
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
         let step = transform_stream_chunk_step(input, self.target_format)?;
 
@@ -81,6 +85,7 @@ impl StreamTransformSession {
             step.source_format,
             self.target_format,
             step.universal.as_ref(),
+            step.source_is_native_stream,
             self.anthropic_message_started,
         )?;
         Ok(self.process_chunks(chunks))
@@ -288,6 +293,7 @@ fn build_session_chunks(
     source_format: ProviderFormat,
     target_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
+    source_is_native_stream: bool,
     anthropic_message_started: bool,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let mut chunks = expand_transform_result(result)?;
@@ -296,6 +302,7 @@ fn build_session_chunks(
             chunks,
             source_format,
             universal,
+            source_is_native_stream,
             anthropic_message_started,
         ));
     }
@@ -306,9 +313,10 @@ fn expand_anthropic_session_chunks(
     mut chunks: Vec<StreamOutputChunk>,
     source_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
+    source_is_native_stream: bool,
     anthropic_message_started: bool,
 ) -> Vec<StreamOutputChunk> {
-    if source_format == ProviderFormat::Anthropic {
+    if source_format == ProviderFormat::Anthropic && source_is_native_stream {
         return chunks;
     }
 
@@ -397,11 +405,29 @@ fn expand_anthropic_session_chunks(
     }
 
     if has_finish {
-        if let Some(content) = delta_view
+        let content = delta_view
             .as_ref()
             .and_then(|d| d.content.as_deref())
-            .filter(|s| !s.is_empty())
-        {
+            .filter(|s| !s.is_empty());
+        let is_full_anthropic_response =
+            source_format == ProviderFormat::Anthropic && !source_is_native_stream;
+
+        if is_full_anthropic_response && !anthropic_message_started {
+            out.push(StreamOutputChunk::with_event(
+                anthropic_message_start_bytes(universal),
+                "message_start".to_string(),
+            ));
+            if content.is_some() {
+                out.push(StreamOutputChunk::with_event(
+                    Bytes::from_static(
+                        br#"{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}"#,
+                    ),
+                    "content_block_start".to_string(),
+                ));
+            }
+        }
+
+        if let Some(content) = content {
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",
@@ -414,6 +440,16 @@ fn expand_anthropic_session_chunks(
                 .unwrap_or_else(|_| Bytes::new()),
                 "content_block_delta".to_string(),
             ));
+            if is_full_anthropic_response && !anthropic_message_started {
+                out.push(StreamOutputChunk::with_event(
+                    serialize_stream_value(&crate::serde_json::json!({
+                        "type": "content_block_stop",
+                        "index": choice.map(|c| c.index).unwrap_or(0),
+                    }))
+                    .unwrap_or_else(|_| Bytes::new()),
+                    "content_block_stop".to_string(),
+                ));
+            }
         }
         out.append(&mut chunks);
         out.push(StreamOutputChunk::with_event(
@@ -724,6 +760,57 @@ mod tests {
         let second = session.push(tool_args).unwrap();
         assert_eq!(second.len(), 1);
         assert_eq!(second[0].event_type.as_deref(), Some("content_block_delta"));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_stream_session_expands_full_anthropic_response_for_anthropic_target() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let full_response = to_bytes(&json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "text",
+                "text": "Hello from Vertex"
+            }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        }));
+
+        let mut out = session.push(full_response).unwrap();
+        out.extend(session.finish());
+
+        let event_types = out
+            .iter()
+            .map(|chunk| chunk.event_type.as_deref())
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            event_types,
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta"),
+                Some("content_block_stop"),
+                Some("message_delta"),
+                Some("message_stop"),
+            ]
+        );
+
+        let delta: Value = crate::serde_json::from_slice(&out[2].data).unwrap();
+        assert_eq!(
+            delta
+                .get("delta")
+                .and_then(|d| d.get("text"))
+                .and_then(Value::as_str),
+            Some("Hello from Vertex")
+        );
     }
 
     #[test]

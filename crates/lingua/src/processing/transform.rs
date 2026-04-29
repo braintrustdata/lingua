@@ -149,6 +149,7 @@ impl TransformResult {
 pub(crate) struct StreamTransformStep {
     pub(crate) result: TransformResult,
     pub(crate) source_format: ProviderFormat,
+    pub(crate) source_is_native_stream: bool,
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
@@ -430,7 +431,6 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                 tool_calls,
                 reasoning,
                 reasoning_signature,
-                ..Default::default()
             }
         }
     }
@@ -468,6 +468,7 @@ pub(crate) fn transform_stream_chunk_step(
     let detection = detect_adapter_with_kind(&chunk, DetectKind::Stream)?;
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
+    let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -483,6 +484,7 @@ pub(crate) fn transform_stream_chunk_step(
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(input),
             source_format,
+            source_is_native_stream,
             universal,
             event_type,
             is_passthrough: true,
@@ -504,6 +506,7 @@ pub(crate) fn transform_stream_chunk_step(
             source_format,
         },
         source_format,
+        source_is_native_stream,
         universal,
         event_type: None,
         is_passthrough: false,
