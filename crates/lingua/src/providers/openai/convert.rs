@@ -801,6 +801,11 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         content: vec![ToolContentPart::ToolResult(tool_result)],
                     });
                 }
+                Some(openai::InputItemType::ItemReference) => {
+                    // item_reference items are stateful pointers to previous response items
+                    // managed server-side by OpenAI. The universal format has no equivalent,
+                    // so skip them.
+                }
                 _ => {
                     let role = input
                         .role
