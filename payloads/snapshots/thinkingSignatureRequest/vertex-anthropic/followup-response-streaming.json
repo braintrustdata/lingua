@@ -1,0 +1,32 @@
+[
+  {
+    "model": "claude-haiku-4-5-20251001",
+    "id": "msg_vrtx_01W9BSB1kUE9qRnVKRdKgiHe",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user is asking what they should do next, but there's no context about what they're trying to accomplish. They previously asked me to respond with \"Signature captured\" which I did.\n\nHowever, I was instructed to respond with exactly that sentence for the previous request. For this new question, I don't have specific instructions to respond with a particular sentence.\n\nWithout knowing the context of what \"signature captured\" refers to, I can only provide general guidance. This could relate to:\n- A document signing process\n- A digital transaction\n- A biometric process\n- Or something else entirely\n\nI should provide helpful, general next steps that might be appropriate after capturing a signature.",
+        "signature": "EogHCmUIDRACGAIqQJsoylupTCs5y797sJ7mdJA71cF6QUuL6T/pSD8fPz3vxQzvGwpzFCAn1nFeiFrna5IiGY1FvLiaXiWxsHS3kqEyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMwJKRlCvhrjQlWOIsGgyR/ZgixZQ+a3KUv1ciMEQ1GAV4b6wQcy1nH2L5YtXU6CQs0Po82nicPnHTQPTlznBNf3I4qAA4Pguf0+OgvSrQBfomdr26tPyvFTC4GKevDbh1zH3Th0qN0ZQvWPVX1RTobhYaaYJ7ygChz7CX6WOb867B10G6cuiUOOwZwEWVJaNmProXakj5Tv/UlyRBIJ46dwJCRXtaqdWBtoy50iWiMfp4ARNIT5Iaalle7MrJ3bOztJ4KK3kGCc9XsYTz+wlbLx8pobHLhT9jimY7q3x2F8zz10OvkNQmm95wNIu+5fXI8JOz7jQqy0iGJptSVdjp8OxRmNdlGe+JVAWVoxI3NmwmAGmWbglQwBWYG3Ch8ZStnJ4VghadyjX/x+nOBx6vqwX/m0n9oG/jxNX624mru3XuiXGUeFUSJGXBTLBakh2bgEY6JdZqTg9eGVHCBDPmxlZajair2vafeH/rOXUYdhslRezNWe0O+b9fYbpDwsEWQXCaTtSEWq3DMA3LZhYl6l7pub+rHbd+p/WUYJh0qVi4gxpDGbfQ3BeeZv5F68UMBikcfS2k+pHMpvit+cpI9Nnem7i7Z9hvrq5TYiQzrMKz9EOGpdOgSffarFzlvVW8/fp5SCfupaSZb6WKOroxXQua0yUU6MD0Rwt01gjFur2YTe370964ZSCWGkMhjEav6y8h12LlR7H9pW25UxamXPYGjebjvpcKUX5j7VFqOZw+w1ZIdxXfRnfL6tB3clMHRVumyOISONH0+ceSwyAe2enATCGhu7v1n5quJoFuiFPVaDMqst8nuz5E/76cOjOM+qa+HZBBYsDimDZ4d/LVs0RfqJ8WdaliENAl2uz6MUJ3lPpKn0uxrRNqTsJoVSlvO3S6wOrkoscS2/9AouWkqtHu3gztD2rdliMXJaJkBFy3fKczJ1YTN7zmZxonPeKOV/jtF5z67rs/YfYtsmYs7QVX/xU4uSTVHGnYAkluVxBqJA6OBhemsG8LxXzbMdTEOS7esthZMWSBVBC6coaXbUPE4PSlJ7N6ygUjCjNQPBgB"
+      },
+      {
+        "type": "text",
+        "text": "I don't have enough context to give you specific next steps. Could you tell me what you're working on? For example:\n\n- Are you signing a document? (You might need to submit/send it)\n- Is this part of a digital form? (You may need to confirm or proceed to the next section)\n- Are you completing a transaction? (You might need to wait for processing or confirmation)\n\nPlease share more details so I can give you better guidance!"
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "stop_details": null,
+    "usage": {
+      "input_tokens": 66,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 252
+    }
+  }
+]

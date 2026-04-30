@@ -1656,6 +1656,62 @@ exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`]
 }
 `;
 
+exports[`anthropic → chat-completions > toolResultConversationRequest > request 1`] = `
+{
+  "max_completion_tokens": 20000,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{"location":"San Francisco, CA"}",
+            "name": "get_weather",
+          },
+          "id": "toolu_weather",
+          "type": "function",
+        },
+      ],
+    },
+    {
+      "content": [
+        {
+          "text": "Give me the answer in one sentence.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "Get the current weather for a location",
+        "name": "get_weather",
+        "parameters": {
+          "properties": {
+            "location": {
+              "description": "The city and state, e.g. San Francisco, CA",
+              "type": "string",
+            },
+          },
+          "required": [
+            "location",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
 exports[`anthropic → chat-completions > topKParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -4106,6 +4162,72 @@ exports[`anthropic → google > toolChoiceRequiredParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → google > toolResultConversationRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "id": "toolu_weather",
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "text": "Give me the answer in one sentence.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 20000,
+    "responseSchema": null,
+  },
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
 exports[`anthropic → google > topKParam > request 1`] = `
 {
   "contents": [
@@ -6130,6 +6252,54 @@ exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
     "input_tokens": 41,
     "output_tokens": 265,
   },
+}
+`;
+
+exports[`anthropic → responses > toolResultConversationRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "toolu_weather",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "content": [
+        {
+          "text": "Give me the answer in one sentence.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 20000,
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
 }
 `;
 
@@ -8758,6 +8928,64 @@ exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam >
     },
     "total_tokens": 692,
   },
+}
+`;
+
+exports[`chat-completions → anthropic > toolResultConversationRequest > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_weather",
+          "input": {
+            "location": "San Francisco, CA",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "65 F and sunny",
+          "tool_use_id": "call_weather",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": "Give me the answer in one sentence.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+    },
+  ],
 }
 `;
 
@@ -11468,6 +11696,80 @@ Okay, here's the situation: the user needs the weather for Tokyo. Thankfully, I 
 }
 `;
 
+exports[`chat-completions → google > toolResultConversationRequest > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_weather",
+            "response": {
+              "output": "65 F and sunny",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "Give me the answer in one sentence.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get the current weather for a location",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "location": {
+                "description": "The city and state, e.g. San Francisco, CA",
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
 exports[`chat-completions → google > topPParam > request 1`] = `
 {
   "contents": [
@@ -14062,6 +14364,53 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
     },
     "total_tokens": 464,
   },
+}
+`;
+
+exports[`chat-completions → responses > toolResultConversationRequest > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather like in San Francisco?",
+      "role": "user",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "call_weather",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_weather",
+      "output": "65 F and sunny",
+      "type": "function_call_output",
+    },
+    {
+      "content": "Give me the answer in one sentence.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Get the current weather for a location",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "description": "The city and state, e.g. San Francisco, CA",
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
 }
 `;
 

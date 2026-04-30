@@ -10,6 +10,34 @@ use reqwest::Response;
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
+#[cfg(feature = "tracing")]
+fn log_stream_transform_detection_failure(data: &Bytes, output_format: ProviderFormat) {
+    let (payload_type, payload_keys) =
+        lingua::serde_json::from_slice::<lingua::serde_json::Value>(data)
+            .ok()
+            .map(|value| {
+                let payload_type = value
+                    .get("type")
+                    .and_then(lingua::serde_json::Value::as_str)
+                    .unwrap_or("")
+                    .to_string();
+                let payload_keys = value
+                    .as_object()
+                    .map(|obj| obj.keys().cloned().collect::<Vec<_>>().join(","))
+                    .unwrap_or_default();
+                (payload_type, payload_keys)
+            })
+            .unwrap_or_default();
+
+    tracing::info!(
+        router.stream.input_bytes = data.len(),
+        router.stream.output_format = %output_format,
+        router.stream.payload_type = payload_type,
+        router.stream.payload_keys = payload_keys,
+        "router stream transform unable to detect format"
+    );
+}
+
 /// A single chunk in a streaming response, carrying the JSON data and
 /// an optional SSE event type (e.g. `"message_start"` for Anthropic).
 #[derive(Debug, Clone)]
@@ -55,10 +83,17 @@ pub fn sse_stream(response: Response) -> RawResponseStream {
 /// This is the central transformation point for all streaming responses.
 /// It takes raw bytes from any provider and transforms them using lingua.
 /// The stream yields pre-serialized bytes.
-pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -> ResponseStream {
+pub fn transform_stream(
+    raw: RawResponseStream,
+    output_format: ProviderFormat,
+    allow_full_response_fallback: bool,
+) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
-        session: lingua::StreamTransformSession::new(output_format),
+        session: lingua::StreamTransformSession::with_full_response_fallback(
+            output_format,
+            allow_full_response_fallback,
+        ),
         pending: Vec::new(),
         done: false,
     })
@@ -93,7 +128,7 @@ impl Stream for SessionTransformStream {
                         continue;
                     }
 
-                    match this.session.push(data) {
+                    match this.session.push(data.clone()) {
                         Ok(chunks) => {
                             this.pending.extend(chunks.into_iter().map(|chunk| {
                                 Ok(StreamChunk {
@@ -107,6 +142,12 @@ impl Stream for SessionTransformStream {
                             continue;
                         }
                         Err(lingua::TransformError::UnableToDetectFormat) => {
+                            #[cfg(feature = "tracing")]
+                            log_stream_transform_detection_failure(
+                                &data,
+                                this.session.target_format(),
+                            );
+
                             return Poll::Ready(Some(Ok(chunk)));
                         }
                         Err(e) => {
@@ -451,6 +492,7 @@ fn split_event(buffer: &BytesMut) -> Option<(Bytes, BytesMut)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures::StreamExt;
 
     #[test]
     fn extract_json_bytes_from_sse_extracts_data() {
@@ -486,5 +528,26 @@ mod tests {
         assert!(String::from_utf8_lossy(&event).contains("test"));
         buffer = rest;
         assert!(!buffer.is_empty());
+    }
+
+    #[test]
+    fn transform_stream_can_disable_full_response_fallback() {
+        let full_response = Bytes::from_static(
+            br#"{"id":"chatcmpl-test","object":"chat.completion","created":123,"model":"gpt-4","choices":[{"index":0,"message":{"role":"assistant","content":"Hello from a fake stream"},"finish_reason":"stop"}]}"#,
+        );
+        let raw: RawResponseStream = Box::pin(futures::stream::once({
+            let full_response = full_response.clone();
+            async move { Ok(StreamChunk::data(full_response)) }
+        }));
+        let mut stream = transform_stream(raw, ProviderFormat::ChatCompletions, false);
+
+        let first = futures::executor::block_on(stream.next())
+            .expect("stream should yield a chunk")
+            .expect("chunk should be ok");
+        let next = futures::executor::block_on(stream.next());
+
+        assert_eq!(first.data, full_response);
+        assert!(first.event_type.is_none());
+        assert!(next.is_none());
     }
 }

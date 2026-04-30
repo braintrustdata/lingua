@@ -21,7 +21,11 @@ use crate::processing::normalize_json_lone_surrogate_escapes;
 use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
-use crate::universal::{UniversalResponse, UniversalStreamChunk};
+use crate::universal::{
+    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta,
+};
 use serde::de::DeserializeOwned;
 use thiserror::Error;
 
@@ -148,6 +152,7 @@ impl TransformResult {
 pub(crate) struct StreamTransformStep {
     pub(crate) result: TransformResult,
     pub(crate) source_format: ProviderFormat,
+    pub(crate) source_is_native_stream: bool,
     pub(crate) universal: Option<UniversalStreamChunk>,
     pub(crate) event_type: Option<String>,
     pub(crate) is_passthrough: bool,
@@ -357,7 +362,7 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    Ok(transform_stream_chunk_step(input, target_format)?.result)
+    Ok(transform_stream_chunk_step(input, target_format, true)?.result)
 }
 
 fn extract_event_type(value: &Value) -> Option<String> {
@@ -373,23 +378,120 @@ pub(crate) fn serialize_stream_value(value: &Value) -> Result<Bytes, TransformEr
     )?))
 }
 
+fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStreamDelta {
+    match content {
+        AssistantContent::String(text) => UniversalStreamDelta {
+            role: Some("assistant".to_string()),
+            content: Some(text.clone()),
+            ..Default::default()
+        },
+        AssistantContent::Array(parts) => {
+            let mut text = String::new();
+            let mut reasoning = Vec::new();
+            let mut tool_calls = Vec::new();
+            let mut reasoning_signature = None;
+
+            for part in parts {
+                match part {
+                    AssistantContentPart::Text(text_part) => {
+                        text.push_str(&text_part.text);
+                    }
+                    AssistantContentPart::Reasoning {
+                        text,
+                        encrypted_content,
+                    } => {
+                        reasoning.push(UniversalReasoningDelta {
+                            content: Some(text.clone()),
+                        });
+                        if reasoning_signature.is_none() {
+                            reasoning_signature = encrypted_content.clone();
+                        }
+                    }
+                    AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        arguments,
+                        ..
+                    } => {
+                        let tool_call_index = tool_calls.len() as u32;
+                        tool_calls.push(UniversalToolCallDelta {
+                            index: Some(tool_call_index),
+                            id: Some(tool_call_id.clone()),
+                            call_type: Some("function".to_string()),
+                            function: Some(UniversalToolFunctionDelta {
+                                name: Some(tool_name.clone()),
+                                arguments: Some(arguments.to_string()),
+                            }),
+                        });
+                    }
+                    AssistantContentPart::File { .. } | AssistantContentPart::ToolResult { .. } => {
+                    }
+                }
+            }
+
+            UniversalStreamDelta {
+                role: Some("assistant".to_string()),
+                content: (!text.is_empty()).then_some(text),
+                tool_calls,
+                reasoning,
+                reasoning_signature,
+            }
+        }
+    }
+}
+
+fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk {
+    let choices = response
+        .messages
+        .iter()
+        .enumerate()
+        .filter_map(|(index, message)| match message {
+            Message::Assistant { content, .. } => Some(UniversalStreamChoice {
+                index: index as u32,
+                delta: Some(Value::from(assistant_content_to_stream_delta(content))),
+                finish_reason: response.finish_reason.as_ref().map(ToString::to_string),
+            }),
+            Message::System { .. }
+            | Message::Developer { .. }
+            | Message::User { .. }
+            | Message::Tool { .. } => None,
+        })
+        .collect();
+
+    UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
+}
+
 pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
+    allow_full_response_fallback: bool,
 ) -> Result<StreamTransformStep, TransformError> {
     let parsed = parse_json_body(input)?;
     let chunk = parsed.value;
     let chunk_bytes = parsed.bytes;
     let event_type = extract_event_type(&chunk);
 
-    let source_adapter = detect_adapter(&chunk, DetectKind::Stream)?;
+    let detection =
+        detect_adapter_with_kind(&chunk, DetectKind::Stream, allow_full_response_fallback)?;
+    let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
-    let universal = source_adapter.stream_to_universal(chunk)?;
+    let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+    let universal = match detection.kind {
+        DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
+        DetectKind::Response => {
+            let response = source_adapter.response_to_universal(chunk)?;
+            Some(response_to_stream_chunk(response))
+        }
+        DetectKind::Request => {
+            unreachable!("stream detection never falls back to request payloads")
+        }
+    };
 
-    if source_format == target_format {
+    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
         return Ok(StreamTransformStep {
             result: TransformResult::PassThrough(chunk_bytes),
             source_format,
+            source_is_native_stream,
             universal,
             event_type,
             is_passthrough: true,
@@ -411,6 +513,7 @@ pub(crate) fn transform_stream_chunk_step(
             source_format,
         },
         source_format,
+        source_is_native_stream,
         universal,
         event_type: None,
         is_passthrough: false,
@@ -427,10 +530,42 @@ enum DetectKind {
     Stream,
 }
 
+struct AdapterDetection {
+    adapter: &'static dyn ProviderAdapter,
+    kind: DetectKind,
+}
+
 fn detect_adapter(
     payload: &Value,
     kind: DetectKind,
 ) -> Result<&'static dyn ProviderAdapter, TransformError> {
+    detect_adapter_with_kind(payload, kind, true).map(|detection| detection.adapter)
+}
+
+fn detect_adapter_with_kind(
+    payload: &Value,
+    kind: DetectKind,
+    allow_full_response_fallback: bool,
+) -> Result<AdapterDetection, TransformError> {
+    let adapter = detect_adapter_exact(payload, kind);
+    if let Some(adapter) = adapter {
+        return Ok(AdapterDetection { adapter, kind });
+    }
+
+    // Vertex will possibly respond with a response payload for streaming requests, so we need to detect that.
+    if matches!(kind, DetectKind::Stream) && allow_full_response_fallback {
+        if let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
+            return Ok(AdapterDetection {
+                adapter,
+                kind: DetectKind::Response,
+            });
+        }
+    }
+
+    Err(TransformError::UnableToDetectFormat)
+}
+
+fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dyn ProviderAdapter> {
     adapters()
         .iter()
         .find(|a| match kind {
@@ -439,7 +574,6 @@ fn detect_adapter(
             DetectKind::Stream => a.detect_stream_response(payload),
         })
         .map(|a| a.as_ref())
-        .ok_or(TransformError::UnableToDetectFormat)
 }
 
 /// Check if a request needs forced translation even when source == target format.
@@ -704,6 +838,128 @@ mod tests {
         let output_bytes = result.into_bytes();
         let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
         assert!(output.get("content").is_some() || output.get("choices").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_detection_falls_back_to_full_response() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "text",
+                "text": "Hello from Vertex"
+            }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+
+        assert!(detect_adapter_exact(&payload, DetectKind::Stream).is_none());
+
+        let detection = detect_adapter_with_kind(&payload, DetectKind::Stream, true).unwrap();
+
+        assert_eq!(detection.adapter.format(), ProviderFormat::Anthropic);
+        assert!(matches!(detection.kind, DetectKind::Response));
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_stream_chunk_accepts_full_anthropic_message() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "text",
+                "text": "Hello from Vertex"
+            }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions).unwrap();
+        let output_bytes = result.into_bytes();
+        let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
+
+        assert_eq!(
+            output
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("delta"))
+                .and_then(|delta| delta.get("content"))
+                .and_then(Value::as_str),
+            Some("Hello from Vertex")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_stream_chunk_accepts_full_anthropic_tool_call_message() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_test",
+                "name": "get_weather",
+                "input": {
+                    "location": "San Francisco, CA"
+                }
+            }],
+            "stop_reason": "tool_use",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 8,
+                "output_tokens": 4
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions).unwrap();
+        let output_bytes = result.into_bytes();
+        let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
+
+        let tool_call = output
+            .get("choices")
+            .and_then(Value::as_array)
+            .and_then(|choices| choices.first())
+            .and_then(|choice| choice.get("delta"))
+            .and_then(|delta| delta.get("tool_calls"))
+            .and_then(Value::as_array)
+            .and_then(|tool_calls| tool_calls.first())
+            .unwrap();
+
+        assert_eq!(
+            tool_call
+                .get("function")
+                .and_then(|function| function.get("name"))
+                .and_then(Value::as_str),
+            Some("get_weather")
+        );
+        assert_eq!(
+            output
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("finish_reason"))
+                .and_then(Value::as_str),
+            Some("tool_calls")
+        );
     }
 
     #[test]

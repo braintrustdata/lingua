@@ -1,0 +1,14 @@
+{
+  "anthropic_version": "vertex-2023-10-16",
+  "max_tokens": 20000,
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 1024
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Think briefly, then answer with exactly this sentence: Signature captured."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "id": "msg_vrtx_013KCdPGNrdTDEi6HpKZuYdu",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The user is asking me to think briefly and then respond with exactly the sentence \"Signature captured.\"\n\nThis seems straightforward. They want me to:\n1. Think briefly (which I'm doing now)\n2. Answer with exactly the sentence: \"Signature captured.\"\n\nLet me comply with this request.",
+      "signature": "EuEDCmUIDRACGAIqQF29VLrbwl0mb+FPoFRCJCofKvSasARAatjPoTtLte3Lr7Mcyh3g8fNilG685IRx7v21CMEz7GwQaGJYrOiXcPIyGWNsYXVkZS1oYWlrdS00LTUtMjAyNTEwMDE4ABIMeQ5n2NeXHv3rgGXqGgwch4W2JNe4l84jpfkiMIoWRn4nSHECQqQinEFzMRbYs3qGU7fbESaPRgsvrkDwh8cEA2OZoRFBfWtx2aikXiqpAqYxgSqwJiR9WfAq+WFDLrESf7Sabdd1XQ2eDFXJ4movCij2WVqTWa7x6YbhvVT0cUrqCrIpKwoZ6zzuBh2EExFZYyWRfPnXNbOlY0TPY8oSATNrQ7y1869GEEpvEibZGP64k5SJMdKnLCAjM4AauNOa7Pf/TIXrOcSQtAjoFVV1Wz9kcdwzjo9vzHOP612VXpVgWB+okccNGxpUmRfzBDhTz1ysvo6UF7CPOOQuXRiQBQGpW5Q85yKIOkNgaVPPOeHLPYXHcQaPusUVzCrV5MVxeYOZbGe+6+YWieciCDYStrfexr+vKa3LjcgvKn1RiNDl4p1QpATSAYg3rUOgUVod/wqGr1ncuuFvr8pVsdZ8j80a7hcMzdNi4twBCv36BnDKHBcG+sCSjhgB"
+    },
+    {
+      "type": "text",
+      "text": "Signature captured."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 50,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 80
+  }
+}
