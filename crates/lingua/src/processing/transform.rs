@@ -16,7 +16,7 @@ use bytes::Bytes;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
-use crate::processing::repair_json_unicode_escapes;
+use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
@@ -230,14 +230,16 @@ pub fn transform_request(
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
-    let payload = parse_json_value(&input)?;
+    let parsed = parse_json_body(input)?;
+    let payload = parsed.value;
+    let request_bytes = parsed.bytes;
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
     if source_adapter.format() == target_format
         && !needs_forced_translation(&payload, model, target_format)
     {
-        return Ok(TransformResult::PassThrough(input));
+        return Ok(TransformResult::PassThrough(request_bytes));
     }
 
     let source_format = source_adapter.format();
@@ -285,12 +287,14 @@ pub fn transform_response(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    let response = parse_json_value(&input)?;
+    let parsed = parse_json_body(input)?;
+    let response = parsed.value;
+    let response_bytes = parsed.bytes;
 
     let source_adapter = detect_adapter(&response, DetectKind::Response)?;
 
     if source_adapter.format() == target_format {
-        return Ok(TransformResult::PassThrough(input));
+        return Ok(TransformResult::PassThrough(response_bytes));
     }
 
     let source_format = source_adapter.format();
@@ -372,7 +376,9 @@ pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<StreamTransformStep, TransformError> {
-    let chunk = parse_json_value(&input)?;
+    let parsed = parse_json_body(input)?;
+    let chunk = parsed.value;
+    let chunk_bytes = parsed.bytes;
     let event_type = extract_event_type(&chunk);
 
     let source_adapter = detect_adapter(&chunk, DetectKind::Stream)?;
@@ -381,7 +387,7 @@ pub(crate) fn transform_stream_chunk_step(
 
     if source_format == target_format {
         return Ok(StreamTransformStep {
-            result: TransformResult::PassThrough(input),
+            result: TransformResult::PassThrough(chunk_bytes),
             source_format,
             universal,
             event_type,
@@ -483,12 +489,39 @@ pub fn parse_json_value(input: &[u8]) -> Result<Value, TransformError> {
     match serde_json::from_slice(input) {
         Ok(value) => Ok(value),
         Err(original) => {
-            let Some(repaired) = repair_json_unicode_escapes(input) else {
+            let Some(repaired) = normalize_json_lone_surrogate_escapes(input) else {
                 return Err(TransformError::DeserializationFailed(original.to_string()));
             };
 
             serde_json::from_slice(&repaired)
                 .map_err(|err| TransformError::DeserializationFailed(err.to_string()))
+        }
+    }
+}
+
+pub struct ParsedJsonBody {
+    pub value: Value,
+    pub bytes: Bytes,
+}
+
+pub fn parse_json_body(input: Bytes) -> Result<ParsedJsonBody, TransformError> {
+    match serde_json::from_slice(&input) {
+        Ok(value) => Ok(ParsedJsonBody {
+            value,
+            bytes: input,
+        }),
+        Err(original) => {
+            let Some(repaired) = normalize_json_lone_surrogate_escapes(&input) else {
+                return Err(TransformError::DeserializationFailed(original.to_string()));
+            };
+
+            let repaired = Bytes::from(repaired);
+            let value = serde_json::from_slice(&repaired)
+                .map_err(|err| TransformError::DeserializationFailed(err.to_string()))?;
+            Ok(ParsedJsonBody {
+                value,
+                bytes: repaired,
+            })
         }
     }
 }
@@ -545,6 +578,38 @@ mod tests {
         // Should return the exact same bytes (pointer equality)
         let output = result.into_bytes();
         assert_eq!(output.as_ptr(), input_ptr);
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_passthrough_repairs_lone_surrogate() {
+        let input = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83D text"}]}"#,
+        );
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(result.is_passthrough());
+        let output = result.into_bytes();
+        assert_eq!(
+            output,
+            Bytes::from_static(
+                br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uFFFD text"}]}"#
+            )
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_rejects_truncated_unicode_escape() {
+        let input = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83"}]}"#,
+        );
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None);
+
+        assert!(matches!(
+            result.unwrap_err(),
+            TransformError::DeserializationFailed(_)
+        ));
     }
 
     #[test]

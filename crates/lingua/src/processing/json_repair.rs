@@ -1,24 +1,22 @@
-//! Narrow JSON string escape repair for malformed unicode escapes.
+//! Narrow JSON string escape normalization for lone surrogates.
 //!
 //! This is intentionally not a generic "JSON repair" utility. It only handles
-//! two cases that otherwise fail before Lingua can deserialize the document:
-//! - truncated `\uXXXX` escape sequences inside JSON strings
-//! - lone UTF-16 surrogate escapes inside JSON strings
+//! escaped lone UTF-16 surrogate code units inside JSON strings.
 //!
 //! The repair strategy is conservative:
 //! - scan the raw JSON bytes without changing document structure
 //! - only touch `\u` escapes inside quoted strings
-//! - replace unrecoverable escapes with `\uFFFD`
+//! - replace lone surrogate escapes with `\uFFFD`
 //! - return `None` if no repair was needed
 //!
 //! Valid surrogate pairs such as `\uD83D\uDE00` are preserved as-is.
 
-/// Repair malformed JSON unicode escapes in-place at the byte level.
+/// Normalize escaped lone surrogates in-place at the byte level.
 ///
 /// The returned bytes remain JSON text. Callers should retry normal JSON
-/// deserialization on the repaired buffer and keep the original error path if
+/// deserialization on the normalized buffer and keep the original error path if
 /// the payload is still invalid for some other reason.
-pub fn repair_json_unicode_escapes(input: &[u8]) -> Option<Vec<u8>> {
+pub fn normalize_json_lone_surrogate_escapes(input: &[u8]) -> Option<Vec<u8>> {
     let mut repaired = Vec::new();
     let mut copy_from = 0usize;
     let mut in_string = false;
@@ -40,24 +38,19 @@ pub fn repair_json_unicode_escapes(input: &[u8]) -> Option<Vec<u8>> {
                     continue;
                 }
 
-                let escape_start = idx + 2;
-                let mut escape_end = escape_start;
-                while escape_end < input.len()
-                    && escape_end < escape_start + 4
-                    && input[escape_end].is_ascii_hexdigit()
-                {
-                    escape_end += 1;
-                }
-
-                if escape_end - escape_start < 4 {
-                    repaired.extend_from_slice(&input[copy_from..idx]);
-                    repaired.extend_from_slice(br#"\uFFFD"#);
-                    copy_from = escape_end;
-                    idx = escape_end;
+                if idx + 6 > input.len() {
+                    idx += 2;
                     continue;
                 }
 
-                let code_unit = parse_hex_code_unit(&input[escape_start..escape_start + 4]);
+                let escape_start = idx + 2;
+                let escape_hex = &input[escape_start..escape_start + 4];
+                if !escape_hex.iter().all(u8::is_ascii_hexdigit) {
+                    idx += 2;
+                    continue;
+                }
+
+                let code_unit = parse_hex_code_unit(escape_hex);
                 let escape_end = idx + 6;
 
                 if is_leading_surrogate(code_unit) {
@@ -135,31 +128,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn repairs_truncated_unicode_escape() {
-        let repaired = repair_json_unicode_escapes(br#"{"x":"bad \uD83"}"#).unwrap();
-        assert_eq!(repaired, br#"{"x":"bad \uFFFD"}"#);
+    fn leaves_truncated_unicode_escape_invalid() {
+        assert!(normalize_json_lone_surrogate_escapes(br#"{"x":"bad \uD83"}"#).is_none());
     }
 
     #[test]
     fn repairs_lone_leading_surrogate() {
-        let repaired = repair_json_unicode_escapes(br#"{"x":"bad \uD83D text"}"#).unwrap();
+        let repaired =
+            normalize_json_lone_surrogate_escapes(br#"{"x":"bad \uD83D text"}"#).unwrap();
         assert_eq!(repaired, br#"{"x":"bad \uFFFD text"}"#);
     }
 
     #[test]
     fn repairs_lone_trailing_surrogate() {
-        let repaired = repair_json_unicode_escapes(br#"{"x":"bad \uDE00 text"}"#).unwrap();
+        let repaired =
+            normalize_json_lone_surrogate_escapes(br#"{"x":"bad \uDE00 text"}"#).unwrap();
         assert_eq!(repaired, br#"{"x":"bad \uFFFD text"}"#);
     }
 
     #[test]
     fn preserves_valid_surrogate_pair() {
-        assert!(repair_json_unicode_escapes(br#"{"x":"ok \uD83D\uDE00"}"#).is_none());
+        assert!(normalize_json_lone_surrogate_escapes(br#"{"x":"ok \uD83D\uDE00"}"#).is_none());
+    }
+
+    #[test]
+    fn repairs_lone_leading_surrogate_before_non_surrogate_escape() {
+        let repaired =
+            normalize_json_lone_surrogate_escapes(br#"{"x":"bad \uD83D\u0041"}"#).unwrap();
+        assert_eq!(repaired, br#"{"x":"bad \uFFFD\u0041"}"#);
     }
 
     #[test]
     fn ignores_non_unicode_escapes_and_structure() {
         let input = br#"{"x":"quote: \" slash: \\ newline: \n"}"#;
-        assert!(repair_json_unicode_escapes(input).is_none());
+        assert!(normalize_json_lone_surrogate_escapes(input).is_none());
     }
 }

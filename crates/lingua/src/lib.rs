@@ -36,10 +36,10 @@ pub use capabilities::ProviderFormat;
 
 // Re-export key processing functions (bytes-based API)
 pub use processing::{
-    extract_model, parse_json_value, parse_stream_event, repair_json_unicode_escapes,
-    response_to_universal, sanitize_payload, transform_request, transform_response,
-    transform_stream_chunk, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession,
-    TransformError, TransformResult,
+    extract_model, normalize_json_lone_surrogate_escapes, parse_json_body, parse_json_value,
+    parse_stream_event, response_to_universal, sanitize_payload, transform_request,
+    transform_response, transform_stream_chunk, ParsedJsonBody, ParsedStreamEvent,
+    StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
 };
 
 // Re-export universal types

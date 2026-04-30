@@ -11,11 +11,12 @@ pub use adapters::{
 };
 pub use dedup::deduplicate_messages;
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
-pub use json_repair::repair_json_unicode_escapes;
+pub use json_repair::normalize_json_lone_surrogate_escapes;
 pub use stream::{
     parse_stream_event, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession,
 };
 pub use transform::{
-    extract_model, parse_json_value, response_to_universal, sanitize_payload, transform_request,
-    transform_response, transform_stream_chunk, TransformError, TransformResult,
+    extract_model, parse_json_body, parse_json_value, response_to_universal, sanitize_payload,
+    transform_request, transform_response, transform_stream_chunk, ParsedJsonBody, TransformError,
+    TransformResult,
 };
