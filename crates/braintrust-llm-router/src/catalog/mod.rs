@@ -21,6 +21,49 @@ pub struct ModelCatalog {
     by_parent: HashMap<String, Vec<String>>,
 }
 
+/// A request-local catalog overlay.
+///
+/// Secret-defined custom models live in `custom` and shadow entries in the
+/// shared `base` catalog. This avoids cloning the base catalog when adding
+/// per-request model definitions.
+#[derive(Debug, Clone)]
+pub struct OverlayModelCatalog {
+    pub base: Arc<ModelCatalog>,
+    pub custom: ModelCatalog,
+}
+
+/// Catalog view used by the router resolver.
+///
+/// `Base` preserves the existing router behavior. `Overlay` checks custom
+/// models first and then falls back to the shared base catalog.
+#[derive(Debug, Clone)]
+pub enum CatalogResolver {
+    Base(Arc<ModelCatalog>),
+    Overlay(OverlayModelCatalog),
+}
+
+impl CatalogResolver {
+    pub fn base_catalog(&self) -> Arc<ModelCatalog> {
+        match self {
+            Self::Base(catalog) => Arc::clone(catalog),
+            Self::Overlay(overlay) => Arc::clone(&overlay.base),
+        }
+    }
+
+    pub fn get(&self, name: &str) -> Option<Arc<ModelSpec>> {
+        match self {
+            Self::Base(catalog) => catalog.get(name),
+            Self::Overlay(overlay) => overlay.custom.get(name).or_else(|| overlay.base.get(name)),
+        }
+    }
+}
+
+impl From<Arc<ModelCatalog>> for CatalogResolver {
+    fn from(catalog: Arc<ModelCatalog>) -> Self {
+        Self::Base(catalog)
+    }
+}
+
 impl ModelCatalog {
     pub fn empty() -> Self {
         Self::default()
