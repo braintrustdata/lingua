@@ -3896,6 +3896,61 @@ mod tests {
     }
 
     #[test]
+    fn item_reference_inputs_are_skipped_during_conversion() {
+        // Reproduces the real sloop payload that triggered the gateway 400:
+        // "Conversion to universal format failed: Missing required field: role"
+        //
+        // When the AI SDK uses the stateful Responses API multi-turn format it sends
+        // item_reference items (pointers to previous response objects) alongside
+        // function_call_output items. item_reference has no `role`, so it previously
+        // fell through to the `_ =>` wildcard which unconditionally required one.
+        let inputs: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "role": "developer",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": [{ "type": "input_text", "text": "What is an eval?" }]
+            },
+            {
+                "type": "item_reference",
+                "id": "rs_0c44fb1b7c3aa2090069f3d9eb300481"
+            },
+            {
+                "type": "item_reference",
+                "id": "fc_0c44fb1b7c3aa2090069f3d9ecf80081"
+            },
+            {
+                "type": "function_call_output",
+                "call_id": "call_BjTKeTsoGfNs4klUOuTqeXxD",
+                "output": "{\"result\": \"An eval is a structured test run.\"}"
+            }
+        ]))
+        .expect("payload should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(inputs)
+            .expect("item_reference items should be skipped, not cause a conversion error");
+
+        let roles: Vec<&str> = messages
+            .iter()
+            .map(|m| match m {
+                Message::Developer { .. } => "developer",
+                Message::User { .. } => "user",
+                Message::Tool { .. } => "tool",
+                Message::Assistant { .. } => "assistant",
+                Message::System { .. } => "system",
+            })
+            .collect();
+
+        assert_eq!(
+            roles,
+            vec!["developer", "user", "tool"],
+            "item_reference items should be silently dropped; function_call_output should become a tool message"
+        );
+    }
+
+    #[test]
     fn chat_completions_file_imports_back_to_text_file() {
         let input = openai::ChatCompletionRequestMessageContentPart {
             text: None,

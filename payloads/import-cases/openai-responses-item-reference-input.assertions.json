@@ -1,8 +1,0 @@
-{
-  "expectedMessageCount": 3,
-  "expectedRolesInOrder": [
-    "user",
-    "tool",
-    "assistant"
-  ]
-}
