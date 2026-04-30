@@ -358,7 +358,7 @@ pub fn transform_stream_chunk(
     input: Bytes,
     target_format: ProviderFormat,
 ) -> Result<TransformResult, TransformError> {
-    Ok(transform_stream_chunk_step(input, target_format)?.result)
+    Ok(transform_stream_chunk_step(input, target_format, true)?.result)
 }
 
 fn extract_event_type(value: &Value) -> Option<String> {
@@ -460,12 +460,14 @@ fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk
 pub(crate) fn transform_stream_chunk_step(
     input: Bytes,
     target_format: ProviderFormat,
+    allow_full_response_fallback: bool,
 ) -> Result<StreamTransformStep, TransformError> {
     let chunk: Value = crate::serde_json::from_slice(&input)
         .map_err(|e| TransformError::DeserializationFailed(e.to_string()))?;
     let event_type = extract_event_type(&chunk);
 
-    let detection = detect_adapter_with_kind(&chunk, DetectKind::Stream)?;
+    let detection =
+        detect_adapter_with_kind(&chunk, DetectKind::Stream, allow_full_response_fallback)?;
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
@@ -532,12 +534,13 @@ fn detect_adapter(
     payload: &Value,
     kind: DetectKind,
 ) -> Result<&'static dyn ProviderAdapter, TransformError> {
-    detect_adapter_with_kind(payload, kind).map(|detection| detection.adapter)
+    detect_adapter_with_kind(payload, kind, true).map(|detection| detection.adapter)
 }
 
 fn detect_adapter_with_kind(
     payload: &Value,
     kind: DetectKind,
+    allow_full_response_fallback: bool,
 ) -> Result<AdapterDetection, TransformError> {
     let adapter = detect_adapter_exact(payload, kind);
     if let Some(adapter) = adapter {
@@ -545,7 +548,7 @@ fn detect_adapter_with_kind(
     }
 
     // Vertex will possibly respond with a response payload for streaming requests, so we need to detect that.
-    if matches!(kind, DetectKind::Stream) {
+    if matches!(kind, DetectKind::Stream) && allow_full_response_fallback {
         if let Some(adapter) = detect_adapter_exact(payload, DetectKind::Response) {
             return Ok(AdapterDetection {
                 adapter,
@@ -777,7 +780,7 @@ mod tests {
 
         assert!(detect_adapter_exact(&payload, DetectKind::Stream).is_none());
 
-        let detection = detect_adapter_with_kind(&payload, DetectKind::Stream).unwrap();
+        let detection = detect_adapter_with_kind(&payload, DetectKind::Stream, true).unwrap();
 
         assert_eq!(detection.adapter.format(), ProviderFormat::Anthropic);
         assert!(matches!(detection.kind, DetectKind::Response));

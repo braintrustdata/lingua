@@ -357,11 +357,16 @@ impl Router {
             output_format,
             strategy: _,
         } = request.inner;
+        let allow_full_response_fallback = spec.supports_streaming;
         let raw_stream = provider
             .clone()
             .complete_stream(payload, auth, spec.as_ref(), format, client_headers)
             .await?;
-        Ok(transform_stream(raw_stream, output_format))
+        Ok(transform_stream(
+            raw_stream,
+            output_format,
+            allow_full_response_fallback,
+        ))
     }
 
     /// Resolve all providers for a given model and output format.

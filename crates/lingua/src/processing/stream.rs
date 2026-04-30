@@ -51,6 +51,7 @@ impl StreamOutputChunk {
 #[derive(Debug)]
 pub struct StreamTransformSession {
     target_format: ProviderFormat,
+    allow_full_response_fallback: bool,
     buffered_delta: Option<StreamOutputChunk>,
     buffered_stop: Option<StreamOutputChunk>,
     anthropic_message_started: bool,
@@ -58,8 +59,16 @@ pub struct StreamTransformSession {
 
 impl StreamTransformSession {
     pub fn new(target_format: ProviderFormat) -> Self {
+        Self::with_full_response_fallback(target_format, true)
+    }
+
+    pub fn with_full_response_fallback(
+        target_format: ProviderFormat,
+        allow_full_response_fallback: bool,
+    ) -> Self {
         Self {
             target_format,
+            allow_full_response_fallback,
             buffered_delta: None,
             buffered_stop: None,
             anthropic_message_started: false,
@@ -71,7 +80,11 @@ impl StreamTransformSession {
     }
 
     pub fn push(&mut self, input: Bytes) -> Result<Vec<StreamOutputChunk>, TransformError> {
-        let step = transform_stream_chunk_step(input, self.target_format)?;
+        let step = transform_stream_chunk_step(
+            input,
+            self.target_format,
+            self.allow_full_response_fallback,
+        )?;
 
         if step.is_passthrough {
             return Ok(vec![StreamOutputChunk {
@@ -811,6 +824,34 @@ mod tests {
                 .and_then(Value::as_str),
             Some("Hello from Vertex")
         );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_can_disable_full_response_fallback() {
+        let mut session = StreamTransformSession::with_full_response_fallback(
+            ProviderFormat::ChatCompletions,
+            false,
+        );
+        let full_response = to_bytes(&json!({
+            "id": "chatcmpl-test",
+            "object": "chat.completion",
+            "created": 123,
+            "model": "gpt-4",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "Hello from a fake stream"
+                },
+                "finish_reason": "stop"
+            }]
+        }));
+
+        assert!(matches!(
+            session.push(full_response),
+            Err(TransformError::UnableToDetectFormat)
+        ));
     }
 
     #[test]

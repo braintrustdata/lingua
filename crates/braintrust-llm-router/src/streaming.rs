@@ -83,10 +83,17 @@ pub fn sse_stream(response: Response) -> RawResponseStream {
 /// This is the central transformation point for all streaming responses.
 /// It takes raw bytes from any provider and transforms them using lingua.
 /// The stream yields pre-serialized bytes.
-pub fn transform_stream(raw: RawResponseStream, output_format: ProviderFormat) -> ResponseStream {
+pub fn transform_stream(
+    raw: RawResponseStream,
+    output_format: ProviderFormat,
+    allow_full_response_fallback: bool,
+) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
-        session: lingua::StreamTransformSession::new(output_format),
+        session: lingua::StreamTransformSession::with_full_response_fallback(
+            output_format,
+            allow_full_response_fallback,
+        ),
         pending: Vec::new(),
         done: false,
     })
@@ -485,6 +492,7 @@ fn split_event(buffer: &BytesMut) -> Option<(Bytes, BytesMut)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures::StreamExt;
 
     #[test]
     fn extract_json_bytes_from_sse_extracts_data() {
@@ -520,5 +528,26 @@ mod tests {
         assert!(String::from_utf8_lossy(&event).contains("test"));
         buffer = rest;
         assert!(!buffer.is_empty());
+    }
+
+    #[test]
+    fn transform_stream_can_disable_full_response_fallback() {
+        let full_response = Bytes::from_static(
+            br#"{"id":"chatcmpl-test","object":"chat.completion","created":123,"model":"gpt-4","choices":[{"index":0,"message":{"role":"assistant","content":"Hello from a fake stream"},"finish_reason":"stop"}]}"#,
+        );
+        let raw: RawResponseStream = Box::pin(futures::stream::once({
+            let full_response = full_response.clone();
+            async move { Ok(StreamChunk::data(full_response)) }
+        }));
+        let mut stream = transform_stream(raw, ProviderFormat::ChatCompletions, false);
+
+        let first = futures::executor::block_on(stream.next())
+            .expect("stream should yield a chunk")
+            .expect("chunk should be ok");
+        let next = futures::executor::block_on(stream.next());
+
+        assert_eq!(first.data, full_response);
+        assert!(first.event_type.is_none());
+        assert!(next.is_none());
     }
 }
