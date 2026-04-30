@@ -22,6 +22,7 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{UniversalResponse, UniversalStreamChunk};
+use serde::de::DeserializeOwned;
 use thiserror::Error;
 
 /// Static empty JSON object bytes for terminal/keep-alive events.
@@ -486,17 +487,7 @@ pub fn sanitize_payload(input: Bytes, format: ProviderFormat) -> Result<Bytes, T
 }
 
 pub fn parse_json_value(input: &[u8]) -> Result<Value, TransformError> {
-    match serde_json::from_slice(input) {
-        Ok(value) => Ok(value),
-        Err(original) => {
-            let Some(repaired) = normalize_json_lone_surrogate_escapes(input) else {
-                return Err(TransformError::DeserializationFailed(original.to_string()));
-            };
-
-            serde_json::from_slice(&repaired)
-                .map_err(|err| TransformError::DeserializationFailed(err.to_string()))
-        }
-    }
+    parse_json(input).map_err(|err| TransformError::DeserializationFailed(err.to_string()))
 }
 
 pub struct ParsedJsonBody {
@@ -522,6 +513,21 @@ pub fn parse_json_body(input: Bytes) -> Result<ParsedJsonBody, TransformError> {
                 value,
                 bytes: repaired,
             })
+        }
+    }
+}
+
+pub fn parse_json<T>(input: &[u8]) -> Result<T, serde_json::Error>
+where
+    T: DeserializeOwned,
+{
+    match serde_json::from_slice(input) {
+        Ok(value) => Ok(value),
+        Err(original) => {
+            let Some(repaired) = normalize_json_lone_surrogate_escapes(input) else {
+                return Err(original);
+            };
+            serde_json::from_slice(&repaired)
         }
     }
 }
