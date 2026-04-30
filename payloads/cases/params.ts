@@ -108,6 +108,49 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  imageUrlMimeTypeFallbackParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Describe this image.",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Describe this image." },
+            {
+              fileData: {
+                fileUri:
+                  "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+                mimeType: "image/jpeg",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
   // === Text Response Configuration ===
 
   textFormatJsonObjectParam: {
