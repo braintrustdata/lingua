@@ -1,6 +1,6 @@
 {
   "name": "@braintrust/lingua",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript bindings for Lingua - Universal message format for LLM APIs",
   "scripts": {
     "preinstall": "node -e \"const userAgent = process.env.npm_config_user_agent || ''; if (process.env.INIT_CWD === process.cwd() && !userAgent.includes('pnpm/')) { console.error('Use pnpm in this repo.'); process.exit(1); }\"",
@@ -72,7 +72,7 @@
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": "^0.63.0",
-    "openai": "^5.22.0"
+    "openai": "^5.22.0 || ^6.0.0"
   },
   "engines": {
     "pnpm": ">=10.27.0"
