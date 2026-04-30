@@ -703,6 +703,28 @@
       "reason": "Google code_execution is provider-specific and is not a lossless equivalent of Anthropic bash"
     },
     {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Google code_execution has no OpenAI Chat Completions equivalent and is dropped" },
+        { "pattern": "messages[*].content.length", "reason": "Google executableCode/codeExecutionResult followup content does not roundtrip through Chat Completions" }
+      ]
+    },
+    {
+      "testCase": "codeInterpreterToolParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.tools[*].builtin_type", "reason": "Google code_execution is canonicalized to the OpenAI Responses code_interpreter builtin type" },
+        { "pattern": "params.tools[*].name", "reason": "Google code_execution is canonicalized to the OpenAI Responses code_interpreter builtin name" },
+        { "pattern": "params.tools[*].provider", "reason": "Google code_execution is canonicalized from a Google builtin to a Responses builtin" },
+        { "pattern": "params.tools[*].config.type", "reason": "Google code_execution is normalized to OpenAI code_interpreter config" },
+        { "pattern": "params.tools[*].config.container", "reason": "Google code_execution is normalized to OpenAI code_interpreter container config" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Google code execution metadata is not losslessly representable through Responses message content" }
+      ]
+    },
+    {
       "testCase": "toolChoiceRequiredWithReasoningParam",
       "source": "Google",
       "target": "Anthropic",

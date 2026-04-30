@@ -16849,6 +16849,70 @@ exports[`google → anthropic > webSearchToolParam > response 1`] = `
 }
 `;
 
+exports[`google → chat-completions > codeInterpreterToolParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Execute Python code to generate a random number",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > codeInterpreterToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can’t run Python code directly in this chat, but I can give you ready-to-run snippets and help you generate a number.
+
+What range and type do you want?
+- Integer between a and b (inclusive)
+- Float between a and b (inclusive of endpoints or exclusive, typically inclusive)
+
+Examples you can run:
+
+- Random integer between 1 and 100 (inclusive):
+  import random
+  print(random.randint(1, 100))
+
+- One-liner you can run in a shell:
+  python -c "import random; print(random.randint(1, 100))"
+
+- Random float in [0.0, 1.0):
+  import random
+  print(random.random())
+
+- Random float in [a, b):
+  import random
+  a = 5.0
+  b = 10.0
+  print(random.uniform(a, b))
+
+If you tell me the exact range and integer vs float, I’ll tailor a snippet for you. I can also provide a single sample number here if you just want a quick value (without executing code).",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 231,
+    "promptTokenCount": 14,
+    "thoughtsTokenCount": 1408,
+    "totalTokenCount": 1653,
+  },
+}
+`;
+
 exports[`google → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -19003,6 +19067,103 @@ If you want, I can also prepare a short, current-news brief for you once you pas
     "promptTokenCount": 10,
     "thoughtsTokenCount": 1344,
     "totalTokenCount": 1612,
+  },
+}
+`;
+
+exports[`google → responses > codeInterpreterToolParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Execute Python code to generate a random number",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "container": {
+        "type": "auto",
+      },
+      "type": "code_interpreter",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > codeInterpreterToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "code": "import random
+random.randint(1,100)",
+                "container_id": "cntr_69efdd6ed1c48193898cda163efe14440982887c1fad39fd",
+                "outputs": null,
+                "status": "completed",
+              },
+              "id": "ci_04778756f10776c40069efdd72ec0c8197b3e93a0f6c322ff5",
+              "name": "code_interpreter",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 2,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here’s a random number (1–100): 73
+
+If you want a different range or a float, tell me the specifics.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 3,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 118,
+    "promptTokenCount": 1108,
+    "thoughtsTokenCount": 448,
+    "totalTokenCount": 1674,
   },
 }
 `;
