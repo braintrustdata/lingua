@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
+.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
 
 all: typescript python ## Build all bindings
 
@@ -31,7 +31,11 @@ lingua-wasm: ## Build WASM package
 	@echo "Building WASM package..."
 	cd bindings/lingua-wasm && pnpm run build
 
-typescript: generate-types lingua-wasm ## Build TypeScript bindings (WASM)
+typescript-types: generate-types ## Build TypeScript types-only package
+	@echo "Building TypeScript types-only package..."
+	cd bindings/typescript-types && pnpm install --frozen-lockfile && pnpm run build
+
+typescript: generate-types typescript-types lingua-wasm ## Build TypeScript bindings (WASM)
 	@echo "Building TypeScript bindings..."
 	cd bindings/typescript && pnpm install --frozen-lockfile && pnpm run build
 

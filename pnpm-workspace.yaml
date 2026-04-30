@@ -1,6 +1,7 @@
 packages:
   - payloads
   - bindings/lingua-wasm
+  - bindings/typescript-types
   - bindings/typescript
   - examples/typescript
 

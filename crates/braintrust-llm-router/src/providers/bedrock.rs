@@ -77,12 +77,9 @@ where
         return Ok(body);
     }
 
-    let payload: lingua::serde_json::Value = match lingua::serde_json::from_slice(&body) {
-        Ok(payload) => payload,
-        Err(err) => {
-            return Err(TransformError::DeserializationFailed(err.to_string()).into());
-        }
-    };
+    let parsed = lingua::parse_json_body(body)?;
+    let payload = parsed.value;
+    let body = parsed.bytes;
 
     let source_adapter = match adapters()
         .iter()
@@ -614,6 +611,36 @@ mod tests {
         .unwrap();
 
         assert_eq!(prepared, body);
+    }
+
+    #[tokio::test]
+    async fn prepare_request_repairs_lone_surrogate_for_same_format_converse() {
+        let body = Bytes::from_static(
+            br#"{"modelId":"anthropic.claude-3-haiku-20240307-v1:0","messages":[{"role":"user","content":[{"text":"bad \uD83D text"}]}]}"#,
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for same-format converse requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            prepared,
+            Bytes::from_static(
+                br#"{"modelId":"anthropic.claude-3-haiku-20240307-v1:0","messages":[{"role":"user","content":[{"text":"bad \uFFFD text"}]}]}"#
+            )
+        );
     }
 
     #[tokio::test]

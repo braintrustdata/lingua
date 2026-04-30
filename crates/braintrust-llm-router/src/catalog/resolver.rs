@@ -1,20 +1,31 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::catalog::{ModelCatalog, ModelSpec};
+use crate::catalog::{CatalogResolver, ModelCatalog, ModelSpec, OverlayModelCatalog};
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
 #[derive(Debug, Clone)]
 pub struct ModelResolver {
-    catalog: Arc<ModelCatalog>,
+    catalog: CatalogResolver,
     aliases: HashMap<String, String>,
 }
 
 impl ModelResolver {
     pub fn new(catalog: Arc<ModelCatalog>) -> Self {
         Self {
-            catalog,
+            catalog: catalog.into(),
+            aliases: HashMap::new(),
+        }
+    }
+
+    /// Resolve models against custom entries first, then the shared base catalog.
+    ///
+    /// The base catalog remains the public `catalog()` view so existing callers
+    /// do not observe per-request custom models as global catalog entries.
+    pub fn with_overlay(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
+        Self {
+            catalog: CatalogResolver::Overlay(OverlayModelCatalog { base, custom }),
             aliases: HashMap::new(),
         }
     }
@@ -25,7 +36,7 @@ impl ModelResolver {
     }
 
     pub fn catalog(&self) -> Arc<ModelCatalog> {
-        Arc::clone(&self.catalog)
+        self.catalog.base_catalog()
     }
 
     pub fn resolve(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
@@ -144,6 +155,50 @@ mod tests {
         let (_, format, aliases) = resolver.resolve("model").expect("resolves");
         assert_eq!(format, ProviderFormat::Anthropic);
         assert_eq!(aliases, vec!["custom".to_string()]);
+    }
+
+    #[test]
+    fn resolve_overlay_custom_model_before_base_catalog() {
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            "model".into(),
+            spec("base-model", ProviderFormat::Anthropic),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "model".into(),
+            spec_with_available_providers(
+                "custom-model",
+                ProviderFormat::ChatCompletions,
+                vec!["custom-provider".into()],
+            ),
+        );
+        let resolver = ModelResolver::with_overlay(Arc::new(base), custom);
+
+        let (spec, format, aliases) = resolver.resolve("model").expect("resolves");
+        assert_eq!(spec.model, "custom-model");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(aliases, vec!["custom-provider".to_string()]);
+    }
+
+    #[test]
+    fn resolve_overlay_falls_back_to_base_catalog() {
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            "base-model".into(),
+            spec("base-model", ProviderFormat::Anthropic),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "custom-model".into(),
+            spec("custom-model", ProviderFormat::ChatCompletions),
+        );
+        let resolver = ModelResolver::with_overlay(Arc::new(base), custom);
+
+        let (spec, format, aliases) = resolver.resolve("base-model").expect("resolves");
+        assert_eq!(spec.model, "base-model");
+        assert_eq!(format, ProviderFormat::Anthropic);
+        assert_eq!(aliases, vec!["anthropic".to_string()]);
     }
 
     #[test]
