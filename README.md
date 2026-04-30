@@ -56,6 +56,7 @@ lingua/
 │   └── lib.rs                 # Main library entry
 ├── bindings/
 │   ├── typescript/            # TypeScript/WASM bindings
+│   ├── typescript-types/      # Type-only TypeScript package
 │   └── python/                # Python bindings
 ├── examples/                  # Usage examples
 └── tests/typescript/          # TypeScript compatibility tests
