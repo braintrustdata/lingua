@@ -1,0 +1,47 @@
+{
+  "name": "@braintrust/lingua-types",
+  "version": "0.1.0",
+  "description": "Type-only TypeScript definitions for Lingua",
+  "scripts": {
+    "preinstall": "node -e \"const userAgent = process.env.npm_config_user_agent || ''; if (process.env.INIT_CWD === process.cwd() && !userAgent.includes('pnpm/')) { console.error('Use pnpm in this repo.'); process.exit(1); }\"",
+    "build": "rm -rf dist && tsup",
+    "generate": "cd ../.. && cargo test export_bindings --lib --quiet",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=10.27.0",
+      "onFail": "error"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
+  "keywords": [
+    "llm",
+    "ai",
+    "typescript",
+    "types"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "pnpm": ">=10.27.0"
+  }
+}

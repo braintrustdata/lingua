@@ -14,6 +14,16 @@ yarn add @braintrust/lingua
 
 This automatically installs `@braintrust/lingua-wasm` as a dependency (you don't need to install it separately).
 
+If you only need TypeScript types and do not need conversion or validation functions, install the types-only package instead:
+
+```bash
+pnpm add -D @braintrust/lingua-types
+```
+
+```typescript
+import type { Message, UniversalRequest } from "@braintrust/lingua-types";
+```
+
 ## Usage
 
 The package provides separate entry points for Node.js and browser environments:
@@ -171,19 +181,21 @@ async function convertMessages() {
 }
 ```
 
-## Package Architecture
+## Package architecture
 
-This package uses a two-package architecture:
+The TypeScript packages are split by runtime needs:
 
 ```
 @braintrust/lingua          # TypeScript wrapper (this package)
   └── @braintrust/lingua-wasm  # Raw WASM bindings (auto-installed dependency)
         ├── nodejs/            # Node.js WASM build
         └── web/               # Browser WASM build
+@braintrust/lingua-types    # Type-only package with no WASM dependency
 ```
 
 - **`@braintrust/lingua`** - Pure TypeScript that imports from `@braintrust/lingua-wasm`
 - **`@braintrust/lingua-wasm`** - Raw `wasm-pack` output, separate package for clean bundling
+- **`@braintrust/lingua-types`** - Bundled TypeScript declarations for consumers that only need types
 
 This separation ensures webpack/bundlers can properly handle the WASM files without complex configuration.
 
@@ -194,12 +206,8 @@ This package is part of the Lingua monorepo. The TypeScript types are automatica
 ### Building
 
 ```bash
-# Build WASM first (from repo root)
-make lingua-wasm
-
-# Build TypeScript
-cd bindings/typescript
-pnpm build
+# Build TypeScript types, WASM, and wrapper packages from the repo root
+make typescript
 ```
 
 ### Generating Types
@@ -224,6 +232,9 @@ bindings/
 │   ├── nodejs/            # wasm-pack --target nodejs output
 │   ├── web/               # wasm-pack --target web output
 │   └── package.json
+├── typescript-types/      # @braintrust/lingua-types package
+│   ├── src/
+│   └── dist/
 └── typescript/            # @braintrust/lingua package (this directory)
     ├── src/
     │   ├── generated/         # Auto-generated types from Rust
