@@ -25,7 +25,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.63.0",
     "@braintrust/lingua": "workspace:*",
-    "openai": "^5.22.0"
+    "openai": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
