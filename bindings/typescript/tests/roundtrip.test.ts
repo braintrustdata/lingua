@@ -444,7 +444,7 @@ describe("Generated Types", () => {
 
       // Check that VERSION constant is exported
       expect(module.VERSION).toBeDefined();
-      expect(module.VERSION).toBe("0.1.0");
+      expect(module.VERSION).toBe("0.1.1");
     });
 
     test("TypeScript types compile correctly", () => {

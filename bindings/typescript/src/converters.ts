@@ -219,8 +219,8 @@ export const responsesMessagesToLingua = createToLinguaConverter<Message[]>(
  *
  * @example
  * // For OpenAI SDK
- * import type OpenAI from 'openai'
- * const messages = linguaToResponsesMessages<OpenAI.Beta.Responses.InputItem[]>(lingua)
+ * import type { ResponseInputItem } from 'openai/resources/responses/responses'
+ * const messages = linguaToResponsesMessages<ResponseInputItem[]>(lingua)
  *
  * @throws {ConversionError} If conversion fails
  */

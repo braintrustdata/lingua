@@ -16,7 +16,7 @@ importers:
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@4.3.6)
       '@types/node':
         specifier: ^22.9.0
         version: 22.19.1
@@ -24,8 +24,8 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
       openai:
-        specifier: ^5.22.0
-        version: 5.23.2(ws@8.18.3)
+        specifier: ^6.0.0
+        version: 6.16.0(ws@8.18.3)(zod@4.3.6)
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(@swc/core@1.15.7)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)
@@ -55,13 +55,13 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.63.0
-        version: 0.63.1
+        version: 0.63.1(zod@4.3.6)
       '@braintrust/lingua':
         specifier: workspace:*
         version: link:../../bindings/typescript
       openai:
-        specifier: ^5.22.0
-        version: 5.23.2(ws@8.18.3)
+        specifier: ^6.0.0
+        version: 6.16.0(ws@8.18.3)(zod@4.3.6)
     devDependencies:
       '@types/node':
         specifier: ^22.9.0
@@ -3351,18 +3351,6 @@ packages:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
 
-  openai@5.23.2:
-    resolution: {integrity: sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==}
-    hasBin: true
-    peerDependencies:
-      ws: ^8.18.0
-      zod: ^3.23.8
-    peerDependenciesMeta:
-      ws:
-        optional: true
-      zod:
-        optional: true
-
   openai@6.16.0:
     resolution: {integrity: sha512-fZ1uBqjFUjXzbGc35fFtYKEOxd20kd9fDpFeqWtsOZWiubY8CZ1NAlXHW3iathaFvqmNtCWMIsosCuyeI7Joxg==}
     hasBin: true
@@ -4397,9 +4385,11 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@anthropic-ai/sdk@0.63.1':
+  '@anthropic-ai/sdk@0.63.1(zod@4.3.6)':
     dependencies:
       json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 4.3.6
 
   '@anthropic-ai/sdk@0.74.0(zod@4.3.6)':
     dependencies:
@@ -8243,10 +8233,6 @@ snapshots:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
-
-  openai@5.23.2(ws@8.18.3):
-    optionalDependencies:
-      ws: 8.18.3
 
   openai@6.16.0(ws@8.18.3)(zod@4.3.6):
     optionalDependencies:
