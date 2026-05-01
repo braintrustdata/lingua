@@ -13,7 +13,9 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, insert_opt_value, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::openai::capabilities::{apply_model_transforms, model_needs_transforms};
+use crate::providers::openai::capabilities::{
+    apply_model_transforms, clamp_reasoning_effort_for_model, model_needs_transforms,
+};
 use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
     ChatCompletionResponseMessageExt,
@@ -351,9 +353,21 @@ impl ProviderAdapter for OpenAIAdapter {
         // Add reasoning_effort from canonical params
         if let Some(raw_reasoning_effort) = openai_extras_view.reasoning_effort.as_ref() {
             obj.insert("reasoning_effort".into(), raw_reasoning_effort.clone());
-        } else if let Some(effort_value) = req.params.reasoning_for(ProviderFormat::ChatCompletions)
-        {
-            obj.insert("reasoning_effort".into(), effort_value);
+        } else if let Some(reasoning) = req.params.reasoning.as_ref() {
+            let mut reasoning = reasoning.clone();
+            if let Some(effort) = reasoning.effort {
+                reasoning.effort = Some(clamp_reasoning_effort_for_model(model, effort));
+            }
+            if let Some(effort_value) = reasoning
+                .to_provider(
+                    ProviderFormat::ChatCompletions,
+                    req.params.output_token_budget(),
+                )
+                .ok()
+                .flatten()
+            {
+                obj.insert("reasoning_effort".into(), effort_value);
+            }
         }
 
         // Preserve Anthropic-style user identity without inventing OpenAI store semantics.
@@ -1199,6 +1213,33 @@ mod tests {
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert_eq!(typed.top_p, Some(0.9));
+    }
+
+    #[test]
+    fn test_openai_chat_clamps_reasoning_effort_for_target_model() {
+        use crate::universal::message::UserContent;
+
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::Xhigh),
+                    canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        let typed: OpenAIChatParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.reasoning_effort, Some(OpenAIReasoningEffort::High));
     }
 
     #[test]

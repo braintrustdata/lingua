@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my interpretation of the situation and how I'd approach summarizing it, keeping in mind the user is an expert:\n\n**Addressing a Simple Inquiry**\n\nAlright, a seemingly straightforward arithmetic question has popped up. It appears the user is asking me to execute a basic addition. My primary task here is clear: process the input, perform the addition accurately, and present the resulting sum. Nothing complex, just a fundamental calculation. This isn't a challenge; it's a direct request for a numerical answer, so efficiency and accuracy are key. I'll need to be precise and provide the definitive sum promptly.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 36,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 20
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "i1f0aZyjKr7i_uMPq4DuaQ"
+}

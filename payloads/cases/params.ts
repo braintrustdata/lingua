@@ -99,6 +99,19 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  reasoningEffortMaxClampsToGpt5NanoParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {

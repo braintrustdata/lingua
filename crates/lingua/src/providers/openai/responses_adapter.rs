@@ -12,7 +12,9 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::openai::capabilities::apply_model_transforms;
+use crate::providers::openai::capabilities::{
+    apply_model_transforms, clamp_reasoning_effort_for_model,
+};
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
@@ -324,8 +326,18 @@ impl ProviderAdapter for ResponsesAdapter {
         // Add reasoning from canonical params
         if let Some(raw_reasoning) = responses_extras_view.reasoning.as_ref() {
             obj.insert("reasoning".into(), raw_reasoning.clone());
-        } else if let Some(reasoning_val) = req.params.reasoning_for(ProviderFormat::Responses) {
-            obj.insert("reasoning".into(), reasoning_val);
+        } else if let Some(reasoning) = req.params.reasoning.as_ref() {
+            let mut reasoning = reasoning.clone();
+            if let Some(effort) = reasoning.effort {
+                reasoning.effort = Some(clamp_reasoning_effort_for_model(model, effort));
+            }
+            if let Some(reasoning_val) = reasoning
+                .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
+                .ok()
+                .flatten()
+            {
+                obj.insert("reasoning".into(), reasoning_val);
+            }
         }
 
         // Add parallel_tool_calls from canonical params
@@ -1414,6 +1426,34 @@ mod tests {
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert_eq!(typed.top_p, Some(0.9));
+    }
+
+    #[test]
+    fn test_responses_clamps_reasoning_effort_for_target_model() {
+        let req = UniversalRequest {
+            model: Some("gpt-5.1".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(crate::universal::ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(crate::universal::ReasoningEffort::Xhigh),
+                    canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(
+            typed.reasoning.and_then(|r| r.effort),
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::High)
+        );
     }
 
     #[test]

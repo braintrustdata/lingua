@@ -795,6 +795,41 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > response 1`]
 }
 `;
 
+exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DacgOQrhM2Tu2fmMJIEf12LRwGyDY",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 266,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > reasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -2877,6 +2912,59 @@ Okay, here's the deal: a straightforward arithmetic question has been posed. Giv
   "usage": {
     "input_tokens": 8,
     "output_tokens": 24,
+  },
+}
+`;
+
+exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "Okay, here's my interpretation of the situation and how I'd approach summarizing it, keeping in mind the user is an expert:
+
+**Addressing a Simple Inquiry**
+
+Alright, a seemingly straightforward arithmetic question has popped up. It appears the user is asking me to execute a basic addition. My primary task here is clear: process the input, perform the addition accurately, and present the resulting sum. Nothing complex, just a fundamental calculation. This isn't a challenge; it's a direct request for a numerical answer, so efficiency and accuracy are key. I'll need to be precise and provide the definitive sum promptly.
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 28,
   },
 }
 `;
@@ -5216,6 +5304,47 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 34,
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0978d02eafae56350069f4578baec081a1bd040365f2cec1e1",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 351,
   },
 }
 `;
