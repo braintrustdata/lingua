@@ -17,7 +17,7 @@ export type ReasoningConfig = {
  */
 enabled: boolean | null, 
 /**
- * Reasoning effort level (low/medium/high).
+ * Reasoning effort level.
  * Always populated when enabled. Used by OpenAI Chat/Responses API.
  */
 effort: ReasoningEffort | null, 

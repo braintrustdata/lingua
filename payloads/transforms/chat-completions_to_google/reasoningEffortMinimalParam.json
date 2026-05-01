@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Immediate Response to the Query**\n\nOkay, so the user has thrown a textbook arithmetic problem at me: \"What is 2+2?\" Seems straightforward. My first instinct is to recall the fundamental arithmetic fact: two plus two equals four. No complex calculations needed here. The most direct and, frankly, the best answer is simply \"4\". Should I provide a bit more context, or justification? Adding \"Adding two to two gives you four\" could be an option, just to show I understand the operation. But honestly, for this specific query, stating the answer \"4\" is perfectly sufficient, efficient, and appropriate. It's the most concise and accurate response, which is what the user probably wants here.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 184,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 168
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "1VP0ad7IKoCC1MkPhvbjsQI"
+}

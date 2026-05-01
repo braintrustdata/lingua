@@ -83,6 +83,22 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  reasoningEffortMinimalParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      reasoning_effort: "minimal",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "minimal" },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {

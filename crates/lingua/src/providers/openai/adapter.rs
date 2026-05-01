@@ -19,7 +19,9 @@ use crate::providers::openai::convert::{
     ChatCompletionResponseMessageExt,
 };
 use crate::providers::openai::generated::WebSearch;
-use crate::providers::openai::params::{OpenAIChatExtrasView, OpenAIChatParams};
+use crate::providers::openai::params::{
+    OpenAIChatExtrasView, OpenAIChatParams, OpenAIReasoningEffort,
+};
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::try_parse_openai;
 use crate::serde_json::{self, Map, Value};
@@ -625,8 +627,6 @@ impl ProviderAdapter for OpenAIAdapter {
 // Helper Functions
 // =============================================================================
 
-use crate::providers::openai::generated::ReasoningEffort as OpenAIReasoningEffort;
-
 /// Build ReasoningConfig from OpenAI reasoning-related fields.
 ///
 /// Priority:
@@ -667,11 +667,8 @@ fn build_reasoning_config(
             Some(ReasoningCanonical::BudgetTokens),
         )
     } else if let Some(openai_effort) = reasoning_effort {
-        let universal_effort = match openai_effort {
-            OpenAIReasoningEffort::Low | OpenAIReasoningEffort::Minimal => ReasoningEffort::Low,
-            OpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
-            OpenAIReasoningEffort::High => ReasoningEffort::High,
-        };
+        let config = ReasoningConfig::from((openai_effort, max_tokens));
+        let universal_effort = config.effort.unwrap_or(ReasoningEffort::Medium);
         let derived_budget = effort_to_budget(universal_effort, max_tokens);
         (
             Some(universal_effort),
