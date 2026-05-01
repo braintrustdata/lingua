@@ -185,23 +185,39 @@ impl From<&Thinking> for ReasoningConfig {
     }
 }
 
-fn from_generated_openai_effort(effort: &GeneratedOpenAIReasoningEffort) -> ReasoningEffort {
-    match effort {
-        GeneratedOpenAIReasoningEffort::Minimal => ReasoningEffort::Minimal,
-        GeneratedOpenAIReasoningEffort::Low => ReasoningEffort::Low,
-        GeneratedOpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
-        GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
+impl From<&GeneratedOpenAIReasoningEffort> for ReasoningEffort {
+    fn from(effort: &GeneratedOpenAIReasoningEffort) -> Self {
+        match effort {
+            GeneratedOpenAIReasoningEffort::Minimal => ReasoningEffort::Minimal,
+            GeneratedOpenAIReasoningEffort::Low => ReasoningEffort::Low,
+            GeneratedOpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
+            GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
+        }
     }
 }
 
-fn from_openai_effort_param(effort: OpenAIReasoningEffortParam) -> ReasoningEffort {
-    match effort {
-        OpenAIReasoningEffortParam::None => ReasoningEffort::None,
-        OpenAIReasoningEffortParam::Minimal => ReasoningEffort::Minimal,
-        OpenAIReasoningEffortParam::Low => ReasoningEffort::Low,
-        OpenAIReasoningEffortParam::Medium => ReasoningEffort::Medium,
-        OpenAIReasoningEffortParam::High => ReasoningEffort::High,
-        OpenAIReasoningEffortParam::Xhigh => ReasoningEffort::Xhigh,
+impl From<GeneratedOpenAIReasoningEffort> for ReasoningEffort {
+    fn from(effort: GeneratedOpenAIReasoningEffort) -> Self {
+        (&effort).into()
+    }
+}
+
+impl From<OpenAIReasoningEffortParam> for ReasoningEffort {
+    fn from(effort: OpenAIReasoningEffortParam) -> Self {
+        match effort {
+            OpenAIReasoningEffortParam::None => ReasoningEffort::None,
+            OpenAIReasoningEffortParam::Minimal => ReasoningEffort::Minimal,
+            OpenAIReasoningEffortParam::Low => ReasoningEffort::Low,
+            OpenAIReasoningEffortParam::Medium => ReasoningEffort::Medium,
+            OpenAIReasoningEffortParam::High => ReasoningEffort::High,
+            OpenAIReasoningEffortParam::Xhigh => ReasoningEffort::Xhigh,
+        }
+    }
+}
+
+impl From<&OpenAIReasoningEffortParam> for ReasoningEffort {
+    fn from(effort: &OpenAIReasoningEffortParam) -> Self {
+        (*effort).into()
     }
 }
 
@@ -211,7 +227,7 @@ fn from_openai_effort_param(effort: OpenAIReasoningEffortParam) -> ReasoningEffo
 /// Takes max_tokens as context to compute accurate budget_tokens.
 impl From<(OpenAIReasoningEffortParam, Option<i64>)> for ReasoningConfig {
     fn from((effort, max_tokens): (OpenAIReasoningEffortParam, Option<i64>)) -> Self {
-        let universal_effort = from_openai_effort_param(effort);
+        let universal_effort = effort.into();
         // Derive budget_tokens from effort
         let budget_tokens = effort_to_budget(universal_effort, max_tokens);
 
@@ -227,7 +243,7 @@ impl From<(OpenAIReasoningEffortParam, Option<i64>)> for ReasoningConfig {
 
 impl From<(GeneratedOpenAIReasoningEffort, Option<i64>)> for ReasoningConfig {
     fn from((effort, max_tokens): (GeneratedOpenAIReasoningEffort, Option<i64>)) -> Self {
-        let universal_effort = from_generated_openai_effort(&effort);
+        let universal_effort = effort.into();
         let budget_tokens = effort_to_budget(universal_effort, max_tokens);
 
         ReasoningConfig {
@@ -252,7 +268,7 @@ impl From<&GeneratedOpenAIReasoning> for ReasoningConfig {
             .effort
             .as_ref()
             .map(|e| {
-                let universal_effort = from_generated_openai_effort(e);
+                let universal_effort = e.into();
                 let budget = effort_to_budget(universal_effort, None); // Uses DEFAULT_MAX_TOKENS
                 (universal_effort, budget)
             })
@@ -289,7 +305,7 @@ impl From<(&GeneratedOpenAIReasoning, Option<i64>)> for ReasoningConfig {
             .effort
             .as_ref()
             .map(|e| {
-                let universal_effort = from_generated_openai_effort(e);
+                let universal_effort = e.into();
                 let budget = effort_to_budget(universal_effort, max_tokens);
                 (universal_effort, budget)
             })
@@ -320,7 +336,7 @@ impl From<(&OpenAIReasoning, Option<i64>)> for ReasoningConfig {
         let (effort, budget_tokens) = reasoning
             .effort
             .map(|e| {
-                let universal_effort = from_openai_effort_param(e);
+                let universal_effort = e.into();
                 let budget = effort_to_budget(universal_effort, max_tokens);
                 (universal_effort, budget)
             })
