@@ -95,15 +95,25 @@ mod tests {
         }
     }
 
-    #[test]
-    fn retryable_error_uses_exponential_backoff() {
+    async fn connect_error() -> Error {
+        let err = reqwest::Client::new()
+            .get("http://127.0.0.1:1")
+            .send()
+            .await
+            .expect_err("connection failure");
+        Error::Http(err)
+    }
+
+    #[tokio::test]
+    async fn retryable_error_uses_exponential_backoff() {
         let policy = base_policy();
         let mut strategy = policy.strategy();
+        let err = connect_error().await;
 
-        let delay1 = strategy.next_delay(&Error::Timeout).expect("first retry");
-        let delay2 = strategy.next_delay(&Error::Timeout).expect("second retry");
-        let delay3 = strategy.next_delay(&Error::Timeout).expect("third retry");
-        let delay4 = strategy.next_delay(&Error::Timeout);
+        let delay1 = strategy.next_delay(&err).expect("first retry");
+        let delay2 = strategy.next_delay(&err).expect("second retry");
+        let delay3 = strategy.next_delay(&err).expect("third retry");
+        let delay4 = strategy.next_delay(&err);
 
         assert_eq!(delay1, Duration::from_millis(200));
         assert_eq!(delay2, Duration::from_millis(400));
@@ -140,13 +150,14 @@ mod tests {
         assert_eq!(delay, Duration::from_secs(1));
     }
 
-    #[test]
-    fn jitter_stays_within_expected_bounds() {
+    #[tokio::test]
+    async fn jitter_stays_within_expected_bounds() {
         let mut policy = base_policy();
         policy.jitter = true;
         let mut strategy = policy.strategy();
+        let err = connect_error().await;
 
-        let delay = strategy.next_delay(&Error::Timeout).expect("jitter delay");
+        let delay = strategy.next_delay(&err).expect("jitter delay");
         assert!(delay >= Duration::from_millis(100));
         assert!(delay <= Duration::from_millis(300));
     }
