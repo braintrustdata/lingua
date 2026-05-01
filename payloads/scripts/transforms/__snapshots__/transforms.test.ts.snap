@@ -795,6 +795,41 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > response 1`]
 }
 `;
 
+exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DacgOQrhM2Tu2fmMJIEf12LRwGyDY",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 266,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > reasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -1653,62 +1688,6 @@ exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`]
     "input_tokens": 123,
     "output_tokens": 279,
   },
-}
-`;
-
-exports[`anthropic → chat-completions > toolResultConversationRequest > request 1`] = `
-{
-  "max_completion_tokens": 20000,
-  "messages": [
-    {
-      "content": "What's the weather like in San Francisco?",
-      "role": "user",
-    },
-    {
-      "role": "assistant",
-      "tool_calls": [
-        {
-          "function": {
-            "arguments": "{"location":"San Francisco, CA"}",
-            "name": "get_weather",
-          },
-          "id": "toolu_weather",
-          "type": "function",
-        },
-      ],
-    },
-    {
-      "content": [
-        {
-          "text": "Give me the answer in one sentence.",
-          "type": "text",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "function": {
-        "description": "Get the current weather for a location",
-        "name": "get_weather",
-        "parameters": {
-          "properties": {
-            "location": {
-              "description": "The city and state, e.g. San Francisco, CA",
-              "type": "string",
-            },
-          },
-          "required": [
-            "location",
-          ],
-          "type": "object",
-        },
-      },
-      "type": "function",
-    },
-  ],
 }
 `;
 
@@ -2933,6 +2912,59 @@ Okay, here's the deal: a straightforward arithmetic question has been posed. Giv
   "usage": {
     "input_tokens": 8,
     "output_tokens": 24,
+  },
+}
+`;
+
+exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "Okay, here's my interpretation of the situation and how I'd approach summarizing it, keeping in mind the user is an expert:
+
+**Addressing a Simple Inquiry**
+
+Alright, a seemingly straightforward arithmetic question has popped up. It appears the user is asking me to execute a basic addition. My primary task here is clear: process the input, perform the addition accurately, and present the resulting sum. Nothing complex, just a fundamental calculation. This isn't a challenge; it's a direct request for a numerical answer, so efficiency and accuracy are key. I'll need to be precise and provide the definitive sum promptly.
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 28,
   },
 }
 `;
@@ -4162,72 +4194,6 @@ exports[`anthropic → google > toolChoiceRequiredParam > response 1`] = `
 }
 `;
 
-exports[`anthropic → google > toolResultConversationRequest > request 1`] = `
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "What's the weather like in San Francisco?",
-        },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
-        {
-          "functionCall": {
-            "args": {
-              "location": "San Francisco, CA",
-            },
-            "id": "toolu_weather",
-            "name": "get_weather",
-          },
-        },
-      ],
-      "role": "model",
-    },
-    {
-      "parts": [
-        {
-          "text": "Give me the answer in one sentence.",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "generationConfig": {
-    "maxOutputTokens": 20000,
-    "responseSchema": null,
-  },
-  "model": "gemini-2.5-flash",
-  "tools": [
-    {
-      "functionDeclarations": [
-        {
-          "description": "Get the current weather for a location",
-          "name": "get_weather",
-          "parameters": null,
-          "parametersJsonSchema": {
-            "properties": {
-              "location": {
-                "description": "The city and state, e.g. San Francisco, CA",
-                "type": "string",
-              },
-            },
-            "required": [
-              "location",
-            ],
-            "type": "object",
-          },
-          "response": null,
-        },
-      ],
-    },
-  ],
-}
-`;
-
 exports[`anthropic → google > topKParam > request 1`] = `
 {
   "contents": [
@@ -5342,6 +5308,47 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0978d02eafae56350069f4578baec081a1bd040365f2cec1e1",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 351,
+  },
+}
+`;
+
 exports[`anthropic → responses > reasoningRequest > request 1`] = `
 {
   "input": [
@@ -6252,54 +6259,6 @@ exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
     "input_tokens": 41,
     "output_tokens": 265,
   },
-}
-`;
-
-exports[`anthropic → responses > toolResultConversationRequest > request 1`] = `
-{
-  "input": [
-    {
-      "content": "What's the weather like in San Francisco?",
-      "role": "user",
-    },
-    {
-      "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "toolu_weather",
-      "name": "get_weather",
-      "status": "completed",
-      "type": "function_call",
-    },
-    {
-      "content": [
-        {
-          "text": "Give me the answer in one sentence.",
-          "type": "input_text",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "description": "Get the current weather for a location",
-      "name": "get_weather",
-      "parameters": {
-        "properties": {
-          "location": {
-            "description": "The city and state, e.g. San Francisco, CA",
-            "type": "string",
-          },
-        },
-        "required": [
-          "location",
-        ],
-        "type": "object",
-      },
-      "type": "function",
-    },
-  ],
 }
 `;
 
@@ -7808,6 +7767,53 @@ exports[`chat-completions → anthropic > reasoningEffortLowParam > response 1`]
 }
 `;
 
+exports[`chat-completions → anthropic > reasoningEffortMinimalParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortMinimalParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "This is a simple arithmetic question. 2+2 equals 4.",
+        "reasoning_signature": "EvkBCmQIDRgCKkANrO4e7QOyBt+X28FZKLvTzNoQDVSTVMHBDOKtdn00Qyust7+mKBLyfu25KPMJ1vxi7EBV2nWiTwBDAqS5ISPSMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxOdM7ogOMHKBoCGMQaDGIQmATbBFWNihyrWSIw429LqUPLhBrr6yFk+ux++qYvFkHZD1aDqAU6DUbd4pq6zo5IR8Q2khicnjetXtjPKkMXDkTdFTtrpB3MMtRdWyFWtPfBFrgSUlYhIHDsVafME6OsxwdadmsoOWgA0kmnCOScOQ98PEo7a9VUxinS2yUXTV4dGAE=",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01QwcxYQNb61P5XjGYLcmDJa",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 79,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > reasoningRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -8928,64 +8934,6 @@ exports[`chat-completions → anthropic > toolChoiceRequiredWithReasoningParam >
     },
     "total_tokens": 692,
   },
-}
-`;
-
-exports[`chat-completions → anthropic > toolResultConversationRequest > request 1`] = `
-{
-  "max_tokens": 4096,
-  "messages": [
-    {
-      "content": "What's the weather like in San Francisco?",
-      "role": "user",
-    },
-    {
-      "content": [
-        {
-          "id": "call_weather",
-          "input": {
-            "location": "San Francisco, CA",
-          },
-          "name": "get_weather",
-          "type": "tool_use",
-        },
-      ],
-      "role": "assistant",
-    },
-    {
-      "content": [
-        {
-          "content": "65 F and sunny",
-          "tool_use_id": "call_weather",
-          "type": "tool_result",
-        },
-      ],
-      "role": "user",
-    },
-    {
-      "content": "Give me the answer in one sentence.",
-      "role": "user",
-    },
-  ],
-  "model": "claude-sonnet-4-5-20250929",
-  "tools": [
-    {
-      "description": "Get the current weather for a location",
-      "input_schema": {
-        "properties": {
-          "location": {
-            "description": "The city and state, e.g. San Francisco, CA",
-            "type": "string",
-          },
-        },
-        "required": [
-          "location",
-        ],
-        "type": "object",
-      },
-      "name": "get_weather",
-    },
-  ],
 }
 `;
 
@@ -10446,6 +10394,61 @@ Finally, I formulate the definitive answer: The solution to "2+2" is, unequivoca
 }
 `;
 
+exports[`chat-completions → google > reasoningEffortMinimalParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortMinimalParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "**My Immediate Response to the Query**
+
+Okay, so the user has thrown a textbook arithmetic problem at me: "What is 2+2?" Seems straightforward. My first instinct is to recall the fundamental arithmetic fact: two plus two equals four. No complex calculations needed here. The most direct and, frankly, the best answer is simply "4". Should I provide a bit more context, or justification? Adding "Adding two to two gives you four" could be an option, just to show I understand the operation. But honestly, for this specific query, stating the answer "4" is perfectly sufficient, efficient, and appropriate. It's the most concise and accurate response, which is what the user probably wants here.
+",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 176,
+    "completion_tokens_details": {
+      "reasoning_tokens": 168,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 184,
+  },
+}
+`;
+
 exports[`chat-completions → google > reasoningRequest > request 1`] = `
 {
   "contents": [
@@ -11693,80 +11696,6 @@ Okay, here's the situation: the user needs the weather for Tokyo. Thankfully, I 
     "prompt_tokens": 37,
     "total_tokens": 100,
   },
-}
-`;
-
-exports[`chat-completions → google > toolResultConversationRequest > request 1`] = `
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "What's the weather like in San Francisco?",
-        },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
-        {
-          "functionCall": {
-            "args": {
-              "location": "San Francisco, CA",
-            },
-            "name": "get_weather",
-          },
-        },
-      ],
-      "role": "model",
-    },
-    {
-      "parts": [
-        {
-          "functionResponse": {
-            "name": "get_weather",
-            "response": {
-              "output": "65 F and sunny",
-            },
-          },
-        },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
-        {
-          "text": "Give me the answer in one sentence.",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "model": "gemini-2.5-flash",
-  "tools": [
-    {
-      "functionDeclarations": [
-        {
-          "description": "Get the current weather for a location",
-          "name": "get_weather",
-          "parameters": null,
-          "parametersJsonSchema": {
-            "properties": {
-              "location": {
-                "description": "The city and state, e.g. San Francisco, CA",
-                "type": "string",
-              },
-            },
-            "required": [
-              "location",
-            ],
-            "type": "object",
-          },
-          "response": null,
-        },
-      ],
-    },
-  ],
 }
 `;
 
@@ -13127,6 +13056,58 @@ exports[`chat-completions → responses > reasoningEffortLowParam > response 1`]
 }
 `;
 
+exports[`chat-completions → responses > reasoningEffortMinimalParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "minimal",
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortMinimalParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0c33e31a8fb1b4110069f453d59424819498a745fafb3f813b",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 38,
+  },
+}
+`;
+
 exports[`chat-completions → responses > reasoningRequest > request 1`] = `
 {
   "input": [
@@ -14364,53 +14345,6 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
     },
     "total_tokens": 464,
   },
-}
-`;
-
-exports[`chat-completions → responses > toolResultConversationRequest > request 1`] = `
-{
-  "input": [
-    {
-      "content": "What's the weather like in San Francisco?",
-      "role": "user",
-    },
-    {
-      "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "call_weather",
-      "name": "get_weather",
-      "status": "completed",
-      "type": "function_call",
-    },
-    {
-      "call_id": "call_weather",
-      "output": "65 F and sunny",
-      "type": "function_call_output",
-    },
-    {
-      "content": "Give me the answer in one sentence.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "tools": [
-    {
-      "description": "Get the current weather for a location",
-      "name": "get_weather",
-      "parameters": {
-        "properties": {
-          "location": {
-            "description": "The city and state, e.g. San Francisco, CA",
-            "type": "string",
-          },
-        },
-        "required": [
-          "location",
-        ],
-        "type": "object",
-      },
-      "type": "function",
-    },
-  ],
 }
 `;
 
@@ -23129,6 +23063,75 @@ exports[`responses → anthropic > reasoningEffortLowParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > reasoningEffortMinimalParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01N8D12ixbjWjySdie2hMCSs",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "EvkBCmQIDRgCKkANrO4e7QOyBt+X28FZKLvTzNoQDVSTVMHBDOKtdn00Qyust7+mKBLyfu25KPMJ1vxi7EBV2nWiTwBDAqS5ISPSMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgw/sTgMpYjYyqbBLnMaDF8yU0tHuRxVgzHxSSIw//9txOKHSNs5JwtbhkCuBfn2djzsvCzY1EHhlNFETznSm2CAuCzOeaNYq2E1B2W4KkOrMGth6R/7yC59oVRVusJqeR0/4bHfs9B5/YedBZ1nWvncO+bAZ1y1EwMzbFT0ksuPhNay/4gvRr3Mf5E8aSxEL8P2GAE=",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "This is a simple arithmetic question. 2+2 equals 4.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 43,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 36,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 79,
+  },
+}
+`;
+
 exports[`responses → anthropic > reasoningRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -26048,6 +26051,89 @@ Alright, a simple arithmetic question. They've given me "2 + 2." The user, being
       "reasoning_tokens": 25,
     },
     "total_tokens": 41,
+  },
+}
+`;
+
+exports[`responses → google > reasoningEffortMinimalParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > reasoningEffortMinimalParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Calculation Process**
+
+Alright, let's break this down. The user's query boils down to a simple addition problem. My first step is to isolate that core operation: addition. I recognize the request is fundamentally asking for the sum of two values.
+
+Next, I need to pinpoint the specific numbers involved. It's clear; they are 2 and 2. No ambiguity there.
+
+Now, the calculation itself. It's elementary, really. I perform the addition: 2 plus 2 equals 4. It's a fundamental arithmetic fact.
+
+Finally, I formulate the answer. I present the result in a clear and direct manner, conveying the sum. The answer is 4.
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 77,
+    "output_tokens_details": {
+      "reasoning_tokens": 69,
+    },
+    "total_tokens": 85,
   },
 }
 `;

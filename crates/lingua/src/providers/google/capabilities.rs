@@ -65,10 +65,10 @@ impl GoogleCapabilities {
 
 pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
     match level {
+        ThinkingLevel::Minimal => ReasoningEffort::Minimal,
         ThinkingLevel::Low => ReasoningEffort::Low,
         ThinkingLevel::Medium => ReasoningEffort::Medium,
         ThinkingLevel::High => ReasoningEffort::High,
-        ThinkingLevel::Minimal => ReasoningEffort::Low, // closest approximation
         ThinkingLevel::ThinkingLevelUnspecified => ReasoningEffort::High, // Google's default
     }
 }
@@ -76,9 +76,12 @@ pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
 /// Convert ReasoningEffort to Google ThinkingLevel enum value
 pub fn effort_to_thinking_level(effort: ReasoningEffort) -> ThinkingLevel {
     match effort {
+        ReasoningEffort::None => ThinkingLevel::ThinkingLevelUnspecified,
+        ReasoningEffort::Minimal => ThinkingLevel::Minimal,
         ReasoningEffort::Low => ThinkingLevel::Low,
         ReasoningEffort::Medium => ThinkingLevel::Medium,
         ReasoningEffort::High => ThinkingLevel::High,
+        ReasoningEffort::Xhigh => ThinkingLevel::High,
     }
 }
 
@@ -151,7 +154,7 @@ mod tests {
         );
         assert_eq!(
             thinking_level_to_effort(&ThinkingLevel::Minimal),
-            ReasoningEffort::Low
+            ReasoningEffort::Minimal
         );
         assert_eq!(
             thinking_level_to_effort(&ThinkingLevel::ThinkingLevelUnspecified),
@@ -171,6 +174,14 @@ mod tests {
         );
         assert_eq!(
             effort_to_thinking_level(ReasoningEffort::High),
+            ThinkingLevel::High
+        );
+        assert_eq!(
+            effort_to_thinking_level(ReasoningEffort::Minimal),
+            ThinkingLevel::Minimal
+        );
+        assert_eq!(
+            effort_to_thinking_level(ReasoningEffort::Xhigh),
             ThinkingLevel::High
         );
     }

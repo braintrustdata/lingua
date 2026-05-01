@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DacR1xAv0icJTeUnKkffzuUsa3kpl",
+  "object": "chat.completion",
+  "created": 1777619923,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I’m happy to help, but I need a bit more context. What are you working on or hoping to accomplish? Here are a few quick options you might consider:\n\n- If you’re studying: Do you want a quick practice problem set on a topic (math, science, language, etc.)?\n- If you’re stuck on a task: Tell me what the goal is and where you’re stuck, and I’ll help break it down step by step.\n- If you’re deciding what to do next in a project: I can help prioritize tasks, create a plan, or draft an outline.\n- If you want a productivity boost: I can suggest a short routine or a focused work sprint plan (e.g., 25-minute pomodoro, then a 5-minute break).\n\nFeel free to share more details, and I’ll tailor the next steps.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 30,
+    "completion_tokens": 182,
+    "total_tokens": 212,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

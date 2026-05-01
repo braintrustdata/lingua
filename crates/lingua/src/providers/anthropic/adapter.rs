@@ -201,7 +201,7 @@ impl ProviderAdapter for AnthropicAdapter {
                         EffortLevel::Low => ReasoningEffort::Low,
                         EffortLevel::Medium => ReasoningEffort::Medium,
                         EffortLevel::High => ReasoningEffort::High,
-                        EffortLevel::Max => ReasoningEffort::High,
+                        EffortLevel::Max => ReasoningEffort::Xhigh,
                     };
                     ReasoningConfig {
                         enabled: Some(true),
@@ -408,10 +408,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 .reasoning
                 .as_ref()
                 .and_then(|r| r.effort)
-                .map(|e| match e {
-                    ReasoningEffort::Low => EffortLevel::Low,
-                    ReasoningEffort::Medium => EffortLevel::Medium,
-                    ReasoningEffort::High => EffortLevel::High,
+                .and_then(|e| match e {
+                    ReasoningEffort::None => None,
+                    ReasoningEffort::Minimal | ReasoningEffort::Low => Some(EffortLevel::Low),
+                    ReasoningEffort::Medium => Some(EffortLevel::Medium),
+                    ReasoningEffort::High => Some(EffortLevel::High),
+                    ReasoningEffort::Xhigh => Some(EffortLevel::Max),
                 })
         } else {
             None

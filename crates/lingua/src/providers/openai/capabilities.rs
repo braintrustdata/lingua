@@ -2,6 +2,7 @@
 OpenAI-specific capability detection used by the transformation pipeline.
 */
 use crate::serde_json::{Map, Value};
+use crate::universal::ReasoningEffort;
 
 /// Transforms required for specific model families.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -65,6 +66,130 @@ pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
 /// Check if a model requires any transforms.
 pub fn model_needs_transforms(model: &str) -> bool {
     !get_model_transforms(model).is_empty()
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum EffortFamily {
+    NoneLowMediumHighXhigh,
+    LowMediumHighXhigh,
+    NoneLowMediumHigh,
+    LowMediumHigh,
+    MinimalLowMediumHigh,
+}
+
+impl EffortFamily {
+    fn contains(self, effort: ReasoningEffort) -> bool {
+        match self {
+            EffortFamily::NoneLowMediumHighXhigh => matches!(
+                effort,
+                ReasoningEffort::None
+                    | ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+                    | ReasoningEffort::Xhigh
+            ),
+            EffortFamily::LowMediumHighXhigh => matches!(
+                effort,
+                ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+                    | ReasoningEffort::Xhigh
+            ),
+            EffortFamily::NoneLowMediumHigh => matches!(
+                effort,
+                ReasoningEffort::None
+                    | ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+            ),
+            EffortFamily::LowMediumHigh => matches!(
+                effort,
+                ReasoningEffort::Low | ReasoningEffort::Medium | ReasoningEffort::High
+            ),
+            EffortFamily::MinimalLowMediumHigh => matches!(
+                effort,
+                ReasoningEffort::Minimal
+                    | ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+            ),
+        }
+    }
+}
+
+fn normalize_openai_model_name(model: &str) -> String {
+    let lower = model.to_ascii_lowercase();
+    if let Some(stripped) = lower.strip_prefix("openai/") {
+        stripped.to_string()
+    } else {
+        lower
+    }
+}
+
+fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
+    let model = normalize_openai_model_name(model);
+
+    if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
+        if model.starts_with("gpt-5.2-codex") {
+            Some(EffortFamily::LowMediumHighXhigh)
+        } else {
+            Some(EffortFamily::NoneLowMediumHighXhigh)
+        }
+    } else if model.starts_with("gpt-5.3-codex") {
+        Some(EffortFamily::LowMediumHighXhigh)
+    } else if model.starts_with("gpt-5.1-codex") {
+        Some(EffortFamily::LowMediumHigh)
+    } else if model.starts_with("gpt-5.1") {
+        Some(EffortFamily::NoneLowMediumHigh)
+    } else if model.starts_with("gpt-5-nano")
+        || model.starts_with("gpt-5-mini")
+        || model == "gpt-5"
+        || model.starts_with("gpt-5-")
+    {
+        Some(EffortFamily::MinimalLowMediumHigh)
+    } else {
+        None
+    }
+}
+
+/// Clamp a synthesized OpenAI reasoning effort to the values supported by the target model.
+///
+/// Same-provider raw OpenAI extras bypass this helper so exact user-supplied OpenAI
+/// payloads can be preserved. This is for cross-provider or canonical emission.
+pub fn clamp_reasoning_effort_for_model(model: &str, effort: ReasoningEffort) -> ReasoningEffort {
+    let Some(family) = reasoning_effort_family_for_model(model) else {
+        return effort;
+    };
+
+    if family.contains(effort) {
+        return effort;
+    }
+
+    match family {
+        EffortFamily::NoneLowMediumHighXhigh => match effort {
+            ReasoningEffort::Minimal => ReasoningEffort::Low,
+            _ => effort,
+        },
+        EffortFamily::LowMediumHighXhigh => match effort {
+            ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
+            _ => effort,
+        },
+        EffortFamily::NoneLowMediumHigh => match effort {
+            ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            _ => effort,
+        },
+        EffortFamily::LowMediumHigh => match effort {
+            ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            _ => effort,
+        },
+        EffortFamily::MinimalLowMediumHigh => match effort {
+            ReasoningEffort::None => ReasoningEffort::Minimal,
+            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            _ => effort,
+        },
+    }
 }
 
 /// Apply all transforms for a model to a request object.
@@ -147,6 +272,48 @@ mod tests {
         }
         for model in no_needs {
             assert!(!model_needs_transforms(model), "should not need: {}", model);
+        }
+    }
+
+    #[test]
+    fn test_clamp_reasoning_effort_for_model() {
+        let cases = [
+            (
+                "openai/gpt-5.4",
+                ReasoningEffort::Minimal,
+                ReasoningEffort::Low,
+            ),
+            ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.3-codex", ReasoningEffort::None, ReasoningEffort::Low),
+            (
+                "gpt-5.2-codex",
+                ReasoningEffort::Xhigh,
+                ReasoningEffort::Xhigh,
+            ),
+            ("gpt-5.2", ReasoningEffort::None, ReasoningEffort::None),
+            ("gpt-5.1", ReasoningEffort::Xhigh, ReasoningEffort::High),
+            (
+                "gpt-5.1-codex",
+                ReasoningEffort::Minimal,
+                ReasoningEffort::Low,
+            ),
+            ("gpt-5", ReasoningEffort::None, ReasoningEffort::Minimal),
+            ("gpt-5-mini", ReasoningEffort::Xhigh, ReasoningEffort::High),
+            (
+                "gpt-5-nano",
+                ReasoningEffort::Minimal,
+                ReasoningEffort::Minimal,
+            ),
+            ("gpt-4o", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+        ];
+
+        for (model, effort, expected) in cases {
+            assert_eq!(
+                clamp_reasoning_effort_for_model(model, effort),
+                expected,
+                "model: {}",
+                model
+            );
         }
     }
 

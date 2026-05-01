@@ -1,0 +1,13 @@
+{
+  "model": "claude-opus-4-6",
+  "max_tokens": 16000,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    }
+  ],
+  "output_config": {
+    "effort": "max"
+  }
+}

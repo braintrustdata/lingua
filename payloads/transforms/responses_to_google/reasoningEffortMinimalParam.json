@@ -1,0 +1,34 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Calculation Process**\n\nAlright, let's break this down. The user's query boils down to a simple addition problem. My first step is to isolate that core operation: addition. I recognize the request is fundamentally asking for the sum of two values.\n\nNext, I need to pinpoint the specific numbers involved. It's clear; they are 2 and 2. No ambiguity there.\n\nNow, the calculation itself. It's elementary, really. I perform the addition: 2 plus 2 equals 4. It's a fundamental arithmetic fact.\n\nFinally, I formulate the answer. I present the result in a clear and direct manner, conveying the sum. The answer is 4.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 85,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 69
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "1VP0abvNKsGu1MkPwdXG0Qk"
+}

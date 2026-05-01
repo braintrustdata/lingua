@@ -5,9 +5,7 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::openai::generated::{
-    ChatCompletionRequestMessage, Instructions, Reasoning, ReasoningEffort,
-};
+use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -52,7 +50,7 @@ pub struct OpenAIChatParams {
     pub stream_options: Option<Value>,
 
     // === Reasoning (o-series models) ===
-    pub reasoning_effort: Option<ReasoningEffort>,
+    pub reasoning_effort: Option<OpenAIReasoningEffort>,
 
     // === Reasoning (Braintrust proxy extensions) ===
     /// Explicitly enable/disable reasoning (Braintrust proxy extension)
@@ -110,7 +108,7 @@ pub struct OpenAIResponsesParams {
     pub stream: Option<bool>,
 
     // === Reasoning configuration (nested structure) ===
-    pub reasoning: Option<Reasoning>,
+    pub reasoning: Option<OpenAIReasoning>,
 
     // === Context management ===
     pub truncation: Option<Value>,
@@ -173,6 +171,29 @@ pub struct OpenAIResponsesExtrasView {
     pub service_tier: Option<Value>,
 }
 
+/// Typed OpenAI reasoning effort view for request parameters.
+///
+/// The generated OpenAI enum can lag new model-specific values, so request
+/// parameter parsing uses this compatibility enum at the provider boundary.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OpenAIReasoningEffort {
+    None,
+    Minimal,
+    Low,
+    Medium,
+    High,
+    Xhigh,
+}
+
+/// Typed OpenAI Responses reasoning parameter view.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OpenAIReasoning {
+    pub effort: Option<OpenAIReasoningEffort>,
+    pub summary: Option<Summary>,
+    pub generate_summary: Option<Summary>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -232,6 +253,28 @@ mod tests {
         assert_eq!(params.instructions, Some("Be helpful".to_string()));
         assert_eq!(params.max_output_tokens, Some(500));
         assert!(params.extras.is_empty());
+    }
+
+    #[test]
+    fn test_reasoning_effort_accepts_current_openai_values() {
+        let chat = json!({
+            "model": "gpt-5.4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "reasoning_effort": "xhigh"
+        });
+        let params: OpenAIChatParams = serde_json::from_value(chat).unwrap();
+        assert_eq!(params.reasoning_effort, Some(OpenAIReasoningEffort::Xhigh));
+
+        let responses = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "none"}
+        });
+        let params: OpenAIResponsesParams = serde_json::from_value(responses).unwrap();
+        assert_eq!(
+            params.reasoning.and_then(|r| r.effort),
+            Some(OpenAIReasoningEffort::None)
+        );
     }
 
     #[test]

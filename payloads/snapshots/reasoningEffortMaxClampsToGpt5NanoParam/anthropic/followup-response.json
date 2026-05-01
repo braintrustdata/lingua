@@ -1,0 +1,27 @@
+{
+  "model": "claude-opus-4-6",
+  "id": "msg_01Uq9bdkPzeqrPGjy5uLsncC",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "That depends on what you're working on! Could you give me a bit more context? For example, are you:\n\n- **Solving math problems?**\n- **Working on a project?**\n- **Just looking for a suggestion?**\n\nLet me know, and I'll be happy to help! 😊"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 37,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 71,
+    "service_tier": "standard",
+    "inference_geo": "global"
+  }
+}

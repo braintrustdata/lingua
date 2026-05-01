@@ -279,7 +279,7 @@ pub struct ReasoningConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
 
-    /// Reasoning effort level (low/medium/high).
+    /// Reasoning effort level.
     /// Always populated when enabled. Used by OpenAI Chat/Responses API.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<ReasoningEffort>,
@@ -330,18 +330,24 @@ fn reasoning_should_skip(reasoning: &Option<ReasoningConfig>) -> bool {
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum ReasoningEffort {
+    None,
+    Minimal,
     Low,
     Medium,
     High,
+    Xhigh,
 }
 
 impl ReasoningEffort {
     /// Returns the string representation.
     pub fn as_str(&self) -> &'static str {
         match self {
+            Self::None => "none",
+            Self::Minimal => "minimal",
             Self::Low => "low",
             Self::Medium => "medium",
             Self::High => "high",
+            Self::Xhigh => "xhigh",
         }
     }
 }
@@ -351,9 +357,12 @@ impl FromStr for ReasoningEffort {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
+            "none" => Ok(Self::None),
+            "minimal" => Ok(Self::Minimal),
             "low" => Ok(Self::Low),
             "medium" => Ok(Self::Medium),
             "high" => Ok(Self::High),
+            "xhigh" => Ok(Self::Xhigh),
             _ => Err(ConvertError::InvalidEnumValue {
                 type_name: "ReasoningEffort",
                 value: s.to_string(),

@@ -1,0 +1,32 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01N8D12ixbjWjySdie2hMCSs",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "This is a simple arithmetic question. 2+2 equals 4.",
+      "signature": "EvkBCmQIDRgCKkANrO4e7QOyBt+X28FZKLvTzNoQDVSTVMHBDOKtdn00Qyust7+mKBLyfu25KPMJ1vxi7EBV2nWiTwBDAqS5ISPSMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgw/sTgMpYjYyqbBLnMaDF8yU0tHuRxVgzHxSSIw//9txOKHSNs5JwtbhkCuBfn2djzsvCzY1EHhlNFETznSm2CAuCzOeaNYq2E1B2W4KkOrMGth6R/7yC59oVRVusJqeR0/4bHfs9B5/YedBZ1nWvncO+bAZ1y1EwMzbFT0ksuPhNay/4gvRr3Mf5E8aSxEL8P2GAE="
+    },
+    {
+      "type": "text",
+      "text": "2 + 2 = 4"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 43,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 36,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}
