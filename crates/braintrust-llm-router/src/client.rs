@@ -33,7 +33,7 @@ impl Default for ClientSettings {
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
-            request_timeout: Duration::from_secs(300),
+            request_timeout: Duration::from_secs(600),
             pool_idle_timeout: Duration::from_secs(90),
             pool_max_idle_per_host: 16,
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
@@ -132,6 +132,10 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
 }
 
 fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retryable> {
+    if is_request_timeout(err) {
+        return None;
+    }
+
     let retryable = match default_on_request_failure(err) {
         Some(Retryable::Transient) => Some(Retryable::Transient),
         default_retryability => match err {
@@ -153,6 +157,17 @@ fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retrya
     }
 
     retryable
+}
+
+fn is_request_timeout(err: &reqwest_middleware::Error) -> bool {
+    match err {
+        reqwest_middleware::Error::Reqwest(err) => err.is_timeout() && !err.is_connect(),
+        reqwest_middleware::Error::Middleware(err) => err.chain().any(|source| {
+            source
+                .downcast_ref::<reqwest::Error>()
+                .is_some_and(|err| err.is_timeout() && !err.is_connect())
+        }),
+    }
 }
 
 fn chain_has_connection_io_error(err: &(dyn StdError + 'static)) -> bool {
@@ -218,6 +233,10 @@ fn cached_client_count() -> usize {
 mod tests {
     use super::*;
     use serial_test::serial;
+    use wiremock::{
+        matchers::{method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
 
     #[test]
     #[serial]
@@ -258,5 +277,36 @@ mod tests {
         build_middleware_client(&second_settings).expect("second client");
 
         assert_eq!(cached_client_count(), 2);
+    }
+
+    #[test]
+    fn default_request_timeout_is_600_seconds() {
+        assert_eq!(
+            ClientSettings::default().request_timeout,
+            Duration::from_secs(600)
+        );
+    }
+
+    #[tokio::test]
+    async fn request_timeout_is_not_retryable_transport_failure() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/slow"))
+            .respond_with(ResponseTemplate::new(200).set_delay(Duration::from_millis(100)))
+            .mount(&server)
+            .await;
+
+        let client = ClientBuilder::new()
+            .timeout(Duration::from_millis(10))
+            .build()
+            .expect("client");
+        let err = client
+            .get(format!("{}/slow", server.uri()))
+            .send()
+            .await
+            .expect_err("request should time out");
+
+        assert!(err.is_timeout());
+        assert!(retryable_transport_failure(&reqwest_middleware::Error::Reqwest(err)).is_none());
     }
 }

@@ -108,11 +108,10 @@ impl Error {
     pub fn is_retryable(&self) -> bool {
         // Router-level retries are reserved for errors that originate outside the
         // provider HTTP wrapper's connection-retry path, such as raw reqwest
-        // errors, middleware errors, explicit Retry-After responses, or timeouts.
+        // errors, middleware errors, or explicit Retry-After responses.
         matches!(self, Error::Http(err) if is_reqwest_retryable(err))
             || matches!(self, Error::Middleware(err) if is_middleware_retryable(err))
             || matches!(self, Error::Provider { retry_after, .. } if retry_after.is_some())
-            || matches!(self, Error::Timeout)
     }
 
     pub fn retry_after(&self) -> Option<Duration> {
@@ -150,15 +149,21 @@ impl Error {
 }
 
 fn is_reqwest_retryable(err: &reqwest::Error) -> bool {
-    err.is_timeout()
-        || err.is_connect()
+    if err.is_timeout() {
+        return false;
+    }
+
+    err.is_connect()
         || err.is_request()
         || err.status().map(|c| c.is_server_error()).unwrap_or(false)
 }
 
 fn is_middleware_retryable(err: &reqwest_middleware::Error) -> bool {
-    err.is_timeout()
-        || err.is_request()
+    if err.is_timeout() {
+        return false;
+    }
+
+    err.is_request()
         || {
             #[cfg(not(target_arch = "wasm32"))]
             {
@@ -266,5 +271,10 @@ mod tests {
             http: None,
         };
         assert!(!non_upstream_err.is_upstream_error());
+    }
+
+    #[test]
+    fn timeout_error_is_not_retryable() {
+        assert!(!Error::Timeout.is_retryable());
     }
 }

@@ -507,7 +507,7 @@ fn retry_model_catalog() -> Arc<ModelCatalog> {
 }
 
 #[tokio::test]
-async fn router_retries_and_propagates_terminal_error() {
+async fn router_does_not_retry_timeout_errors() {
     let attempts = Arc::new(AtomicUsize::new(0));
     let retry_policy = RetryPolicy {
         max_attempts: 2,
@@ -549,7 +549,7 @@ async fn router_retries_and_propagates_terminal_error() {
         router.complete(request, &ClientHeaders::default()).await;
     let err = err.expect_err("terminal error");
     assert!(matches!(err, Error::Timeout));
-    assert_eq!(attempts.load(Ordering::SeqCst), 3);
+    assert_eq!(attempts.load(Ordering::SeqCst), 1);
 }
 
 #[tokio::test]
