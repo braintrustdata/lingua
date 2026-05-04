@@ -221,6 +221,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .as_ref()
                 .and_then(|m| serde_json::to_value(m).ok()),
             store: None,
+            conversation_reference: None,
             service_tier: typed_params.service_tier,
             logprobs: None,
             top_logprobs: None,

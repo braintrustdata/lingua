@@ -2,6 +2,7 @@ import { describe, test, expect } from "vitest";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { allTestCases, getCaseForProvider } from "../../cases";
+import { paramsCases } from "../../cases/params";
 import {
   TRANSFORM_PAIRS,
   TRANSFORMS_DIR,
@@ -21,6 +22,28 @@ const transformErrors: Record<string, Record<string, string>> = existsSync(
 )
   ? JSON.parse(readFileSync(ERRORS_PATH, "utf-8"))
   : {};
+
+describe("request-only transforms", () => {
+  test("responses item_reference input parses without role or content", () => {
+    const input = paramsCases.responsesItemReferenceParam.responses;
+    expect(input).not.toBeNull();
+
+    const request = transformAndValidateRequest(
+      input,
+      "Anthropic",
+      "anthropic"
+    );
+
+    expect(request).toMatchObject({
+      messages: [
+        {
+          role: "user",
+          content: "Continue from the referenced item.",
+        },
+      ],
+    });
+  });
+});
 
 for (const pair of TRANSFORM_PAIRS) {
   describe(`${pair.source} → ${pair.target}`, () => {

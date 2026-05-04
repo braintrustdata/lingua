@@ -137,6 +137,7 @@ impl ProviderAdapter for BedrockAdapter {
             reasoning, // Extracted from additionalModelRequestFields.thinking
             metadata: None,
             store: None,
+            conversation_reference: None,
             service_tier: None,
             logprobs: None,
             top_logprobs: None,
