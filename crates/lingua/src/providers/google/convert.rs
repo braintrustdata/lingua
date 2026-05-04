@@ -33,7 +33,7 @@ use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolT
 use crate::util::media::{parse_base64_data_url, parse_file_metadata_from_url};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
-const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
+pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
