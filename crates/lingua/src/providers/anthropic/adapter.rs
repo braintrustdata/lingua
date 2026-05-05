@@ -201,6 +201,7 @@ impl ProviderAdapter for AnthropicAdapter {
                         EffortLevel::Low => ReasoningEffort::Low,
                         EffortLevel::Medium => ReasoningEffort::Medium,
                         EffortLevel::High => ReasoningEffort::High,
+                        EffortLevel::Xhigh => ReasoningEffort::Xhigh,
                         EffortLevel::Max => ReasoningEffort::Xhigh,
                     };
                     ReasoningConfig {

@@ -192,6 +192,8 @@ impl From<&GeneratedOpenAIReasoningEffort> for ReasoningEffort {
             GeneratedOpenAIReasoningEffort::Low => ReasoningEffort::Low,
             GeneratedOpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
             GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
+            GeneratedOpenAIReasoningEffort::None => ReasoningEffort::None,
+            GeneratedOpenAIReasoningEffort::Xhigh => ReasoningEffort::Xhigh,
         }
     }
 }
@@ -602,6 +604,7 @@ mod tests {
         let thinking = Thinking {
             thinking_type: ThinkingType::Enabled,
             budget_tokens: Some(2048),
+            display: None,
         };
         let config = ReasoningConfig::from(&thinking);
         assert_eq!(config.enabled, Some(true));
