@@ -203,9 +203,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     (block.tool_use_id, block.content)
                                 {
                                     let output = match content {
-                                        generated::Content::String(s) => serde_json::from_str(&s)
-                                            .unwrap_or(serde_json::Value::String(s)),
-                                        generated::Content::BlockArray(blocks) => {
+                                        generated::InputContentBlockContent::String(s) => {
+                                            serde_json::from_str(&s)
+                                                .unwrap_or(serde_json::Value::String(s))
+                                        }
+                                        generated::InputContentBlockContent::BlockArray(blocks) => {
                                             serde_json::to_value(blocks).map_err(|e| {
                                                 ConvertError::JsonSerializationFailed {
                                                     field: "BlockArray".to_string(),
@@ -213,9 +215,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 }
                                             })?
                                         }
-                                        generated::Content::RequestWebSearchToolResultError(
-                                            err,
-                                        ) => serde_json::to_value(err).map_err(|e| {
+                                        generated::InputContentBlockContent::RequestWebSearchToolResultError(err) => serde_json::to_value(err).map_err(|e| {
                                             ConvertError::JsonSerializationFailed {
                                                 field: "RequestWebSearchToolResultError"
                                                     .to_string(),
@@ -549,11 +549,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         signature: None,
                                         thinking: None,
                                         data: None,
+                                        caller: None,
                                         id: None,
                                         input: None,
                                         name: None,
                                         is_error: None,
                                         tool_use_id: None,
+                                        file_id: None,
                                     })
                                 }
                                 UserContentPart::Image {
@@ -592,11 +594,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     signature: None,
                                                                     thinking: None,
                                                                     data: None,
+                                                                    caller: None,
                                                                     id: None,
                                                                     input: None,
                                                                     name: None,
                                                                     is_error: None,
                                                                     tool_use_id: None,
+                                                                    file_id: None,
                                                                 });
                                                             }
                                                         }
@@ -672,11 +676,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             signature: None,
                                             thinking: None,
                                             data: None,
+                                            caller: None,
                                             id: None,
                                             input: None,
                                             name: None,
                                             is_error: None,
                                             tool_use_id: None,
+                                            file_id: None,
                                         })
                                     } else {
                                         None
@@ -755,11 +761,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         signature: None,
                                         thinking: None,
                                         data: None,
+                                        caller: None,
                                         id: None,
                                         input: None,
                                         name: None,
                                         is_error: None,
                                         tool_use_id: None,
+                                        file_id: None,
                                     })
                                 }
                             })
@@ -800,11 +808,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     signature: None,
                                     thinking: None,
                                     data: None,
+                                    caller: None,
                                     id: None,
                                     input: None,
                                     name: None,
                                     is_error: None,
                                     tool_use_id: None,
+                                    file_id: None,
                                 })
                             }
                             AssistantContentPart::Reasoning {
@@ -825,11 +835,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     signature: encrypted_content,
                                     thinking: Some(text),
                                     data: None,
+                                    caller: None,
                                     id: None,
                                     input: None,
                                     name: None,
                                     is_error: None,
                                     tool_use_id: None,
+                                    file_id: None,
                                 })
                             }
                             AssistantContentPart::ToolCall {
@@ -864,11 +876,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     signature: None,
                                     thinking: None,
                                     data: None,
+                                    caller: None,
                                     id: Some(tool_call_id.clone()),
                                     input: input_map,
                                     name: Some(tool_name.clone()),
                                     is_error: None,
                                     tool_use_id: None,
+                                    file_id: None,
                                 })
                             }
                             AssistantContentPart::ToolResult {
@@ -886,7 +900,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     // Restore WebSearchToolResult block
                                     let content = output.as_object()
                                         .and_then(|obj| obj.get("content"))
-                                        .and_then(|v| serde_json::from_value::<generated::Content>(v.clone()).ok());
+                                        .and_then(|v| serde_json::from_value::<generated::InputContentBlockContent>(v.clone()).ok());
 
                                     Some(generated::InputContentBlock {
                                         cache_control: None,
@@ -901,11 +915,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         signature: None,
                                         thinking: None,
                                         data: None,
+                                        caller: None,
                                         id: None,
                                         input: None,
                                         name: None,
                                         is_error: None,
                                         tool_use_id: Some(tool_call_id.clone()),
+                                        file_id: None,
                                     })
                                 } else {
                                     None // Skip other tool results in assistant messages
@@ -931,9 +947,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         ToolContentPart::ToolResult(tool_result) => {
                             let content = match &tool_result.output {
                                 serde_json::Value::String(s) => {
-                                    Some(generated::Content::String(s.clone()))
+                                    Some(generated::InputContentBlockContent::String(s.clone()))
                                 }
-                                other => Some(generated::Content::String(
+                                other => Some(generated::InputContentBlockContent::String(
                                     serde_json::to_string(other)
                                         .map_err(|e| ConvertError::JsonSerializationFailed {
                                             field: "tool_result_output".to_string(),
@@ -955,11 +971,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 signature: None,
                                 thinking: None,
                                 data: None,
+                                caller: None,
                                 id: None,
                                 input: None,
                                 name: None,
                                 is_error: None,
                                 tool_use_id: Some(tool_result.tool_call_id),
+                                file_id: None,
                             });
                         }
                     }
@@ -1177,11 +1195,13 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             signature: None,
                             thinking: None,
                             data: None,
+                            caller: None,
                             id: None,
                             input: None,
                             name: None,
                             content: None,
                             tool_use_id: None,
+                            file_id: None,
                         });
                     }
                     AssistantContent::Array(parts) => {
@@ -1206,11 +1226,13 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         signature: None,
                                         thinking: None,
                                         data: None,
+                                        caller: None,
                                         id: None,
                                         input: None,
                                         name: None,
                                         content: None,
                                         tool_use_id: None,
+                                        file_id: None,
                                     });
                                 }
                                 AssistantContentPart::Reasoning {
@@ -1225,11 +1247,13 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         signature: encrypted_content,
                                         thinking: Some(text),
                                         data: None,
+                                        caller: None,
                                         id: None,
                                         input: None,
                                         name: None,
                                         content: None,
                                         tool_use_id: None,
+                                        file_id: None,
                                     });
                                 }
                                 AssistantContentPart::ToolCall {
@@ -1259,11 +1283,13 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         signature: None,
                                         thinking: None,
                                         data: None,
+                                        caller: None,
                                         id: Some(tool_call_id.clone()),
                                         input: input_map,
                                         name: Some(tool_name.clone()),
                                         content: None,
                                         tool_use_id: None,
+                                        file_id: None,
                                     });
                                 }
                                 AssistantContentPart::ToolResult {
@@ -1295,11 +1321,13 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                             signature: None,
                                             thinking: None,
                                             data: None,
+                                            caller: None,
                                             id: None,
                                             input: None,
                                             name: None,
                                             content,
                                             tool_use_id: Some(tool_call_id.clone()),
+                                            file_id: None,
                                         });
                                     }
                                     // Skip other tool results - they shouldn't appear in response content
@@ -1442,8 +1470,11 @@ impl TryFrom<&UniversalTool> for CustomTool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(CustomTool {
+                allowed_callers: None,
                 name: tool.name.clone(),
                 description: tool.description.clone(),
+                defer_loading: None,
+                input_examples: None,
                 input_schema: normalize_anthropic_tool_schema(&tool.name, tool.parameters.clone())?,
                 strict: tool.strict,
                 cache_control: None,
@@ -1527,9 +1558,11 @@ impl TryFrom<&UniversalTool> for Tool {
                             }
                         })?;
                     return Ok(Tool::WebSearch20250305(generated::WebSearchTool20250305 {
+                        allowed_callers: None,
                         allowed_domains: None,
                         blocked_domains: None,
                         cache_control: None,
+                        defer_loading: None,
                         max_uses: None,
                         name: "web_search".to_string(),
                         strict: None,
@@ -1822,11 +1855,13 @@ mod tests {
                     signature: None,
                     thinking: None,
                     data: None,
+                    caller: None,
                     id: None,
                     input: None,
                     name: None,
                     is_error: None,
                     tool_use_id: None,
+                    file_id: None,
                 },
             ]),
         };

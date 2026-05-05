@@ -154,6 +154,7 @@ impl ProviderAdapter for GoogleAdapter {
             reasoning,
             metadata: None,
             store: None,
+            conversation_reference: None,
             service_tier: None,
             logprobs: None,
             top_logprobs: None,

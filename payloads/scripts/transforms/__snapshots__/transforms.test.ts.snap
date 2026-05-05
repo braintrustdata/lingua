@@ -6373,6 +6373,10 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
       "id": "ws_0cff0be10f79f5520069d46c9f4f3c819caca1ecf4dc22d3fc",
       "input": {
         "action": {
+          "queries": [
+            "site:wikipedia.org Artificial intelligence news",
+            "site:arxiv.org artificial intelligence new papers 2026",
+          ],
           "query": "site:wikipedia.org Artificial intelligence news",
           "type": "search",
         },
@@ -6429,6 +6433,12 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
       "id": "ws_0b557de166e92e4b0069d46c828fc081959551aa2e330718f2",
       "input": {
         "action": {
+          "queries": [
+            "OpenAI news 2026",
+            "OpenAI latest news April 2026",
+            "OpenAI announces 2026 product release",
+            "OpenAI layoffs 2026",
+          ],
           "query": "OpenAI news 2026",
           "type": "search",
         },
@@ -7810,6 +7820,50 @@ exports[`chat-completions → anthropic > reasoningEffortMinimalParam > response
       "cached_tokens": 0,
     },
     "total_tokens": 79,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "type": "disabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01BVZDnu2vjSxaagDaBThtf2",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
   },
 }
 `;
@@ -10444,6 +10498,54 @@ Okay, so the user has thrown a textbook arithmetic problem at me: "What is 2+2?"
     },
     "prompt_tokens": 8,
     "total_tokens": 184,
+  },
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 0,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2+2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 8,
+    "total_tokens": 14,
   },
 }
 `;
@@ -13112,6 +13214,49 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > response
       "cached_tokens": 0,
     },
     "total_tokens": 38,
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortNoneParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5.2",
+  "reasoning": {
+    "effort": "none",
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0b34a7966c9d9b9d0069fa2f5f510481909c4dcc1c6bc2a8bc",
+  "model": "gpt-5.2-2025-12-11",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 24,
   },
 }
 `;
@@ -21415,6 +21560,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "AI news 2026 April",
+                    "latest AI developments 2026",
+                    "OpenAI 2026 updates",
+                    "Google DeepMind 2026 news",
+                  ],
                   "query": "AI news 2026 April",
                   "type": "search",
                 },
@@ -21487,6 +21638,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "Reuters AI news 2026",
+                    "Bloomberg AI news 2026",
+                    "CNBC OpenAI 2026 updates",
+                    "Axios Google DeepMind 2026",
+                  ],
                   "query": "Reuters AI news 2026",
                   "type": "search",
                 },
@@ -21595,6 +21752,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI compute target 600 billion CNBC February 2026",
+                    "OpenAI March 2026 update new models CNBC",
+                  ],
                   "query": "OpenAI compute target 600 billion CNBC February 2026",
                   "type": "search",
                 },
@@ -21667,6 +21828,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI GPT-5.4 March 2026 announced",
+                    "Google Gemini 3 Deep Think update February 2026 TechCrunch",
+                  ],
                   "query": "OpenAI GPT-5.4 March 2026 announced",
                   "type": "search",
                 },
@@ -21937,6 +22102,12 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI latest news 2026",
+                    "OpenAI announces 2026 news Reuters",
+                    "OpenAI news The Verge 2026",
+                    "OpenAI official blog 2026",
+                  ],
                   "query": "OpenAI latest news 2026",
                   "type": "search",
                 },
@@ -21973,6 +22144,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "site:openai.com OpenAI blog GPT-4o retirement February 2026",
+                    "OpenAI GPT-5 announcement March 2026 site:openai.com",
+                  ],
                   "query": "site:openai.com OpenAI blog GPT-4o retirement February 2026",
                   "type": "search",
                 },
@@ -22009,6 +22184,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI TBPN acquisition April 2026",
+                    "OpenAI TBPN press release",
+                  ],
                   "query": "OpenAI TBPN acquisition April 2026",
                   "type": "search",
                 },
@@ -23141,6 +23320,63 @@ exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = 
       "reasoning_tokens": 0,
     },
     "total_tokens": 79,
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "type": "disabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01BNqkGQQgvAuVd1opmAYKmn",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 13,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 27,
   },
 }
 `;
@@ -26134,6 +26370,70 @@ Finally, I formulate the answer. I present the result in a clear and direct mann
       "reasoning_tokens": 69,
     },
     "total_tokens": 85,
+  },
+}
+`;
+
+exports[`responses → google > reasoningEffortNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 0,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > reasoningEffortNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2+2 equals 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2+2 equals 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 7,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 15,
   },
 }
 `;

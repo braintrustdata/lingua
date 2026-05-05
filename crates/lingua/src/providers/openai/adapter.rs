@@ -150,6 +150,7 @@ impl ProviderAdapter for OpenAIAdapter {
             reasoning,
             metadata: canonical_metadata,
             store: typed_params.store,
+            conversation_reference: None,
             service_tier: typed_params.service_tier,
             logprobs: typed_params.logprobs,
             top_logprobs: typed_params.top_logprobs,

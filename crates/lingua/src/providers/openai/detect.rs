@@ -73,8 +73,8 @@ mod tests {
     use super::*;
     use crate::providers::openai::generated::{
         ChatCompletionRequestMessage, ChatCompletionRequestMessageContent,
-        ChatCompletionRequestMessageRole, CreateChatCompletionRequestClass, PurpleFunction,
-        ToolCall, ToolType,
+        ChatCompletionRequestMessageRole, CreateChatCompletionRequestClass, FluffyType,
+        PurpleFunction, ToolCall,
     };
     use crate::serde_json::{self, json};
 
@@ -96,6 +96,7 @@ mod tests {
             }],
             metadata: None,
             prompt_cache_key: None,
+            prompt_cache_retention: None,
             safety_identifier: None,
             service_tier: None,
             temperature: None,
@@ -164,6 +165,7 @@ mod tests {
             ],
             metadata: None,
             prompt_cache_key: None,
+            prompt_cache_retention: None,
             safety_identifier: None,
             service_tier: None,
             temperature: None,
@@ -213,7 +215,7 @@ mod tests {
                 refusal: None,
                 tool_calls: Some(vec![ToolCall {
                     id: "call_123".to_string(),
-                    tool_call_type: ToolType::Function,
+                    tool_call_type: FluffyType::Function,
                     function: Some(PurpleFunction {
                         name: "get_weather".to_string(),
                         arguments: "{}".to_string(),
@@ -224,6 +226,7 @@ mod tests {
             }],
             metadata: None,
             prompt_cache_key: None,
+            prompt_cache_retention: None,
             safety_identifier: None,
             service_tier: None,
             temperature: None,

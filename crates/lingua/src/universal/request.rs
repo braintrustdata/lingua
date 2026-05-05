@@ -180,6 +180,12 @@ pub struct UniversalParams {
     /// **Providers:** OpenAI
     pub store: Option<bool>,
 
+    /// References to provider-managed conversation items.
+    ///
+    /// **Providers:** OpenAI Responses (`input[].type = "item_reference"`)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conversation_reference: Option<Vec<ConversationReference>>,
+
     /// Request priority tier (e.g., "auto", "default").
     ///
     /// **Providers:** OpenAI, Anthropic
@@ -199,6 +205,26 @@ pub struct UniversalParams {
     #[serde(skip)]
     #[ts(skip)]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
+}
+
+/// A provider-managed item reference used to rebuild conversation context.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ConversationReference {
+    /// Reference kind.
+    #[serde(rename = "type")]
+    pub reference_type: ConversationReferenceType,
+
+    /// Provider item ID being referenced.
+    pub id: String,
+}
+
+/// The kind of provider-managed conversation reference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum ConversationReferenceType {
+    ItemReference,
 }
 
 // =============================================================================
