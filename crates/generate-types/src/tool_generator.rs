@@ -155,6 +155,9 @@ fn extract_anthropic_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
         if schema_name.starts_with("Beta") {
             continue;
         }
+        if schema_name.starts_with("ServerToolCaller") {
+            continue;
+        }
         let Some(props) = schema_def.get("properties").and_then(|p| p.as_object()) else {
             continue;
         };
@@ -329,7 +332,11 @@ fn generate_tool_struct_direct(
             }
 
             let field_name = to_rust_field_name(prop_name);
-            let rust_type = schema_type_to_rust(prop_schema, all_schemas);
+            let rust_type = if provider == "anthropic" && prop_name == "allowed_callers" {
+                "Vec<AllowedCaller>".to_string()
+            } else {
+                schema_type_to_rust(prop_schema, all_schemas)
+            };
             let is_required = required.contains(prop_name);
 
             // Add field documentation if available
@@ -351,9 +358,7 @@ fn generate_tool_struct_direct(
             }
 
             // Add ts(type = "unknown") for serde_json::Value fields
-            if rust_type == "serde_json::Value"
-                || rust_type == "serde_json::Map<String, serde_json::Value>"
-            {
+            if rust_type.contains("serde_json::Value") {
                 output.push_str("    #[ts(type = \"unknown\")]\n");
             }
 
