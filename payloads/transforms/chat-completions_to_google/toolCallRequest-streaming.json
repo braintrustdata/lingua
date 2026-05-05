@@ -1,0 +1,62 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I need to",
+              "thoughtSignature": "CiQBDDnWx8voTfSFzc/6lDD00CZojQO0kZQz4N3PvhZWtd9LLhQKYwEMOdbHccojuqkSawF5ysDFk1ibAVecxrbMGl2+vauqvv6CRXLlH6uWNzEp7uBXsYHQnDtwPOIAiUxI5EanzP4/+lFi3DFQCaNT7zPv1Pv08yMTjUTxGZ/IMRmNdrb8ikv0Hwr+AQEMOdbHZ31dD03sSy20a9e9+Sejd22djNwp5MRewGMkuM1kyGaZ8aGbYLOA6TFB7h4JyuTb+lnhvkVdsKnDLF5h0JWBU185klZ1W0bnSK9WWYDuw1lRd+LcW4kGceaagc2+t4lDsYcgakUghjX77U4QrCZOC2cHcJEogD6+4WwGsqjQAlW6CbI/2m84lOTV49CyYN3pylo3KF5if+10ba/MnCpCYTV+1bd48stSAaIeZNqIpBMVBk1lhH6+KQle1jBED6XLLKY3qvCdpalvGZLC2M3YPAOBdYlPbr0026LCBFuv6wMt+xar3Xp+be9DsgoeyJfE5sCWN79BO5oZ"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 3,
+      "totalTokenCount": 126,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 61
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6abOSA62k1MkPg87--A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " know the state. What state is that in?"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 13,
+      "totalTokenCount": 136,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 61
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6abOSA62k1MkPg87--A4"
+  }
+]

@@ -1,0 +1,177 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Most commonly, the sky appears **blue** during the day.\n\nThis is due to a phenomenon called **Rayleigh scattering"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 25,
+      "totalTokenCount": 730,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**, where sunlight interacts with the gases and particles in Earth's atmosphere. Blue light has a shorter wavelength and scatters more efficiently in all directions than other colors, making the sky appear blue to our eyes.\n\nHowever, the sky'"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 73,
+      "totalTokenCount": 778,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "s color can change dramatically depending on several factors:\n\n*   **Sunrise and Sunset:** At these times, the sun's light travels through more of the atmosphere, scattering away most of the blue light. This allows more red, orange, pink"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 123,
+      "totalTokenCount": 828,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", and yellow light to reach our eyes, creating beautiful colorful displays.\n*   **Overcast or Stormy Weather:** When the sky is full of thick clouds, it often appears **gray** or even a dark, bruised gray.\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 171,
+      "totalTokenCount": 876,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "*   **Haze or Pollution:** A hazy or polluted sky can sometimes appear a muted gray, brown, or even yellowish.\n*   **Altitude:** From space, the sky is black because there's no atmosphere to scatter light.\n\n"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 220,
+      "totalTokenCount": 925,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "So, while **blue** is the typical answer for a clear day, the sky's color is actually quite dynamic!"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 245,
+      "totalTokenCount": 950,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 698
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8jr6af3vF4jB1MkP183YwA4"
+  }
+]

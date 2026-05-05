@@ -343,6 +343,12 @@ export const STREAMING_PAIRS: TransformPair[] = [
     wasmTarget: "Responses",
   },
   {
+    source: "chat-completions",
+    target: "google",
+    wasmSource: "OpenAI",
+    wasmTarget: "Google",
+  },
+  {
     source: "responses",
     target: "google",
     wasmSource: "Responses",
