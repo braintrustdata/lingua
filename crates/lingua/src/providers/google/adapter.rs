@@ -11,6 +11,7 @@ Google's API has some unique characteristics:
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
+use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
@@ -517,15 +518,24 @@ impl ProviderAdapter for GoogleAdapter {
                 .collect::<Vec<_>>()
                 .join("");
 
-            let tool_calls = parts
+            let response_id = typed_payload.response_id.as_deref();
+            let mut tool_call_index = 0_u32;
+            let tool_calls: Vec<UniversalToolCallDelta> = parts
                 .iter()
-                .enumerate()
-                .filter_map(|(i, part)| {
-                    part.function_call
-                        .as_ref()
-                        .map(|function_call| UniversalToolCallDelta {
-                            index: Some(i as u32),
-                            id: function_call.id.clone(),
+                .filter_map(|part| {
+                    part.function_call.as_ref().map(|function_call| {
+                        let index = tool_call_index;
+                        tool_call_index += 1;
+                        UniversalToolCallDelta {
+                            index: Some(index),
+                            id: function_call.id.clone().or_else(|| {
+                                Some(match response_id {
+                                    Some(response_id) => {
+                                        format!("{SYNTHETIC_CALL_ID_PREFIX}{response_id}_{index}")
+                                    }
+                                    None => format!("{SYNTHETIC_CALL_ID_PREFIX}{index}"),
+                                })
+                            }),
                             call_type: Some("function".to_string()),
                             function: Some(UniversalToolFunctionDelta {
                                 name: function_call.name.clone(),
@@ -534,11 +544,11 @@ impl ProviderAdapter for GoogleAdapter {
                                     .as_ref()
                                     .map(|args| Value::Object(args.clone()).to_string()),
                             }),
-                        })
+                        }
+                    })
                 })
                 .collect();
 
-            // Map finish reason using centralized helper
             let finish_reason = candidate
                 .finish_reason
                 .as_ref()
@@ -548,7 +558,11 @@ impl ProviderAdapter for GoogleAdapter {
                     _ => None,
                 })
                 .map(|reason| {
-                    FinishReason::from_provider_string(&reason, self.format()).to_string()
+                    if tool_calls.is_empty() {
+                        FinishReason::from_provider_string(&reason, self.format()).to_string()
+                    } else {
+                        FinishReason::ToolCalls.to_string()
+                    }
                 });
 
             let delta = UniversalStreamDelta {
@@ -853,6 +867,96 @@ mod tests {
         let back_typed: GenerateContentResponse =
             serde_json::from_value(back).expect("response should deserialize");
         assert_eq!(back_typed.model_version.as_deref(), Some("gemini-1.5"));
+    }
+
+    #[test]
+    fn test_google_stream_tool_call_sets_tool_calls_finish_reason() {
+        let adapter = GoogleAdapter;
+        let args: Map<String, Value> = serde_json::from_value(json!({})).unwrap();
+        let payload = json!({
+            "responseId": "response_123",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "functionCall": {
+                            "name": "get_summary",
+                            "args": args
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let choice = chunk.choices.first().expect("choice should be present");
+        let delta = choice.delta_view().expect("delta should be present");
+        let tool_call = delta
+            .tool_calls
+            .first()
+            .expect("tool call should be present");
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
+        assert_eq!(tool_call.index, Some(0));
+        assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
+    }
+
+    #[test]
+    fn test_google_stream_tool_call_indexes_are_tool_call_relative() {
+        let adapter = GoogleAdapter;
+        let first_args: Map<String, Value> = serde_json::from_value(json!({"a": 1})).unwrap();
+        let second_args: Map<String, Value> = serde_json::from_value(json!({"b": 2})).unwrap();
+        let payload = json!({
+            "responseId": "response_456",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {"text": "I'll call two tools."},
+                        {
+                            "functionCall": {
+                                "name": "first_tool",
+                                "args": first_args
+                            }
+                        },
+                        {"text": "Then another."},
+                        {
+                            "functionCall": {
+                                "name": "second_tool",
+                                "args": second_args
+                            }
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let choice = chunk.choices.first().expect("choice should be present");
+        let delta = choice.delta_view().expect("delta should be present");
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
+        assert_eq!(delta.tool_calls.len(), 2);
+        assert_eq!(delta.tool_calls[0].index, Some(0));
+        assert_eq!(delta.tool_calls[1].index, Some(1));
+        assert_eq!(
+            delta.tool_calls[0].id.as_deref(),
+            Some("call_response_456_0")
+        );
+        assert_eq!(
+            delta.tool_calls[1].id.as_deref(),
+            Some("call_response_456_1")
+        );
     }
 
     #[test]

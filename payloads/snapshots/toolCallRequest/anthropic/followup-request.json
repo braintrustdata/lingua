@@ -1,5 +1,5 @@
 {
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "max_tokens": 20000,
   "messages": [
     {
@@ -10,15 +10,14 @@
       "role": "assistant",
       "content": [
         {
-          "type": "text",
-          "text": "I'll check the current weather in San Francisco for you."
-        },
-        {
           "type": "tool_use",
-          "id": "toolu_011K7vBi4Gcyn9j8epDoYveK",
+          "id": "toolu_01RtSYhnimiJecNwHAMFgsjU",
           "name": "get_weather",
           "input": {
             "location": "San Francisco, CA"
+          },
+          "caller": {
+            "type": "direct"
           }
         }
       ]
@@ -28,7 +27,7 @@
       "content": [
         {
           "type": "tool_result",
-          "tool_use_id": "toolu_011K7vBi4Gcyn9j8epDoYveK",
+          "tool_use_id": "toolu_01RtSYhnimiJecNwHAMFgsjU",
           "content": "71 degrees"
         }
       ]
@@ -53,6 +52,6 @@
     }
   ],
   "tool_choice": {
-    "type": "auto"
+    "type": "any"
   }
 }

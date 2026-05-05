@@ -1,0 +1,32 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Let'"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 94
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aZDwBc6F1MkPjbDHqQ8"
+  }
+]

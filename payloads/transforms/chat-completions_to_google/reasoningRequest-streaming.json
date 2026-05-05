@@ -1,0 +1,235 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To find the average speed, we need to calculate the total distance traveled and the total time taken. The formula for average speed is:\n\n$$\\text{Average Speed} = \\frac"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 37,
+      "totalTokenCount": 740,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\\text{Total Distance}}{\\text{Total Time}}$$\n\nLet's break down the problem into steps:\n\n**Step 1: Calculate the distance traveled in the first part of the journey.**\n*   Speed = 60 mph"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 86,
+      "totalTokenCount": 789,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n*   Time = 2 hours\n*   Distance = Speed × Time\n*   Distance$_1$ = 60 mph × 2 hours = 120 miles\n\n**Step 2: Calculate the distance traveled"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 133,
+      "totalTokenCount": 836,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " in the second part of the journey.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance = Speed × Time\n*   Distance$_2$ = 80 mph × 1"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 181,
+      "totalTokenCount": 884,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " hour = 80 miles\n\n**Step 3: Calculate the total distance traveled.**\n*   Total Distance = Distance$_1$ + Distance$_2$\n*   Total Distance = 120 miles + 80"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 229,
+      "totalTokenCount": 932,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " miles = 200 miles\n\n**Step 4: Calculate the total time taken.**\n*   Total Time = Time$_1$ + Time$_2$\n*   Total Time = 2 hours + 1 hour ="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 277,
+      "totalTokenCount": 980,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " 3 hours\n\n**Step 5: Calculate the average speed.**\n*   Average Speed = Total Distance / Total Time\n*   Average Speed = 200 miles / 3 hours\n*   Average Speed $\\approx$ 6"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 326,
+      "totalTokenCount": 1029,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "6.67 mph\n\nThe average speed of the train is approximately **66.67 mph**."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 37,
+      "candidatesTokenCount": 348,
+      "totalTokenCount": 1051,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 37
+        }
+      ],
+      "thoughtsTokenCount": 666
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6aaruBdu91MkP_vrd8A4"
+  }
+]

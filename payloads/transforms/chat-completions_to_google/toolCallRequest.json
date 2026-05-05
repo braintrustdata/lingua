@@ -4,28 +4,34 @@
       "content": {
         "parts": [
           {
-            "text": "I need to know the state. Can you tell me what state San Francisco is in?",
-            "thoughtSignature": "CqgDAb4+9vsq530e+k4c1A7FkQjD6y1k8aEcZtMQZnEmNdBrGrCodvgdKNcqgkw84ckVWjLs7w0k3Gca/JQCRij1GsMhR0bVqQsna/Wly+X+5KFEMW92qaTcYgMeAdjzL7YP5fiA5olbBP4GWFqYL2CTFjecquXDLdls7u2T8og+afkkus8j3hFO4a7RZTcD84DSFfUwlwanAEpZzAiLD53YO6tWbToruSRABndnQ/HZ6Z6t66jSk38UdX4AFdaIjlcBeJfTFQgLrl3oBWfdMPj7L6ymQGfPdqLPwQ1WCS3sNn6saKbx8ELIOiRPe1sjV2+UFd3kGtTZZ+QOrv2azYxyoVF0sg70RulHyoNocneDgKtrd3MPR3EVE1e4AJ6DBMc8DCHHbMX9My3uN9EKBKrhopRIKEo5zT4VwUJwSlOr+/T7Ach572B38h95hrNVQSbTqnSMIW2eqjTtTDw3e+kkdDhJXs+t6NHEZE/lwRkKTo5CghSx5zFO6MxG/B5KIqVzgASMq5Tfq/hYb6epG1leL3EPHXcqUO8Z71T97taAucGCtEi9R2vJrg=="
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "San Francisco, CA"
+              }
+            },
+            "thoughtSignature": "Cp0DAQw51sdLG6QoSTYFxinM81k4cAhtbRv4UQm7XzdhP2wWXhklwRO18uKVQxGQLYxG2HdOHwdATflRKrqBf0zW12l5VvvXq3h/i5d3mD6X3xqd3CT9lFvih4mML2O1Z9aa6loVuLwAjRHRux2PuJZ8LsK92AaKZWoJx7ptqElmGhtNkRmVp/XmIiCqt8h9DDKoZlek/ADsGUdl9zujF2m4/iKccWBRQoarKhZ6m38Ia3v4I08Pm43Y+3iZxFkzD0tN48Fiej+tOdzvVAk0rkpCbhRozD5jP/uMgkqPdT7vbs28v1taROtmWonThEtblqbn3y6iJEX5QDBRn4oLF+2FmL95Q/Pxd02Oq5D+frXsDXYbV+OpO3/xU2PnVDwUTGBP4Wp2CFXVzx4LO/I90nwSK810AdiPXx2Nfg12DlWEi4SgNSVIyxgwTNo5Z6IFS8502524wZ5+GUFS3No8h0i13ZCJ86gQRpO9Ugijn+6qxGWBB2RlKVPg470XGabZmg68nviLvcWwoGftrqUqf6mbDj8NWUrqBidVJjT58EU="
           }
         ],
         "role": "model"
       },
       "finishReason": "STOP",
-      "index": 0
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
     }
   ],
   "usageMetadata": {
     "promptTokenCount": 62,
     "candidatesTokenCount": 18,
-    "totalTokenCount": 164,
+    "totalTokenCount": 167,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 62
       }
     ],
-    "thoughtsTokenCount": 84
+    "thoughtsTokenCount": 87
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "A6bMafvFBaHwjrEPs-qv6AE"
+  "responseId": "tD_6adbIO6HQ_uMPl6Cc6Aw"
 }

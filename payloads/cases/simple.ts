@@ -1,4 +1,4 @@
-import { Type } from "@google/genai";
+import { Type, FunctionCallingConfigMode } from "@google/genai";
 import { TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -369,7 +369,7 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
-      tool_choice: "auto",
+      tool_choice: "required",
     },
     responses: {
       model: OPENAI_RESPONSES_MODEL,
@@ -397,7 +397,7 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
-      tool_choice: "auto",
+      tool_choice: "required",
     },
     anthropic: {
       model: ANTHROPIC_MODEL,
@@ -424,6 +424,7 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
+      tool_choice: { type: "any" },
     },
 
     google: {
@@ -453,6 +454,11 @@ export const simpleCases: TestCaseCollection = {
           ],
         },
       ],
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.ANY,
+        },
+      },
     },
 
     bedrock: {
@@ -484,6 +490,7 @@ export const simpleCases: TestCaseCollection = {
             },
           },
         ],
+        toolChoice: { any: {} },
       },
     },
 
@@ -512,6 +519,7 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
+      tool_choice: { type: "any" },
     },
 
     "vertex-anthropic": {
@@ -539,6 +547,7 @@ export const simpleCases: TestCaseCollection = {
           },
         },
       ],
+      tool_choice: { type: "any" },
     },
   },
 };

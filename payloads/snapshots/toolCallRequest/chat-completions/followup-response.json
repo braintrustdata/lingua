@@ -1,30 +1,40 @@
 {
-  "id": "chatcmpl-CJaOdJZaSrP5hOypQxLzhomD2t5AB",
+  "id": "chatcmpl-DcFNzipnlPkMvg4uoY1jJt7ldjCYL",
   "object": "chat.completion",
-  "created": 1758784175,
+  "created": 1778007979,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Right now it's about 71°F in San Francisco, CA.\n\nWould you like the hourly forecast, humidity and wind details, or the next 7 days?",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_yxnnR0leo6o467cUMqbpc02k",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\":\"San Francisco, CA\"}"
+            }
+          }
+        ],
         "refusal": null,
         "annotations": []
       },
-      "finish_reason": "stop"
+      "finish_reason": "tool_calls"
     }
   ],
   "usage": {
     "prompt_tokens": 181,
-    "completion_tokens": 361,
-    "total_tokens": 542,
+    "completion_tokens": 480,
+    "total_tokens": 661,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 320,
+      "reasoning_tokens": 448,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0
