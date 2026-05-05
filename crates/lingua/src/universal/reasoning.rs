@@ -602,6 +602,7 @@ mod tests {
         let thinking = Thinking {
             thinking_type: ThinkingType::Enabled,
             budget_tokens: Some(2048),
+            display: None,
         };
         let config = ReasoningConfig::from(&thinking);
         assert_eq!(config.enabled, Some(true));

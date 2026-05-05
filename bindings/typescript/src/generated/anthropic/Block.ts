@@ -14,9 +14,11 @@ import type { WebSearchToolResultBlockItemType } from "./WebSearchToolResultBloc
  *
  * Document content, either specified directly as base64 data, as text, or as a reference
  * via a URL.
+ *
+ * Tool reference block that can be included in tool_result content.
  */
 export type Block = { 
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: WebSearchToolResultBlockItemType, source: Source | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };
+cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: WebSearchToolResultBlockItemType, source: Source | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, tool_name: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };

@@ -270,7 +270,8 @@
     "output_tokens": 648,
     "service_tier": "standard",
     "server_tool_use": {
-      "web_search_requests": 1
+      "web_search_requests": 1,
+      "web_fetch_requests": 0
     }
   }
 }
