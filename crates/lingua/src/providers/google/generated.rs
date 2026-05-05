@@ -68,6 +68,13 @@ pub struct GenerateContentRequest {
     /// incorporate safety considerations in your AI applications.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_settings: Option<Vec<SafetySetting>>,
+    /// Optional. The service tier of the request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_tier: Option<ServiceTier>,
+    /// Optional. Configures the logging behavior for a given request. If set, it takes
+    /// precedence over the project-level logging config.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub store: Option<bool>,
     /// Optional. Developer set [system
     /// instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions). Currently,
     /// text only.
@@ -160,6 +167,15 @@ pub struct Part {
     /// Optional. An opaque signature for the thought so it can be reused in subsequent requests.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thought_signature: Option<String>,
+    /// Server-side tool call. This field is populated when the model predicts a tool invocation
+    /// that should be executed on the server. The client is expected to echo this message back
+    /// to the API.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_call: Option<ToolCall>,
+    /// The output from a server-side `ToolCall` execution. This field is populated by the client
+    /// with the results of executing the corresponding `ToolCall`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_response: Option<ToolResponse>,
     /// Optional. Video metadata. The metadata should only be specified while the video data is
     /// presented in inline_data or file_data.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -168,11 +184,15 @@ pub struct Part {
 
 /// Result of executing the `ExecutableCode`.
 ///
-/// Result of executing the `ExecutableCode`. Only generated when using the `CodeExecution`,
-/// and always follows a `part` containing the `ExecutableCode`.
+/// Result of executing the `ExecutableCode`. Generated only when the `CodeExecution` tool is
+/// used.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
 pub struct CodeExecutionResult {
+    /// Optional. The identifier of the `ExecutableCode` part this result is for. Only populated
+    /// if the corresponding `ExecutableCode` has an id.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     /// Required. Outcome of the code execution.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub outcome: Option<Outcome>,
@@ -208,6 +228,10 @@ pub struct ExecutableCode {
     /// Required. The code to be executed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    /// Optional. Unique identifier of the `ExecutableCode` part. The server returns the
+    /// `CodeExecutionResult` with the matching `id`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     /// Required. Programming language of the `code`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language: Option<Language>,
@@ -245,12 +269,12 @@ pub struct FunctionCall {
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub args: Option<serde_json::Map<String, serde_json::Value>>,
-    /// Optional. The unique identifier of the function call. If populated, the client to execute
-    /// the `function_call` and return the response with the matching `id`.
+    /// Optional. Unique identifier of the function call. If populated, the client to execute the
+    /// `function_call` and return the response with the matching `id`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     /// Required. The name of the function to call. Must be a-z, A-Z, 0-9, or contain underscores
-    /// and dashes, with a maximum length of 64.
+    /// and dashes, with a maximum length of 128.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
@@ -272,7 +296,7 @@ pub struct FunctionResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     /// Required. The name of the function to call. Must be a-z, A-Z, 0-9, or contain underscores
-    /// and dashes, with a maximum length of 64.
+    /// and dashes, with a maximum length of 128.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Optional. Ordered `Parts` that constitute a function response. Parts may have different
@@ -359,10 +383,16 @@ pub struct Blob {
     /// Raw bytes for media formats.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
-    /// The IANA standard MIME type of the source data. Examples: - image/png - image/jpeg If an
-    /// unsupported MIME type is provided, an error will be returned. For a complete list of
-    /// supported types, see [Supported file
-    /// formats](https://ai.google.dev/gemini-api/docs/prompting_with_media#supported_file_formats).
+    /// The IANA standard MIME type of the source data. Examples of supported types: - Images:
+    /// image/png, image/jpeg, image/jpg, image/webp, image/heic, image/heif, image/gif,
+    /// image/avif - Audio: audio/*, video/audio/s16le, video/audio/wav - Video: video/* - Text:
+    /// text/plain, text/html, text/css, text/javascript, text/x-typescript, text/csv,
+    /// text/markdown, text/x-python, text/xml, text/rtf, video/text/timestamp - Applications:
+    /// application/x-javascript, application/x-typescript, application/x-python-code,
+    /// application/json, application/x-ipynb+json, application/rtf, application/pdf For
+    /// additional context, see [Supported file
+    /// formats](https://ai.google.dev/gemini-api/docs/file-input-methods#supported-content-types).
+    /// //
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mime_type: Option<String>,
 }
@@ -373,10 +403,12 @@ pub struct Blob {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
 pub struct MediaResolution {
+    /// The media resolution level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub level: Option<Level>,
 }
 
+/// The media resolution level.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
@@ -393,10 +425,83 @@ pub enum Level {
     MediaResolutionUnspecified,
 }
 
+/// Server-side tool call. This field is populated when the model predicts a tool invocation
+/// that should be executed on the server. The client is expected to echo this message back
+/// to the API.
+///
+/// A predicted server-side `ToolCall` returned from the model. This message contains
+/// information about a tool that the model wants to invoke. The client is NOT expected to
+/// execute this `ToolCall`. Instead, the client should pass this `ToolCall` back to the API
+/// in a subsequent turn within a `Content` message, along with the corresponding
+/// `ToolResponse`.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct ToolCall {
+    /// Optional. The tool call arguments. Example: {"arg1" : "value1", "arg2" : "value2" , ...}
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub args: Option<serde_json::Map<String, serde_json::Value>>,
+    /// Optional. Unique identifier of the tool call. The server returns the tool response with
+    /// the matching `id`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    /// Required. The type of tool that was called.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_type: Option<ToolType>,
+}
+
+/// Required. The type of tool that was called.
+///
+/// Required. The type of tool that was called, matching the `tool_type` in the corresponding
+/// `ToolCall`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum ToolType {
+    #[serde(rename = "FILE_SEARCH")]
+    FileSearch,
+    #[serde(rename = "GOOGLE_MAPS")]
+    GoogleMaps,
+    #[serde(rename = "GOOGLE_SEARCH_IMAGE")]
+    GoogleSearchImage,
+    #[serde(rename = "GOOGLE_SEARCH_WEB")]
+    GoogleSearchWeb,
+    #[serde(rename = "TOOL_TYPE_UNSPECIFIED")]
+    ToolTypeUnspecified,
+    #[serde(rename = "URL_CONTEXT")]
+    UrlContext,
+}
+
+/// The output from a server-side `ToolCall` execution. This field is populated by the client
+/// with the results of executing the corresponding `ToolCall`.
+///
+/// The output from a server-side `ToolCall` execution. This message contains the results of
+/// a tool invocation that was initiated by a `ToolCall` from the model. The client should
+/// pass this `ToolResponse` back to the API in a subsequent turn within a `Content` message,
+/// along with the corresponding `ToolCall`.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct ToolResponse {
+    /// Optional. The identifier of the tool call this response is for.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    /// Optional. The tool response.
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response: Option<serde_json::Map<String, serde_json::Value>>,
+    /// Required. The type of tool that was called, matching the `tool_type` in the corresponding
+    /// `ToolCall`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_type: Option<ToolType>,
+}
+
 /// Optional. Video metadata. The metadata should only be specified while the video data is
 /// presented in inline_data or file_data.
 ///
-/// Metadata describes the input video content.
+/// Deprecated: Use `GenerateContentRequest.processing_options` instead. Metadata describes
+/// the input video content.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -447,9 +552,9 @@ pub struct GenerationConfig {
     /// models that don't support these config options.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_config: Option<ImageConfig>,
-    /// Optional. Only valid if response_logprobs=True. This sets the number of top logprobs to
-    /// return at each decoding step in the Candidate.logprobs_result. The number must be in the
-    /// range of [0, 20].
+    /// Optional. Only valid if response_logprobs=True. This sets the number of top logprobs,
+    /// including the chosen candidate, to return at each decoding step in the
+    /// Candidate.logprobs_result. The number must be in the range of [0, 20].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub logprobs: Option<i64>,
     /// Optional. The maximum number of tokens to include in a response candidate. Note: The
@@ -546,12 +651,13 @@ pub struct GenerationConfig {
 #[ts(export_to = "google/")]
 pub struct ImageConfig {
     /// Optional. The aspect ratio of the image to generate. Supported aspect ratios: `1:1`,
-    /// `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, or `21:9`. If not specified,
-    /// the model will choose a default aspect ratio based on any reference images provided.
+    /// `1:4`, `4:1`, `1:8`, `8:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, or
+    /// `21:9`. If not specified, the model will choose a default aspect ratio based on any
+    /// reference images provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aspect_ratio: Option<String>,
-    /// Optional. Specifies the size of generated images. Supported values are `1K`, `2K`, `4K`.
-    /// If not specified, the model will use default value `1K`.
+    /// Optional. Specifies the size of generated images. Supported values are `512`, `1K`, `2K`,
+    /// `4K`. If not specified, the model will use default value `1K`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_size: Option<String>,
 }
@@ -798,15 +904,17 @@ pub struct ThinkingConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking_budget: Option<i64>,
     /// Optional. Controls the maximum depth of the model's internal reasoning process before it
-    /// produces a response. If not specified, the default is HIGH. Recommended for Gemini 3 or
-    /// later models. Use with earlier models results in an error.
+    /// produces a response. The default value is model-dependent. Refer to the [Thinking levels
+    /// guide](https://ai.google.dev/gemini-api/docs/thinking#thinking-levels) for more details.
+    /// Recommended for Gemini 3 or later models. Use with earlier models results in an error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thinking_level: Option<ThinkingLevel>,
 }
 
 /// Optional. Controls the maximum depth of the model's internal reasoning process before it
-/// produces a response. If not specified, the default is HIGH. Recommended for Gemini 3 or
-/// later models. Use with earlier models results in an error.
+/// produces a response. The default value is model-dependent. Refer to the [Thinking levels
+/// guide](https://ai.google.dev/gemini-api/docs/thinking#thinking-levels) for more details.
+/// Recommended for Gemini 3 or later models. Use with earlier models results in an error.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
@@ -883,6 +991,17 @@ pub enum Threshold {
     Off,
 }
 
+/// Optional. The service tier of the request.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "google/")]
+pub enum ServiceTier {
+    Flex,
+    Priority,
+    Standard,
+    Unspecified,
+}
+
 /// Optional. Tool configuration for any `Tool` specified in the request. Refer to the
 /// [Function calling
 /// guide](https://ai.google.dev/gemini-api/docs/function-calling#function_calling_mode) for
@@ -896,6 +1015,11 @@ pub struct ToolConfig {
     /// Optional. Function calling config.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub function_calling_config: Option<FunctionCallingConfig>,
+    /// Optional. If true, the API response will include the server-side tool calls and responses
+    /// within the `Content` message. This allows clients to observe the server's tool
+    /// interactions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_server_side_tool_invocations: Option<bool>,
     /// Optional. Retrieval config.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retrieval_config: Option<RetrievalConfig>,
@@ -968,7 +1092,7 @@ pub struct LatLng {
 
 /// Tool details that the model may use to generate response. A `Tool` is a piece of code
 /// that enables the system to interact with external systems to perform an action, or set of
-/// actions, outside of knowledge and scope of the model. Next ID: 15
+/// actions, outside of knowledge and scope of the model. Next ID: 16
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1080,7 +1204,7 @@ pub struct FunctionDeclaration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// Required. The name of the function. Must be a-z, A-Z, 0-9, or contain underscores,
-    /// colons, dots, and dashes, with a maximum length of 64.
+    /// colons, dots, and dashes, with a maximum length of 128.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Optional. Describes the parameters to this function. Reflects the Open API 3.03 Parameter
@@ -1134,10 +1258,31 @@ pub struct GoogleMaps {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct GoogleSearch {
+    /// Optional. The set of search types to enable. If not set, web search is enabled by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub search_types: Option<SearchTypes>,
     /// Optional. Filter search results to a specific time range. If customers set a start time,
     /// they must set an end time (and vice versa).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub time_range_filter: Option<Interval>,
+}
+
+/// Optional. The set of search types to enable. If not set, web search is enabled by
+/// default.
+///
+/// Different types of search that can be enabled on the GoogleSearch tool.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct SearchTypes {
+    /// Optional. Enables image search. Image bytes are returned.
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_search: Option<serde_json::Map<String, serde_json::Value>>,
+    /// Optional. Enables web search. Only text results are returned.
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub web_search: Option<serde_json::Map<String, serde_json::Value>>,
 }
 
 /// Optional. Filter search results to a specific time range. If customers set a start time,
@@ -1200,7 +1345,7 @@ pub enum DynamicRetrievalConfigMode {
 }
 
 /// A MCPServer is a server that can be called by the model to perform actions. It is a
-/// server that implements the MCP protocol. Next ID: 5
+/// server that implements the MCP protocol. Next ID: 6
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
@@ -1479,6 +1624,9 @@ pub struct GroundingMetadata {
     /// List of grounding support.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grounding_supports: Option<Vec<GoogleAiGenerativelanguageV1BetaGroundingSupport>>,
+    /// Image search queries used for grounding.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_search_queries: Option<Vec<String>>,
     /// Metadata related to retrieval in the grounding flow.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retrieval_metadata: Option<RetrievalMetadata>,
@@ -1490,11 +1638,16 @@ pub struct GroundingMetadata {
     pub web_search_queries: Option<Vec<String>>,
 }
 
-/// Grounding chunk.
+/// A `GroundingChunk` represents a segment of supporting evidence that grounds the model's
+/// response. It can be a chunk from the web, a retrieved context from a file, or information
+/// from Google Maps.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct GroundingChunk {
+    /// Optional. Grounding chunk from image search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image: Option<Image>,
     /// Optional. Grounding chunk from Google Maps.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub maps: Option<Maps>,
@@ -1504,6 +1657,27 @@ pub struct GroundingChunk {
     /// Grounding chunk from the web.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub web: Option<Web>,
+}
+
+/// Optional. Grounding chunk from image search.
+///
+/// Chunk from image search.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct Image {
+    /// The root domain of the web page that the image is from, e.g. "example.com".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub domain: Option<String>,
+    /// The image asset URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_uri: Option<String>,
+    /// The web page URI for attribution.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_uri: Option<String>,
+    /// The title of the web page that the image is from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
 }
 
 /// Optional. Grounding chunk from Google Maps.
@@ -1516,7 +1690,7 @@ pub struct Maps {
     /// Sources that provide answers about the features of a given place in Google Maps.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub place_answer_sources: Option<PlaceAnswerSources>,
-    /// This ID of the place, in `places/{place_id}` format. A user can use this ID to look up
+    /// The ID of the place, in `places/{place_id}` format. A user can use this ID to look up
     /// that place.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub place_id: Option<String>,
@@ -1572,10 +1746,20 @@ pub struct ReviewSnippet {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct RetrievedContext {
+    /// Optional. User-provided metadata about the retrieved context.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_metadata: Option<Vec<GroundingChunkCustomMetadata>>,
     /// Optional. Name of the `FileSearchStore` containing the document. Example:
     /// `fileSearchStores/123`
     #[serde(skip_serializing_if = "Option::is_none")]
     pub file_search_store: Option<String>,
+    /// Optional. The media blob resource name for multimodal file search results. Format:
+    /// fileSearchStores/{file_search_store_id}/media/{blob_id}
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_id: Option<String>,
+    /// Optional. Page number of the retrieved context, if applicable.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub page_number: Option<i64>,
     /// Optional. Text of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -1587,16 +1771,47 @@ pub struct RetrievedContext {
     pub uri: Option<String>,
 }
 
+/// User provided metadata about the GroundingFact.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct GroundingChunkCustomMetadata {
+    /// The key of the metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    /// Optional. The numeric value of the metadata. The expected range for this value depends on
+    /// the specific `key` used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub numeric_value: Option<f64>,
+    /// Optional. A list of string values for the metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub string_list_value: Option<GroundingChunkStringList>,
+    /// Optional. The string value of the metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub string_value: Option<String>,
+}
+
+/// Optional. A list of string values for the metadata.
+///
+/// A list of string values.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "google/")]
+pub struct GroundingChunkStringList {
+    /// The string values of the list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<String>>,
+}
+
 /// Grounding chunk from the web.
 ///
 /// Chunk from the web.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
 pub struct Web {
-    /// Title of the chunk.
+    /// Output only. Title of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    /// URI reference of the chunk.
+    /// Output only. URI reference of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }
@@ -1619,6 +1834,10 @@ pub struct GoogleAiGenerativelanguageV1BetaGroundingSupport {
     /// maintaining the same order).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grounding_chunk_indices: Option<Vec<i64>>,
+    /// Output only. Indices into the `parts` field of the candidate's content. These indices
+    /// specify which rendered parts are associated with this support source.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rendered_parts: Option<Vec<i64>>,
     /// Segment of the content this support belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub segment: Option<GoogleAiGenerativelanguageV1BetaSegment>,
@@ -1897,7 +2116,7 @@ pub struct UsageMetadata {
     /// Output only. List of modalities that were processed for tool-use request inputs.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_prompt_tokens_details: Option<Vec<ModalityTokenCount>>,
-    /// Total token count for the generation request (prompt + response candidates).
+    /// Total token count for the generation request (prompt + thoughts + response candidates).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub total_token_count: Option<i64>,
 }

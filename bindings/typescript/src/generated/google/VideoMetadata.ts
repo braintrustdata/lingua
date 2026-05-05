@@ -4,7 +4,8 @@
  * Optional. Video metadata. The metadata should only be specified while the video data is
  * presented in inline_data or file_data.
  *
- * Metadata describes the input video content.
+ * Deprecated: Use `GenerateContentRequest.processing_options` instead. Metadata describes
+ * the input video content.
  */
 export type VideoMetadata = { 
 /**

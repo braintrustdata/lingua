@@ -44,8 +44,8 @@ PROVIDER="${PROVIDER:-openai}"
 
 echo "🔄 Generating types for provider: $PROVIDER"
 
-# Step 1: Download provider OpenAPI spec
-echo "📦 Step 1: Downloading $PROVIDER OpenAPI specification..."
+# Step 1: Download provider spec
+echo "📦 Step 1: Downloading $PROVIDER provider specification..."
 
 download_provider_spec() {
     case "$PROVIDER" in
@@ -76,8 +76,9 @@ download_provider_spec() {
             SPEC_FILE="$PROJECT_ROOT/specs/anthropic/openapi.yml"
             ;;
         "google")
-            echo "Google types generated directly from remote URLs (no download needed)"
-            return
+            echo "Downloading Google Discovery spec..."
+            SPEC_URL='https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'
+            SPEC_FILE="$PROJECT_ROOT/specs/google/discovery.json"
             ;;
         *)
             echo "❌ Unknown provider: $PROVIDER"
@@ -90,7 +91,7 @@ download_provider_spec() {
     
     # Download the spec
     if command -v curl >/dev/null 2>&1; then
-        curl -s "$SPEC_URL" -o "$SPEC_FILE"
+        curl -fL -s "$SPEC_URL" -o "$SPEC_FILE"
     elif command -v wget >/dev/null 2>&1; then
         wget -q "$SPEC_URL" -O "$SPEC_FILE"
     else
@@ -99,10 +100,10 @@ download_provider_spec() {
     fi
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
-        echo "✅ Downloaded OpenAPI spec to: $SPEC_FILE"
+        echo "✅ Downloaded provider spec to: $SPEC_FILE"
         echo "📊 Spec size: $(wc -l < "$SPEC_FILE") lines"
     else
-        echo "❌ Failed to download OpenAPI spec"
+        echo "❌ Failed to download provider spec"
         exit 1
     fi
 }
@@ -233,8 +234,11 @@ echo "✅ Type generation and validation completed"
 echo "🎉 Provider type generation completed successfully for: $PROVIDER"
 echo ""
 echo "Generated files:"
-echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from OpenAPI spec)"
-if [ "$PROVIDER" != "google" ]; then
+if [ "$PROVIDER" = "google" ]; then
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from Google Discovery spec)"
+    echo "- $PROJECT_ROOT/specs/$PROVIDER/discovery.json (local Google Discovery spec)"
+else
+    echo "- $PROJECT_ROOT/crates/lingua/src/providers/$PROVIDER/generated.rs (types from OpenAPI spec)"
     echo "- $PROJECT_ROOT/specs/$PROVIDER/openapi.yml (local OpenAPI spec)"
 fi
 echo ""

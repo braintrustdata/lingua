@@ -14,6 +14,11 @@ export type ExecutableCode = {
  */
 code: string | null, 
 /**
+ * Optional. Unique identifier of the `ExecutableCode` part. The server returns the
+ * `CodeExecutionResult` with the matching `id`.
+ */
+id: string | null, 
+/**
  * Required. Programming language of the `code`.
  */
 language: Language | null, };
