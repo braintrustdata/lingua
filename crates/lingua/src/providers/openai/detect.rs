@@ -6,7 +6,8 @@ OpenAI chat completion format by attempting to deserialize into
 the OpenAI struct types.
 */
 
-use crate::providers::openai::generated::{CreateChatCompletionRequestClass, CreateResponseClass};
+use crate::providers::openai::generated::CreateChatCompletionRequestClass;
+use crate::providers::openai::params::OpenAIResponsesParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -42,14 +43,14 @@ pub fn try_parse_openai(
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
-/// Attempt to parse a JSON Value as OpenAI Responses API CreateResponseClass.
+/// Attempt to parse a JSON Value as OpenAI Responses API request params.
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid Responses API format.
 ///
 /// The key distinguishing feature is the `input` field (array of InputItem or string)
 /// instead of the `messages` field used by Chat Completions.
-pub fn try_parse_responses(payload: &Value) -> Result<CreateResponseClass, DetectionError> {
+pub fn try_parse_responses(payload: &Value) -> Result<OpenAIResponsesParams, DetectionError> {
     // First check for Responses-specific indicators
     // Responses API uses "input" field (not "messages" like Chat Completions)
     let has_input = payload.get("input").is_some();
@@ -64,7 +65,7 @@ pub fn try_parse_responses(payload: &Value) -> Result<CreateResponseClass, Detec
         ));
     }
 
-    serde_json::from_value(payload.clone())
+    serde_json::from_value::<OpenAIResponsesParams>(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
@@ -319,5 +320,32 @@ mod tests {
         let result = try_parse_openai(&payload);
         // Note: Due to OpenAI's permissive schema, this may pass
         let _ = result;
+    }
+
+    #[test]
+    fn test_try_parse_responses_accepts_reasoning_effort_none() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "none"}
+        });
+
+        let parsed = try_parse_responses(&payload).unwrap();
+        assert_eq!(
+            parsed.reasoning.and_then(|r| r.effort),
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::None)
+        );
+
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning_effort": "none"
+        });
+
+        let parsed = try_parse_responses(&payload).unwrap();
+        assert_eq!(
+            parsed.reasoning_effort,
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::None)
+        );
     }
 }

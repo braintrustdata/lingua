@@ -3,7 +3,7 @@ use crate::import_parse::{
     non_empty_messages, try_convert_non_empty, try_parse, try_parse_vec_or_single,
 };
 use crate::providers::openai::generated as openai;
-use crate::providers::openai::params::OpenAIResponsesExtrasView;
+use crate::providers::openai::params::{OpenAIResponsesExtrasView, OpenAIResponsesParams};
 use crate::serde_json;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
@@ -526,7 +526,7 @@ pub(crate) fn try_parse_openai_for_import(data: &serde_json::Value) -> Option<Ve
         return Some(messages);
     }
 
-    if let Some(request) = try_parse::<openai::CreateResponseClass>(data) {
+    if let Some(request) = try_parse::<OpenAIResponsesParams>(data) {
         if let Some(input) = request.input {
             if let Some(messages) = try_messages_from_openai_instructions(input) {
                 return Some(messages);
@@ -3711,6 +3711,19 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[test]
+    fn import_accepts_responses_request_with_reasoning_none() {
+        let value = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "none"}
+        });
+
+        let messages = try_parse_openai_for_import(&value).expect("request should import");
+        assert_eq!(messages.len(), 1);
+        assert!(matches!(messages[0], Message::User { .. }));
     }
 
     #[test]
