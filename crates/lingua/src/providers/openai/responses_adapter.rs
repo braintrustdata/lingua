@@ -151,12 +151,7 @@ impl ProviderAdapter for ResponsesAdapter {
         let reasoning = typed_params
             .reasoning
             .as_ref()
-            .map(|r| (r, max_tokens).into())
-            .or_else(|| {
-                typed_params
-                    .reasoning_effort
-                    .map(|effort| crate::universal::ReasoningConfig::from((effort, max_tokens)))
-            });
+            .map(|r| (r, max_tokens).into());
 
         let canonical_metadata = typed_params.metadata.clone().or_else(|| {
             typed_params
@@ -974,26 +969,6 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
-    }
-
-    #[test]
-    fn test_responses_request_accepts_reasoning_effort_none() {
-        let adapter = ResponsesAdapter;
-        let payload = json!({
-            "model": "gpt-5.4",
-            "input": [{"role": "user", "content": "Hello"}],
-            "reasoning_effort": "none"
-        });
-
-        assert!(adapter.detect_request(&payload));
-
-        let universal = adapter.request_to_universal(payload).unwrap();
-        let reasoning = universal.params.reasoning.unwrap();
-        assert_eq!(
-            reasoning.effort,
-            Some(crate::universal::ReasoningEffort::None)
-        );
-        assert_eq!(reasoning.budget_tokens, Some(0));
     }
 
     /// When transforming an Anthropic response to the Responses API format, every output

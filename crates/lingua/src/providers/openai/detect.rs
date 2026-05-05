@@ -323,7 +323,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_parse_responses_accepts_reasoning_effort_none() {
+    fn test_try_parse_responses_accepts_reasoning_none() {
         let payload = json!({
             "model": "gpt-5.4",
             "input": [{"role": "user", "content": "Hello"}],
@@ -333,18 +333,6 @@ mod tests {
         let parsed = try_parse_responses(&payload).unwrap();
         assert_eq!(
             parsed.reasoning.and_then(|r| r.effort),
-            Some(crate::providers::openai::params::OpenAIReasoningEffort::None)
-        );
-
-        let payload = json!({
-            "model": "gpt-5.4",
-            "input": [{"role": "user", "content": "Hello"}],
-            "reasoning_effort": "none"
-        });
-
-        let parsed = try_parse_responses(&payload).unwrap();
-        assert_eq!(
-            parsed.reasoning_effort,
             Some(crate::providers::openai::params::OpenAIReasoningEffort::None)
         );
     }

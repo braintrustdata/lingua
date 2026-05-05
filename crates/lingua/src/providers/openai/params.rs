@@ -109,8 +109,6 @@ pub struct OpenAIResponsesParams {
 
     // === Reasoning configuration (nested structure) ===
     pub reasoning: Option<OpenAIReasoning>,
-    // Compatibility for Responses-shaped request traces that carry chat-style reasoning effort.
-    pub reasoning_effort: Option<OpenAIReasoningEffort>,
 
     // === Context management ===
     pub truncation: Option<Value>,
@@ -277,15 +275,6 @@ mod tests {
             params.reasoning.and_then(|r| r.effort),
             Some(OpenAIReasoningEffort::None)
         );
-
-        let responses_with_top_level_effort = json!({
-            "model": "gpt-5.4",
-            "input": [{"role": "user", "content": "Hello"}],
-            "reasoning_effort": "none"
-        });
-        let params: OpenAIResponsesParams =
-            serde_json::from_value(responses_with_top_level_effort).unwrap();
-        assert_eq!(params.reasoning_effort, Some(OpenAIReasoningEffort::None));
     }
 
     #[test]
