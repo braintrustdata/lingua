@@ -558,10 +558,9 @@ impl ProviderAdapter for GoogleAdapter {
                 })
                 .map(|reason| {
                     if tool_calls.is_empty() {
-                        return FinishReason::from_provider_string(&reason, self.format())
-                            .to_string();
+                        FinishReason::from_provider_string(&reason, self.format()).to_string()
                     } else {
-                        return FinishReason::ToolCalls.to_string();
+                        FinishReason::ToolCalls.to_string()
                     }
                 });
 
