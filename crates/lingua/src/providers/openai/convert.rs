@@ -3002,7 +3002,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                 tool_call_id: tool_call.id,
                                 tool_name: function.name,
                                 arguments: function.arguments.into(),
-                                encrypted_content: None,
+                                encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -3457,8 +3457,12 @@ fn extract_content_tool_calls_and_reasoning(
                         tool_call_id,
                         tool_name,
                         arguments,
+                        encrypted_content,
                         ..
                     } => {
+                        if reasoning_signature.is_none() {
+                            reasoning_signature = encrypted_content.clone();
+                        }
                         tool_calls.push(openai::ToolCall {
                             id: tool_call_id,
                             tool_call_type: openai::ToolType::Function,
@@ -3543,7 +3547,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                                 tool_call_id: tool_call.id.clone(),
                                 tool_name: function.name.clone(),
                                 arguments: function.arguments.clone().into(),
-                                encrypted_content: None,
+                                encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
                                 provider_executed: None,
                             });
@@ -3711,6 +3715,46 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[test]
+    fn request_message_reasoning_signature_applies_to_tool_calls() {
+        let value = json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning_signature": "thought_signature_123",
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": {
+                    "name": "get_summary",
+                    "arguments": "{}"
+                }
+            }]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant array content");
+        };
+        let tool_call = parts
+            .iter()
+            .find_map(|part| match part {
+                AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                } => Some(encrypted_content),
+                _ => None,
+            })
+            .expect("tool call should be present");
+
+        assert_eq!(tool_call.as_deref(), Some("thought_signature_123"));
     }
 
     #[test]
