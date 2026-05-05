@@ -44,6 +44,36 @@ fn anthropic_file_provider_options_view(
     })
 }
 
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicToolUseProviderOptionsView {
+    caller: Option<generated::Caller>,
+}
+
+fn anthropic_tool_use_provider_options_from_caller(
+    caller: Option<generated::Caller>,
+) -> Option<ProviderOptions> {
+    let caller = caller?;
+    let value = serde_json::to_value(&caller).ok()?;
+    let mut options = serde_json::Map::new();
+    options.insert("caller".into(), value);
+    Some(ProviderOptions { options })
+}
+
+fn anthropic_tool_use_caller_from_provider_options(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<generated::Caller> {
+    provider_options
+        .as_ref()
+        .and_then(|opts| {
+            serde_json::from_value::<AnthropicToolUseProviderOptionsView>(Value::Object(
+                opts.options.clone(),
+            ))
+            .ok()
+        })
+        .and_then(|view| view.caller)
+}
+
 fn infer_media_type_from_reference(reference: &str) -> Option<String> {
     let extension = reference
         .rsplit('/')
@@ -435,6 +465,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             serde_json::Value::Null
                                         };
 
+                                        let provider_options =
+                                            anthropic_tool_use_provider_options_from_caller(
+                                                block.caller.clone(),
+                                            );
+
                                         content_parts.push(AssistantContentPart::ToolCall {
                                             tool_call_id: id.clone(),
                                             tool_name: name.clone(),
@@ -442,7 +477,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 .unwrap_or_else(|_| "{}".to_string())
                                                 .into(),
                                             encrypted_content: None,
-                                            provider_options: None,
+                                            provider_options,
                                             provider_executed: None,
                                         });
                                     }
@@ -457,6 +492,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             serde_json::Value::Null
                                         };
 
+                                        let provider_options =
+                                            anthropic_tool_use_provider_options_from_caller(
+                                                block.caller.clone(),
+                                            );
+
                                         content_parts.push(AssistantContentPart::ToolCall {
                                             tool_call_id: id.clone(),
                                             tool_name: name.clone(),
@@ -464,7 +504,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 .unwrap_or_else(|_| "{}".to_string())
                                                 .into(),
                                             encrypted_content: None,
-                                            provider_options: None,
+                                            provider_options,
                                             provider_executed: Some(true), // Mark as server-executed
                                         });
                                     }
@@ -849,6 +889,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 tool_name,
                                 arguments,
                                 provider_executed,
+                                provider_options,
                                 ..
                             } => {
                                 // Convert ToolCallArguments to serde_json::Map
@@ -864,6 +905,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     generated::InputContentBlockType::ToolUse
                                 };
 
+                                let caller = anthropic_tool_use_caller_from_provider_options(
+                                    &provider_options,
+                                );
+
                                 Some(generated::InputContentBlock {
                                     cache_control: None,
                                     citations: None,
@@ -876,7 +921,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     signature: None,
                                     thinking: None,
                                     data: None,
-                                    caller: None,
+                                    caller,
                                     id: Some(tool_call_id.clone()),
                                     input: input_map,
                                     name: Some(tool_name.clone()),
@@ -1099,6 +1144,9 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             serde_json::Value::Null
                         };
 
+                        let provider_options =
+                            anthropic_tool_use_provider_options_from_caller(block.caller);
+
                         content_parts.push(AssistantContentPart::ToolCall {
                             tool_call_id: id,
                             tool_name: name,
@@ -1106,7 +1154,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                 .unwrap_or_else(|_| "{}".to_string())
                                 .into(),
                             encrypted_content: None,
-                            provider_options: None,
+                            provider_options,
                             provider_executed: None,
                         });
                     }
@@ -1120,6 +1168,9 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             serde_json::Value::Null
                         };
 
+                        let provider_options =
+                            anthropic_tool_use_provider_options_from_caller(block.caller);
+
                         content_parts.push(AssistantContentPart::ToolCall {
                             tool_call_id: id,
                             tool_name: name,
@@ -1127,7 +1178,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                 .unwrap_or_else(|_| "{}".to_string())
                                 .into(),
                             encrypted_content: None,
-                            provider_options: None,
+                            provider_options,
                             provider_executed: Some(true), // Mark as server-executed
                         });
                     }
@@ -1261,6 +1312,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     tool_name,
                                     arguments,
                                     provider_executed,
+                                    provider_options,
                                     ..
                                 } => {
                                     // Convert ToolCallArguments to serde_json::Map for response generation
@@ -1276,6 +1328,10 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         generated::ContentBlockType::ToolUse
                                     };
 
+                                    let caller = anthropic_tool_use_caller_from_provider_options(
+                                        &provider_options,
+                                    );
+
                                     content_blocks.push(generated::ContentBlock {
                                         citations: None,
                                         text: None,
@@ -1283,7 +1339,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         signature: None,
                                         thinking: None,
                                         data: None,
-                                        caller: None,
+                                        caller,
                                         id: Some(tool_call_id.clone()),
                                         input: input_map,
                                         name: Some(tool_name.clone()),
