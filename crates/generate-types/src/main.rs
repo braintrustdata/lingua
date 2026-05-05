@@ -1268,12 +1268,10 @@ fn generate_google_discovery_types() {
     let discovery_spec = match std::fs::read_to_string(spec_file_path) {
         Ok(content) => content,
         Err(e) => {
-            println!(
+            panic!(
                 "❌ Failed to read Discovery spec at {}: {}",
                 spec_file_path, e
             );
-            println!("Download the spec first: curl -s 'https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta' > specs/google/discovery.json");
-            return;
         }
     };
 
@@ -1282,8 +1280,7 @@ fn generate_google_discovery_types() {
     let spec: serde_json::Value = match serde_json::from_str(&discovery_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Discovery spec as JSON: {}", e);
-            return;
+            panic!("❌ Failed to parse Discovery spec as JSON: {}", e);
         }
     };
 
@@ -1293,7 +1290,7 @@ fn generate_google_discovery_types() {
         println!("✅ Found Google Discovery schemas section");
         generate_google_types_with_quicktype(&spec);
     } else {
-        println!("❌ No schemas section found in Discovery spec");
+        panic!("❌ No schemas section found in Discovery spec");
     }
 }
 
@@ -1427,7 +1424,15 @@ fn add_google_schema_with_dependencies(
 
     processed.insert(type_name.to_string());
 
-    if let Some(schema) = all_schemas.get(type_name) {
+    let Some(schema) = all_schemas
+        .get(type_name)
+        .cloned()
+        .or_else(|| google_missing_discovery_schema(type_name))
+    else {
+        return;
+    };
+
+    {
         // Strip top-level Discovery metadata fields (not valid JSON Schema)
         // Only strip "id" at the schema root level, not inside "properties"
         let mut cleaned = schema.clone();
@@ -1438,7 +1443,7 @@ fn add_google_schema_with_dependencies(
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
-        extract_discovery_refs(schema, &mut refs);
+        extract_discovery_refs(&schema, &mut refs);
 
         for ref_name in refs {
             add_google_schema_with_dependencies(
@@ -1448,6 +1453,39 @@ fn add_google_schema_with_dependencies(
                 processed,
             );
         }
+    }
+}
+
+fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
+    match type_name {
+        // The live Google Discovery spec references MediaResolution from Part but does not
+        // currently include a MediaResolution entry in schemas. Preserve the schema shape
+        // from prior Discovery specs so generation can remain fully typed.
+        "MediaResolution" => Some(serde_json::json!({
+            "description": "Media resolution for the input media.",
+            "type": "object",
+            "properties": {
+                "level": {
+                    "description": "The media resolution level.",
+                    "type": "string",
+                    "enum": [
+                        "MEDIA_RESOLUTION_UNSPECIFIED",
+                        "MEDIA_RESOLUTION_LOW",
+                        "MEDIA_RESOLUTION_MEDIUM",
+                        "MEDIA_RESOLUTION_HIGH",
+                        "MEDIA_RESOLUTION_ULTRA_HIGH"
+                    ],
+                    "enumDescriptions": [
+                        "Media resolution has not been set.",
+                        "Media resolution set to low.",
+                        "Media resolution set to medium.",
+                        "Media resolution set to high.",
+                        "Media resolution set to ultra high."
+                    ]
+                }
+            }
+        })),
+        _ => None,
     }
 }
 
