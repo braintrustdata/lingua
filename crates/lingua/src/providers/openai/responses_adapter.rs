@@ -28,8 +28,9 @@ use crate::universal::message::{
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
-    FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    ConversationReference, ConversationReferenceType, FinishReason, TokenBudget, UniversalParams,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -125,7 +126,25 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         };
 
-        let mut messages = <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(input_items)
+        let mut message_items = Vec::new();
+        let mut conversation_reference = Vec::new();
+        for input_item in input_items {
+            if input_item.input_item_type == Some(InputItemType::ItemReference) {
+                let id = input_item.id.ok_or_else(|| {
+                    TransformError::ToUniversalFailed(
+                        "OpenAI Responses item_reference missing id".to_string(),
+                    )
+                })?;
+                conversation_reference.push(ConversationReference {
+                    reference_type: ConversationReferenceType::ItemReference,
+                    id,
+                });
+            } else {
+                message_items.push(input_item);
+            }
+        }
+
+        let mut messages = <Vec<Message> as TryFromLLM<Vec<InputItem>>>::try_from(message_items)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(instructions) = typed_params.instructions.as_ref().filter(|s| !s.is_empty()) {
@@ -184,6 +203,11 @@ impl ProviderAdapter for ResponsesAdapter {
             reasoning,
             metadata: canonical_metadata,
             store: typed_params.store,
+            conversation_reference: if conversation_reference.is_empty() {
+                None
+            } else {
+                Some(conversation_reference)
+            },
             service_tier: typed_params.service_tier,
             logprobs: None, // Responses API doesn't support logprobs boolean
             top_logprobs: typed_params.top_logprobs,
@@ -247,9 +271,31 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
 
+        let mut input_items = req
+            .params
+            .conversation_reference
+            .as_ref()
+            .map(|references| {
+                references
+                    .iter()
+                    .map(|reference| InputItem {
+                        input_item_type: Some(match reference.reference_type {
+                            ConversationReferenceType::ItemReference => {
+                                InputItemType::ItemReference
+                            }
+                        }),
+                        id: Some(reference.id.clone()),
+                        ..Default::default()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+
         // Use existing conversion with 1:N Tool message expansion
-        let input_items = universal_to_responses_input(&messages_for_input)
-            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        input_items.extend(
+            universal_to_responses_input(&messages_for_input)
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?,
+        );
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
@@ -969,6 +1015,68 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_responses_item_reference_imports_to_conversation_reference() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-4.1",
+            "input": [
+                {
+                    "type": "item_reference",
+                    "id": "rs_0c44fb1b7c3aa2090069f3d9eb300481"
+                },
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": "Continue."
+                }
+            ]
+        });
+
+        let req = adapter
+            .request_to_universal(payload)
+            .expect("item_reference should not require role or content");
+
+        assert_eq!(req.messages.len(), 1);
+        assert_eq!(
+            req.params.conversation_reference,
+            Some(vec![ConversationReference {
+                reference_type: ConversationReferenceType::ItemReference,
+                id: "rs_0c44fb1b7c3aa2090069f3d9eb300481".to_string(),
+            }])
+        );
+    }
+
+    #[test]
+    fn test_responses_conversation_reference_serializes_to_item_reference() {
+        let adapter = ResponsesAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4.1".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Continue.".to_string()),
+            }],
+            params: UniversalParams {
+                conversation_reference: Some(vec![ConversationReference {
+                    reference_type: ConversationReferenceType::ItemReference,
+                    id: "rs_0c44fb1b7c3aa2090069f3d9eb300481".to_string(),
+                }]),
+                ..Default::default()
+            },
+        };
+
+        let value = adapter
+            .request_from_universal(&req)
+            .expect("conversation_reference should serialize to Responses input");
+
+        assert_eq!(
+            value["input"][0],
+            json!({
+                "type": "item_reference",
+                "id": "rs_0c44fb1b7c3aa2090069f3d9eb300481"
+            })
+        );
     }
 
     /// When transforming an Anthropic response to the Responses API format, every output
