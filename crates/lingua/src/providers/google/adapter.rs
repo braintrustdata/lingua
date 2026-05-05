@@ -548,21 +548,22 @@ impl ProviderAdapter for GoogleAdapter {
                 })
                 .collect();
 
-            let finish_reason = if tool_calls.is_empty() {
-                candidate
-                    .finish_reason
-                    .as_ref()
-                    .and_then(|reason| serde_json::to_value(reason).ok())
-                    .and_then(|reason| match reason {
-                        Value::String(s) => Some(s),
-                        _ => None,
-                    })
-                    .map(|reason| {
-                        FinishReason::from_provider_string(&reason, self.format()).to_string()
-                    })
-            } else {
-                Some(FinishReason::ToolCalls.to_string())
-            };
+            let finish_reason = candidate
+                .finish_reason
+                .as_ref()
+                .and_then(|reason| serde_json::to_value(reason).ok())
+                .and_then(|reason| match reason {
+                    Value::String(s) => Some(s),
+                    _ => None,
+                })
+                .map(|reason| {
+                    if tool_calls.is_empty() {
+                        return FinishReason::from_provider_string(&reason, self.format())
+                            .to_string();
+                    } else {
+                        return FinishReason::ToolCalls.to_string();
+                    }
+                });
 
             let delta = UniversalStreamDelta {
                 role: Some("assistant".to_string()),
