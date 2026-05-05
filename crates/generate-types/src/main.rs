@@ -937,6 +937,10 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         "serde_json::Map<String, serde_json::Value>",
     );
     processed = processed.replace(
+        "AnythingMap(serde_json::Map<String, serde_json::Value>)",
+        "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
+    );
+    processed = processed.replace(
         "pub allowed_callers: Option<Vec<serde_json::Value>>,",
         "pub allowed_callers: Option<Vec<AllowedCaller>>,",
     );
@@ -1020,6 +1024,22 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // This must happen AFTER we add the TS derives and export_to
     processed = add_ts_type_annotations(&processed);
 
+    // Fix HashMap to serde_json::Map for proper JavaScript object serialization,
+    // and avoid tuple enum variants containing Option<serde_json::Value>, which
+    // ts-rs cannot derive without a field-level #[ts(type = ...)] annotation.
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "HashMap<String, serde_json::Value>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "AnythingMap(serde_json::Map<String, serde_json::Value>)",
+        "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
+    );
+
     // Only export entry point types that are actually used in our public API
     // ts-rs will automatically export their transitive dependencies to the same directory
     let entry_points = vec![
@@ -1066,6 +1086,25 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = processed.replace(
         "pub output_item_type: OutputItemType,",
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
+    );
+    processed = processed.replace(
+        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
+        "InputContentArray(Vec<ContentOutputContentList>),",
+    );
+    processed = processed.replace(
+        "InputImage,\n    #[serde(rename = \"input_text\")]",
+        "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
+    );
+
+    processed.push_str(
+        r#"
+
+// Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type Instructions = InputParam;
+pub type InputContent = ContentOutputContentList;
+pub type InputItemContentListType = IndecentType;
+pub type FunctionCallItemStatus = Status;
+"#,
     );
 
     processed

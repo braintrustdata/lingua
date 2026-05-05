@@ -192,6 +192,8 @@ impl From<&GeneratedOpenAIReasoningEffort> for ReasoningEffort {
             GeneratedOpenAIReasoningEffort::Low => ReasoningEffort::Low,
             GeneratedOpenAIReasoningEffort::Medium => ReasoningEffort::Medium,
             GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
+            GeneratedOpenAIReasoningEffort::None => ReasoningEffort::None,
+            GeneratedOpenAIReasoningEffort::Xhigh => ReasoningEffort::Xhigh,
         }
     }
 }
