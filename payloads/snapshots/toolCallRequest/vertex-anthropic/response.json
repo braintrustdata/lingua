@@ -1,12 +1,12 @@
 {
   "model": "claude-haiku-4-5-20251001",
-  "id": "msg_vrtx_01PrQRSambp8M1vTb2v2f9TP",
+  "id": "msg_vrtx_012d5YWoRbToktFUnDmiG4Eh",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "tool_use",
-      "id": "toolu_vrtx_01WNHSheHN2A8s9Accy2nybc",
+      "id": "toolu_vrtx_01KR8td3SzjPq4FAa1nb36oc",
       "name": "get_weather",
       "input": {
         "location": "San Francisco, CA"
@@ -15,14 +15,15 @@
   ],
   "stop_reason": "tool_use",
   "stop_sequence": null,
+  "stop_details": null,
   "usage": {
-    "input_tokens": 585,
+    "input_tokens": 677,
     "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "cache_creation": {
       "ephemeral_5m_input_tokens": 0,
       "ephemeral_1h_input_tokens": 0
     },
-    "output_tokens": 57
+    "output_tokens": 41
   }
 }

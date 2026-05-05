@@ -557,14 +557,12 @@ impl ProviderAdapter for GoogleAdapter {
                     _ => None,
                 })
                 .map(|reason| {
-                    return FinishReason::from_provider_string(&reason, self.format()).to_string();
-                    // FIXED
-                    // if tool_calls.is_empty() {
-                    //     return FinishReason::from_provider_string(&reason, self.format())
-                    //         .to_string();
-                    // } else {
-                    //     return FinishReason::ToolCalls.to_string();
-                    // }
+                    if tool_calls.is_empty() {
+                        return FinishReason::from_provider_string(&reason, self.format())
+                            .to_string();
+                    } else {
+                        return FinishReason::ToolCalls.to_string();
+                    }
                 });
 
             let delta = UniversalStreamDelta {

@@ -1402,7 +1402,7 @@ exports[`anthropic → chat-completions > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "function": {
@@ -1431,7 +1431,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "call_a3mN6ADjJKbiKIuOVc0tY4C9",
+      "id": "call_6RDCfeXMrILg9KLUwEoGxFjR",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -1439,7 +1439,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_D8WwFTHGcASl8ky2IM7XxBfEHPVw7",
+  "id": "msg_DcFO7EVoF97x2JaXmll8Lv7Slg6Va",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -3857,7 +3857,7 @@ exports[`anthropic → google > toolCallRequest > request 1`] = `
   "model": "gemini-2.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -3906,7 +3906,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 62,
-    "output_tokens": 88,
+    "output_tokens": 85,
   },
 }
 `;
@@ -5966,7 +5966,7 @@ exports[`anthropic → responses > toolCallRequest > request 1`] = `
   ],
   "max_output_tokens": 20000,
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -5997,7 +5997,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "thinking",
     },
     {
-      "id": "call_VJRqLXE6cVsKg12vyEBKK0Sm",
+      "id": "call_2Odx84a3uiX0E0SjgrcYf6w4",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -6005,7 +6005,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_09f3770f700bd9f000698e2e7a9f64819cafd8da8883acc7f2",
+  "id": "msg_0a40fb7ff727f3e20069fa3fb3caec8195934c66531710373e",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -6013,7 +6013,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 66,
-    "output_tokens": 169,
+    "output_tokens": 297,
   },
 }
 `;
@@ -8730,7 +8730,7 @@ exports[`chat-completions → anthropic > toolCallRequest > request 1`] = `
   ],
   "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
-    "type": "auto",
+    "type": "any",
   },
   "tools": [
     {
@@ -8761,7 +8761,6 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "I'll check the current weather in San Francisco for you.",
         "role": "assistant",
         "tool_calls": [
           {
@@ -8769,7 +8768,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "toolu_01PqaAfxSMw4i3arxmVVAscE",
+            "id": "toolu_01CxJPVp3SUU6PjtxcvydDxW",
             "type": "function",
           },
         ],
@@ -8777,16 +8776,16 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01DGYFTTL43Dk497PDoSA3dT",
-  "model": "claude-sonnet-4-20250514",
+  "id": "chatcmpl-01Feh6b7YPgTzWKGaA9rkJJb",
+  "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 69,
-    "prompt_tokens": 402,
+    "completion_tokens": 41,
+    "prompt_tokens": 677,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 471,
+    "total_tokens": 718,
   },
 }
 `;
@@ -11460,7 +11459,7 @@ exports[`chat-completions → google > toolCallRequest > request 1`] = `
   "model": "gemini-2.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -11494,12 +11493,21 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
 {
   "choices": [
     {
-      "finish_reason": "stop",
+      "finish_reason": "tool_calls",
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "I need to know the state. Can you tell me what state San Francisco is in?",
         "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "call_0",
+            "type": "function",
+          },
+        ],
       },
     },
   ],
@@ -11508,12 +11516,12 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 102,
+    "completion_tokens": 105,
     "completion_tokens_details": {
-      "reasoning_tokens": 84,
+      "reasoning_tokens": 87,
     },
     "prompt_tokens": 62,
-    "total_tokens": 164,
+    "total_tokens": 167,
   },
 }
 `;
@@ -14103,7 +14111,7 @@ exports[`chat-completions → responses > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -14150,7 +14158,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "call_eXlb7mSLRkQfULZzonEUGczg",
+            "id": "call_MseZlK7IeM7JHPIEWFIfRGhc",
             "type": "function",
           },
         ],
@@ -14158,19 +14166,19 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-099e399a0be6ee4f0069de77bc274081948becc9a886befbb4",
+  "id": "chatcmpl-0714ad48311382170069fa3fb3c4188196a0d968ed08c504cb",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 191,
+    "completion_tokens": 399,
     "completion_tokens_details": {
-      "reasoning_tokens": 128,
+      "reasoning_tokens": 320,
     },
     "prompt_tokens": 66,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 257,
+    "total_tokens": 465,
   },
 }
 `;
@@ -16010,6 +16018,9 @@ exports[`google → anthropic > toolCallRequest > request 1`] = `
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "any",
+  },
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -16042,7 +16053,7 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
               "args": {
                 "location": "San Francisco, CA",
               },
-              "id": "toolu_01PsvZ9JYeK6v7nnDfuUHkKU",
+              "id": "toolu_01PqTWKE9DkuY9x1rzhyJpow",
               "name": "get_weather",
             },
           },
@@ -16056,9 +16067,9 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
   "modelVersion": "claude-sonnet-4-5-20250929",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 56,
-    "promptTokenCount": 585,
-    "totalTokenCount": 641,
+    "candidatesTokenCount": 41,
+    "promptTokenCount": 677,
+    "totalTokenCount": 718,
   },
 }
 `;
@@ -18306,6 +18317,7 @@ exports[`google → chat-completions > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+  "tool_choice": "required",
   "tools": [
     {
       "function": {
@@ -18356,8 +18368,8 @@ exports[`google → chat-completions > toolCallRequest > response 1`] = `
     "cachedContentTokenCount": 0,
     "candidatesTokenCount": 26,
     "promptTokenCount": 148,
-    "thoughtsTokenCount": 128,
-    "totalTokenCount": 302,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 494,
   },
 }
 `;
@@ -20724,6 +20736,7 @@ exports[`google → responses > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -20783,10 +20796,10 @@ exports[`google → responses > toolCallRequest > response 1`] = `
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 75,
+    "candidatesTokenCount": 41,
     "promptTokenCount": 66,
-    "thoughtsTokenCount": 128,
-    "totalTokenCount": 269,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 363,
   },
 }
 `;
@@ -24336,7 +24349,7 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
   ],
   "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
-    "type": "auto",
+    "type": "any",
   },
   "tools": [
     {
@@ -24363,48 +24376,35 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
 exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01YRPev6YfjgwbbgLDhQQiM9",
+  "id": "resp_01EoZtiYebBMYcB3QnZYSzLz",
   "incomplete_details": null,
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
-      "content": [
-        {
-          "annotations": [],
-          "text": "I'll check the current weather in San Francisco for you.",
-          "type": "output_text",
-        },
-      ],
-      "id": "msg_transformed_item_0",
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-    {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "toolu_01FZCXngG3VBF2g2vvnzsh3T",
-      "id": "msg_transformed_item_1",
+      "call_id": "toolu_011N19TMMSNA9oHWE2ff32EE",
+      "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
       "type": "function_call",
     },
   ],
-  "output_text": "I'll check the current weather in San Francisco for you.",
+  "output_text": "",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 402,
+    "input_tokens": 677,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 69,
+    "output_tokens": 41,
     "output_tokens_details": {
       "reasoning_tokens": 0,
     },
-    "total_tokens": 471,
+    "total_tokens": 718,
   },
 }
 `;
@@ -27448,7 +27448,7 @@ exports[`responses → google > toolCallRequest > request 1`] = `
   "model": "gemini-2.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -27505,11 +27505,11 @@ exports[`responses → google > toolCallRequest > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 123,
+    "output_tokens": 109,
     "output_tokens_details": {
-      "reasoning_tokens": 105,
+      "reasoning_tokens": 91,
     },
-    "total_tokens": 185,
+    "total_tokens": 171,
   },
 }
 `;
