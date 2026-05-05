@@ -103,7 +103,11 @@ fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
     let Some(tool_schema) = schemas.get("Tool") else {
         return ToolSchemas::default();
     };
-    let Some(any_of) = tool_schema.get("anyOf").and_then(|a| a.as_array()) else {
+    let Some(any_of) = tool_schema
+        .get("anyOf")
+        .or_else(|| tool_schema.get("oneOf"))
+        .and_then(|a| a.as_array())
+    else {
         return ToolSchemas::default();
     };
 
@@ -122,10 +126,14 @@ fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
         let Some(type_val) = schema_def
             .get("properties")
             .and_then(|p| p.get("type"))
-            .and_then(|t| t.get("enum"))
-            .and_then(|e| e.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|v| v.as_str())
+            .and_then(|t| {
+                t.get("const").and_then(|v| v.as_str()).or_else(|| {
+                    t.get("enum")
+                        .and_then(|e| e.as_array())
+                        .and_then(|arr| arr.first())
+                        .and_then(|v| v.as_str())
+                })
+            })
         else {
             continue;
         };

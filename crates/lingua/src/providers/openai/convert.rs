@@ -16,6 +16,88 @@ use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
+fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
+    match arguments {
+        openai::Arguments::String(value) => value,
+        openai::Arguments::AnythingMap(value) => serde_json::Value::Object(value).to_string(),
+    }
+}
+
+fn openai_arguments_from_string(arguments: String) -> openai::Arguments {
+    openai::Arguments::String(arguments)
+}
+
+fn openai_output_to_string(output: openai::Output) -> String {
+    match output {
+        openai::Output::String(value) => value,
+        openai::Output::ComputerScreenshotImage(value) => match serde_json::to_string(&value) {
+            Ok(value) => value,
+            Err(error) => format!("failed to serialize computer screenshot output: {error}"),
+        },
+        openai::Output::PurpleInputContentArray(value) => match serde_json::to_string(&value) {
+            Ok(value) => value,
+            Err(error) => format!("failed to serialize content array output: {error}"),
+        },
+    }
+}
+
+fn openai_output_from_string(output: String) -> openai::Output {
+    openai::Output::String(output)
+}
+
+fn output_item_arguments_to_input(
+    arguments: Option<serde_json::Value>,
+) -> Option<openai::Arguments> {
+    arguments.map(|value| match value {
+        serde_json::Value::String(value) => openai::Arguments::String(value),
+        serde_json::Value::Object(value) => openai::Arguments::AnythingMap(value),
+        value => openai::Arguments::String(value.to_string()),
+    })
+}
+
+fn input_item_arguments_to_output(
+    arguments: Option<openai::Arguments>,
+) -> Option<serde_json::Value> {
+    arguments.map(|arguments| match arguments {
+        openai::Arguments::String(value) => serde_json::Value::String(value),
+        openai::Arguments::AnythingMap(value) => serde_json::Value::Object(value),
+    })
+}
+
+fn output_item_output_to_input(output: Option<openai::OutputUnion>) -> Option<openai::Output> {
+    output.map(|output| match output {
+        openai::OutputUnion::String(value) => openai::Output::String(value),
+        openai::OutputUnion::ComputerScreenshotImage(value) => {
+            openai::Output::ComputerScreenshotImage(value)
+        }
+        openai::OutputUnion::FluffyInputContentArray(value) => {
+            match serde_json::to_value(value).and_then(serde_json::from_value) {
+                Ok(value) => openai::Output::PurpleInputContentArray(value),
+                Err(error) => openai::Output::String(format!(
+                    "failed to convert output content array: {error}"
+                )),
+            }
+        }
+    })
+}
+
+fn input_item_output_to_output(output: Option<openai::Output>) -> Option<openai::OutputUnion> {
+    output.map(|output| match output {
+        openai::Output::String(value) => openai::OutputUnion::String(value),
+        openai::Output::ComputerScreenshotImage(value) => {
+            openai::OutputUnion::ComputerScreenshotImage(value)
+        }
+        openai::Output::PurpleInputContentArray(value) => {
+            match serde_json::to_value(value).and_then(serde_json::from_value) {
+                Ok(value) => openai::OutputUnion::FluffyInputContentArray(value),
+                Err(error) => openai::OutputUnion::String(format!(
+                    "failed to convert input content array: {error}"
+                )),
+            }
+        }
+    })
+}
+
 /// Extended ChatCompletionRequest/ResponseMessage with reasoning support.
 ///
 /// The official OpenAI Chat Completions API doesn't include a `reasoning` field on messages.`                                         
@@ -759,6 +841,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             })?;
                     let arguments_str = input
                         .arguments
+                        .map(openai_arguments_to_string)
                         .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
 
                     let tool_call_part = AssistantContentPart::ToolCall {
@@ -785,7 +868,10 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                                 field: "function call output call_id".to_string(),
                             })?;
 
-                    let output = input.output.unwrap_or_else(|| "".to_string());
+                    let output = input
+                        .output
+                        .map(openai_output_to_string)
+                        .unwrap_or_else(|| "".to_string());
 
                     let output_value =
                         serde_json::from_str(&output).unwrap_or(serde_json::Value::String(output));
@@ -1073,7 +1159,6 @@ impl Default for openai::InputContent {
             file_data: None,
             file_url: None,
             filename: None,
-            input_audio: None,
             annotations: None,
             logprobs: None,
             refusal: None,
@@ -1163,7 +1248,10 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 if is_web_search {
                     // Convert web search results to text representation for InputContent
                     // Extract search results content for display
-                    let text = serde_json::to_string(&output).unwrap_or_else(|_| "{}".to_string());
+                    let text = match serde_json::to_string(&output) {
+                        Ok(text) => text,
+                        Err(error) => format!("failed to serialize web search output: {error}"),
+                    };
                     openai::InputContent {
                         input_content_type: openai::InputItemContentListType::OutputText,
                         text: Some(text),
@@ -1261,23 +1349,30 @@ impl Default for openai::InputItem {
         Self {
             role: None,
             content: None,
+            phase: None,
             input_item_type: None,
             status: None,
             id: None,
             queries: None,
             results: None,
             action: None,
+            actions: None,
             call_id: None,
             pending_safety_checks: None,
             acknowledged_safety_checks: None,
             output: None,
             arguments: None,
             name: None,
+            namespace: None,
+            execution: None,
             encrypted_content: None,
             summary: None,
             result: None,
             code: None,
             container_id: None,
+            environment: None,
+            max_output_length: None,
+            operation: None,
             server_label: None,
             tools: None,
             approval_request_id: None,
@@ -1535,7 +1630,9 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             id: id.clone(),
                                             call_id: Some(call_id),
                                             name: Some(name),
-                                            arguments: Some(arguments.to_string()),
+                                            arguments: Some(openai_arguments_from_string(
+                                                arguments.to_string(),
+                                            )),
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -1559,7 +1656,9 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     id: id.clone(),
                                     call_id: Some(call_id),
                                     name: Some(name),
-                                    arguments: Some(arguments.to_string()),
+                                    arguments: Some(openai_arguments_from_string(
+                                        arguments.to_string(),
+                                    )),
                                     status: Some(openai::FunctionCallItemStatus::Completed),
                                     ..Default::default()
                                 };
@@ -1605,7 +1704,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 content: None, // Function call outputs use the output field, not content
                                 input_item_type: Some(openai::InputItemType::FunctionCallOutput),
                                 call_id: Some(tool_result.tool_call_id.clone()),
-                                output: Some(output_string),
+                                output: Some(openai_output_from_string(output_string)),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -1755,7 +1854,7 @@ fn create_function_call_input_item(
                     id,
                     call_id: Some(call_id.to_string()),
                     name: Some(name.to_string()),
-                    arguments: Some(arguments.to_string()),
+                    arguments: Some(openai_arguments_from_string(arguments.to_string())),
                     status: Some(openai::FunctionCallItemStatus::Completed),
                     ..Default::default()
                 });
@@ -1779,7 +1878,7 @@ fn create_function_call_input_item(
             id,
             call_id: Some(call_id.to_string()),
             name: Some(name.to_string()),
-            arguments: Some(arguments.to_string()),
+            arguments: Some(openai_arguments_from_string(arguments.to_string())),
             status: Some(openai::FunctionCallItemStatus::Completed),
             ..Default::default()
         })
@@ -1827,7 +1926,7 @@ pub fn universal_to_responses_input(
                                 content: None,
                                 input_item_type: Some(openai::InputItemType::FunctionCallOutput),
                                 call_id: Some(tool_result.tool_call_id.clone()),
-                                output: Some(output_string),
+                                output: Some(openai_output_from_string(output_string)),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2073,16 +2172,20 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             id: output_item.id,
             summary,
             // Preserve structured function call fields
-            arguments: output_item.arguments,
+            arguments: output_item_arguments_to_input(output_item.arguments),
             name: output_item.name,
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
             call_id: output_item.call_id,
             results: output_item.results,
-            action: output_item.action,
+            action: output_item.action.and_then(|action| {
+                serde_json::to_value(action)
+                    .and_then(serde_json::from_value)
+                    .ok()
+            }),
             pending_safety_checks: output_item.pending_safety_checks,
             acknowledged_safety_checks: None,
-            output: output_item.output,
+            output: output_item_output_to_input(output_item.output),
             encrypted_content: output_item.encrypted_content,
             result: output_item.result,
             code: output_item.code,
@@ -2090,12 +2193,17 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             outputs: output_item.outputs,
             error: output_item.error,
             server_label: output_item.server_label,
-            tools: output_item.tools,
+            tools: output_item.tools.and_then(|tools| {
+                serde_json::to_value(tools)
+                    .and_then(serde_json::from_value)
+                    .ok()
+            }),
             approval_request_id: None,
             approve: None,
             reason: None,
             request_id: None,
             input: output_item.input,
+            ..Default::default()
         })
     }
 }
@@ -2177,12 +2285,16 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             status: input_item.status,
             id: input_item.id,
             summary: input_item.summary,
-            arguments: input_item.arguments,
+            arguments: input_item_arguments_to_output(input_item.arguments),
             name: input_item.name,
             queries: input_item.queries,
             call_id: input_item.call_id,
             results: input_item.results,
-            action: input_item.action,
+            action: input_item.action.and_then(|action| {
+                serde_json::to_value(action)
+                    .and_then(serde_json::from_value)
+                    .ok()
+            }),
             pending_safety_checks: input_item.pending_safety_checks,
             encrypted_content: input_item.encrypted_content,
             result: input_item.result,
@@ -2190,10 +2302,15 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             container_id: input_item.container_id,
             outputs: input_item.outputs,
             error: input_item.error,
-            output: input_item.output,
+            output: input_item_output_to_output(input_item.output),
             server_label: input_item.server_label,
-            tools: input_item.tools,
+            tools: input_item.tools.and_then(|tools| {
+                serde_json::to_value(tools)
+                    .and_then(serde_json::from_value)
+                    .ok()
+            }),
             input: input_item.input,
+            ..Default::default()
         })
     }
 }
@@ -2290,6 +2407,10 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             })?;
                     let arguments_str = item
                         .arguments
+                        .map(|value| match value {
+                            serde_json::Value::String(value) => value,
+                            value => value.to_string(),
+                        })
                         .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
 
                     vec![AssistantContentPart::ToolCall {
@@ -2752,7 +2873,9 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                     ),
                                                     call_id: Some(tool_call_id),
                                                     name: Some(tool_name),
-                                                    arguments: Some(arguments.to_string()),
+                                                    arguments: Some(serde_json::Value::String(
+                                                        arguments.to_string(),
+                                                    )),
                                                     status: Some(
                                                         openai::FunctionCallItemStatus::Completed,
                                                     ),
@@ -2770,7 +2893,9 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             id: use_id(&mut id_used, &id),
                                             call_id: Some(tool_call_id),
                                             name: Some(tool_name),
-                                            arguments: Some(arguments.to_string()),
+                                            arguments: Some(serde_json::Value::String(
+                                                arguments.to_string(),
+                                            )),
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -2846,6 +2971,7 @@ impl Default for openai::OutputItem {
         Self {
             content: None,
             id: None,
+            phase: None,
             role: None,
             status: None,
             output_item_type: None, // Don't add type field if original didn't have it
@@ -2854,18 +2980,30 @@ impl Default for openai::OutputItem {
             arguments: None,
             call_id: None,
             name: None,
+            namespace: None,
             action: None,
+            actions: None,
             pending_safety_checks: None,
+            acknowledged_safety_checks: None,
             encrypted_content: None,
             summary: None,
             result: None,
             code: None,
             container_id: None,
             outputs: None,
+            created_by: None,
+            execution: None,
+            environment: None,
+            max_output_length: None,
+            operation: None,
             error: None,
             output: None,
             server_label: None,
             tools: None,
+            approval_request_id: None,
+            approve: None,
+            reason: None,
+            request_id: None,
             input: None,
         }
     }
@@ -3461,7 +3599,7 @@ fn extract_content_tool_calls_and_reasoning(
                     } => {
                         tool_calls.push(openai::ToolCall {
                             id: tool_call_id,
-                            tool_call_type: openai::ToolType::Function,
+                            tool_call_type: openai::FluffyType::Function,
                             function: Some(openai::PurpleFunction {
                                 name: tool_name,
                                 arguments: arguments.to_string(),
@@ -3620,7 +3758,7 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                                     ..
                                 } => Some(openai::ToolCall {
                                     id: tool_call_id.clone(),
-                                    tool_call_type: openai::ToolType::Function,
+                                    tool_call_type: openai::FluffyType::Function,
                                     function: Some(openai::PurpleFunction {
                                         name: tool_name.clone(),
                                         arguments: arguments.to_string(),

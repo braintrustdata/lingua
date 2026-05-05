@@ -25,8 +25,14 @@
  *
  * The type of the function tool call output. Always `function_call_output`.
  *
+ * The item type. Always `tool_search_call`.
+ *
+ * The item type. Always `tool_search_output`.
+ *
  * The type of the object. Always `reasoning`.
  *
+ *
+ * The type of the item. Always `compaction`.
  *
  * The type of the image generation call. Always `image_generation_call`.
  *
@@ -39,6 +45,14 @@
  *
  * The type of the local shell tool call output. Always `local_shell_call_output`.
  *
+ *
+ * The type of the item. Always `shell_call`.
+ *
+ * The type of the item. Always `shell_call_output`.
+ *
+ * The type of the item. Always `apply_patch_call`.
+ *
+ * The type of the item. Always `apply_patch_call_output`.
  *
  * The type of the item. Always `mcp_list_tools`.
  *
@@ -60,4 +74,4 @@
  *
  * The type of item to reference. Always `item_reference`.
  */
-export type InputItemType = "code_interpreter_call" | "computer_call" | "computer_call_output" | "custom_tool_call" | "custom_tool_call_output" | "file_search_call" | "function_call" | "function_call_output" | "image_generation_call" | "item_reference" | "local_shell_call" | "local_shell_call_output" | "mcp_approval_request" | "mcp_approval_response" | "mcp_call" | "mcp_list_tools" | "message" | "reasoning" | "web_search_call";
+export type InputItemType = "apply_patch_call" | "apply_patch_call_output" | "code_interpreter_call" | "compaction" | "computer_call" | "computer_call_output" | "custom_tool_call" | "custom_tool_call_output" | "file_search_call" | "function_call" | "function_call_output" | "image_generation_call" | "item_reference" | "local_shell_call" | "local_shell_call_output" | "mcp_approval_request" | "mcp_approval_response" | "mcp_call" | "mcp_list_tools" | "message" | "reasoning" | "shell_call" | "shell_call_output" | "tool_search_call" | "tool_search_output" | "web_search_call";

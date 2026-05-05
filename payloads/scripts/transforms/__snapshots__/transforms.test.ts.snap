@@ -6373,6 +6373,10 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
       "id": "ws_0cff0be10f79f5520069d46c9f4f3c819caca1ecf4dc22d3fc",
       "input": {
         "action": {
+          "queries": [
+            "site:wikipedia.org Artificial intelligence news",
+            "site:arxiv.org artificial intelligence new papers 2026",
+          ],
           "query": "site:wikipedia.org Artificial intelligence news",
           "type": "search",
         },
@@ -6429,6 +6433,12 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
       "id": "ws_0b557de166e92e4b0069d46c828fc081959551aa2e330718f2",
       "input": {
         "action": {
+          "queries": [
+            "OpenAI news 2026",
+            "OpenAI latest news April 2026",
+            "OpenAI announces 2026 product release",
+            "OpenAI layoffs 2026",
+          ],
           "query": "OpenAI news 2026",
           "type": "search",
         },
@@ -21402,6 +21412,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "AI news 2026 April",
+                    "latest AI developments 2026",
+                    "OpenAI 2026 updates",
+                    "Google DeepMind 2026 news",
+                  ],
                   "query": "AI news 2026 April",
                   "type": "search",
                 },
@@ -21474,6 +21490,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "Reuters AI news 2026",
+                    "Bloomberg AI news 2026",
+                    "CNBC OpenAI 2026 updates",
+                    "Axios Google DeepMind 2026",
+                  ],
                   "query": "Reuters AI news 2026",
                   "type": "search",
                 },
@@ -21582,6 +21604,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI compute target 600 billion CNBC February 2026",
+                    "OpenAI March 2026 update new models CNBC",
+                  ],
                   "query": "OpenAI compute target 600 billion CNBC February 2026",
                   "type": "search",
                 },
@@ -21654,6 +21680,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI GPT-5.4 March 2026 announced",
+                    "Google Gemini 3 Deep Think update February 2026 TechCrunch",
+                  ],
                   "query": "OpenAI GPT-5.4 March 2026 announced",
                   "type": "search",
                 },
@@ -21924,6 +21954,12 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI latest news 2026",
+                    "OpenAI announces 2026 news Reuters",
+                    "OpenAI news The Verge 2026",
+                    "OpenAI official blog 2026",
+                  ],
                   "query": "OpenAI latest news 2026",
                   "type": "search",
                 },
@@ -21960,6 +21996,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "site:openai.com OpenAI blog GPT-4o retirement February 2026",
+                    "OpenAI GPT-5 announcement March 2026 site:openai.com",
+                  ],
                   "query": "site:openai.com OpenAI blog GPT-4o retirement February 2026",
                   "type": "search",
                 },
@@ -21996,6 +22036,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI TBPN acquisition April 2026",
+                    "OpenAI TBPN press release",
+                  ],
                   "query": "OpenAI TBPN acquisition April 2026",
                   "type": "search",
                 },
