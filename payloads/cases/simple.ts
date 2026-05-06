@@ -6,6 +6,7 @@ import {
   ANTHROPIC_MODEL,
   BEDROCK_MODEL,
   BEDROCK_ANTHROPIC_MODEL,
+  GOOGLE_GEMINI_3_MODEL,
   VERTEX_ANTHROPIC_MODEL,
 } from "./models";
 
@@ -427,6 +428,7 @@ export const simpleCases: TestCaseCollection = {
     },
 
     google: {
+      model: GOOGLE_GEMINI_3_MODEL,
       contents: [
         {
           role: "user",

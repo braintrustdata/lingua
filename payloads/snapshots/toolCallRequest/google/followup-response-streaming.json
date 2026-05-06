@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "The weather in San"
+              "text": "The"
             }
           ],
           "role": "model"
@@ -14,18 +14,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 168,
-      "candidatesTokenCount": 4,
-      "totalTokenCount": 172,
+      "promptTokenCount": 108,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 109,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 168
+          "tokenCount": 108
         }
-      ]
+      ],
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "iL58af_WIrfSjMcP7fna8Q0"
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "FE77abC0OqPO_uMPzdynyQo"
   },
   {
     "candidates": [
@@ -33,7 +34,36 @@
         "content": {
           "parts": [
             {
-              "text": " Francisco, CA is 71 degrees."
+              "text": " weather in San Francisco is currently 71 degrees."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 108,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 120,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 108
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "FE77abC0OqPO_uMPzdynyQo"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
             }
           ],
           "role": "model"
@@ -43,17 +73,18 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 168,
-      "candidatesTokenCount": 13,
-      "totalTokenCount": 181,
+      "promptTokenCount": 192,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 204,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 168
+          "tokenCount": 192
         }
-      ]
+      ],
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "iL58af_WIrfSjMcP7fna8Q0"
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "FE77abC0OqPO_uMPzdynyQo"
   }
 ]

@@ -9,31 +9,62 @@
                 "name": "get_weather",
                 "args": {
                   "location": "San Francisco, CA"
-                }
+                },
+                "id": "970m6wsr"
               },
-              "thoughtSignature": "CiQBcsjafGBqrMvxPlwvHUx4EId8rlsRN+r1LURcTbrP5k0pjAIKYwFyyNp8/E+ZOcMOniubKo0TJ1WigsMnkVvm+fGh3W/Gksx88UvHkqJCUNTBl5iuzwNX3CZlYhKUPazo5WDFYOFDoV0ZjTQpVZy8MxSPDhZSuIG5fIiBDUGxsG/lxUQxjh9WswqFAQFyyNp82cubNLGaSfbMD4OzIhIYfOufWTFPZ7IJd+cqG6UFUHFkxO6lQ/jclgzTL3Ag4bJHLINWTx0b2WfYYFbgjAI2ZCoXC7dPfIBJOQFMPvajEtf50113N7a59iP8KJafh7jhDPcUzV9rPMhy9NPrStKD+UMXPLRDZm5YiPGeKbYISrM="
+              "thoughtSignature": "EsYCCsMCAQw51sctR5w62hIP5RHFrnv/aTPf8WGmPwbMD9AiLxoSzLGrqRxfeMvh6O5WHaVOZZkAOKnHnJ4SKwWEP/WT+1m30GfUQcdQeFx8lDWAAckhCj0MqKgtwTa/y//V8CEwIjQ57seSFN3nLkgr+BUmJvbtNFp69U6ttFuZCp5LeFEvnd2yWmA+OmLo5r2ueoKMfFJzPghPdDsJTcufqt7ZbHzlg5AQ2HWlXF1zrN5FG+kBEUG1eziLgqoxhdiUbknDm7wZi0/diP6vZChNMRim24A1GwQaNtgEXhGaKMxQ/axyBqiuOk56A8ubR1BrifqHQW0dpg2ahDNOKglMYsmZqzcBk9hFvSeFzwO6dzEkmiFB73Uci4aUEwQncJBwKbIJyyuXzITcGRef8rzjsqrFixv6wXxyjEZ1hmK17wdLGWksnPw="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 143,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 73
+        }
+      ],
+      "thoughtsTokenCount": 51,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "1k37aYa7J8Tj_uMPs9TVgQI"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
             }
           ],
           "role": "model"
         },
         "finishReason": "STOP",
-        "index": 0,
-        "finishMessage": "Model generated function call(s)."
+        "index": 0
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 62,
-      "candidatesTokenCount": 18,
-      "totalTokenCount": 116,
+      "promptTokenCount": 121,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 191,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 62
+          "tokenCount": 121
         }
       ],
-      "thoughtsTokenCount": 36
+      "thoughtsTokenCount": 51,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "h758aeKGJMHQjMcP3Ky-oQ0"
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "1k37aYa7J8Tj_uMPs9TVgQI"
   }
 ]

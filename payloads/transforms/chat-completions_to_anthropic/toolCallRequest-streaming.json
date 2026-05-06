@@ -3,12 +3,13 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01GnRRpWSW8zsivZMM2PYutN",
+      "id": "msg_0141yRWL2zae8gDKJSLHyjZA",
       "type": "message",
       "role": "assistant",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
+      "stop_details": null,
       "usage": {
         "input_tokens": 585,
         "cache_creation_input_tokens": 0,
@@ -28,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_0134jFg3Mf5vSfFfXS493Rri",
+      "id": "toolu_01HXmRhNW1FY99kN4aM395bQ",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -49,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"l"
+      "partial_json": "{\"location\":"
     }
   },
   {
@@ -57,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "oca"
+      "partial_json": " \"San Fra"
     }
   },
   {
@@ -65,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "tio"
+      "partial_json": "ncisco, CA"
     }
   },
   {
@@ -73,31 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "n\""
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": ": \"San Fran"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": "cis"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": "co, CA\"}"
+      "partial_json": "\"}"
     }
   },
   {
@@ -108,7 +85,8 @@
     "type": "message_delta",
     "delta": {
       "stop_reason": "tool_use",
-      "stop_sequence": null
+      "stop_sequence": null,
+      "stop_details": null
     },
     "usage": {
       "input_tokens": 585,

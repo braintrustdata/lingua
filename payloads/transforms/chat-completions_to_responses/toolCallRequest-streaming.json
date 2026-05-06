@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "id": "resp_056f781903d419350069fb4e1da7208197bedb76fb84d2b0a4",
       "object": "response",
-      "created_at": 1775593181,
+      "created_at": 1778077213,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -15,12 +15,13 @@
       "max_output_tokens": null,
       "max_tool_calls": null,
       "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
       "output": [],
       "parallel_tool_calls": true,
       "presence_penalty": 0,
       "previous_response_id": null,
       "prompt_cache_key": null,
-      "prompt_cache_retention": null,
+      "prompt_cache_retention": "in_memory",
       "reasoning": {
         "effort": "medium",
         "summary": null
@@ -69,9 +70,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "id": "resp_056f781903d419350069fb4e1da7208197bedb76fb84d2b0a4",
       "object": "response",
-      "created_at": 1775593181,
+      "created_at": 1778077213,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -82,12 +83,13 @@
       "max_output_tokens": null,
       "max_tool_calls": null,
       "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
       "output": [],
       "parallel_tool_calls": true,
       "presence_penalty": 0,
       "previous_response_id": null,
       "prompt_cache_key": null,
-      "prompt_cache_retention": null,
+      "prompt_cache_retention": "in_memory",
       "reasoning": {
         "effort": "medium",
         "summary": null
@@ -136,7 +138,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+      "id": "rs_056f781903d419350069fb4e1f52a48197b5fcf21d80a7db59",
       "type": "reasoning",
       "summary": []
     },
@@ -146,7 +148,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+      "id": "rs_056f781903d419350069fb4e1f52a48197b5fcf21d80a7db59",
       "type": "reasoning",
       "summary": []
     },
@@ -156,11 +158,11 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+      "id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
       "type": "function_call",
       "status": "in_progress",
       "arguments": "",
-      "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+      "call_id": "call_6nIYRFeoCmW70lyj7wjM3i6j",
       "name": "get_weather"
     },
     "output_index": 1,
@@ -169,82 +171,82 @@
   {
     "type": "response.function_call_arguments.delta",
     "delta": "{\"",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "zJde0CUBwvmpuI",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "tIFXI3XqwVp6pJ",
     "output_index": 1,
     "sequence_number": 5
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": "location",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "8wnPt5CW",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "kNZ2JCWT",
     "output_index": 1,
     "sequence_number": 6
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": "\":\"",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "LonFxzNDTQ7Al",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "2VoXeX8MnGyTR",
     "output_index": 1,
     "sequence_number": 7
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": "San",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "qM4d5hkISPJtW",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "98gj5usTCyZB9",
     "output_index": 1,
     "sequence_number": 8
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": " Francisco",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "GCWNcq",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "VrtL9b",
     "output_index": 1,
     "sequence_number": 9
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": ",",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "deYs9UVLGw7kyHM",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "f1p24G1b1cUwxwI",
     "output_index": 1,
     "sequence_number": 10
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": " CA",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "QcZkFADaTsV5U",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "qjqr0AdBLVydp",
     "output_index": 1,
     "sequence_number": 11
   },
   {
     "type": "response.function_call_arguments.delta",
     "delta": "\"}",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
-    "obfuscation": "H0IJiVbVIOvB6V",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
+    "obfuscation": "HR3sIFTb0sSb9D",
     "output_index": 1,
     "sequence_number": 12
   },
   {
     "type": "response.function_call_arguments.done",
     "arguments": "{\"location\":\"San Francisco, CA\"}",
-    "item_id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+    "item_id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
     "output_index": 1,
     "sequence_number": 13
   },
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+      "id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+      "call_id": "call_6nIYRFeoCmW70lyj7wjM3i6j",
       "name": "get_weather"
     },
     "output_index": 1,
@@ -253,12 +255,12 @@
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_0a28ead037714a620069d566dd25788191ae774d5c1ef933f9",
+      "id": "resp_056f781903d419350069fb4e1da7208197bedb76fb84d2b0a4",
       "object": "response",
-      "created_at": 1775593181,
+      "created_at": 1778077213,
       "status": "completed",
       "background": false,
-      "completed_at": 1775593184,
+      "completed_at": 1778077216,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -266,18 +268,19 @@
       "max_output_tokens": null,
       "max_tool_calls": null,
       "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
       "output": [
         {
-          "id": "rs_0a28ead037714a620069d566ddacb881919e549fe45813c71a",
+          "id": "rs_056f781903d419350069fb4e1f52a48197b5fcf21d80a7db59",
           "type": "reasoning",
           "summary": []
         },
         {
-          "id": "fc_0a28ead037714a620069d566e0a1108191a7922a696a0ab1ec",
+          "id": "fc_056f781903d419350069fb4e2076688197994513fdb8e6930d",
           "type": "function_call",
           "status": "completed",
           "arguments": "{\"location\":\"San Francisco, CA\"}",
-          "call_id": "call_sY5juZQePKYz47v0S7fqWad5",
+          "call_id": "call_6nIYRFeoCmW70lyj7wjM3i6j",
           "name": "get_weather"
         }
       ],
@@ -285,7 +288,7 @@
       "presence_penalty": 0,
       "previous_response_id": null,
       "prompt_cache_key": null,
-      "prompt_cache_retention": null,
+      "prompt_cache_retention": "in_memory",
       "reasoning": {
         "effort": "medium",
         "summary": null
@@ -330,11 +333,11 @@
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 240,
+        "output_tokens": 146,
         "output_tokens_details": {
-          "reasoning_tokens": 192
+          "reasoning_tokens": 64
         },
-        "total_tokens": 306
+        "total_tokens": 212
       },
       "user": null,
       "metadata": {}

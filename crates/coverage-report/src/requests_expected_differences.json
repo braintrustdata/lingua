@@ -173,13 +173,6 @@
     },
     {
       "source": "Google",
-      "target": "*",
-      "fields": [
-        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" }
-      ]
-    },
-    {
-      "source": "Google",
       "target": "ChatCompletions",
       "fields": [
         { "pattern": "messages[*].content[*].tool_name", "reason": "ChatCompletions tool messages don't include tool_name, only tool_call_id" }

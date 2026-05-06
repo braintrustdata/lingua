@@ -1,4 +1,5 @@
 {
+  "model": "gemini-3-flash-preview",
   "contents": [
     {
       "role": "user",
@@ -9,18 +10,19 @@
       ]
     },
     {
+      "role": "model",
       "parts": [
         {
           "functionCall": {
             "name": "get_weather",
             "args": {
               "location": "San Francisco, CA"
-            }
+            },
+            "id": "z87nps4b"
           },
-          "thoughtSignature": "CsgCAXLI2nz8KtX33gpRpvyRJfKg9u/MlcWHXCZdDF4cJ5ljkxCbdbmvnH29RKD4jf5VIaQeEk4aLbRxxw4WD0U6UhXDdrN8XvD8vnqvbD6eQ08G8sxymgLI8N9G+KXvGMAlSFZM5MW98h+LVEBijUnqbZdlVa1rFNlJFxaiVeW/rY+Gw+InDfNw4eKS/jj9kH7e+qpFDTRYQltuNAdI96QWRuIjhz3qd2lo9VIByGf6cCel5IP1dlyJqdSykoOnXjfLTRrvcmqfFIabf/vHq/++NExNl4F2adRwruE9kuaKofuRonqMBf0nMlhF/ZRAlrBnOcybp8SJPxUZaDO5rud2uy98RVVZTQP83OpIsyeVzew/ZoP3QscvakDs/kiQ7PplBsRM5nfvGEWVgo5OChkhu5JYPyWReYCa7EanKH3PAQms8p7UUuqx5w=="
+          "thoughtSignature": "Eu8CCuwCAQw51seN4qkRGv0bzVcrTgOpnpTtPFbkI/cMTC+dBTse66jwxWQhMro+SOB5LMRBPmeE9bbhFHkcBq19+uDCeQvcPVYPd5wVpFfAPiADja/2VL3zO9+7MUr81StmHb3Ih3kP7aIj4tHV4APKnZ+bKLBItB+8jozvksteQ0Q3KYhZJVFFUkhj7b6c5jqza/YEcIPpp3Fm458O8cRZCCmUdxUM+Q2vmhfcVqcetp0grjKjOom5o0BJDETQBycv2Jf0vikdKvxUEJIPBDHwMq8s4Qugy//U4fLTKHUwE2EDGsw8+aZruksqcSn9SvSNfFFCFp72nVAjv8q9uq+vz0zBZnl+edOuf0kYWIl6zUj2PlSEa2VbMN3y41ZiEY2ULgH6NUm7Ry2ZWvpWWXVACyIdh+/snLD68CPrRHx9fWl2puxFMSWq2M394QEqKz70ft99pbyh1gSNLWl/uxL319iMd7m061aNH8m5JNKv8A=="
         }
-      ],
-      "role": "model"
+      ]
     },
     {
       "role": "user",
