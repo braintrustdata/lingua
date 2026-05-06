@@ -9,31 +9,60 @@
                 "name": "get_weather",
                 "args": {
                   "location": "San Francisco, CA"
-                }
+                },
+                "id": "xvpg3q0n"
               },
-              "thoughtSignature": "CiQBDDnWxyiChS1MII7wvd0yTL7k4si7EbWmn5A0TUPezDNG8cIKawEMOdbHI6ZW4U+B/pGnEfuRwJFqReHkHzuPLJwL6OsrHF21/mD9UwtOpoA6xb3x8khHaTKAttIt8Ntgfz5HHrI4sYbW5gTLpaKE0CsinXAbaKXPQ4iLYzsszymviq6LkXzmit0tjVuOE6RgCv0BAQw51sfQnUtkvqztHdFdrWPLJq4WyNz71/h+HzEHNZyNdzEke4QmJVV9aHzjxgjGE1BHHkapxW1k5KTFG19ShS7Cq0LEJoP2/teedNZ5wrmTTPgH4NXC5u0VAkTM9WssRPY+JEGnCioa84NB4n9+4h8qGozs6/gPeAC4Er7xN2LNAbfkpYOpmzOAzeF+CxP8Yjx+6Xbiu1I9/oIbFA9d3yXcK0r/N3LXBj22AC9vB3W33uylbC+6TgxRoDLBbO8ctoD+GBz6RDRimP/ino9Lx2COjda5dlrbv79xcrc13BaybtLZuiBHjovYQwCwMqoUBIdoZOEI8VcpXQ9PWApHAQw51scvN5VTyf7HKMzxoKjI6B5NQJHb22oIYyVFVf3LzJRxOOhP/QEBJdP9NvncYlaUkR3jsYjk41Qt4/8EW2ls32vjYi4="
+              "thoughtSignature": "EjQKMgEMOdbHTgRYBNQtNR9sgWEfwUGQbNhOHU2bfSEWtjUB1Kts3fgqhmTPxXykxpRU+kAn"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 92,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 73
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "YVv7abiQBKW-_uMP26n_QA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
             }
           ],
           "role": "model"
         },
         "finishReason": "STOP",
-        "index": 0,
-        "finishMessage": "Model generated function call(s)."
+        "index": 0
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 62,
-      "candidatesTokenCount": 18,
-      "totalTokenCount": 160,
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 92,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 62
+          "tokenCount": 73
         }
       ],
-      "thoughtsTokenCount": 80
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "wD_6abu6Lv3E-sAP6canwQI"
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "YVv7abiQBKW-_uMP26n_QA"
   }
 ]

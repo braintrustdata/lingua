@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_0854ef833c6a906f0069fa3fab28a08196bdf78377e400029d",
+      "id": "resp_01111b13c5568f270069fb5b52843481969507d9300b3a6388",
       "object": "response",
-      "created_at": 1778007979,
+      "created_at": 1778080594,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -69,9 +69,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_0854ef833c6a906f0069fa3fab28a08196bdf78377e400029d",
+      "id": "resp_01111b13c5568f270069fb5b52843481969507d9300b3a6388",
       "object": "response",
-      "created_at": 1778007979,
+      "created_at": 1778080594,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -136,7 +136,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fab84e88196a9b35d7035680cac",
+      "id": "rs_01111b13c5568f270069fb5b532ad88196bb595e08bf75c963",
       "type": "reasoning",
       "summary": []
     },
@@ -146,7 +146,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fab84e88196a9b35d7035680cac",
+      "id": "rs_01111b13c5568f270069fb5b532ad88196bb595e08bf75c963",
       "type": "reasoning",
       "summary": []
     },
@@ -156,7 +156,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fae6dd88196bc8fa5891ae839a1",
+      "id": "rs_01111b13c5568f270069fb5b5585c48196b6b6bdce8b3ac8cc",
       "type": "reasoning",
       "summary": []
     },
@@ -166,7 +166,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fae6dd88196bc8fa5891ae839a1",
+      "id": "rs_01111b13c5568f270069fb5b5585c48196b6b6bdce8b3ac8cc",
       "type": "reasoning",
       "summary": []
     },
@@ -176,7 +176,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fae779c81968fa41d85c55156cb",
+      "id": "rs_01111b13c5568f270069fb5b55e6708196b11e77273b0488ca",
       "type": "reasoning",
       "summary": []
     },
@@ -186,7 +186,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "rs_0854ef833c6a906f0069fa3fae779c81968fa41d85c55156cb",
+      "id": "rs_01111b13c5568f270069fb5b55e6708196b11e77273b0488ca",
       "type": "reasoning",
       "summary": []
     },
@@ -196,109 +196,149 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-      "type": "function_call",
-      "status": "in_progress",
-      "arguments": "",
-      "call_id": "call_a0XV0JLWijcdalU26ilgHII4",
-      "name": "get_weather"
+      "id": "rs_01111b13c5568f270069fb5b55f30481968696cbb3b833251f",
+      "type": "reasoning",
+      "summary": []
     },
     "output_index": 3,
     "sequence_number": 8
   },
   {
-    "type": "response.function_call_arguments.delta",
-    "delta": "{\"",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "ctNiqehdTE6rIy",
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_01111b13c5568f270069fb5b55f30481968696cbb3b833251f",
+      "type": "reasoning",
+      "summary": []
+    },
     "output_index": 3,
     "sequence_number": 9
   },
   {
-    "type": "response.function_call_arguments.delta",
-    "delta": "location",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "0apTkD39",
-    "output_index": 3,
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_01111b13c5568f270069fb5b55fcec819690dec465510aea5c",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 4,
     "sequence_number": 10
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": "\":\"",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "E0028a1GZzxPS",
-    "output_index": 3,
-    "sequence_number": 11
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": "San",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "dNpJhCXmM2Bq0",
-    "output_index": 3,
-    "sequence_number": 12
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": " Francisco",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "nAtG69",
-    "output_index": 3,
-    "sequence_number": 13
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": ",",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "W1SQaf6NYtKtfyF",
-    "output_index": 3,
-    "sequence_number": 14
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": " CA",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "HyMoKOKhKslHh",
-    "output_index": 3,
-    "sequence_number": 15
-  },
-  {
-    "type": "response.function_call_arguments.delta",
-    "delta": "\"}",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "obfuscation": "ayug24yyiyZ9Nh",
-    "output_index": 3,
-    "sequence_number": 16
-  },
-  {
-    "type": "response.function_call_arguments.done",
-    "arguments": "{\"location\":\"San Francisco, CA\"}",
-    "item_id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
-    "output_index": 3,
-    "sequence_number": 17
   },
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
+      "id": "rs_01111b13c5568f270069fb5b55fcec819690dec465510aea5c",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 4,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_CIWq3dPFyhquNuBs6JbMxRyp",
+      "name": "get_weather"
+    },
+    "output_index": 5,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{\"",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "Fs7XIac6PjP5jN",
+    "output_index": 5,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "location",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "00BwcjOJ",
+    "output_index": 5,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\":\"",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "KRW4ojNpgBiKV",
+    "output_index": 5,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "San",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "LZH4M28wQOavb",
+    "output_index": 5,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " Francisco",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "7l7tyJ",
+    "output_index": 5,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": ",",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "GDUfro314ajn6jG",
+    "output_index": 5,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": " CA",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "6vlTqV1jVLgE3",
+    "output_index": 5,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\"}",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "obfuscation": "OnUjsDKfisHNdA",
+    "output_index": 5,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{\"location\":\"San Francisco, CA\"}",
+    "item_id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
+    "output_index": 5,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_a0XV0JLWijcdalU26ilgHII4",
+      "call_id": "call_CIWq3dPFyhquNuBs6JbMxRyp",
       "name": "get_weather"
     },
-    "output_index": 3,
-    "sequence_number": 18
+    "output_index": 5,
+    "sequence_number": 22
   },
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_0854ef833c6a906f0069fa3fab28a08196bdf78377e400029d",
+      "id": "resp_01111b13c5568f270069fb5b52843481969507d9300b3a6388",
       "object": "response",
-      "created_at": 1778007979,
+      "created_at": 1778080594,
       "status": "completed",
       "background": false,
-      "completed_at": 1778007982,
+      "completed_at": 1778080598,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -309,26 +349,36 @@
       "moderation": null,
       "output": [
         {
-          "id": "rs_0854ef833c6a906f0069fa3fab84e88196a9b35d7035680cac",
+          "id": "rs_01111b13c5568f270069fb5b532ad88196bb595e08bf75c963",
           "type": "reasoning",
           "summary": []
         },
         {
-          "id": "rs_0854ef833c6a906f0069fa3fae6dd88196bc8fa5891ae839a1",
+          "id": "rs_01111b13c5568f270069fb5b5585c48196b6b6bdce8b3ac8cc",
           "type": "reasoning",
           "summary": []
         },
         {
-          "id": "rs_0854ef833c6a906f0069fa3fae779c81968fa41d85c55156cb",
+          "id": "rs_01111b13c5568f270069fb5b55e6708196b11e77273b0488ca",
           "type": "reasoning",
           "summary": []
         },
         {
-          "id": "fc_0854ef833c6a906f0069fa3fae8fe481968f9c733b097d3731",
+          "id": "rs_01111b13c5568f270069fb5b55f30481968696cbb3b833251f",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "rs_01111b13c5568f270069fb5b55fcec819690dec465510aea5c",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "fc_01111b13c5568f270069fb5b56120c819682451cce19682313",
           "type": "function_call",
           "status": "completed",
           "arguments": "{\"location\":\"San Francisco, CA\"}",
-          "call_id": "call_a0XV0JLWijcdalU26ilgHII4",
+          "call_id": "call_CIWq3dPFyhquNuBs6JbMxRyp",
           "name": "get_weather"
         }
       ],
@@ -376,19 +426,19 @@
       "top_p": 1,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 332,
+        "input_tokens": 317,
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 385,
+        "output_tokens": 457,
         "output_tokens_details": {
-          "reasoning_tokens": 320
+          "reasoning_tokens": 384
         },
-        "total_tokens": 717
+        "total_tokens": 774
       },
       "user": null,
       "metadata": {}
     },
-    "sequence_number": 19
+    "sequence_number": 23
   }
 ]

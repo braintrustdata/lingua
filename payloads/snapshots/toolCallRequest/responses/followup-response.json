@@ -1,13 +1,13 @@
 {
-  "id": "resp_0854ef833c6a906f0069fa3fab06ac8196af1e5775891be007",
+  "id": "resp_01111b13c5568f270069fb5b527c3c8196a19b737077d2de9d",
   "object": "response",
-  "created_at": 1778007979,
+  "created_at": 1778080594,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1778007983,
+  "completed_at": 1778080597,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,36 +18,36 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0854ef833c6a906f0069fa3fab62bc8196a0b18af578545d1c",
+      "id": "rs_01111b13c5568f270069fb5b5302848196ba42e4ae59a064a7",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "rs_0854ef833c6a906f0069fa3faedfdc8196a4adb8d9e545cbf4",
+      "id": "rs_01111b13c5568f270069fb5b54dee08196ae6b04a0e355d022",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "rs_0854ef833c6a906f0069fa3faef9c481968bd0ca359bfcfae3",
+      "id": "rs_01111b13c5568f270069fb5b550afc819684a4332446204a37",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "rs_0854ef833c6a906f0069fa3faf1af08196b48cb9f70e843f7d",
+      "id": "rs_01111b13c5568f270069fb5b5525e4819698741daba8a1665a",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "rs_0854ef833c6a906f0069fa3faf28848196aa30b924a5bef0c6",
+      "id": "rs_01111b13c5568f270069fb5b55332c81969e8e00a0acef0e42",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "fc_0854ef833c6a906f0069fa3faf4e008196b945890e8507a579",
+      "id": "fc_01111b13c5568f270069fb5b554ebc81969a6389dd6747a2f3",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_ZvdcgBs3BL9WdOt3d5cvjdhq",
+      "call_id": "call_5HPLJ6Xs3fRxuLUYL4pxY1Ns",
       "name": "get_weather"
     }
   ],
@@ -95,15 +95,15 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 332,
+    "input_tokens": 317,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 428,
+    "output_tokens": 360,
     "output_tokens_details": {
-      "reasoning_tokens": 320
+      "reasoning_tokens": 256
     },
-    "total_tokens": 760
+    "total_tokens": 677
   },
   "user": null,
   "metadata": {},

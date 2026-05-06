@@ -8,9 +8,10 @@
               "name": "get_weather",
               "args": {
                 "location": "San Francisco, CA"
-              }
+              },
+              "id": "qztzscc9"
             },
-            "thoughtSignature": "CpsCAQw51sftSH+7mw5M06lXCa1c0PMxtOMl8++kXpHJUCH46Sqd0UDrXb2T/E60zmw9oFwqvDXjEWEBhXeJzX/lq+MGE8kB5WTJc8uBXBx3V3bGV9IAiUEp4phk+NdA22li6+V7I30EVIaZ7xhYoDnf69zjhvsCEjQE2fWUqpU9voYP/r12oXpIPNjGvm0CRNWOOWtIyV6jpf3/7ObibMKW8lW9qgd61mDGYI3E30uOM4KrUmpnKuR/ZIG9+00zxH+/DkVYxXOyHudbazxG+t3FuSHotlsoTWujP5X3psXA7btCiJnfDPRYMcgIZ08/GTha9LsDm4vocyu2N8NwQaJmOQX7NsFOctVCamvJBSN1vRD57Ctwcl0YZfKZGg=="
+            "thoughtSignature": "EqABCp0BAQw51scZxaIphwJH5y+lh5cQIQ8f+Tjpu94d/oldyqSP6rKA8N3lSgVN/4hQWEU6IXTHWXzCca5En7w9saFyGflMqK8IXbL3iQc2Nd/6TNFhEt2PzxE2dzmZW98iIpzBP4xGacEB/tyhI+Tbzu96t25GhBwDCVrnVkY96lBu9dfcjuJsl7tuwN5a8/3MYYzEvVfMqCbGakUDKuX7cQ=="
           }
         ],
         "role": "model"
@@ -21,17 +22,18 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 97,
-    "candidatesTokenCount": 18,
-    "totalTokenCount": 176,
+    "promptTokenCount": 150,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 192,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 97
+        "tokenCount": 150
       }
     ],
-    "thoughtsTokenCount": 61
+    "thoughtsTokenCount": 23,
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "qD_6aZKeKM31jMcPoNCCiQ8"
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "4Vn7aeSrMvS91MkP8JeHmQw"
 }

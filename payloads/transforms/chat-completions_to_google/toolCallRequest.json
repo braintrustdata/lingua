@@ -8,9 +8,10 @@
               "name": "get_weather",
               "args": {
                 "location": "San Francisco, CA"
-              }
+              },
+              "id": "kccxh0lz"
             },
-            "thoughtSignature": "Cp0DAQw51sdLG6QoSTYFxinM81k4cAhtbRv4UQm7XzdhP2wWXhklwRO18uKVQxGQLYxG2HdOHwdATflRKrqBf0zW12l5VvvXq3h/i5d3mD6X3xqd3CT9lFvih4mML2O1Z9aa6loVuLwAjRHRux2PuJZ8LsK92AaKZWoJx7ptqElmGhtNkRmVp/XmIiCqt8h9DDKoZlek/ADsGUdl9zujF2m4/iKccWBRQoarKhZ6m38Ia3v4I08Pm43Y+3iZxFkzD0tN48Fiej+tOdzvVAk0rkpCbhRozD5jP/uMgkqPdT7vbs28v1taROtmWonThEtblqbn3y6iJEX5QDBRn4oLF+2FmL95Q/Pxd02Oq5D+frXsDXYbV+OpO3/xU2PnVDwUTGBP4Wp2CFXVzx4LO/I90nwSK810AdiPXx2Nfg12DlWEi4SgNSVIyxgwTNo5Z6IFS8502524wZ5+GUFS3No8h0i13ZCJ86gQRpO9Ugijn+6qxGWBB2RlKVPg470XGabZmg68nviLvcWwoGftrqUqf6mbDj8NWUrqBidVJjT58EU="
+            "thoughtSignature": "Eo4DCosDAQw51scBWT4vkiVr013+EFv8M/dPtDJ/ro0rBk5a2H7rgnIeSGwQumwOPiXDyMXQ3H59equt90wNc0MWs6TuCSTeRSQVGG7NJKSQ3vdK8EZdqZkf76/SZxpSuOkKru/FXet38iTRTA19XdOTEFqdZKvQ3PHvIfh1mIQDdOCeKCe+urFniCXqZUU6MKZ8HxnqECbW0dDmYNNFvZTQBzjZwzaO9iQK0zm24ABsmghGC0MTLzk2R0vpBnESCip9j2gNm8+5y0vvMsdJ9Focej7nw4PnnBDEpLtGZUKORQKWiOFsNw0MUqPPMbSJaPwEaPUYShUhUcjDmd9ZUH/fzzLHfspHvaZp1BrGx/kAVLOeIZwR3rFCMvvJnCelT19fcYqhqZCy5s+23Pewh98khfqnAB42+P0+V5uIfB5IUirMnVVTq0H0YiDlzzJkOFH9/Ofnl+kGMVvyuAwvfaQDp6p1sk/SMp4eVdRIy9pj5MV56wBZkB9uDmJ02SCEFhxjiXfvmfL9usc+hV346XE="
           }
         ],
         "role": "model"
@@ -21,17 +22,18 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 62,
-    "candidatesTokenCount": 18,
-    "totalTokenCount": 167,
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 182,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 62
+        "tokenCount": 73
       }
     ],
-    "thoughtsTokenCount": 87
+    "thoughtsTokenCount": 90,
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "tD_6adbIO6HQ_uMPl6Cc6Aw"
+  "modelVersion": "gemini-3-flash-preview",
+  "responseId": "Wlv7afqGOZ-a_uMPk5zP2Q0"
 }

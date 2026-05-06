@@ -1431,7 +1431,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "call_6RDCfeXMrILg9KLUwEoGxFjR",
+      "id": "call_61ghTXSmEpppLoFqx3uUm7lf",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -1439,7 +1439,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_DcFO7EVoF97x2JaXmll8Lv7Slg6Va",
+  "id": "msg_DcYHJZ02NTni4uD6wlnyRJeLwGdZy",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -1447,7 +1447,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 148,
-    "output_tokens": 218,
+    "output_tokens": 154,
   },
 }
 `;
@@ -3854,7 +3854,7 @@ exports[`anthropic → google > toolCallRequest > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "ANY",
@@ -3891,7 +3891,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "call_0",
+      "id": "rc40d19f",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -3900,13 +3900,13 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
     },
   ],
   "id": "msg_transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "role": "assistant",
   "stop_reason": "tool_use",
   "type": "message",
   "usage": {
-    "input_tokens": 62,
-    "output_tokens": 85,
+    "input_tokens": 73,
+    "output_tokens": 68,
   },
 }
 `;
@@ -5997,7 +5997,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "thinking",
     },
     {
-      "id": "call_2Odx84a3uiX0E0SjgrcYf6w4",
+      "id": "call_ZI9QMBfHYMy3nJj3khoPK8jE",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -6005,7 +6005,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_0a40fb7ff727f3e20069fa3fb3caec8195934c66531710373e",
+  "id": "msg_0a01eec1e6befb2a0069fb5b59b42c8197a00d2ad04526689b",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -8822,7 +8822,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "toolu_01CxJPVp3SUU6PjtxcvydDxW",
+            "id": "toolu_013K4kgwpn1Pj1Ba3ycY3Kux",
             "type": "function",
           },
         ],
@@ -8830,7 +8830,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01Feh6b7YPgTzWKGaA9rkJJb",
+  "id": "chatcmpl-014gnM9CKfZac22XkCgLrbRG",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -11558,7 +11558,7 @@ exports[`chat-completions → google > toolCallRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "ANY",
@@ -11606,7 +11606,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "call_0",
+            "id": "kccxh0lz",
             "type": "function",
           },
         ],
@@ -11615,15 +11615,15 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 105,
+    "completion_tokens": 109,
     "completion_tokens_details": {
-      "reasoning_tokens": 87,
+      "reasoning_tokens": 90,
     },
-    "prompt_tokens": 62,
-    "total_tokens": 167,
+    "prompt_tokens": 73,
+    "total_tokens": 182,
   },
 }
 `;
@@ -14303,7 +14303,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "call_MseZlK7IeM7JHPIEWFIfRGhc",
+            "id": "call_9QowgostFc6xbyPGpMzbgHCH",
             "type": "function",
           },
         ],
@@ -14311,19 +14311,19 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-0714ad48311382170069fa3fb3c4188196a0d968ed08c504cb",
+  "id": "chatcmpl-0edac9025f9fd7990069fb5b59a6a08190aa351eca7fec7549",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 399,
+    "completion_tokens": 411,
     "completion_tokens_details": {
-      "reasoning_tokens": 320,
+      "reasoning_tokens": 384,
     },
     "prompt_tokens": 66,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 465,
+    "total_tokens": 477,
   },
 }
 `;
@@ -16198,7 +16198,7 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
               "args": {
                 "location": "San Francisco, CA",
               },
-              "id": "toolu_01PqTWKE9DkuY9x1rzhyJpow",
+              "id": "toolu_019Fv5fGwzYCvdt1nZonf2vD",
               "name": "get_weather",
             },
           },
@@ -18513,8 +18513,8 @@ exports[`google → chat-completions > toolCallRequest > response 1`] = `
     "cachedContentTokenCount": 0,
     "candidatesTokenCount": 26,
     "promptTokenCount": 148,
-    "thoughtsTokenCount": 320,
-    "totalTokenCount": 494,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 366,
   },
 }
 `;
@@ -20941,10 +20941,10 @@ exports[`google → responses > toolCallRequest > response 1`] = `
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 41,
+    "candidatesTokenCount": 76,
     "promptTokenCount": 66,
-    "thoughtsTokenCount": 256,
-    "totalTokenCount": 363,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 334,
   },
 }
 `;
@@ -24612,14 +24612,14 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
 exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01EoZtiYebBMYcB3QnZYSzLz",
+  "id": "resp_01K3rF6AHujaPPRsgVr4p1y7",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "toolu_011N19TMMSNA9oHWE2ff32EE",
+      "call_id": "toolu_01RAVXPVxAzhZySUxwbYTuYW",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -27745,7 +27745,7 @@ exports[`responses → google > toolCallRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "ANY",
@@ -27783,12 +27783,12 @@ exports[`responses → google > toolCallRequest > response 1`] = `
   "created_at": 0,
   "id": "resp_transformed",
   "incomplete_details": null,
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3-flash-preview",
   "object": "response",
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "call_0",
+      "call_id": "uiim7nho",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -27801,15 +27801,15 @@ exports[`responses → google > toolCallRequest > response 1`] = `
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 62,
+    "input_tokens": 73,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 109,
+    "output_tokens": 46,
     "output_tokens_details": {
-      "reasoning_tokens": 91,
+      "reasoning_tokens": 27,
     },
-    "total_tokens": 171,
+    "total_tokens": 119,
   },
 }
 `;

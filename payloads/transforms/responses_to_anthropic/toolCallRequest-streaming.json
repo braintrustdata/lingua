@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01WHEynJoUVSkrhcd9kbxsC3",
+      "id": "msg_01QNRL9LEKaG2LpJHo7hLuW3",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_012EWoGZcWoCXQi5698JNkVY",
+      "id": "toolu_01UoCBs6hrWsp9CLkLyFkX1u",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"location\""
+      "partial_json": "{\"locatio"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": ": \"San Fr"
+      "partial_json": "n\": \""
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ancisco, CA"
+      "partial_json": "San Fr"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "\"}"
+      "partial_json": "ancisco, CA\"}"
     }
   },
   {

@@ -1,4 +1,5 @@
 {
+  "model": "gemini-3-flash-preview",
   "contents": [
     {
       "role": "user",
@@ -16,9 +17,10 @@
             "name": "get_weather",
             "args": {
               "location": "San Francisco, CA"
-            }
+            },
+            "id": "w6geog7o"
           },
-          "thoughtSignature": "CvMCAQw51seVg/QgtgtrPC0XZLn9p5CgHFlkh7hwTbMmfl6Fd9bKrkH6vLsjXom3hUjo71lYUpCctiI4T04rQOcMZdPFcvxvnNCicXAIB0r40O1q2BbNoJD3IxST8fJNpqQ6HhmUITVbYSO2IF2wlbqgZgvoS+CQwkYG6i04MUxpUP03viEM9MhZ3bUfz9VAy8H7pScpDDvgGzKy3612DeoF9mSPeN2H5CVv/OVB3HgAxCv8R/l6D8mJtTXk+Tx68JNK/OaFiFg+Wcha+bAxFkdRyX8mKya1F3xVP+yFlgBLVFpgbqT5BBMrZ68eOCIojl8NO/g5HQUjZICIeh+xrAJopbsuVDbZ/miojLEivFSXltCvpyAjfAu5Zr40H5oPHzjdFNkMw4sKWrVBzGIHekDlDxmP/E54fk9PMF110ZbTefu2p1KY/0NrDFPs2088KMzKVoG6bzCljboyU/YwDSj3+pUOKqHjYWgkSYeravy3fxVZt9Y="
+          "thoughtSignature": "EvEBCu4BAQw51sdWw1wI3BUHK8lRMRRlwEXSqme7Q3wBhW/ubjtJtCfw5JEx/FCa6TXnuvU3DJjvPoSFx0wb/xRVcxJPgPgcuB/0Chsk8dT463+TdSV71rYPbsdjVkY9AbJt2HDy7IZsXxn9MqoNiec4ublq97em7eLZFmOozXdVK13r6JSQyK9gjNrzG6Bxlcf/A0WhiWttXbfhVbEYtndmJF587oF0MYhdVwvY+XGGD5UQxleFISAjFT1jnNu5Ab6LXNZPxZAai67dOyjzv8tYqCx+tM0sjNYgrVg8XYoY4DGiJdHUO+AGUdwRW5MdQehLfQ=="
         }
       ]
     },

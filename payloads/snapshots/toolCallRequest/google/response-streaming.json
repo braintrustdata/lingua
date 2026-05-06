@@ -9,31 +9,62 @@
                 "name": "get_weather",
                 "args": {
                   "location": "San Francisco, CA"
-                }
+                },
+                "id": "pt3pjoak"
               },
-              "thoughtSignature": "CiQBDDnWx7hP/jjQmwD4nDSrdzFdzpKxmtDuVS51nXNozRWNtVAKawEMOdbHl44RRexh9u4PPO/JvIHLP7ePteIwR5S9ytMZakBVKtUNiXVMHGV2ljMAjTaH2Qo3X3OnM/scg5xVzISVsbUNj66xBJ7vhpkQIRq81zAvXjBJrdeCwZMMaOQZ/rnbUlbLkB0dNQbQCvEBAQw51sdlhlLrQC5LfeBuKgE+9v4ION3wOX8yolKZLll1sT5PNXtR5QkwHWx3762DgKvdzKCFoCdC0xdBpyEo48IS+/cq4SARvs59wcsuDsOHutyjEyNahB/DMSvSA521EufzfmUD+VFMqAC/ZCEB1qrdaPuGiClwSLetY4KBqe4bZiuNQiHWlHDDI/xYryzMW6E8YNJDm4u4A4N/ovOHAgojJ23voBd3Hp6RpZqEvpZNGX/a7OfHGWcU7ObAqR4Dlp1Z16DF4JgWnWWoOCzGgdzGojEukJd/V4bwez7d1IvMme6tawc0Odk6Mk7oCdvfEApOAQw51sfJtrTMeLQqb88d3WFdYflClj5pJc7isK4K3e930Od73McmJPdiM/EDEozJYuUyn1KXOTFvs/jTjTkVtB+LeAV6MSXvi+v4f8Ov"
+              "thoughtSignature": "Eq0CCqoCAQw51se+CygzzdZ63+6dNLwt5y6AXJbzzmsubvOKR4TV6WujfynlPRUIkZfpVr+zwHgmJfUWh5qlDp93+bjaQXQj6hSfluz/vtt742D2KWVB5HUX5MbQ0EtZxaxyalMHtBWB03dtao2/D0t4cieXJT1B69Q4AQzzZkb8e/38kBVJlKivUa2nMVkHcV6icJtT7Y1Id3P8hCNtPdJFLOeK+CBmuzU2/i9fK6IN6TV/RYcXyFCkTR9fs4iZi0FCbJ2ouVorFCJIDiSdUu9k3XYFYWPyMskZ4LvEG/hD1QFXiI5C2jAW8Q0xQVn28knIvmgalX7tKY4KHUgYPvzMAA3Yz1s6Hl08vKh3FnKeOrOkpXekQ1FpV6KIMPOx+i2eGi+KA1ILUEUr8okW8A=="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 140,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 73
+        }
+      ],
+      "thoughtsTokenCount": 48,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "4Fn7afaFB-Os1MkPyOuq8Qs"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
             }
           ],
           "role": "model"
         },
         "finishReason": "STOP",
-        "index": 0,
-        "finishMessage": "Model generated function call(s)."
+        "index": 0
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 62,
-      "candidatesTokenCount": 18,
-      "totalTokenCount": 162,
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 140,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 62
+          "tokenCount": 73
         }
       ],
-      "thoughtsTokenCount": 82
+      "thoughtsTokenCount": 48,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "pz_6ad7mHr-tjMcP8tCC2Q4"
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "4Fn7afaFB-Os1MkPyOuq8Qs"
   }
 ]

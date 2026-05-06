@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_014moaBHPUv2B3VqtJMaBG7V",
+      "id": "msg_01LQsNyJGUgehE1SaxLpp1VQ",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01CRkkw5g2NJ44Amx9bb6jQR",
+      "id": "toolu_01EF4fJdwn6chvryHpzNaeaf",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "\": \"Sa"
+      "partial_json": "\": \"San Fran"
     }
   },
   {
@@ -66,15 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "n Francisco"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": ", CA\"}"
+      "partial_json": "cisco, CA\"}"
     }
   },
   {

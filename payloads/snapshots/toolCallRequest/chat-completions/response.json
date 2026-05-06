@@ -1,7 +1,7 @@
 {
-  "id": "chatcmpl-DcFNvRSZSroXnEnjYcr1UgaFEpCnQ",
+  "id": "chatcmpl-DcYH9UnIgiXEriLaiVAfhKUXHdW5d",
   "object": "chat.completion",
-  "created": 1778007975,
+  "created": 1778080591,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
@@ -11,7 +11,7 @@
         "content": null,
         "tool_calls": [
           {
-            "id": "call_f01d57X08AeawUJzBze63ejC",
+            "id": "call_iDTFncP9z38bOAPfUp5zh9HU",
             "type": "function",
             "function": {
               "name": "get_weather",
@@ -27,14 +27,14 @@
   ],
   "usage": {
     "prompt_tokens": 148,
-    "completion_tokens": 282,
-    "total_tokens": 430,
+    "completion_tokens": 218,
+    "total_tokens": 366,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 256,
+      "reasoning_tokens": 192,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

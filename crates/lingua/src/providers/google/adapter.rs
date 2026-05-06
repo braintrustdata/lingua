@@ -517,6 +517,7 @@ impl ProviderAdapter for GoogleAdapter {
                 .filter_map(|part| part.text.as_deref())
                 .collect::<Vec<_>>()
                 .join("");
+            let reasoning_signature = parts.iter().find_map(|part| part.thought_signature.clone());
 
             let response_id = typed_payload.response_id.as_deref();
             let mut tool_call_index = 0_u32;
@@ -570,7 +571,7 @@ impl ProviderAdapter for GoogleAdapter {
                 content: Some(text),
                 tool_calls,
                 reasoning: vec![],
-                reasoning_signature: None,
+                reasoning_signature,
             };
 
             choices.push(UniversalStreamChoice {
@@ -602,13 +603,26 @@ impl ProviderAdapter for GoogleAdapter {
                 // Build parts array from text and tool_calls
                 let mut parts: Vec<Value> = Vec::new();
 
-                // Add text part if present
                 let text = delta
                     .as_ref()
                     .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
-                if !text.is_empty() {
-                    parts.push(serde_json::json!({"text": text}));
+                let text_reasoning_signature = delta
+                    .as_ref()
+                    .and_then(|d| d.reasoning_signature.as_deref())
+                    .filter(|_| delta.as_ref().is_none_or(|d| d.tool_calls.is_empty()));
+
+                // Add text part if present, carrying thoughtSignature when there are no tool calls
+                if !text.is_empty() || text_reasoning_signature.is_some() {
+                    let mut text_part = serde_json::Map::new();
+                    text_part.insert("text".into(), Value::String(text.to_string()));
+                    if let Some(signature) = text_reasoning_signature {
+                        text_part.insert(
+                            "thoughtSignature".into(),
+                            Value::String(signature.to_string()),
+                        );
+                    }
+                    parts.push(Value::Object(text_part));
                 }
 
                 // Add functionCall parts from tool_calls
@@ -629,7 +643,15 @@ impl ProviderAdapter for GoogleAdapter {
                                     fc_map.insert("args".into(), args_val);
                                 }
                             }
-                            parts.push(serde_json::json!({"functionCall": fc_map}));
+                            let mut part_map = serde_json::Map::new();
+                            part_map.insert("functionCall".into(), Value::Object(fc_map));
+                            if let Some(ref signature) = d.reasoning_signature {
+                                part_map.insert(
+                                    "thoughtSignature".into(),
+                                    Value::String(signature.clone()),
+                                );
+                            }
+                            parts.push(Value::Object(part_map));
                         }
                     }
                 }
@@ -880,6 +902,7 @@ mod tests {
                 "content": {
                     "role": "model",
                     "parts": [{
+                        "thoughtSignature": "thought_signature_123",
                         "functionCall": {
                             "name": "get_summary",
                             "args": args
@@ -902,6 +925,10 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
+        assert_eq!(
+            delta.reasoning_signature.as_deref(),
+            Some("thought_signature_123")
+        );
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
     }

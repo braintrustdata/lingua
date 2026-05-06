@@ -87,7 +87,8 @@
         { "pattern": "choices[*].delta.role", "reason": "Google sends role with content in single event; Anthropic content_block_delta doesn't include role" },
         { "pattern": "choices[*].finish_reason", "reason": "Google sends finish_reason with content in single event; Anthropic separates into message_delta" },
         { "pattern": "choices[*].delta.content", "reason": "Google sends content with metadata in single event; content normalization differs across providers" },
-        { "pattern": "choices[*].delta.tool_calls", "reason": "Google streaming functionCall parts don't survive cross-provider roundtrip" }
+        { "pattern": "choices[*].delta.tool_calls", "reason": "Google streaming functionCall parts don't survive cross-provider roundtrip" },
+        { "pattern": "choices[*].delta.reasoning_signature", "reason": "Google combines reasoning_signature with content/tool_calls in a single event; other providers cannot represent both in one event so the signature is lost in the round-trip" }
       ]
     },
     {
