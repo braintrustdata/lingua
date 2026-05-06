@@ -173,6 +173,13 @@
     },
     {
       "source": "Google",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" }
+      ]
+    },
+    {
+      "source": "Google",
       "target": "ChatCompletions",
       "fields": [
         { "pattern": "messages[*].content[*].tool_name", "reason": "ChatCompletions tool messages don't include tool_name, only tool_call_id" }
@@ -810,22 +817,6 @@
       "target": "ChatCompletions",
       "fields": [
         { "pattern": "params.token_budget", "reason": "Chat Completions clamps very small output token budgets to the provider minimum of 16" }
-      ]
-    },
-    {
-      "testCase": "reasoningEffortNoneParam",
-      "source": "ChatCompletions",
-      "target": "*",
-      "fields": [
-        { "pattern": "params.reasoning", "reason": "OpenAI reasoning effort 'none' disables reasoning; non-OpenAI providers do not preserve it as a reasoning config" }
-      ]
-    },
-    {
-      "testCase": "reasoningEffortNoneParam",
-      "source": "Responses",
-      "target": "*",
-      "fields": [
-        { "pattern": "params.reasoning", "reason": "OpenAI reasoning effort 'none' disables reasoning; non-OpenAI providers do not preserve it as a reasoning config" }
       ]
     },
     {

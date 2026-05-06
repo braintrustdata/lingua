@@ -10,9 +10,9 @@
                 "args": {
                   "location": "San Francisco, CA"
                 },
-                "id": "wu3zra5t"
+                "id": "4ut9u15m"
               },
-              "thoughtSignature": "EtsBCtgBAQw51sdQ/275VwbYzzkZbyk5fYSKBOSCpd4t4ndVUct9DL2FLtW8rYtionm+DNVbixzuiBKbPglc4ATsoGkAPiYUVYTJ4Cul8k+M1y+kLMESZ2gNQp9JT7dNj+rX/kSM5+pWatKRJqMsLaGvX9WqI6lrIr0Ympx32EbfKqzt6t2qoOv3lrFOuTvaHlpX4Rbs0m5eO5H4z/33FtSnt6vGsbnQt6UfMqcGb3AenwO46Y1et7vTrAONadTSCmHXYJRDsCFO+qkQiisvSAwbeGQTK/RPqy6hKS5t"
+              "thoughtSignature": "EuIBCt8BAQw51sd1KrkH5S7ZbZ2rIg6DagtMr7DM1j8XWQZqIkITK7Dr/rNcrtenwlvO6aLWu45Gf32cBDPbS24JqSyW7M32mJn0jY86WgRgUpFXAVkfKYE+pGAVvX3+6s3E1PJO/MTWod4QDBmqaTLTgRhuxe4l4fHo1XXlVCOSJeOdpy1dPRM79BEBF5ohKIe9ykVYbEQRlX40Pb98tnOdFqdJMkfov0wV0RpWtpC/AW7cxinJAraN/eJQaBHn3ei+WIuhd5Hk55jZhgJTv5ETnozFXoamwCbP3ps6wNFSr3p20Q=="
             }
           ],
           "role": "model"
@@ -23,18 +23,18 @@
     "usageMetadata": {
       "promptTokenCount": 108,
       "candidatesTokenCount": 19,
-      "totalTokenCount": 158,
+      "totalTokenCount": 155,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 108
         }
       ],
-      "thoughtsTokenCount": 31,
+      "thoughtsTokenCount": 28,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "Blf7aeHkOJzkqtsP5uGG8A4"
+    "responseId": "4Vn7aa_sMvS91MkP8JeHmQw"
   },
   {
     "candidates": [
@@ -52,19 +52,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 142,
+      "promptTokenCount": 150,
       "candidatesTokenCount": 19,
-      "totalTokenCount": 192,
+      "totalTokenCount": 197,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 142
+          "tokenCount": 150
         }
       ],
-      "thoughtsTokenCount": 31,
+      "thoughtsTokenCount": 28,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "Blf7aeHkOJzkqtsP5uGG8A4"
+    "responseId": "4Vn7aa_sMvS91MkP8JeHmQw"
   }
 ]

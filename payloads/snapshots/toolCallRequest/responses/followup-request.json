@@ -6,21 +6,21 @@
       "content": "What's the weather like in San Francisco?"
     },
     {
-      "id": "rs_0041973f8f5590030069fb56fc1dcc8197862f82e84076f376",
+      "id": "rs_0f6378af308f27de0069fb59e0af008196b5132a88011dd3d0",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "fc_0041973f8f5590030069fb56fe29dc8197b90a67c930d8789c",
+      "id": "fc_0f6378af308f27de0069fb59e2e9dc8196ab5d13522466d242",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_K5iIcb9xAknj2ACtHyzuEMbh",
+      "call_id": "call_qzioNf7TggXfvvK3NSaEAl3x",
       "name": "get_weather"
     },
     {
       "type": "function_call_output",
-      "call_id": "call_K5iIcb9xAknj2ACtHyzuEMbh",
+      "call_id": "call_qzioNf7TggXfvvK3NSaEAl3x",
       "output": "71 degrees"
     }
   ],

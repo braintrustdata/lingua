@@ -638,7 +638,6 @@ export const advancedCases: TestCaseCollection = {
       ],
     },
     google: {
-      model: GOOGLE_GEMINI_3_MODEL,
       contents: [
         {
           role: "user",

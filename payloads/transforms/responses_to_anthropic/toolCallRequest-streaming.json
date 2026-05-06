@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01DGSUxcHomBX3g84ihCTpqQ",
+      "id": "msg_01Ce6eCGm4473choAoLCnh8L",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01XgBR9vfCPBvz5H121EhqdV",
+      "id": "toolu_01AVqKx66o6d8ysoMpyerjBP",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"l"
+      "partial_json": "{\"lo"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ocation\": \""
+      "partial_json": "cati"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "San"
+      "partial_json": "on\": \"San"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": " Fra"
+      "partial_json": " Fran"
     }
   },
   {
@@ -82,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "nci"
+      "partial_json": "cisco, CA"
     }
   },
   {
@@ -90,7 +90,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "sco, CA\"}"
+      "partial_json": "\"}"
     }
   },
   {

@@ -1,13 +1,13 @@
 {
-  "id": "resp_0041973f8f5590030069fb56fef99c8197a91235a09f13ea45",
+  "id": "resp_0f6378af308f27de0069fb59e374e481968e9937610a118417",
   "object": "response",
-  "created_at": 1778079487,
+  "created_at": 1778080227,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1778079489,
+  "completed_at": 1778080231,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,21 +18,21 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0041973f8f5590030069fb56ff95888197bb7f4bb83e6644ca",
+      "id": "rs_0f6378af308f27de0069fb59e3cfc08196938d232b1b9fbb9d",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "rs_0041973f8f5590030069fb5701893c81979040e27bf83e50ef",
+      "id": "rs_0f6378af308f27de0069fb59e724108196aebc86dbad00f9ff",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "fc_0041973f8f5590030069fb5701ad988197af2a2b431bded060",
+      "id": "fc_0f6378af308f27de0069fb59e73cfc8196881688ab6aedd9ac",
       "type": "function_call",
       "status": "completed",
       "arguments": "{\"location\":\"San Francisco, CA\"}",
-      "call_id": "call_L7bDXfrriFRz7EEPorrqwUBV",
+      "call_id": "call_L92QtapLFKddAHUH7uDAQjHG",
       "name": "get_weather"
     }
   ],
@@ -80,15 +80,15 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 356,
+    "input_tokens": 398,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 325,
+    "output_tokens": 521,
     "output_tokens_details": {
-      "reasoning_tokens": 256
+      "reasoning_tokens": 448
     },
-    "total_tokens": 681
+    "total_tokens": 919
   },
   "user": null,
   "metadata": {},

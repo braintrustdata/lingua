@@ -9,9 +9,9 @@
               "args": {
                 "location": "San Francisco, CA"
               },
-              "id": "48zx6hcj"
+              "id": "qztzscc9"
             },
-            "thoughtSignature": "EuEBCt4BAQw51sepUfr7LUjxgGPNI7zlJ4JATko69k0T8tVsUzUHv6ZJpBMfvyvLc4isWImAzd08yA6HX4e7WTuoDCDxhUoyGMRT+Ne9N3ZFO4GDp6WYzGuWLAUM+mpYT/QGxuP1hHZNvb+vIyJI/anvQc+bFuT73cIz7u1QXZp6PGAAS3oWlknbnuAevvsm8QyLBgBd7ugC5RcI0VV17SlJwniAQoS487+4tTbfx83duMZbGeLR0iMaPxD+aQyo6pcq3d+ea/IEbWlmyROMNfVSisz1E0QVfF9JhwtNF4VH7qXY"
+            "thoughtSignature": "EqABCp0BAQw51scZxaIphwJH5y+lh5cQIQ8f+Tjpu94d/oldyqSP6rKA8N3lSgVN/4hQWEU6IXTHWXzCca5En7w9saFyGflMqK8IXbL3iQc2Nd/6TNFhEt2PzxE2dzmZW98iIpzBP4xGacEB/tyhI+Tbzu96t25GhBwDCVrnVkY96lBu9dfcjuJsl7tuwN5a8/3MYYzEvVfMqCbGakUDKuX7cQ=="
           }
         ],
         "role": "model"
@@ -22,18 +22,18 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 142,
+    "promptTokenCount": 150,
     "candidatesTokenCount": 19,
-    "totalTokenCount": 200,
+    "totalTokenCount": 192,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 142
+        "tokenCount": 150
       }
     ],
-    "thoughtsTokenCount": 39,
+    "thoughtsTokenCount": 23,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3-flash-preview",
-  "responseId": "Blf7afHuN_uHqtsP0vXW0A0"
+  "responseId": "4Vn7aeSrMvS91MkP8JeHmQw"
 }

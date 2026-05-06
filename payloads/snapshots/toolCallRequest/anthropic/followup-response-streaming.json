@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01PKe1nJdEHzh3To3iDsmVv7",
+      "id": "msg_01FoKQniyhNQJHiszfrFMGs5",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01CfCJZBKWyh8fLXYw9Grwia",
+      "id": "toolu_01TsZLCFkLi7k9s8Ym8fEnSb",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"location\":"
+      "partial_json": "{\"loc"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": " \"San "
+      "partial_json": "at"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "Francisco"
+      "partial_json": "ion\": \"San"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": ", CA"
+      "partial_json": " Francis"
     }
   },
   {
@@ -82,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "\"}"
+      "partial_json": "co, CA\"}"
     }
   },
   {
