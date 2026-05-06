@@ -10,7 +10,7 @@
       "content": null,
       "tool_calls": [
         {
-          "id": "call_DVzrsTgHWkK1jakqmweoU1AJ",
+          "id": "call_iDTFncP9z38bOAPfUp5zh9HU",
           "type": "function",
           "function": {
             "name": "get_weather",
@@ -23,7 +23,7 @@
     },
     {
       "role": "tool",
-      "tool_call_id": "call_DVzrsTgHWkK1jakqmweoU1AJ",
+      "tool_call_id": "call_iDTFncP9z38bOAPfUp5zh9HU",
       "content": "71 degrees"
     }
   ],

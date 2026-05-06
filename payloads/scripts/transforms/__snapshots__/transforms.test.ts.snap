@@ -1431,7 +1431,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "call_1cZkPHfV7kSbs2VNhAcvJaer",
+      "id": "call_61ghTXSmEpppLoFqx3uUm7lf",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -1439,7 +1439,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_DcYBQFRYaQBxVABzPtCr88cdWs3O9",
+  "id": "msg_DcYHJZ02NTni4uD6wlnyRJeLwGdZy",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -2763,7 +2763,7 @@ exports[`anthropic → google > parallelToolCallsRequest > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-3-flash-preview",
+  "model": "gemini-2.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "AUTO",
@@ -3891,7 +3891,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "di8t3xj4",
+      "id": "rc40d19f",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -3906,7 +3906,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 73,
-    "output_tokens": 46,
+    "output_tokens": 68,
   },
 }
 `;
@@ -5997,7 +5997,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "thinking",
     },
     {
-      "id": "call_kO0KZE5YieGKwMigrubnMi8Z",
+      "id": "call_ZI9QMBfHYMy3nJj3khoPK8jE",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -6005,7 +6005,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_05cba2e4d6cb69620069fb59ec341881909b0efe54187ad082",
+  "id": "msg_0a01eec1e6befb2a0069fb5b59b42c8197a00d2ad04526689b",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -6013,7 +6013,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 66,
-    "output_tokens": 185,
+    "output_tokens": 297,
   },
 }
 `;
@@ -8822,7 +8822,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "toolu_01FNutC965Q4VNFWp3QPApVn",
+            "id": "toolu_013K4kgwpn1Pj1Ba3ycY3Kux",
             "type": "function",
           },
         ],
@@ -8830,7 +8830,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01SdwB47WMF7cGXafkLDYE2K",
+  "id": "chatcmpl-014gnM9CKfZac22XkCgLrbRG",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -10038,7 +10038,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
       "role": "user",
     },
   ],
-  "model": "gemini-3-flash-preview",
+  "model": "gemini-2.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -11606,7 +11606,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "vuuwru3d",
+            "id": "kccxh0lz",
             "type": "function",
           },
         ],
@@ -11618,12 +11618,12 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
   "model": "gemini-3-flash-preview",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 66,
+    "completion_tokens": 109,
     "completion_tokens_details": {
-      "reasoning_tokens": 47,
+      "reasoning_tokens": 90,
     },
     "prompt_tokens": 73,
-    "total_tokens": 139,
+    "total_tokens": 182,
   },
 }
 `;
@@ -14303,7 +14303,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "call_EpKKR469of9C9n2nMgsLvFzS",
+            "id": "call_9QowgostFc6xbyPGpMzbgHCH",
             "type": "function",
           },
         ],
@@ -14311,19 +14311,19 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-0e6f5c2d061dff720069fb59ed0e6c8197a7f8815283e6aed9",
+  "id": "chatcmpl-0edac9025f9fd7990069fb5b59a6a08190aa351eca7fec7549",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 591,
+    "completion_tokens": 411,
     "completion_tokens_details": {
-      "reasoning_tokens": 512,
+      "reasoning_tokens": 384,
     },
     "prompt_tokens": 66,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 657,
+    "total_tokens": 477,
   },
 }
 `;
@@ -16198,7 +16198,7 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
               "args": {
                 "location": "San Francisco, CA",
               },
-              "id": "toolu_012yYWPtCBU1mHdFrQ2vLBxA",
+              "id": "toolu_019Fv5fGwzYCvdt1nZonf2vD",
               "name": "get_weather",
             },
           },
@@ -18513,8 +18513,8 @@ exports[`google → chat-completions > toolCallRequest > response 1`] = `
     "cachedContentTokenCount": 0,
     "candidatesTokenCount": 26,
     "promptTokenCount": 148,
-    "thoughtsTokenCount": 256,
-    "totalTokenCount": 430,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 366,
   },
 }
 `;
@@ -20941,10 +20941,10 @@ exports[`google → responses > toolCallRequest > response 1`] = `
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 49,
+    "candidatesTokenCount": 76,
     "promptTokenCount": 66,
-    "thoughtsTokenCount": 256,
-    "totalTokenCount": 371,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 334,
   },
 }
 `;
@@ -24612,14 +24612,14 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
 exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_017adAMT5Pc18FfBpyRoU9pX",
+  "id": "resp_01K3rF6AHujaPPRsgVr4p1y7",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "toolu_01Qa7wJhYqmrqNJsjJJm6gUF",
+      "call_id": "toolu_01RAVXPVxAzhZySUxwbYTuYW",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -26086,7 +26086,7 @@ exports[`responses → google > parallelToolCallsRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-3-flash-preview",
+  "model": "gemini-2.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -27788,7 +27788,7 @@ exports[`responses → google > toolCallRequest > response 1`] = `
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "802svcfs",
+      "call_id": "uiim7nho",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -27805,11 +27805,11 @@ exports[`responses → google > toolCallRequest > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 19,
+    "output_tokens": 46,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 27,
     },
-    "total_tokens": 92,
+    "total_tokens": 119,
   },
 }
 `;

@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01Cvis1qNLSZqRKXSEkcP9Gz",
+      "id": "msg_01LQsNyJGUgehE1SaxLpp1VQ",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01HG7wqDhNEDbRDWEnDzoo98",
+      "id": "toolu_01EF4fJdwn6chvryHpzNaeaf",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"locat"
+      "partial_json": "{\"location"
     }
   },
   {
@@ -58,15 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ion\": \"San F"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": "ran"
+      "partial_json": "\": \"San Fran"
     }
   },
   {

@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01FoKQniyhNQJHiszfrFMGs5",
+      "id": "msg_01CfpxqhK5qnxvsYETiDQd4v",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01TsZLCFkLi7k9s8Ym8fEnSb",
+      "id": "toolu_01VeGE4Z3mCibAB1JjrEgexe",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"loc"
+      "partial_json": "{\"location"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "at"
+      "partial_json": "\": \""
     }
   },
   {
@@ -66,15 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ion\": \"San"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": " Francis"
+      "partial_json": "San Francis"
     }
   },
   {

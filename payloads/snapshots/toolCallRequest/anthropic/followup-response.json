@@ -1,12 +1,12 @@
 {
   "model": "claude-sonnet-4-5-20250929",
-  "id": "msg_0197NpiqAzZo2YiQZHPaFbXX",
+  "id": "msg_01XCiWiZsnQXwZtiiNfRAXWX",
   "type": "message",
   "role": "assistant",
   "content": [
     {
       "type": "tool_use",
-      "id": "toolu_01BY9WMbTPGv4wXbLYWmuaB5",
+      "id": "toolu_01CqbQ1PZD96TkYgKZpaJHuS",
       "name": "get_weather",
       "input": {
         "location": "San Francisco, CA"
