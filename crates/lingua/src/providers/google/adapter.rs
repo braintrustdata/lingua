@@ -603,13 +603,26 @@ impl ProviderAdapter for GoogleAdapter {
                 // Build parts array from text and tool_calls
                 let mut parts: Vec<Value> = Vec::new();
 
-                // Add text part if present
                 let text = delta
                     .as_ref()
                     .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
-                if !text.is_empty() {
-                    parts.push(serde_json::json!({"text": text}));
+                let text_reasoning_signature = delta
+                    .as_ref()
+                    .and_then(|d| d.reasoning_signature.as_deref())
+                    .filter(|_| delta.as_ref().is_none_or(|d| d.tool_calls.is_empty()));
+
+                // Add text part if present, carrying thoughtSignature when there are no tool calls
+                if !text.is_empty() || text_reasoning_signature.is_some() {
+                    let mut text_part = serde_json::Map::new();
+                    text_part.insert("text".into(), Value::String(text.to_string()));
+                    if let Some(signature) = text_reasoning_signature {
+                        text_part.insert(
+                            "thoughtSignature".into(),
+                            Value::String(signature.to_string()),
+                        );
+                    }
+                    parts.push(Value::Object(text_part));
                 }
 
                 // Add functionCall parts from tool_calls
