@@ -103,7 +103,11 @@ fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
     let Some(tool_schema) = schemas.get("Tool") else {
         return ToolSchemas::default();
     };
-    let Some(any_of) = tool_schema.get("anyOf").and_then(|a| a.as_array()) else {
+    let Some(any_of) = tool_schema
+        .get("anyOf")
+        .or_else(|| tool_schema.get("oneOf"))
+        .and_then(|a| a.as_array())
+    else {
         return ToolSchemas::default();
     };
 
@@ -122,10 +126,14 @@ fn extract_openai_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
         let Some(type_val) = schema_def
             .get("properties")
             .and_then(|p| p.get("type"))
-            .and_then(|t| t.get("enum"))
-            .and_then(|e| e.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|v| v.as_str())
+            .and_then(|t| {
+                t.get("const").and_then(|v| v.as_str()).or_else(|| {
+                    t.get("enum")
+                        .and_then(|e| e.as_array())
+                        .and_then(|arr| arr.first())
+                        .and_then(|v| v.as_str())
+                })
+            })
         else {
             continue;
         };
@@ -153,6 +161,9 @@ fn extract_anthropic_tool_schemas(spec: &serde_json::Value) -> ToolSchemas {
     for (schema_name, schema_def) in schemas {
         // Skip beta tools for now - Lingua does not (yet) support Anthropic beta features
         if schema_name.starts_with("Beta") {
+            continue;
+        }
+        if schema_name.starts_with("ServerToolCaller") {
             continue;
         }
         let Some(props) = schema_def.get("properties").and_then(|p| p.as_object()) else {
@@ -329,7 +340,11 @@ fn generate_tool_struct_direct(
             }
 
             let field_name = to_rust_field_name(prop_name);
-            let rust_type = schema_type_to_rust(prop_schema, all_schemas);
+            let rust_type = if provider == "anthropic" && prop_name == "allowed_callers" {
+                "Vec<AllowedCaller>".to_string()
+            } else {
+                schema_type_to_rust(prop_schema, all_schemas)
+            };
             let is_required = required.contains(prop_name);
 
             // Add field documentation if available
@@ -351,9 +366,7 @@ fn generate_tool_struct_direct(
             }
 
             // Add ts(type = "unknown") for serde_json::Value fields
-            if rust_type == "serde_json::Value"
-                || rust_type == "serde_json::Map<String, serde_json::Value>"
-            {
+            if rust_type.contains("serde_json::Value") {
                 output.push_str("    #[ts(type = \"unknown\")]\n");
             }
 

@@ -20,7 +20,7 @@ export type FunctionResponse = {
 id: string | null, 
 /**
  * Required. The name of the function to call. Must be a-z, A-Z, 0-9, or contain underscores
- * and dashes, with a maximum length of 64.
+ * and dashes, with a maximum length of 128.
  */
 name: string | null, 
 /**

@@ -154,6 +154,7 @@ impl ProviderAdapter for GoogleAdapter {
             reasoning,
             metadata: None,
             store: None,
+            conversation_reference: None,
             service_tier: None,
             logprobs: None,
             top_logprobs: None,
@@ -549,21 +550,21 @@ impl ProviderAdapter for GoogleAdapter {
                 })
                 .collect();
 
-            let finish_reason = if tool_calls.is_empty() {
-                candidate
-                    .finish_reason
-                    .as_ref()
-                    .and_then(|reason| serde_json::to_value(reason).ok())
-                    .and_then(|reason| match reason {
-                        Value::String(s) => Some(s),
-                        _ => None,
-                    })
-                    .map(|reason| {
+            let finish_reason = candidate
+                .finish_reason
+                .as_ref()
+                .and_then(|reason| serde_json::to_value(reason).ok())
+                .and_then(|reason| match reason {
+                    Value::String(s) => Some(s),
+                    _ => None,
+                })
+                .map(|reason| {
+                    if tool_calls.is_empty() {
                         FinishReason::from_provider_string(&reason, self.format()).to_string()
-                    })
-            } else {
-                Some(FinishReason::ToolCalls.to_string())
-            };
+                    } else {
+                        FinishReason::ToolCalls.to_string()
+                    }
+                });
 
             let delta = UniversalStreamDelta {
                 role: Some("assistant".to_string()),

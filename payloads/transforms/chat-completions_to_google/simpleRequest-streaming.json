@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "**Answering the Query**\n\nI'm focused on providing a clear and factual answer. The user has posed a direct question, and I'm ensuring the response is concise and accurate, meeting their information needs precisely. I'm prioritizing clarity and directness in my approach to best address their inquiry.\n\n\n",
+              "thought": true
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "totalTokenCount": 26,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 18
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6afj2BdWk1MkPpP-rgQM"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The capital of France is **Paris**."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 8,
+      "candidatesTokenCount": 7,
+      "totalTokenCount": 33,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8
+        }
+      ],
+      "thoughtsTokenCount": 18
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8Tr6afj2BdWk1MkPpP-rgQM"
+  }
+]

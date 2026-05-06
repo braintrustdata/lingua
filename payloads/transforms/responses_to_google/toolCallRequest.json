@@ -9,9 +9,9 @@
               "args": {
                 "location": "San Francisco, CA"
               },
-              "id": "7xz637bu"
+              "id": "klglszix"
             },
-            "thoughtSignature": "ErQBCrEBAQw51schV7VSQkMSoallVwJsKiTBjbMIZv6M72JYcvAsXCttotK+WDRH6HJSjCJRYWVOduObPleiMsg6Rr7uc+/A+thIXE55BpOKHRIdPni5pmQs384ua2c07QAEOCVjLy0mDZZC0ELipFa6tpNfAIFJinPWdnY6lrGFDXVQeqQVxjuhKXFGISQ7Ab4kEcE1jqC8ewlzLtaJ70NJiEIxjRtkEzNw64msGJMNu84W77rc"
+            "thoughtSignature": "EjQKMgEMOdbHC3d3OHGfATTENGeGwwEWGrzIiPI6j7ChTH2tAG4VJVqRZaXnarPDOmeOvQcD"
           }
         ],
         "role": "model"
@@ -24,16 +24,15 @@
   "usageMetadata": {
     "promptTokenCount": 73,
     "candidatesTokenCount": 19,
-    "totalTokenCount": 119,
+    "totalTokenCount": 92,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 73
       }
     ],
-    "thoughtsTokenCount": 27,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3-flash-preview",
-  "responseId": "GU77aZa0Nobe_uMPpObHwQE"
+  "responseId": "Clf7aYfZM7z6qtsP3Nyz6Q4"
 }

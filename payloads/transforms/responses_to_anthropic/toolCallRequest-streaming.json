@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_01Mc1nggkD1yMGGJL25koCVn",
+      "id": "msg_01DGSUxcHomBX3g84ihCTpqQ",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -11,14 +11,14 @@
       "stop_sequence": null,
       "stop_details": null,
       "usage": {
-        "input_tokens": 585,
+        "input_tokens": 677,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1,
+        "output_tokens": 8,
         "service_tier": "standard",
         "inference_geo": "not_available"
       }
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01WtvKsR23FgG3b12MyziSQx",
+      "id": "toolu_01XgBR9vfCPBvz5H121EhqdV",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "oca"
+      "partial_json": "ocation\": \""
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "tion\": \"San"
+      "partial_json": "San"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": " Francis"
+      "partial_json": " Fra"
     }
   },
   {
@@ -82,7 +82,15 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "co, CA\"}"
+      "partial_json": "nci"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "sco, CA\"}"
     }
   },
   {
@@ -97,10 +105,10 @@
       "stop_details": null
     },
     "usage": {
-      "input_tokens": 585,
+      "input_tokens": 677,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 56
+      "output_tokens": 41
     }
   },
   {

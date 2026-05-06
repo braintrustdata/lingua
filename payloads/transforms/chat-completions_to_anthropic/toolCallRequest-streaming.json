@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_0141yRWL2zae8gDKJSLHyjZA",
+      "id": "msg_01LGfTqrLWBhu3fpKKe5M8N5",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -11,14 +11,14 @@
       "stop_sequence": null,
       "stop_details": null,
       "usage": {
-        "input_tokens": 585,
+        "input_tokens": 677,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1,
+        "output_tokens": 8,
         "service_tier": "standard",
         "inference_geo": "not_available"
       }
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_01HXmRhNW1FY99kN4aM395bQ",
+      "id": "toolu_012wh8oDKgiSHhife2YEqZvS",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"location\":"
+      "partial_json": "{\"loc"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": " \"San Fra"
+      "partial_json": "ation\": \"Sa"
     }
   },
   {
@@ -66,7 +66,15 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ncisco, CA"
+      "partial_json": "n Francis"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "co, CA"
     }
   },
   {
@@ -89,10 +97,10 @@
       "stop_details": null
     },
     "usage": {
-      "input_tokens": 585,
+      "input_tokens": 677,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 56
+      "output_tokens": 41
     }
   },
   {

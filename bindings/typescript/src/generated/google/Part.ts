@@ -6,6 +6,8 @@ import type { FileData } from "./FileData";
 import type { FunctionCall } from "./FunctionCall";
 import type { FunctionResponse } from "./FunctionResponse";
 import type { MediaResolution } from "./MediaResolution";
+import type { ToolCall } from "./ToolCall";
+import type { ToolResponse } from "./ToolResponse";
 import type { VideoMetadata } from "./VideoMetadata";
 
 /**
@@ -65,6 +67,17 @@ thought: boolean | null,
  * Optional. An opaque signature for the thought so it can be reused in subsequent requests.
  */
 thoughtSignature: string | null, 
+/**
+ * Server-side tool call. This field is populated when the model predicts a tool invocation
+ * that should be executed on the server. The client is expected to echo this message back
+ * to the API.
+ */
+toolCall: ToolCall | null, 
+/**
+ * The output from a server-side `ToolCall` execution. This field is populated by the client
+ * with the results of executing the corresponding `ToolCall`.
+ */
+toolResponse: ToolResponse | null, 
 /**
  * Optional. Video metadata. The metadata should only be specified while the video data is
  * presented in inline_data or file_data.

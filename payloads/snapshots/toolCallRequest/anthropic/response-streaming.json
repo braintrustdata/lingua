@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-sonnet-4-5-20250929",
-      "id": "msg_0112ushDaBrBfR8YwwHZZp7y",
+      "id": "msg_01M2AkBbpojTLuEXRoJrkcg2",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -11,14 +11,14 @@
       "stop_sequence": null,
       "stop_details": null,
       "usage": {
-        "input_tokens": 585,
+        "input_tokens": 677,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1,
+        "output_tokens": 8,
         "service_tier": "standard",
         "inference_geo": "not_available"
       }
@@ -29,7 +29,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_011prUFuYQUvjSJHnUWv8fDL",
+      "id": "toolu_01Db3FMRpT75ANtrJLFuQ2Xc",
       "name": "get_weather",
       "input": {},
       "caller": {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"locat"
+      "partial_json": "{\"location\":"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "ion"
+      "partial_json": " \"San Fra"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "\": \"San Fran"
+      "partial_json": "ncisco, "
     }
   },
   {
@@ -74,15 +74,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "cisco, C"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "input_json_delta",
-      "partial_json": "A\"}"
+      "partial_json": "CA\"}"
     }
   },
   {
@@ -97,10 +89,10 @@
       "stop_details": null
     },
     "usage": {
-      "input_tokens": 585,
+      "input_tokens": 677,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 56
+      "output_tokens": 41
     }
   },
   {

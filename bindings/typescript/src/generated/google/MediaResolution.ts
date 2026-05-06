@@ -6,4 +6,8 @@ import type { Level } from "./Level";
  *
  * Media resolution for the input media.
  */
-export type MediaResolution = { level: Level | null, };
+export type MediaResolution = { 
+/**
+ * The media resolution level.
+ */
+level: Level | null, };

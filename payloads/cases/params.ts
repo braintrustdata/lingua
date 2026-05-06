@@ -9,6 +9,7 @@ import { TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
+  OPENAI_REASONING_NONE_MODEL,
   OPENAI_NON_REASONING_MODEL,
   ANTHROPIC_MODEL,
   ANTHROPIC_OPUS_MODEL,
@@ -93,6 +94,22 @@ export const paramsCases: TestCaseCollection = {
       model: OPENAI_RESPONSES_MODEL,
       input: [{ role: "user", content: "What is 2+2?" }],
       reasoning: { effort: "minimal" },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  reasoningEffortNoneParam: {
+    "chat-completions": {
+      model: OPENAI_REASONING_NONE_MODEL,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      reasoning_effort: "none",
+    },
+    responses: {
+      model: OPENAI_REASONING_NONE_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "none" },
     },
     anthropic: null,
     google: null,

@@ -10,9 +10,9 @@
                 "args": {
                   "location": "San Francisco, CA"
                 },
-                "id": "970m6wsr"
+                "id": "c70590bm"
               },
-              "thoughtSignature": "EsYCCsMCAQw51sctR5w62hIP5RHFrnv/aTPf8WGmPwbMD9AiLxoSzLGrqRxfeMvh6O5WHaVOZZkAOKnHnJ4SKwWEP/WT+1m30GfUQcdQeFx8lDWAAckhCj0MqKgtwTa/y//V8CEwIjQ57seSFN3nLkgr+BUmJvbtNFp69U6ttFuZCp5LeFEvnd2yWmA+OmLo5r2ueoKMfFJzPghPdDsJTcufqt7ZbHzlg5AQ2HWlXF1zrN5FG+kBEUG1eziLgqoxhdiUbknDm7wZi0/diP6vZChNMRim24A1GwQaNtgEXhGaKMxQ/axyBqiuOk56A8ubR1BrifqHQW0dpg2ahDNOKglMYsmZqzcBk9hFvSeFzwO6dzEkmiFB73Uci4aUEwQncJBwKbIJyyuXzITcGRef8rzjsqrFixv6wXxyjEZ1hmK17wdLGWksnPw="
+              "thoughtSignature": "ErYCCrMCAQw51scblvEymlkIHAZDDGRgawVvgHRvmtQ+hzbuPjZGOKiVUCwo5IDPlVRm8Haj6f/aX3TX2cc5XNiwOrYBAmva8tLQrOm8b5UzwQG0pkQGUgzqw64PBdm9EKwaOeMJHLIj/MQyj8F9ClR8WQ/yUOm7NTrTcCNOGWRcz52gyez20GInNF+Pf0KhrhgKWdZ0eHHlt4vJjdT91gqWfsq78C5r1pE/9kS7im6XWG8LXpk3cA63bjPTLjDhQ9aG9LUV3ao4UMexE4oH7ay0ZyW9Did1iUATa30y6wIeGG2shTPKWL+VoKL20qquZ6Qk82SwS/aqm3HGC8kXZZJv7X+P+kgu6kBFCAQapFU6lH1eYT+WpFj2njpcyy66gVth00HKC9LN4MnxcoDTtvft3Nrf7wXLLw=="
             }
           ],
           "role": "model"
@@ -23,18 +23,18 @@
     "usageMetadata": {
       "promptTokenCount": 73,
       "candidatesTokenCount": 19,
-      "totalTokenCount": 143,
+      "totalTokenCount": 138,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 73
         }
       ],
-      "thoughtsTokenCount": 51,
+      "thoughtsTokenCount": 46,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "1k37aYa7J8Tj_uMPs9TVgQI"
+    "responseId": "-1b7adXyM4CumtkPqMqo6A0"
   },
   {
     "candidates": [
@@ -52,19 +52,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 121,
+      "promptTokenCount": 73,
       "candidatesTokenCount": 19,
-      "totalTokenCount": 191,
+      "totalTokenCount": 138,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 121
+          "tokenCount": 73
         }
       ],
-      "thoughtsTokenCount": 51,
+      "thoughtsTokenCount": 46,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "1k37aYa7J8Tj_uMPs9TVgQI"
+    "responseId": "-1b7adXyM4CumtkPqMqo6A0"
   }
 ]

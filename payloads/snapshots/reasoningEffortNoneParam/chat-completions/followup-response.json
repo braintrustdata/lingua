@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DcEIcMFKCLiRStvnWxQNisu3rYMxC",
+  "object": "chat.completion",
+  "created": 1778003802,
+  "model": "gpt-5.2-2025-12-11",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "That depends on what you’re trying to achieve. Pick one:\n\n- If you’re just testing me: ask another question (math, coding, writing, planning).\n- If you need help right now: tell me your goal and any constraints (time, budget, deadline).\n- If you’re unsure what to do generally: do a quick reset—drink water, stretch for 2 minutes, then choose one small task you can finish in 10–15 minutes.\n\nIf you tell me what you’re working on today, I’ll suggest the best next step.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 36,
+    "completion_tokens": 116,
+    "total_tokens": 152,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

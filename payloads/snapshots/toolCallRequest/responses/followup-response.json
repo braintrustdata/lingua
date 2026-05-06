@@ -1,13 +1,13 @@
 {
-  "id": "resp_0b60c34dde1e18c90069fb4dde507081948399c8a9fb6ae256",
+  "id": "resp_0041973f8f5590030069fb56fef99c8197a91235a09f13ea45",
   "object": "response",
-  "created_at": 1778077150,
+  "created_at": 1778079487,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1778077157,
+  "completed_at": 1778079489,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,23 +18,22 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0b60c34dde1e18c90069fb4ddf04208194915cad80883dd8a2",
+      "id": "rs_0041973f8f5590030069fb56ff95888197bb7f4bb83e6644ca",
       "type": "reasoning",
       "summary": []
     },
     {
-      "id": "msg_0b60c34dde1e18c90069fb4de48b048194bad40505164752f2",
-      "type": "message",
+      "id": "rs_0041973f8f5590030069fb5701893c81979040e27bf83e50ef",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_0041973f8f5590030069fb5701ad988197af2a2b431bded060",
+      "type": "function_call",
       "status": "completed",
-      "content": [
-        {
-          "type": "output_text",
-          "annotations": [],
-          "logprobs": [],
-          "text": "Right now in San Francisco, it's about 71°F (around 22°C).\n\nWould you like a short-term forecast or details like humidity, wind, or chance of rain? I can also convert to Celsius if you prefer."
-        }
-      ],
-      "role": "assistant"
+      "arguments": "{\"location\":\"San Francisco, CA\"}",
+      "call_id": "call_L7bDXfrriFRz7EEPorrqwUBV",
+      "name": "get_weather"
     }
   ],
   "parallel_tool_calls": true,
@@ -56,7 +55,7 @@
     },
     "verbosity": "medium"
   },
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "type": "function",
@@ -81,17 +80,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 262,
+    "input_tokens": 356,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 581,
+    "output_tokens": 325,
     "output_tokens_details": {
-      "reasoning_tokens": 512
+      "reasoning_tokens": 256
     },
-    "total_tokens": 843
+    "total_tokens": 681
   },
   "user": null,
   "metadata": {},
-  "output_text": "Right now in San Francisco, it's about 71°F (around 22°C).\n\nWould you like a short-term forecast or details like humidity, wind, or chance of rain? I can also convert to Celsius if you prefer."
+  "output_text": ""
 }

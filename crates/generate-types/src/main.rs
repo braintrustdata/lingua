@@ -798,8 +798,12 @@ fn fix_anthropic_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
                 } else {
                     let fixed_value = fix_anthropic_schema_refs(value);
 
-                    // Handle null type issue for quicktype
-                    if key == "type" && fixed_value.is_null() {
+                    if key == "type"
+                        && fixed_value == serde_json::Value::String("unknown".to_string())
+                        && obj.get("$ref").is_some()
+                    {
+                        continue;
+                    } else if key == "type" && fixed_value.is_null() {
                         if obj.get("enum").is_some() {
                             fixed_obj.insert(
                                 key.clone(),
@@ -915,10 +919,6 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     // that get exported also land in this directory
     processed = add_export_path_to_all_ts_types(&processed, "anthropic/");
 
-    // Add ts-rs type annotations for serde_json types to generate better TypeScript
-    // This must happen AFTER we add the TS derives and export_to
-    processed = add_ts_type_annotations(&processed);
-
     // Only export entry point types that are actually used in our public API
     // ts-rs will automatically export their transitive dependencies to the same directory
     let entry_points = vec![
@@ -936,8 +936,20 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
         "HashMap<String, serde_json::Value>",
         "serde_json::Map<String, serde_json::Value>",
     );
+    processed = processed.replace(
+        "AnythingMap(serde_json::Map<String, serde_json::Value>)",
+        "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
+    );
+    processed = processed.replace(
+        "pub allowed_callers: Option<Vec<serde_json::Value>>,",
+        "pub allowed_callers: Option<Vec<AllowedCaller>>,",
+    );
     // Remove HashMap import if it's no longer needed
     processed = processed.replace("use std::collections::HashMap;\n", "");
+
+    // Add ts-rs type annotations for serde_json types to generate better TypeScript.
+    // This must happen after HashMap-to-Map replacements so nested map fields are covered.
+    processed = add_ts_type_annotations(&processed);
 
     // Fix specific type mappings that quicktype might miss - be very specific to avoid over-replacement
     // Only replace serde_json::Value in error_code fields, not in general input/properties fields
@@ -1012,6 +1024,22 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // This must happen AFTER we add the TS derives and export_to
     processed = add_ts_type_annotations(&processed);
 
+    // Fix HashMap to serde_json::Map for proper JavaScript object serialization,
+    // and avoid tuple enum variants containing Option<serde_json::Value>, which
+    // ts-rs cannot derive without a field-level #[ts(type = ...)] annotation.
+    processed = processed.replace(
+        "HashMap<String, Option<serde_json::Value>>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "HashMap<String, serde_json::Value>",
+        "serde_json::Map<String, serde_json::Value>",
+    );
+    processed = processed.replace(
+        "AnythingMap(serde_json::Map<String, serde_json::Value>)",
+        "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
+    );
+
     // Only export entry point types that are actually used in our public API
     // ts-rs will automatically export their transitive dependencies to the same directory
     let entry_points = vec![
@@ -1058,6 +1086,25 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = processed.replace(
         "pub output_item_type: OutputItemType,",
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
+    );
+    processed = processed.replace(
+        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
+        "InputContentArray(Vec<ContentOutputContentList>),",
+    );
+    processed = processed.replace(
+        "InputImage,\n    #[serde(rename = \"input_text\")]",
+        "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
+    );
+
+    processed.push_str(
+        r#"
+
+// Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type Instructions = InputParam;
+pub type InputContent = ContentOutputContentList;
+pub type InputItemContentListType = IndecentType;
+pub type FunctionCallItemStatus = Status;
+"#,
     );
 
     processed
@@ -1221,12 +1268,10 @@ fn generate_google_discovery_types() {
     let discovery_spec = match std::fs::read_to_string(spec_file_path) {
         Ok(content) => content,
         Err(e) => {
-            println!(
+            panic!(
                 "❌ Failed to read Discovery spec at {}: {}",
                 spec_file_path, e
             );
-            println!("Download the spec first: curl -s 'https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta' > specs/google/discovery.json");
-            return;
         }
     };
 
@@ -1235,8 +1280,7 @@ fn generate_google_discovery_types() {
     let spec: serde_json::Value = match serde_json::from_str(&discovery_spec) {
         Ok(value) => value,
         Err(e) => {
-            println!("❌ Failed to parse Discovery spec as JSON: {}", e);
-            return;
+            panic!("❌ Failed to parse Discovery spec as JSON: {}", e);
         }
     };
 
@@ -1246,7 +1290,7 @@ fn generate_google_discovery_types() {
         println!("✅ Found Google Discovery schemas section");
         generate_google_types_with_quicktype(&spec);
     } else {
-        println!("❌ No schemas section found in Discovery spec");
+        panic!("❌ No schemas section found in Discovery spec");
     }
 }
 
@@ -1380,7 +1424,15 @@ fn add_google_schema_with_dependencies(
 
     processed.insert(type_name.to_string());
 
-    if let Some(schema) = all_schemas.get(type_name) {
+    let Some(schema) = all_schemas
+        .get(type_name)
+        .cloned()
+        .or_else(|| google_missing_discovery_schema(type_name))
+    else {
+        return;
+    };
+
+    {
         // Strip top-level Discovery metadata fields (not valid JSON Schema)
         // Only strip "id" at the schema root level, not inside "properties"
         let mut cleaned = schema.clone();
@@ -1391,7 +1443,7 @@ fn add_google_schema_with_dependencies(
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
-        extract_discovery_refs(schema, &mut refs);
+        extract_discovery_refs(&schema, &mut refs);
 
         for ref_name in refs {
             add_google_schema_with_dependencies(
@@ -1401,6 +1453,39 @@ fn add_google_schema_with_dependencies(
                 processed,
             );
         }
+    }
+}
+
+fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
+    match type_name {
+        // The live Google Discovery spec references MediaResolution from Part but does not
+        // currently include a MediaResolution entry in schemas. Preserve the schema shape
+        // from prior Discovery specs so generation can remain fully typed.
+        "MediaResolution" => Some(serde_json::json!({
+            "description": "Media resolution for the input media.",
+            "type": "object",
+            "properties": {
+                "level": {
+                    "description": "The media resolution level.",
+                    "type": "string",
+                    "enum": [
+                        "MEDIA_RESOLUTION_UNSPECIFIED",
+                        "MEDIA_RESOLUTION_LOW",
+                        "MEDIA_RESOLUTION_MEDIUM",
+                        "MEDIA_RESOLUTION_HIGH",
+                        "MEDIA_RESOLUTION_ULTRA_HIGH"
+                    ],
+                    "enumDescriptions": [
+                        "Media resolution has not been set.",
+                        "Media resolution set to low.",
+                        "Media resolution set to medium.",
+                        "Media resolution set to high.",
+                        "Media resolution set to ultra high."
+                    ]
+                }
+            }
+        })),
+        _ => None,
     }
 }
 

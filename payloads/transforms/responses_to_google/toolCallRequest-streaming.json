@@ -1,4 +1,68 @@
-{
-  "error": "fetch failed",
-  "name": "TypeError"
-}
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "San Francisco, CA"
+                },
+                "id": "ejw9gvzx"
+              },
+              "thoughtSignature": "EjQKMgEMOdbHljrJIIQs7beulrlIizfgA9F0NqIbdmaQFlZIgSWUG6XiGQ2hWYxfhC/vAi07"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 92,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 73
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "E1f7aZzIBNWJ-sAPrr7X0Qs"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ""
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 73,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 92,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 73
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3-flash-preview",
+    "responseId": "E1f7aZzIBNWJ-sAPrr7X0Qs"
+  }
+]

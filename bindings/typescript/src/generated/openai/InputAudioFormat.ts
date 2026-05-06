@@ -2,9 +2,5 @@
 
 /**
  * The format of the encoded audio data. Currently supports "wav" and "mp3".
- *
- *
- * The format of the audio data. Currently supported formats are `mp3` and
- * `wav`.
  */
 export type InputAudioFormat = "mp3" | "wav";

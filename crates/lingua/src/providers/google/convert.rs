@@ -1039,6 +1039,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolConfig {
                 mode: Some(google_mode),
                 allowed_function_names: allowed_names,
             }),
+            include_server_side_tool_invocations: None,
             retrieval_config: None,
         })
     }
@@ -1620,12 +1621,14 @@ mod tests {
                 GooglePart {
                     executable_code: Some(ExecutableCode {
                         code: Some("print(1)".to_string()),
+                        id: None,
                         language: None,
                     }),
                     ..Default::default()
                 },
                 GooglePart {
                     code_execution_result: Some(CodeExecutionResult {
+                        id: None,
                         outcome: None,
                         output: Some("1\n".to_string()),
                     }),
@@ -1653,6 +1656,7 @@ mod tests {
                 mode: Some(FunctionCallingConfigMode::Auto),
                 allowed_function_names: None,
             }),
+            include_server_side_tool_invocations: None,
             retrieval_config: None,
         };
 
@@ -1668,6 +1672,7 @@ mod tests {
                 mode: Some(FunctionCallingConfigMode::Any),
                 allowed_function_names: None,
             }),
+            include_server_side_tool_invocations: None,
             retrieval_config: None,
         };
 
@@ -1682,6 +1687,7 @@ mod tests {
                 mode: Some(FunctionCallingConfigMode::Any),
                 allowed_function_names: Some(vec!["get_weather".to_string()]),
             }),
+            include_server_side_tool_invocations: None,
             retrieval_config: None,
         };
 
@@ -1697,6 +1703,7 @@ mod tests {
                 mode: Some(FunctionCallingConfigMode::None),
                 allowed_function_names: None,
             }),
+            include_server_side_tool_invocations: None,
             retrieval_config: None,
         };
 

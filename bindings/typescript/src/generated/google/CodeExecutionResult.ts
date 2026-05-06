@@ -4,10 +4,15 @@ import type { Outcome } from "./Outcome";
 /**
  * Result of executing the `ExecutableCode`.
  *
- * Result of executing the `ExecutableCode`. Only generated when using the `CodeExecution`,
- * and always follows a `part` containing the `ExecutableCode`.
+ * Result of executing the `ExecutableCode`. Generated only when the `CodeExecution` tool is
+ * used.
  */
 export type CodeExecutionResult = { 
+/**
+ * Optional. The identifier of the `ExecutableCode` part this result is for. Only populated
+ * if the corresponding `ExecutableCode` has an id.
+ */
+id: string | null, 
 /**
  * Required. Outcome of the code execution.
  */

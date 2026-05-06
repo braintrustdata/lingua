@@ -1,0 +1,73 @@
+{
+  "id": "resp_0ba98b1d836c86de0069fa2f5a1e54819589ab85501ffec684",
+  "object": "response",
+  "created_at": 1778003802,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778003806,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.2-2025-12-11",
+  "moderation": null,
+  "output": [
+    {
+      "id": "msg_0ba98b1d836c86de0069fa2f5aa0d48195867a7a8c0e23cfac",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "That depends on what you’re trying to accomplish. A few good “next steps,” depending on your situation:\n\n- **If you’re studying/practicing math:** try a slightly harder one (e.g., 12 + 27, or 2×(3+5)).\n- **If you meant “what should I do next” in general:** pick one small, concrete task you can finish in 5–10 minutes (drink water, reply to one message, tidy a small area, start a timer and work on your top priority).\n- **If you’re stuck/overwhelmed:** write down the top 3 things on your mind, then choose the one that matters most today and take the first tiny step.\n\nTell me what context you mean (schoolwork, work, a decision, feeling stuck, etc.), and I’ll suggest a specific next action."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "none",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 181,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 218
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "That depends on what you’re trying to accomplish. A few good “next steps,” depending on your situation:\n\n- **If you’re studying/practicing math:** try a slightly harder one (e.g., 12 + 27, or 2×(3+5)).\n- **If you meant “what should I do next” in general:** pick one small, concrete task you can finish in 5–10 minutes (drink water, reply to one message, tidy a small area, start a timer and work on your top priority).\n- **If you’re stuck/overwhelmed:** write down the top 3 things on your mind, then choose the one that matters most today and take the first tiny step.\n\nTell me what context you mean (schoolwork, work, a decision, feeling stuck, etc.), and I’ll suggest a specific next action."
+}

@@ -2,6 +2,8 @@
 import type { AnnotationTypeEnum } from "./AnnotationTypeEnum";
 
 /**
+ * An annotation that applies to a span of output text.
+ *
  * A citation to a file.
  *
  * A citation for a web resource used to generate a model response.

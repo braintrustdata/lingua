@@ -1402,7 +1402,7 @@ exports[`anthropic → chat-completions > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "function": {
@@ -1431,7 +1431,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "call_IK8VlYHPgU1cJSOUNmfRh2vO",
+      "id": "call_aSEVHn8ckojT1z9TjsttlJg8",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -1439,7 +1439,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_DcXOYxi49Y5BAV7BtYxPi09kbyWlL",
+  "id": "msg_DcXzUue3dgfFH8dGlzFdwQz2LZUVP",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -1447,7 +1447,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 148,
-    "output_tokens": 218,
+    "output_tokens": 410,
   },
 }
 `;
@@ -3857,7 +3857,7 @@ exports[`anthropic → google > toolCallRequest > request 1`] = `
   "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -3891,7 +3891,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
 {
   "content": [
     {
-      "id": "m63bvt4a",
+      "id": "098tidhj",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -3906,7 +3906,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 73,
-    "output_tokens": 55,
+    "output_tokens": 62,
   },
 }
 `;
@@ -5966,7 +5966,7 @@ exports[`anthropic → responses > toolCallRequest > request 1`] = `
   ],
   "max_output_tokens": 20000,
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -5997,7 +5997,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "thinking",
     },
     {
-      "id": "call_wzUyLlghFYd9zdmjro1HkmPl",
+      "id": "call_hYwGqyOHgtKy2vjifDUVorVa",
       "input": {
         "location": "San Francisco, CA",
       },
@@ -6005,7 +6005,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
       "type": "tool_use",
     },
   ],
-  "id": "msg_06b49c86bef66bac0069fb4e164c608193aef9049d6c6a2434",
+  "id": "msg_03f652aae55f5acd0069fb5708bca481969da7ffb14d6935ca",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
@@ -6013,7 +6013,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 66,
-    "output_tokens": 173,
+    "output_tokens": 347,
   },
 }
 `;
@@ -6373,6 +6373,10 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
       "id": "ws_0cff0be10f79f5520069d46c9f4f3c819caca1ecf4dc22d3fc",
       "input": {
         "action": {
+          "queries": [
+            "site:wikipedia.org Artificial intelligence news",
+            "site:arxiv.org artificial intelligence new papers 2026",
+          ],
           "query": "site:wikipedia.org Artificial intelligence news",
           "type": "search",
         },
@@ -6429,6 +6433,12 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
       "id": "ws_0b557de166e92e4b0069d46c828fc081959551aa2e330718f2",
       "input": {
         "action": {
+          "queries": [
+            "OpenAI news 2026",
+            "OpenAI latest news April 2026",
+            "OpenAI announces 2026 product release",
+            "OpenAI layoffs 2026",
+          ],
           "query": "OpenAI news 2026",
           "type": "search",
         },
@@ -7814,6 +7824,50 @@ exports[`chat-completions → anthropic > reasoningEffortMinimalParam > response
 }
 `;
 
+exports[`chat-completions → anthropic > reasoningEffortNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "type": "disabled",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01BVZDnu2vjSxaagDaBThtf2",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > reasoningRequest > request 1`] = `
 {
   "max_tokens": 4096,
@@ -8730,7 +8784,7 @@ exports[`chat-completions → anthropic > toolCallRequest > request 1`] = `
   ],
   "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
-    "type": "auto",
+    "type": "any",
   },
   "tools": [
     {
@@ -8768,7 +8822,7 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "toolu_01Km85AXTwdsEDxHJjNdqYpa",
+            "id": "toolu_017afGdkx49WcFvbivQg7BUZ",
             "type": "function",
           },
         ],
@@ -8776,16 +8830,16 @@ exports[`chat-completions → anthropic > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01BRM6vkcZDooyiLvxQbgRrf",
+  "id": "chatcmpl-01GsfyTwv48w5d1h23aWBA28",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 56,
-    "prompt_tokens": 585,
+    "completion_tokens": 41,
+    "prompt_tokens": 677,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 641,
+    "total_tokens": 718,
   },
 }
 `;
@@ -10448,6 +10502,54 @@ Okay, so the user has thrown a textbook arithmetic problem at me: "What is 2+2?"
 }
 `;
 
+exports[`chat-completions → google > reasoningEffortNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 0,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2+2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 8,
+    "total_tokens": 14,
+  },
+}
+`;
+
 exports[`chat-completions → google > reasoningRequest > request 1`] = `
 {
   "contents": [
@@ -11459,7 +11561,7 @@ exports[`chat-completions → google > toolCallRequest > request 1`] = `
   "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -11504,7 +11606,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "5tfk9ygn",
+            "id": "f5gorvff",
             "type": "function",
           },
         ],
@@ -13116,6 +13218,49 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > response
 }
 `;
 
+exports[`chat-completions → responses > reasoningEffortNoneParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5.2",
+  "reasoning": {
+    "effort": "none",
+  },
+}
+`;
+
+exports[`chat-completions → responses > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0b34a7966c9d9b9d0069fa2f5f510481909c4dcc1c6bc2a8bc",
+  "model": "gpt-5.2-2025-12-11",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 24,
+  },
+}
+`;
+
 exports[`chat-completions → responses > reasoningRequest > request 1`] = `
 {
   "input": [
@@ -14111,7 +14256,7 @@ exports[`chat-completions → responses > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
-  "tool_choice": "auto",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -14158,7 +14303,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
               "arguments": "{"location":"San Francisco, CA"}",
               "name": "get_weather",
             },
-            "id": "call_4OjcPpEkgZj8TAmMysBeUjgL",
+            "id": "call_gQfU47aZJFAjqOM8s6yNX76s",
             "type": "function",
           },
         ],
@@ -14166,11 +14311,11 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
     },
   ],
   "created": 0,
-  "id": "chatcmpl-04da215bfb7337210069fb4e164e748190aaa59d7652627fe8",
+  "id": "chatcmpl-0e0c53fd5a5879310069fb5708bf0c81939b16fe2cbda42b35",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 257,
+    "completion_tokens": 250,
     "completion_tokens_details": {
       "reasoning_tokens": 192,
     },
@@ -14178,7 +14323,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 323,
+    "total_tokens": 316,
   },
 }
 `;
@@ -16018,6 +16163,9 @@ exports[`google → anthropic > toolCallRequest > request 1`] = `
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "any",
+  },
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -16050,7 +16198,7 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
               "args": {
                 "location": "San Francisco, CA",
               },
-              "id": "toolu_014jW8t7hzZ4uHTaqmr24PLA",
+              "id": "toolu_01We1E71zCf3wshFHxuhTXtd",
               "name": "get_weather",
             },
           },
@@ -16064,9 +16212,9 @@ exports[`google → anthropic > toolCallRequest > response 1`] = `
   "modelVersion": "claude-sonnet-4-5-20250929",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 56,
-    "promptTokenCount": 585,
-    "totalTokenCount": 641,
+    "candidatesTokenCount": 41,
+    "promptTokenCount": 677,
+    "totalTokenCount": 718,
   },
 }
 `;
@@ -18314,6 +18462,7 @@ exports[`google → chat-completions > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+  "tool_choice": "required",
   "tools": [
     {
       "function": {
@@ -20732,6 +20881,7 @@ exports[`google → responses > toolCallRequest > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+  "tool_choice": "required",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -20791,10 +20941,10 @@ exports[`google → responses > toolCallRequest > response 1`] = `
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 84,
+    "candidatesTokenCount": 69,
     "promptTokenCount": 66,
     "thoughtsTokenCount": 128,
-    "totalTokenCount": 278,
+    "totalTokenCount": 263,
   },
 }
 `;
@@ -21410,6 +21560,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "AI news 2026 April",
+                    "latest AI developments 2026",
+                    "OpenAI 2026 updates",
+                    "Google DeepMind 2026 news",
+                  ],
                   "query": "AI news 2026 April",
                   "type": "search",
                 },
@@ -21482,6 +21638,12 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "Reuters AI news 2026",
+                    "Bloomberg AI news 2026",
+                    "CNBC OpenAI 2026 updates",
+                    "Axios Google DeepMind 2026",
+                  ],
                   "query": "Reuters AI news 2026",
                   "type": "search",
                 },
@@ -21590,6 +21752,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI compute target 600 billion CNBC February 2026",
+                    "OpenAI March 2026 update new models CNBC",
+                  ],
                   "query": "OpenAI compute target 600 billion CNBC February 2026",
                   "type": "search",
                 },
@@ -21662,6 +21828,10 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI GPT-5.4 March 2026 announced",
+                    "Google Gemini 3 Deep Think update February 2026 TechCrunch",
+                  ],
                   "query": "OpenAI GPT-5.4 March 2026 announced",
                   "type": "search",
                 },
@@ -21932,6 +22102,12 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI latest news 2026",
+                    "OpenAI announces 2026 news Reuters",
+                    "OpenAI news The Verge 2026",
+                    "OpenAI official blog 2026",
+                  ],
                   "query": "OpenAI latest news 2026",
                   "type": "search",
                 },
@@ -21968,6 +22144,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "site:openai.com OpenAI blog GPT-4o retirement February 2026",
+                    "OpenAI GPT-5 announcement March 2026 site:openai.com",
+                  ],
                   "query": "site:openai.com OpenAI blog GPT-4o retirement February 2026",
                   "type": "search",
                 },
@@ -22004,6 +22184,10 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "functionCall": {
               "args": {
                 "action": {
+                  "queries": [
+                    "OpenAI TBPN acquisition April 2026",
+                    "OpenAI TBPN press release",
+                  ],
                   "query": "OpenAI TBPN acquisition April 2026",
                   "type": "search",
                 },
@@ -23136,6 +23320,63 @@ exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = 
       "reasoning_tokens": 0,
     },
     "total_tokens": 79,
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortNoneParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "type": "disabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > reasoningEffortNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01BNqkGQQgvAuVd1opmAYKmn",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 13,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 27,
   },
 }
 `;
@@ -24344,7 +24585,7 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
   ],
   "model": "claude-sonnet-4-5-20250929",
   "tool_choice": {
-    "type": "auto",
+    "type": "any",
   },
   "tools": [
     {
@@ -24371,14 +24612,14 @@ exports[`responses → anthropic > toolCallRequest > request 1`] = `
 exports[`responses → anthropic > toolCallRequest > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01Hp7SS8VsqA9SqaFGTRbZfc",
+  "id": "resp_01245181WwT2Kr5NTSR2jR1S",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "toolu_01PjEWhhwxKZJmUEDRSvTiMP",
+      "call_id": "toolu_01BmdXaJdBH6tDueU94ipHgH",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -24391,15 +24632,15 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 585,
+    "input_tokens": 677,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 56,
+    "output_tokens": 41,
     "output_tokens_details": {
       "reasoning_tokens": 0,
     },
-    "total_tokens": 641,
+    "total_tokens": 718,
   },
 }
 `;
@@ -26133,6 +26374,70 @@ Finally, I formulate the answer. I present the result in a clear and direct mann
 }
 `;
 
+exports[`responses → google > reasoningEffortNoneParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 0,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > reasoningEffortNoneParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2+2 equals 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2+2 equals 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 7,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
 exports[`responses → google > reasoningRequest > request 1`] = `
 {
   "contents": [
@@ -27443,7 +27748,7 @@ exports[`responses → google > toolCallRequest > request 1`] = `
   "model": "gemini-3-flash-preview",
   "toolConfig": {
     "functionCallingConfig": {
-      "mode": "AUTO",
+      "mode": "ANY",
     },
   },
   "tools": [
@@ -27483,7 +27788,7 @@ exports[`responses → google > toolCallRequest > response 1`] = `
   "output": [
     {
       "arguments": "{"location":"San Francisco, CA"}",
-      "call_id": "7xz637bu",
+      "call_id": "klglszix",
       "id": "msg_transformed_item_0",
       "name": "get_weather",
       "status": "completed",
@@ -27500,11 +27805,11 @@ exports[`responses → google > toolCallRequest > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 46,
+    "output_tokens": 19,
     "output_tokens_details": {
-      "reasoning_tokens": 27,
+      "reasoning_tokens": 0,
     },
-    "total_tokens": 119,
+    "total_tokens": 92,
   },
 }
 `;

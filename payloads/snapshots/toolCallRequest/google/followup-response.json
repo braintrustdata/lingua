@@ -4,27 +4,36 @@
       "content": {
         "parts": [
           {
-            "text": "The weather in San Francisco is currently 71 degrees."
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "San Francisco, CA"
+              },
+              "id": "48zx6hcj"
+            },
+            "thoughtSignature": "EuEBCt4BAQw51sepUfr7LUjxgGPNI7zlJ4JATko69k0T8tVsUzUHv6ZJpBMfvyvLc4isWImAzd08yA6HX4e7WTuoDCDxhUoyGMRT+Ne9N3ZFO4GDp6WYzGuWLAUM+mpYT/QGxuP1hHZNvb+vIyJI/anvQc+bFuT73cIz7u1QXZp6PGAAS3oWlknbnuAevvsm8QyLBgBd7ugC5RcI0VV17SlJwniAQoS487+4tTbfx83duMZbGeLR0iMaPxD+aQyo6pcq3d+ea/IEbWlmyROMNfVSisz1E0QVfF9JhwtNF4VH7qXY"
           }
         ],
         "role": "model"
       },
       "finishReason": "STOP",
-      "index": 0
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 192,
-    "candidatesTokenCount": 12,
-    "totalTokenCount": 204,
+    "promptTokenCount": 142,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 200,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 192
+        "tokenCount": 142
       }
     ],
+    "thoughtsTokenCount": 39,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3-flash-preview",
-  "responseId": "FE77abftO56M_PUP3p-D6Ag"
+  "responseId": "Blf7afHuN_uHqtsP0vXW0A0"
 }

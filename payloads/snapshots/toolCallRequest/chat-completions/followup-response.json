@@ -1,24 +1,34 @@
 {
-  "id": "chatcmpl-DcXNbj7cGu1EWIRojuymTHv6zj2uQ",
+  "id": "chatcmpl-DcXzLAXAGVYBywGcURuaqtWZPID7K",
   "object": "chat.completion",
-  "created": 1778077147,
+  "created": 1778079487,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Right now in San Francisco, it's 71°F (about 22°C). Want an hourly forecast or more details like humidity or wind?",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_ZC25Mpnf9J75fOkC74haeJLl",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\":\"San Francisco, CA\"}"
+            }
+          }
+        ],
         "refusal": null,
         "annotations": []
       },
-      "finish_reason": "stop"
+      "finish_reason": "tool_calls"
     }
   ],
   "usage": {
     "prompt_tokens": 181,
-    "completion_tokens": 485,
-    "total_tokens": 666,
+    "completion_tokens": 498,
+    "total_tokens": 679,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0

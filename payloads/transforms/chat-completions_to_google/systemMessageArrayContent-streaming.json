@@ -1,0 +1,31 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "To find recent errors, I will query the `project_logs` dataset with ID `abc-123`.\n\n**Query:**\nGet `timestamp`, `message`, and `details` from `project"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 29,
+      "candidatesTokenCount": 43,
+      "totalTokenCount": 118,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 29
+        }
+      ],
+      "thoughtsTokenCount": 46
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "8zr6aYK2CPec1MkPktzimQ0"
+  }
+]

@@ -31,5 +31,10 @@
         }
       ]
     }
-  ]
+  ],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "ANY"
+    }
+  }
 }

@@ -33,6 +33,13 @@ pub struct AnthropicSchemas {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CreateMessageParams {
+    /// Top-level cache control automatically applies a cache_control marker to the last
+    /// cacheable block in the request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    /// Container identifier for reuse across requests.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container: Option<String>,
     /// Specifies the geographic region for inference processing. If not specified, the
     /// workspace's `default_inference_geo` is used.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,6 +48,10 @@ pub struct CreateMessageParams {
     ///
     /// Note that our models may stop _before_ reaching this maximum. This parameter only
     /// specifies the absolute maximum number of tokens to generate.
+    ///
+    /// Set to `0` to populate the [prompt
+    /// cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+    /// without generating a response.
     ///
     /// Different models have different maximum values for this parameter.  See
     /// [models](https://docs.claude.com/en/docs/models-overview) for details.
@@ -236,89 +247,18 @@ pub struct CreateMessageParams {
     /// Used to remove "long tail" low probability responses. [Learn more technical details
     /// here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
     ///
-    /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    /// Recommended for advanced use cases only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_k: Option<i64>,
     /// Use nucleus sampling.
     ///
     /// In nucleus sampling, we compute the cumulative distribution over all the options for each
     /// subsequent token in decreasing probability order and cut it off once it reaches a
-    /// particular probability specified by `top_p`. You should either alter `temperature` or
-    /// `top_p`, but not both.
+    /// particular probability specified by `top_p`.
     ///
-    /// Recommended for advanced use cases only. You usually only need to use `temperature`.
+    /// Recommended for advanced use cases only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export, export_to = "anthropic/")]
-pub struct InputMessage {
-    pub content: MessageContent,
-    pub role: MessageRole,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(untagged)]
-#[ts(export_to = "anthropic/")]
-pub enum MessageContent {
-    InputContentBlockArray(Vec<InputContentBlock>),
-    String(String),
-}
-
-/// Regular text content.
-///
-/// Image content specified directly as base64 data or as a reference via a URL.
-///
-/// Document content, either specified directly as base64 data, as text, or as a reference
-/// via a URL.
-///
-/// A search result block containing source, title, and content from search operations.
-///
-/// A block specifying internal thinking by the model.
-///
-/// A block specifying internal, redacted thinking by the model.
-///
-/// A block indicating a tool use by the model.
-///
-/// A block specifying the results of a tool use by the model.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "anthropic/")]
-pub struct InputContentBlock {
-    /// Create a cache control breakpoint at this content block.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_control: Option<CacheControlEphemeral>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<Citations>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub text: Option<String>,
-    #[serde(rename = "type")]
-    pub input_content_block_type: InputContentBlockType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<Source>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Content>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub signature: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thinking: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    #[ts(type = "unknown")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub input: Option<serde_json::Map<String, serde_json::Value>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_error: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tool_use_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -358,6 +298,114 @@ pub enum Ttl {
     The1H,
     #[serde(rename = "5m")]
     The5M,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "anthropic/")]
+pub struct InputMessage {
+    pub content: MessageContent,
+    pub role: MessageRole,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+#[ts(export_to = "anthropic/")]
+pub enum MessageContent {
+    InputContentBlockArray(Vec<InputContentBlock>),
+    String(String),
+}
+
+/// Regular text content.
+///
+/// Image content specified directly as base64 data or as a reference via a URL.
+///
+/// Document content, either specified directly as base64 data, as text, or as a reference
+/// via a URL.
+///
+/// A search result block containing source, title, and content from search operations.
+///
+/// A block specifying internal thinking by the model.
+///
+/// A block specifying internal, redacted thinking by the model.
+///
+/// A block indicating a tool use by the model.
+///
+/// A block specifying the results of a tool use by the model.
+///
+/// A content block that represents a file to be uploaded to the container
+/// Files uploaded via this block will be available in the container's input directory.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct InputContentBlock {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citations: Option<Citations>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    pub input_content_block_type: InputContentBlockType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<Source>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<InputContentBlockContent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub signature: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thinking: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<Caller>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<serde_json::Map<String, serde_json::Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_error: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_use_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_id: Option<String>,
+}
+
+/// Tool invocation directly from the model.
+///
+/// Tool invocation generated by a server-side tool.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct Caller {
+    #[serde(rename = "type")]
+    pub caller_type: AllowedCaller,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_id: Option<String>,
+}
+
+/// Specifies who can invoke a tool.
+///
+/// Values:
+/// direct: The model can call this tool directly.
+/// code_execution_20250825: The tool can be called from the code execution environment
+/// (v1).
+/// code_execution_20260120: The tool can be called from the code execution environment (v2
+/// with persistence).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum AllowedCaller {
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825,
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120,
+    Direct,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -428,7 +476,7 @@ pub struct RequestCitationsConfig {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
-pub enum Content {
+pub enum InputContentBlockContent {
     BlockArray(Vec<Block>),
     RequestWebSearchToolResultError(RequestWebSearchToolResultError),
     String(String),
@@ -442,6 +490,8 @@ pub enum Content {
 ///
 /// Document content, either specified directly as base64 data, as text, or as a reference
 /// via a URL.
+///
+/// Tool reference block that can be included in tool_result content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Block {
@@ -463,6 +513,8 @@ pub struct Block {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page_age: Option<String>,
@@ -479,6 +531,8 @@ pub enum WebSearchToolResultBlockItemType {
     #[serde(rename = "search_result")]
     SearchResult,
     Text,
+    #[serde(rename = "tool_reference")]
+    ToolReference,
     #[serde(rename = "web_search_result")]
     WebSearchResult,
 }
@@ -623,22 +677,147 @@ pub enum FluffyType {
     Url,
 }
 
+/// Code execution result with encrypted stdout for PFC + web_search results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct RequestWebSearchToolResultError {
-    pub error_code: WebSearchToolResultErrorCode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<ToolResultErrorCode>,
     #[serde(rename = "type")]
     pub request_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<RequestWebSearchToolResultErrorContent>,
+    /// ISO 8601 timestamp when the content was retrieved
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retrieved_at: Option<String>,
+    /// Fetched content URL
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub return_code: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stderr: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stdout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted_stdout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_type: Option<FileType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub num_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_line: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_file_update: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lines: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_start: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub old_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub old_start: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_references: Option<Vec<RequestToolReferenceBlock>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+#[ts(export_to = "anthropic/")]
+pub enum RequestWebSearchToolResultErrorContent {
+    RequestCodeExecutionOutputBlockArray(Vec<RequestCodeExecutionOutputBlock>),
+    RequestDocumentBlock(RequestDocumentBlock),
+    String(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct RequestCodeExecutionOutputBlock {
+    pub file_id: String,
+    #[serde(rename = "type")]
+    pub request_code_execution_output_block_type: TentacledType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum WebSearchToolResultErrorCode {
+pub enum TentacledType {
+    #[serde(rename = "bash_code_execution_output")]
+    BashCodeExecutionOutput,
+    #[serde(rename = "code_execution_output")]
+    CodeExecutionOutput,
+}
+
+/// Document content, either specified directly as base64 data, as text, or as a reference
+/// via a URL.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct RequestDocumentBlock {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citations: Option<RequestCitationsConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    pub source: PurpleSource,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(rename = "type")]
+    pub request_document_block_type: StickyType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum StickyType {
+    Document,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct PurpleSource {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_type: Option<TentacledMediaType>,
+    #[serde(rename = "type")]
+    pub source_type: FluffyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<SourceContent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub enum TentacledMediaType {
+    #[serde(rename = "application/pdf")]
+    ApplicationPdf,
+    #[serde(rename = "text/plain")]
+    TextPlain,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ToolResultErrorCode {
+    #[serde(rename = "execution_time_exceeded")]
+    ExecutionTimeExceeded,
+    #[serde(rename = "file_not_found")]
+    FileNotFound,
     #[serde(rename = "invalid_tool_input")]
     InvalidToolInput,
     #[serde(rename = "max_uses_exceeded")]
     MaxUsesExceeded,
+    #[serde(rename = "output_file_too_large")]
+    OutputFileTooLarge,
     #[serde(rename = "query_too_long")]
     QueryTooLong,
     #[serde(rename = "request_too_large")]
@@ -646,20 +825,89 @@ pub enum WebSearchToolResultErrorCode {
     #[serde(rename = "too_many_requests")]
     TooManyRequests,
     Unavailable,
+    #[serde(rename = "unsupported_content_type")]
+    UnsupportedContentType,
+    #[serde(rename = "url_not_accessible")]
+    UrlNotAccessible,
+    #[serde(rename = "url_not_allowed")]
+    UrlNotAllowed,
+    #[serde(rename = "url_too_long")]
+    UrlTooLong,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum FileType {
+    Image,
+    Pdf,
+    Text,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum RequestWebSearchToolResultErrorType {
+    #[serde(rename = "bash_code_execution_result")]
+    BashCodeExecutionResult,
+    #[serde(rename = "bash_code_execution_tool_result_error")]
+    BashCodeExecutionToolResultError,
+    #[serde(rename = "code_execution_result")]
+    CodeExecutionResult,
+    #[serde(rename = "code_execution_tool_result_error")]
+    CodeExecutionToolResultError,
+    #[serde(rename = "encrypted_code_execution_result")]
+    EncryptedCodeExecutionResult,
+    #[serde(rename = "text_editor_code_execution_create_result")]
+    TextEditorCodeExecutionCreateResult,
+    #[serde(rename = "text_editor_code_execution_str_replace_result")]
+    TextEditorCodeExecutionStrReplaceResult,
+    #[serde(rename = "text_editor_code_execution_tool_result_error")]
+    TextEditorCodeExecutionToolResultError,
+    #[serde(rename = "text_editor_code_execution_view_result")]
+    TextEditorCodeExecutionViewResult,
+    #[serde(rename = "tool_search_tool_result_error")]
+    ToolSearchToolResultError,
+    #[serde(rename = "tool_search_tool_search_result")]
+    ToolSearchToolSearchResult,
+    #[serde(rename = "web_fetch_result")]
+    WebFetchResult,
+    #[serde(rename = "web_fetch_tool_result_error")]
+    WebFetchToolResultError,
     #[serde(rename = "web_search_tool_result_error")]
     WebSearchToolResultError,
+}
+
+/// Tool reference block that can be included in tool_result content.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct RequestToolReferenceBlock {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    pub tool_name: String,
+    #[serde(rename = "type")]
+    pub request_tool_reference_block_type: ToolReferenceType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ToolReferenceType {
+    #[serde(rename = "tool_reference")]
+    ToolReference,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum InputContentBlockType {
+    #[serde(rename = "bash_code_execution_tool_result")]
+    BashCodeExecutionToolResult,
+    #[serde(rename = "code_execution_tool_result")]
+    CodeExecutionToolResult,
+    #[serde(rename = "container_upload")]
+    ContainerUpload,
     Document,
     Image,
     #[serde(rename = "redacted_thinking")]
@@ -669,11 +917,17 @@ pub enum InputContentBlockType {
     #[serde(rename = "server_tool_use")]
     ServerToolUse,
     Text,
+    #[serde(rename = "text_editor_code_execution_tool_result")]
+    TextEditorCodeExecutionToolResult,
     Thinking,
     #[serde(rename = "tool_result")]
     ToolResult,
+    #[serde(rename = "tool_search_tool_result")]
+    ToolSearchToolResult,
     #[serde(rename = "tool_use")]
     ToolUse,
+    #[serde(rename = "web_fetch_tool_result")]
+    WebFetchToolResult,
     #[serde(rename = "web_search_tool_result")]
     WebSearchToolResult,
 }
@@ -706,7 +960,7 @@ pub struct OutputConfig {
     /// How much effort the model should put into its response. Higher effort levels may result
     /// in more thorough analysis but take longer.
     ///
-    /// Valid values are `low`, `medium`, `high`, or `max`.
+    /// Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<EffortLevel>,
     /// A schema to specify Claude's output format in responses. See [structured
@@ -724,6 +978,7 @@ pub enum EffortLevel {
     Low,
     Max,
     Medium,
+    Xhigh,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -794,8 +1049,21 @@ pub struct Thinking {
     /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<i64>,
+    /// Controls how thinking content appears in the response. When set to `summarized`, thinking
+    /// is returned normally. When set to `omitted`, thinking content is redacted but a signature
+    /// is returned for multi-turn continuity. Defaults to `summarized`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display: Option<ThinkingDisplayMode>,
     #[serde(rename = "type")]
     pub thinking_type: ThinkingType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ThinkingDisplayMode {
+    Omitted,
+    Summarized,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -846,13 +1114,21 @@ pub enum ToolChoiceType {
     Tool,
 }
 
+/// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
+///
+/// Web fetch tool with use_cache parameter for bypassing cached content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CustomTool {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
     /// Description of what this tool does.
     ///
     /// Tool descriptions should be as detailed as possible. The more information that the model has about what the tool is and how to use it, the better it will perform. You can use natural language descriptions to reinforce important aspects of the tool input JSON schema.
@@ -861,6 +1137,9 @@ pub struct CustomTool {
     /// Enable eager input streaming for this tool. When true, tool input parameters will be streamed incrementally as they are generated, and types will be inferred on-the-fly rather than buffering the full JSON output. When false, streaming is disabled for this tool even if the fine-grained-tool-streaming beta is active. When null (default), uses the default behavior based on beta headers.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub eager_input_streaming: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
     /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
     ///
     /// This defines the shape of the `input` that your tool accepts and that the model will produce.
@@ -878,10 +1157,106 @@ pub struct CustomTool {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct BashTool20250124 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct CodeExecutionTool20250522 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct CodeExecutionTool20250825 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct CodeExecutionTool20260120 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct MemoryTool20250818 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
@@ -894,10 +1269,18 @@ pub struct BashTool20250124 {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct TextEditor20250124 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
@@ -910,10 +1293,18 @@ pub struct TextEditor20250124 {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct TextEditor20250429 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
     /// Name of the tool.
     ///
     /// This is how the tool will be called by the model and in `tool_use` blocks.
@@ -926,10 +1317,18 @@ pub struct TextEditor20250429 {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct TextEditor20250728 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub input_examples: Option<Vec<serde_json::Map<String, serde_json::Value>>>,
     /// Maximum number of characters to display when viewing a file. If not specified, defaults to displaying the full file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_characters: Option<i64>,
@@ -944,7 +1343,124 @@ pub struct TextEditor20250728 {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
+pub struct WebFetchTool20250910 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// List of domains to allow fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// List of domains to block fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Citations configuration for fetched documents. Citations are disabled by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub citations: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of tokens used by including web page text content in the context. The limit is approximate and does not apply to binary content such as PDFs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_content_tokens: Option<i64>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebFetchTool20260209 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// List of domains to allow fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// List of domains to block fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Citations configuration for fetched documents. Citations are disabled by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub citations: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of tokens used by including web page text content in the context. The limit is approximate and does not apply to binary content such as PDFs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_content_tokens: Option<i64>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Web fetch tool with use_cache parameter for bypassing cached content.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebFetchTool20260309 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// List of domains to allow fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// List of domains to block fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Citations configuration for fetched documents. Citations are disabled by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub citations: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of tokens used by including web page text content in the context. The limit is approximate and does not apply to binary content such as PDFs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_content_tokens: Option<i64>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+    /// Whether to use cached content. Set to false to bypass the cache and fetch fresh content. Only set to false when the user explicitly requests fresh content or when fetching rapidly-changing sources.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_cache: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct WebSearchTool20250305 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// If provided, only these domains will be included in results. Cannot be used alongside `blocked_domains`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_domains: Option<Vec<String>>,
@@ -955,6 +1471,43 @@ pub struct WebSearchTool20250305 {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
     pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+    /// Parameters for the user's location. Used to provide more relevant search results.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub user_location: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct WebSearchTool20260209 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// If provided, only these domains will be included in results. Cannot be used alongside `blocked_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// If provided, these domains will never appear in results. Cannot be used alongside `allowed_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
     /// Maximum number of times the tool can be used in the API request.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_uses: Option<i64>,
@@ -978,6 +1531,18 @@ pub enum Tool {
     #[serde(rename = "bash_20250124")]
     Bash20250124(BashTool20250124),
 
+    #[serde(rename = "code_execution_20250522")]
+    CodeExecution20250522(CodeExecutionTool20250522),
+
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825(CodeExecutionTool20250825),
+
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120(CodeExecutionTool20260120),
+
+    #[serde(rename = "memory_20250818")]
+    Memory20250818(MemoryTool20250818),
+
     #[serde(rename = "text_editor_20250124")]
     TextEditor20250124(TextEditor20250124),
 
@@ -987,8 +1552,20 @@ pub enum Tool {
     #[serde(rename = "text_editor_20250728")]
     TextEditor20250728(TextEditor20250728),
 
+    #[serde(rename = "web_fetch_20250910")]
+    WebFetch20250910(WebFetchTool20250910),
+
+    #[serde(rename = "web_fetch_20260209")]
+    WebFetch20260209(WebFetchTool20260209),
+
+    #[serde(rename = "web_fetch_20260309")]
+    WebFetch20260309(WebFetchTool20260309),
+
     #[serde(rename = "web_search_20250305")]
     WebSearch20250305(WebSearchTool20250305),
+
+    #[serde(rename = "web_search_20260209")]
+    WebSearch20260209(WebSearchTool20260209),
 
     #[serde(untagged)]
     Custom(CustomTool),
@@ -1023,15 +1600,39 @@ pub enum InputSchemaType {
 pub enum ToolType {
     #[serde(rename = "bash_20250124")]
     Bash20250124,
+    #[serde(rename = "code_execution_20250522")]
+    CodeExecution20250522,
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825,
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120,
     Custom,
+    #[serde(rename = "memory_20250818")]
+    Memory20250818,
     #[serde(rename = "text_editor_20250124")]
     TextEditor20250124,
     #[serde(rename = "text_editor_20250429")]
     TextEditor20250429,
     #[serde(rename = "text_editor_20250728")]
     TextEditor20250728,
+    #[serde(rename = "tool_search_tool_bm25")]
+    ToolSearchToolBm25,
+    #[serde(rename = "tool_search_tool_bm25_20251119")]
+    ToolSearchToolBm2520251119,
+    #[serde(rename = "tool_search_tool_regex")]
+    ToolSearchToolRegex,
+    #[serde(rename = "tool_search_tool_regex_20251119")]
+    ToolSearchToolRegex20251119,
+    #[serde(rename = "web_fetch_20250910")]
+    WebFetch20250910,
+    #[serde(rename = "web_fetch_20260209")]
+    WebFetch20260209,
+    #[serde(rename = "web_fetch_20260309")]
+    WebFetch20260309,
     #[serde(rename = "web_search_20250305")]
     WebSearch20250305,
+    #[serde(rename = "web_search_20260209")]
+    WebSearch20260209,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1064,6 +1665,11 @@ pub enum UserLocationType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct Message {
+    /// Information about the container used in this request.
+    ///
+    /// This will be non-null if a container tool (e.g. code execution) was used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container: Option<Container>,
     /// Content generated by the model.
     ///
     /// This is an array of content blocks, each of which has a `type` that determines its
@@ -1103,6 +1709,11 @@ pub struct Message {
     ///
     /// This will always be `"assistant"`.
     pub role: ResponseRole,
+    /// Structured information about why model output stopped.
+    ///
+    /// This is `null` when the `stop_reason` has no additional detail to report.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_details: Option<RefusalStopDetails>,
     /// The reason that we stopped.
     ///
     /// This may be one the following values:
@@ -1147,6 +1758,17 @@ pub struct Message {
     pub usage: Usage,
 }
 
+/// Information about the container used in the request (for the code execution tool)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct Container {
+    /// The time at which the container will expire.
+    pub expires_at: String,
+    /// Identifier for the container used in this request
+    pub id: String,
+}
+
+/// Response model for a file uploaded to the container.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct ContentBlock {
@@ -1168,6 +1790,8 @@ pub struct ContentBlock {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<Caller>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1178,6 +1802,8 @@ pub struct ContentBlock {
     pub content: Option<ContentBlockContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_use_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1232,38 +1858,154 @@ pub struct ResponseWebSearchResultBlock {
     pub page_age: Option<String>,
     pub title: String,
     #[serde(rename = "type")]
-    pub response_web_search_result_block_type: ContentType,
+    pub response_web_search_result_block_type: IndigoType,
     pub url: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum ContentType {
+pub enum IndigoType {
     #[serde(rename = "web_search_result")]
     WebSearchResult,
 }
 
+/// Code execution result with encrypted stdout for PFC + web_search results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct ResponseWebSearchToolResultError {
-    pub error_code: WebSearchToolResultErrorCode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<ToolResultErrorCode>,
     #[serde(rename = "type")]
     pub response_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<ResponseWebSearchToolResultErrorContent>,
+    /// ISO 8601 timestamp when the content was retrieved
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retrieved_at: Option<String>,
+    /// Fetched content URL
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub return_code: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stderr: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stdout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted_stdout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_type: Option<FileType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub num_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_line: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_file_update: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lines: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_start: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub old_lines: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub old_start: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool_references: Option<Vec<ResponseToolReferenceBlock>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+#[ts(export_to = "anthropic/")]
+pub enum ResponseWebSearchToolResultErrorContent {
+    ResponseCodeExecutionOutputBlockArray(Vec<ResponseCodeExecutionOutputBlock>),
+    ResponseDocumentBlock(ResponseDocumentBlock),
+    String(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ResponseCodeExecutionOutputBlock {
+    pub file_id: String,
+    #[serde(rename = "type")]
+    pub response_code_execution_output_block_type: TentacledType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ResponseDocumentBlock {
+    /// Citation configuration for the document
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citations: Option<ResponseCitationsConfig>,
+    pub source: FluffySource,
+    /// The title of the document
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(rename = "type")]
+    pub response_document_block_type: StickyType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ResponseCitationsConfig {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct FluffySource {
+    pub data: String,
+    pub media_type: TentacledMediaType,
+    #[serde(rename = "type")]
+    pub source_type: IndecentType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum IndecentType {
+    Base64,
+    Text,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ResponseToolReferenceBlock {
+    pub tool_name: String,
+    #[serde(rename = "type")]
+    pub response_tool_reference_block_type: ToolReferenceType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
 pub enum ContentBlockType {
+    #[serde(rename = "bash_code_execution_tool_result")]
+    BashCodeExecutionToolResult,
+    #[serde(rename = "code_execution_tool_result")]
+    CodeExecutionToolResult,
+    #[serde(rename = "container_upload")]
+    ContainerUpload,
     #[serde(rename = "redacted_thinking")]
     RedactedThinking,
     #[serde(rename = "server_tool_use")]
     ServerToolUse,
     Text,
+    #[serde(rename = "text_editor_code_execution_tool_result")]
+    TextEditorCodeExecutionToolResult,
     Thinking,
+    #[serde(rename = "tool_search_tool_result")]
+    ToolSearchToolResult,
     #[serde(rename = "tool_use")]
     ToolUse,
+    #[serde(rename = "web_fetch_tool_result")]
+    WebFetchToolResult,
     #[serde(rename = "web_search_tool_result")]
     WebSearchToolResult,
 }
@@ -1280,6 +2022,40 @@ pub enum ResponseType {
 #[ts(export_to = "anthropic/")]
 pub enum ResponseRole {
     Assistant,
+}
+
+/// Structured information about a refusal.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct RefusalStopDetails {
+    /// The policy category that triggered the refusal.
+    ///
+    /// `null` when the refusal doesn't map to a named category.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<Category>,
+    /// Human-readable explanation of the refusal.
+    ///
+    /// This text is not guaranteed to be stable. `null` when no explanation is available for the
+    /// category.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub explanation: Option<String>,
+    #[serde(rename = "type")]
+    pub refusal_stop_details_type: RefusalStopDetailsType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum Category {
+    Bio,
+    Cyber,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum RefusalStopDetailsType {
+    Refusal,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1339,9 +2115,6 @@ pub struct Usage {
     /// If the request used the priority, standard, or batch tier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierServiceTier>,
-    #[ts(type = "unknown")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub speed: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1358,6 +2131,8 @@ pub struct CacheCreation {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct ServerToolUsage {
+    /// The number of web fetch tool requests.
+    pub web_fetch_requests: i64,
     /// The number of web search tool requests.
     pub web_search_requests: i64,
 }

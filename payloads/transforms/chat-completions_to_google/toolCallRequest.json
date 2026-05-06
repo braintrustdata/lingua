@@ -9,9 +9,9 @@
               "args": {
                 "location": "San Francisco, CA"
               },
-              "id": "5tfk9ygn"
+              "id": "f5gorvff"
             },
-            "thoughtSignature": "ErQBCrEBAQw51sc7sbW0MPcOlj+P+Ku4bKHO2/Pvorlo1DWmOMP8N7R1SAT3oAeeVk1RAS4LHGU4flFb0eWxbtal51KwY+/TJ3ZcvigYRjzW9etn0AokSwxNNuPdUyYNyxvZcS/W51I4qy1nTw0YZe7GcxxZnFo6ggzqPXPvg8UhAQ82t3ypPac41Ws4YrrmJ0rTTkqGQZ9Oc6YCDw184eiefXgXGu5pM1GxPss3ftk3QmKILtcU"
+            "thoughtSignature": "ErQBCrEBAQw51sdK+UiAZV6PkQw6DCWOXlPrHiPuf9+y1f88KmdWJMTx66B8tjtggLM3hNeSLYu1Of/vNsRE/h9RagyvOvGyGJ1LOrU1CG/wtn+gHjG4VYrMEdLlcSaPBYPQkgp+odiTvJzlCWEWjHaw8guNkHpXS0z4nFcte5BAuLMcdfJli+86Z/U/O/c5k2nfDLUpMSG67WpNw9fXUc+nP8IDNunhYBrnTDbNAEONpgBriFiw"
           }
         ],
         "role": "model"
@@ -35,5 +35,5 @@
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3-flash-preview",
-  "responseId": "GE77aeHnJcme_uMPvdfVsQ0"
+  "responseId": "CVf7ae2iN_WqmtkPqLiT2A0"
 }

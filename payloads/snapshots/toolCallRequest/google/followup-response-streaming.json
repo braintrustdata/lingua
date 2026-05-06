@@ -5,7 +5,14 @@
         "content": {
           "parts": [
             {
-              "text": "The"
+              "functionCall": {
+                "name": "get_weather",
+                "args": {
+                  "location": "San Francisco, CA"
+                },
+                "id": "wu3zra5t"
+              },
+              "thoughtSignature": "EtsBCtgBAQw51sdQ/275VwbYzzkZbyk5fYSKBOSCpd4t4ndVUct9DL2FLtW8rYtionm+DNVbixzuiBKbPglc4ATsoGkAPiYUVYTJ4Cul8k+M1y+kLMESZ2gNQp9JT7dNj+rX/kSM5+pWatKRJqMsLaGvX9WqI6lrIr0Ympx32EbfKqzt6t2qoOv3lrFOuTvaHlpX4Rbs0m5eO5H4z/33FtSnt6vGsbnQt6UfMqcGb3AenwO46Y1et7vTrAONadTSCmHXYJRDsCFO+qkQiisvSAwbeGQTK/RPqy6hKS5t"
             }
           ],
           "role": "model"
@@ -15,47 +22,19 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 108,
-      "candidatesTokenCount": 1,
-      "totalTokenCount": 109,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 158,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
           "tokenCount": 108
         }
       ],
+      "thoughtsTokenCount": 31,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "FE77abC0OqPO_uMPzdynyQo"
-  },
-  {
-    "candidates": [
-      {
-        "content": {
-          "parts": [
-            {
-              "text": " weather in San Francisco is currently 71 degrees."
-            }
-          ],
-          "role": "model"
-        },
-        "index": 0
-      }
-    ],
-    "usageMetadata": {
-      "promptTokenCount": 108,
-      "candidatesTokenCount": 12,
-      "totalTokenCount": 120,
-      "promptTokensDetails": [
-        {
-          "modality": "TEXT",
-          "tokenCount": 108
-        }
-      ],
-      "serviceTier": "standard"
-    },
-    "modelVersion": "gemini-3-flash-preview",
-    "responseId": "FE77abC0OqPO_uMPzdynyQo"
+    "responseId": "Blf7aeHkOJzkqtsP5uGG8A4"
   },
   {
     "candidates": [
@@ -73,18 +52,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 192,
-      "candidatesTokenCount": 12,
-      "totalTokenCount": 204,
+      "promptTokenCount": 142,
+      "candidatesTokenCount": 19,
+      "totalTokenCount": 192,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 192
+          "tokenCount": 142
         }
       ],
+      "thoughtsTokenCount": 31,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3-flash-preview",
-    "responseId": "FE77abC0OqPO_uMPzdynyQo"
+    "responseId": "Blf7aeHkOJzkqtsP5uGG8A4"
   }
 ]

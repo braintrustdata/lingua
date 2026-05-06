@@ -11,7 +11,7 @@
       "content": [
         {
           "type": "tool_use",
-          "id": "toolu_vrtx_017AKPJVqBZ3FaiifhA3A447",
+          "id": "toolu_vrtx_01DpD69prYsJC4haF2t6rxoQ",
           "name": "get_weather",
           "input": {
             "location": "San Francisco, CA"
@@ -24,7 +24,7 @@
       "content": [
         {
           "type": "tool_result",
-          "tool_use_id": "toolu_vrtx_017AKPJVqBZ3FaiifhA3A447",
+          "tool_use_id": "toolu_vrtx_01DpD69prYsJC4haF2t6rxoQ",
           "content": "71 degrees"
         }
       ]
@@ -49,6 +49,6 @@
     }
   ],
   "tool_choice": {
-    "type": "auto"
+    "type": "any"
   }
 }
