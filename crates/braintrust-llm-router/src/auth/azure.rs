@@ -120,12 +120,26 @@ struct TokenResponse {
     expires_at: Instant,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct AzureTokenResponse {
     access_token: Option<String>,
     expires_in: Option<u64>,
     error: Option<String>,
     error_description: Option<String>,
+}
+
+impl std::fmt::Debug for AzureTokenResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AzureTokenResponse")
+            .field(
+                "access_token",
+                &self.access_token.as_ref().map(|_| "[REDACTED]"),
+            )
+            .field("expires_in", &self.expires_in)
+            .field("error", &self.error)
+            .field("error_description", &self.error_description)
+            .finish()
+    }
 }
 
 async fn request_token(

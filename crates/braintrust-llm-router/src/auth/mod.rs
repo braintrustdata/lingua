@@ -19,7 +19,7 @@ pub enum AuthType {
     Custom,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum AuthConfig {
     ApiKey {
@@ -48,6 +48,42 @@ pub enum AuthConfig {
     Custom {
         headers: HashMap<String, String>,
     },
+}
+
+impl std::fmt::Debug for AuthConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ApiKey { header, prefix, .. } => f
+                .debug_struct("AuthConfig::ApiKey")
+                .field("key", &"[REDACTED]")
+                .field("header", header)
+                .field("prefix", prefix)
+                .finish(),
+            Self::OAuth { token_type, .. } => f
+                .debug_struct("AuthConfig::OAuth")
+                .field("access_token", &"[REDACTED]")
+                .field("token_type", token_type)
+                .finish(),
+            Self::AwsSignatureV4 {
+                region, service, ..
+            } => f
+                .debug_struct("AuthConfig::AwsSignatureV4")
+                .field("access_key", &"[REDACTED]")
+                .field("secret_key", &"[REDACTED]")
+                .field("session_token", &"[REDACTED]")
+                .field("region", region)
+                .field("service", service)
+                .finish(),
+            Self::AzureEntra { .. } => f
+                .debug_struct("AuthConfig::AzureEntra")
+                .field("bearer_token", &"[REDACTED]")
+                .finish(),
+            Self::Custom { .. } => f
+                .debug_struct("AuthConfig::Custom")
+                .field("headers", &"[REDACTED]")
+                .finish(),
+        }
+    }
 }
 
 /// Convenience function to create an API key authentication configuration.
