@@ -167,6 +167,42 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_responses_web_search_tools() {
+        use crate::universal::tools::{BuiltinToolProvider, UniversalToolType};
+
+        let responses = json!([
+            {"type": "web_search"},
+            {"type": "web_search_preview"},
+        ]);
+
+        let tools = parse_openai_responses_tools_array(&responses);
+        assert_eq!(tools.len(), 2);
+
+        for (tool, expected_type) in tools.iter().zip(["web_search", "web_search_preview"]) {
+            assert_eq!(tool.name, expected_type);
+            assert!(tool.is_builtin());
+            assert_eq!(
+                tool.builtin_provider(),
+                Some(BuiltinToolProvider::Responses)
+            );
+            match &tool.tool_type {
+                UniversalToolType::Builtin {
+                    builtin_type,
+                    config,
+                    ..
+                } => {
+                    assert_eq!(builtin_type, expected_type);
+                    assert_eq!(
+                        config.as_ref().and_then(|value| value.get("type")),
+                        Some(&json!(expected_type))
+                    );
+                }
+                other => panic!("expected Responses builtin tool, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
     fn test_parse_chat_tools_is_schema_scoped() {
         let responses_like = json!([{
             "type": "function",
