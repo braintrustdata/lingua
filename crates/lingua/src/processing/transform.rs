@@ -781,6 +781,52 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_system_only_to_anthropic_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "system", "content": "Always say ok."}]
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Anthropic, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Anthropic);
+                assert!(reason.contains("at least one non-system message"));
+                assert!(reason.contains("system prompt alone cannot be sent"));
+            }
+            other => panic!("expected Anthropic validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_empty_openai_messages_to_anthropic_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": []
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Anthropic, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Anthropic);
+                assert_eq!(
+                    reason,
+                    "Anthropic requires at least one message in 'messages'."
+                );
+            }
+            other => panic!("expected Anthropic validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
     #[cfg(feature = "anthropic")]
     fn test_transform_request_anthropic_passthrough() {
         let payload = json!({

@@ -268,6 +268,17 @@ impl ProviderAdapter for AnthropicAdapter {
         if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
             obj.insert("messages".into(), raw_messages.clone());
         } else {
+            if msgs.is_empty() {
+                let reason = if system_contents.is_empty() {
+                    "Anthropic requires at least one message in 'messages'.".to_string()
+                } else {
+                    "Anthropic requires at least one non-system message; a system prompt alone cannot be sent because Anthropic stores system prompts in the top-level 'system' field and requires at least one user or assistant message in 'messages'.".to_string()
+                };
+                return Err(TransformError::ValidationFailed {
+                    target: ProviderFormat::Anthropic,
+                    reason,
+                });
+            }
             // Convert remaining messages
             let anthropic_messages: Vec<InputMessage> =
                 <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
