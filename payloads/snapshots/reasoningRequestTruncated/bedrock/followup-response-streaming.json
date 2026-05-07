@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "4"
+        "text": "3: Calculate Average"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ": Fin"
+        "text": " Speed\n\n**"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d total"
+        "text": "Total"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " time"
+        "text": " distance:**"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\nAd"
+        "text": "\n- "
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d up all the time periods:\n-"
+        "text": "120 +"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " "
+        "text": " 80 = **200 miles"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "2 hours +"
+        "text": "**\n\n**Total time:**\n-"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 1 hour = **3 "
+        "text": " 2 +"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "hours**\n\n#"
+        "text": " 1 = **3 hours"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Step 5: Calculate average speed"
+        "text": "**\n\n**"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\nUse"
+        "text": "Average speed formula"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the formula: Average Spee"
+        "text": ":**\n- Average Spee"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Time\n\n-"
+        "text": " Time\n- Average Speed = 200"
       },
       "contentBlockIndex": 0
     }
@@ -151,15 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Average Speed = 200 miles "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "÷ 3 hours"
+        "text": " ÷ 3"
       },
       "contentBlockIndex": 0
     }
@@ -199,23 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "66⅔ mph)"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\n**"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "The"
+        "text": "66⅔"
       },
       "contentBlockIndex": 0
     }
@@ -238,7 +214,7 @@
         "totalTokens": 257
       },
       "metrics": {
-        "latencyMs": 1266
+        "latencyMs": 1486
       }
     }
   }

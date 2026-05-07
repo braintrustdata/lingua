@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01Ngaz8LWsqpZscaFXkgDcNH",
+      "id": "msg_bdrk_01Q3j51J45EafH4FKhPfisuH",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -48,6 +48,9 @@
       "stop_sequence": null
     },
     "usage": {
+      "input_tokens": 14,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
       "output_tokens": 10
     }
   },
@@ -55,9 +58,9 @@
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 14,
-      "outputTokenCount": 10,
-      "invocationLatency": 713,
-      "firstByteLatency": 621
+      "outputTokenCount": 7,
+      "invocationLatency": 869,
+      "firstByteLatency": 769
     }
   }
 ]

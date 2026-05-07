@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Here are some options:\n\n**"
+        "text": " Here are some options:\n\n1"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "If you want to continue"
+        "text": ". **Practice"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " with this"
+        "text": " another"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " problem:**\n- Calculate"
+        "text": " problem** - I"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " how"
+        "text": " can give you a similar"
       },
       "contentBlockIndex": 0
     }
@@ -79,103 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " long it"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " woul"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d take to travel the"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " same"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " distance at a"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " constant speed\n- Fin"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d the average"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " speed for a"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " different"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " scenario"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n- Solve"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " a"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " related distance"
+        "text": " distance"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "time problem\n\n**If you want to"
+        "text": "time problem to solve"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " move"
+        "text": "\n\n2. **Learn"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " on to something"
+        "text": " more"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " else:**\n- Ask"
+        "text": " concepts"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " another"
+        "text": "** - We"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " math"
+        "text": " could explore:\n   - Other"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " question\n- Work"
+        "text": " distance"
       },
       "contentBlockIndex": 0
     }
@@ -255,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " on a different topic"
+        "text": "-"
       },
       "contentBlockIndex": 0
     }
@@ -263,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- Get"
+        "text": "rate"
       },
       "contentBlockIndex": 0
     }
@@ -271,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " help"
+        "text": "-time problems\n   - Relative"
       },
       "contentBlockIndex": 0
     }
@@ -279,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " with something"
+        "text": " spee"
       },
       "contentBlockIndex": 0
     }
@@ -287,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " else"
+        "text": "d problems\n   - Problems"
       },
       "contentBlockIndex": 0
     }
@@ -295,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n**What"
+        "text": " with"
       },
       "contentBlockIndex": 0
     }
@@ -303,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " would you like to do?**"
+        "text": " more"
       },
       "contentBlockIndex": 0
     }
@@ -311,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " "
+        "text": " than "
       },
       "contentBlockIndex": 0
     }
@@ -319,7 +223,183 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "😊"
+        "text": "2 segments"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\n3. **Ask"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " questions"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** - Do"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " you have questions"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " about:"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n   - Why"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " average"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " speed works"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " this"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " way?\n   - How to solve"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " different"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " variations"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "?"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n   - Real"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "-world applications?\n\n4. **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "Move"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " to a different topic"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** - Is there something"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " else you'd like help"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " with?"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\nWhat interests"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " you most?"
       },
       "contentBlockIndex": 0
     }
@@ -337,12 +417,12 @@
   {
     "metadata": {
       "usage": {
-        "inputTokens": 295,
-        "outputTokens": 113,
-        "totalTokens": 408
+        "inputTokens": 255,
+        "outputTokens": 147,
+        "totalTokens": 402
       },
       "metrics": {
-        "latencyMs": 1738
+        "latencyMs": 2060
       }
     }
   }

@@ -5,9 +5,13 @@
     }
   },
   {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "The"
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_FCykhoQeR74eDhegKmMAOl",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -15,7 +19,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " weather in San Francisco is currently"
+        "toolUse": {
+          "input": ""
+        }
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +29,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
+        "toolUse": {
+          "input": "{\""
+        }
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +39,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "71 degrees**. It"
+        "toolUse": {
+          "input": "locati"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +49,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "'s a pleasant,"
+        "toolUse": {
+          "input": "on\": \"Sa"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +59,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " mil"
+        "toolUse": {
+          "input": "n F"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +69,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d temperature"
+        "toolUse": {
+          "input": "rancisco, CA"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -63,23 +79,9 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " typical"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " for San"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " Francisco!"
+        "toolUse": {
+          "input": "\"}"
+        }
       },
       "contentBlockIndex": 0
     }
@@ -91,18 +93,18 @@
   },
   {
     "messageStop": {
-      "stopReason": "end_turn"
+      "stopReason": "tool_use"
     }
   },
   {
     "metadata": {
       "usage": {
-        "inputTokens": 657,
-        "outputTokens": 28,
-        "totalTokens": 685
+        "inputTokens": 748,
+        "outputTokens": 41,
+        "totalTokens": 789
       },
       "metrics": {
-        "latencyMs": 963
+        "latencyMs": 1044
       }
     }
   }

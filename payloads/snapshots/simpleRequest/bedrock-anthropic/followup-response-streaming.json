@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_0148C6Z8bkgrmEis2HxD5zQC",
+      "id": "msg_bdrk_011H7c3Cfi8YxyV1xd24VUU6",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d in! Here are some common"
+      "text": "d in! Here are some possibilities:"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " options"
+      "text": "\n\n-"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ":\n\n-"
+      "text": " **Ask"
     }
   },
   {
@@ -82,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " **Learn"
+      "text": " another"
     }
   },
   {
@@ -90,7 +90,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " more"
+      "text": " question** - about"
     }
   },
   {
@@ -98,7 +98,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "**:"
+      "text": " France"
     }
   },
   {
@@ -106,7 +106,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Ask"
+      "text": ","
     }
   },
   {
@@ -114,7 +114,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " me"
+      "text": " geography"
     }
   },
   {
@@ -122,7 +122,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " about Paris"
+      "text": ", history, or"
     }
   },
   {
@@ -130,7 +130,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ", French"
+      "text": " any"
     }
   },
   {
@@ -138,135 +138,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " history"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", culture"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", or anything"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " else you're curious about\n- **"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "Change"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " topics**: Ask"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " me"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " about a"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " completely"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " different subject"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n- **Get"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " practical"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " help**: I can help with writing"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", math, coding"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": ", bra"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "instorming, or other tasks"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n- **Continue"
+      "text": " other topic\n- **Continue"
     }
   },
   {
@@ -282,7 +154,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " conversation**: Let"
+      "text": " conversation** - we can"
     }
   },
   {
@@ -290,7 +162,127 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " me know if"
+      "text": " explore"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " theme"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "'re curious about\n- **Get"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " help with"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " a task** - writing"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ", coding"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ", bra"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "instorming, learning"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ","
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " problem"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "-solving,"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " etc.\n- **Take"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " a break** - step away an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d come back when"
     }
   },
   {
@@ -306,7 +298,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " follow"
+      "text": " something"
     }
   },
   {
@@ -314,7 +306,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "-up questions\n\nWhat would you like"
+      "text": " else"
     }
   },
   {
@@ -322,7 +314,31 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " to "
+      "text": " you"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "'d like to discuss"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\nWhat woul"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d you like to "
     }
   },
   {
@@ -344,16 +360,19 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 104
+      "input_tokens": 33,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 111
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 33,
-      "outputTokenCount": 104,
-      "invocationLatency": 1838,
-      "firstByteLatency": 930
+      "outputTokenCount": 108,
+      "invocationLatency": 1965,
+      "firstByteLatency": 1024
     }
   }
 ]

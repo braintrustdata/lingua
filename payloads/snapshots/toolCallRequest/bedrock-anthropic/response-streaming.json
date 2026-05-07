@@ -3,21 +3,21 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01VdSrMrsmdL75bW32AyUfp1",
+      "id": "msg_bdrk_019GeFbNpmUsv84dZSpzeYL5",
       "type": "message",
       "role": "assistant",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 585,
+        "input_tokens": 677,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 26
+        "output_tokens": 8
       }
     }
   },
@@ -26,7 +26,7 @@
     "index": 0,
     "content_block": {
       "type": "tool_use",
-      "id": "toolu_bdrk_01RDCiDKaV17jGhQhsoCLka2",
+      "id": "toolu_bdrk_01LBv3MP4SuqokGDxq3Uj9QV",
       "name": "get_weather",
       "input": {}
     }
@@ -44,7 +44,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "{\"locatio"
+      "partial_json": "{\""
     }
   },
   {
@@ -52,7 +52,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "n\": \""
+      "partial_json": "locat"
     }
   },
   {
@@ -60,7 +60,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "San Francis"
+      "partial_json": "ion\": \"San "
     }
   },
   {
@@ -68,7 +68,7 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": "co"
+      "partial_json": "Fra"
     }
   },
   {
@@ -76,7 +76,15 @@
     "index": 0,
     "delta": {
       "type": "input_json_delta",
-      "partial_json": ", CA\"}"
+      "partial_json": "ncisco, C"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "A\"}"
     }
   },
   {
@@ -90,16 +98,19 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 57
+      "input_tokens": 677,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 41
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
-      "inputTokenCount": 585,
-      "outputTokenCount": 57,
-      "invocationLatency": 1360,
-      "firstByteLatency": 1117
+      "inputTokenCount": 677,
+      "outputTokenCount": 41,
+      "invocationLatency": 1052,
+      "firstByteLatency": 895
     }
   }
 ]

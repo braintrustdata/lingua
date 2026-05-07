@@ -5,7 +5,7 @@
       "content": [
         {
           "toolUse": {
-            "toolUseId": "tooluse_r_trKjU2Tku-Vem9prfOww",
+            "toolUseId": "tooluse_BdVLcdnxF0Mosfa6fJKgC0",
             "name": "get_weather",
             "input": {
               "location": "San Francisco, CA"
@@ -18,18 +18,18 @@
   },
   "stopReason": "tool_use",
   "usage": {
-    "inputTokens": 585,
-    "outputTokens": 57,
-    "totalTokens": 642,
+    "inputTokens": 677,
+    "outputTokens": 41,
+    "totalTokens": 718,
     "cacheReadInputTokens": 0,
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 981
+    "latencyMs": 909
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "51c86866-9a9a-45be-b94c-29c3fcf8d2fd",
+    "requestId": "89db6a02-cea8-4c06-95f5-c09d42d91836",
     "attempts": 1,
     "totalRetryDelay": 0
   }

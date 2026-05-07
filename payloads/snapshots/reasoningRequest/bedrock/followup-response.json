@@ -4,25 +4,25 @@
       "role": "assistant",
       "content": [
         {
-          "text": "That depends on what you'd like to do! Here are some options:\n\n1. **Practice similar problems** - Try calculating average speed with different speeds and times to reinforce the concept\n\n2. **Explore related concepts** - Learn about:\n   - Distance = Speed × Time problems\n   - Acceleration and deceleration\n   - Relative speed (two objects moving)\n\n3. **Real-world applications** - Apply this to:\n   - Planning a road trip\n   - Analyzing commute times\n   - Comparing travel routes\n\n4. **More complex scenarios** - Try problems with:\n   - More than 2 segments\n   - Finding missing values (e.g., \"what speed for 1 hour to reach avg of 70 mph?\")\n\n5. **Move to a different topic** - Work on something entirely new\n\n**What interests you most?** Let me know and I can help you work through it!"
+          "text": "That depends on your needs! Here are some options:\n\n**If you want to practice more:**\n- Try a similar problem with different speeds and times\n- Work on problems with more than 2 segments\n- Try problems where you need to find missing information (like distance or time)\n\n**If you want to explore related concepts:**\n- Learn about average velocity (includes direction)\n- Study acceleration and how speed changes over time\n- Work on distance-rate-time word problems\n\n**If you're done:**\n- Move on to another math topic\n- Review any other questions you have\n\n**What interests you most?** I can help with whichever direction you'd like to go!"
         }
       ]
     }
   },
   "stopReason": "end_turn",
   "usage": {
-    "inputTokens": 295,
-    "outputTokens": 206,
-    "totalTokens": 501,
+    "inputTokens": 255,
+    "outputTokens": 149,
+    "totalTokens": 404,
     "cacheReadInputTokens": 0,
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 2452
+    "latencyMs": 2281
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "d4b2a4a1-bd05-4868-a75d-6b38a5c85252",
+    "requestId": "4076e054-3123-4b37-acdb-93cb8e46dc95",
     "attempts": 1,
     "totalRetryDelay": 0
   }
