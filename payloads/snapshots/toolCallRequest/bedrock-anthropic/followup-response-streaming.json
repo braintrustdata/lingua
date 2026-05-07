@@ -3,21 +3,21 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01KMpW659rAAtJ6ZPswgwqv7",
+      "id": "msg_bdrk_01VB6ZYdRiayQnYfbkLiCWc2",
       "type": "message",
       "role": "assistant",
       "content": [],
       "stop_reason": null,
       "stop_sequence": null,
       "usage": {
-        "input_tokens": 657,
+        "input_tokens": 748,
         "cache_creation_input_tokens": 0,
         "cache_read_input_tokens": 0,
         "cache_creation": {
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1
+        "output_tokens": 8
       }
     }
   },
@@ -25,72 +25,50 @@
     "type": "content_block_start",
     "index": 0,
     "content_block": {
-      "type": "text",
-      "text": ""
+      "type": "tool_use",
+      "id": "toolu_bdrk_0145zQ4jrmNyJh6k2XTVyqf5",
+      "name": "get_weather",
+      "input": {}
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "text_delta",
-      "text": "The"
+      "type": "input_json_delta",
+      "partial_json": ""
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "text_delta",
-      "text": " weather in San Francisco,"
+      "type": "input_json_delta",
+      "partial_json": "{\"location\""
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "text_delta",
-      "text": " CA is currently"
+      "type": "input_json_delta",
+      "partial_json": ": \"San Franc"
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "text_delta",
-      "text": " **"
+      "type": "input_json_delta",
+      "partial_json": "isco, CA"
     }
   },
   {
     "type": "content_block_delta",
     "index": 0,
     "delta": {
-      "type": "text_delta",
-      "text": "71 degrees"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " Fahrenheit**. That"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "'s pleasant"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": " weather!"
+      "type": "input_json_delta",
+      "partial_json": "\"}"
     }
   },
   {
@@ -100,20 +78,23 @@
   {
     "type": "message_delta",
     "delta": {
-      "stop_reason": "end_turn",
+      "stop_reason": "tool_use",
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 26
+      "input_tokens": 748,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 41
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
-      "inputTokenCount": 657,
-      "outputTokenCount": 26,
-      "invocationLatency": 826,
-      "firstByteLatency": 602
+      "inputTokenCount": 748,
+      "outputTokenCount": 41,
+      "invocationLatency": 1058,
+      "firstByteLatency": 894
     }
   }
 ]

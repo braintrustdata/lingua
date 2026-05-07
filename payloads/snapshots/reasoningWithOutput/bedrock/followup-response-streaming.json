@@ -127,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a different"
+        "text": " a"
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " topic\n- **Take"
+        "text": " topic you're interested in\n- **"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a break** – Step"
+        "text": "Take"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " away and "
+        "text": " a break"
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "do something else"
+        "text": "** – Step"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **Work"
+        "text": " away,"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " on a task"
+        "text": " stretch"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** – If"
+        "text": ", grab"
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " you have"
+        "text": " a drink"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " something"
+        "text": ", or get"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " specific"
+        "text": " some fresh air\n- **Work"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " in"
+        "text": " on a task** – Return"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " mind, I can help"
+        "text": " to something"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **Get"
+        "text": " you were"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " information** – Ask me to"
+        "text": " doing before"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +247,63 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " explain something,"
+        "text": "\n- **Plan"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " your day"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** – Think"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " about what you want to achieve"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n- **Learn something new** – Ask"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " me to"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " explain a"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " concept,"
       },
       "contentBlockIndex": 0
     }
@@ -263,7 +319,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " with writing"
+        "text": " with a problem"
       },
       "contentBlockIndex": 0
     }
@@ -271,7 +327,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", coding"
+        "text": ", or provide"
       },
       "contentBlockIndex": 0
     }
@@ -279,7 +335,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", math"
+        "text": " information"
       },
       "contentBlockIndex": 0
     }
@@ -287,7 +343,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", or"
+        "text": "\n\nWhat would be"
       },
       "contentBlockIndex": 0
     }
@@ -295,95 +351,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " creative"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " projects\n- **Plan"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " something** – I"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " can help"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " bra"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "instorm ideas or organize"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " thoughts"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\nWhat sounds"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " most helpful"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " or"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " interesting to you right"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " now?"
+        "text": " most helpful for you right now?"
       },
       "contentBlockIndex": 0
     }
@@ -401,12 +369,12 @@
   {
     "metadata": {
       "usage": {
-        "inputTokens": 137,
-        "outputTokens": 123,
-        "totalTokens": 260
+        "inputTokens": 134,
+        "outputTokens": 124,
+        "totalTokens": 258
       },
       "metrics": {
-        "latencyMs": 1930
+        "latencyMs": 1929
       }
     }
   }

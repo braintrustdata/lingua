@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Average"
+        "text": " Solving for"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Spee"
+        "text": " Average Speed\n\n**"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d Calculation\n\n##"
+        "text": "Step 1: Fin"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Step 1: Find the distance for"
+        "text": "d the distance"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " for"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n**First segment (60 mph for"
+        "text": "**\n\n*"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 2 hours):**\n-"
+        "text": "First"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Distance = Speed × Time\n- Distance"
+        "text": " segment:"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " = 60 ×"
+        "text": "*"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 2 = **"
+        "text": "\n- Distance = Spee"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "120 miles**\n\n**Second segment"
+        "text": "d × Time\n- Distance"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " (80 mph for 1 "
+        "text": " = 60 mph × 2"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "hour):**\n- Distance = "
+        "text": " hours = **"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "80 × 1 = **"
+        "text": "120 miles**\n\n*Second segment"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "80 miles**\n\n## Step "
+        "text": ":*\n- Distance = "
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "2: Fin"
+        "text": "80 mph × 1 hour"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d total"
+        "text": " = **80 miles**\n\n**"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " distance an"
+        "text": "Step 2: Calculate total"
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +167,23 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d total time"
+        "text": " distance**\n-"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Total distance = 120 +"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 80 = **"
       },
       "contentBlockIndex": 0
     }
@@ -182,7 +206,7 @@
         "totalTokens": 145
       },
       "metrics": {
-        "latencyMs": 996
+        "latencyMs": 1658
       }
     }
   }

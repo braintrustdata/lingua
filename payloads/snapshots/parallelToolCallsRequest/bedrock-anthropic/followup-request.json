@@ -47,7 +47,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Here's the weather for both cities:\n\n**San Francisco, CA:** 65°F and sunny.\n\n**New York, NY:** 45°F and cloudy.\n\nSan Francisco has pleasant, warm weather with sunshine, while New York is cooler with cloud cover."
+          "text": "Here's the weather for both cities:\n\n**San Francisco, CA:** 65°F and sunny.\n\n**New York, NY:** 45°F and cloudy.\n\nIt looks like San Francisco has nicer weather today, while New York is cooler and cloudier!"
         }
       ]
     },

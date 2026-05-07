@@ -4,25 +4,25 @@
       "role": "assistant",
       "content": [
         {
-          "text": "That depends on what you're looking to do! Here are some options:\n\n- **Continue our conversation** - Ask me another question or explore a topic you're curious about\n- **Take a break** - Step away from your screen for a bit\n- **Work on a task** - Return to something you were doing\n- **Get information** - Ask me for help with research, writing, problem-solving, or learning something new\n- **Plan something** - Let me help you brainstorm or organize your time\n\nIs there something specific you'd like help with, or were you just looking for general guidance?"
+          "text": "That depends on what you'd like to accomplish! Here are some general options:\n\n**If you want to continue our conversation:**\n- Ask me another question\n- Explore a topic you're interested in\n- Get help with a specific problem or task\n\n**If you're looking for something to do right now:**\n- Take a break or stretch\n- Work on a project or task you've been planning\n- Read, learn something new, or create something\n- Spend time with people or do an activity you enjoy\n- Step outside and get some fresh air\n\n**If you need practical help:**\n- Let me know what you're working on, and I can assist\n- Ask for advice on a decision you're facing\n- Get information about a topic\n\nWhat sounds most relevant to you right now?"
         }
       ]
     }
   },
   "stopReason": "end_turn",
   "usage": {
-    "inputTokens": 137,
-    "outputTokens": 131,
-    "totalTokens": 268,
+    "inputTokens": 134,
+    "outputTokens": 171,
+    "totalTokens": 305,
     "cacheReadInputTokens": 0,
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 1865
+    "latencyMs": 2328
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "38bf480a-0756-4c56-891a-83ab02bfdcc0",
+    "requestId": "af0a16f5-b564-415f-83cc-d946b3dc48f5",
     "attempts": 1,
     "totalRetryDelay": 0
   }

@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01RyWveqY1K3bixAFmKF7qYs",
+      "id": "msg_bdrk_011RHXE8rJiuPSL8Jq8eyUj7",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -42,7 +42,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Average"
+      "text": " Finding Average Speed\n\n**"
     }
   },
   {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Speed Calculation\n\n##"
+      "text": "Step"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Step"
+      "text": " 1: Calculate distance for"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 1: Fin"
+      "text": " each segment**\n\n*"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d the distance for"
+      "text": "First"
     }
   },
   {
@@ -82,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " each segment"
+      "text": " segment:*"
     }
   },
   {
@@ -90,7 +90,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n**First part"
+      "text": "\n- Speed = 60 mph"
     }
   },
   {
@@ -98,23 +98,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ":**"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "\n- Spee"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "d = 60 mph,"
+      "text": ","
     }
   },
   {
@@ -154,7 +138,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "120 miles**\n\n**Second part"
+      "text": "120 miles**\n\n*Second segment"
     }
   },
   {
@@ -162,7 +146,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ":**\n- Speed = 80 "
+      "text": ":*\n- Speed = 80"
     }
   },
   {
@@ -170,7 +154,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "mph, Time = 1 hour"
+      "text": " mph, Time = 1 "
     }
   },
   {
@@ -178,7 +162,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Distance = 80 ×"
+      "text": "hour"
     }
   },
   {
@@ -186,7 +170,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 1 = **80 miles"
+      "text": "\n- Distance = 80 × "
     }
   },
   {
@@ -194,7 +178,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "**\n\n## Step 2: Calculate"
+      "text": "1 = **80 miles**"
     }
   },
   {
@@ -202,7 +186,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " total"
+      "text": "\n\n**"
     }
   },
   {
@@ -210,7 +194,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " distance an"
+      "text": "Step 2: Fin"
     }
   },
   {
@@ -218,7 +202,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d total time\n\n-"
+      "text": "d total distance an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d total time**\n\n-"
     }
   },
   {
@@ -258,7 +250,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "hours**\n\n## Step 3:"
+      "text": "hours**\n\n**Step 3:"
     }
   },
   {
@@ -266,7 +258,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Calculate average speed\n\n$$"
+      "text": " Calculate average speed**\n\nAverage speed ="
     }
   },
   {
@@ -274,7 +266,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\\text{Average Speed} = \\"
+      "text": " Total distance ÷ Total time"
     }
   },
   {
@@ -282,7 +274,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "frac{\\text{Total Distance}}"
+      "text": "\n\nAverage speed = "
     }
   },
   {
@@ -290,7 +282,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "{\\text{Total Time}} = \\"
+      "text": "200 ÷ 3"
     }
   },
   {
@@ -298,7 +290,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "frac{200}{"
+      "text": " = **66.67 mph"
     }
   },
   {
@@ -306,7 +298,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "3} = 66.\\"
+      "text": "**"
     }
   },
   {
@@ -314,7 +306,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "overline{6} \\text{"
+      "text": " (or"
     }
   },
   {
@@ -322,7 +314,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " mph}$$\n\n**"
+      "text": " "
     }
   },
   {
@@ -330,7 +322,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Answer"
+      "text": "66⅔ mph)"
     }
   },
   {
@@ -338,7 +330,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ": The average speed is approximately"
+      "text": "\n\n---"
     }
   },
   {
@@ -346,7 +338,39 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 66.67 mph**"
+      "text": "\n\n**"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "Note"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ":** Average"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " speed is NOT"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " simply"
     }
   },
   {
@@ -362,7 +386,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "or 66⅔ mph"
+      "text": "60"
     }
   },
   {
@@ -370,7 +394,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " exactly"
+      "text": " + 80)"
     }
   },
   {
@@ -378,7 +402,55 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ")"
+      "text": " ÷ 2."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " You"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " must"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " use"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " total"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " distance divide"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d by total time."
     }
   },
   {
@@ -392,16 +464,19 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 226
+      "input_tokens": 45,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 233
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 45,
-      "outputTokenCount": 226,
-      "invocationLatency": 2034,
-      "firstByteLatency": 973
+      "outputTokenCount": 230,
+      "invocationLatency": 2212,
+      "firstByteLatency": 966
     }
   }
 ]

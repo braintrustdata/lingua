@@ -7,7 +7,23 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "I see"
+        "text": "This"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " image appears"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " to show"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " small"
+        "text": " small,"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", simple"
+        "text": " minimalist design"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " image"
+        "text": " element"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +63,23 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " that appears to be a tiny"
+        "text": " -"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " it"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " looks like a simple"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " or pixel,"
+        "text": " or small"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " likely in black"
+        "text": " circular"
       },
       "contentBlockIndex": 0
     }
@@ -79,23 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " or"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " dark gray"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " color"
+        "text": " shape"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a white"
+        "text": " a white or"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " background. It's"
+        "text": " light background. The dot"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " difficult"
+        "text": " appears"
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " to make out specific"
+        "text": " to be dark"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " details due"
+        "text": " ("
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " to the extremely"
+        "text": "black or"
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " small size."
+        "text": " dark"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " It"
+        "text": " gray) in color."
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " coul"
+        "text": " Without"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d be a minim"
+        "text": " more"
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "alist design, a placeholder"
+        "text": " context, it's difficult to determine the"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " image, or simply"
+        "text": " exact purpose"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a small"
+        "text": " or meaning of this image"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " graph"
+        "text": "."
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ical element."
+        "text": " It could be a"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +247,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Could you provide more context about what this"
+        "text": " loading"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +255,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " image is"
+        "text": " indicator, a placeholder, part"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +263,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " suppose"
+        "text": " of a user"
       },
       "contentBlockIndex": 0
     }
@@ -255,7 +271,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d to represent"
+        "text": " interface, or simply a"
       },
       "contentBlockIndex": 0
     }
@@ -263,7 +279,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ","
+        "text": " basic"
       },
       "contentBlockIndex": 0
     }
@@ -271,47 +287,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " or is"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " there"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " a larger"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " version"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " available"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "?"
+        "text": " geometric shape."
       },
       "contentBlockIndex": 0
     }
@@ -330,11 +306,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 19,
-        "outputTokens": 90,
-        "totalTokens": 109
+        "outputTokens": 87,
+        "totalTokens": 106
       },
       "metrics": {
-        "latencyMs": 2123
+        "latencyMs": 1766
       }
     }
   }

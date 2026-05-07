@@ -7,7 +7,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "The sky is"
+        "text": "The sky appears **"
       },
       "contentBlockIndex": 0
     }
@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " typically"
+        "text": "blue** during"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
+        "text": " the day due"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "blue**"
+        "text": " to"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " during"
+        "text": " Rayleigh scattering,"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the day,"
+        "text": " which causes"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " cause"
+        "text": " shorter blue"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d by"
+        "text": " wavelengths of"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Rayleigh scattering of sun"
+        "text": " sun"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "light by atmospheric"
+        "text": "light to scatter more than longer re"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " molecules."
+        "text": "d wavelengths."
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\nHowever, the sky"
+        "text": "\n\nHowever"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "'s"
+        "text": ", the sky"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " color"
+        "text": " can"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " varies"
+        "text": " appear different"
       },
       "contentBlockIndex": 0
     }
@@ -127,15 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " depending"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " on conditions"
+        "text": " colors depending on conditions"
       },
       "contentBlockIndex": 0
     }
@@ -151,15 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ","
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " red, or pink** at"
+        "text": "/red** at"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d sunset\n- **Gray"
+        "text": "d sunset"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " or"
+        "text": "\n- **Gray"
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " white** on"
+        "text": "** on"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " cloudy days\n- **Deep"
+        "text": " cloudy days\n- **Dark"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " nearly"
+        "text": " black"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " black** at high"
+        "text": "** at night"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " altitudes or"
+        "text": "\n- **Other"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " in space"
+        "text": " colors** during"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **Purple"
+        "text": " unusual"
       },
       "contentBlockIndex": 0
     }
@@ -255,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " or violet** can"
+        "text": " atmospheric"
       },
       "contentBlockIndex": 0
     }
@@ -263,79 +247,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " occasionally"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " appear,"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " though"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " blue"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " domin"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "ates due"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " to how"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " our"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " eyes"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " perceive light"
+        "text": " conditions"
       },
       "contentBlockIndex": 0
     }
@@ -354,11 +266,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 13,
-        "outputTokens": 106,
-        "totalTokens": 119
+        "outputTokens": 94,
+        "totalTokens": 107
       },
       "metrics": {
-        "latencyMs": 1636
+        "latencyMs": 1683
       }
     }
   }

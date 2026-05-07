@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Digital Clock"
+        "text": " Digital"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Digit Analysis\n\nI"
+        "text": " Clock"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " need to count"
+        "text": " Digit Analysis\n\nLet"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " how"
+        "text": " me work"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " many times each digit ("
+        "text": " through this systemat"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "0-9) appears in all times"
+        "text": "ically by"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " from 00:00 to "
+        "text": " counting"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "23:59."
+        "text": " occurrences of each digit ("
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n##"
+        "text": "0-9) across all "
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Setup"
+        "text": "24-"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- Total"
+        "text": "hour times"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " times"
+        "text": ".\n\n## Breaking"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ": 24 hours ×"
+        "text": " Down the Clock Format"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 60 minutes ="
+        "text": ":"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
+        "text": " H"
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "1,440 times"
+        "text": "H:MM"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**\n- Each"
+        "text": "\n\nA full"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " time"
+        "text": " day"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 4"
+        "text": " **"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " digits (H"
+        "text": "1"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "H:MM format"
+        "text": ","
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ")"
+        "text": "440 minutes**"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- Total"
+        "text": " (24 hours ×"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " digits displaye"
+        "text": " 60 minutes),"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d: 1,440 × "
+        "text": " so"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "4 = **5"
+        "text": " "
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +231,143 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ",760 digits**\n\n##"
+        "text": "1"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ","
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "440 unique"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " times."
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\nEach"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " time"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " displays"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "4"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " digits** ("
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "ign"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "oring the colon), giving"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " us **5"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ","
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "760 total"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " digit"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " positions"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "**.\n\n###"
       },
       "contentBlockIndex": 0
     }
@@ -255,7 +391,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n### Hours (00-23):"
+        "text": "\n\n**Hours (00-23):**"
       },
       "contentBlockIndex": 0
     }
@@ -263,7 +399,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **Tens"
+        "text": "\n-"
       },
       "contentBlockIndex": 0
     }
@@ -271,7 +407,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " place"
+        "text": " Tens"
       },
       "contentBlockIndex": 0
     }
@@ -279,7 +415,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**: 0("
+        "text": " place: 0("
       },
       "contentBlockIndex": 0
     }
@@ -287,183 +423,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "0-"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "9)"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "="
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "10"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "times,"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 1(10"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "-19)=10 times,"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 2(20-23)="
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "4"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " times\n- **Units place**:"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " Each"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digit"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 0-9 appears in"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " hours"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " twice"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " (except"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 4"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "-9 appear"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "2"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " times,"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 0"
+        "text": "00"
       },
       "contentBlockIndex": 0
     }
@@ -479,7 +439,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "3"
+        "text": "09)"
       },
       "contentBlockIndex": 0
     }
@@ -487,7 +447,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " appear 3"
+        "text": "×"
       },
       "contentBlockIndex": 0
     }
@@ -495,7 +455,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " times)"
+        "text": "10 + 1(10-"
       },
       "contentBlockIndex": 0
     }
@@ -503,7 +463,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n### Minutes (00-59):"
+        "text": "19)"
       },
       "contentBlockIndex": 0
     }
@@ -511,7 +471,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **"
+        "text": "×10 + 2(20"
       },
       "contentBlockIndex": 0
     }
@@ -519,7 +479,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Tens place**: 0(0"
+        "text": "-23"
       },
       "contentBlockIndex": 0
     }
@@ -527,7 +487,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-9)=10 times,"
+        "text": ")×4"
       },
       "contentBlockIndex": 0
     }
@@ -535,7 +495,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 1(10-19)="
+        "text": " = 24"
       },
       "contentBlockIndex": 0
     }
@@ -543,7 +503,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "10 times, 2(20"
+        "text": " times\n-"
       },
       "contentBlockIndex": 0
     }
@@ -551,7 +511,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-29)=10 times,"
+        "text": " Ones place: each"
       },
       "contentBlockIndex": 0
     }
@@ -559,7 +519,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 3(30-39)="
+        "text": " of"
       },
       "contentBlockIndex": 0
     }
@@ -567,7 +527,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "10 times, 4(40"
+        "text": " 0-"
       },
       "contentBlockIndex": 0
     }
@@ -575,7 +535,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-49)=10 times,"
+        "text": "9 appears in"
       },
       "contentBlockIndex": 0
     }
@@ -583,167 +543,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 5(50-59)="
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "10 times\n- **Units place"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "**: Each"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digit 0-9 appears "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "6"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " times"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\n## Complete"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " Count"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " ("
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "per"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digit per"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " position across"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " all "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "1"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ",440 times):"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\n**Hours"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " tens"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ":**"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 0"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "→"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "10"
+        "text": " 00"
       },
       "contentBlockIndex": 0
     }
@@ -759,7 +559,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 1→10, 2→"
+        "text": "01,..."
       },
       "contentBlockIndex": 0
     }
@@ -767,7 +567,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "4, others"
+        "text": ",09,"
       },
       "contentBlockIndex": 0
     }
@@ -775,7 +575,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "→0"
+        "text": "10,11,...,19,20"
       },
       "contentBlockIndex": 0
     }
@@ -783,7 +583,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n**"
+        "text": ",21,22,23"
       },
       "contentBlockIndex": 0
     }
@@ -791,7 +591,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Hours units:** 0→3"
+        "text": "\n\n**Minutes (00-59):**"
       },
       "contentBlockIndex": 0
     }
@@ -799,7 +599,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", 1→3, 2"
+        "text": "\n-"
       },
       "contentBlockIndex": 0
     }
@@ -807,7 +607,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "→3, 3→3,"
+        "text": " Tens place: each"
       },
       "contentBlockIndex": 0
     }
@@ -815,7 +615,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 4→2"
+        "text": " of 0-5"
       },
       "contentBlockIndex": 0
     }
@@ -823,7 +623,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", 5→2, 6"
+        "text": " appears "
       },
       "contentBlockIndex": 0
     }
@@ -831,7 +631,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "→2, 7→2,"
+        "text": "10"
       },
       "contentBlockIndex": 0
     }
@@ -839,7 +639,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 8→2, 9→"
+        "text": " times each"
       },
       "contentBlockIndex": 0
     }
@@ -847,7 +647,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "2"
+        "text": "\n- Ones place: each of "
       },
       "contentBlockIndex": 0
     }
@@ -855,7 +655,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n**Minutes tens:** 0→10"
+        "text": "0-9 appears 6"
       },
       "contentBlockIndex": 0
     }
@@ -863,7 +663,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", 1→10, 2"
+        "text": " times each\n\n###"
       },
       "contentBlockIndex": 0
     }
@@ -871,7 +671,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "→10, 3→10,"
+        "text": " Complete"
       },
       "contentBlockIndex": 0
     }
@@ -879,7 +679,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 4→10, 5→"
+        "text": " Count"
       },
       "contentBlockIndex": 0
     }
@@ -887,7 +687,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "10, others"
+        "text": " Per"
       },
       "contentBlockIndex": 0
     }
@@ -895,7 +695,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "→0\n**Minutes units:** "
+        "text": " Digit"
       },
       "contentBlockIndex": 0
     }
@@ -903,71 +703,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "0→6, 1→6"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ", 2→6, 3"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "→6, 4→6,"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " 5→6, 6→"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "6, 7→6, "
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "8→6, 9→6"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\n## Final"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " T"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "ally:"
+        "text": ":"
       },
       "contentBlockIndex": 0
     }
@@ -983,7 +719,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Digit | Count |"
+        "text": " Digit | Hours"
       },
       "contentBlockIndex": 0
     }
@@ -991,7 +727,23 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n|-------|-------|\n|"
+        "text": " Tens"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " | Hours Ones | Minutes Tens"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " | Minutes Ones |"
       },
       "contentBlockIndex": 0
     }
@@ -1000,6 +752,46 @@
     "contentBlockDelta": {
       "delta": {
         "text": " **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "Total** |\n|-------|--------"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "---|-----------|------------"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "--|----------"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "---|------"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "---|\n| **"
       },
       "contentBlockIndex": 0
     }
@@ -1015,38 +807,6 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "3"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "+10"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "+6"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
         "text": " "
       },
       "contentBlockIndex": 0
@@ -1055,7 +815,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "= **"
+        "text": "|"
       },
       "contentBlockIndex": 0
     }
@@ -1063,7 +823,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "29"
+        "text": " 144"
       },
       "contentBlockIndex": 0
     }
@@ -1071,7 +831,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** |"
+        "text": " | 60"
       },
       "contentBlockIndex": 0
     }
@@ -1079,7 +839,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n| **1** | 10"
+        "text": " | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1087,7 +847,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+3+10+6 ="
+        "text": " | **"
       },
       "contentBlockIndex": 0
     }
@@ -1095,7 +855,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **29** |\n| **2"
+        "text": "358"
       },
       "contentBlockIndex": 0
     }
@@ -1103,7 +863,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** | 4+3+10"
+        "text": "** |\n| **1** |"
       },
       "contentBlockIndex": 0
     }
@@ -1111,7 +871,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+6 = **23** |"
+        "text": " 10 | 144 |"
       },
       "contentBlockIndex": 0
     }
@@ -1119,7 +879,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n| **3** | 0"
+        "text": " 60"
       },
       "contentBlockIndex": 0
     }
@@ -1127,7 +887,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+3+10+6 ="
+        "text": " | 144 | **358"
       },
       "contentBlockIndex": 0
     }
@@ -1135,7 +895,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **19** |\n| **4"
+        "text": "** |\n| **2** |"
       },
       "contentBlockIndex": 0
     }
@@ -1143,7 +903,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** | 0+2"
+        "text": " 4"
       },
       "contentBlockIndex": 0
     }
@@ -1151,7 +911,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+10+6 = **18"
+        "text": " | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1159,7 +919,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** |\n| **5** |"
+        "text": " | 60 | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1167,7 +927,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 0+2+10+6"
+        "text": " | **352"
       },
       "contentBlockIndex": 0
     }
@@ -1175,7 +935,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " = **18** |\n|"
+        "text": "** |\n| **3** |"
       },
       "contentBlockIndex": 0
     }
@@ -1183,7 +943,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **6** | 0+2"
+        "text": " 0"
       },
       "contentBlockIndex": 0
     }
@@ -1191,7 +951,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+0"
+        "text": " | 144 | 60"
       },
       "contentBlockIndex": 0
     }
@@ -1199,7 +959,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+6 = **8** |"
+        "text": " | 144 | **348"
       },
       "contentBlockIndex": 0
     }
@@ -1207,7 +967,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n| **7** | 0"
+        "text": "** |\n| **4** |"
       },
       "contentBlockIndex": 0
     }
@@ -1215,7 +975,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+2+0+6 ="
+        "text": " 0 | 144 |"
       },
       "contentBlockIndex": 0
     }
@@ -1223,7 +983,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **8** |\n| **8"
+        "text": " 60 | 144 |"
       },
       "contentBlockIndex": 0
     }
@@ -1231,7 +991,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "** | 0+2+0"
+        "text": " **348** |\n| **5"
       },
       "contentBlockIndex": 0
     }
@@ -1239,7 +999,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+6 = **8** |"
+        "text": "** | 0 | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1247,7 +1007,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n| **9** | 0"
+        "text": " | 60 | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1255,7 +1015,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "+2+0+6 ="
+        "text": " | **348** |\n|"
       },
       "contentBlockIndex": 0
     }
@@ -1263,7 +1023,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **8** |\n\n## Results"
+        "text": " **6** | 0 |"
       },
       "contentBlockIndex": 0
     }
@@ -1271,7 +1031,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n**"
+        "text": " 0"
       },
       "contentBlockIndex": 0
     }
@@ -1279,7 +1039,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Most common:**"
+        "text": " | 0"
       },
       "contentBlockIndex": 0
     }
@@ -1287,7 +1047,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **0 "
+        "text": " | 144"
       },
       "contentBlockIndex": 0
     }
@@ -1295,7 +1055,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "an"
+        "text": " | **144** |\n|"
       },
       "contentBlockIndex": 0
     }
@@ -1303,7 +1063,111 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d 1** (tie"
+        "text": " **7** | 0 |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 0 | 0 |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 144 | **144** |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n| **8** | 0"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " | 0 | 0"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " | 144 | **144"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** |\n| **9** |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 0 | 0 |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 0 | 144 |"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **144** |\n\n## Results"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\n**Most Common Digits"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ":"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 0 and 1**"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " (tie"
       },
       "contentBlockIndex": 0
     }
@@ -1319,7 +1183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- Frequency"
+        "text": "\n-"
       },
       "contentBlockIndex": 0
     }
@@ -1327,7 +1191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ": 29 times each"
+        "text": " Occ"
       },
       "contentBlockIndex": 0
     }
@@ -1335,7 +1199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n- **"
+        "text": "urrences: **"
       },
       "contentBlockIndex": 0
     }
@@ -1343,7 +1207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Percentage:"
+        "text": "358 "
       },
       "contentBlockIndex": 0
     }
@@ -1351,7 +1215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 29/"
+        "text": "each"
       },
       "contentBlockIndex": 0
     }
@@ -1359,7 +1223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "5,"
+        "text": "**\n- Percentage: **358"
       },
       "contentBlockIndex": 0
     }
@@ -1367,7 +1231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "760 = 0.504"
+        "text": "/"
       },
       "contentBlockIndex": 0
     }
@@ -1375,7 +1239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "%**\n\n**Rarest:**"
+        "text": "5,760 = 6"
       },
       "contentBlockIndex": 0
     }
@@ -1383,7 +1247,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **6,"
+        "text": ".22"
       },
       "contentBlockIndex": 0
     }
@@ -1391,7 +1255,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " 7, 8, an"
+        "text": "%**\n\n**Rarest"
       },
       "contentBlockIndex": 0
     }
@@ -1399,7 +1263,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d 9** (tie"
+        "text": " Digits: 6"
       },
       "contentBlockIndex": 0
     }
@@ -1407,7 +1271,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d)\n- Frequency: 8"
+        "text": ","
       },
       "contentBlockIndex": 0
     }
@@ -1415,7 +1279,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " times each\n- **Percentage"
+        "text": " 7, "
       },
       "contentBlockIndex": 0
     }
@@ -1423,7 +1287,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ": 8/5,760 "
+        "text": "8, an"
       },
       "contentBlockIndex": 0
     }
@@ -1431,7 +1295,47 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "= 0.139"
+        "text": "d 9**"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " (tie"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d)\n- Occurrences:"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **144 each**\n-"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Percentage: **144/5,760"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " = 2.50"
       },
       "contentBlockIndex": 0
     }
@@ -1447,7 +1351,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " most common digits"
+        "text": " reason"
       },
       "contentBlockIndex": 0
     }
@@ -1455,7 +1359,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " appear"
+        "text": ":"
       },
       "contentBlockIndex": 0
     }
@@ -1463,7 +1367,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
+        "text": " 6"
       },
       "contentBlockIndex": 0
     }
@@ -1471,7 +1375,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "3"
+        "text": "-"
       },
       "contentBlockIndex": 0
     }
@@ -1479,7 +1383,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "."
+        "text": "9 never"
       },
       "contentBlockIndex": 0
     }
@@ -1487,7 +1391,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "6"
+        "text": " appear in hours"
       },
       "contentBlockIndex": 0
     }
@@ -1495,7 +1399,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " "
+        "text": " (which"
       },
       "contentBlockIndex": 0
     }
@@ -1503,7 +1407,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "times more"
+        "text": " only go "
       },
       "contentBlockIndex": 0
     }
@@ -1511,7 +1415,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " frequently** than the rarest ones"
+        "text": "00-23), making"
       },
       "contentBlockIndex": 0
     }
@@ -1519,7 +1423,103 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "!"
+        "text": " them far"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " less"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " common"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " than 0-"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "1"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ","
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " which"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " dom"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "inate the tens"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " place of"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " both"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " hours"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " and minutes."
       },
       "contentBlockIndex": 0
     }
@@ -1538,11 +1538,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 80,
-        "outputTokens": 833,
-        "totalTokens": 913
+        "outputTokens": 708,
+        "totalTokens": 788
       },
       "metrics": {
-        "latencyMs": 5367
+        "latencyMs": 5344
       }
     }
   }
