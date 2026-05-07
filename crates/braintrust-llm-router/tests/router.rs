@@ -1,12 +1,12 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
-    ProviderFormat, RawResponseStream, RetryPolicy, RouterBuilder,
+    ProviderFormat, RawResponseStream, RetryPolicy, Router, RouterBuilder,
 };
 use bytes::Bytes;
 
@@ -479,6 +479,179 @@ impl Provider for MiddlewareFailingProvider {
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
         Ok(())
     }
+}
+
+/// A stub that pretends to be the native Anthropic provider and records the format
+/// it was called with, so tests can assert on resolve_provider's format selection.
+#[derive(Clone)]
+struct CapturingAnthropicStub {
+    recorded_format: Arc<Mutex<Option<ProviderFormat>>>,
+}
+
+#[async_trait]
+impl Provider for CapturingAnthropicStub {
+    fn id(&self) -> &'static str {
+        "anthropic"
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::Anthropic, ProviderFormat::ChatCompletions]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        *self.recorded_format.lock().unwrap() = Some(format);
+        let response = braintrust_llm_router::serde_json::json!({
+            "id": "stub",
+            "object": "chat.completion",
+            "model": "claude-test",
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
+        });
+        Ok(Bytes::from(
+            braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
+        ))
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
+fn anthropic_router(catalog: Arc<ModelCatalog>) -> (Router, Arc<Mutex<Option<ProviderFormat>>>) {
+    let recorded_format = Arc::new(Mutex::new(None));
+    let stub = CapturingAnthropicStub {
+        recorded_format: Arc::clone(&recorded_format),
+    };
+    let router = RouterBuilder::new()
+        .with_catalog(catalog)
+        .add_provider(
+            "anthropic",
+            stub,
+            AuthConfig::ApiKey {
+                key: "test-key".into(),
+                header: Some("x-api-key".into()),
+                prefix: None,
+            },
+            vec![ProviderFormat::Anthropic, ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .expect("router builds");
+    (router, recorded_format)
+}
+
+#[tokio::test]
+async fn anthropic_openai_catalog_format_resolves_to_chat_completions() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "my-openai-anthropic-model".into(),
+        ModelSpec {
+            model: "claude-haiku-4-5".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let (router, recorded_format) = anthropic_router(Arc::new(catalog));
+
+    let body = to_body(braintrust_llm_router::serde_json::json!({
+        "model": "my-openai-anthropic-model",
+        "messages": [
+            {"role": "system", "content": "You are helpful"},
+            {"role": "user", "content": "What is 1+1?"}
+        ]
+    }));
+    let (request, _metadata) = router
+        .create_request(
+            body,
+            "my-openai-anthropic-model",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("create request");
+    router
+        .complete(request, &ClientHeaders::default())
+        .await
+        .expect("complete");
+
+    assert_eq!(
+        *recorded_format.lock().unwrap(),
+        Some(ProviderFormat::ChatCompletions),
+        "custom model with catalog_format=openai should use ChatCompletions to hit /chat/completions"
+    );
+}
+
+#[tokio::test]
+async fn anthropic_native_catalog_format_resolves_to_anthropic() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "claude-haiku-4-5".into(),
+        ModelSpec {
+            model: "claude-haiku-4-5".into(),
+            format: ProviderFormat::Anthropic,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let (router, recorded_format) = anthropic_router(Arc::new(catalog));
+
+    let body = to_body(braintrust_llm_router::serde_json::json!({
+        "model": "claude-haiku-4-5",
+        "messages": [{"role": "user", "content": "What is 1+1?"}]
+    }));
+    let (request, _metadata) = router
+        .create_request(body, "claude-haiku-4-5", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    router
+        .complete(request, &ClientHeaders::default())
+        .await
+        .expect("complete");
+
+    assert_eq!(
+        *recorded_format.lock().unwrap(),
+        Some(ProviderFormat::Anthropic),
+        "standard Anthropic model should still use Anthropic format to hit /v1/messages"
+    );
 }
 
 fn retry_model_catalog() -> Arc<ModelCatalog> {

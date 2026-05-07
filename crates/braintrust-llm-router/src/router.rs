@@ -495,6 +495,16 @@ impl Router {
             // Anthropic on Azure only supports the messages format and isn’t
             // interchangeable with other APIs.
             ProviderFormat::Anthropic
+        } else if provider.id() == "anthropic" {
+            // Native Anthropic has two endpoints: /v1/messages (Anthropic format) and the
+            // OpenAI-compatible /v1/chat/completions (ChatCompletions format). Use
+            // /chat/completions only when the catalog entry was explicitly registered as
+            // OpenAI format; otherwise always use the native Messages API.
+            if catalog_format == ProviderFormat::ChatCompletions {
+                ProviderFormat::ChatCompletions
+            } else {
+                ProviderFormat::Anthropic
+            }
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {

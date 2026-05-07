@@ -9,7 +9,7 @@ use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
-use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -84,6 +84,13 @@ impl AnthropicProvider {
             .expect("join messages path")
     }
 
+    fn chat_completions_url(&self) -> Url {
+        self.config
+            .endpoint
+            .join("chat/completions")
+            .expect("join chat/completions path")
+    }
+
     fn build_headers(&self, client_headers: &ClientHeaders) -> HeaderMap {
         let mut headers = client_headers.to_json_headers();
 
@@ -111,7 +118,7 @@ impl crate::providers::Provider for AnthropicProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::Anthropic]
+        vec![ProviderFormat::Anthropic, ProviderFormat::ChatCompletions]
     }
 
     async fn complete(
@@ -119,13 +126,25 @@ impl crate::providers::Provider for AnthropicProvider {
         payload: Bytes,
         auth: &AuthConfig,
         _spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let url = self.messages_url();
-
-        let mut headers = self.build_headers(client_headers);
-        auth.apply_headers(&mut headers)?;
+        let (url, headers) = if format == ProviderFormat::ChatCompletions {
+            let mut h = client_headers.to_json_headers();
+            let key = auth.api_key().ok_or_else(|| {
+                Error::Auth("Anthropic /chat/completions requires an API key".to_string())
+            })?;
+            h.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {key}"))
+                    .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
+            );
+            (self.chat_completions_url(), h)
+        } else {
+            let mut h = self.build_headers(client_headers);
+            auth.apply_headers(&mut h)?;
+            (self.messages_url(), h)
+        };
 
         let response = self
             .client
@@ -176,10 +195,22 @@ impl crate::providers::Provider for AnthropicProvider {
         }
 
         // Router should have already added stream options to payload
-        let url = self.messages_url();
-
-        let mut headers = self.build_headers(client_headers);
-        auth.apply_headers(&mut headers)?;
+        let (url, headers) = if format == ProviderFormat::ChatCompletions {
+            let mut h = client_headers.to_json_headers();
+            let key = auth.api_key().ok_or_else(|| {
+                Error::Auth("Anthropic /chat/completions requires an API key".to_string())
+            })?;
+            h.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {key}"))
+                    .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
+            );
+            (self.chat_completions_url(), h)
+        } else {
+            let mut h = self.build_headers(client_headers);
+            auth.apply_headers(&mut h)?;
+            (self.messages_url(), h)
+        };
 
         let response = self
             .client
