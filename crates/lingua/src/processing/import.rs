@@ -636,13 +636,11 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
         messages.extend(span_messages);
 
         match span.output.take() {
-            Some(Value::String(output_text)) => {
-                if !output_text.is_empty() {
-                    messages.push(Message::Assistant {
-                        content: AssistantContent::String(output_text),
-                        id: None,
-                    });
-                }
+            Some(Value::String(output_text)) if !output_text.is_empty() => {
+                messages.push(Message::Assistant {
+                    content: AssistantContent::String(output_text),
+                    id: None,
+                });
             }
             Some(output) => {
                 messages.extend(try_converting_to_messages(&output));
