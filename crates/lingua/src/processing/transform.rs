@@ -827,6 +827,52 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_transform_request_openai_system_only_to_google_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "system", "content": "Always say ok."}]
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Google, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Google);
+                assert!(reason.contains("at least one non-system message"));
+                assert!(reason.contains("system prompt alone cannot be sent"));
+            }
+            other => panic!("expected Google validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_transform_request_empty_openai_messages_to_google_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": []
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Google, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Google);
+                assert_eq!(
+                    reason,
+                    "Google requires at least one message in 'contents'."
+                );
+            }
+            other => panic!("expected Google validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
     #[cfg(feature = "anthropic")]
     fn test_transform_request_anthropic_passthrough() {
         let payload = json!({

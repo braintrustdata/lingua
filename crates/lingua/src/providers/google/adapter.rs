@@ -181,6 +181,18 @@ impl ProviderAdapter for GoogleAdapter {
         let mut messages = req.messages.clone();
         let system_contents = extract_system_messages(&mut messages);
 
+        if messages.is_empty() {
+            let reason = if system_contents.is_empty() {
+                "Google requires at least one message in 'contents'.".to_string()
+            } else {
+                "Google requires at least one non-system message; a system prompt alone cannot be sent because Google stores system prompts in the top-level 'systemInstruction' field and requires at least one user or model message in 'contents'.".to_string()
+            };
+            return Err(TransformError::ValidationFailed {
+                target: ProviderFormat::Google,
+                reason,
+            });
+        }
+
         // Flatten consecutive messages of the same role (Google doesn't allow them)
         flatten_consecutive_messages(&mut messages);
 
