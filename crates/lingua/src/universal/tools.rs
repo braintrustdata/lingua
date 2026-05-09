@@ -35,8 +35,8 @@ use crate::providers::anthropic::generated::{
 };
 use crate::providers::google::generated::GoogleSearch;
 use crate::providers::openai::generated::{
-    ApproximateLocation, Tool as OpenAIResponsesTool, UserLocationType as OpenAIUserLocationType,
-    WebSearchTool,
+    ApproximateLocation, CodeInterpreterTool, Tool as OpenAIResponsesTool,
+    UserLocationType as OpenAIUserLocationType, WebSearchTool,
 };
 use crate::serde_json::{self, json, Map, Value};
 
@@ -526,6 +526,28 @@ impl UniversalTool {
                         error: e.to_string(),
                     })
                 }
+                BuiltinToolProvider::Google if builtin_type == "code_execution" => {
+                    let _google_config =
+                        config
+                            .clone()
+                            .ok_or_else(|| ConvertError::UnsupportedToolType {
+                                tool_name: self.name.clone(),
+                                tool_type: builtin_type.clone(),
+                                target_provider: ProviderFormat::Responses,
+                            })?;
+
+                    let tool = OpenAIResponsesTool::CodeInterpreter(CodeInterpreterTool {
+                        container: json!({ "type": "auto" }),
+                    });
+
+                    serde_json::to_value(tool).map_err(|e| ConvertError::JsonSerializationFailed {
+                        field: format!(
+                            "OpenAI responses Google code execution tool conversion for '{}'",
+                            self.name
+                        ),
+                        error: e.to_string(),
+                    })
+                }
                 BuiltinToolProvider::Anthropic
                 | BuiltinToolProvider::Converse
                 | BuiltinToolProvider::Google => Err(ConvertError::UnsupportedToolType {
@@ -558,7 +580,9 @@ pub fn tools_to_openai_chat_value(tools: &[UniversalTool]) -> Result<Option<Valu
                 tool_type,
                 target_provider: ProviderFormat::ChatCompletions,
                 ..
-            }) if tool_type == "web_search_20250305" || tool_type == "google_search" => {}
+            }) if tool_type == "web_search_20250305"
+                || tool_type == "google_search"
+                || tool_type == "code_execution" => {}
             Err(err) => return Err(err),
         }
     }
@@ -577,10 +601,12 @@ pub fn tools_to_responses_value(tools: &[UniversalTool]) -> Result<Option<Value>
     if tools.is_empty() {
         return Ok(None);
     }
-    let converted: Vec<Value> = tools
-        .iter()
-        .map(|t| t.to_responses_value())
-        .collect::<Result<Vec<_>, _>>()?;
+    let mut converted = Vec::new();
+
+    for tool in tools {
+        converted.push(tool.to_responses_value()?);
+    }
+
     Ok(Some(Value::Array(converted)))
 }
 
@@ -927,6 +953,19 @@ mod tests {
     }
 
     #[test]
+    fn test_batch_conversion_to_openai_chat_drops_google_code_execution() {
+        let tools = vec![UniversalTool::builtin(
+            "code_execution",
+            BuiltinToolProvider::Google,
+            "code_execution",
+            Some(json!({})),
+        )];
+
+        let result = tools_to_openai_chat_value(&tools).unwrap();
+        assert!(result.is_none());
+    }
+
+    #[test]
     fn test_anthropic_web_search_to_openai_chat_is_unsupported_without_filters() {
         let tool = UniversalTool::builtin(
             "web_search",
@@ -1096,6 +1135,48 @@ mod tests {
             }
             other => panic!("expected web_search tool, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_google_code_execution_to_responses() {
+        let tool = UniversalTool::builtin(
+            "code_execution",
+            BuiltinToolProvider::Google,
+            "code_execution",
+            Some(json!({})),
+        );
+
+        let typed: OpenAIResponsesTool =
+            serde_json::from_value(tool.to_responses_value().unwrap()).unwrap();
+        match typed {
+            OpenAIResponsesTool::CodeInterpreter(code_interpreter) => {
+                assert_eq!(code_interpreter.container, json!({ "type": "auto" }));
+            }
+            other => panic!("expected code_interpreter tool, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_batch_conversion_to_responses_maps_google_code_execution() {
+        let tools = vec![UniversalTool::builtin(
+            "code_execution",
+            BuiltinToolProvider::Google,
+            "code_execution",
+            Some(json!({})),
+        )];
+
+        let value = tools_to_responses_value(&tools).unwrap();
+        assert_eq!(
+            value,
+            Some(json!([
+                {
+                    "type": "code_interpreter",
+                    "container": {
+                        "type": "auto"
+                    }
+                }
+            ]))
+        );
     }
 
     #[test]
