@@ -654,6 +654,151 @@ async fn anthropic_native_catalog_format_resolves_to_anthropic() {
     );
 }
 
+/// Stub provider that supports both ChatCompletions and Responses formats and
+/// records the format it was called with.
+#[derive(Clone)]
+struct CapturingOpenAIStub {
+    recorded_format: Arc<Mutex<Option<ProviderFormat>>>,
+}
+
+#[async_trait]
+impl Provider for CapturingOpenAIStub {
+    fn id(&self) -> &'static str {
+        "openai"
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        *self.recorded_format.lock().unwrap() = Some(format);
+        let response = braintrust_llm_router::serde_json::json!({
+            "id": "stub",
+            "object": "chat.completion",
+            "model": "gpt-5.4-mini",
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
+        });
+        Ok(Bytes::from(
+            braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
+        ))
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
+fn openai_router(catalog: Arc<ModelCatalog>) -> (Router, Arc<Mutex<Option<ProviderFormat>>>) {
+    let recorded_format = Arc::new(Mutex::new(None));
+    let stub = CapturingOpenAIStub {
+        recorded_format: Arc::clone(&recorded_format),
+    };
+    let router = RouterBuilder::new()
+        .with_catalog(catalog)
+        .add_provider(
+            "openai",
+            stub,
+            AuthConfig::ApiKey {
+                key: "test-key".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![ProviderFormat::ChatCompletions, ProviderFormat::Responses],
+        )
+        .build()
+        .expect("router builds");
+    (router, recorded_format)
+}
+
+#[tokio::test]
+async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
+    // Use gpt-5.2-mini (minor version 2 < 3) so model_requires_responses_api() returns
+    // false. Only the body-level detection (reasoning_effort + tools) should trigger the
+    // upgrade from ChatCompletions to Responses.
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "gpt-5.2-mini".into(),
+        ModelSpec {
+            model: "gpt-5.2-mini".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let (router, recorded_format) = openai_router(Arc::new(catalog));
+
+    let body = to_body(json!({
+        "model": "gpt-5.2-mini",
+        "messages": [{"role": "user", "content": "Tokyo weather?"}],
+        "reasoning_effort": "medium",
+        "tools": [{
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get weather",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"location": {"type": "string"}},
+                    "required": ["location"]
+                }
+            }
+        }]
+    }));
+
+    let (request, metadata) = router
+        .create_request(body, "gpt-5.2-mini", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+
+    assert_eq!(
+        metadata.provider_format,
+        ProviderFormat::Responses,
+        "provider_format in metadata should reflect the upgrade to Responses"
+    );
+
+    router
+        .complete(request, &ClientHeaders::default())
+        .await
+        .expect("complete");
+
+    assert_eq!(
+        *recorded_format.lock().unwrap(),
+        Some(ProviderFormat::Responses),
+        "provider.complete() must be called with Responses so the request hits /v1/responses"
+    );
+}
+
 fn retry_model_catalog() -> Arc<ModelCatalog> {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(

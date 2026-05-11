@@ -2,6 +2,8 @@
 export const OPENAI_CHAT_COMPLETIONS_MODEL = "gpt-5-nano";
 export const OPENAI_RESPONSES_MODEL = "gpt-5-nano";
 export const OPENAI_REASONING_NONE_MODEL = "gpt-5.2";
+// Mini reasoning model: supports reasoning_effort but requires /v1/responses when combined with function tools
+export const OPENAI_MINI_REASONING_MODEL = "gpt-5.4-mini";
 // For parameters not supported by reasoning models (temperature, top_p, logprobs)
 export const OPENAI_NON_REASONING_MODEL = "gpt-4o-mini";
 export const ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929";

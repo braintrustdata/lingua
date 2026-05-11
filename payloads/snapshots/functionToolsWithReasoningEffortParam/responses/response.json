@@ -1,0 +1,91 @@
+{
+  "id": "resp_01f5db785982cb14006a0214049d9081908a4f084e46110e92",
+  "object": "response",
+  "created_at": 1778521092,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778521093,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-mini-2026-03-17",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_01f5db785982cb14006a02140598e48190ab82bcd53f938e25",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_01f5db785982cb14006a021405c51081908e7377d96b6d12f5",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo\"}",
+      "call_id": "call_qFboATm7JVJj35UQz8WAACxZ",
+      "name": "get_weather"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 41,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 42,
+    "output_tokens_details": {
+      "reasoning_tokens": 22
+    },
+    "total_tokens": 83
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

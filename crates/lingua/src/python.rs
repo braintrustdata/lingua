@@ -304,6 +304,7 @@ fn transform_request(
         TransformResult::Transformed {
             bytes,
             source_format,
+            ..
         } => {
             let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
@@ -361,6 +362,7 @@ fn transform_response(py: Python, json: &str, target_format: &str) -> PyResult<P
         TransformResult::Transformed {
             bytes,
             source_format,
+            ..
         } => {
             let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(

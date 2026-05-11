@@ -1,0 +1,50 @@
+{
+  "model": "gpt-5.4-mini",
+  "input": [
+    {
+      "role": "user",
+      "content": "Tokyo weather"
+    },
+    {
+      "id": "rs_01f5db785982cb14006a02140598e48190ab82bcd53f938e25",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_01f5db785982cb14006a021405c51081908e7377d96b6d12f5",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo\"}",
+      "call_id": "call_qFboATm7JVJj35UQz8WAACxZ",
+      "name": "get_weather"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_qFboATm7JVJj35UQz8WAACxZ",
+      "output": "71 degrees"
+    }
+  ],
+  "reasoning": {
+    "effort": "medium"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

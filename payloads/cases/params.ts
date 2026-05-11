@@ -11,6 +11,7 @@ import {
   OPENAI_RESPONSES_MODEL,
   OPENAI_REASONING_NONE_MODEL,
   OPENAI_NON_REASONING_MODEL,
+  OPENAI_MINI_REASONING_MODEL,
   ANTHROPIC_MODEL,
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_MODEL,
@@ -1052,6 +1053,56 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
+    bedrock: null,
+  },
+
+  // Reproduces: "Function tools with reasoning_effort are not supported for
+  // gpt-5.4-mini in /v1/chat/completions. Please use /v1/responses instead."
+  // The router should detect reasoning_effort + function tools and forward to
+  // the responses endpoint rather than passing through to chat/completions.
+  functionToolsWithReasoningEffortParam: {
+    "chat-completions": {
+      model: OPENAI_MINI_REASONING_MODEL,
+      messages: [{ role: "user", content: "Tokyo weather" }],
+      reasoning_effort: "medium",
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            strict: true,
+            parameters: {
+              type: "object",
+              properties: { location: { type: "string" } },
+              required: ["location"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+    },
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [{ role: "user", content: "Tokyo weather" }],
+      reasoning: { effort: "medium" },
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get weather",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: { location: { type: "string" } },
+            required: ["location"],
+            additionalProperties: false,
+          },
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
     bedrock: null,
   },
 

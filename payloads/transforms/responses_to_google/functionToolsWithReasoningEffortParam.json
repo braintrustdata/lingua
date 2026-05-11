@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's my thought process, summarized as you requested:\n\n**Tokyo Weather Query Processing**\n\nOkay, so the user wants to know the weather in Tokyo. That's straightforward enough. The request is very clear – I need to determine the current weather conditions for the specified location. Luckily, I've got the `get_weather` tool at my disposal, which is specifically designed for retrieving weather information based on a location input. Therefore, my immediate course of action is obvious: I must call the `get_weather` tool. The location parameter for this tool is \"Tokyo\", so that will be the input I feed into it. It's a simple process, really - identify the core request, select the appropriate tool, and supply the necessary input. Let's get that data!\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "CucBAQw51sfI3nF6dvNsGQZLXNucpXA50nmkpy3jUKfEgbwVQRyKTTmwwvw3L+JTcCOemo09d1TGbXMIJ5iFc5vdcmuh0hx5rvHiBzrt/mp99kFug2WOsqaj+tBrSP/gma+Znqxgg1MOPtQogszqGOEob55sUaDw258D9wni8Sh4DkHUeDCeSDi32icivpdwrWamBUDjoHUb+A98VNeGT89ErdIWMRphp8N9esX7Ghm6HQwdXCPzIww09BJ7TuU3oLA2L9NFGAqKxQyzMqhfNakwVhvV4jHVD6sjEWmBSg6xgwbUItfiYSAO"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 98,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 46,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "CBQCavzID8fR_uMP_JaW8QM"
+}
