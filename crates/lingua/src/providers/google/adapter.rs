@@ -770,6 +770,7 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
 
@@ -1053,17 +1054,23 @@ mod tests {
 
         let payload = adapter.request_from_universal(&req).unwrap();
 
-        // exclusiveMinimum must not appear in the outgoing Google request
-        let tools = payload.get("tools").expect("tools should be present");
-        let decls = tools[0]
-            .get("functionDeclarations")
-            .expect("functionDeclarations should be present");
-        let params = decls[0]
-            .get("parametersJsonSchema")
+        // Deserialize into the typed request struct so we navigate via struct
+        // fields rather than raw Value map access.
+        let typed: GenerateContentRequest = serde_json::from_value(payload).unwrap();
+        let decl = &typed.tools.as_ref().unwrap()[0]
+            .function_declarations
+            .as_ref()
+            .unwrap()[0];
+        let schema = decl
+            .parameters_json_schema
+            .as_ref()
             .expect("parametersJsonSchema should be present");
-        let count = &params["properties"]["count"];
+
+        // parameters_json_schema is an opaque JSON value; verify absence of the
+        // unsupported keyword by checking the serialized form.
+        let schema_str = serde_json::to_string(schema).unwrap();
         assert!(
-            count.get("exclusiveMinimum").is_none(),
+            !schema_str.contains("exclusiveMinimum"),
             "exclusiveMinimum must be stripped from Google request"
         );
     }

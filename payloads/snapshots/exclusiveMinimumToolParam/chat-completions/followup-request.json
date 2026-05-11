@@ -14,7 +14,7 @@
           "type": "function",
           "function": {
             "name": "configure_llm",
-            "arguments": "{\"max_tokens\": 4096}"
+            "arguments": "{\"max_tokens\":4096}"
           }
         }
       ],
