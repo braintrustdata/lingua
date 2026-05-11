@@ -2661,36 +2661,32 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         &mut id_used,
                                         &id,
                                     );
-                                    // Extract annotations and logprobs from provider_options.
-                                    // Default annotations to Some(vec![]) so the Responses API
-                                    // output always has the required `annotations` array.
-                                    let (annotations, logprobs, phase) = if let Some(ref opts) =
-                                        text_part.provider_options
-                                    {
-                                        let annotations =
-                                            opts.options.get("annotations").and_then(|v| {
-                                                serde_json::from_value::<Vec<openai::Annotation>>(
-                                                    v.clone(),
+                                    // Extract annotations, logprobs, and phase from
+                                    // provider_options using a typed struct so we avoid raw
+                                    // Value field access. Default annotations to Some(vec![])
+                                    // so the Responses API output always has the required array.
+                                    #[derive(serde::Deserialize, Default)]
+                                    struct TextPartProviderOpts {
+                                        annotations: Option<Vec<openai::Annotation>>,
+                                        logprobs: Option<Vec<openai::LogProbability>>,
+                                        #[serde(rename = "_output_item_phase")]
+                                        phase: Option<openai::MessagePhase>,
+                                    }
+                                    let (annotations, logprobs, phase) =
+                                        if let Some(ref opts) = text_part.provider_options {
+                                            let parsed =
+                                                serde_json::from_value::<TextPartProviderOpts>(
+                                                    serde_json::Value::Object(opts.options.clone()),
                                                 )
-                                                .ok()
-                                            });
-                                        let logprobs = opts.options.get("logprobs").and_then(|v| {
-                                            serde_json::from_value::<Vec<openai::LogProbability>>(
-                                                v.clone(),
+                                                .unwrap_or_default();
+                                            (
+                                                parsed.annotations.or(Some(vec![])),
+                                                parsed.logprobs,
+                                                parsed.phase,
                                             )
-                                            .ok()
-                                        });
-                                        let phase =
-                                            opts.options.get("_output_item_phase").and_then(|v| {
-                                                serde_json::from_value::<openai::MessagePhase>(
-                                                    v.clone(),
-                                                )
-                                                .ok()
-                                            });
-                                        (annotations.or(Some(vec![])), logprobs, phase)
-                                    } else {
-                                        (Some(vec![]), None, None)
-                                    };
+                                        } else {
+                                            (Some(vec![]), None, None)
+                                        };
                                     result.push(openai::OutputItem {
                                         output_item_type: Some(openai::OutputItemType::Message),
                                         role: Some(openai::MessageRole::Assistant),
