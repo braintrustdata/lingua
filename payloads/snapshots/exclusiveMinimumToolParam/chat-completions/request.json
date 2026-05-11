@@ -1,0 +1,32 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Configure the LLM."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "configure_llm",
+        "description": "Configure LLM generation parameters",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "max_tokens": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Maximum number of tokens to generate"
+            }
+          },
+          "required": [
+            "max_tokens"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

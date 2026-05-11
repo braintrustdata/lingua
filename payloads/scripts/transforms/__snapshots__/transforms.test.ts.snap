@@ -6714,6 +6714,79 @@ Now I'll total up for each digit across all 1440 minutes in a day (24 × 60):
 }
 `;
 
+exports[`chat-completions → anthropic > exclusiveMinimumToolParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Configure LLM generation parameters",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "exclusiveMinimum": 0,
+            "type": "number",
+          },
+        },
+        "required": [
+          "max_tokens",
+        ],
+        "type": "object",
+      },
+      "name": "configure_llm",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > exclusiveMinimumToolParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help configure the LLM! However, I need to know what value you'd like to set for the \`max_tokens\` parameter.
+
+The \`max_tokens\` parameter controls the maximum number of tokens (pieces of text) that the LLM can generate in its response.
+
+Could you please specify:
+- **max_tokens**: The maximum number of tokens you want the LLM to generate (must be greater than 0)
+
+For example, common values might be:
+- 100-500 for short responses
+- 1000-2000 for medium-length responses
+- 4000+ for longer, detailed responses
+
+What value would you like to use?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01GG7qfqnsDh9GxCJn5VWgPx",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 154,
+    "prompt_tokens": 596,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 750,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > frequencyPenaltyParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9189,6 +9262,75 @@ Now, let's count the occurrences of each digit systematically. We can do this by
     },
     "prompt_tokens": 75,
     "total_tokens": 5058,
+  },
+}
+`;
+
+exports[`chat-completions → google > exclusiveMinimumToolParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Configure the LLM.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Configure LLM generation parameters",
+          "name": "configure_llm",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "max_tokens": {
+                "description": "Maximum number of tokens to generate",
+                "type": "number",
+              },
+            },
+            "required": [
+              "max_tokens",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > exclusiveMinimumToolParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I can help with that. What would you like to set the maximum number of tokens to?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 67,
+    "completion_tokens_details": {
+      "reasoning_tokens": 48,
+    },
+    "prompt_tokens": 53,
+    "total_tokens": 120,
   },
 }
 `;
@@ -11978,6 +12120,87 @@ Brief note on method: counted digit occurrences separately for hour tens (H1), h
 }
 `;
 
+exports[`chat-completions → responses > exclusiveMinimumToolParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "exclusiveMinimum": 0,
+            "type": "number",
+          },
+        },
+        "required": [
+          "max_tokens",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > exclusiveMinimumToolParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Sure. I can configure the LLM, but I need a max_tokens value to apply.
+
+Options (balanced defaults):
+- 512 – concise responses
+- 1024 – short to medium
+- 2048 – balanced
+- 4096 – longer responses
+
+If you’d like, I can apply 2048 tokens right now as a balanced default. Would you like me to set max_tokens to 2048 (or choose another value)? Also, note that this configuration step only covers max_tokens; tell me if you want me to note any other preferences, and I can track them for you.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0038cce6fceb0e88006a01faa00e5c8195921786d0852993cd",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 768,
+    "completion_tokens_details": {
+      "reasoning_tokens": 576,
+    },
+    "prompt_tokens": 66,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 834,
+  },
+}
+`;
+
 exports[`chat-completions → responses > frequencyPenaltyParam > request 1`] = `
 {
   "input": [
@@ -14709,6 +14932,71 @@ Each digit 0-9 appears 6 times per hour (once in each group of 10 minutes)
 }
 `;
 
+exports[`google → anthropic > exclusiveMinimumToolParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Configure LLM generation parameters",
+      "input_schema": {
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "type": "number",
+          },
+        },
+        "required": [
+          "max_tokens",
+        ],
+        "type": "object",
+      },
+      "name": "configure_llm",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > exclusiveMinimumToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'd be happy to help configure the LLM! However, I need to know what value you'd like to set for the maximum number of tokens to generate.
+
+Could you please specify the \`max_tokens\` value you want? For example:
+- 256 for shorter responses
+- 512 for medium-length responses
+- 1024 or higher for longer responses
+- 4096 for very detailed responses
+
+What maximum token limit would you like to set?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 105,
+    "promptTokenCount": 579,
+    "totalTokenCount": 684,
+  },
+}
+`;
+
 exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > request 1`] = `
 {
   "max_tokens": 128,
@@ -17010,6 +17298,73 @@ Summary:
 }
 `;
 
+exports[`google → chat-completions > exclusiveMinimumToolParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "Configure LLM generation parameters",
+        "name": "configure_llm",
+        "parameters": {
+          "properties": {
+            "max_tokens": {
+              "description": "Maximum number of tokens to generate",
+              "type": "number",
+            },
+          },
+          "required": [
+            "max_tokens",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > exclusiveMinimumToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can configure the LLM, but I need the max_tokens value (the maximum number of tokens in responses).
+
+Options:
+- 512 (short responses)
+- 1024 (default)
+- 2048 (longer responses)
+
+Would you like me to set max_tokens to 1024 now, or provide a different value? If you’re unsure, I can start with 1024 and adjust later.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 93,
+    "promptTokenCount": 139,
+    "thoughtsTokenCount": 704,
+    "totalTokenCount": 936,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam > request 1`] = `
 {
   "max_completion_tokens": 128,
@@ -19173,6 +19528,82 @@ So:
     "promptTokenCount": 74,
     "thoughtsTokenCount": 3392,
     "totalTokenCount": 4075,
+  },
+}
+`;
+
+exports[`google → responses > exclusiveMinimumToolParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "type": "number",
+          },
+        },
+        "required": [
+          "max_tokens",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "max_tokens": 1024,
+              },
+              "name": "configure_llm",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 75,
+    "promptTokenCount": 57,
+    "thoughtsTokenCount": 512,
+    "totalTokenCount": 644,
   },
 }
 `;
@@ -22450,6 +22881,97 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
 }
 `;
 
+exports[`responses → anthropic > exclusiveMinimumToolParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Configure the LLM.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Configure LLM generation parameters",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "exclusiveMinimum": 0,
+            "type": "number",
+          },
+        },
+        "required": [
+          "max_tokens",
+        ],
+        "type": "object",
+      },
+      "name": "configure_llm",
+      "strict": false,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > exclusiveMinimumToolParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01ERkvPjbQ7ZLjFZns3hskpK",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help configure the LLM! To do this, I need to know what value you'd like to set for the **max_tokens** parameter, which controls the maximum number of tokens the LLM can generate in its responses.
+
+Could you please specify:
+- How many max_tokens would you like to configure? (This should be a positive number)
+
+For context, common values might be:
+- 100-500 for short responses
+- 500-2000 for medium-length responses
+- 2000+ for longer, more detailed responses",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help configure the LLM! To do this, I need to know what value you'd like to set for the **max_tokens** parameter, which controls the maximum number of tokens the LLM can generate in its responses.
+
+Could you please specify:
+- How many max_tokens would you like to configure? (This should be a positive number)
+
+For context, common values might be:
+- 100-500 for short responses
+- 500-2000 for medium-length responses
+- 2000+ for longer, more detailed responses",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 596,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 127,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 723,
+  },
+}
+`;
+
 exports[`responses → anthropic > instructionsParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -25432,6 +25954,88 @@ Total for H2:
       "reasoning_tokens": 2845,
     },
     "total_tokens": 5180,
+  },
+}
+`;
+
+exports[`responses → google > exclusiveMinimumToolParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Configure the LLM.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Configure LLM generation parameters",
+          "name": "configure_llm",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "max_tokens": {
+                "description": "Maximum number of tokens to generate",
+                "type": "number",
+              },
+            },
+            "required": [
+              "max_tokens",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > exclusiveMinimumToolParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Please provide the \`max_tokens\` parameter to configure the LLM.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Please provide the \`max_tokens\` parameter to configure the LLM.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 53,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 74,
+    "output_tokens_details": {
+      "reasoning_tokens": 59,
+    },
+    "total_tokens": 127,
   },
 }
 `;

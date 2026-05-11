@@ -338,7 +338,8 @@ impl ProviderAdapter for GoogleAdapter {
             );
         }
 
-        // Add tools if present
+        // Add tools if present.  FunctionDeclaration::try_from strips unsupported JSON Schema
+        // keywords (e.g. `exclusiveMinimum`) from parametersJsonSchema during conversion.
         if let Some(tools) = &req.params.tools {
             let google_tools = <Vec<GoogleTool> as TryFromLLM<Vec<_>>>::try_from(tools.clone())
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
@@ -769,6 +770,7 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
 
@@ -1021,6 +1023,56 @@ mod tests {
             .as_ref()
             .expect("placeholder candidate should have parts");
         assert_eq!(parts.len(), 1);
+    }
+
+    #[test]
+    fn test_exclusive_minimum_stripped_from_google_request() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: None,
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".into()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![crate::universal::tools::UniversalTool::function(
+                    "my_tool",
+                    Some("A tool".to_string()),
+                    Some(json!({
+                        "type": "object",
+                        "properties": {
+                            "count": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            }
+                        }
+                    })),
+                    None,
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+
+        // Deserialize into the typed request struct so we navigate via struct
+        // fields rather than raw Value map access.
+        let typed: GenerateContentRequest = serde_json::from_value(payload).unwrap();
+        let decl = &typed.tools.as_ref().unwrap()[0]
+            .function_declarations
+            .as_ref()
+            .unwrap()[0];
+        let schema = decl
+            .parameters_json_schema
+            .as_ref()
+            .expect("parametersJsonSchema should be present");
+
+        // parameters_json_schema is an opaque JSON value; verify absence of the
+        // unsupported keyword by checking the serialized form.
+        let schema_str = serde_json::to_string(schema).unwrap();
+        assert!(
+            !schema_str.contains("exclusiveMinimum"),
+            "exclusiveMinimum must be stripped from Google request"
+        );
     }
 
     #[test]

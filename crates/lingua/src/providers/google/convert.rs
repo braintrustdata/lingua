@@ -810,17 +810,49 @@ fn normalize_google_schema_types(mut value: Value) -> Value {
     value
 }
 
+/// Recursively strip `exclusiveMinimum` fields from a JSON schema value in-place.
+///
+/// Google's `Schema` proto does not recognise `exclusiveMinimum` (a JSON Schema Draft 6+
+/// keyword) and returns a 400 INVALID_ARGUMENT error when it is present.  We strip it
+/// here — at the conversion boundary — so that callers never have to remember to do so
+/// themselves.  The original schema is preserved in the caller's `UniversalTool.parameters`
+/// field and can be round-tripped via the adapter's extras mechanism.
+fn strip_exclusive_minimum(value: &mut Value) {
+    match value {
+        Value::Object(map) => {
+            map.remove("exclusiveMinimum");
+            for v in map.values_mut() {
+                strip_exclusive_minimum(v);
+            }
+        }
+        Value::Array(arr) => {
+            for v in arr.iter_mut() {
+                strip_exclusive_minimum(v);
+            }
+        }
+        _ => {}
+    }
+}
+
 impl TryFrom<&UniversalTool> for FunctionDeclaration {
     type Error = ConvertError;
 
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
-            UniversalToolType::Function => Ok(FunctionDeclaration {
-                name: Some(tool.name.clone()),
-                description: tool.description.clone(),
-                parameters_json_schema: tool.parameters.clone(),
-                ..Default::default()
-            }),
+            UniversalToolType::Function => {
+                // Strip JSON Schema keywords unsupported by Google's Schema proto (e.g.
+                // `exclusiveMinimum`) before embedding the schema in the declaration.
+                let parameters_json_schema = tool.parameters.clone().map(|mut p| {
+                    strip_exclusive_minimum(&mut p);
+                    p
+                });
+                Ok(FunctionDeclaration {
+                    name: Some(tool.name.clone()),
+                    description: tool.description.clone(),
+                    parameters_json_schema,
+                    ..Default::default()
+                })
+            }
             UniversalToolType::Custom { .. } => Err(ConvertError::UnsupportedToolType {
                 tool_name: tool.name.clone(),
                 tool_type: "custom".to_string(),

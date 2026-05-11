@@ -1,0 +1,3 @@
+{
+  "error": "Error: ApiError: {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Invalid JSON payload received. Unknown name \\\"exclusiveMinimum\\\" at 'tools[0].function_declarations[0].parameters.properties[0].value': Cannot find field.\",\n    \"status\": \"INVALID_ARGUMENT\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.BadRequest\",\n        \"fieldViolations\": [\n          {\n            \"field\": \"tools[0].function_declarations[0].parameters.properties[0].value\",\n            \"description\": \"Invalid JSON payload received. Unknown name \\\"exclusiveMinimum\\\" at 'tools[0].function_declarations[0].parameters.properties[0].value': Cannot find field.\"\n          }\n        ]\n      }\n    ]\n  }\n}\n"
+}
