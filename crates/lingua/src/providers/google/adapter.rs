@@ -338,7 +338,8 @@ impl ProviderAdapter for GoogleAdapter {
             );
         }
 
-        // Add tools if present
+        // Add tools if present.  FunctionDeclaration::try_from strips unsupported JSON Schema
+        // keywords (e.g. `exclusiveMinimum`) from parametersJsonSchema during conversion.
         if let Some(tools) = &req.params.tools {
             let google_tools = <Vec<GoogleTool> as TryFromLLM<Vec<_>>>::try_from(tools.clone())
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
@@ -1021,6 +1022,50 @@ mod tests {
             .as_ref()
             .expect("placeholder candidate should have parts");
         assert_eq!(parts.len(), 1);
+    }
+
+    #[test]
+    fn test_exclusive_minimum_stripped_from_google_request() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: None,
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".into()),
+            }],
+            params: UniversalParams {
+                tools: Some(vec![crate::universal::tools::UniversalTool::function(
+                    "my_tool",
+                    Some("A tool".to_string()),
+                    Some(json!({
+                        "type": "object",
+                        "properties": {
+                            "count": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            }
+                        }
+                    })),
+                    None,
+                )]),
+                ..Default::default()
+            },
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+
+        // exclusiveMinimum must not appear in the outgoing Google request
+        let tools = payload.get("tools").expect("tools should be present");
+        let decls = tools[0]
+            .get("functionDeclarations")
+            .expect("functionDeclarations should be present");
+        let params = decls[0]
+            .get("parametersJsonSchema")
+            .expect("parametersJsonSchema should be present");
+        let count = &params["properties"]["count"];
+        assert!(
+            count.get("exclusiveMinimum").is_none(),
+            "exclusiveMinimum must be stripped from Google request"
+        );
     }
 
     #[test]
