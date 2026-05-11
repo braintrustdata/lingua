@@ -1,0 +1,99 @@
+{
+  "id": "resp_0ad9a5f3cf5786be006a01fa96cb688197bc6358a913c2627f",
+  "object": "response",
+  "created_at": 1778514582,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778514591,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0ad9a5f3cf5786be006a01fa9783048197aec499ed761b01c6",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ad9a5f3cf5786be006a01fa9e4d7c81978c523b36caf80554",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here’s the next step:\n\n- Decide the max_tokens you want for responses. This controls how long the model’s answers can be.\n  - Short/concise: 256 or 512\n  - Balanced: 1024\n  - Longer answers: 2048 or 4096\n\nWould you like me to set 2048 as the default max_tokens now? If you prefer a different value, tell me and I’ll configure it. After configuring, we can test with a prompt to confirm the length works as you expect."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 129,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 966,
+    "output_tokens_details": {
+      "reasoning_tokens": 832
+    },
+    "total_tokens": 1095
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here’s the next step:\n\n- Decide the max_tokens you want for responses. This controls how long the model’s answers can be.\n  - Short/concise: 256 or 512\n  - Balanced: 1024\n  - Longer answers: 2048 or 4096\n\nWould you like me to set 2048 as the default max_tokens now? If you prefer a different value, tell me and I’ll configure it. After configuring, we can test with a prompt to confirm the length works as you expect."
+}

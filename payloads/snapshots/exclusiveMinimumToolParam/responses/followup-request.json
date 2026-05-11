@@ -1,0 +1,54 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Configure the LLM."
+    },
+    {
+      "id": "rs_0ad9a5f3cf5786be006a01fa8e58ec81979fa3b0f6ce5c327e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ad9a5f3cf5786be006a01fa92bdd48197bad67756895852a3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure. What max_tokens value would you like me to configure? Common options: 256, 512, 1024, 2048, 4096. If you prefer, I can set 2048 by default."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "configure_llm",
+      "description": "Configure LLM generation parameters",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ]
+}

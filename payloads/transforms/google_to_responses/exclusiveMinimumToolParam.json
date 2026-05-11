@@ -1,0 +1,92 @@
+{
+  "id": "resp_0c73324acbddd2b0006a01faa3fa5c8193b4c07d00b43d01c4",
+  "object": "response",
+  "created_at": 1778514596,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778514600,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0c73324acbddd2b0006a01faa44ff08193b878fb061da79bf7",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "fc_0c73324acbddd2b0006a01faa8069481939eaaa83abc7b561e",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"max_tokens\": 1024}",
+      "call_id": "call_GSbXCURhGXAkZqWeKF5syU0P",
+      "name": "configure_llm"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 57,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 587,
+    "output_tokens_details": {
+      "reasoning_tokens": 512
+    },
+    "total_tokens": 644
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}
