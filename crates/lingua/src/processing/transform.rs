@@ -1189,6 +1189,74 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_top_k_openai_model_drops_top_k_for_chat_completions() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Write a short sentence about API gateways."}]
+            }],
+            "generationConfig": {
+                "topK": 1,
+                "maxOutputTokens": 1024
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-nano")).unwrap();
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(
+            output.get("top_k").is_none(),
+            "OpenAI Chat Completions should not receive top_k"
+        );
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(1024)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_top_k_openai_model_drops_top_k_for_responses() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Write a short sentence about API gateways."}]
+            }],
+            "generationConfig": {
+                "topK": 1,
+                "maxOutputTokens": 1024
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Responses, Some("gpt-5-nano")).unwrap();
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(
+            output.get("top_k").is_none(),
+            "OpenAI Responses should not receive top_k"
+        );
+        assert_eq!(
+            output.get("max_output_tokens").and_then(Value::as_i64),
+            Some(1024)
+        );
+    }
+
+    #[test]
     #[cfg(feature = "openai")]
     fn test_non_reasoning_model_still_passthroughs() {
         // Non-reasoning models should still passthrough for efficiency

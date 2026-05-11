@@ -14997,6 +14997,46 @@ What maximum token limit would you like to set?",
 }
 `;
 
+exports[`google → anthropic > googleOpenAIModelTopKParam > request 1`] = `
+{
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "content": "Write a short sentence about API gateways.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "top_k": 1,
+}
+`;
+
+exports[`google → anthropic > googleOpenAIModelTopKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "An API gateway acts as a single entry point that routes client requests to appropriate backend services while handling cross-cutting concerns like authentication, rate limiting, and logging.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 35,
+    "promptTokenCount": 17,
+    "totalTokenCount": 52,
+  },
+}
+`;
+
 exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > request 1`] = `
 {
   "max_tokens": 128,
@@ -17365,6 +17405,46 @@ Would you like me to set max_tokens to 1024 now, or provide a different value? I
 }
 `;
 
+exports[`google → chat-completions > googleOpenAIModelTopKParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Write a short sentence about API gateways.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > googleOpenAIModelTopKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "An API gateway sits between clients and backend services, routing requests and enforcing security.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 25,
+    "promptTokenCount": 14,
+    "thoughtsTokenCount": 256,
+    "totalTokenCount": 295,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam > request 1`] = `
 {
   "max_completion_tokens": 128,
@@ -19604,6 +19684,59 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
     "promptTokenCount": 57,
     "thoughtsTokenCount": 512,
     "totalTokenCount": 644,
+  },
+}
+`;
+
+exports[`google → responses > googleOpenAIModelTopKParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Write a short sentence about API gateways.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → responses > googleOpenAIModelTopKParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "An API gateway acts as a single entry point that handles authentication, rate limiting, and routing for backend services.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 62,
+    "promptTokenCount": 14,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 268,
   },
 }
 `;
