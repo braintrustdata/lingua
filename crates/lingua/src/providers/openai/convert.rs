@@ -2333,8 +2333,13 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
 
             let parts: Vec<AssistantContentPart> = match item.output_item_type {
                 Some(openai::OutputItemType::Message) => {
-                    // Extract text content from message output items
+                    // Extract text content from message output items.
+                    // `phase` is a message-level field (not content-level); it is stored in
+                    // the first text part's provider_options under "_output_item_phase" so
+                    // it survives the OutputItem → Message → OutputItem roundtrip.
+                    let item_phase = item.phase.take();
                     let mut text_parts = Vec::new();
+                    let mut phase_stored = false;
                     if let Some(content) = item.content {
                         for c in content {
                             if let Some(text) = c.text {
@@ -2344,27 +2349,30 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                                 // injected by `response_from_universal`, so they are not
                                 // stored back to keep the universal representation clean.
                                 let non_empty_annotations = c.annotations.filter(|a| !a.is_empty());
-                                let provider_options =
-                                    if non_empty_annotations.is_some() || c.logprobs.is_some() {
-                                        let mut options = serde_json::Map::new();
-                                        if let Some(annotations) = non_empty_annotations {
-                                            if let Ok(value) = serde_json::to_value(&annotations) {
-                                                options.insert("annotations".to_string(), value);
-                                            }
+                                let mut options = serde_json::Map::new();
+                                if let Some(annotations) = non_empty_annotations {
+                                    if let Ok(value) = serde_json::to_value(&annotations) {
+                                        options.insert("annotations".to_string(), value);
+                                    }
+                                }
+                                if let Some(logprobs) = c.logprobs {
+                                    if let Ok(value) = serde_json::to_value(&logprobs) {
+                                        options.insert("logprobs".to_string(), value);
+                                    }
+                                }
+                                if !phase_stored {
+                                    phase_stored = true;
+                                    if let Some(ref phase) = item_phase {
+                                        if let Ok(value) = serde_json::to_value(phase) {
+                                            options.insert("_output_item_phase".to_string(), value);
                                         }
-                                        if let Some(logprobs) = c.logprobs {
-                                            if let Ok(value) = serde_json::to_value(&logprobs) {
-                                                options.insert("logprobs".to_string(), value);
-                                            }
-                                        }
-                                        if options.is_empty() {
-                                            None
-                                        } else {
-                                            Some(ProviderOptions { options })
-                                        }
-                                    } else {
-                                        None
-                                    };
+                                    }
+                                }
+                                let provider_options = if options.is_empty() {
+                                    None
+                                } else {
+                                    Some(ProviderOptions { options })
+                                };
                                 text_parts.push(AssistantContentPart::Text(TextContentPart {
                                     text,
                                     encrypted_content: None,
@@ -2656,7 +2664,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     // Extract annotations and logprobs from provider_options.
                                     // Default annotations to Some(vec![]) so the Responses API
                                     // output always has the required `annotations` array.
-                                    let (annotations, logprobs) = if let Some(ref opts) =
+                                    let (annotations, logprobs, phase) = if let Some(ref opts) =
                                         text_part.provider_options
                                     {
                                         let annotations =
@@ -2672,9 +2680,16 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             )
                                             .ok()
                                         });
-                                        (annotations.or(Some(vec![])), logprobs)
+                                        let phase =
+                                            opts.options.get("_output_item_phase").and_then(|v| {
+                                                serde_json::from_value::<openai::MessagePhase>(
+                                                    v.clone(),
+                                                )
+                                                .ok()
+                                            });
+                                        (annotations.or(Some(vec![])), logprobs, phase)
                                     } else {
-                                        (Some(vec![]), None)
+                                        (Some(vec![]), None, None)
                                     };
                                     result.push(openai::OutputItem {
                                         output_item_type: Some(openai::OutputItemType::Message),
@@ -2689,6 +2704,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         }]),
                                         id: use_id(&mut id_used, &id),
                                         status: Some(openai::FunctionCallItemStatus::Completed),
+                                        phase,
                                         ..Default::default()
                                     });
                                 }

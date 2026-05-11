@@ -1,0 +1,320 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0daca400c2cf33c9006a0214043fd88190b76876d3e6446e85",
+      "object": "response",
+      "created_at": 1778521092,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0daca400c2cf33c9006a0214043fd88190b76876d3e6446e85",
+      "object": "response",
+      "created_at": 1778521092,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0daca400c2cf33c9006a021404d910819081e56428ba32ac4c",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0daca400c2cf33c9006a021404d910819081e56428ba32ac4c",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_ahg2yVSnxIlU0OsPkAmndF76",
+      "name": "get_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{\"",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "obfuscation": "IivxY6PlKcuvAx",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "location",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "obfuscation": "8N4cHFwq",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\":\"",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "obfuscation": "d7qqtALaunjkA",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "Tokyo",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "obfuscation": "rjNt9RPoygB",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "\"}",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "obfuscation": "73FO0a7q3DZqfn",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{\"location\":\"Tokyo\"}",
+    "item_id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"location\":\"Tokyo\"}",
+      "call_id": "call_ahg2yVSnxIlU0OsPkAmndF76",
+      "name": "get_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0daca400c2cf33c9006a0214043fd88190b76876d3e6446e85",
+      "object": "response",
+      "created_at": 1778521092,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1778521093,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_0daca400c2cf33c9006a021404d910819081e56428ba32ac4c",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "fc_0daca400c2cf33c9006a02140504208190af3987d8afa0b90f",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{\"location\":\"Tokyo\"}",
+          "call_id": "call_ahg2yVSnxIlU0OsPkAmndF76",
+          "name": "get_weather"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 41,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 43,
+        "output_tokens_details": {
+          "reasoning_tokens": 23
+        },
+        "total_tokens": 84
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 12
+  }
+]

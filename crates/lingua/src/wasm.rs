@@ -373,6 +373,7 @@ pub fn transform_request(
         TransformResult::Transformed {
             bytes,
             source_format,
+            ..
         } => (false, bytes, Some(source_format)),
     };
 
@@ -421,6 +422,7 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
         TransformResult::Transformed {
             bytes,
             source_format,
+            ..
         } => (false, bytes, Some(source_format)),
     };
 
@@ -453,6 +455,7 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
         TransformResult::Transformed {
             bytes,
             source_format,
+            ..
         } => (false, bytes, Some(source_format)),
     };
 

@@ -154,20 +154,21 @@ async fn prepare_provider_request(
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
-) -> Result<(Bytes, Option<ProviderFormat>)> {
+) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format)));
+        return Ok((bytes, Some(format), format));
     }
 
-    let (transformed, detected_format) =
+    let (transformed, detected_format, actual_format) =
         match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => (bytes, None),
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format),
             Ok(TransformResult::Transformed {
                 bytes,
                 source_format,
-            }) => (bytes, Some(source_format)),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None),
+                actual_target_format,
+            }) => (bytes, Some(source_format), actual_target_format),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
             Err(err) => return Err(err.into()),
         };
 
@@ -175,11 +176,12 @@ async fn prepare_provider_request(
         // TODO: Fold streaming intent into `lingua::transform_request` once we
         // are ready to update its Rust/WASM/Python/TS call sites together.
         Ok((
-            enable_streaming_payload(transformed, format),
+            enable_streaming_payload(transformed, actual_format),
             detected_format,
+            actual_format,
         ))
     } else {
-        Ok((transformed, detected_format))
+        Ok((transformed, detected_format, actual_format))
     }
 }
 
@@ -214,14 +216,14 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (provider_alias, provider, auth, spec, format, strategy) = route;
-        let (payload, detected_format) =
+        let (payload, detected_format, actual_format) =
             prepare_provider_request(body, spec.as_ref(), *format, stream).await?;
         Ok((
             PreparedRequestInner {
                 provider: provider.clone(),
                 auth,
                 spec: spec.clone(),
-                format: *format,
+                format: actual_format,
                 payload,
                 output_format,
                 strategy: strategy.clone(),
@@ -229,7 +231,7 @@ impl Router {
             RouterMetadata {
                 detected_input_format: detected_format.unwrap_or(*format),
                 provider_alias: provider_alias.clone(),
-                provider_format: *format,
+                provider_format: actual_format,
             },
         ))
     }
@@ -872,7 +874,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _) =
+        let (payload, _, _) =
             prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
                 .await
                 .expect("request prepares");
@@ -890,7 +892,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _) =
+        let (payload, _, _) =
             prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
                 .await
                 .expect("request prepares");
@@ -898,6 +900,45 @@ mod tests {
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);
         assert_eq!(parsed.get("stream_options"), None);
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_upgrades_actual_format_to_responses_for_reasoning_plus_tools()
+    {
+        // A chat-completions request with reasoning_effort + tools should have its actual_format
+        // upgraded to Responses so the router sends it to the correct endpoint.
+        let body = Bytes::from(
+            serde_json::json!({
+                "model": "gpt-5.4-mini",
+                "messages": [{"role": "user", "content": "Tokyo weather?"}],
+                "reasoning_effort": "medium",
+                "tools": [{
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "description": "Get weather",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {"location": {"type": "string"}},
+                            "required": ["location"]
+                        }
+                    }
+                }]
+            })
+            .to_string(),
+        );
+        let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
+
+        let (_, _, actual_format) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
+                .await
+                .expect("request prepares");
+
+        assert_eq!(
+            actual_format,
+            ProviderFormat::Responses,
+            "actual_format must be Responses so the router uses the /v1/responses endpoint"
+        );
     }
 
     fn dummy_auth() -> AuthConfig {

@@ -6755,6 +6755,81 @@ exports[`chat-completions → anthropic > frequencyPenaltyParam > response 1`] =
 }
 `;
 
+exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "The user is asking about the weather in Tokyo. I have a function called \`get_weather\` that takes a location as a parameter. I should call this function with "Tokyo" as the location.",
+        "reasoning_signature": "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ==",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "toolu_018kcvffT3SCYkT8yiRyrnsk",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01BHYHXCTAGhXwEeG5n7iivg",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 102,
+    "prompt_tokens": 592,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 694,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9233,6 +9308,96 @@ exports[`chat-completions → google > frequencyPenaltyParam > response 1`] = `
     },
     "prompt_tokens": 4,
     "total_tokens": 20,
+  },
+}
+`;
+
+exports[`chat-completions → google > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "Here's my thought process, summarized:
+
+**Analyzing the Request for Tokyo's Weather**
+
+Okay, so the user wants to know the weather in Tokyo. That's straightforward enough. I know I have a \`get_weather\` tool at my disposal, and that tool is designed specifically for retrieving weather information based on a given location. Therefore, my next logical step is to utilize this tool. I need to call \`get_weather\` with the input "Tokyo." That should give me the weather data the user is seeking. It's a simple request, and I can fulfill it directly using the appropriate function.
+",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "call_0",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 61,
+    "completion_tokens_details": {
+      "reasoning_tokens": 46,
+    },
+    "prompt_tokens": 37,
+    "total_tokens": 98,
   },
 }
 `;
@@ -12026,6 +12191,90 @@ exports[`chat-completions → responses > frequencyPenaltyParam > response 1`] =
       "cached_tokens": 0,
     },
     "total_tokens": 306,
+  },
+}
+`;
+
+exports[`chat-completions → responses > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5.4-mini",
+  "reasoning": {
+    "effort": "medium",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "tool_calls",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "call_2QJ5OBuYVgUhPoOTBBDkqeMZ",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-084d44b731628f64006a021408541081938c4193815899068d",
+  "model": "gpt-5.4-mini-2026-03-17",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 52,
+    "completion_tokens_details": {
+      "reasoning_tokens": 32,
+    },
+    "prompt_tokens": 41,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 93,
   },
 }
 `;
@@ -22450,6 +22699,89 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
 }
 `;
 
+exports[`responses → anthropic > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Tokyo weather",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 2048,
+    "type": "enabled",
+  },
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+      "strict": true,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011P5UEbqb8vTBxTJ2g8NtFY",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "encrypted_content": "EvcCCmQIDRgCKkCVjyd30PmtYqFiFoEY4TdUIerrZsZOObMOcrI5cNv2qcF0NKaa43ohCeNxKvr1XiXXYrbvUC2P4E1hzLIkcTbGMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgw7drsvHRMC++7Cjs4aDEnGp0pzLci6a6ENviIwnz3mHVENgTHTS7ltzPN4L4nJTqR+95VEV6+baqO81xwUaUfDe/oL6Y+DZObbyFbAKsAB+Dl9tjqGAfdO7Au3iARPqEBRwJsrOvcN2CkqXs7zqOFU4nLaGCNyXFVRNVoWpK/fFxxBTSMXgyq/s1vKFdv/MPRk8iREOXGrjK86eQE00QqedreBAPuEcVl58HuHuSbwSVNxv6tqfggpuNXNm13x+rbNZpC883vgqrrfoP3Oyrck5YV6TjOOndHQDUJV0MmkTn/7dLVt5Xug4UOe0Po2CInr5qLZMqk43A+WCBwn+DmucsUjYigKX+r3er1VRJt9GAE=",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "The user is asking about the weather in Tokyo. I have a function called "get_weather" that takes a location parameter. I should call this function with "Tokyo" as the location.",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "arguments": "{"location":"Tokyo"}",
+      "call_id": "toolu_01MkMTYHdPrL7TZi2NCrLc9B",
+      "id": "msg_transformed_item_1",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 592,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 100,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 692,
+  },
+}
+`;
+
 exports[`responses → anthropic > instructionsParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -25432,6 +25764,104 @@ Total for H2:
       "reasoning_tokens": 2845,
     },
     "total_tokens": 5180,
+  },
+}
+`;
+
+exports[`responses → google > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "Here's my thought process, summarized as you requested:
+
+**Tokyo Weather Query Processing**
+
+Okay, so the user wants to know the weather in Tokyo. That's straightforward enough. The request is very clear – I need to determine the current weather conditions for the specified location. Luckily, I've got the \`get_weather\` tool at my disposal, which is specifically designed for retrieving weather information based on a location input. Therefore, my immediate course of action is obvious: I must call the \`get_weather\` tool. The location parameter for this tool is "Tokyo", so that will be the input I feed into it. It's a simple process, really - identify the core request, select the appropriate tool, and supply the necessary input. Let's get that data!
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "arguments": "{"location":"Tokyo"}",
+      "call_id": "call_0",
+      "id": "msg_transformed_item_1",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 37,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 61,
+    "output_tokens_details": {
+      "reasoning_tokens": 46,
+    },
+    "total_tokens": 98,
   },
 }
 `;
