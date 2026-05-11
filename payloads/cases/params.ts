@@ -1556,6 +1556,25 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  googleOpenAIModelTopKParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Write a short sentence about API gateways." }],
+        },
+      ],
+      generationConfig: {
+        topK: 1,
+        maxOutputTokens: 1024,
+      },
+    },
+    bedrock: null,
+  },
+
   streamParam: {
     "chat-completions": null,
     responses: null,
