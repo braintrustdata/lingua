@@ -849,7 +849,7 @@
       "source": "ChatCompletions",
       "target": "Google",
       "fields": [
-        { "pattern": "params.tools[*].parameters.properties", "reason": "Gemini's Schema proto does not support JSON Schema Draft-07 keywords such as exclusiveMinimum; they are stripped during conversion to avoid a 400 INVALID_ARGUMENT error" }
+        { "pattern": "params.tools[0].parameters.properties.max_tokens.exclusiveMinimum", "reason": "Gemini's Schema proto does not support JSON Schema Draft-07 keywords such as exclusiveMinimum; they are stripped during conversion to avoid a 400 INVALID_ARGUMENT error" }
       ]
     }
   ]
