@@ -13,6 +13,7 @@ import {
   OPENAI_NON_REASONING_MODEL,
   ANTHROPIC_MODEL,
   ANTHROPIC_OPUS_MODEL,
+  GOOGLE_MODEL,
   GOOGLE_GEMINI_3_MODEL,
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
@@ -2103,6 +2104,90 @@ export const paramsCases: TestCaseCollection = {
         mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
       },
     },
+    bedrock: null,
+  },
+
+  exclusiveMinimumToolParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Configure the LLM." }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "configure_llm",
+            description: "Configure LLM generation parameters",
+            parameters: {
+              type: "object",
+              properties: {
+                max_tokens: {
+                  type: "number",
+                  exclusiveMinimum: 0,
+                  description: "Maximum number of tokens to generate",
+                },
+              },
+              required: ["max_tokens"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Configure the LLM." }],
+      tools: [
+        {
+          type: "function",
+          name: "configure_llm",
+          description: "Configure LLM generation parameters",
+          parameters: {
+            type: "object",
+            properties: {
+              max_tokens: {
+                type: "number",
+                exclusiveMinimum: 0,
+                description: "Maximum number of tokens to generate",
+              },
+            },
+            required: ["max_tokens"],
+            additionalProperties: false,
+          },
+          strict: false,
+        },
+      ],
+    },
+    anthropic: null,
+    google: (() => {
+      // Assigned to a variable first so TypeScript applies structural (not
+      // excess-property) checking when it lands in Record<string, Schema>.
+      // exclusiveMinimum is not in Gemini's Schema type but IS passed here
+      // deliberately to capture the resulting 400 INVALID_ARGUMENT error.
+      const maxTokensSchema = {
+        type: Type.NUMBER,
+        exclusiveMinimum: 0,
+        description: "Maximum number of tokens to generate",
+      };
+      return {
+        model: GOOGLE_MODEL,
+        contents: [{ role: "user", parts: [{ text: "Configure the LLM." }] }],
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "configure_llm",
+                description: "Configure LLM generation parameters",
+                parameters: {
+                  type: Type.OBJECT,
+                  properties: { max_tokens: maxTokensSchema },
+                  required: ["max_tokens"],
+                },
+              },
+            ],
+          },
+        ],
+      };
+    })(),
     bedrock: null,
   },
 };

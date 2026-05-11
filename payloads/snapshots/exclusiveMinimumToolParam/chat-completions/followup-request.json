@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Configure the LLM."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_U4A1cymd03k0mIgSaB4RwJKs",
+          "type": "function",
+          "function": {
+            "name": "configure_llm",
+            "arguments": "{\"max_tokens\": 4096}"
+          }
+        }
+      ],
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_U4A1cymd03k0mIgSaB4RwJKs",
+      "content": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "configure_llm",
+        "description": "Configure LLM generation parameters",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "max_tokens": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Maximum number of tokens to generate"
+            }
+          },
+          "required": [
+            "max_tokens"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

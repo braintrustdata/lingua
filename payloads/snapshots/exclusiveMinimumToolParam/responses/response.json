@@ -1,0 +1,99 @@
+{
+  "id": "resp_0ad9a5f3cf5786be006a01fa8da28c819797a13e41babc185e",
+  "object": "response",
+  "created_at": 1778514573,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778514579,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0ad9a5f3cf5786be006a01fa8e58ec81979fa3b0f6ce5c327e",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0ad9a5f3cf5786be006a01fa92bdd48197bad67756895852a3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure. What max_tokens value would you like me to configure? Common options: 256, 512, 1024, 2048, 4096. If you prefer, I can set 2048 by default."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 66,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 603,
+    "output_tokens_details": {
+      "reasoning_tokens": 512
+    },
+    "total_tokens": 669
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure. What max_tokens value would you like me to configure? Common options: 256, 512, 1024, 2048, 4096. If you prefer, I can set 2048 by default."
+}

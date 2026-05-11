@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please provide the `max_tokens` parameter to configure the LLM.",
+            "thoughtSignature": "CokCAQw51scOFKbgK5bO/X1BLBLzjBzYmtbGvqe5Ct/W+tkUSoFxY91vKIVqLrFNMUtuHyaDjXlS84QEz6Am96xV1F6QtwJrjiCLO+05PK6UiWtG4KTWTbtRXXQBeMxPkcTjGf0WBVz/DYCz3gSBMRgTYjmIfxscIVM0dhNtluqp8p1rnc3kPcl6Futaav7id4d06hgqOff/8Usvfa0XNGYE5GHaIw8yzNuoSJC40zLw51nCGcAW5HJne1jE4Ch4aT4g9H4rzQ0L7z7CL+rmTmlYaA6JbNdcnrcUEnPPNncfFLU94A3cMEDB/zbuOTuvjPEz8QWhkwAUmtex1g81jSba32o8vwqtMGQC8w=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 53,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 127,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 53
+      }
+    ],
+    "thoughtsTokenCount": 59,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "c_sBavy5HIOc_uMP7reJoAc"
+}

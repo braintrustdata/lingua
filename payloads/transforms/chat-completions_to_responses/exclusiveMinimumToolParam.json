@@ -1,0 +1,99 @@
+{
+  "id": "resp_0038cce6fceb0e88006a01faa00e5c8195921786d0852993cd",
+  "object": "response",
+  "created_at": 1778514592,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1778514601,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0038cce6fceb0e88006a01faa1d9d08195aa33d7aff4728a07",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0038cce6fceb0e88006a01faa7a4c48195937d5eacf3744da5",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure. I can configure the LLM, but I need a max_tokens value to apply.\n\nOptions (balanced defaults):\n- 512 – concise responses\n- 1024 – short to medium\n- 2048 – balanced\n- 4096 – longer responses\n\nIf you’d like, I can apply 2048 tokens right now as a balanced default. Would you like me to set max_tokens to 2048 (or choose another value)? Also, note that this configuration step only covers max_tokens; tell me if you want me to note any other preferences, and I can track them for you."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Configure LLM generation parameters",
+      "name": "configure_llm",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "max_tokens": {
+            "description": "Maximum number of tokens to generate",
+            "exclusiveMinimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 66,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 768,
+    "output_tokens_details": {
+      "reasoning_tokens": 576
+    },
+    "total_tokens": 834
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure. I can configure the LLM, but I need a max_tokens value to apply.\n\nOptions (balanced defaults):\n- 512 – concise responses\n- 1024 – short to medium\n- 2048 – balanced\n- 4096 – longer responses\n\nIf you’d like, I can apply 2048 tokens right now as a balanced default. Would you like me to set max_tokens to 2048 (or choose another value)? Also, note that this configuration step only covers max_tokens; tell me if you want me to note any other preferences, and I can track them for you."
+}
