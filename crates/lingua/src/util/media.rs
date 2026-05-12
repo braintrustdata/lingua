@@ -313,9 +313,9 @@ mod wasm_fetch {
 #[cfg(not(target_arch = "wasm32"))]
 mod native_fetch {
     use super::*;
-    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, ToSocketAddrs};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs};
     use std::time::Duration;
-    use url::Url;
+    use url::{Host, Url};
 
     const MAX_REDIRECTS: usize = 3;
     const MEDIA_FETCH_TIMEOUT: Duration = Duration::from_secs(30);
@@ -362,7 +362,12 @@ mod native_fetch {
         }
     }
 
-    fn validate_media_url(url: &Url) -> Result<(), MediaError> {
+    struct ValidatedMediaUrl {
+        hostname: Option<String>,
+        addresses: Vec<SocketAddr>,
+    }
+
+    fn validate_media_url(url: &Url) -> Result<ValidatedMediaUrl, MediaError> {
         if url.scheme() != "http" && url.scheme() != "https" {
             return Err(MediaError::FetchError(
                 "media URL must use http or https".to_string(),
@@ -370,58 +375,88 @@ mod native_fetch {
         }
 
         let host = url
+            .host()
+            .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
+        match host {
+            Host::Ipv4(address) => {
+                if is_blocked_ipv4(address) {
+                    return Err(MediaError::FetchError(
+                        "media URL resolves to a blocked address".to_string(),
+                    ));
+                }
+                return Ok(ValidatedMediaUrl {
+                    hostname: None,
+                    addresses: Vec::new(),
+                });
+            }
+            Host::Ipv6(address) => {
+                if is_blocked_ipv6(address) {
+                    return Err(MediaError::FetchError(
+                        "media URL resolves to a blocked address".to_string(),
+                    ));
+                }
+                return Ok(ValidatedMediaUrl {
+                    hostname: None,
+                    addresses: Vec::new(),
+                });
+            }
+            Host::Domain(host) => {
+                if host.eq_ignore_ascii_case("localhost") {
+                    return Err(MediaError::FetchError(
+                        "media URL resolves to a blocked address".to_string(),
+                    ));
+                }
+            }
+        }
+
+        let hostname = url
             .host_str()
             .ok_or_else(|| MediaError::FetchError("media URL is missing a host".to_string()))?;
-        if host.eq_ignore_ascii_case("localhost") {
-            return Err(MediaError::FetchError(
-                "media URL resolves to a blocked address".to_string(),
-            ));
-        }
-
-        if let Ok(address) = host.parse::<IpAddr>() {
-            if is_blocked_ip(address) {
-                return Err(MediaError::FetchError(
-                    "media URL resolves to a blocked address".to_string(),
-                ));
-            }
-            return Ok(());
-        }
-
         let port = url.port_or_known_default().ok_or_else(|| {
             MediaError::FetchError("media URL is missing a valid port".to_string())
         })?;
-        let addresses = (host, port)
+        let addresses = (hostname, port)
             .to_socket_addrs()
             .map_err(|e| MediaError::FetchError(format!("failed to resolve media URL: {e}")))?;
 
-        let mut resolved_any = false;
+        let mut resolved_addresses = Vec::new();
         for address in addresses {
-            resolved_any = true;
             if is_blocked_ip(address.ip()) {
                 return Err(MediaError::FetchError(
                     "media URL resolves to a blocked address".to_string(),
                 ));
             }
+            resolved_addresses.push(address);
         }
 
-        if !resolved_any {
+        if resolved_addresses.is_empty() {
             return Err(MediaError::FetchError(
                 "media URL did not resolve to any addresses".to_string(),
             ));
         }
 
-        Ok(())
+        Ok(ValidatedMediaUrl {
+            hostname: Some(hostname.to_string()),
+            addresses: resolved_addresses,
+        })
     }
 
-    async fn fetch_validated_url(
-        client: &reqwest::Client,
-        url: &str,
-    ) -> Result<reqwest::Response, MediaError> {
+    async fn fetch_validated_url(url: &str) -> Result<reqwest::Response, MediaError> {
         let mut current_url = Url::parse(url)
             .map_err(|e| MediaError::FetchError(format!("invalid media URL: {e}")))?;
 
         for redirect_count in 0..=MAX_REDIRECTS {
-            validate_media_url(&current_url)?;
+            let validated_url = validate_media_url(&current_url)?;
+            let mut client_builder = reqwest::Client::builder()
+                .redirect(reqwest::redirect::Policy::none())
+                .timeout(MEDIA_FETCH_TIMEOUT);
+            if let Some(hostname) = validated_url.hostname {
+                client_builder =
+                    client_builder.resolve_to_addrs(&hostname, &validated_url.addresses);
+            }
+            let client = client_builder
+                .build()
+                .map_err(|e| MediaError::FetchError(e.to_string()))?;
             let response = client
                 .get(current_url.clone())
                 .send()
@@ -488,12 +523,7 @@ mod native_fetch {
         allowed_types: Option<&[&str]>,
         max_bytes: Option<usize>,
     ) -> Result<MediaBlock, MediaError> {
-        let client = reqwest::Client::builder()
-            .redirect(reqwest::redirect::Policy::none())
-            .timeout(MEDIA_FETCH_TIMEOUT)
-            .build()
-            .map_err(|e| MediaError::FetchError(e.to_string()))?;
-        let mut response = fetch_validated_url(&client, url).await?;
+        let mut response = fetch_validated_url(url).await?;
 
         if !response.status().is_success() {
             return Err(MediaError::FetchError(format!(
@@ -577,6 +607,23 @@ mod native_fetch {
             let url = Url::parse("http://169.254.169.254/latest/meta-data").unwrap();
             assert!(matches!(
                 validate_media_url(&url),
+                Err(MediaError::FetchError(message))
+                    if message.contains("blocked address")
+            ));
+        }
+
+        #[test]
+        fn validate_media_url_rejects_ipv4_mapped_ipv6_localhost() {
+            let dotted_url = Url::parse("http://[::ffff:127.0.0.1]/image.png").unwrap();
+            assert!(matches!(
+                validate_media_url(&dotted_url),
+                Err(MediaError::FetchError(message))
+                    if message.contains("blocked address")
+            ));
+
+            let hex_url = Url::parse("http://[::ffff:7f00:1]/image.png").unwrap();
+            assert!(matches!(
+                validate_media_url(&hex_url),
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
