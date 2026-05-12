@@ -1,0 +1,11 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    }
+  ],
+  "reasoning_effort": "medium",
+  "max_completion_tokens": 4096
+}

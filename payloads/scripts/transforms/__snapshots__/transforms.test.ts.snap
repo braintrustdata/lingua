@@ -396,6 +396,41 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "max_completion_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+}
+`;
+
+exports[`anthropic → chat-completions > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DelohNyDP0iBjIFvkuk6yADxQU92M",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 74,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam > request 1`] = `
 {
   "max_completion_tokens": 16000,
@@ -2417,6 +2452,59 @@ exports[`anthropic → google > multimodalRequest > response 1`] = `
   "usage": {
     "input_tokens": 267,
     "output_tokens": 296,
+  },
+}
+`;
+
+exports[`anthropic → google > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`anthropic → google > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "Okay, here's my thought process on this seemingly straightforward task:
+
+**Deconstructing a Simple Sum**
+
+Alright, a simple arithmetic question. They've given me "2 + 2." The user, being an expert, likely already knows the answer. My task isn't to *calculate* in a vacuum; it's to *respond* with the result of that very basic addition. It's a test of my fundamental understanding of the instructions and the ability to process them. So, let me just add those numbers, 2 + 2...and the answer is 4. Now, I just need to state that result.
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 33,
   },
 }
 `;
@@ -4886,6 +4974,47 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 98,
     "output_tokens": 256,
+  },
+}
+`;
+
+exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 4096,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_04fe9ef52e7e029b006a036c938ba081a0b4f35fa9f6eaf5ca",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 158,
   },
 }
 `;
@@ -7502,6 +7631,53 @@ exports[`chat-completions → anthropic > nMultipleCompletionsParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 16,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-7",
+  "output_config": {
+    "effort": "medium",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01PZR5E5Ej9P1LSZQNBqBYYG",
+  "model": "claude-opus-4-7",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 14,
+    "prompt_tokens": 18,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 32,
   },
 }
 `;
@@ -10202,6 +10378,64 @@ exports[`chat-completions → google > nMultipleCompletionsParam > response 1`] 
     },
     "prompt_tokens": 5,
     "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → google > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 2048,
+    },
+  },
+  "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "Okay, here's my interpretation of that scenario, summarized as if I'm processing the request:
+
+**Simple Math, Straightforward Answer**
+
+Alright, a basic arithmetic problem. "What is 2 + 2?" is the question. No need for complex analysis or nuanced interpretations here. It's a fundamental mathematical operation, addition, plain and simple. My task is to execute this addition and provide the correct result. No room for ambiguity or speculation. The answer is directly derived from the basic axioms of arithmetic. Let me compute this... and present the result. It's a quick calculation, and I'll deliver the answer without unnecessary elaboration. The focus is precision and efficiency.
+",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 36,
+    "completion_tokens_details": {
+      "reasoning_tokens": 28,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 44,
   },
 }
 `;
@@ -13208,6 +13442,62 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 354,
+  },
+}
+`;
+
+exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 4096,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+}
+`;
+
+exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0187fd78f6b74ce8006a036c93aed8819d835490c32aa997dc",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 133,
+    "completion_tokens_details": {
+      "reasoning_tokens": 64,
+    },
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 146,
   },
 }
 `;
