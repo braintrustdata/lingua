@@ -179,6 +179,27 @@ describe("Node.js exports", () => {
     expect(value).toBe(9007199254740993n);
   });
 
+  test("should deduplicate messages across spans and return plain-object results", async () => {
+    const { importAndDeduplicateMessages } = await import("../src/index");
+
+    const sharedTurn = [
+      { role: "user", content: "what is 2+2?" },
+      { role: "assistant", content: "4" },
+    ];
+
+    const messages = importAndDeduplicateMessages([
+      { input: sharedTurn },
+      { input: sharedTurn, output: { role: "assistant", content: "4" } },
+      { input: [{ role: "user", content: "and 3+3?" }] },
+    ]);
+
+    expect(messages).toEqual([
+      { role: "user", content: "what is 2+2?" },
+      { role: "assistant", id: null, content: "4" },
+      { role: "user", content: "and 3+3?" },
+    ]);
+  });
+
   test("should NOT export browser-specific init function", async () => {
     const exports = await import("../src/index");
 
