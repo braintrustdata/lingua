@@ -1,11 +1,12 @@
 use std::error::Error as StdError;
 use std::io::ErrorKind;
+use std::net::SocketAddr;
 use std::time::Duration;
 
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{Client, ClientBuilder};
+use reqwest::{redirect::Policy, Client, ClientBuilder};
 use reqwest_middleware::ClientWithMiddleware;
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
@@ -21,12 +22,20 @@ const DEFAULT_MAX_RETRIES: u32 = 2;
 // low-cardinality and effectively process-wide; request-scoped values do not
 // belong here because they fragment client reuse and connection pooling.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DnsOverride {
+    pub domain: String,
+    pub addrs: Vec<SocketAddr>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ClientSettings {
     pub connect_timeout: Duration,
     pub request_timeout: Duration,
     pub pool_idle_timeout: Duration,
     pub pool_max_idle_per_host: usize,
     pub user_agent: String,
+    pub dns_overrides: Vec<DnsOverride>,
+    pub follow_redirects: bool,
 }
 
 impl Default for ClientSettings {
@@ -37,19 +46,29 @@ impl Default for ClientSettings {
             pool_idle_timeout: Duration::from_secs(90),
             pool_max_idle_per_host: 16,
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
+            dns_overrides: Vec::new(),
+            follow_redirects: true,
         }
     }
 }
 
 pub fn build_client(settings: &ClientSettings) -> Result<Client> {
-    ClientBuilder::new()
+    let mut builder = ClientBuilder::new()
         .connect_timeout(settings.connect_timeout)
         .timeout(settings.request_timeout)
         .pool_idle_timeout(settings.pool_idle_timeout)
         .pool_max_idle_per_host(settings.pool_max_idle_per_host)
-        .user_agent(&settings.user_agent)
-        .build()
-        .map_err(Error::from)
+        .user_agent(&settings.user_agent);
+
+    if !settings.follow_redirects {
+        builder = builder.redirect(Policy::none());
+    }
+
+    for override_entry in &settings.dns_overrides {
+        builder = builder.resolve_to_addrs(&override_entry.domain, &override_entry.addrs);
+    }
+
+    builder.build().map_err(Error::from)
 }
 
 pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
@@ -77,19 +96,25 @@ pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMi
 }
 
 fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
+    let cacheable = settings.dns_overrides.is_empty();
+
     #[cfg(feature = "tracing")]
     {
-        if let Some(existing) = SHARED_CLIENTS.get(settings) {
-            tracing::Span::current().record("cache.hit", true);
-            return Ok(existing.clone());
+        if cacheable {
+            if let Some(existing) = SHARED_CLIENTS.get(settings) {
+                tracing::Span::current().record("cache.hit", true);
+                return Ok(existing.clone());
+            }
         }
         tracing::Span::current().record("cache.hit", false);
     }
 
     #[cfg(not(feature = "tracing"))]
     {
-        if let Some(existing) = SHARED_CLIENTS.get(settings) {
-            return Ok(existing.clone());
+        if cacheable {
+            if let Some(existing) = SHARED_CLIENTS.get(settings) {
+                return Ok(existing.clone());
+            }
         }
     }
 
@@ -112,10 +137,12 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
         build_retrying_middleware_client(client)
     };
 
-    if let Some(existing) = SHARED_CLIENTS.get(settings) {
-        return Ok(existing.clone());
+    if cacheable {
+        if let Some(existing) = SHARED_CLIENTS.get(settings) {
+            return Ok(existing.clone());
+        }
+        SHARED_CLIENTS.insert(settings.clone(), client.clone());
     }
-    SHARED_CLIENTS.insert(settings.clone(), client.clone());
     Ok(client)
 }
 
