@@ -86,6 +86,25 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  opus47AdaptiveThinkingReasoningEffortParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      reasoning_effort: "medium",
+      max_completion_tokens: 4096,
+    },
+    responses: null,
+    anthropic: {
+      model: "claude-opus-4-7",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "adaptive" },
+      output_config: { effort: "medium" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   reasoningEffortMinimalParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -1551,6 +1570,25 @@ export const paramsCases: TestCaseCollection = {
       contents: [{ role: "user", parts: [{ text: "Say hi." }] }],
       generationConfig: {
         topK: 40,
+      },
+    },
+    bedrock: null,
+  },
+
+  googleOpenAIModelTopKParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Write a short sentence about API gateways." }],
+        },
+      ],
+      generationConfig: {
+        topK: 1,
+        maxOutputTokens: 1024,
       },
     },
     bedrock: null,

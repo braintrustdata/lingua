@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DeloUHiCMGkOAhhbslKSEVIZ8MvvC",
+  "object": "chat.completion",
+  "created": 1778609286,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I’m not sure what you’re aiming for. Do you want to keep going with math, or something else? Here are a few quick options you can pick from, or tell me your goal and I’ll tailor it:\n\n- Quick math practice: I can give you a small set of problems (addition, subtraction, multiplication, fractions) and walk you through the solutions.\n- Learn a new math concept: I can explain something (order of operations, fractions, decimals) with simple examples.\n- General productivity or study plan: I can help you set a short plan (tasks to finish in 25–30 minutes, then a break).\n- Break or stretch: a 5-minute break with a quick stretch or walk.\n- If you want something else (coding, language, reading, etc.), tell me your goal and time available and I’ll suggest steps.\n\nWhat would you like to do?",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 46,
+    "completion_tokens": 1278,
+    "total_tokens": 1324,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1088,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

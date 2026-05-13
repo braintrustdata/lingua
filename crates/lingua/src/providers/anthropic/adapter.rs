@@ -25,8 +25,9 @@ use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{Message, UserContent, UserContentPart};
+use crate::universal::reasoning::budget_to_effort;
 use crate::universal::request::{
-    ReasoningCanonical, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
+    ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
     UniversalMetadataUserView,
 };
 use crate::universal::tools::UniversalTool;
@@ -69,9 +70,39 @@ fn is_forced_tool_choice(value: &Value) -> bool {
 
 fn is_enabled_thinking(value: &Value) -> bool {
     let parsed: Result<Thinking, _> = serde_json::from_value(value.clone());
-    parsed
-        .ok()
-        .is_some_and(|thinking| thinking.thinking_type == ThinkingType::Enabled)
+    parsed.ok().is_some_and(|thinking| {
+        matches!(
+            thinking.thinking_type,
+            ThinkingType::Enabled | ThinkingType::Adaptive
+        )
+    })
+}
+
+fn reasoning_is_enabled(config: &ReasoningConfig) -> bool {
+    config.effort != Some(ReasoningEffort::None)
+        && (config.enabled == Some(true)
+            || config.effort.is_some()
+            || config.budget_tokens.is_some())
+}
+
+fn reasoning_effort_level(
+    config: Option<&ReasoningConfig>,
+    max_tokens: Option<i64>,
+) -> Option<EffortLevel> {
+    let config = config?;
+    let effort = config.effort.or_else(|| {
+        config
+            .budget_tokens
+            .map(|budget| budget_to_effort(budget, max_tokens))
+    })?;
+
+    match effort {
+        ReasoningEffort::None => None,
+        ReasoningEffort::Minimal | ReasoningEffort::Low => Some(EffortLevel::Low),
+        ReasoningEffort::Medium => Some(EffortLevel::Medium),
+        ReasoningEffort::High => Some(EffortLevel::High),
+        ReasoningEffort::Xhigh => Some(EffortLevel::Max),
+    }
 }
 
 fn is_json_object_response_format(config: Option<&ResponseFormatConfig>) -> bool {
@@ -322,29 +353,36 @@ impl ProviderAdapter for AnthropicAdapter {
             .unwrap_or(DEFAULT_MAX_TOKENS);
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
-        // Determine reasoning style based on model capability AND canonical source:
-        // - Opus 4.5+ with effort canonical → output_config.effort (new API)
+        // Determine reasoning style based on model capability and source:
+        // - Opus 4.7+ → thinking.type=adaptive + output_config.effort
+        // - Opus 4.5/4.6 with effort canonical → output_config.effort
         // - All other cases → thinking object (legacy, broad model support)
         // Both branches use output_config.format for structured output (never output_format).
+        let reasoning_config = req.params.reasoning.as_ref();
+        let use_adaptive_thinking = capabilities::supports_adaptive_thinking(model)
+            && reasoning_config.is_some_and(reasoning_is_enabled);
         let use_effort = capabilities::supports_output_config_effort(model)
-            && req
-                .params
-                .reasoning
-                .as_ref()
-                .is_some_and(|r| r.canonical == Some(ReasoningCanonical::Effort));
+            && reasoning_config.is_some_and(|r| {
+                r.canonical == Some(ReasoningCanonical::Effort) || use_adaptive_thinking
+            });
 
-        let thinking_val = if use_effort {
+        let thinking_val = if use_adaptive_thinking {
+            Some(
+                serde_json::to_value(&Thinking {
+                    budget_tokens: None,
+                    display: None,
+                    thinking_type: ThinkingType::Adaptive,
+                })
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            )
+        } else if use_effort {
             None
         } else {
             req.params.reasoning_for(ProviderFormat::Anthropic)
         };
 
-        let reasoning_enabled = use_effort
-            || thinking_val
-                .as_ref()
-                .and_then(|v| v.get("type"))
-                .and_then(|t| t.as_str())
-                .is_some_and(|t| t == "enabled");
+        let reasoning_enabled =
+            use_effort || thinking_val.as_ref().is_some_and(is_enabled_thinking);
         if let Some(raw_temp) = anthropic_extras_view.temperature.as_ref() {
             obj.insert("temperature".into(), raw_temp.clone());
         } else if !reasoning_enabled {
@@ -417,17 +455,7 @@ impl ProviderAdapter for AnthropicAdapter {
 
         // Build output_config (always used for structured output format, and for effort on Opus 4.5+)
         let effort_level = if use_effort {
-            req.params
-                .reasoning
-                .as_ref()
-                .and_then(|r| r.effort)
-                .and_then(|e| match e {
-                    ReasoningEffort::None => None,
-                    ReasoningEffort::Minimal | ReasoningEffort::Low => Some(EffortLevel::Low),
-                    ReasoningEffort::Medium => Some(EffortLevel::Medium),
-                    ReasoningEffort::High => Some(EffortLevel::High),
-                    ReasoningEffort::Xhigh => Some(EffortLevel::Max),
-                })
+            reasoning_effort_level(reasoning_config, Some(max_tokens))
         } else {
             None
         };
@@ -443,7 +471,19 @@ impl ProviderAdapter for AnthropicAdapter {
         let raw_output_config = anthropic_extras_view.output_config.as_ref();
         let raw_thinking = anthropic_extras_view.thinking.as_ref();
 
-        if let Some(raw_output_config) = raw_output_config {
+        if use_adaptive_thinking {
+            if effort_level.is_some() || format.is_some() {
+                let output_config = OutputConfig {
+                    effort: effort_level,
+                    format,
+                };
+                obj.insert(
+                    "output_config".into(),
+                    serde_json::to_value(&output_config)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+        } else if let Some(raw_output_config) = raw_output_config {
             obj.insert("output_config".into(), raw_output_config.clone());
         } else if effort_level.is_some() || format.is_some() {
             let output_config = OutputConfig {
@@ -458,7 +498,13 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         // Add thinking for legacy reasoning (non-Opus models)
-        if let Some(raw_thinking) = raw_thinking {
+        if use_adaptive_thinking {
+            if let Some(thinking) = thinking_val {
+                if !(forced_tool_choice && is_enabled_thinking(&thinking)) {
+                    obj.insert("thinking".into(), thinking);
+                }
+            }
+        } else if let Some(raw_thinking) = raw_thinking {
             if !(forced_tool_choice && is_enabled_thinking(raw_thinking)) {
                 obj.insert("thinking".into(), raw_thinking.clone());
             }
@@ -1600,6 +1646,76 @@ mod tests {
         );
         assert_eq!(result.model, Some("claude-opus-4-7".to_string()));
         assert_eq!(result.max_tokens, Some(1024));
+    }
+
+    #[test]
+    fn test_anthropic_opus_4_7_uses_adaptive_thinking_with_effort() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::ReasoningConfig;
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-opus-4-7".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("What is 2+2?".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::Medium),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        let thinking = result.thinking.expect("thinking should be present");
+        assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+        assert_eq!(thinking.budget_tokens, None);
+
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(output_config.effort, Some(EffortLevel::Medium));
+    }
+
+    #[test]
+    fn test_anthropic_opus_4_7_normalizes_legacy_enabled_thinking() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-opus-4-7",
+            "max_tokens": 4096,
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "thinking": {
+                "type": "enabled",
+                "budget_tokens": 2048
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert!(universal.params.reasoning.as_ref().is_some_and(|r| {
+            r.enabled == Some(true)
+                && r.canonical == Some(ReasoningCanonical::BudgetTokens)
+                && r.budget_tokens == Some(2048)
+        }));
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+
+        let thinking = result.thinking.expect("thinking should be present");
+        assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+        assert_eq!(thinking.budget_tokens, None);
+
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(output_config.effort, Some(EffortLevel::Medium));
     }
 
     #[test]

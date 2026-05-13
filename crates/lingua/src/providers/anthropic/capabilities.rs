@@ -3,7 +3,9 @@ Anthropic-specific capability detection used by the transformation pipeline.
 */
 use crate::serde_json::{Map, Value};
 
-const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
+const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] =
+    &["claude-opus-4-5", "claude-opus-4-6", "claude-opus-4-7"];
+const ADAPTIVE_THINKING_MODEL_PREFIXES: &[&str] = &["claude-opus-4-7"];
 
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
@@ -20,6 +22,20 @@ pub fn supports_output_config_effort(model: &str) -> bool {
 
 fn part_supports_output_config_effort(model_part: &str) -> bool {
     OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES
+        .iter()
+        .any(|prefix| model_part.starts_with(prefix))
+}
+
+/// Check if a model uses adaptive thinking instead of legacy enabled thinking.
+pub fn supports_adaptive_thinking(model: &str) -> bool {
+    let lower = model.to_ascii_lowercase();
+    lower
+        .split(['.', '/', ':', '@'])
+        .any(part_supports_adaptive_thinking)
+}
+
+fn part_supports_adaptive_thinking(model_part: &str) -> bool {
+    ADAPTIVE_THINKING_MODEL_PREFIXES
         .iter()
         .any(|prefix| model_part.starts_with(prefix))
 }
@@ -104,6 +120,14 @@ mod tests {
         assert!(supports_output_config_effort(
             "anthropic/claude-opus-4-5@20250514"
         ));
+        assert!(supports_output_config_effort("claude-opus-4-7"));
+        assert!(supports_output_config_effort("claude-opus-4-7-20260401"));
+        assert!(supports_output_config_effort(
+            "us.anthropic.claude-opus-4-7-v1:0"
+        ));
+        assert!(supports_output_config_effort(
+            "anthropic/claude-opus-4-7@20260401"
+        ));
 
         // Other models do not
         assert!(!supports_output_config_effort("claude-opus-4-4"));
@@ -119,6 +143,30 @@ mod tests {
         assert!(!supports_output_config_effort("claude-sonnet-4-20250514"));
         assert!(!supports_output_config_effort("claude-haiku-4-5-20251001"));
         assert!(!supports_output_config_effort("claude-3-5-sonnet-20241022"));
+    }
+
+    #[test]
+    fn test_supports_adaptive_thinking() {
+        let adaptive_models = [
+            "claude-opus-4-7",
+            "claude-opus-4-7-20260401",
+            "CLAUDE-OPUS-4-7",
+            "us.anthropic.claude-opus-4-7-v1:0",
+            "anthropic/claude-opus-4-7@20260401",
+        ];
+        let legacy_models = [
+            "claude-opus-4-6",
+            "claude-opus-4-5-20250514",
+            "claude-sonnet-4-5-20250929",
+            "claude-3-5-sonnet-20241022",
+        ];
+
+        for model in adaptive_models {
+            assert!(supports_adaptive_thinking(model), "model: {}", model);
+        }
+        for model in legacy_models {
+            assert!(!supports_adaptive_thinking(model), "model: {}", model);
+        }
     }
 
     #[test]
