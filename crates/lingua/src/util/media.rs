@@ -483,6 +483,7 @@ mod native_fetch {
             current_url = current_url
                 .join(location)
                 .map_err(|e| MediaError::FetchError(format!("invalid media redirect URL: {e}")))?;
+            validate_media_url(&current_url)?;
         }
 
         Err(MediaError::FetchError(
@@ -610,6 +611,24 @@ mod native_fetch {
                 Err(MediaError::FetchError(message))
                     if message.contains("blocked address")
             ));
+        }
+
+        #[test]
+        fn redirect_from_public_url_to_localhost_or_private_ip_is_rejected() {
+            let current_url = Url::parse("https://example.com/image.png").unwrap();
+
+            for location in [
+                "http://127.0.0.1:8080/private.png",
+                "http://192.168.0.10/private.png",
+            ] {
+                let redirect_url = current_url.join(location).unwrap();
+
+                assert!(matches!(
+                    validate_media_url(&redirect_url),
+                    Err(MediaError::FetchError(message))
+                        if message.contains("blocked address")
+                ));
+            }
         }
 
         #[test]
