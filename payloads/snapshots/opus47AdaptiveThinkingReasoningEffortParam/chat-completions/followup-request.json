@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    },
+    {
+      "role": "assistant",
+      "content": "4\n\nIn base-10 arithmetic, 2 + 2 equals 4.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning_effort": "medium",
+  "max_completion_tokens": 4096
+}
