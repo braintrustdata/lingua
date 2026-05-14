@@ -362,6 +362,12 @@ mod native_fetch {
         }
     }
 
+    fn is_blocked_hostname(hostname: &str) -> bool {
+        hostname.eq_ignore_ascii_case("localhost")
+            || hostname.eq_ignore_ascii_case("metadata.amazonaws.com")
+            || hostname.eq_ignore_ascii_case("metadata.google.internal")
+    }
+
     struct ValidatedMediaUrl {
         hostname: Option<String>,
         addresses: Vec<SocketAddr>,
@@ -401,7 +407,7 @@ mod native_fetch {
                 });
             }
             Host::Domain(host) => {
-                if host.eq_ignore_ascii_case("localhost") {
+                if is_blocked_hostname(host) {
                     return Err(MediaError::FetchError(
                         "media URL resolves to a blocked address".to_string(),
                     ));
@@ -614,6 +620,21 @@ mod native_fetch {
         }
 
         #[test]
+        fn validate_media_url_rejects_cloud_metadata_hostnames() {
+            for url in [
+                "http://metadata.amazonaws.com/latest/meta-data",
+                "http://metadata.google.internal/computeMetadata/v1",
+            ] {
+                let url = Url::parse(url).unwrap();
+                assert!(matches!(
+                    validate_media_url(&url),
+                    Err(MediaError::FetchError(message))
+                        if message.contains("blocked address")
+                ));
+            }
+        }
+
+        #[test]
         fn redirect_from_public_url_to_localhost_or_private_ip_is_rejected() {
             let current_url = Url::parse("https://example.com/image.png").unwrap();
 
@@ -649,20 +670,34 @@ mod native_fetch {
         }
 
         #[test]
-        fn blocked_ip_ranges_include_private_and_link_local_addresses() {
-            assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))));
-            assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1))));
-            assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1))));
-            assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1))));
-            assert!(is_blocked_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)));
-            assert!(is_blocked_ip(IpAddr::V6("fd00::1".parse().unwrap())));
-            assert!(is_blocked_ip(IpAddr::V6(
-                "::ffff:127.0.0.1".parse().unwrap()
-            )));
-            assert!(!is_blocked_ip(IpAddr::V4(Ipv4Addr::new(93, 184, 216, 34))));
-            assert!(!is_blocked_ip(IpAddr::V6(
-                "2606:2800:220:1:248:1893:25c8:1946".parse().unwrap()
-            )));
+        fn blocked_ip_ranges_include_metadata_local_private_and_multicast_addresses() {
+            for address in [
+                IpAddr::V4(Ipv4Addr::new(169, 254, 169, 254)),
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                IpAddr::V4(Ipv4Addr::new(127, 255, 255, 255)),
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                IpAddr::V4(Ipv4Addr::new(0, 255, 255, 255)),
+                IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
+                IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1)),
+                IpAddr::V4(Ipv4Addr::new(172, 31, 255, 255)),
+                IpAddr::V4(Ipv4Addr::new(192, 168, 0, 1)),
+                IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)),
+                IpAddr::V4(Ipv4Addr::new(239, 255, 255, 255)),
+                IpAddr::V6(Ipv6Addr::LOCALHOST),
+                IpAddr::V6("ff00::1".parse().unwrap()),
+                IpAddr::V6("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff".parse().unwrap()),
+                IpAddr::V6("::ffff:127.0.0.1".parse().unwrap()),
+            ] {
+                assert!(is_blocked_ip(address), "{address} should be blocked");
+            }
+
+            for address in [
+                IpAddr::V4(Ipv4Addr::new(93, 184, 216, 34)),
+                IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)),
+                IpAddr::V6("2606:2800:220:1:248:1893:25c8:1946".parse().unwrap()),
+            ] {
+                assert!(!is_blocked_ip(address), "{address} should be allowed");
+            }
         }
     }
 }
