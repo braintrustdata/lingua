@@ -1,0 +1,42 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here's my thought process, summarized:\n\n**Analyzing the Request for Tokyo's Weather**\n\nOkay, so the user wants to know the weather in Tokyo. That's straightforward enough. I know I have a `get_weather` tool at my disposal, and that tool is designed specifically for retrieving weather information based on a given location. Therefore, my next logical step is to utilize this tool. I need to call `get_weather` with the input \"Tokyo.\" That should give me the weather data the user is seeking. It's a simple request, and I can fulfill it directly using the appropriate function.\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_weather",
+              "args": {
+                "location": "Tokyo"
+              }
+            },
+            "thoughtSignature": "CucBAQw51sf3ly4/NPgf7Ek2GW7TFKExYspWKxo1FDh0SEd3bhvkBUsqj/hKTP/t5K52qzd+94aqzwD0qEtQmndHMjheAavUlU8wNTaJlyMxYPLgyr6njdSASQT19OGN6CvTdhikTvvHCeuYoQ5cLTTX/cQmaU35dmDsq+jQww4KejnIzuiA0S//0DXztUy5K+uiGDu/ghNOOePgNJbKNbGGChP7qnCbSgi5lb3GRIJBRhQPbiRHG0Hh6gVrWWHw4jOqBcDOZaYgSslwDeWZQZebPhxPMlDq4GUcR7l+0Kjh38Aoctmx4RVn"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 37,
+    "candidatesTokenCount": 15,
+    "totalTokenCount": 98,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 37
+      }
+    ],
+    "thoughtsTokenCount": 46,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "CBQCatimEsHg_uMP7JfvwQ8"
+}

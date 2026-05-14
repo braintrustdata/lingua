@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Great"
+        "text": " Suggeste"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " question"
+        "text": "d Next Steps"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "! Here are some natural"
+        "text": "\n\nHere"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " next steps:\n\n## 1."
+        "text": " are some interesting"
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **Verify"
+        "text": " directions"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the"
+        "text": " you could explore:\n\n## 1"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " answer"
+        "text": ". **Verify"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**"
+        "text": " Your Answer"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n   "
+        "text": "**\n   "
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " simple program"
+        "text": " simple"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " ("
+        "text": " program"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Python, JavaScript, etc.) to br"
+        "text": " to br"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,39 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " all digits"
+        "text": " all"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " digits"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " in"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " every"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " time"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ":"
+        "text": ":00 to 23:59"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "00 to 23:59"
+        "text": "\n   - Compare"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n   - This"
+        "text": " results"
       },
       "contentBlockIndex": 0
     }
@@ -191,15 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " confirms"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the"
+        "text": " with the"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " calculation is correct\n\n## 2."
+        "text": " calculation"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +247,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
+        "text": " to"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " ensure accuracy\n\n## 2. **"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +271,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d the analysis"
+        "text": "d the"
       },
       "contentBlockIndex": 0
     }
@@ -247,23 +279,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**\n   - What"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " about"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " "
+        "text": " Analysis**\n   - **"
       },
       "contentBlockIndex": 0
     }
@@ -279,7 +295,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-hour format cl"
+        "text": "-hour format**"
       },
       "contentBlockIndex": 0
     }
@@ -287,7 +303,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "ocks"
+        "text": " (01"
       },
       "contentBlockIndex": 0
     }
@@ -295,7 +311,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " ("
+        "text": ":00 to 12:59"
       },
       "contentBlockIndex": 0
     }
@@ -303,7 +319,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "AM"
+        "text": ")"
       },
       "contentBlockIndex": 0
     }
@@ -311,7 +327,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "/PM)?\n   - What if"
+        "text": " - how"
       },
       "contentBlockIndex": 0
     }
@@ -319,7 +335,31 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " you"
+        "text": " "
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "do results"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " differ?\n   - **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "Seconds"
       },
       "contentBlockIndex": 0
     }
@@ -335,7 +375,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " seconds"
+        "text": "d** (H"
       },
       "contentBlockIndex": 0
     }
@@ -343,7 +383,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " ("
+        "text": "H:MM:SS) - what"
       },
       "contentBlockIndex": 0
     }
@@ -351,7 +391,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "H"
+        "text": " changes"
       },
       "contentBlockIndex": 0
     }
@@ -359,7 +399,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "H:MM:SS)?\n   "
+        "text": " with"
       },
       "contentBlockIndex": 0
     }
@@ -367,7 +407,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "- Which"
+        "text": " 86"
       },
       "contentBlockIndex": 0
     }
@@ -375,7 +415,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " digit"
+        "text": ","
       },
       "contentBlockIndex": 0
     }
@@ -383,7 +423,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " appears least"
+        "text": "400 times"
       },
       "contentBlockIndex": 0
     }
@@ -391,7 +431,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " in"
+        "text": " per"
       },
       "contentBlockIndex": 0
     }
@@ -399,7 +439,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " seconds"
+        "text": " day?\n   - **Different"
       },
       "contentBlockIndex": 0
     }
@@ -407,7 +447,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " specifically"
+        "text": " time formats"
       },
       "contentBlockIndex": 0
     }
@@ -415,7 +455,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "?\n\n## 3. **"
+        "text": "** (e"
       },
       "contentBlockIndex": 0
     }
@@ -423,7 +463,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Explore patterns"
+        "text": ".g., with"
       },
       "contentBlockIndex": 0
     }
@@ -431,7 +471,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**\n   - Create"
+        "text": " leading"
       },
       "contentBlockIndex": 0
     }
@@ -439,7 +479,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a visualization"
+        "text": " zeros remove"
       },
       "contentBlockIndex": 0
     }
@@ -447,7 +487,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " ("
+        "text": "d)\n\n## 3. **"
       },
       "contentBlockIndex": 0
     }
@@ -455,7 +495,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "bar"
+        "text": "Explore Relate"
       },
       "contentBlockIndex": 0
     }
@@ -463,7 +503,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " chart) of"
+        "text": "d Patterns**\n   - Which"
       },
       "contentBlockIndex": 0
     }
@@ -471,7 +511,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " digit frequency\n   - Which"
+        "text": " **"
       },
       "contentBlockIndex": 0
     }
@@ -479,7 +519,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " digits are"
+        "text": "times"
       },
       "contentBlockIndex": 0
     }
@@ -487,7 +527,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " completely"
+        "text": "** appear"
       },
       "contentBlockIndex": 0
     }
@@ -495,7 +535,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " absent"
+        "text": " most/"
       },
       "contentBlockIndex": 0
     }
@@ -503,7 +543,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " at"
+        "text": "least frequently?"
       },
       "contentBlockIndex": 0
     }
@@ -511,7 +551,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " certain positions"
+        "text": " (e.g., does"
       },
       "contentBlockIndex": 0
     }
@@ -519,7 +559,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "?\n   - What's"
+        "text": " 00"
       },
       "contentBlockIndex": 0
     }
@@ -527,7 +567,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the digit"
+        "text": ":00 get"
       },
       "contentBlockIndex": 0
     }
@@ -535,7 +575,407 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " frequency"
+        "text": " special"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " treatment?)\n   - Which"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **digit"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " pairs"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** or"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **digit"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " sequences"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** are most common?\n   -"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Analyze **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "palin"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "dromic times"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** (like"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " 12:21"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ")"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\n## 4. **Practical"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Application"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "**\n   - Design"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " a **more"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " balance"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d "
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "7"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "-segment"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " display** that"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " w"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "ears"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " digits"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " ev"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "enly\n   -"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Investigate"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " **wear"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " patterns** on ol"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d digital"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " clocks\n   - Create a **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "wear"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "-"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "lev"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "eling algorithm"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "** for digital display"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " lon"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "gevity\n\n## 5. **"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "Gener"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "alize the Problem"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "**\n   - Apply"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " this analysis"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " to other repe"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "ating cycles"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " (calen"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "dars, o"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "dometers, etc.)\n   -"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Create"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " a formula"
       },
       "contentBlockIndex": 0
     }
@@ -551,7 +991,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " just"
+        "text": " pre"
       },
       "contentBlockIndex": 0
     }
@@ -559,7 +999,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the hours"
+        "text": "dicting digit"
       },
       "contentBlockIndex": 0
     }
@@ -567,7 +1007,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " vs."
+        "text": " frequency"
       },
       "contentBlockIndex": 0
     }
@@ -575,7 +1015,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " just"
+        "text": " in any cyc"
       },
       "contentBlockIndex": 0
     }
@@ -583,7 +1023,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the minutes?\n\n## 4."
+        "text": "lic system\n\n**"
       },
       "contentBlockIndex": 0
     }
@@ -591,7 +1031,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **Real"
+        "text": "What"
       },
       "contentBlockIndex": 0
     }
@@ -599,7 +1039,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-world applications**\n   - How"
+        "text": " interests"
       },
       "contentBlockIndex": 0
     }
@@ -607,7 +1047,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " would this"
+        "text": " you most?** Or"
       },
       "contentBlockIndex": 0
     }
@@ -615,7 +1055,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " apply to digital displays"
+        "text": " di"
       },
       "contentBlockIndex": 0
     }
@@ -623,7 +1063,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", seven"
+        "text": "d you have a different"
       },
       "contentBlockIndex": 0
     }
@@ -631,7 +1071,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-segment displays, or LED"
+        "text": " question in"
       },
       "contentBlockIndex": 0
     }
@@ -639,359 +1079,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " usage"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "?\n   - Which"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digit requires"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the most \""
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "light"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\" to"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " display"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "?"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n   - Power"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " consumption implications"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "?\n\n## 5. **Challenge"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " yourself further"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "**\n   - What"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " if you include dates"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " (YYYY-MM-DD H"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "H:MM:"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "SS)?\n   - What"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digits"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " appear in all possible"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " times"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "?\n   - What"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digits"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " never"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " appear in certain"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " positions?\n\n## 6. **"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "Coding"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " project"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "**"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n   - Build an"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " interactive tool showing"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digit frequency for"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " any"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " time range"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n   -"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " Animate"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " which"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " digits are use"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d throughout"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the day"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\n**"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "Which"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " of"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " these interests you most?** I'm"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " happy to dive deeper into any of them"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "!"
+        "text": " mind?"
       },
       "contentBlockIndex": 0
     }
@@ -1009,12 +1097,12 @@
   {
     "metadata": {
       "usage": {
-        "inputTokens": 640,
-        "outputTokens": 339,
-        "totalTokens": 979
+        "inputTokens": 854,
+        "outputTokens": 358,
+        "totalTokens": 1212
       },
       "metrics": {
-        "latencyMs": 3756
+        "latencyMs": 3930
       }
     }
   }

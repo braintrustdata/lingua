@@ -47,7 +47,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " accomplish! Here are some possibilities"
+        "text": " accomplish!"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " Here are some options"
       },
       "contentBlockIndex": 0
     }
@@ -63,15 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "Ask"
+        "text": " **Ask"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " question** - about"
+        "text": " question** - I can help with information"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " France"
+        "text": " on"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ","
+        "text": " virtually"
       },
       "contentBlockIndex": 0
     }
@@ -111,23 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Paris, geography"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ", or anything else you"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "'re curious about\n- **Continue"
+        "text": " any topic\n- **Continue"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " conversation** - if you have follow"
+        "text": " conversation** - We"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "-up questions on"
+        "text": " can explore"
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " a"
+        "text": " topics in more"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " topic we"
+        "text": " depth\n- **Get"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "'re"
+        "text": " help with a task"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " discussing\n- **Get"
+        "text": "** - I can assist with writing"
       },
       "contentBlockIndex": 0
     }
@@ -191,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " help with a task** - writing"
+        "text": ", analysis, coding"
       },
       "contentBlockIndex": 0
     }
@@ -199,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", coding"
+        "text": ", math"
       },
       "contentBlockIndex": 0
     }
@@ -207,7 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ", analysis, bra"
+        "text": ", creative"
       },
       "contentBlockIndex": 0
     }
@@ -215,7 +199,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "instorming, etc.\n-"
+        "text": " projects, an"
       },
       "contentBlockIndex": 0
     }
@@ -223,7 +207,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " **Learn something"
+        "text": "d more\n- **Start"
       },
       "contentBlockIndex": 0
     }
@@ -231,7 +215,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " new** - ask"
+        "text": " something"
       },
       "contentBlockIndex": 0
     }
@@ -239,7 +223,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " about a"
+        "text": " new** - Feel"
       },
       "contentBlockIndex": 0
     }
@@ -247,7 +231,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " subject"
+        "text": " free to ask"
       },
       "contentBlockIndex": 0
     }
@@ -255,7 +239,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " you're interested in\n\nWhat would be"
+        "text": " about anything that interests you\n\nWhat woul"
       },
       "contentBlockIndex": 0
     }
@@ -263,7 +247,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " most helpful for you right now?"
+        "text": "d you like to do?"
       },
       "contentBlockIndex": 0
     }
@@ -282,11 +266,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 33,
-        "outputTokens": 113,
-        "totalTokens": 146
+        "outputTokens": 101,
+        "totalTokens": 134
       },
       "metrics": {
-        "latencyMs": 1463
+        "latencyMs": 1871
       }
     }
   }

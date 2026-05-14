@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DeNBBnm25aBmS3HfNYyqsq5Gtl4XU",
+  "object": "chat.completion",
+  "created": 1778514593,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can configure the LLM, but I need the max_tokens value (the maximum number of tokens in responses).\n\nOptions:\n- 512 (short responses)\n- 1024 (default)\n- 2048 (longer responses)\n\nWould you like me to set max_tokens to 1024 now, or provide a different value? If you’re unsure, I can start with 1024 and adjust later.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 139,
+    "completion_tokens": 797,
+    "total_tokens": 936,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 704,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

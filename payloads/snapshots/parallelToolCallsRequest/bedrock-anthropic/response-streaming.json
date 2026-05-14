@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01VLZbbfhyq6qKFAFHpDzkFA",
+      "id": "msg_bdrk_01PPoLbYHtgobGf42cLhxtEB",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -17,7 +17,7 @@
           "ephemeral_5m_input_tokens": 0,
           "ephemeral_1h_input_tokens": 0
         },
-        "output_tokens": 1
+        "output_tokens": 4
       }
     }
   },
@@ -34,15 +34,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Here"
-    }
-  },
-  {
-    "type": "content_block_delta",
-    "index": 0,
-    "delta": {
-      "type": "text_delta",
-      "text": "'s the current"
+      "text": "Here's the current"
     }
   },
   {
@@ -66,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " **San Francisco, CA**: 65"
+      "text": " **San Francisco,"
     }
   },
   {
@@ -74,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "°F an"
+      "text": " CA**: 65°F and sunny"
     }
   },
   {
@@ -82,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d sunny\n- **New York, NY"
+      "text": "\n- **New York, NY**:"
     }
   },
   {
@@ -90,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "**: 45°F and cloudy"
+      "text": " 45°F and cloudy"
     }
   },
   {
@@ -106,7 +98,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Francisco is war"
+      "text": " Francisco is enjoying"
     }
   },
   {
@@ -114,7 +106,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "mer and enjoying"
+      "text": " nice"
     }
   },
   {
@@ -122,7 +114,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " clear"
+      "text": " sunny"
     }
   },
   {
@@ -130,7 +122,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " skies, while New York is coo"
+      "text": " weather,"
     }
   },
   {
@@ -138,7 +130,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "ler with clou"
+      "text": " while New York is"
     }
   },
   {
@@ -146,7 +138,39 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "d cover."
+      "text": " coo"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "ler an"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "d over"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "cast today"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "."
     }
   },
   {
@@ -160,16 +184,19 @@
       "stop_sequence": null
     },
     "usage": {
-      "output_tokens": 63
+      "input_tokens": 757,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 61
     }
   },
   {
     "type": "message_stop",
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 757,
-      "outputTokenCount": 63,
-      "invocationLatency": 2033,
-      "firstByteLatency": 1490
+      "outputTokenCount": 58,
+      "invocationLatency": 1371,
+      "firstByteLatency": 929
     }
   }
 ]

@@ -8,7 +8,7 @@
     "contentBlockStart": {
       "start": {
         "toolUse": {
-          "toolUseId": "tooluse_goAizSZrTlKUF-GLdqmWSA",
+          "toolUseId": "tooluse_BT9rxvwyCJ9lMdNjdnKJll",
           "name": "get_weather",
           "type": "tool_use"
         }
@@ -30,7 +30,7 @@
     "contentBlockDelta": {
       "delta": {
         "toolUse": {
-          "input": "{\"locati"
+          "input": "{\"location"
         }
       },
       "contentBlockIndex": 0
@@ -40,7 +40,7 @@
     "contentBlockDelta": {
       "delta": {
         "toolUse": {
-          "input": "on\": \"San "
+          "input": "\": \"San Fran"
         }
       },
       "contentBlockIndex": 0
@@ -50,7 +50,7 @@
     "contentBlockDelta": {
       "delta": {
         "toolUse": {
-          "input": "Fr"
+          "input": "cisc"
         }
       },
       "contentBlockIndex": 0
@@ -60,17 +60,7 @@
     "contentBlockDelta": {
       "delta": {
         "toolUse": {
-          "input": "ancisco, CA"
-        }
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "toolUse": {
-          "input": "\"}"
+          "input": "o, CA\"}"
         }
       },
       "contentBlockIndex": 0
@@ -89,12 +79,12 @@
   {
     "metadata": {
       "usage": {
-        "inputTokens": 585,
-        "outputTokens": 57,
-        "totalTokens": 642
+        "inputTokens": 677,
+        "outputTokens": 41,
+        "totalTokens": 718
       },
       "metrics": {
-        "latencyMs": 762
+        "latencyMs": 1099
       }
     }
   }

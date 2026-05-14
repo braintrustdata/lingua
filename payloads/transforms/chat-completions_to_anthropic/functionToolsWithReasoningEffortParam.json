@@ -1,0 +1,39 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01BHYHXCTAGhXwEeG5n7iivg",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "The user is asking about the weather in Tokyo. I have a function called `get_weather` that takes a location as a parameter. I should call this function with \"Tokyo\" as the location.",
+      "signature": "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ=="
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_018kcvffT3SCYkT8yiRyrnsk",
+      "name": "get_weather",
+      "input": {
+        "location": "Tokyo"
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 592,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 102,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

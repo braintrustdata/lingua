@@ -26,11 +26,11 @@
     "metadata": {
       "usage": {
         "inputTokens": 14,
-        "outputTokens": 10,
-        "totalTokens": 24
+        "outputTokens": 8,
+        "totalTokens": 22
       },
       "metrics": {
-        "latencyMs": 1687
+        "latencyMs": 946
       }
     }
   }

@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends entirely on what your goals are! Since you just got a definition, here are a few paths you could take:\n\n1.  **If you want to learn more about API Gateways:**\n    *   **Dive into their features:** Research common functionalities like rate limiting, authentication/authorization"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "MAX_TOKENS",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 35,
+    "candidatesTokenCount": 61,
+    "totalTokenCount": 1055,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 35
+      }
+    ],
+    "thoughtsTokenCount": 959,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "3x8CauzREryt-8YPg7jH8A0"
+}

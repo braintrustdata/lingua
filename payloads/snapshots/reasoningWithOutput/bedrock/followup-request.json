@@ -13,7 +13,7 @@
       "role": "assistant",
       "content": [
         {
-          "text": "The sky typically appears **blue** during the day. This happens because of a phenomenon called Rayleigh scattering, where shorter blue wavelengths of sunlight scatter more in Earth's atmosphere than longer red wavelengths.\n\nHowever, the sky can appear different colors depending on conditions:\n- **Orange or red** during sunrise and sunset\n- **Gray or white** on cloudy days\n- **Deep blue or purple** at high altitudes\n- **Black** at night (in space, the sky is always black)"
+          "text": "The sky is typically **blue** during the day, caused by sunlight scattering off air molecules in the atmosphere.\n\nHowever, the sky can appear different colors depending on conditions:\n- **Orange, red, or pink** at sunrise and sunset\n- **Gray or dark** on cloudy or overcast days\n- **Deep blue or purple** at high altitudes\n- **Black** at night (in space, there's no atmosphere to scatter light)\n\nIs there a specific sky condition you're curious about?"
         }
       ]
     },

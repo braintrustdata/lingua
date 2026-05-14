@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DePf3UW2reZN7Bj9tefiRJf3P2m3o",
+  "object": "chat.completion",
+  "created": 1778524133,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "An API gateway sits between clients and backend services, routing requests and enforcing security.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 281,
+    "total_tokens": 295,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 256,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

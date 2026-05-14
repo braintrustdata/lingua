@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-haiku-4-5-20251001",
-      "id": "msg_bdrk_01BabgKhnB4Fm1iC2tHrqaPK",
+      "id": "msg_bdrk_01CbXmHGeziqgP2xC6CTTn8T",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -42,7 +42,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Average"
+      "text": " Solving for"
     }
   },
   {
@@ -50,7 +50,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Speed Calculation\n\n##"
+      "text": " Average Speed\n\n## Step"
     }
   },
   {
@@ -58,7 +58,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Step 1: Find distance"
+      "text": " 1: Calculate distance for"
     }
   },
   {
@@ -66,7 +66,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " for"
+      "text": " the"
     }
   },
   {
@@ -74,7 +74,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " each segment\n\n**First segment:**"
+      "text": " first"
     }
   },
   {
@@ -82,7 +82,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Speed ="
+      "text": " part"
     }
   },
   {
@@ -90,7 +90,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " 60 mph,"
+      "text": "\n- Spee"
     }
   },
   {
@@ -98,7 +98,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Time = 2 hours\n-"
+      "text": "d = 60 mph\n- Time"
     }
   },
   {
@@ -106,7 +106,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": " Distance = "
+      "text": " = 2 hours\n- Distance"
     }
   },
   {
@@ -114,7 +114,15 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "60 ×"
+      "text": " = Speed × Time = 60 "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "×"
     }
   },
   {
@@ -130,7 +138,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "120 miles**\n\n**Second segment"
+      "text": "120 miles**\n\n## Step "
     }
   },
   {
@@ -138,7 +146,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": ":**\n- Speed = 80 "
+      "text": "2: Calculate distance for the second part"
     }
   },
   {
@@ -146,7 +154,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "mph, Time = 1 hour"
+      "text": "\n- Speed = 80 mph"
     }
   },
   {
@@ -154,7 +162,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n- Distance = 80 × "
+      "text": "\n- Time = 1 hour"
     }
   },
   {
@@ -162,7 +170,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "1 = **80 miles**"
+      "text": "\n- Distance = Speed × Time ="
     }
   },
   {
@@ -170,7 +178,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "\n\n## Step 2: Calculate tot"
+      "text": " 80 × 1 ="
     }
   },
   {
@@ -178,7 +186,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "als"
+      "text": " **"
     }
   },
   {
@@ -192,6 +200,9 @@
       "stop_sequence": null
     },
     "usage": {
+      "input_tokens": 45,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
       "output_tokens": 100
     }
   },
@@ -200,8 +211,8 @@
     "amazon-bedrock-invocationMetrics": {
       "inputTokenCount": 45,
       "outputTokenCount": 100,
-      "invocationLatency": 1923,
-      "firstByteLatency": 1416
+      "invocationLatency": 1213,
+      "firstByteLatency": 740
     }
   }
 ]

@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can help with that. What would you like to set the maximum number of tokens to?",
+            "thoughtSignature": "Cu4BAQw51sfM8F31TciEgkRESm+9CBEfVVvQodbTNDK5zpNisnX40nuUDHIlGCOYO8LrBiGdNTCfQYFNBGqhHebYUKcu3lJTIHYSjGHcFhpCpYhuxFV+SXot99S+HqRHrGrCDVy4UoDk2+LInrKrXFb+j9iNfv8lC3MlQZ2qlV2+Orell/YC80wfgGZz3a7TJOGwjeF7ghsu/1mzqHd4tZDZ611uYrxSUH3NnZTwdt8HYNbU1GIsZbDz/biAqwG6FdcjnQ4Hxy2LdCKasUJoVTcGc13PdZ64cHJf3KGqQ6fDEzaZl6IqzedPQCuIgJpKLQ=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 53,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 120,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 53
+      }
+    ],
+    "thoughtsTokenCount": 48,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "cvsBaqjuBrOw1MkP1srUuQ8"
+}

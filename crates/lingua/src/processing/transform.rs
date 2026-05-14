@@ -111,6 +111,12 @@ pub enum TransformResult {
         bytes: Bytes,
         /// The detected source format
         source_format: ProviderFormat,
+        /// The format the payload was actually transformed into.
+        ///
+        /// Usually equal to the `target_format` passed to the transform function, but may
+        /// differ when the transform function upgrades the target (e.g. `ChatCompletions` →
+        /// `Responses` when `reasoning_effort` + `tools` are present).
+        actual_target_format: ProviderFormat,
     },
 }
 
@@ -231,6 +237,26 @@ pub fn extract_model(input: &[u8]) -> Option<String> {
 /// let result = transform_request(openai_payload, ProviderFormat::Anthropic, None).unwrap();
 /// let output_bytes = result.into_bytes();
 /// ```
+/// Returns `true` when a Chat Completions request should be redirected to the Responses API.
+///
+/// The `/v1/chat/completions` endpoint rejects requests that combine `reasoning_effort`
+/// with function `tools` for certain models (e.g. `gpt-5.4-mini`). The Responses API
+/// (`/v1/responses`) supports this combination, so we upgrade the target automatically.
+#[cfg(feature = "openai")]
+fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
+    let has_reasoning_effort = payload
+        .get("reasoning_effort")
+        .and_then(Value::as_str)
+        .is_some_and(|e| e != "none");
+
+    let has_tools = payload
+        .get("tools")
+        .and_then(Value::as_array)
+        .is_some_and(|t| !t.is_empty());
+
+    has_reasoning_effort && has_tools
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -241,6 +267,18 @@ pub fn transform_request(
     let request_bytes = parsed.bytes;
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
+
+    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are both present.
+    // The /v1/chat/completions endpoint rejects this combination for certain models;
+    // /v1/responses handles it correctly.
+    #[cfg(feature = "openai")]
+    let target_format = if target_format == ProviderFormat::ChatCompletions
+        && chat_completions_needs_responses_upgrade(&payload)
+    {
+        ProviderFormat::Responses
+    } else {
+        target_format
+    };
 
     if source_adapter.format() == target_format
         && !needs_forced_translation(&payload, model, target_format)
@@ -270,6 +308,7 @@ pub fn transform_request(
     Ok(TransformResult::Transformed {
         bytes: Bytes::from(bytes),
         source_format,
+        actual_target_format: target_format,
     })
 }
 
@@ -316,6 +355,7 @@ pub fn transform_response(
     Ok(TransformResult::Transformed {
         bytes: Bytes::from(bytes),
         source_format,
+        actual_target_format: target_format,
     })
 }
 
@@ -511,6 +551,7 @@ pub(crate) fn transform_stream_chunk_step(
         result: TransformResult::Transformed {
             bytes,
             source_format,
+            actual_target_format: target_format,
         },
         source_format,
         source_is_native_stream,
@@ -778,6 +819,98 @@ mod tests {
         assert!(output.get("max_tokens").is_some());
         // Should have messages
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_system_only_to_anthropic_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "system", "content": "Always say ok."}]
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Anthropic, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Anthropic);
+                assert!(reason.contains("at least one non-system message"));
+                assert!(reason.contains("system prompt alone cannot be sent"));
+            }
+            other => panic!("expected Anthropic validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_empty_openai_messages_to_anthropic_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": []
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Anthropic, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Anthropic);
+                assert_eq!(
+                    reason,
+                    "Anthropic requires at least one message in 'messages'."
+                );
+            }
+            other => panic!("expected Anthropic validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_transform_request_openai_system_only_to_google_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "system", "content": "Always say ok."}]
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Google, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Google);
+                assert!(reason.contains("at least one non-system message"));
+                assert!(reason.contains("system prompt alone cannot be sent"));
+            }
+            other => panic!("expected Google validation failure, got {other:?}"),
+        }
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_transform_request_empty_openai_messages_to_google_rejected() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": []
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::Google, None).unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Google);
+                assert_eq!(
+                    reason,
+                    "Google requires at least one message in 'contents'."
+                );
+            }
+            other => panic!("expected Google validation failure, got {other:?}"),
+        }
     }
 
     #[test]
@@ -1097,6 +1230,74 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_top_k_openai_model_drops_top_k_for_chat_completions() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Write a short sentence about API gateways."}]
+            }],
+            "generationConfig": {
+                "topK": 1,
+                "maxOutputTokens": 1024
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-nano")).unwrap();
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(
+            output.get("top_k").is_none(),
+            "OpenAI Chat Completions should not receive top_k"
+        );
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(1024)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "google"))]
+    fn test_google_top_k_openai_model_drops_top_k_for_responses() {
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Write a short sentence about API gateways."}]
+            }],
+            "generationConfig": {
+                "topK": 1,
+                "maxOutputTokens": 1024
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Responses, Some("gpt-5-nano")).unwrap();
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(result.source_format(), Some(ProviderFormat::Google));
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(
+            output.get("top_k").is_none(),
+            "OpenAI Responses should not receive top_k"
+        );
+        assert_eq!(
+            output.get("max_output_tokens").and_then(Value::as_i64),
+            Some(1024)
+        );
+    }
+
+    #[test]
     #[cfg(feature = "openai")]
     fn test_non_reasoning_model_still_passthroughs() {
         // Non-reasoning models should still passthrough for efficiency
@@ -1182,6 +1383,133 @@ mod tests {
         );
         assert_eq!(output.get("max_tokens").unwrap().as_i64().unwrap(), 1024);
         assert!(output.get("messages").is_some());
+    }
+
+    // =========================================================================
+    // chat_completions_needs_responses_upgrade / format upgrade tests
+    // =========================================================================
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_triggers_with_reasoning_effort_and_tools() {
+        let payload = json!({
+            "reasoning_effort": "medium",
+            "tools": [{"type": "function", "function": {"name": "get_weather"}}]
+        });
+        assert!(chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_triggers_with_low_reasoning_effort() {
+        let payload = json!({
+            "reasoning_effort": "low",
+            "tools": [{"type": "function", "function": {"name": "fn"}}]
+        });
+        assert!(chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_skips_when_reasoning_effort_none() {
+        let payload = json!({
+            "reasoning_effort": "none",
+            "tools": [{"type": "function", "function": {"name": "fn"}}]
+        });
+        assert!(!chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_skips_when_no_reasoning_effort() {
+        let payload = json!({
+            "tools": [{"type": "function", "function": {"name": "fn"}}]
+        });
+        assert!(!chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_skips_when_no_tools() {
+        let payload = json!({ "reasoning_effort": "medium" });
+        assert!(!chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_upgrade_detection_skips_when_tools_empty() {
+        let payload = json!({ "reasoning_effort": "medium", "tools": [] });
+        assert!(!chat_completions_needs_responses_upgrade(&payload));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_upgrades_target_to_responses_for_reasoning_plus_tools() {
+        let payload = json!({
+            "model": "gpt-5.4-mini",
+            "messages": [{"role": "user", "content": "Tokyo weather?"}],
+            "reasoning_effort": "medium",
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get weather",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"location": {"type": "string"}},
+                        "required": ["location"]
+                    }
+                }
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                actual_target_format,
+                ..
+            } => {
+                assert_eq!(
+                    actual_target_format,
+                    ProviderFormat::Responses,
+                    "Should upgrade to Responses when reasoning_effort + tools are present"
+                );
+            }
+            TransformResult::PassThrough(_) => {
+                panic!("Expected transformation, got passthrough");
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_does_not_upgrade_without_tools() {
+        let payload = json!({
+            "model": "gpt-5.4-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "reasoning_effort": "medium"
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                actual_target_format,
+                ..
+            } => {
+                assert_eq!(
+                    actual_target_format,
+                    ProviderFormat::ChatCompletions,
+                    "Should not upgrade without tools"
+                );
+            }
+            TransformResult::PassThrough(_) => {
+                // PassThrough is also acceptable here (no upgrade, no forced translation)
+            }
+        }
     }
 
     #[test]

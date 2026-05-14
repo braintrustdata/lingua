@@ -1,0 +1,35 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my interpretation of that scenario, summarized as if I'm processing the request:\n\n**Simple Math, Straightforward Answer**\n\nAlright, a basic arithmetic problem. \"What is 2 + 2?\" is the question. No need for complex analysis or nuanced interpretations here. It's a fundamental mathematical operation, addition, plain and simple. My task is to execute this addition and provide the correct result. No room for ambiguity or speculation. The answer is directly derived from the basic axioms of arithmetic. Let me compute this... and present the result. It's a quick calculation, and I'll deliver the answer without unnecessary elaboration. The focus is precision and efficiency.\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 = 4"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 44,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 28,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "kmwDaqu3N8TAjMcPrars8QU"
+}

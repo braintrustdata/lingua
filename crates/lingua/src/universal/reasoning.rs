@@ -171,7 +171,10 @@ pub fn budget_to_effort(budget: i64, max_tokens: Option<i64>) -> ReasoningEffort
 /// Anthropic's thinking uses `budget_tokens` as canonical. Effort is derived.
 impl From<&Thinking> for ReasoningConfig {
     fn from(thinking: &Thinking) -> Self {
-        let enabled = matches!(thinking.thinking_type, ThinkingType::Enabled);
+        let enabled = matches!(
+            thinking.thinking_type,
+            ThinkingType::Enabled | ThinkingType::Adaptive
+        );
         let budget_tokens = thinking.budget_tokens;
         let effort = budget_tokens.map(|b| budget_to_effort(b, None));
 

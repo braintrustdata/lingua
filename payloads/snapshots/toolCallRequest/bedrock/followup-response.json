@@ -4,25 +4,32 @@
       "role": "assistant",
       "content": [
         {
-          "text": "The weather in San Francisco, CA is currently **71 degrees**. It's a pleasant day! For more detailed information like precipitation or wind conditions, you might want to check a full weather service."
+          "toolUse": {
+            "toolUseId": "tooluse_NPLURh8EVqP17u1URsNtBN",
+            "name": "get_weather",
+            "input": {
+              "location": "San Francisco, CA"
+            },
+            "type": "tool_use"
+          }
         }
       ]
     }
   },
-  "stopReason": "end_turn",
+  "stopReason": "tool_use",
   "usage": {
-    "inputTokens": 657,
-    "outputTokens": 44,
-    "totalTokens": 701,
+    "inputTokens": 748,
+    "outputTokens": 41,
+    "totalTokens": 789,
     "cacheReadInputTokens": 0,
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 870
+    "latencyMs": 936
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "f7a9d3a5-2074-4b86-9417-7b304ff2c496",
+    "requestId": "b7996129-e731-4747-9a0b-aa649c824a8e",
     "attempts": 1,
     "totalRetryDelay": 0
   }

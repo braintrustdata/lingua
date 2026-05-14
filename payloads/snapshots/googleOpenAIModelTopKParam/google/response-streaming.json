@@ -1,0 +1,33 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "API gateways serve as a centralized entry point for managing and securing API requests."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 15,
+      "totalTokenCount": 508,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 484,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "2h8CasjSJra9sOIP-J-VqAM"
+  }
+]

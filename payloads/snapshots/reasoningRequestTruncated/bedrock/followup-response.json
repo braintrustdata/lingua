@@ -4,7 +4,7 @@
       "role": "assistant",
       "content": [
         {
-          "text": "# Step 4: Calculate Average Speed\n\n**Average Speed = Total Distance ÷ Total Time**\n\n- Total Distance = 200 miles\n- Total Time = 2 hours + 1 hour = 3 hours\n\n**Average Speed = 200 ÷ 3 = 66.67 mph** (or 66⅔ mph)\n\n---\n\n**Note:** The average speed is *not* simply the average of"
+          "text": "# Step 3: Calculate Average Speed\n\n**Average Speed Formula:**\n$$\\text{Average Speed} = \\frac{\\text{Total Distance}}{\\text{Total Time}}$$\n\n**Apply the formula:**\n$$\\text{Average Speed} = \\frac{120 + 80}{2 + 1} = \\frac{200}{3} = 66.67 \\text{ mph}$$\n\n## Answer\nThe average speed is **"
         }
       ]
     }
@@ -18,11 +18,11 @@
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 1281
+    "latencyMs": 1406
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "a96b18ff-b234-41a2-aa99-73ddaa51140b",
+    "requestId": "34cc152f-d40d-433a-80b3-5aff2c7d2f3f",
     "attempts": 1,
     "totalRetryDelay": 0
   }

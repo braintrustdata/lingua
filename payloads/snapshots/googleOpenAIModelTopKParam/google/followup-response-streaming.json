@@ -1,0 +1,63 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That's a great question, and \"what you should do next\" really depends on your goal!\n\nTo help me guide you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 35,
+      "candidatesTokenCount": 27,
+      "totalTokenCount": 1043,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 35
+        }
+      ],
+      "thoughtsTokenCount": 981,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "3x8Cavq-EomD-8YPoO7ukQw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " better, could you tell me:\n\n*   **Are"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "MAX_TOKENS",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 35,
+      "candidatesTokenCount": 39,
+      "totalTokenCount": 1055,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 35
+        }
+      ],
+      "thoughtsTokenCount": 981,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "3x8Cavq-EomD-8YPoO7ukQw"
+  }
+]
