@@ -2,6 +2,7 @@
 name = "coverage-report"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 publish = false
 description = "Cross-provider transformation coverage report generator for Lingua"
 
