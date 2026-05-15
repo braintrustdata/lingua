@@ -46,7 +46,13 @@ pub struct AzureProvider {
 
 impl AzureProvider {
     pub fn new(config: AzureConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: AzureConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -64,6 +70,7 @@ impl AzureProvider {
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
         metadata: &std::collections::HashMap<String, MetadataValue>,
+        client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         let endpoint = endpoint
             .cloned()
@@ -94,7 +101,7 @@ impl AzureProvider {
             config.no_named_deployment = no_named;
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn deployment_for_request(&self, model: &str) -> Result<String> {
@@ -368,7 +375,7 @@ mod tests {
     }
 
     fn make_provider(metadata: HashMap<String, MetadataValue>) -> AzureProvider {
-        AzureProvider::from_config(Some(&endpoint()), None, &metadata).unwrap()
+        AzureProvider::from_config(Some(&endpoint()), None, &metadata, None).unwrap()
     }
 
     #[test]
