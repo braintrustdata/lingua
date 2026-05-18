@@ -86,9 +86,11 @@ impl Provider for StubProvider {
     }
 }
 
+type RecordedHeaders = Arc<Mutex<Option<Vec<(String, String)>>>>;
+
 #[derive(Clone)]
 struct CapturingRequestConfigProvider {
-    recorded_headers: Arc<Mutex<Option<Vec<(String, String)>>>>,
+    recorded_headers: RecordedHeaders,
 }
 
 #[async_trait]

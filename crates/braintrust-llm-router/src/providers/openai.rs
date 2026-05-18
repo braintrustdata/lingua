@@ -404,13 +404,6 @@ pub fn openai_compatible_endpoint(kind: &str) -> Option<OpenAICompatibleEndpoint
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::catalog::ModelFlavor;
-    use crate::providers::Provider;
-    use lingua::serde_json::json;
-    use wiremock::{
-        matchers::{header, method, path},
-        Mock, MockServer, ResponseTemplate,
-    };
 
     #[test]
     fn resolves_template_endpoint() {

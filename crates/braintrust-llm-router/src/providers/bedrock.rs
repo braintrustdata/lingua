@@ -254,13 +254,18 @@ impl BedrockProvider {
         body: &[u8],
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<HeaderMap> {
+        let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+
         if let AuthConfig::ApiKey { .. } = auth {
-            let mut headers =
-                <Self as crate::providers::Provider>::build_headers(self, client_headers);
             auth.apply_headers(&mut headers)?;
+            request_config.apply_additional_headers(&mut headers)?;
             return Ok(headers);
         }
+
+        request_config.apply_additional_headers(&mut headers)?;
 
         let (access_key, secret_key, session_token, region, service) =
             auth.aws_credentials().ok_or_else(|| {
@@ -272,15 +277,13 @@ impl BedrockProvider {
             service
         };
 
-        let mut header_pairs: Vec<(String, String)> =
-            vec![("content-type".to_string(), "application/json".to_string())];
-        let mut builder = HttpRequest::builder()
-            .method("POST")
-            .uri(url.as_str())
-            .header("content-type", "application/json");
+        let mut builder = HttpRequest::builder().method("POST").uri(url.as_str());
         if let Some(token) = session_token {
-            builder = builder.header("x-amz-security-token", token);
-            header_pairs.push(("x-amz-security-token".to_string(), token.to_string()));
+            headers.insert(
+                "x-amz-security-token",
+                HeaderValue::from_str(token)
+                    .map_err(|e| Error::Auth(format!("invalid session token header: {e}")))?,
+            );
         }
         let host_header_value = url
             .host_str()
@@ -289,11 +292,27 @@ impl BedrockProvider {
                 None => host.to_string(),
             })
             .ok_or_else(|| Error::InvalidRequest("Bedrock endpoint missing host".into()))?;
-        builder = builder.header("host", host_header_value.as_str());
-        header_pairs.push(("host".to_string(), host_header_value));
+        headers.insert(
+            "host",
+            HeaderValue::from_str(host_header_value.as_str())
+                .map_err(|e| Error::Auth(format!("invalid host header: {e}")))?,
+        );
+        for (name, value) in headers.iter() {
+            builder = builder.header(name.as_str(), value.as_bytes());
+        }
         let request = builder
             .body(body.to_vec())
             .map_err(|e| Error::InvalidRequest(format!("failed to build http request: {e}")))?;
+        let header_pairs: Vec<(String, String)> = request
+            .headers()
+            .iter()
+            .map(|(name, value)| {
+                let value = value
+                    .to_str()
+                    .map_err(|e| Error::Auth(format!("invalid signable header value: {e}")))?;
+                Ok::<_, Error>((name.as_str().to_string(), value.to_string()))
+            })
+            .collect::<Result<_>>()?;
 
         let signing_settings = SigningSettings::default();
         let credentials = Credentials::new(
@@ -330,7 +349,7 @@ impl BedrockProvider {
         let mut signed_request = request;
         instructions.apply_to_request_http1x(&mut signed_request);
 
-        let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
+        let mut headers = HeaderMap::new();
         for (name, value) in signed_request.headers().iter() {
             headers.insert(
                 name.clone(),
@@ -349,10 +368,7 @@ impl BedrockProvider {
         client_headers: &ClientHeaders,
         request_config: &ProviderRequestConfig,
     ) -> Result<HeaderMap> {
-        let mut headers = self.sign_request(url, payload, auth, client_headers)?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-        request_config.apply_additional_headers(&mut headers)?;
-        Ok(headers)
+        self.sign_request(url, payload, auth, client_headers, request_config)
     }
 
     async fn send_signed(
@@ -469,8 +485,13 @@ impl crate::providers::Provider for BedrockProvider {
             .join("list-foundation-models")
             .expect("join models path");
         let body = b"{}";
-        let mut headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        let headers = self.sign_request(
+            &url,
+            body,
+            auth,
+            &ClientHeaders::default(),
+            &ProviderRequestConfig::default(),
+        )?;
 
         let response = self
             .client
@@ -586,6 +607,59 @@ mod tests {
             }
             other => panic!("expected Error::Auth, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn build_headers_signs_provider_request_config_headers() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        let auth = AuthConfig::AwsSignatureV4 {
+            access_key: "AKIDEXAMPLE".into(),
+            secret_key: "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY".into(),
+            session_token: None,
+            region: "us-east-1".into(),
+            service: "bedrock".into(),
+        };
+        let request_config = ProviderRequestConfig {
+            additional_headers: [
+                (
+                    "content-type".to_string(),
+                    "application/vnd.custom+json".to_string(),
+                ),
+                ("x-custom-provider".to_string(), "tenant-abc".to_string()),
+            ]
+            .into_iter()
+            .collect(),
+        };
+
+        let headers = provider
+            .build_headers(
+                &url,
+                b"{}",
+                &auth,
+                &ClientHeaders::default(),
+                &request_config,
+            )
+            .expect("headers");
+
+        assert_eq!(
+            headers.get("content-type").and_then(|v| v.to_str().ok()),
+            Some("application/vnd.custom+json")
+        );
+        assert_eq!(
+            headers
+                .get("x-custom-provider")
+                .and_then(|v| v.to_str().ok()),
+            Some("tenant-abc")
+        );
+        let authorization = headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .expect("authorization header");
+        assert!(authorization.contains("content-type"));
+        assert!(authorization.contains("x-custom-provider"));
     }
 
     #[test]
