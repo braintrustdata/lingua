@@ -23,7 +23,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ClientHeaders, ProviderRequestConfig};
 use crate::streaming::{bedrock_event_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
@@ -347,9 +347,11 @@ impl BedrockProvider {
         payload: &[u8],
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<HeaderMap> {
         let mut headers = self.sign_request(url, payload, auth, client_headers)?;
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        request_config.apply_additional_headers(&mut headers)?;
         Ok(headers)
     }
 
@@ -359,8 +361,10 @@ impl BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<reqwest::Response> {
-        let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
+        let headers =
+            self.build_headers(&url, payload.as_ref(), auth, client_headers, request_config)?;
         let response = self
             .client
             .post(url.clone())
@@ -409,6 +413,7 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
@@ -416,7 +421,9 @@ impl crate::providers::Provider for BedrockProvider {
         } else {
             self.converse_url(&spec.model, false)?
         };
-        let response = self.send_signed(url, payload, auth, client_headers).await?;
+        let response = self
+            .send_signed(url, payload, auth, client_headers, request_config)
+            .await?;
         Ok(response.bytes().await?)
     }
 
@@ -427,10 +434,18 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .complete_stream_via_complete(
+                    payload,
+                    auth,
+                    spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
         }
 
@@ -441,7 +456,9 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, true)?
         };
 
-        let response = self.send_signed(url, payload, auth, client_headers).await?;
+        let response = self
+            .send_signed(url, payload, auth, client_headers, request_config)
+            .await?;
         Ok(bedrock_event_stream(response))
     }
 
@@ -525,7 +542,13 @@ mod tests {
         };
 
         let headers = provider
-            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .build_headers(
+                &url,
+                b"{}",
+                &auth,
+                &ClientHeaders::default(),
+                &ProviderRequestConfig::default(),
+            )
             .expect("headers");
         assert_eq!(
             headers.get("content-type"),
@@ -549,7 +572,13 @@ mod tests {
         };
 
         let err = provider
-            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
+            .build_headers(
+                &url,
+                b"{}",
+                &auth,
+                &ClientHeaders::default(),
+                &ProviderRequestConfig::default(),
+            )
             .unwrap_err();
         match err {
             Error::Auth(message) => {

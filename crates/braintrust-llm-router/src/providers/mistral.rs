@@ -4,7 +4,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ClientHeaders, ProviderRequestConfig};
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -91,11 +91,13 @@ impl crate::providers::Provider for MistralProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let url = self.chat_url()?;
 
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
+        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client
@@ -138,10 +140,18 @@ impl crate::providers::Provider for MistralProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .complete_stream_via_complete(
+                    payload,
+                    auth,
+                    spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
         }
 
@@ -150,6 +160,7 @@ impl crate::providers::Provider for MistralProvider {
 
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
+        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client

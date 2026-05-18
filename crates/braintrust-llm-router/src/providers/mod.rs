@@ -29,7 +29,7 @@ use std::sync::Arc;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::streaming::RawResponseStream;
 use lingua::ProviderFormat;
 
@@ -121,6 +121,26 @@ impl FromIterator<(String, String)> for ClientHeaders {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct ProviderRequestConfig {
+    pub additional_headers: HashMap<String, String>,
+}
+
+impl ProviderRequestConfig {
+    pub fn apply_additional_headers(&self, headers: &mut HeaderMap) -> Result<()> {
+        for (name, value) in &self.additional_headers {
+            let header_name = name.parse::<HeaderName>().map_err(|e| {
+                Error::InvalidRequest(format!("invalid additional header name '{name}': {e}"))
+            })?;
+            let header_value = HeaderValue::from_str(value).map_err(|e| {
+                Error::InvalidRequest(format!("invalid additional header value: {e}"))
+            })?;
+            headers.insert(header_name, header_value);
+        }
+        Ok(())
+    }
+}
+
 pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
         return payload;
@@ -202,6 +222,7 @@ pub trait Provider: Send + Sync {
     /// * `auth` - Authentication configuration
     /// * `spec` - Model specification
     /// * `client_headers` - Client headers to forward to the upstream provider
+    /// * `request_config` - Trusted per-provider request configuration
     async fn complete(
         &self,
         payload: Bytes,
@@ -209,6 +230,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes>;
 
     /// Execute a streaming completion request.
@@ -222,6 +244,7 @@ pub trait Provider: Send + Sync {
     /// * `auth` - Authentication configuration
     /// * `spec` - Model specification
     /// * `client_headers` - Client headers to forward to the upstream provider
+    /// * `request_config` - Trusted per-provider request configuration
     async fn complete_stream(
         &self,
         payload: Bytes,
@@ -229,6 +252,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream>;
 
     async fn complete_stream_via_complete(
@@ -238,10 +262,11 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         let payload = disable_streaming_payload(payload);
         let response = self
-            .complete(payload, auth, spec, format, client_headers)
+            .complete(payload, auth, spec, format, client_headers, request_config)
             .await?;
         Ok(crate::streaming::single_bytes_stream(response))
     }
@@ -354,6 +379,36 @@ mod tests {
         assert_eq!(
             updated, payload,
             "google streaming is selected by the provider path, not the payload body"
+        );
+    }
+
+    #[test]
+    fn provider_request_config_applies_additional_headers() {
+        let request_config = ProviderRequestConfig {
+            additional_headers: [
+                ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
+                ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
+            ]
+            .into_iter()
+            .collect(),
+        };
+        let mut headers = HeaderMap::new();
+
+        request_config
+            .apply_additional_headers(&mut headers)
+            .expect("headers apply");
+
+        assert_eq!(
+            headers
+                .get("x-custom-tenant-id")
+                .and_then(|value| value.to_str().ok()),
+            Some("tenant-abc")
+        );
+        assert_eq!(
+            headers
+                .get("x-custom-trace-id")
+                .and_then(|value| value.to_str().ok()),
+            Some("trace-xyz")
         );
     }
 }

@@ -10,7 +10,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ClientHeaders, ProviderRequestConfig};
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
@@ -90,7 +90,6 @@ impl OpenAIProvider {
             config.timeout = Some(t);
         }
 
-        // OpenAI-specific metadata
         if let Some(org) = metadata.get("organization_id").and_then(Value::as_str) {
             config.organization = Some(org.to_string());
         }
@@ -147,25 +146,29 @@ impl OpenAIProvider {
         Ok(url)
     }
 
-    fn apply_headers(&self, headers: &mut HeaderMap) {
+    fn apply_headers(&self, headers: &mut HeaderMap) -> Result<()> {
         if let Some(org) = &self.config.organization {
             headers.insert(
                 "OpenAI-Organization",
-                HeaderValue::from_str(org).unwrap_or_else(|_| HeaderValue::from_static("")),
+                HeaderValue::from_str(org).map_err(|e| {
+                    Error::InvalidRequest(format!("invalid organization header: {e}"))
+                })?,
             );
         }
         if let Some(project) = &self.config.project {
             headers.insert(
                 "OpenAI-Project",
-                HeaderValue::from_str(project).unwrap_or_else(|_| HeaderValue::from_static("")),
+                HeaderValue::from_str(project)
+                    .map_err(|e| Error::InvalidRequest(format!("invalid project header: {e}")))?,
             );
         }
+        Ok(())
     }
 
-    fn build_headers(&self, client_headers: &ClientHeaders) -> HeaderMap {
+    fn build_headers(&self, client_headers: &ClientHeaders) -> Result<HeaderMap> {
         let mut headers = client_headers.to_json_headers();
-        self.apply_headers(&mut headers);
-        headers
+        self.apply_headers(&mut headers)?;
+        Ok(headers)
     }
 }
 
@@ -186,14 +189,16 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
             _ => self.chat_url(Some(&spec.model))?,
         };
 
-        let mut headers = self.build_headers(client_headers);
+        let mut headers = self.build_headers(client_headers)?;
         auth.apply_headers(&mut headers)?;
+        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client
@@ -236,10 +241,18 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .complete_stream_via_complete(
+                    payload,
+                    auth,
+                    spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
         }
 
@@ -249,8 +262,9 @@ impl crate::providers::Provider for OpenAIProvider {
             _ => self.chat_url(Some(&spec.model))?,
         };
 
-        let mut headers = self.build_headers(client_headers);
+        let mut headers = self.build_headers(client_headers)?;
         auth.apply_headers(&mut headers)?;
+        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client
@@ -288,7 +302,7 @@ impl crate::providers::Provider for OpenAIProvider {
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
         let url = self.chat_url(None)?;
-        let mut headers = self.build_headers(&ClientHeaders::default());
+        let mut headers = self.build_headers(&ClientHeaders::default())?;
         auth.apply_headers(&mut headers)?;
 
         let response = self.client.get(url).headers(headers).send().await?;
@@ -390,6 +404,13 @@ pub fn openai_compatible_endpoint(kind: &str) -> Option<OpenAICompatibleEndpoint
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::catalog::ModelFlavor;
+    use crate::providers::Provider;
+    use lingua::serde_json::json;
+    use wiremock::{
+        matchers::{header, method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
 
     #[test]
     fn resolves_template_endpoint() {
@@ -431,5 +452,63 @@ mod tests {
         let provider = OpenAIProvider::new(config).unwrap();
         let url = provider.chat_url(None).expect("url");
         assert!(url.as_str().contains("default.lepton.run"));
+    }
+
+    #[tokio::test]
+    async fn complete_forwards_provider_request_config_headers() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .and(header("x-custom-tenant-id", "tenant-abc"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "choices": []
+            })))
+            .mount(&server)
+            .await;
+
+        let endpoint = Url::parse(&server.uri()).unwrap();
+        let provider =
+            OpenAIProvider::from_config(Some(&endpoint), None, None, &Default::default()).unwrap();
+        let request_config = ProviderRequestConfig {
+            additional_headers: [("x-custom-tenant-id".to_string(), "tenant-abc".to_string())]
+                .into_iter()
+                .collect(),
+        };
+        let spec = ModelSpec {
+            model: "custom-model".to_string(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: serde_json::Map::new(),
+            available_providers: vec![],
+        };
+
+        let body = Bytes::from_static(br#"{"model":"custom-model","messages":[]}"#);
+        let response = provider
+            .complete(
+                body,
+                &AuthConfig::ApiKey {
+                    key: "sk-test".to_string(),
+                    header: Some("authorization".to_string()),
+                    prefix: Some("Bearer".to_string()),
+                },
+                &spec,
+                ProviderFormat::ChatCompletions,
+                &ClientHeaders::default(),
+                &request_config,
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response, Bytes::from_static(br#"{"choices":[]}"#));
     }
 }

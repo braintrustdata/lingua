@@ -13,7 +13,7 @@ use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelS
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
-    ClientHeaders, Provider,
+    ClientHeaders, Provider, ProviderRequestConfig,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_stream, ResponseStream};
@@ -105,6 +105,7 @@ type ResolvedRoute<'a> = (
     String, // alias
     Arc<dyn Provider>,
     &'a AuthConfig,
+    &'a ProviderRequestConfig,
     Arc<ModelSpec>,
     ProviderFormat,
     RetryStrategy,
@@ -142,6 +143,7 @@ pub struct PreparedStreamRequest<'a> {
 struct PreparedRequestInner<'a> {
     provider: Arc<dyn Provider>,
     auth: &'a AuthConfig,
+    request_config: &'a ProviderRequestConfig,
     spec: Arc<ModelSpec>,
     format: ProviderFormat,
     payload: Bytes,
@@ -190,6 +192,7 @@ pub struct Router {
     resolver: ModelResolver,
     providers: HashMap<String, Arc<dyn Provider>>, // alias -> provider
     auth_configs: HashMap<String, AuthConfig>,     // alias -> auth
+    request_configs: HashMap<String, ProviderRequestConfig>, // alias -> provider request config
     formats: HashMap<ProviderFormat, String>,      // format -> default alias
     retry_policy: RetryPolicy,
 }
@@ -215,13 +218,14 @@ impl Router {
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
-        let (provider_alias, provider, auth, spec, format, strategy) = route;
+        let (provider_alias, provider, auth, request_config, spec, format, strategy) = route;
         let (payload, detected_format, actual_format) =
             prepare_provider_request(body, spec.as_ref(), *format, stream).await?;
         Ok((
             PreparedRequestInner {
                 provider: provider.clone(),
                 auth,
+                request_config,
                 spec: spec.clone(),
                 format: actual_format,
                 payload,
@@ -282,6 +286,7 @@ impl Router {
         let PreparedRequestInner {
             provider,
             auth,
+            request_config,
             spec,
             format,
             payload,
@@ -292,6 +297,7 @@ impl Router {
             .execute_with_retry(
                 provider,
                 auth,
+                request_config,
                 spec,
                 format,
                 payload,
@@ -353,6 +359,7 @@ impl Router {
         let PreparedRequestInner {
             provider,
             auth,
+            request_config,
             spec,
             format,
             payload,
@@ -362,7 +369,14 @@ impl Router {
         let allow_full_response_fallback = spec.supports_streaming;
         let raw_stream = provider
             .clone()
-            .complete_stream(payload, auth, spec.as_ref(), format, client_headers)
+            .complete_stream(
+                payload,
+                auth,
+                spec.as_ref(),
+                format,
+                client_headers,
+                request_config,
+            )
             .await?;
         Ok(transform_stream(
             raw_stream,
@@ -516,8 +530,20 @@ impl Router {
             .auth_configs
             .get(&alias)
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
+        let request_config = self
+            .request_configs
+            .get(&alias)
+            .ok_or_else(|| Error::NoProvider(catalog_format))?;
         let strategy = self.retry_policy.strategy();
-        Ok((alias, provider, auth, spec, format, strategy))
+        Ok((
+            alias,
+            provider,
+            auth,
+            request_config,
+            spec,
+            format,
+            strategy,
+        ))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -525,6 +551,7 @@ impl Router {
         &self,
         provider: Arc<dyn Provider>,
         auth: &AuthConfig,
+        request_config: &ProviderRequestConfig,
         spec: Arc<ModelSpec>,
         format: ProviderFormat,
         payload: Bytes,
@@ -551,7 +578,14 @@ impl Router {
                 );
                 async {
                     provider
-                        .complete(payload.clone(), auth, &spec, format, client_headers)
+                        .complete(
+                            payload.clone(),
+                            auth,
+                            &spec,
+                            format,
+                            client_headers,
+                            request_config,
+                        )
                         .await
                 }
                 .instrument(span)
@@ -560,7 +594,14 @@ impl Router {
 
             #[cfg(not(feature = "tracing"))]
             let result = provider
-                .complete(payload.clone(), auth, &spec, format, client_headers)
+                .complete(
+                    payload.clone(),
+                    auth,
+                    &spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
 
             match result {
@@ -601,6 +642,7 @@ struct ProviderEntry {
     alias: String,
     provider: Arc<dyn Provider>,
     auth: AuthConfig,
+    request_config: ProviderRequestConfig,
     default_for_formats: Vec<ProviderFormat>,
 }
 
@@ -665,10 +707,32 @@ impl RouterBuilder {
     where
         P: Provider + 'static,
     {
+        self = self.add_provider_with_config(
+            alias,
+            provider,
+            auth,
+            ProviderRequestConfig::default(),
+            default_for_formats,
+        );
+        self
+    }
+
+    pub fn add_provider_with_config<P>(
+        mut self,
+        alias: impl Into<String>,
+        provider: P,
+        auth: AuthConfig,
+        request_config: ProviderRequestConfig,
+        default_for_formats: Vec<ProviderFormat>,
+    ) -> Self
+    where
+        P: Provider + 'static,
+    {
         self.provider_entries.push(ProviderEntry {
             alias: alias.into(),
             provider: Arc::new(provider),
             auth,
+            request_config,
             default_for_formats,
         });
         self
@@ -682,10 +746,29 @@ impl RouterBuilder {
         auth: AuthConfig,
         default_for_formats: Vec<ProviderFormat>,
     ) -> Self {
+        self = self.add_provider_arc_with_config(
+            alias,
+            provider,
+            auth,
+            ProviderRequestConfig::default(),
+            default_for_formats,
+        );
+        self
+    }
+
+    pub fn add_provider_arc_with_config(
+        mut self,
+        alias: impl Into<String>,
+        provider: Arc<dyn Provider>,
+        auth: AuthConfig,
+        request_config: ProviderRequestConfig,
+        default_for_formats: Vec<ProviderFormat>,
+    ) -> Self {
         self.provider_entries.push(ProviderEntry {
             alias: alias.into(),
             provider,
             auth,
+            request_config,
             default_for_formats,
         });
         self
@@ -702,6 +785,7 @@ impl RouterBuilder {
 
         let mut providers = HashMap::new();
         let mut auth_configs = HashMap::new();
+        let mut request_configs = HashMap::new();
         let mut formats = HashMap::new();
         let mut backup_formats = HashMap::new();
         for entry in self.provider_entries {
@@ -713,6 +797,7 @@ impl RouterBuilder {
             }
             providers.insert(entry.alias.clone(), entry.provider.clone());
             auth_configs.insert(entry.alias.clone(), entry.auth);
+            request_configs.insert(entry.alias.clone(), entry.request_config);
 
             for format in entry.default_for_formats {
                 if let Some(existing_alias) = formats.get(&format) {
@@ -746,6 +831,7 @@ impl RouterBuilder {
             providers,
             formats,
             auth_configs,
+            request_configs,
             retry_policy: self.retry_policy,
         })
     }
@@ -782,6 +868,7 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
+            _request_config: &ProviderRequestConfig,
         ) -> Result<Bytes> {
             Ok(Bytes::from("{}"))
         }
@@ -793,6 +880,7 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
+            _request_config: &ProviderRequestConfig,
         ) -> Result<RawResponseStream> {
             unimplemented!()
         }
@@ -862,7 +950,7 @@ mod tests {
             .map(|routes| {
                 routes
                     .into_iter()
-                    .map(|(alias, _, _, _, _, _)| alias)
+                    .map(|(alias, _, _, _, _, _, _)| alias)
                     .collect()
             })
     }
@@ -1041,7 +1129,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -1068,7 +1156,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::Responses);
     }
 
@@ -1095,7 +1183,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -1122,7 +1210,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -1149,7 +1237,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format, _) = &routes[0];
+        let (alias, provider, _, _, _, format, _) = &routes[0];
         assert_eq!(alias, "azure");
         assert_eq!(provider.id(), "azure");
         assert_eq!(*format, ProviderFormat::Responses);

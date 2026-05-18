@@ -4,7 +4,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{ClientHeaders, ProviderRequestConfig};
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -128,6 +128,7 @@ impl crate::providers::Provider for AnthropicProvider {
         _spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
@@ -139,10 +140,12 @@ impl crate::providers::Provider for AnthropicProvider {
                 HeaderValue::from_str(&format!("Bearer {key}"))
                     .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
             );
+            request_config.apply_additional_headers(&mut h)?;
             (self.chat_completions_url(), h)
         } else {
             let mut h = self.build_headers(client_headers);
             auth.apply_headers(&mut h)?;
+            request_config.apply_additional_headers(&mut h)?;
             (self.messages_url(), h)
         };
 
@@ -187,10 +190,18 @@ impl crate::providers::Provider for AnthropicProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .complete_stream_via_complete(
+                    payload,
+                    auth,
+                    spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
         }
 
@@ -205,10 +216,12 @@ impl crate::providers::Provider for AnthropicProvider {
                 HeaderValue::from_str(&format!("Bearer {key}"))
                     .map_err(|e| Error::Auth(format!("invalid auth header: {e}")))?,
             );
+            request_config.apply_additional_headers(&mut h)?;
             (self.chat_completions_url(), h)
         } else {
             let mut h = self.build_headers(client_headers);
             auth.apply_headers(&mut h)?;
+            request_config.apply_additional_headers(&mut h)?;
             (self.messages_url(), h)
         };
 

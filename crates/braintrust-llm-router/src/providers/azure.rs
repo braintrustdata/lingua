@@ -11,7 +11,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
-use crate::providers::{ClientHeaders, Provider};
+use crate::providers::{ClientHeaders, Provider, ProviderRequestConfig};
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
@@ -171,6 +171,7 @@ impl AzureProvider {
         &self,
         client_headers: &ClientHeaders,
         auth: &AuthConfig,
+        request_config: &ProviderRequestConfig,
         format: ProviderFormat,
     ) -> Result<HeaderMap> {
         let mut headers = self.build_headers(client_headers);
@@ -191,6 +192,7 @@ impl AzureProvider {
         } else {
             auth.apply_headers(&mut headers)?;
         }
+        request_config.apply_additional_headers(&mut headers)?;
         Ok(headers)
     }
 
@@ -234,11 +236,12 @@ impl crate::providers::Provider for AzureProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let payload = self.prepare_payload(payload, &spec.model, format)?;
         let url = self.url_for_format(&spec.model, format)?;
 
-        let headers = self.apply_format_headers(client_headers, auth, format)?;
+        let headers = self.apply_format_headers(client_headers, auth, request_config, format)?;
 
         let response = self
             .client
@@ -281,10 +284,18 @@ impl crate::providers::Provider for AzureProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
+                .complete_stream_via_complete(
+                    payload,
+                    auth,
+                    spec,
+                    format,
+                    client_headers,
+                    request_config,
+                )
                 .await;
         }
 
@@ -292,7 +303,7 @@ impl crate::providers::Provider for AzureProvider {
         let payload = self.prepare_payload(payload, &spec.model, format)?;
         let url = self.url_for_format(&spec.model, format)?;
 
-        let headers = self.apply_format_headers(client_headers, auth, format)?;
+        let headers = self.apply_format_headers(client_headers, auth, request_config, format)?;
 
         let response = self
             .client
@@ -483,7 +494,12 @@ mod tests {
             prefix: None,
         };
         let headers = provider
-            .apply_format_headers(&ClientHeaders::default(), &auth, ProviderFormat::Anthropic)
+            .apply_format_headers(
+                &ClientHeaders::default(),
+                &auth,
+                &ProviderRequestConfig::default(),
+                ProviderFormat::Anthropic,
+            )
             .unwrap();
 
         assert_eq!(
@@ -511,6 +527,7 @@ mod tests {
             .apply_format_headers(
                 &ClientHeaders::default(),
                 &auth,
+                &ProviderRequestConfig::default(),
                 ProviderFormat::ChatCompletions,
             )
             .unwrap();

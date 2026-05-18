@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
-    ProviderFormat, RawResponseStream, RetryPolicy, Router, RouterBuilder,
+    ProviderFormat, ProviderRequestConfig, RawResponseStream, RetryPolicy, Router, RouterBuilder,
 };
 use bytes::Bytes;
 
@@ -35,6 +35,7 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         // Parse the incoming payload to extract model name
         let value: Value =
@@ -75,6 +76,61 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
+        Ok(Box::pin(tokio_stream::empty()))
+    }
+
+    async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+struct CapturingRequestConfigProvider {
+    recorded_headers: Arc<Mutex<Option<Vec<(String, String)>>>>,
+}
+
+#[async_trait]
+impl Provider for CapturingRequestConfigProvider {
+    fn id(&self) -> &'static str {
+        "capturing-request-config"
+    }
+
+    fn provider_formats(&self) -> Vec<ProviderFormat> {
+        vec![ProviderFormat::ChatCompletions]
+    }
+
+    async fn complete(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+        request_config: &ProviderRequestConfig,
+    ) -> braintrust_llm_router::Result<Bytes> {
+        let mut headers: Vec<(String, String)> = request_config
+            .additional_headers
+            .iter()
+            .map(|(name, value)| (name.clone(), value.clone()))
+            .collect();
+        headers.sort();
+        *self.recorded_headers.lock().unwrap() = Some(headers);
+
+        Ok(Bytes::from_static(
+            br#"{"id":"stub","object":"chat.completion","model":"stub-model","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}"#,
+        ))
+    }
+
+    async fn complete_stream(
+        &self,
+        _payload: Bytes,
+        _auth: &AuthConfig,
+        _spec: &ModelSpec,
+        _format: ProviderFormat,
+        _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
@@ -150,6 +206,79 @@ async fn router_routes_to_stub_provider() {
         Some("stub-model")
     );
     assert!(response.get("choices").is_some());
+}
+
+#[tokio::test]
+async fn router_forwards_provider_request_config_additional_headers() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "stub-model".into(),
+        ModelSpec {
+            model: "stub-model".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let recorded_headers = Arc::new(Mutex::new(None));
+    let provider = CapturingRequestConfigProvider {
+        recorded_headers: Arc::clone(&recorded_headers),
+    };
+    let request_config = ProviderRequestConfig {
+        additional_headers: [
+            ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
+            ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
+        ]
+        .into_iter()
+        .collect(),
+    };
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::new(catalog))
+        .add_provider_with_config(
+            "stub",
+            provider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            request_config,
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .expect("router builds");
+
+    let body = to_body(json!({
+        "model": "stub-model",
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+    let (request, _metadata) = router
+        .create_request(body, "stub-model", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    router
+        .complete(request, &ClientHeaders::default())
+        .await
+        .expect("complete");
+
+    assert_eq!(
+        *recorded_headers.lock().unwrap(),
+        Some(vec![
+            ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
+            ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
+        ])
+    );
 }
 
 #[tokio::test]
@@ -369,6 +498,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         self.attempts.fetch_add(1, Ordering::SeqCst);
         Err(Error::Timeout)
@@ -381,6 +511,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Err(Error::Timeout)
     }
@@ -410,6 +541,7 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         let err = reqwest::Client::new()
             .get("http://127.0.0.1:1")
@@ -426,6 +558,7 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
@@ -455,6 +588,7 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         let client = reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build();
         let err = client
@@ -472,6 +606,7 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
@@ -505,6 +640,7 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
@@ -526,6 +662,7 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
@@ -678,6 +815,7 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<Bytes> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
@@ -699,6 +837,7 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
+        _request_config: &ProviderRequestConfig,
     ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(Box::pin(tokio_stream::empty()))
     }
