@@ -452,7 +452,8 @@ impl crate::providers::Provider for BedrockProvider {
             .join("list-foundation-models")
             .expect("join models path");
         let body = b"{}";
-        let headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
+        let mut headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         let response = self
             .client
