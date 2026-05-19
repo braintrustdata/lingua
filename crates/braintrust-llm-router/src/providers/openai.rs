@@ -10,7 +10,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{ClientHeaders, ProviderRequestConfig};
+use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
@@ -189,7 +189,6 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
@@ -198,7 +197,6 @@ impl crate::providers::Provider for OpenAIProvider {
 
         let mut headers = self.build_headers(client_headers)?;
         auth.apply_headers(&mut headers)?;
-        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client
@@ -241,18 +239,10 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(
-                    payload,
-                    auth,
-                    spec,
-                    format,
-                    client_headers,
-                    request_config,
-                )
+                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
                 .await;
         }
 
@@ -264,7 +254,6 @@ impl crate::providers::Provider for OpenAIProvider {
 
         let mut headers = self.build_headers(client_headers)?;
         auth.apply_headers(&mut headers)?;
-        request_config.apply_additional_headers(&mut headers)?;
 
         let response = self
             .client

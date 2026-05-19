@@ -62,6 +62,7 @@ pub const BLOCKED_HEADERS: &[&str] = &[
 #[derive(Debug, Clone, Default)]
 pub struct ClientHeaders {
     inner: HashMap<String, String>,
+    user_configured: HashMap<String, String>,
 }
 
 impl ClientHeaders {
@@ -84,7 +85,44 @@ impl ClientHeaders {
         }
     }
 
-    pub fn apply(&self, headers: &mut HeaderMap) {
+    pub fn insert_user_configured(
+        &mut self,
+        name: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Result<()> {
+        let name = name.into();
+        let value = value.into();
+        let header_name = name.parse::<HeaderName>().map_err(|e| {
+            Error::InvalidRequest(format!("invalid user-configured header name '{name}': {e}"))
+        })?;
+        HeaderValue::from_str(&value).map_err(|e| {
+            Error::InvalidRequest(format!("invalid user-configured header value: {e}"))
+        })?;
+        self.user_configured
+            .insert(header_name.as_str().to_string(), value);
+        Ok(())
+    }
+
+    pub fn with_user_configured_headers(
+        headers: impl IntoIterator<Item = (String, String)>,
+    ) -> Result<Self> {
+        let mut client_headers = Self::new();
+        for (name, value) in headers {
+            client_headers.insert_user_configured(name, value)?;
+        }
+        Ok(client_headers)
+    }
+
+    pub(crate) fn extend_user_configured_from(&mut self, other: &ClientHeaders) {
+        self.user_configured.extend(
+            other
+                .user_configured
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone())),
+        );
+    }
+
+    fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
             if name == "host" {
                 // Don't forward client Host; reqwest sets it from the upstream URL.
@@ -99,10 +137,27 @@ impl ClientHeaders {
         }
     }
 
+    fn apply_user_configured(&self, headers: &mut HeaderMap) {
+        for (name, value) in &self.user_configured {
+            if let (Ok(header_name), Ok(header_value)) = (
+                HeaderName::from_bytes(name.as_bytes()),
+                HeaderValue::from_str(value),
+            ) {
+                headers.insert(header_name, header_value);
+            }
+        }
+    }
+
+    pub fn apply(&self, headers: &mut HeaderMap) {
+        self.apply_inner(headers);
+        self.apply_user_configured(headers);
+    }
+
     pub(crate) fn to_json_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
-        self.apply(&mut headers);
+        self.apply_inner(&mut headers);
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        self.apply_user_configured(&mut headers);
         headers
     }
 }
@@ -118,26 +173,6 @@ impl FromIterator<(String, String)> for ClientHeaders {
             client_headers.insert_if_allowed(name, value);
         }
         client_headers
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct ProviderRequestConfig {
-    pub additional_headers: HashMap<String, String>,
-}
-
-impl ProviderRequestConfig {
-    pub fn apply_additional_headers(&self, headers: &mut HeaderMap) -> Result<()> {
-        for (name, value) in &self.additional_headers {
-            let header_name = name.parse::<HeaderName>().map_err(|e| {
-                Error::InvalidRequest(format!("invalid additional header name '{name}': {e}"))
-            })?;
-            let header_value = HeaderValue::from_str(value).map_err(|e| {
-                Error::InvalidRequest(format!("invalid additional header value: {e}"))
-            })?;
-            headers.insert(header_name, header_value);
-        }
-        Ok(())
     }
 }
 
@@ -222,7 +257,6 @@ pub trait Provider: Send + Sync {
     /// * `auth` - Authentication configuration
     /// * `spec` - Model specification
     /// * `client_headers` - Client headers to forward to the upstream provider
-    /// * `request_config` - Trusted per-provider request configuration
     async fn complete(
         &self,
         payload: Bytes,
@@ -230,7 +264,6 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes>;
 
     /// Execute a streaming completion request.
@@ -244,7 +277,6 @@ pub trait Provider: Send + Sync {
     /// * `auth` - Authentication configuration
     /// * `spec` - Model specification
     /// * `client_headers` - Client headers to forward to the upstream provider
-    /// * `request_config` - Trusted per-provider request configuration
     async fn complete_stream(
         &self,
         payload: Bytes,
@@ -252,7 +284,6 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream>;
 
     async fn complete_stream_via_complete(
@@ -262,11 +293,10 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         let payload = disable_streaming_payload(payload);
         let response = self
-            .complete(payload, auth, spec, format, client_headers, request_config)
+            .complete(payload, auth, spec, format, client_headers)
             .await?;
         Ok(crate::streaming::single_bytes_stream(response))
     }
@@ -383,20 +413,15 @@ mod tests {
     }
 
     #[test]
-    fn provider_request_config_applies_additional_headers() {
-        let request_config = ProviderRequestConfig {
-            additional_headers: [
-                ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
-                ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
-            ]
-            .into_iter()
-            .collect(),
-        };
+    fn client_headers_applies_user_configured_headers() {
+        let client_headers = ClientHeaders::with_user_configured_headers([
+            ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
+            ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
+        ])
+        .expect("headers build");
         let mut headers = HeaderMap::new();
 
-        request_config
-            .apply_additional_headers(&mut headers)
-            .expect("headers apply");
+        client_headers.apply(&mut headers);
 
         assert_eq!(
             headers

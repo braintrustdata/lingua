@@ -15,7 +15,7 @@ use lingua::processing::{adapter_for_format, adapters};
 use lingua::serde_json::Value;
 use lingua::universal::message::{Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -23,7 +23,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{ClientHeaders, ProviderRequestConfig};
+use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
@@ -254,18 +254,13 @@ impl BedrockProvider {
         body: &[u8],
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<HeaderMap> {
         let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
-        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         if let AuthConfig::ApiKey { .. } = auth {
             auth.apply_headers(&mut headers)?;
-            request_config.apply_additional_headers(&mut headers)?;
             return Ok(headers);
         }
-
-        request_config.apply_additional_headers(&mut headers)?;
 
         let (access_key, secret_key, session_token, region, service) =
             auth.aws_credentials().ok_or_else(|| {
@@ -366,9 +361,8 @@ impl BedrockProvider {
         payload: &[u8],
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<HeaderMap> {
-        self.sign_request(url, payload, auth, client_headers, request_config)
+        self.sign_request(url, payload, auth, client_headers)
     }
 
     async fn send_signed(
@@ -377,10 +371,8 @@ impl BedrockProvider {
         payload: Bytes,
         auth: &AuthConfig,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<reqwest::Response> {
-        let headers =
-            self.build_headers(&url, payload.as_ref(), auth, client_headers, request_config)?;
+        let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
         let response = self
             .client
             .post(url.clone())
@@ -429,7 +421,6 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<Bytes> {
         let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
         let url = if use_invoke {
@@ -437,9 +428,7 @@ impl crate::providers::Provider for BedrockProvider {
         } else {
             self.converse_url(&spec.model, false)?
         };
-        let response = self
-            .send_signed(url, payload, auth, client_headers, request_config)
-            .await?;
+        let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(response.bytes().await?)
     }
 
@@ -450,18 +439,10 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-        request_config: &ProviderRequestConfig,
     ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
-                .complete_stream_via_complete(
-                    payload,
-                    auth,
-                    spec,
-                    format,
-                    client_headers,
-                    request_config,
-                )
+                .complete_stream_via_complete(payload, auth, spec, format, client_headers)
                 .await;
         }
 
@@ -472,9 +453,7 @@ impl crate::providers::Provider for BedrockProvider {
             self.converse_url(&spec.model, true)?
         };
 
-        let response = self
-            .send_signed(url, payload, auth, client_headers, request_config)
-            .await?;
+        let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(bedrock_event_stream(response))
     }
 
@@ -485,13 +464,7 @@ impl crate::providers::Provider for BedrockProvider {
             .join("list-foundation-models")
             .expect("join models path");
         let body = b"{}";
-        let headers = self.sign_request(
-            &url,
-            body,
-            auth,
-            &ClientHeaders::default(),
-            &ProviderRequestConfig::default(),
-        )?;
+        let headers = self.sign_request(&url, body, auth, &ClientHeaders::default())?;
 
         let response = self
             .client
@@ -563,13 +536,7 @@ mod tests {
         };
 
         let headers = provider
-            .build_headers(
-                &url,
-                b"{}",
-                &auth,
-                &ClientHeaders::default(),
-                &ProviderRequestConfig::default(),
-            )
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
             .expect("headers");
         assert_eq!(
             headers.get("content-type"),
@@ -593,13 +560,7 @@ mod tests {
         };
 
         let err = provider
-            .build_headers(
-                &url,
-                b"{}",
-                &auth,
-                &ClientHeaders::default(),
-                &ProviderRequestConfig::default(),
-            )
+            .build_headers(&url, b"{}", &auth, &ClientHeaders::default())
             .unwrap_err();
         match err {
             Error::Auth(message) => {
@@ -610,7 +571,7 @@ mod tests {
     }
 
     #[test]
-    fn build_headers_signs_provider_request_config_headers() {
+    fn build_headers_signs_user_configured_headers() {
         let provider = provider();
         let url = provider
             .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
@@ -622,26 +583,17 @@ mod tests {
             region: "us-east-1".into(),
             service: "bedrock".into(),
         };
-        let request_config = ProviderRequestConfig {
-            additional_headers: [
-                (
-                    "content-type".to_string(),
-                    "application/vnd.custom+json".to_string(),
-                ),
-                ("x-custom-provider".to_string(), "tenant-abc".to_string()),
-            ]
-            .into_iter()
-            .collect(),
-        };
+        let client_headers = ClientHeaders::with_user_configured_headers([
+            (
+                "content-type".to_string(),
+                "application/vnd.custom+json".to_string(),
+            ),
+            ("x-custom-provider".to_string(), "tenant-abc".to_string()),
+        ])
+        .expect("client headers");
 
         let headers = provider
-            .build_headers(
-                &url,
-                b"{}",
-                &auth,
-                &ClientHeaders::default(),
-                &request_config,
-            )
+            .build_headers(&url, b"{}", &auth, &client_headers)
             .expect("headers");
 
         assert_eq!(
