@@ -35,3 +35,33 @@ fn client_headers_filter_and_host_behavior() {
         assert_eq!(headers.contains_key(name), expected, "header {name}");
     }
 }
+
+#[test]
+fn user_configured_headers_are_not_filtered() {
+    let mut client_headers = ClientHeaders::default();
+    client_headers
+        .insert_user_configured("authorization", "Bearer configured")
+        .expect("authorization header");
+    client_headers
+        .insert_user_configured("host", "configured.example.com")
+        .expect("host header");
+    client_headers
+        .insert_user_configured("x-bt-project-id", "configured-project")
+        .expect("x-bt-project-id header");
+    let mut headers = HeaderMap::new();
+
+    client_headers.apply(&mut headers);
+
+    assert_eq!(
+        headers.get("authorization").and_then(|v| v.to_str().ok()),
+        Some("Bearer configured")
+    );
+    assert_eq!(
+        headers.get("host").and_then(|v| v.to_str().ok()),
+        Some("configured.example.com")
+    );
+    assert_eq!(
+        headers.get("x-bt-project-id").and_then(|v| v.to_str().ok()),
+        Some("configured-project")
+    );
+}
