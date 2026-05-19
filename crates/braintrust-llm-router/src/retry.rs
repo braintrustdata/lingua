@@ -33,7 +33,7 @@ impl RetryPolicy {
         RetryStrategy {
             policy: self.clone(),
             attempts: 0,
-            rng: self.jitter.then(StdRng::from_entropy),
+            rng: self.jitter.then(StdRng::from_os_rng),
         }
     }
 }
@@ -71,7 +71,7 @@ impl RetryStrategy {
         }
 
         if let Some(rng) = &mut self.rng {
-            let jitter: f64 = rng.gen_range(0.5..1.5);
+            let jitter: f64 = rng.random_range(0.5..1.5);
             delay = delay.mul_f64(jitter).min(self.policy.max_delay);
         }
 

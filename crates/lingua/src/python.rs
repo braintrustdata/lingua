@@ -10,7 +10,7 @@ use crate::serde_json;
 use crate::universal::{convert::TryFromLLM, Message};
 
 /// Convert Python object to Rust type via JSON
-fn py_to_rust<T>(py: Python, value: &PyAny) -> PyResult<T>
+fn py_to_rust<'py, T>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<T>
 where
     T: for<'de> Deserialize<'de>,
 {
@@ -27,7 +27,7 @@ where
 }
 
 /// Convert Rust type to Python object via JSON
-fn rust_to_py<T>(py: Python, value: &T) -> PyResult<PyObject>
+fn rust_to_py<'py, T>(py: Python<'py>, value: &T) -> PyResult<Bound<'py, PyAny>>
 where
     T: Serialize,
 {
@@ -39,12 +39,11 @@ where
     // Convert JSON string to Python object
     pyo3::types::PyModule::import(py, "json")?
         .getattr("loads")?
-        .call1((json_str,))?
-        .extract()
+        .call1((json_str,))
 }
 
 /// Generic conversion from provider to Lingua
-fn convert_to_lingua<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
+fn convert_to_lingua<'py, T, U>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -58,7 +57,7 @@ where
 }
 
 /// Generic conversion from Lingua to provider
-fn convert_from_lingua<T, U>(py: Python, value: &PyAny) -> PyResult<PyObject>
+fn convert_from_lingua<'py, T, U>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -77,49 +76,73 @@ where
 
 /// Convert array of Chat Completions messages to Lingua Messages
 #[pyfunction]
-fn chat_completions_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn chat_completions_messages_to_lingua<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_to_lingua::<Vec<ChatCompletionRequestMessageExt>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Chat Completions messages
 #[pyfunction]
-fn lingua_to_chat_completions_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn lingua_to_chat_completions_messages<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_from_lingua::<Vec<Message>, Vec<ChatCompletionRequestMessageExt>>(py, value)
 }
 
 /// Convert array of Responses API messages to Lingua Messages
 #[pyfunction]
-fn responses_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn responses_messages_to_lingua<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_to_lingua::<Vec<openai::InputItem>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Responses API messages
 #[pyfunction]
-fn lingua_to_responses_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn lingua_to_responses_messages<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_from_lingua::<Vec<Message>, Vec<openai::InputItem>>(py, value)
 }
 
 /// Convert array of Anthropic messages to Lingua Messages
 #[pyfunction]
-fn anthropic_messages_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn anthropic_messages_to_lingua<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_to_lingua::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Anthropic messages
 #[pyfunction]
-fn lingua_to_anthropic_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn lingua_to_anthropic_messages<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
 }
 
 /// Convert array of Google Content items to Lingua Messages
 #[pyfunction]
-fn google_contents_to_lingua(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn google_contents_to_lingua<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_to_lingua::<Vec<google::Content>, Vec<Message>>(py, value)
 }
 
 /// Convert array of Lingua Messages to Google Content items
 #[pyfunction]
-fn lingua_to_google_contents(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn lingua_to_google_contents<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     convert_from_lingua::<Vec<Message>, Vec<google::Content>>(py, value)
 }
 
@@ -129,7 +152,10 @@ fn lingua_to_google_contents(py: Python, value: &PyAny) -> PyResult<PyObject> {
 
 /// Deduplicate messages based on role and content
 #[pyfunction]
-fn deduplicate_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn deduplicate_messages<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::processing::dedup::deduplicate_messages as dedup;
     use crate::universal::Message;
 
@@ -145,7 +171,10 @@ fn deduplicate_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
 
 /// Import messages from spans
 #[pyfunction]
-fn import_messages_from_spans(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn import_messages_from_spans<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::processing::import::{import_messages_from_spans as import, Span};
 
     // Convert Python value to Vec<Span>
@@ -160,7 +189,10 @@ fn import_messages_from_spans(py: Python, value: &PyAny) -> PyResult<PyObject> {
 
 /// Import and deduplicate messages from spans in a single operation
 #[pyfunction]
-fn import_and_deduplicate_messages(py: Python, value: &PyAny) -> PyResult<PyObject> {
+fn import_and_deduplicate_messages<'py>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::processing::import::{import_and_deduplicate_messages as import_dedup, Span};
 
     // Convert Python value to Vec<Span>
@@ -180,7 +212,7 @@ fn import_and_deduplicate_messages(py: Python, value: &PyAny) -> PyResult<PyObje
 /// Validate a JSON string as a Chat Completions request
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_chat_completions_request(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_chat_completions_request<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_chat_completions_request as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -190,7 +222,7 @@ fn validate_chat_completions_request(py: Python, json: &str) -> PyResult<PyObjec
 /// Validate a JSON string as a Chat Completions response
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_chat_completions_response(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_chat_completions_response<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_chat_completions_response as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -200,7 +232,7 @@ fn validate_chat_completions_response(py: Python, json: &str) -> PyResult<PyObje
 /// Validate a JSON string as a Responses API request
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_responses_request(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_responses_request<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_responses_request as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -210,7 +242,7 @@ fn validate_responses_request(py: Python, json: &str) -> PyResult<PyObject> {
 /// Validate a JSON string as a Responses API response
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_responses_response(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_responses_response<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_responses_response as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -221,7 +253,7 @@ fn validate_responses_response(py: Python, json: &str) -> PyResult<PyObject> {
 /// @deprecated Use validate_chat_completions_request instead
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_openai_request(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_openai_request<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     validate_chat_completions_request(py, json)
 }
 
@@ -229,14 +261,14 @@ fn validate_openai_request(py: Python, json: &str) -> PyResult<PyObject> {
 /// @deprecated Use validate_chat_completions_response instead
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_openai_response(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_openai_response<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     validate_chat_completions_response(py, json)
 }
 
 /// Validate a JSON string as an Anthropic request
 #[pyfunction]
 #[cfg(feature = "anthropic")]
-fn validate_anthropic_request(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_anthropic_request<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::anthropic::validate_anthropic_request as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -246,7 +278,7 @@ fn validate_anthropic_request(py: Python, json: &str) -> PyResult<PyObject> {
 /// Validate a JSON string as an Anthropic response
 #[pyfunction]
 #[cfg(feature = "anthropic")]
-fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
+fn validate_anthropic_response<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::anthropic::validate_anthropic_response as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -267,12 +299,12 @@ fn validate_anthropic_response(py: Python, json: &str) -> PyResult<PyObject> {
 /// - `{ "transformed": True, "data": ..., "source_format": "..." }` if transformed
 #[pyfunction]
 #[pyo3(signature = (json, target_format, model=None))]
-fn transform_request(
-    py: Python,
+fn transform_request<'py>(
+    py: Python<'py>,
     json: &str,
     target_format: &str,
     model: Option<String>,
-) -> PyResult<PyObject> {
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::capabilities::ProviderFormat;
     use crate::processing::transform::{transform_request as transform, TransformResult};
     use bytes::Bytes;
@@ -299,7 +331,7 @@ fn transform_request(
             let dict = pyo3::types::PyDict::new(py);
             dict.set_item("pass_through", true)?;
             dict.set_item("data", rust_to_py(py, &data)?)?;
-            Ok(dict.into())
+            Ok(dict.into_any())
         }
         TransformResult::Transformed {
             bytes,
@@ -316,7 +348,7 @@ fn transform_request(
             dict.set_item("transformed", true)?;
             dict.set_item("data", rust_to_py(py, &data)?)?;
             dict.set_item("source_format", source_format.to_string())?;
-            Ok(dict.into())
+            Ok(dict.into_any())
         }
     }
 }
@@ -330,7 +362,11 @@ fn transform_request(
 /// - `{ "pass_through": True, "data": ... }` if payload is already valid for target
 /// - `{ "transformed": True, "data": ..., "source_format": "..." }` if transformed
 #[pyfunction]
-fn transform_response(py: Python, json: &str, target_format: &str) -> PyResult<PyObject> {
+fn transform_response<'py>(
+    py: Python<'py>,
+    json: &str,
+    target_format: &str,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::capabilities::ProviderFormat;
     use crate::processing::transform::{transform_response as transform, TransformResult};
     use bytes::Bytes;
@@ -357,7 +393,7 @@ fn transform_response(py: Python, json: &str, target_format: &str) -> PyResult<P
             let dict = pyo3::types::PyDict::new(py);
             dict.set_item("pass_through", true)?;
             dict.set_item("data", rust_to_py(py, &data)?)?;
-            Ok(dict.into())
+            Ok(dict.into_any())
         }
         TransformResult::Transformed {
             bytes,
@@ -374,7 +410,7 @@ fn transform_response(py: Python, json: &str, target_format: &str) -> PyResult<P
             dict.set_item("transformed", true)?;
             dict.set_item("data", rust_to_py(py, &data)?)?;
             dict.set_item("source_format", source_format.to_string())?;
-            Ok(dict.into())
+            Ok(dict.into_any())
         }
     }
 }
@@ -395,7 +431,7 @@ fn extract_model(json: &str) -> Option<String> {
 
 /// Python module for Lingua
 #[pymodule]
-fn _lingua(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _lingua(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Conversion functions
     m.add_function(wrap_pyfunction!(chat_completions_messages_to_lingua, m)?)?;
     m.add_function(wrap_pyfunction!(lingua_to_chat_completions_messages, m)?)?;
