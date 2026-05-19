@@ -2,6 +2,7 @@
 name = "generate-types"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 description = "Type generation tool for Lingua providers"
 publish = false
 

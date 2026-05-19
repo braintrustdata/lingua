@@ -26,7 +26,7 @@ Repository = "https://github.com/braintrustdata/lingua"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
+    "pytest>=9.0.3",
     "maturin>=1.0,<2.0",
 ]
 

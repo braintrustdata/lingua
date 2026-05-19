@@ -29,7 +29,7 @@ use std::sync::Arc;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::streaming::RawResponseStream;
 use lingua::ProviderFormat;
 
@@ -62,6 +62,7 @@ pub const BLOCKED_HEADERS: &[&str] = &[
 #[derive(Debug, Clone, Default)]
 pub struct ClientHeaders {
     inner: HashMap<String, String>,
+    user_configured: HashMap<String, String>,
 }
 
 impl ClientHeaders {
@@ -84,7 +85,25 @@ impl ClientHeaders {
         }
     }
 
-    pub fn apply(&self, headers: &mut HeaderMap) {
+    pub fn insert_user_configured(
+        &mut self,
+        name: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Result<()> {
+        let name = name.into();
+        let value = value.into();
+        let header_name = name.parse::<HeaderName>().map_err(|e| {
+            Error::InvalidRequest(format!("invalid user-configured header name '{name}': {e}"))
+        })?;
+        HeaderValue::from_str(&value).map_err(|e| {
+            Error::InvalidRequest(format!("invalid user-configured header value: {e}"))
+        })?;
+        self.user_configured
+            .insert(header_name.as_str().to_string(), value);
+        Ok(())
+    }
+
+    fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
             if name == "host" {
                 // Don't forward client Host; reqwest sets it from the upstream URL.
@@ -99,10 +118,27 @@ impl ClientHeaders {
         }
     }
 
+    fn apply_user_configured(&self, headers: &mut HeaderMap) {
+        for (name, value) in &self.user_configured {
+            if let (Ok(header_name), Ok(header_value)) = (
+                HeaderName::from_bytes(name.as_bytes()),
+                HeaderValue::from_str(value),
+            ) {
+                headers.insert(header_name, header_value);
+            }
+        }
+    }
+
+    pub fn apply(&self, headers: &mut HeaderMap) {
+        self.apply_inner(headers);
+        self.apply_user_configured(headers);
+    }
+
     pub(crate) fn to_json_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
-        self.apply(&mut headers);
+        self.apply_inner(&mut headers);
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        self.apply_user_configured(&mut headers);
         headers
     }
 }
@@ -354,6 +390,33 @@ mod tests {
         assert_eq!(
             updated, payload,
             "google streaming is selected by the provider path, not the payload body"
+        );
+    }
+
+    #[test]
+    fn client_headers_applies_user_configured_headers() {
+        let mut client_headers = ClientHeaders::default();
+        client_headers
+            .insert_user_configured("x-custom-tenant-id", "tenant-abc")
+            .expect("tenant header");
+        client_headers
+            .insert_user_configured("x-custom-trace-id", "trace-xyz")
+            .expect("trace header");
+        let mut headers = HeaderMap::new();
+
+        client_headers.apply(&mut headers);
+
+        assert_eq!(
+            headers
+                .get("x-custom-tenant-id")
+                .and_then(|value| value.to_str().ok()),
+            Some("tenant-abc")
+        );
+        assert_eq!(
+            headers
+                .get("x-custom-trace-id")
+                .and_then(|value| value.to_str().ok()),
+            Some("trace-xyz")
         );
     }
 }
