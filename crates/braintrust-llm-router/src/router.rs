@@ -656,7 +656,7 @@ impl RouterBuilder {
     }
 
     pub fn add_provider<P>(
-        self,
+        mut self,
         alias: impl Into<String>,
         provider: P,
         auth: AuthConfig,
@@ -665,7 +665,13 @@ impl RouterBuilder {
     where
         P: Provider + 'static,
     {
-        self.add_provider_arc(alias, Arc::new(provider), auth, default_for_formats)
+        self.provider_entries.push(ProviderEntry {
+            alias: alias.into(),
+            provider: Arc::new(provider),
+            auth,
+            default_for_formats,
+        });
+        self
     }
 
     /// Add a pre-wrapped provider (for use with `create_provider()`).
