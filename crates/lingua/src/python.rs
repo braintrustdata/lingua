@@ -43,7 +43,10 @@ where
 }
 
 /// Generic conversion from provider to Lingua
-fn convert_to_lingua<'py, T, U>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>>
+fn convert_to_lingua<'py, T, U>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -57,7 +60,10 @@ where
 }
 
 /// Generic conversion from Lingua to provider
-fn convert_from_lingua<'py, T, U>(py: Python<'py>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>>
+fn convert_from_lingua<'py, T, U>(
+    py: Python<'py>,
+    value: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyAny>>
 where
     T: for<'de> Deserialize<'de>,
     U: TryFromLLM<T> + Serialize,
@@ -212,7 +218,10 @@ fn import_and_deduplicate_messages<'py>(
 /// Validate a JSON string as a Chat Completions request
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_chat_completions_request<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
+fn validate_chat_completions_request<'py>(
+    py: Python<'py>,
+    json: &str,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_chat_completions_request as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
@@ -222,7 +231,10 @@ fn validate_chat_completions_request<'py>(py: Python<'py>, json: &str) -> PyResu
 /// Validate a JSON string as a Chat Completions response
 #[pyfunction]
 #[cfg(feature = "openai")]
-fn validate_chat_completions_response<'py>(py: Python<'py>, json: &str) -> PyResult<Bound<'py, PyAny>> {
+fn validate_chat_completions_response<'py>(
+    py: Python<'py>,
+    json: &str,
+) -> PyResult<Bound<'py, PyAny>> {
     use crate::validation::openai::validate_chat_completions_response as validate;
     let result = validate(json)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
