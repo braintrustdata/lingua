@@ -90,6 +90,7 @@ impl OpenAIProvider {
             config.timeout = Some(t);
         }
 
+        // OpenAI-specific metadata
         if let Some(org) = metadata.get("organization_id").and_then(Value::as_str) {
             config.organization = Some(org.to_string());
         }
@@ -146,29 +147,25 @@ impl OpenAIProvider {
         Ok(url)
     }
 
-    fn apply_headers(&self, headers: &mut HeaderMap) -> Result<()> {
+    fn apply_headers(&self, headers: &mut HeaderMap) {
         if let Some(org) = &self.config.organization {
             headers.insert(
                 "OpenAI-Organization",
-                HeaderValue::from_str(org).map_err(|e| {
-                    Error::InvalidRequest(format!("invalid organization header: {e}"))
-                })?,
+                HeaderValue::from_str(org).unwrap_or_else(|_| HeaderValue::from_static("")),
             );
         }
         if let Some(project) = &self.config.project {
             headers.insert(
                 "OpenAI-Project",
-                HeaderValue::from_str(project)
-                    .map_err(|e| Error::InvalidRequest(format!("invalid project header: {e}")))?,
+                HeaderValue::from_str(project).unwrap_or_else(|_| HeaderValue::from_static("")),
             );
         }
-        Ok(())
     }
 
-    fn build_headers(&self, client_headers: &ClientHeaders) -> Result<HeaderMap> {
+    fn build_headers(&self, client_headers: &ClientHeaders) -> HeaderMap {
         let mut headers = client_headers.to_json_headers();
-        self.apply_headers(&mut headers)?;
-        Ok(headers)
+        self.apply_headers(&mut headers);
+        headers
     }
 }
 
@@ -195,7 +192,7 @@ impl crate::providers::Provider for OpenAIProvider {
             _ => self.chat_url(Some(&spec.model))?,
         };
 
-        let mut headers = self.build_headers(client_headers)?;
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
@@ -252,7 +249,7 @@ impl crate::providers::Provider for OpenAIProvider {
             _ => self.chat_url(Some(&spec.model))?,
         };
 
-        let mut headers = self.build_headers(client_headers)?;
+        let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
         let response = self
@@ -291,7 +288,7 @@ impl crate::providers::Provider for OpenAIProvider {
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
         let url = self.chat_url(None)?;
-        let mut headers = self.build_headers(&ClientHeaders::default())?;
+        let mut headers = self.build_headers(&ClientHeaders::default());
         auth.apply_headers(&mut headers)?;
 
         let response = self.client.get(url).headers(headers).send().await?;

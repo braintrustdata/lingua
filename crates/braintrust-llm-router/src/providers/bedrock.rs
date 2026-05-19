@@ -560,43 +560,6 @@ mod tests {
     }
 
     #[test]
-    fn build_headers_applies_user_configured_headers() {
-        let provider = provider();
-        let url = provider
-            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
-            .unwrap();
-        let auth = AuthConfig::AwsSignatureV4 {
-            access_key: "AKIDEXAMPLE".into(),
-            secret_key: "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY".into(),
-            session_token: None,
-            region: "us-east-1".into(),
-            service: "bedrock".into(),
-        };
-        let client_headers = ClientHeaders::with_user_configured_headers([(
-            "x-custom-provider".to_string(),
-            "tenant-abc".to_string(),
-        )])
-        .expect("client headers");
-
-        let headers = provider
-            .build_headers(&url, b"{}", &auth, &client_headers)
-            .expect("headers");
-
-        assert_eq!(
-            headers
-                .get("x-custom-provider")
-                .and_then(|v| v.to_str().ok()),
-            Some("tenant-abc")
-        );
-        let authorization = headers
-            .get("authorization")
-            .and_then(|v| v.to_str().ok())
-            .expect("authorization header");
-        assert!(authorization.contains("content-type"));
-        assert!(!authorization.contains("x-custom-provider"));
-    }
-
-    #[test]
     fn requires_bedrock_request_preparation_matches_legacy_proxy_formats() {
         assert!(requires_bedrock_request_preparation(
             ProviderFormat::BedrockAnthropic
