@@ -113,15 +113,6 @@ impl ClientHeaders {
         Ok(client_headers)
     }
 
-    pub(crate) fn extend_user_configured_from(&mut self, other: &ClientHeaders) {
-        self.user_configured.extend(
-            other
-                .user_configured
-                .iter()
-                .map(|(k, v)| (k.clone(), v.clone())),
-        );
-    }
-
     fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
             if name == "host" {
