@@ -117,7 +117,7 @@ impl VertexProvider {
             ::serde_json::Value::Object(spec.extra.clone()),
         ) {
             if !extra.locations.is_empty() {
-                let idx = rand::thread_rng().gen_range(0..extra.locations.len());
+                let idx = rand::rng().random_range(0..extra.locations.len());
                 return extra.locations[idx].clone();
             }
         }
