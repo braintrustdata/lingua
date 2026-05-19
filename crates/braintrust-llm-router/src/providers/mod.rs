@@ -103,16 +103,6 @@ impl ClientHeaders {
         Ok(())
     }
 
-    pub fn with_user_configured_headers(
-        headers: impl IntoIterator<Item = (String, String)>,
-    ) -> Result<Self> {
-        let mut client_headers = Self::new();
-        for (name, value) in headers {
-            client_headers.insert_user_configured(name, value)?;
-        }
-        Ok(client_headers)
-    }
-
     fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
             if name == "host" {
@@ -405,11 +395,13 @@ mod tests {
 
     #[test]
     fn client_headers_applies_user_configured_headers() {
-        let client_headers = ClientHeaders::with_user_configured_headers([
-            ("x-custom-tenant-id".to_string(), "tenant-abc".to_string()),
-            ("x-custom-trace-id".to_string(), "trace-xyz".to_string()),
-        ])
-        .expect("headers build");
+        let mut client_headers = ClientHeaders::default();
+        client_headers
+            .insert_user_configured("x-custom-tenant-id", "tenant-abc")
+            .expect("tenant header");
+        client_headers
+            .insert_user_configured("x-custom-trace-id", "trace-xyz")
+            .expect("trace header");
         let mut headers = HeaderMap::new();
 
         client_headers.apply(&mut headers);

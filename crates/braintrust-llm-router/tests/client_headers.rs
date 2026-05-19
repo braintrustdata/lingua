@@ -38,15 +38,16 @@ fn client_headers_filter_and_host_behavior() {
 
 #[test]
 fn user_configured_headers_are_not_filtered() {
-    let client_headers = ClientHeaders::with_user_configured_headers([
-        ("authorization".to_string(), "Bearer configured".to_string()),
-        ("host".to_string(), "configured.example.com".to_string()),
-        (
-            "x-bt-project-id".to_string(),
-            "configured-project".to_string(),
-        ),
-    ])
-    .expect("headers");
+    let mut client_headers = ClientHeaders::default();
+    client_headers
+        .insert_user_configured("authorization", "Bearer configured")
+        .expect("authorization header");
+    client_headers
+        .insert_user_configured("host", "configured.example.com")
+        .expect("host header");
+    client_headers
+        .insert_user_configured("x-bt-project-id", "configured-project")
+        .expect("x-bt-project-id header");
     let mut headers = HeaderMap::new();
 
     client_headers.apply(&mut headers);
