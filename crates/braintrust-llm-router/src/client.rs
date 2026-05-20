@@ -18,15 +18,15 @@ use crate::error::{Error, Result};
 // The default number of retries for transient transport failures.
 const DEFAULT_MAX_RETRIES: u32 = 2;
 
-// Shared reqwest clients are cached by these settings. Keep this key
-// low-cardinality and effectively process-wide; request-scoped values do not
-// belong here because they fragment client reuse and connection pooling.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct DnsOverride {
     pub domain: String,
     pub addrs: Vec<SocketAddr>,
 }
 
+// Shared reqwest clients are cached by these settings. Keep this key
+// low-cardinality and effectively process-wide; request-scoped values do not
+// belong here because they fragment client reuse and connection pooling.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ClientSettings {
     pub connect_timeout: Duration,
@@ -96,25 +96,19 @@ pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMi
 }
 
 fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
-    let cacheable = settings.dns_overrides.is_empty();
-
     #[cfg(feature = "tracing")]
     {
-        if cacheable {
-            if let Some(existing) = SHARED_CLIENTS.get(settings) {
-                tracing::Span::current().record("cache.hit", true);
-                return Ok(existing.clone());
-            }
+        if let Some(existing) = SHARED_CLIENTS.get(settings) {
+            tracing::Span::current().record("cache.hit", true);
+            return Ok(existing.clone());
         }
         tracing::Span::current().record("cache.hit", false);
     }
 
     #[cfg(not(feature = "tracing"))]
     {
-        if cacheable {
-            if let Some(existing) = SHARED_CLIENTS.get(settings) {
-                return Ok(existing.clone());
-            }
+        if let Some(existing) = SHARED_CLIENTS.get(settings) {
+            return Ok(existing.clone());
         }
     }
 
@@ -137,12 +131,10 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
         build_retrying_middleware_client(client)
     };
 
-    if cacheable {
-        if let Some(existing) = SHARED_CLIENTS.get(settings) {
-            return Ok(existing.clone());
-        }
-        SHARED_CLIENTS.insert(settings.clone(), client.clone());
+    if let Some(existing) = SHARED_CLIENTS.get(settings) {
+        return Ok(existing.clone());
     }
+    SHARED_CLIENTS.insert(settings.clone(), client.clone());
     Ok(client)
 }
 
@@ -304,6 +296,27 @@ mod tests {
         build_middleware_client(&second_settings).expect("second client");
 
         assert_eq!(cached_client_count(), 2);
+    }
+
+    #[test]
+    #[serial]
+    fn build_middleware_client_reuses_cached_client_for_same_dns_overrides() {
+        clear_override_client();
+        clear_cached_clients();
+
+        let settings = ClientSettings {
+            dns_overrides: vec![DnsOverride {
+                domain: "example.com".to_string(),
+                addrs: vec!["127.0.0.1:443".parse().expect("socket addr")],
+            }],
+            ..ClientSettings::default()
+        };
+
+        let first = build_middleware_client(&settings).expect("first client");
+        let second = build_middleware_client(&settings).expect("second client");
+
+        assert_eq!(cached_client_count(), 1);
+        assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 
     #[test]
