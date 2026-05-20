@@ -1,28 +1,52 @@
-name: Update Provider Types
+name: Update provider types
 
 on:
+  schedule:
+    - cron: "0 10 * * 1"
   workflow_dispatch:
     inputs:
       providers:
         description: 'Providers to update (comma-separated: openai,anthropic,google or "all")'
         required: false
-        default: 'all'
+        default: "all"
         type: string
+
+concurrency:
+  group: update-provider-types
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   update-provider-types:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           components: rustfmt, clippy
 
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: 10.33.0
+
       - name: Cache cargo registry
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3.5.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             ~/.cargo/registry
@@ -34,109 +58,177 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install protobuf compiler for Google types
+          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
+          pnpm add -g quicktype
 
       - name: Parse provider input
         id: providers
+        env:
+          REQUESTED_PROVIDERS: ${{ inputs.providers || 'all' }}
         run: |
-          PROVIDERS="${{ github.event.inputs.providers }}"
-          if [ "$PROVIDERS" = "all" ]; then
-            PROVIDERS="openai,anthropic,google"
+          set -euo pipefail
+          providers="$REQUESTED_PROVIDERS"
+          if [ "$providers" = "all" ]; then
+            providers="openai,anthropic,google"
           fi
-          echo "providers=$PROVIDERS" >> $GITHUB_OUTPUT
-          echo "Will update providers: $PROVIDERS"
+          echo "providers=$providers" >> "$GITHUB_OUTPUT"
+          echo "Will update providers: $providers"
 
       - name: Update provider specifications and types
+        id: generate
+        continue-on-error: true
         run: |
-          PROVIDERS="${{ steps.providers.outputs.providers }}"
-          
-          # Split providers by comma and update each one
-          IFS=',' read -ra PROVIDER_ARRAY <<< "$PROVIDERS"
-          for provider in "${PROVIDER_ARRAY[@]}"; do
-            provider=$(echo "$provider" | xargs) # trim whitespace
-            echo "📦 Updating $provider provider..."
-            
-            # Download latest specifications
-            ./pipelines/generate-provider-types.sh "$provider"
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ Failed to update $provider provider"
-              exit 1
+          set +e
+          log_path="$RUNNER_TEMP/provider-type-generation.log"
+          : > "$log_path"
+
+          providers="${{ steps.providers.outputs.providers }}"
+          status=0
+
+          IFS=',' read -ra provider_array <<< "$providers"
+          for provider in "${provider_array[@]}"; do
+            provider=$(echo "$provider" | xargs)
+            if [ -z "$provider" ]; then
+              continue
+            fi
+
+            {
+              echo
+              echo "## Updating $provider"
+              ./pipelines/generate-provider-types.sh "$provider"
+            } 2>&1 | tee -a "$log_path"
+
+            provider_status=${PIPESTATUS[0]}
+            if [ "$provider_status" -ne 0 ]; then
+              status="$provider_status"
+              break
             fi
           done
+
+          echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Repair failed generation
+        if: steps.generate.outcome == 'failure'
+        uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          show_full_output: "true"
+          display_report: "true"
+          timeout_minutes: "20"
+          claude_args: |
+            --model claude-opus-4-6
+            --max-turns 80
+            --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
+            --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            # Goal
+
+            The automated Lingua provider type update failed. Make one focused repair attempt so the regenerated provider types build, then leave the repository ready for the workflow to validate and open a PR.
+
+            # Inputs
+
+            - Providers requested: `${{ steps.providers.outputs.providers }}`
+            - Generation/build log: `${{ steps.generate.outputs.log_path }}`
+
+            # Local files to read first
+
+            - `AGENTS.md`
+            - `Makefile`
+            - `pipelines/generate-provider-types.sh`
+            - `crates/generate-types/src/main.rs`
+            - Provider modules under `crates/lingua/src/providers/` for the providers requested above
+
+            # Process
+
+            1. Read the log and identify whether the failure is a local Rust/type-generation/build problem.
+            2. If the failure is a transient network, provider API, package install, or external service failure, do not work around it with fake data or fallback content.
+            3. If the failure is a local generation or compile issue, fix the smallest responsible source area.
+            4. Prefer fixing generation logic in `crates/generate-types/` or typed provider adapters/converters. Do not manually edit files named `generated.rs`.
+            5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
+            6. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
+            7. Do not create or update GitHub issues, comments, pull requests, or branches.
+
+            # Output
+
+            Leave code changes in the working tree only. The workflow will run formatting, build validation, and PR creation after this step.
 
       - name: Check for changes
         id: changes
         run: |
-          # Check if there are any changes in the generated files
-          if git diff --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
             echo "No changes detected in provider types"
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in provider types"
-            echo "Changed files:"
-            git diff --name-only
+            exit 0
           fi
+
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          echo "Changes detected:"
+          git status --short
+
+      - name: Fail if generation could not be repaired
+        if: steps.generate.outcome == 'failure' && steps.changes.outputs.has_changes != 'true'
+        run: |
+          echo "Provider type generation failed and the repair step left no changes to validate."
+          exit 1
 
       - name: Format code
         if: steps.changes.outputs.has_changes == 'true'
+        run: cargo fmt --all
+
+      - name: Validate build
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
-          cargo fmt --all
-          
+          set -euo pipefail
+          cargo build --all-features
+
       - name: Run clippy
         if: steps.changes.outputs.has_changes == 'true'
-        run: |
-          cargo clippy --all-targets --all-features --fix --allow-dirty
-          cargo fmt --all  # Format again after clippy fixes
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-      - name: Create Pull Request
+      - name: Build PR body
         if: steps.changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@4e1beaa7521e8b457b572c090b25bd3db56bf1c5 # v5.0.3
+        run: |
+          set -euo pipefail
+          {
+            echo "Automated update of Lingua provider types."
+            echo
+            echo "Providers: \`${{ steps.providers.outputs.providers }}\`"
+            echo
+            echo "**Validation**"
+            echo
+            echo "- Ran \`./pipelines/generate-provider-types.sh\` for each requested provider"
+            if [ "${{ steps.generate.outcome }}" = "failure" ]; then
+              echo "- Ran one Claude repair pass after the initial generation/build failure"
+            fi
+            echo "- Ran \`cargo fmt --all\`"
+            echo "- Ran \`cargo build --all-features\`"
+            echo "- Ran \`cargo clippy --all-targets --all-features -- -D warnings\`"
+          } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
+
+      - name: Create PR
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: |
-            Update ${{ steps.providers.outputs.providers }} provider types
-            
-            🤖 Generated with [Claude Code](https://claude.ai/code)
-            
-            Co-Authored-By: Claude <noreply@anthropic.com>
+          token: ${{ github.token }}
+          base: main
+          branch: update-provider-types
+          commit-message: "Update ${{ steps.providers.outputs.providers }} provider types"
           title: "Update ${{ steps.providers.outputs.providers }} provider types"
-          body: |
-            ## Summary
-            - Updated provider type definitions for: `${{ steps.providers.outputs.providers }}`
-            - Downloaded latest OpenAPI specs and protobuf files
-            - Regenerated Rust types using automated pipeline
-            
-            ## Changes Made
-            - 📥 Downloaded latest provider specifications
-            - 🏗️ Regenerated types using `generate-provider-types.sh`
-            - 🔧 Applied cargo fmt and clippy fixes
-            - ✅ All checks passing
-            
-            ## Test Plan
-            - [ ] Verify types compile without errors
-            - [ ] Check that all essential API types are present
-            - [ ] Ensure backwards compatibility with existing code
-            - [ ] Run integration tests if available
-            
-            ---
-            
-            🤖 Generated with [Claude Code](https://claude.ai/code)
-            
-            This PR was created automatically by the **Update Provider Types** GitHub Action.
-          branch: update-provider-types-${{ github.run_number }}
+          body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
+          labels: auto-sync
           delete-branch: true
+          signoff: false
 
       - name: Summary
         run: |
+          set -euo pipefail
           if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
-            echo "✅ Provider types updated successfully!"
-            echo "📝 Pull request created with the latest changes"
-            echo "🔍 Updated providers: ${{ steps.providers.outputs.providers }}"
+            echo "Provider types changed; PR creation step ran."
           else
-            echo "ℹ️ No changes detected - provider types are already up to date"
-            echo "🔍 Checked providers: ${{ steps.providers.outputs.providers }}"
+            echo "Provider types are already up to date."
           fi
