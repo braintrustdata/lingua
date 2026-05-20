@@ -185,7 +185,13 @@ pub struct BedrockProvider {
 
 impl BedrockProvider {
     pub fn new(config: BedrockConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: BedrockConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -202,6 +208,7 @@ impl BedrockProvider {
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
         metadata: &std::collections::HashMap<String, Value>,
+        client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         let mut config = BedrockConfig::default();
 
@@ -221,7 +228,7 @@ impl BedrockProvider {
             config.timeout = Some(t);
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn converse_url(&self, model: &str, stream: bool) -> Result<Url> {

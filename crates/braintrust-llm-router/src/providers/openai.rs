@@ -47,7 +47,13 @@ pub struct OpenAIProvider {
 
 impl OpenAIProvider {
     pub fn new(config: OpenAIConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: OpenAIConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -71,6 +77,7 @@ impl OpenAIProvider {
         endpoint_template: Option<&str>,
         timeout: Option<Duration>,
         metadata: &std::collections::HashMap<String, Value>,
+        client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         let mut config = OpenAIConfig::default();
 
@@ -101,7 +108,7 @@ impl OpenAIProvider {
             config.api_version = Some(version.to_string());
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn resolve_base(&self, model: Option<&str>) -> Result<Url> {
