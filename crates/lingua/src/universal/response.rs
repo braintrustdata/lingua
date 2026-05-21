@@ -308,25 +308,27 @@ impl UniversalUsage {
     /// - Mistral: uses OpenAI format
     pub fn from_provider_value(usage: &Value, provider: ProviderFormat) -> Self {
         match provider {
+            ProviderFormat::Universal => {
+                Self::from_provider_value(usage, ProviderFormat::ChatCompletions)
+            }
             // OpenAI, Mistral, and Unknown use OpenAI format
-            ProviderFormat::ChatCompletions
-            | ProviderFormat::Mistral
-            | ProviderFormat::Universal
-            | ProviderFormat::Unknown => Self {
-                prompt_tokens: usage.get("prompt_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("completion_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage
-                    .get("prompt_tokens_details")
-                    .and_then(|d| d.get("cached_tokens"))
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
-                // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
-                completion_reasoning_tokens: usage
-                    .get("completion_tokens_details")
-                    .and_then(|d| d.get("reasoning_tokens"))
-                    .and_then(Value::as_i64)
-                    .filter(|&v| v > 0),
-            },
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
+                Self {
+                    prompt_tokens: usage.get("prompt_tokens").and_then(Value::as_i64),
+                    completion_tokens: usage.get("completion_tokens").and_then(Value::as_i64),
+                    prompt_cached_tokens: usage
+                        .get("prompt_tokens_details")
+                        .and_then(|d| d.get("cached_tokens"))
+                        .and_then(Value::as_i64),
+                    prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
+                    completion_reasoning_tokens: usage
+                        .get("completion_tokens_details")
+                        .and_then(|d| d.get("reasoning_tokens"))
+                        .and_then(Value::as_i64)
+                        .filter(|&v| v > 0),
+                }
+            }
             ProviderFormat::Responses => Self {
                 prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
@@ -383,11 +385,9 @@ impl UniversalUsage {
         let completion = self.completion_tokens.unwrap_or(0);
 
         match provider {
+            ProviderFormat::Universal => self.to_provider_value(ProviderFormat::ChatCompletions),
             // OpenAI, Mistral, and Unknown use OpenAI format
-            ProviderFormat::ChatCompletions
-            | ProviderFormat::Mistral
-            | ProviderFormat::Universal
-            | ProviderFormat::Unknown => {
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
                 let mut map = serde_json::Map::new();
                 map.insert("prompt_tokens".into(), serde_json::json!(prompt));
                 map.insert("completion_tokens".into(), serde_json::json!(completion));
