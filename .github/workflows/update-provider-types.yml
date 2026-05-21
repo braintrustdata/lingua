@@ -181,6 +181,13 @@ jobs:
       - name: Generate TypeScript types
         run: make generate-types
 
+      - name: Build branch name
+        id: branch
+        run: |
+          set -euo pipefail
+          short_sha=$(git rev-parse --short=8 HEAD)
+          echo "name=update-provider-types-${short_sha}-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
+
       - name: Check for changes
         id: changes
         run: |
@@ -237,7 +244,7 @@ jobs:
         with:
           token: ${{ github.token }}
           base: main
-          branch: update-provider-types
+          branch: ${{ steps.branch.outputs.name }}
           commit-message: "Update ${{ steps.providers.outputs.providers }} provider types"
           title: "Update ${{ steps.providers.outputs.providers }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
