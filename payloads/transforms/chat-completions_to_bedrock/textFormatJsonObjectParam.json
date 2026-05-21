@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\"status\": \"ok\"}\n```"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 18,
+    "outputTokens": 14,
+    "totalTokens": 32,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 952
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "c4089e79-59ec-4c59-b362-628b455f86f6",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\n  \"tags\": [\"example\", \"json\", \"response\"]\n}\n```"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 24,
+    "outputTokens": 25,
+    "totalTokens": 49,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1413
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "6d9a6bf2-9ff0-4544-812b-de95ade11e67",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

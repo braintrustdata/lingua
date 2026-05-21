@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I'd be happy to help configure the LLM! However, I need one piece of information from you:\n\n**What maximum number of tokens would you like to set for generation?**\n\nThis determines the maximum length of the LLM's responses. Please provide a number greater than 0. For reference:\n- Smaller values (e.g., 100-500) produce brief responses\n- Medium values (e.g., 1000-2000) produce moderate-length responses\n- Larger values (e.g., 4000+) allow for lengthy responses\n\nWhat would you prefer?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 596,
+    "outputTokens": 132,
+    "totalTokens": 728,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2015
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "7082ade0-2b99-46ab-b0c6-feab4933cf67",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

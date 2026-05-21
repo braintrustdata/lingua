@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "#"
+        }
+      ]
+    }
+  },
+  "stopReason": "max_tokens",
+  "usage": {
+    "inputTokens": 16,
+    "outputTokens": 1,
+    "totalTokens": 17,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 990
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "b8165394-516f-470c-b18b-b23943467036",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

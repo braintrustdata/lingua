@@ -79,4 +79,40 @@ mod tests {
         let result = validate_bedrock_response(json);
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_validate_bedrock_response_with_reasoning_content() {
+        let json = r#"{
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "reasoningContent": {
+                                "reasoningText": {
+                                    "text": "I need to answer directly.",
+                                    "signature": "sig"
+                                }
+                            }
+                        },
+                        {
+                            "text": "Paris"
+                        }
+                    ]
+                }
+            },
+            "stopReason": "end_turn",
+            "usage": {
+                "inputTokens": 10,
+                "outputTokens": 20,
+                "totalTokens": 30
+            },
+            "metrics": {
+                "latencyMs": 1000
+            }
+        }"#;
+
+        let result = validate_bedrock_response(json);
+        assert!(result.is_ok());
+    }
 }

@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I'd be happy to help classify a query, but I don't see a query in your message. Could you please provide the query you'd like me to classify?\n\nOnce you share it, I can return a JSON response with a classification. For example:\n\n```json\n{\n  \"query\": \"your query here\",\n  \"classification\": \"category\",\n  \"confidence\": 0.95\n}\n```\n\nPlease share the query you'd like classified!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 15,
+    "outputTokens": 102,
+    "totalTokens": 117,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1655
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "72137d66-a0da-4f7e-b95d-4a4fef450cfa",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

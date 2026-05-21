@@ -12,6 +12,8 @@ import {
   transform_response,
   validate_anthropic_request,
   validate_anthropic_response,
+  validate_bedrock_request,
+  validate_bedrock_response,
   validate_chat_completions_request,
   validate_chat_completions_response,
   validate_google_request,
@@ -22,6 +24,7 @@ import {
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
+  BEDROCK_MODEL,
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -32,9 +35,15 @@ export type SourceFormat =
   | "chat-completions"
   | "responses"
   | "anthropic"
+  | "bedrock"
   | "google"
   | "vertex-anthropic";
-export type WasmFormat = "OpenAI" | "Responses" | "Anthropic" | "Google";
+export type WasmFormat =
+  | "OpenAI"
+  | "Responses"
+  | "Anthropic"
+  | "Converse"
+  | "Google";
 
 export interface TransformPair {
   source: SourceFormat;
@@ -67,6 +76,12 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     target: "anthropic",
     wasmSource: "OpenAI",
     wasmTarget: "Anthropic",
+  },
+  {
+    source: "chat-completions",
+    target: "bedrock",
+    wasmSource: "OpenAI",
+    wasmTarget: "Converse",
   },
   {
     source: "chat-completions",
@@ -135,6 +150,7 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   "chat-completions": validate_chat_completions_request,
   responses: validate_responses_request,
   anthropic: validate_anthropic_request,
+  bedrock: validate_bedrock_request,
   google: validate_google_request,
   "vertex-anthropic": validate_anthropic_request,
 };
@@ -143,6 +159,7 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   "chat-completions": validate_chat_completions_response,
   responses: validate_responses_response,
   anthropic: validate_anthropic_response,
+  bedrock: validate_bedrock_response,
   google: validate_google_response,
   "vertex-anthropic": validate_anthropic_response,
 };
@@ -199,6 +216,7 @@ const WASM_TO_SOURCE: Record<WasmFormat, SourceFormat> = {
   OpenAI: "chat-completions",
   Responses: "responses",
   Anthropic: "anthropic",
+  Converse: "bedrock",
   Google: "google",
 };
 
@@ -250,6 +268,7 @@ export function getStreamingResponsePath(
 
 export const TARGET_MODELS: Record<SourceFormat, string> = {
   anthropic: ANTHROPIC_MODEL,
+  bedrock: BEDROCK_MODEL,
   "chat-completions": OPENAI_CHAT_COMPLETIONS_MODEL,
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,

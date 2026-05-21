@@ -5,6 +5,7 @@ import { dirname } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
+import { callBedrockConverse } from "../providers/bedrock";
 import { executeVertexAnthropic } from "../providers/vertex-anthropic";
 import {
   TRANSFORM_PAIRS,
@@ -130,6 +131,11 @@ async function callProvider(
       );
     case "google":
       return callGoogleProvider(request, { stream });
+    case "bedrock":
+      return callBedrockConverse(
+        request as unknown as Parameters<typeof callBedrockConverse>[0],
+        { stream }
+      );
     case "vertex-anthropic": {
       const result = await executeVertexAnthropic(
         "transform",

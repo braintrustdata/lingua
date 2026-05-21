@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Butterfly."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 11,
+    "outputTokens": 6,
+    "totalTokens": 17,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 906
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "88573721-9c10-434e-9365-090f02045df4",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
