@@ -763,6 +763,58 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_universal_to_openai() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "temperature": 0.2,
+                "top_p": null,
+                "top_k": null,
+                "seed": null,
+                "presence_penalty": null,
+                "frequency_penalty": null,
+                "token_budget": null,
+                "stop": null,
+                "logprobs": null,
+                "top_logprobs": null,
+                "tools": null,
+                "tool_choice": null,
+                "parallel_tool_calls": null,
+                "response_format": null,
+                "reasoning": null,
+                "metadata": null,
+                "store": null,
+                "conversation_reference": null,
+                "service_tier": null,
+                "stream": null
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                bytes,
+                source_format,
+                actual_target_format,
+            } => {
+                assert_eq!(source_format, ProviderFormat::Universal);
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
+                let payload: Value = serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    payload.get("temperature").and_then(Value::as_f64),
+                    Some(0.2)
+                );
+                assert!(payload.get("params").is_none());
+            }
+            TransformResult::PassThrough(_) => panic!("universal input should transform"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_passthrough_repairs_lone_surrogate() {
         let input = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83D text"}]}"#,

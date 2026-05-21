@@ -153,6 +153,83 @@ async fn router_routes_to_stub_provider() {
 }
 
 #[tokio::test]
+async fn router_accepts_universal_request_input() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "stub-model".into(),
+        ModelSpec {
+            model: "stub-model".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let catalog = Arc::new(catalog);
+
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::clone(&catalog))
+        .with_retry_policy(RetryPolicy::default())
+        .add_provider(
+            "stub",
+            StubProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .build()
+        .expect("router builds");
+
+    let body = to_body(json!({
+        "model": "stub-model",
+        "messages": [{"role": "user", "content": "Ping"}],
+        "params": {
+            "temperature": 0.2,
+            "top_p": null,
+            "top_k": null,
+            "seed": null,
+            "presence_penalty": null,
+            "frequency_penalty": null,
+            "token_budget": null,
+            "stop": null,
+            "logprobs": null,
+            "top_logprobs": null,
+            "tools": null,
+            "tool_choice": null,
+            "parallel_tool_calls": null,
+            "response_format": null,
+            "reasoning": null,
+            "metadata": null,
+            "store": null,
+            "conversation_reference": null,
+            "service_tier": null,
+            "stream": null
+        }
+    }));
+
+    let (_request, metadata) = router
+        .create_request(body, "stub-model", ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+
+    assert_eq!(metadata.detected_input_format, ProviderFormat::Universal);
+    assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+}
+
+#[tokio::test]
 async fn router_resolves_provider_alias_in_metadata() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(

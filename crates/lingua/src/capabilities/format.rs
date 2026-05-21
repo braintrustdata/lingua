@@ -31,6 +31,8 @@ pub enum ProviderFormat {
     Converse,
     /// OpenAI Responses API format (for reasoning models like o1-pro, o3)
     Responses,
+    /// Lingua universal request format
+    Universal,
     /// Internal-only format for Bedrock Anthropic invoke envelope handling.
     #[serde(skip_serializing, skip_deserializing)]
     #[ts(skip)]
@@ -61,6 +63,7 @@ impl std::fmt::Display for ProviderFormat {
             ProviderFormat::Mistral => "mistral",
             ProviderFormat::Converse => "converse",
             ProviderFormat::Responses => "responses",
+            ProviderFormat::Universal => "universal",
             ProviderFormat::BedrockAnthropic => "bedrock_anthropic",
             ProviderFormat::VertexAnthropic => "vertex_anthropic",
             ProviderFormat::Unknown => "unknown",
@@ -80,6 +83,7 @@ impl std::str::FromStr for ProviderFormat {
             "mistral" => Ok(ProviderFormat::Mistral),
             "converse" | "bedrock" => Ok(ProviderFormat::Converse),
             "responses" => Ok(ProviderFormat::Responses),
+            "universal" => Ok(ProviderFormat::Universal),
             _ => Err(()),
         }
     }

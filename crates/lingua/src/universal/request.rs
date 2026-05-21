@@ -46,7 +46,8 @@ use crate::universal::tools::UniversalTool;
 /// Universal request envelope for LLM API calls.
 ///
 /// This type captures the common structure across all provider request formats.
-#[derive(Debug, Clone, Serialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub struct UniversalRequest {
     /// Model identifier (may be None for providers that use endpoint-based model selection)
@@ -82,7 +83,8 @@ pub enum TokenBudget {
 ///
 /// Uses canonical names - adapters handle mapping to provider-specific names.
 /// Provider-specific fields without canonical mappings are stored in `extras`.
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub struct UniversalParams {
     // === Sampling parameters ===
@@ -486,7 +488,7 @@ impl AsRef<str> for SummaryMode {
 /// - OpenAI Chat: `"auto"` | `"none"` | `"required"` | `{ type: "function", function: { name } }`
 /// - OpenAI Responses: `"auto"` | `{ type: "function", name }`
 /// - Anthropic: `{ type: "auto" | "any" | "none" | "tool", name?, disable_parallel_tool_use? }`
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ToolChoiceConfig {
     /// Selection mode - the semantic intent of the tool choice
@@ -497,7 +499,7 @@ pub struct ToolChoiceConfig {
 }
 
 /// Tool selection mode (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum ToolChoiceMode {
     /// Provider decides whether to use tools
@@ -572,7 +574,7 @@ impl AsRef<str> for ToolChoiceMode {
 /// - OpenAI Responses: nested under `text.format`
 /// - Google: `response_mime_type` + `response_schema`
 /// - Anthropic: `{ type: "json_schema", schema, name?, strict?, description? }`
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ResponseFormatConfig {
     /// Output format type
@@ -583,7 +585,7 @@ pub struct ResponseFormatConfig {
 }
 
 /// Response format type (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum ResponseFormatType {
     /// Plain text output (default)
@@ -634,7 +636,7 @@ impl AsRef<str> for ResponseFormatType {
 }
 
 /// JSON schema configuration for structured output.
-#[derive(Debug, Clone, Serialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct JsonSchemaConfig {
     /// Schema name (required by OpenAI)
