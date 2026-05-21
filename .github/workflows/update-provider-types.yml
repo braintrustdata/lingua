@@ -154,7 +154,7 @@ jobs:
 
             # Output
 
-            Leave code changes in the working tree only. The workflow will run formatting, build validation, and PR creation after this step.
+            Leave code changes in the working tree only. The workflow will run TypeScript type generation, formatting, build validation, and PR creation after this step.
 
       - name: Re-run provider update after repair
         if: steps.generate.outcome == 'failure'
@@ -177,6 +177,9 @@ jobs:
               ./pipelines/generate-provider-types.sh "$provider"
             } 2>&1 | tee -a "$log_path"
           done
+
+      - name: Generate TypeScript types
+        run: make generate-types
 
       - name: Check for changes
         id: changes
@@ -222,6 +225,7 @@ jobs:
               echo "- Ran one Claude repair pass after the initial generation/build failure"
               echo "- Re-ran \`./pipelines/generate-provider-types.sh\` for each requested provider after repair"
             fi
+            echo "- Ran \`make generate-types\`"
             echo "- Ran \`cargo fmt --all\`"
             echo "- Ran \`cargo build --all-features\`"
             echo "- Ran \`cargo clippy --all-targets --all-features -- -D warnings\`"
