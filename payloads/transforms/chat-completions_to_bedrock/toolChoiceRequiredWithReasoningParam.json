@@ -1,0 +1,44 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "reasoningContent": {
+            "reasoningText": {
+              "text": "The user is asking for the weather in Tokyo. I have a function `get_weather` that takes a location parameter. I have all the information I need to make this call - the location is \"Tokyo\".",
+              "signature": "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ=="
+            }
+          }
+        },
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_HkYi3RzCZvEWLZNgZJtVUF",
+            "name": "get_weather",
+            "input": {
+              "location": "Tokyo"
+            },
+            "type": "tool_use"
+          }
+        }
+      ]
+    }
+  },
+  "stopReason": "tool_use",
+  "usage": {
+    "inputTokens": 592,
+    "outputTokens": 104,
+    "totalTokens": 696,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1541
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "5fa4f54b-9b41-4160-ab70-2b25233f02c6",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

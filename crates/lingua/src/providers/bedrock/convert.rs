@@ -11,11 +11,12 @@ use crate::import_parse::{
 };
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
-    BedrockImageSource, BedrockMessage, BedrockToolResultBlock, BedrockToolResultContent,
-    BedrockToolUseBlock, ConverseRequest,
+    BedrockImageSource, BedrockMessage, BedrockReasoningContentBlock, BedrockReasoningTextBlock,
+    BedrockToolResultBlock, BedrockToolResultContent, BedrockToolUseBlock, ConverseRequest,
 };
 use crate::providers::bedrock::response::{
-    BedrockOutputContentBlock, BedrockOutputMessage, ConverseResponse,
+    BedrockOutputContentBlock, BedrockOutputMessage, BedrockOutputReasoningContentBlock,
+    BedrockOutputReasoningTextBlock, ConverseResponse,
 };
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
@@ -68,6 +69,9 @@ impl TryFromLLM<BedrockMessage> for Message {
                         BedrockContentBlock::Image { .. } => {
                             // Skip images for now
                         }
+                        BedrockContentBlock::ReasoningContent { .. } => {
+                            // Reasoning content is only expected on assistant messages.
+                        }
                         BedrockContentBlock::ToolUse { .. } => {
                             // Tool use shouldn't be in user messages
                         }
@@ -107,6 +111,16 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 provider_options: None,
                                 provider_executed: None,
                             });
+                        }
+                        BedrockContentBlock::ReasoningContent { reasoning_content } => {
+                            if let Some((text, encrypted_content)) =
+                                reasoning_content_to_universal(reasoning_content)
+                            {
+                                content_parts.push(AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                });
+                            }
                         }
                         _ => {}
                     }
@@ -205,6 +219,17 @@ impl TryFromLLM<Message> for BedrockMessage {
                             AssistantContentPart::Text(t) => {
                                 Some(BedrockContentBlock::Text { text: t.text })
                             }
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => Some(BedrockContentBlock::ReasoningContent {
+                                reasoning_content: BedrockReasoningContentBlock::ReasoningText {
+                                    reasoning_text: BedrockReasoningTextBlock {
+                                        text,
+                                        signature: encrypted_content,
+                                    },
+                                },
+                            }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
@@ -275,6 +300,32 @@ fn is_tool_result_message(message: &BedrockMessage) -> bool {
             .content
             .iter()
             .all(|block| matches!(block, BedrockContentBlock::ToolResult { .. }))
+}
+
+fn reasoning_content_to_universal(
+    reasoning_content: BedrockReasoningContentBlock,
+) -> Option<(String, Option<String>)> {
+    match reasoning_content {
+        BedrockReasoningContentBlock::ReasoningText { reasoning_text } => {
+            Some((reasoning_text.text, reasoning_text.signature))
+        }
+        BedrockReasoningContentBlock::RedactedContent { redacted_content } => {
+            Some((String::new(), Some(redacted_content)))
+        }
+    }
+}
+
+fn output_reasoning_content_to_universal(
+    reasoning_content: BedrockOutputReasoningContentBlock,
+) -> Option<(String, Option<String>)> {
+    match reasoning_content {
+        BedrockOutputReasoningContentBlock::ReasoningText { reasoning_text } => {
+            Some((reasoning_text.text, reasoning_text.signature))
+        }
+        BedrockOutputReasoningContentBlock::RedactedContent { redacted_content } => {
+            Some((String::new(), Some(redacted_content)))
+        }
+    }
 }
 
 // ============================================================================
@@ -420,6 +471,16 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                         provider_executed: None,
                     });
                 }
+                BedrockOutputContentBlock::ReasoningContent { reasoning_content } => {
+                    if let Some((text, encrypted_content)) =
+                        output_reasoning_content_to_universal(reasoning_content)
+                    {
+                        content_parts.push(AssistantContentPart::Reasoning {
+                            text,
+                            encrypted_content,
+                        });
+                    }
+                }
             }
         }
 
@@ -458,6 +519,18 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
                             AssistantContentPart::Text(t) => {
                                 Some(BedrockOutputContentBlock::Text { text: t.text })
                             }
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => Some(BedrockOutputContentBlock::ReasoningContent {
+                                reasoning_content:
+                                    BedrockOutputReasoningContentBlock::ReasoningText {
+                                        reasoning_text: BedrockOutputReasoningTextBlock {
+                                            text,
+                                            signature: encrypted_content,
+                                        },
+                                    },
+                            }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,

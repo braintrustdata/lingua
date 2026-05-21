@@ -50,7 +50,6 @@ export interface TransformPair {
   target: SourceFormat;
   wasmSource: WasmFormat;
   wasmTarget: WasmFormat;
-  caseNames?: string[];
 }
 
 export interface FixtureHandlerConfig {
@@ -83,7 +82,6 @@ export const TRANSFORM_PAIRS: TransformPair[] = [
     target: "bedrock",
     wasmSource: "OpenAI",
     wasmTarget: "Converse",
-    caseNames: ["parallelToolCallsRequest"],
   },
   {
     source: "chat-completions",
@@ -344,7 +342,6 @@ export function getTransformableCases(
 ): string[] {
   return getCaseNames(allTestCases).filter((caseName) => {
     if (filter && !caseName.includes(filter)) return false;
-    if (pair.caseNames && !pair.caseNames.includes(caseName)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
     return sourceCase != null && !testCase?.expect;

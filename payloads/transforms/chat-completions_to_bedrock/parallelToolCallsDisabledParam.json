@@ -1,0 +1,46 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_cvmz5gjQYe9jRQvJaYmMzL",
+            "name": "get_weather",
+            "input": {
+              "location": "NYC"
+            },
+            "type": "tool_use"
+          }
+        },
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_MysSEa5Ksl0YTeHBtIRbf6",
+            "name": "get_weather",
+            "input": {
+              "location": "LA"
+            },
+            "type": "tool_use"
+          }
+        }
+      ]
+    }
+  },
+  "stopReason": "tool_use",
+  "usage": {
+    "inputTokens": 566,
+    "outputTokens": 90,
+    "totalTokens": 656,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1291
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "43fc01d9-3120-46c2-b332-be5a131e1d8d",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

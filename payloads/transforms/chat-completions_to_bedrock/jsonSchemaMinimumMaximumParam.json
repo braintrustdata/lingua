@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\n  \"score\": 5\n}\n```"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 22,
+    "outputTokens": 18,
+    "totalTokens": 40,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1031
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "3c41c578-f421-4e67-8f4d-473c1311cea5",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

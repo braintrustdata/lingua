@@ -1,0 +1,25 @@
+{
+  "request": {
+    "messages": [
+      {
+        "content": [
+          {
+            "text": "Describe this image."
+          },
+          {
+            "image": {
+              "format": "jpeg",
+              "source": {
+                "bytes": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+              }
+            }
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  },
+  "error": "The model returned the following errors: Could not process image",
+  "name": "ValidationException"
+}
