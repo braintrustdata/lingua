@@ -223,12 +223,10 @@ impl TryFromLLM<Message> for BedrockMessage {
                                 text,
                                 encrypted_content,
                             } => Some(BedrockContentBlock::ReasoningContent {
-                                reasoning_content: BedrockReasoningContentBlock::ReasoningText {
-                                    reasoning_text: BedrockReasoningTextBlock {
-                                        text,
-                                        signature: encrypted_content,
-                                    },
-                                },
+                                reasoning_content: reasoning_content_from_universal(
+                                    text,
+                                    encrypted_content,
+                                ),
                             }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
@@ -325,6 +323,34 @@ fn output_reasoning_content_to_universal(
         BedrockOutputReasoningContentBlock::RedactedContent { redacted_content } => {
             Some((String::new(), Some(redacted_content)))
         }
+    }
+}
+
+fn reasoning_content_from_universal(
+    text: String,
+    encrypted_content: Option<String>,
+) -> BedrockReasoningContentBlock {
+    match (text.is_empty(), encrypted_content) {
+        (true, Some(redacted_content)) => {
+            BedrockReasoningContentBlock::RedactedContent { redacted_content }
+        }
+        (_, signature) => BedrockReasoningContentBlock::ReasoningText {
+            reasoning_text: BedrockReasoningTextBlock { text, signature },
+        },
+    }
+}
+
+fn output_reasoning_content_from_universal(
+    text: String,
+    encrypted_content: Option<String>,
+) -> BedrockOutputReasoningContentBlock {
+    match (text.is_empty(), encrypted_content) {
+        (true, Some(redacted_content)) => {
+            BedrockOutputReasoningContentBlock::RedactedContent { redacted_content }
+        }
+        (_, signature) => BedrockOutputReasoningContentBlock::ReasoningText {
+            reasoning_text: BedrockOutputReasoningTextBlock { text, signature },
+        },
     }
 }
 
@@ -523,13 +549,10 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
                                 text,
                                 encrypted_content,
                             } => Some(BedrockOutputContentBlock::ReasoningContent {
-                                reasoning_content:
-                                    BedrockOutputReasoningContentBlock::ReasoningText {
-                                        reasoning_text: BedrockOutputReasoningTextBlock {
-                                            text,
-                                            signature: encrypted_content,
-                                        },
-                                    },
+                                reasoning_content: output_reasoning_content_from_universal(
+                                    text,
+                                    encrypted_content,
+                                ),
                             }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
@@ -822,6 +845,54 @@ mod tests {
         assert_eq!(arr.len(), 1);
         assert_eq!(arr[0]["role"], "assistant");
         assert!(arr[0]["content"][0].get("toolUse").is_some());
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_preserves_redacted_reasoning() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                text: String::new(),
+                encrypted_content: Some("redacted-by-provider".to_string()),
+            }]),
+            id: None,
+        }];
+
+        let result = universal_to_bedrock(&messages).unwrap();
+        assert_eq!(
+            result,
+            json!([{
+                "role": "assistant",
+                "content": [{
+                    "reasoningContent": {
+                        "redactedContent": "redacted-by-provider"
+                    }
+                }]
+            }])
+        );
+    }
+
+    #[test]
+    fn test_bedrock_output_message_redacted_reasoning_roundtrip() {
+        let output = BedrockOutputMessage {
+            role: "assistant".to_string(),
+            content: vec![BedrockOutputContentBlock::ReasoningContent {
+                reasoning_content: BedrockOutputReasoningContentBlock::RedactedContent {
+                    redacted_content: "redacted-by-provider".to_string(),
+                },
+            }],
+        };
+
+        let message = <Message as TryFromLLM<BedrockOutputMessage>>::try_from(output).unwrap();
+        let roundtrip = <BedrockOutputMessage as TryFromLLM<Message>>::try_from(message).unwrap();
+
+        assert_eq!(
+            roundtrip.content,
+            vec![BedrockOutputContentBlock::ReasoningContent {
+                reasoning_content: BedrockOutputReasoningContentBlock::RedactedContent {
+                    redacted_content: "redacted-by-provider".to_string(),
+                },
+            }]
+        );
     }
 
     #[test]
