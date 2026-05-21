@@ -780,6 +780,14 @@
       ]
     },
     {
+      "testCase": "parallelToolCallsRequest",
+      "source": "*",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Bedrock Converse requires adjacent tool results to be grouped in the next user message" }
+      ]
+    },
+    {
       "testCase": "textFormatJsonObjectParam",
       "source": "*",
       "target": "Anthropic",

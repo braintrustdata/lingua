@@ -1,0 +1,101 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What's the weather in San Francisco and New York?"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "call_sf",
+            "name": "get_weather",
+            "input": {
+              "location": "San Francisco, CA"
+            }
+          }
+        },
+        {
+          "toolUse": {
+            "toolUseId": "call_nyc",
+            "name": "get_weather",
+            "input": {
+              "location": "New York, NY"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": "call_sf",
+            "content": [
+              {
+                "text": "65°F and sunny."
+              }
+            ]
+          }
+        },
+        {
+          "toolResult": {
+            "toolUseId": "call_nyc",
+            "content": [
+              {
+                "text": "45°F and cloudy."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Here's the weather for both cities:\n\n**San Francisco, CA:** 65°F and sunny ☀️\n\n**New York, NY:** 45°F and cloudy ☁️\n\nSan Francisco is quite a bit warmer today with pleasant sunny conditions, while New York is cooler and cloudy. You might want to bring a jacket if you're in New York!"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "name": "get_weather",
+          "description": "Get the current weather for a location",
+          "inputSchema": {
+            "json": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              "required": [
+                "location"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}
