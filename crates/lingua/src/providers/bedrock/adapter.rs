@@ -13,6 +13,7 @@ use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::Thinking;
+use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
 use crate::providers::bedrock::request::{BedrockInferenceConfiguration, BedrockMessage};
 use crate::providers::bedrock::try_parse_bedrock;
@@ -166,9 +167,8 @@ impl ProviderAdapter for BedrockAdapter {
         })?;
 
         // Convert messages to Bedrock format
-        let bedrock_messages: Vec<BedrockMessage> =
-            <Vec<BedrockMessage> as TryFromLLM<Vec<Message>>>::try_from(req.messages.clone())
-                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        let bedrock_messages: Vec<BedrockMessage> = universal_to_bedrock_messages(&req.messages)
+            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
         let mut obj = Map::new();
         obj.insert("modelId".into(), Value::String(model_id.clone()));

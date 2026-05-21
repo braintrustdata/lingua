@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Here's the weather for both cities:\n\n**San Francisco, CA:** 65°F and sunny ☀️\n\n**New York, NY:** 45°F and cloudy ☁️\n\nSan Francisco is quite a bit warmer today with pleasant sunny conditions, while New York is cooler and cloudy. You might want to bring a jacket if you're in New York!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 757,
+    "outputTokens": 85,
+    "totalTokens": 842,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1630
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "4e972a9d-cd00-42a6-8ca2-bf45f04d26d3",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

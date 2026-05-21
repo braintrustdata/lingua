@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "That depends on what you'd like to do! Here are some suggestions based on the weather:\n\n**If you're in San Francisco:**\n- Take advantage of the sunny 65°F weather! It's perfect for outdoor activities like:\n  - Walking around the city or visiting parks\n  - Exploring neighborhoods like Haight-Ashbury or the Mission District\n  - Visiting Golden Gate Park\n  - Taking a walk along the waterfront\n\n**If you're in New York:**\n- With 45°F and cloudy skies, consider:\n  - Indoor activities like museums, galleries, or Broadway shows\n  - Checking out restaurants or cafes\n  - Shopping or visiting indoor attractions\n  - A brisk walk if you don't mind the cooler weather and clouds\n\n**Or if you'd like help with something else:**\n- Check weather for another location\n- Get recommendations for activities\n- Help with planning or decision-making\n\nWhat are you interested in doing? I'm happy to help!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 851,
+    "outputTokens": 219,
+    "totalTokens": 1070,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 3000
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "f2b7ae19-42e5-44ec-9bb7-86be121966e1",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
