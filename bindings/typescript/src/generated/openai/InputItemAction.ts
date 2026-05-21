@@ -82,6 +82,9 @@ keys: Array<string> | null,
  * The action type.
  *
  *
+ * The action type. Always `open_page`.
+ *
+ *
  * The type of the local shell action. Always `exec`.
  */
 type: ActionType | null, 

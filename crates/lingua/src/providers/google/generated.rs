@@ -306,7 +306,10 @@ pub struct FunctionResponse {
     /// Required. The function response in JSON object format. Callers can use any keys of their
     /// choice that fit the function's syntax to return the function output, e.g. "output",
     /// "result", etc. In particular, if the function call failed to execute, the response can
-    /// have an "error" key to return error details to the model.
+    /// have an "error" key to return error details to the model. Multimedia can be included by
+    /// using a subobject containing a single "$ref" key whose value is the
+    /// `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See
+    /// https://ai.google.dev/gemini-api/docs/function-calling#multimodal.
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<serde_json::Map<String, serde_json::Value>>,
@@ -574,6 +577,10 @@ pub struct GenerationConfig {
     /// vocabulary.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence_penalty: Option<f64>,
+    /// Optional. Configuration for the response output format. Allows specifying output
+    /// configuration per modality (text, audio, image) in a flat structure.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_format: Option<ResponseFormatConfig>,
     #[serde(rename = "responseJsonSchema")]
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -675,6 +682,195 @@ pub enum MediaResolutionEnum {
     MediaResolutionMedium,
     #[serde(rename = "MEDIA_RESOLUTION_UNSPECIFIED")]
     MediaResolutionUnspecified,
+}
+
+/// Optional. Configuration for the response output format. Allows specifying output
+/// configuration per modality (text, audio, image) in a flat structure.
+///
+/// Configuration for the response output format. This is a flat object where each optional
+/// sub-field configures a specific output modality.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "google/")]
+pub struct ResponseFormatConfig {
+    /// Optional. Audio output format configuration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<AudioResponseFormat>,
+    /// Optional. Image output format configuration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image: Option<ImageResponseFormat>,
+    /// Optional. Text output format configuration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<TextResponseFormat>,
+}
+
+/// Optional. Audio output format configuration.
+///
+/// Configuration for audio output format.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct AudioResponseFormat {
+    /// Optional. Bit rate in bits per second (bps). Only applicable for compressed formats (MP3,
+    /// Opus).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bit_rate: Option<i64>,
+    /// Optional. The delivery mode for the audio output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery: Option<Delivery>,
+    /// Optional. The MIME type of the audio output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<AudioMimeType>,
+    /// Optional. Sample rate in Hz.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sample_rate: Option<i64>,
+}
+
+/// Optional. The delivery mode for the audio output.
+///
+/// Optional. The delivery mode for the image output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum Delivery {
+    #[serde(rename = "DELIVERY_UNSPECIFIED")]
+    DeliveryUnspecified,
+    Inline,
+    Uri,
+}
+
+/// Optional. The MIME type of the audio output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum AudioMimeType {
+    #[serde(rename = "AUDIO_ALAW")]
+    AudioAlaw,
+    #[serde(rename = "AUDIO_L16")]
+    AudioL16,
+    #[serde(rename = "AUDIO_MP3")]
+    AudioMp3,
+    #[serde(rename = "AUDIO_MULAW")]
+    AudioMulaw,
+    #[serde(rename = "AUDIO_OGG_OPUS")]
+    AudioOggOpus,
+    #[serde(rename = "AUDIO_WAV")]
+    AudioWav,
+    #[serde(rename = "MIME_TYPE_UNSPECIFIED")]
+    MimeTypeUnspecified,
+}
+
+/// Optional. Image output format configuration.
+///
+/// Configuration for image output format.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct ImageResponseFormat {
+    /// Optional. The aspect ratio for the image output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aspect_ratio: Option<AspectRatio>,
+    /// Optional. The delivery mode for the image output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery: Option<Delivery>,
+    /// Optional. The size of the image output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_size: Option<ImageSize>,
+    /// Optional. The MIME type of the image output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<ImageMimeType>,
+}
+
+/// Optional. The aspect ratio for the image output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum AspectRatio {
+    #[serde(rename = "ASPECT_RATIO_EIGHT_BY_ONE")]
+    AspectRatioEightByOne,
+    #[serde(rename = "ASPECT_RATIO_FIVE_BY_FOUR")]
+    AspectRatioFiveByFour,
+    #[serde(rename = "ASPECT_RATIO_FOUR_BY_FIVE")]
+    AspectRatioFourByFive,
+    #[serde(rename = "ASPECT_RATIO_FOUR_BY_ONE")]
+    AspectRatioFourByOne,
+    #[serde(rename = "ASPECT_RATIO_FOUR_BY_THREE")]
+    AspectRatioFourByThree,
+    #[serde(rename = "ASPECT_RATIO_NINE_BY_SIXTEEN")]
+    AspectRatioNineBySixteen,
+    #[serde(rename = "ASPECT_RATIO_ONE_BY_EIGHT")]
+    AspectRatioOneByEight,
+    #[serde(rename = "ASPECT_RATIO_ONE_BY_FOUR")]
+    AspectRatioOneByFour,
+    #[serde(rename = "ASPECT_RATIO_ONE_BY_ONE")]
+    AspectRatioOneByOne,
+    #[serde(rename = "ASPECT_RATIO_SIXTEEN_BY_NINE")]
+    AspectRatioSixteenByNine,
+    #[serde(rename = "ASPECT_RATIO_THREE_BY_FOUR")]
+    AspectRatioThreeByFour,
+    #[serde(rename = "ASPECT_RATIO_THREE_BY_TWO")]
+    AspectRatioThreeByTwo,
+    #[serde(rename = "ASPECT_RATIO_TWENTY_ONE_BY_NINE")]
+    AspectRatioTwentyOneByNine,
+    #[serde(rename = "ASPECT_RATIO_TWO_BY_THREE")]
+    AspectRatioTwoByThree,
+    #[serde(rename = "ASPECT_RATIO_UNSPECIFIED")]
+    AspectRatioUnspecified,
+}
+
+/// Optional. The size of the image output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum ImageSize {
+    #[serde(rename = "IMAGE_SIZE_FIVE_TWELVE")]
+    ImageSizeFiveTwelve,
+    #[serde(rename = "IMAGE_SIZE_FOUR_K")]
+    ImageSizeFourK,
+    #[serde(rename = "IMAGE_SIZE_ONE_K")]
+    ImageSizeOneK,
+    #[serde(rename = "IMAGE_SIZE_TWO_K")]
+    ImageSizeTwoK,
+    #[serde(rename = "IMAGE_SIZE_UNSPECIFIED")]
+    ImageSizeUnspecified,
+}
+
+/// Optional. The MIME type of the image output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum ImageMimeType {
+    #[serde(rename = "IMAGE_JPEG")]
+    ImageJpeg,
+    #[serde(rename = "MIME_TYPE_UNSPECIFIED")]
+    MimeTypeUnspecified,
+}
+
+/// Optional. Text output format configuration.
+///
+/// Configuration for text output format.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct TextResponseFormat {
+    /// Optional. The MIME type of the text output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<TextMimeType>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub schema: Option<serde_json::Value>,
+}
+
+/// Optional. The MIME type of the text output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum TextMimeType {
+    #[serde(rename = "APPLICATION_JSON")]
+    ApplicationJson,
+    #[serde(rename = "MIME_TYPE_UNSPECIFIED")]
+    MimeTypeUnspecified,
+    #[serde(rename = "TEXT_PLAIN")]
+    TextPlain,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -992,6 +1188,8 @@ pub enum Threshold {
 }
 
 /// Optional. The service tier of the request.
+///
+/// Output only. Service tier of the request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "google/")]
@@ -2107,6 +2305,9 @@ pub struct UsageMetadata {
     /// Output only. List of modalities that were processed in the request input.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_tokens_details: Option<Vec<ModalityTokenCount>>,
+    /// Output only. Service tier of the request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_tier: Option<ServiceTier>,
     /// Output only. Number of tokens of thoughts for thinking models.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thoughts_token_count: Option<i64>,

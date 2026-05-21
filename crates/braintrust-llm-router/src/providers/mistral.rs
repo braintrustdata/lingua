@@ -36,7 +36,13 @@ pub struct MistralProvider {
 
 impl MistralProvider {
     pub fn new(config: MistralConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: MistralConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -45,7 +51,11 @@ impl MistralProvider {
     }
 
     /// Create a Mistral provider from configuration parameters.
-    pub fn from_config(endpoint: Option<&Url>, timeout: Option<Duration>) -> Result<Self> {
+    pub fn from_config(
+        endpoint: Option<&Url>,
+        timeout: Option<Duration>,
+        client_settings: Option<ClientSettings>,
+    ) -> Result<Self> {
         let mut config = MistralConfig::default();
 
         if let Some(ep) = endpoint {
@@ -55,7 +65,7 @@ impl MistralProvider {
             config.timeout = Some(t);
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn chat_url(&self) -> Result<Url> {

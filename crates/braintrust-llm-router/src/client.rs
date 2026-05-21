@@ -1,11 +1,12 @@
 use std::error::Error as StdError;
 use std::io::ErrorKind;
+use std::net::SocketAddr;
 use std::time::Duration;
 
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{Client, ClientBuilder};
+use reqwest::{redirect::Policy, Client, ClientBuilder};
 use reqwest_middleware::ClientWithMiddleware;
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
@@ -17,6 +18,12 @@ use crate::error::{Error, Result};
 // The default number of retries for transient transport failures.
 const DEFAULT_MAX_RETRIES: u32 = 2;
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DnsOverride {
+    pub domain: String,
+    pub addrs: Vec<SocketAddr>,
+}
+
 // Shared reqwest clients are cached by these settings. Keep this key
 // low-cardinality and effectively process-wide; request-scoped values do not
 // belong here because they fragment client reuse and connection pooling.
@@ -27,6 +34,8 @@ pub struct ClientSettings {
     pub pool_idle_timeout: Duration,
     pub pool_max_idle_per_host: usize,
     pub user_agent: String,
+    pub dns_overrides: Vec<DnsOverride>,
+    pub follow_redirects: bool,
 }
 
 impl Default for ClientSettings {
@@ -37,19 +46,29 @@ impl Default for ClientSettings {
             pool_idle_timeout: Duration::from_secs(90),
             pool_max_idle_per_host: 16,
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
+            dns_overrides: Vec::new(),
+            follow_redirects: true,
         }
     }
 }
 
 pub fn build_client(settings: &ClientSettings) -> Result<Client> {
-    ClientBuilder::new()
+    let mut builder = ClientBuilder::new()
         .connect_timeout(settings.connect_timeout)
         .timeout(settings.request_timeout)
         .pool_idle_timeout(settings.pool_idle_timeout)
         .pool_max_idle_per_host(settings.pool_max_idle_per_host)
-        .user_agent(&settings.user_agent)
-        .build()
-        .map_err(Error::from)
+        .user_agent(&settings.user_agent);
+
+    if !settings.follow_redirects {
+        builder = builder.redirect(Policy::none());
+    }
+
+    for override_entry in &settings.dns_overrides {
+        builder = builder.resolve_to_addrs(&override_entry.domain, &override_entry.addrs);
+    }
+
+    builder.build().map_err(Error::from)
 }
 
 pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMiddleware> {
@@ -277,6 +296,27 @@ mod tests {
         build_middleware_client(&second_settings).expect("second client");
 
         assert_eq!(cached_client_count(), 2);
+    }
+
+    #[test]
+    #[serial]
+    fn build_middleware_client_reuses_cached_client_for_same_dns_overrides() {
+        clear_override_client();
+        clear_cached_clients();
+
+        let settings = ClientSettings {
+            dns_overrides: vec![DnsOverride {
+                domain: "example.com".to_string(),
+                addrs: vec!["127.0.0.1:443".parse().expect("socket addr")],
+            }],
+            ..ClientSettings::default()
+        };
+
+        let first = build_middleware_client(&settings).expect("first client");
+        let second = build_middleware_client(&settings).expect("second client");
+
+        assert_eq!(cached_client_count(), 1);
+        assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 
     #[test]
