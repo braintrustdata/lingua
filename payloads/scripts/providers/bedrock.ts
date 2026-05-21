@@ -68,6 +68,40 @@ type ParallelBedrockResult =
       data: Array<ConverseStreamOutput>;
     };
 
+async function sendBedrockConverse(
+  client: BedrockRuntimeClient,
+  payload: BedrockConverseRequest
+): Promise<ConverseResponse> {
+  return client.send(new ConverseCommand(payload));
+}
+
+async function sendBedrockConverseStream(
+  client: BedrockRuntimeClient,
+  payload: BedrockConverseRequest
+): Promise<Array<ConverseStreamOutput>> {
+  const streamChunks: Array<ConverseStreamOutput> = [];
+  const streamResponse = await client.send(new ConverseStreamCommand(payload));
+
+  if (streamResponse.stream) {
+    for await (const event of streamResponse.stream) {
+      streamChunks.push(event);
+    }
+  }
+
+  return streamChunks;
+}
+
+export async function callBedrockConverse(
+  payload: BedrockConverseRequest,
+  options?: ExecuteOptions
+): Promise<ConverseResponse | Array<ConverseStreamOutput>> {
+  const client = createBedrockClient();
+  if (options?.stream === true) {
+    return sendBedrockConverseStream(client, payload);
+  }
+  return sendBedrockConverse(client, payload);
+}
+
 export async function executeBedrock(
   caseName: string,
   payload: BedrockConverseRequest,
@@ -91,28 +125,20 @@ export async function executeBedrock(
     // Add non-streaming call if requested
     if (stream !== true) {
       promises.push(
-        client
-          .send(new ConverseCommand(payload))
-          .then((response) => ({ type: "response", data: response }))
+        sendBedrockConverse(client, payload).then((response) => ({
+          type: "response",
+          data: response,
+        }))
       );
     }
 
     // Add streaming call if requested
     if (stream !== false) {
       promises.push(
-        (async () => {
-          const streamChunks: Array<ConverseStreamOutput> = [];
-          const streamResponse = await client.send(
-            new ConverseStreamCommand(payload)
-          );
-
-          if (streamResponse.stream) {
-            for await (const event of streamResponse.stream) {
-              streamChunks.push(event);
-            }
-          }
-          return { type: "streamingResponse", data: streamChunks };
-        })()
+        sendBedrockConverseStream(client, payload).then((streamChunks) => ({
+          type: "streamingResponse",
+          data: streamChunks,
+        }))
       );
     }
 
@@ -198,33 +224,21 @@ export async function executeBedrock(
 
         if (stream !== true) {
           followupPromises.push(
-            client
-              .send(new ConverseCommand(followUpPayload))
-              .then((response) => ({
-                type: "followupResponse",
-                data: response,
-              }))
+            sendBedrockConverse(client, followUpPayload).then((response) => ({
+              type: "followupResponse",
+              data: response,
+            }))
           );
         }
 
         if (stream !== false) {
           followupPromises.push(
-            (async () => {
-              const followupStreamChunks: Array<ConverseStreamOutput> = [];
-              const followupStreamResponse = await client.send(
-                new ConverseStreamCommand(followUpPayload)
-              );
-
-              if (followupStreamResponse.stream) {
-                for await (const event of followupStreamResponse.stream) {
-                  followupStreamChunks.push(event);
-                }
-              }
-              return {
+            sendBedrockConverseStream(client, followUpPayload).then(
+              (streamChunks) => ({
                 type: "followupStreamingResponse",
-                data: followupStreamChunks,
-              };
-            })()
+                data: streamChunks,
+              })
+            )
           );
         }
 

@@ -9398,6 +9398,128 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
 }
 `;
 
+exports[`chat-completions → bedrock > parallelToolCallsRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What's the weather in San Francisco and New York?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "toolUse": {
+            "input": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+            "toolUseId": "call_sf",
+          },
+        },
+        {
+          "toolUse": {
+            "input": {
+              "location": "New York, NY",
+            },
+            "name": "get_weather",
+            "toolUseId": "call_nyc",
+          },
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "65°F and sunny.",
+              },
+            ],
+            "toolUseId": "call_sf",
+          },
+        },
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "45°F and cloudy.",
+              },
+            ],
+            "toolUseId": "call_nyc",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get the current weather for a location",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "location": {
+                  "description": "The city and state, e.g. San Francisco, CA",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > parallelToolCallsRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's the weather for both cities:
+
+**San Francisco, CA:** 65°F and sunny ☀️
+
+**New York, NY:** 45°F and cloudy ☁️
+
+San Francisco has much nicer weather today with warm, sunny conditions, while New York is cooler and cloudy.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 71,
+    "prompt_tokens": 757,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 828,
+  },
+}
+`;
+
 exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
 {
   "contents": [
