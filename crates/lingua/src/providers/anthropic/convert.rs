@@ -20,8 +20,8 @@ use crate::universal::response_format::normalize_response_schema_for_strict_targ
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
-    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
-    UserContentPart,
+    TextContentPart, ToolCallArguments, ToolContent, ToolContentPart, ToolResultContentPart,
+    UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -72,6 +72,114 @@ fn anthropic_tool_use_caller_from_provider_options(
             .ok()
         })
         .and_then(|view| view.caller)
+}
+
+pub(crate) fn normalize_messages_for_anthropic_request(messages: &mut Vec<Message>) {
+    if messages.is_empty() {
+        return;
+    }
+
+    let mut normalized = Vec::with_capacity(messages.len());
+    for message in messages.drain(..) {
+        match message {
+            Message::Tool { content } => {
+                if let Some(Message::Tool {
+                    content: previous_content,
+                }) = normalized.last_mut()
+                {
+                    previous_content.extend(content);
+                } else {
+                    normalized.push(Message::Tool { content });
+                }
+            }
+            other => normalized.push(other),
+        }
+    }
+
+    *messages = normalized;
+}
+
+fn tool_result_output_to_string(output: &Value) -> Result<String, ConvertError> {
+    match output {
+        Value::String(s) => Ok(s.clone()),
+        other => serde_json::to_string(other).map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "tool_result_output".to_string(),
+            error: e.to_string(),
+        }),
+    }
+}
+
+fn text_block_for_tool_result_output(output: &Value) -> Result<generated::Block, ConvertError> {
+    Ok(generated::Block {
+        cache_control: None,
+        citations: None,
+        text: Some(tool_result_output_to_string(output)?),
+        block_type: generated::WebSearchToolResultBlockItemType::Text,
+        source: None,
+        content: None,
+        title: None,
+        context: None,
+        tool_name: None,
+        encrypted_content: None,
+        page_age: None,
+        url: None,
+    })
+}
+
+fn tool_result_blocks_from_content(
+    content: ToolContent,
+) -> Result<Vec<generated::InputContentBlock>, ConvertError> {
+    let mut grouped: Vec<(String, Vec<ToolResultContentPart>)> = Vec::new();
+
+    for part in content {
+        let ToolContentPart::ToolResult(tool_result) = part;
+        if let Some((_, results)) = grouped
+            .iter_mut()
+            .find(|(id, _)| id == &tool_result.tool_call_id)
+        {
+            results.push(tool_result);
+        } else {
+            grouped.push((tool_result.tool_call_id.clone(), vec![tool_result]));
+        }
+    }
+
+    grouped
+        .into_iter()
+        .map(|(tool_call_id, results)| {
+            let content = if results.len() == 1 {
+                Some(generated::InputContentBlockContent::String(
+                    tool_result_output_to_string(&results[0].output)?,
+                ))
+            } else {
+                let blocks = results
+                    .iter()
+                    .map(|result| text_block_for_tool_result_output(&result.output))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Some(generated::InputContentBlockContent::BlockArray(blocks))
+            };
+
+            Ok(generated::InputContentBlock {
+                cache_control: None,
+                citations: None,
+                text: None,
+                input_content_block_type: generated::InputContentBlockType::ToolResult,
+                source: None,
+                context: None,
+                title: None,
+                content,
+                signature: None,
+                thinking: None,
+                data: None,
+                caller: None,
+                id: None,
+                input: None,
+                name: None,
+                is_error: None,
+                tool_use_id: Some(tool_call_id),
+                file_id: None,
+            })
+        })
+        .collect()
 }
 
 fn infer_media_type_from_reference(reference: &str) -> Option<String> {
@@ -986,47 +1094,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
             }
             Message::Tool { content } => {
                 // Convert tool results back to user message with tool_result blocks
-                let mut blocks = Vec::new();
-                for part in content {
-                    match part {
-                        ToolContentPart::ToolResult(tool_result) => {
-                            let content = match &tool_result.output {
-                                serde_json::Value::String(s) => {
-                                    Some(generated::InputContentBlockContent::String(s.clone()))
-                                }
-                                other => Some(generated::InputContentBlockContent::String(
-                                    serde_json::to_string(other)
-                                        .map_err(|e| ConvertError::JsonSerializationFailed {
-                                            field: "tool_result_output".to_string(),
-                                            error: e.to_string(),
-                                        })?,
-                                )),
-                            };
-
-                            blocks.push(generated::InputContentBlock {
-                                cache_control: None,
-                                citations: None,
-                                text: None,
-                                input_content_block_type:
-                                    generated::InputContentBlockType::ToolResult,
-                                source: None,
-                                context: None,
-                                title: None,
-                                content,
-                                signature: None,
-                                thinking: None,
-                                data: None,
-                                caller: None,
-                                id: None,
-                                input: None,
-                                name: None,
-                                is_error: None,
-                                tool_use_id: Some(tool_result.tool_call_id),
-                                file_id: None,
-                            });
-                        }
-                    }
-                }
+                let blocks = tool_result_blocks_from_content(content)?;
 
                 Ok(generated::InputMessage {
                     content: generated::MessageContent::InputContentBlockArray(blocks),

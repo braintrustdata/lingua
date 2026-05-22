@@ -15,7 +15,9 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
-use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::convert::{
+    normalize_messages_for_anthropic_request, system_to_user_content,
+};
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
     ToolChoice, ToolChoiceType,
@@ -310,6 +312,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     reason,
                 });
             }
+            normalize_messages_for_anthropic_request(&mut msgs);
             // Convert remaining messages
             let anthropic_messages: Vec<InputMessage> =
                 <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)

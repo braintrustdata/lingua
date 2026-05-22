@@ -823,6 +823,122 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_parallel_tool_results_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [
+                {"role": "user", "content": "weather?"},
+                {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [
+                        {
+                            "id": "call_a",
+                            "type": "function",
+                            "function": {
+                                "name": "get_weather",
+                                "arguments": "{\"city\":\"SF\"}"
+                            }
+                        },
+                        {
+                            "id": "call_b",
+                            "type": "function",
+                            "function": {
+                                "name": "get_weather",
+                                "arguments": "{\"city\":\"NYC\"}"
+                            }
+                        }
+                    ]
+                },
+                {"role": "tool", "tool_call_id": "call_a", "content": "65"},
+                {"role": "tool", "tool_call_id": "call_b", "content": "45"}
+            ]
+        });
+
+        let result = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .unwrap()
+            .into_bytes();
+        let output: Value = crate::serde_json::from_slice(&result).unwrap();
+        let messages = output.get("messages").and_then(Value::as_array).unwrap();
+
+        assert_eq!(messages.len(), 3);
+        assert_eq!(
+            messages[2].get("role").and_then(Value::as_str),
+            Some("user")
+        );
+        assert_eq!(
+            messages[2]
+                .get("content")
+                .and_then(Value::as_array)
+                .unwrap(),
+            &vec![
+                json!({
+                    "type": "tool_result",
+                    "tool_use_id": "call_a",
+                    "content": "65"
+                }),
+                json!({
+                    "type": "tool_result",
+                    "tool_use_id": "call_b",
+                    "content": "45"
+                })
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_duplicate_tool_results_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [
+                {"role": "user", "content": "weather?"},
+                {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [
+                        {
+                            "id": "call_a",
+                            "type": "function",
+                            "function": {
+                                "name": "get_weather",
+                                "arguments": "{\"city\":\"SF\"}"
+                            }
+                        }
+                    ]
+                },
+                {"role": "tool", "tool_call_id": "call_a", "content": "65"},
+                {"role": "tool", "tool_call_id": "call_a", "content": "66"}
+            ]
+        });
+
+        let result = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .unwrap()
+            .into_bytes();
+        let output: Value = crate::serde_json::from_slice(&result).unwrap();
+        let messages = output.get("messages").and_then(Value::as_array).unwrap();
+        let tool_results = messages[2]
+            .get("content")
+            .and_then(Value::as_array)
+            .unwrap();
+
+        assert_eq!(messages.len(), 3);
+        assert_eq!(tool_results.len(), 1);
+        assert_eq!(
+            tool_results[0],
+            json!({
+                "type": "tool_result",
+                "tool_use_id": "call_a",
+                "content": [
+                    {"type": "text", "text": "65"},
+                    {"type": "text", "text": "66"}
+                ]
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_openai_system_only_to_anthropic_rejected() {
         let payload = json!({
             "model": "gpt-4",
