@@ -267,23 +267,43 @@ impl TryFromLLM<Message> for BedrockMessage {
 fn tool_result_blocks_from_content(
     content: Vec<ToolContentPart>,
 ) -> Result<Vec<BedrockContentBlock>, ConvertError> {
-    content
+    let mut grouped: Vec<(String, Vec<ToolResultContentPart>)> = Vec::new();
+
+    for part in content {
+        let ToolContentPart::ToolResult(result) = part;
+        if let Some((_, results)) = grouped
+            .iter_mut()
+            .find(|(id, _)| id == &result.tool_call_id)
+        {
+            results.push(result);
+        } else {
+            grouped.push((result.tool_call_id.clone(), vec![result]));
+        }
+    }
+
+    grouped
         .into_iter()
-        .map(|part| {
-            let ToolContentPart::ToolResult(result) = part;
-            let content_text = match result.output {
-                Value::String(s) => s,
-                other => serde_json::to_string(&other).map_err(|e| {
-                    ConvertError::JsonSerializationFailed {
-                        field: "tool_result.output".to_string(),
-                        error: e.to_string(),
-                    }
-                })?,
-            };
+        .map(|(tool_call_id, results)| {
+            let content = results
+                .into_iter()
+                .map(|result| {
+                    let text = match result.output {
+                        Value::String(s) => s,
+                        other => serde_json::to_string(&other).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "tool_result.output".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    };
+                    Ok(BedrockToolResultContent::Text { text })
+                })
+                .collect::<Result<Vec<_>, ConvertError>>()?;
+
             Ok(BedrockContentBlock::ToolResult {
                 tool_result: BedrockToolResultBlock {
-                    tool_use_id: result.tool_call_id,
-                    content: vec![BedrockToolResultContent::Text { text: content_text }],
+                    tool_use_id: tool_call_id,
+                    content,
                     status: None,
                 },
             })
@@ -298,6 +318,33 @@ fn is_tool_result_message(message: &BedrockMessage) -> bool {
             .content
             .iter()
             .all(|block| matches!(block, BedrockContentBlock::ToolResult { .. }))
+}
+
+fn merge_tool_result_blocks(
+    target: &mut Vec<BedrockContentBlock>,
+    incoming: Vec<BedrockContentBlock>,
+) {
+    for block in incoming {
+        let BedrockContentBlock::ToolResult { tool_result } = block else {
+            target.push(block);
+            continue;
+        };
+
+        if let Some(BedrockContentBlock::ToolResult {
+            tool_result: existing,
+        }) = target.iter_mut().find(|existing| {
+            matches!(
+                existing,
+                BedrockContentBlock::ToolResult {
+                    tool_result: existing
+                } if existing.tool_use_id == tool_result.tool_use_id
+            )
+        }) {
+            existing.content.extend(tool_result.content);
+        } else {
+            target.push(BedrockContentBlock::ToolResult { tool_result });
+        }
+    }
 }
 
 fn reasoning_content_to_universal(
@@ -375,7 +422,7 @@ pub fn universal_to_bedrock_messages(
                 let blocks = tool_result_blocks_from_content(content)?;
                 if let Some(last_message) = bedrock_messages.last_mut() {
                     if is_tool_result_message(last_message) {
-                        last_message.content.extend(blocks);
+                        merge_tool_result_blocks(&mut last_message.content, blocks);
                         continue;
                     }
                 }
@@ -955,5 +1002,61 @@ mod tests {
             })
             .collect();
         assert_eq!(tool_use_ids, vec!["call_sf", "call_nyc"]);
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_coalesces_duplicate_tool_results() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_sf".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    arguments: ToolCallArguments::from(
+                        r#"{"location":"San Francisco, CA"}"#.to_string(),
+                    ),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_sf".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    output: Value::String("65°F and sunny.".to_string()),
+                    provider_options: None,
+                })],
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_sf".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    output: Value::String("Light winds from the west.".to_string()),
+                    provider_options: None,
+                })],
+            },
+        ];
+
+        let result = universal_to_bedrock_messages(&messages).unwrap();
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[1].role, BedrockConversationRole::User);
+        assert_eq!(result[1].content.len(), 1);
+
+        let BedrockContentBlock::ToolResult { tool_result } = &result[1].content[0] else {
+            panic!("Expected tool result block");
+        };
+        assert_eq!(tool_result.tool_use_id, "call_sf");
+        assert_eq!(
+            tool_result.content,
+            vec![
+                BedrockToolResultContent::Text {
+                    text: "65°F and sunny.".to_string()
+                },
+                BedrockToolResultContent::Text {
+                    text: "Light winds from the west.".to_string()
+                }
+            ]
+        );
     }
 }

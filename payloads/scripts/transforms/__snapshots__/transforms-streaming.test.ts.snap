@@ -2971,6 +2971,24 @@ data: {"type":"message_stop"}
 "
 `;
 
+exports[`streaming: chat-completions → anthropic > anthropicDuplicateToolResultBlocks > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01WVijq6E3xsxQYeuwXuWzSf","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":2,"prompt_tokens":641,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":643}}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"The weather","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" in San Francisco is currently 65°F and sunny with light winds from the west. It's a beautiful day!","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":29,"prompt_tokens":641,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":670}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: chat-completions → anthropic > complexReasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01Jbqq7pu2VC5ixYeKCSgU7y","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":4,"prompt_tokens":80,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":84}}
 
@@ -4149,6 +4167,30 @@ data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"CA\\"}"},"in
 data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":41,"prompt_tokens":677,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":718}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → bedrock > anthropicDuplicateToolResultBlocks > streaming 1`] = `
+"data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"The weather in San Francisco is **","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"65°F an","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d sunny** with light winds coming","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" from the west.","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" It's a pleasant day!","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk","usage":{"completion_tokens":27,"prompt_tokens":641,"total_tokens":668}}
 
 data: [DONE]
 
@@ -6229,6 +6271,18 @@ data: [DONE]
 "
 `;
 
+exports[`streaming: chat-completions → google > anthropicDuplicateToolResultBlocks > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"The","role":"assistant"},"finish_reason":null,"index":0}],"id":"kcsQavrPN_GU1MkPjcTpgQQ","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":101,"total_tokens":102}}
+
+data: {"choices":[{"delta":{"content":" weather in San Francisco is 65°F and sunny with light winds from","role":"assistant"},"finish_reason":null,"index":0}],"id":"kcsQavrPN_GU1MkPjcTpgQQ","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":17,"prompt_tokens":101,"total_tokens":118}}
+
+data: {"choices":[{"delta":{"content":" the west.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"kcsQavrPN_GU1MkPjcTpgQQ","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":20,"prompt_tokens":101,"total_tokens":121}}
+
+data: [DONE]
+
+"
+`;
+
 exports[`streaming: chat-completions → google > complexReasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"Let's break this down systematically.\\n\\nA digital clock displays times in","role":"assistant"},"finish_reason":null,"index":0}],"id":"8jr6aYKJCLKd1MkP5tvE4AI","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":2805,"completion_tokens_details":{"reasoning_tokens":2790},"prompt_tokens":75,"total_tokens":2880}}
 
@@ -6415,6 +6469,88 @@ exports[`streaming: chat-completions → google > toolCallRequest > streaming 1`
 "data: {"choices":[{"delta":{"content":"","reasoning_signature":"EjQKMgEMOdbHTgRYBNQtNR9sgWEfwUGQbNhOHU2bfSEWtjUB1Kts3fgqhmTPxXykxpRU+kAn","role":"assistant","tool_calls":[{"function":{"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","name":"get_weather"},"id":"xvpg3q0n","index":0,"type":"function"}]},"finish_reason":null,"index":0}],"id":"YVv7abiQBKW-_uMP26n_QA","model":"gemini-3-flash-preview","object":"chat.completion.chunk","usage":{"completion_tokens":19,"prompt_tokens":73,"total_tokens":92}}
 
 data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":"stop","index":0}],"id":"YVv7abiQBKW-_uMP26n_QA","model":"gemini-3-flash-preview","object":"chat.completion.chunk","usage":{"completion_tokens":19,"prompt_tokens":73,"total_tokens":92}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → responses > anthropicDuplicateToolResultBlocks > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Right","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" now","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" in","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" San","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Francisco","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"65","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"°F","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" sunny","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" with","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" light","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" winds","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" from","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" west","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":".","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Want","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" an","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" hourly","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" forecast","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" or","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" a","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" longer","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" outlook","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"?","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":331,"completion_tokens_details":{"reasoning_tokens":256},"prompt_tokens":95,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":426}}
 
 data: [DONE]
 
@@ -7733,6 +7869,14 @@ data: {"choices":[],"object":"chat.completion.chunk"}
 data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_018dd53ca328f19c0069fb5b60fd3c8195a240f657d2d4ccb4","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":278,"completion_tokens_details":{"reasoning_tokens":192},"prompt_tokens":66,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":344}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → vertex-anthropic > anthropicDuplicateToolResultBlocks > streaming 1`] = `
+"data: {"choices":[{"delta":{"content":"The weather in San Francisco is currently **65°F and sunny** with light winds coming from the west. It's a nice day!","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_011sQ2TnJ5JQPtqmVq9XXtKw","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":31,"prompt_tokens":641,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":672}}
 
 data: [DONE]
 

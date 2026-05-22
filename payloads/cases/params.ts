@@ -1244,6 +1244,62 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  anthropicDuplicateToolResultBlocks: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "What's the weather in San Francisco?",
+        },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "toolu_01LiCAVceScBw7NA2zQf6oCA",
+              type: "function",
+              function: {
+                name: "get_weather",
+                arguments: '{"location":"San Francisco, CA"}',
+              },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          content: "65°F and sunny.",
+        },
+        {
+          role: "tool",
+          tool_call_id: "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          content: "Light winds from the west.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather",
+            parameters: {
+              type: "object",
+              properties: {
+                location: { type: "string" },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   // === Context & State Management ===
 
   instructionsParam: {

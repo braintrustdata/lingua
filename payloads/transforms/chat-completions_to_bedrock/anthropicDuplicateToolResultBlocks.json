@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The weather in San Francisco is currently **65°F and sunny** with light winds coming from the west. It's a nice day!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 641,
+    "outputTokens": 31,
+    "totalTokens": 672,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 940
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "2bb9402e-64c1-4d95-8bd9-154bafd66528",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

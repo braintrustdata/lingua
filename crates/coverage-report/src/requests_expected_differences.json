@@ -780,30 +780,6 @@
       ]
     },
     {
-      "testCase": "parallelToolResultsFollowupRequest",
-      "source": "ChatCompletions",
-      "target": "Responses",
-      "fields": [
-        { "pattern": "messages.length", "reason": "Parallel tool results represented as separate ChatCompletions tool messages expand to separate function_call_output items in Responses API" }
-      ]
-    },
-    {
-      "testCase": "parallelToolCallsRequest",
-      "source": "*",
-      "target": "Anthropic",
-      "fields": [
-        { "pattern": "messages.length", "reason": "Anthropic-compatible requests group adjacent parallel tool results in one user message" }
-      ]
-    },
-    {
-      "testCase": "parallelToolResultsFollowupRequest",
-      "source": "ChatCompletions",
-      "target": "Anthropic",
-      "fields": [
-        { "pattern": "messages.length", "reason": "Anthropic-compatible requests group adjacent ChatCompletions tool result messages in one user message" }
-      ]
-    },
-    {
       "testCase": "parallelToolCallsRequest",
       "source": "*",
       "target": "Bedrock",

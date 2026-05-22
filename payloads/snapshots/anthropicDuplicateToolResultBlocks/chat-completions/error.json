@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 Invalid parameter: messages with role 'tool' must be a response to a preceeding message with 'tool_calls'."
+}

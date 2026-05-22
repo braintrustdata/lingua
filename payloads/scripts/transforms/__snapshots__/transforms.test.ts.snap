@@ -6719,6 +6719,96 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > anthropicDuplicateToolResultBlocks > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What's the weather in San Francisco?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          "input": {
+            "location": "San Francisco, CA",
+          },
+          "name": "get_weather",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "65°F and sunny.",
+              "type": "text",
+            },
+            {
+              "text": "Light winds from the west.",
+              "type": "text",
+            },
+          ],
+          "tool_use_id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Get weather",
+      "input_schema": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "name": "get_weather",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > anthropicDuplicateToolResultBlocks > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The weather in San Francisco is currently 65°F and sunny with light winds from the west. It's a beautiful day!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01VDYxk8aLBK1S494sPGnyPN",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 641,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 670,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,
@@ -7791,11 +7881,6 @@ exports[`chat-completions → anthropic > parallelToolCallsRequest > request 1`]
           "tool_use_id": "call_sf",
           "type": "tool_result",
         },
-      ],
-      "role": "user",
-    },
-    {
-      "content": [
         {
           "content": "45°F and cloudy.",
           "tool_use_id": "call_nyc",
@@ -9394,6 +9479,105 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
       "cached_tokens": 0,
     },
     "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > anthropicDuplicateToolResultBlocks > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What's the weather in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "toolUse": {
+            "input": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+            "toolUseId": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          },
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "65°F and sunny.",
+              },
+              {
+                "text": "Light winds from the west.",
+              },
+            ],
+            "toolUseId": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get weather",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "location": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > anthropicDuplicateToolResultBlocks > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The weather in San Francisco is currently **65°F and sunny** with light winds coming from the west. It's a nice day!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 31,
+    "prompt_tokens": 641,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 672,
   },
 }
 `;
@@ -12091,6 +12275,107 @@ exports[`chat-completions → bedrock > topPReasoningModelParam > response 1`] =
       "cached_tokens": 0,
     },
     "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → google > anthropicDuplicateToolResultBlocks > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What's the weather in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+            "name": "get_weather",
+            "response": {
+              "output": "65°F and sunny.",
+            },
+          },
+        },
+        {
+          "functionResponse": {
+            "id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+            "name": "get_weather",
+            "response": {
+              "output": "Light winds from the west.",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "location": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "location",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > anthropicDuplicateToolResultBlocks > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The weather in San Francisco is 65°F and sunny with light winds from the west.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 20,
+    "prompt_tokens": 101,
+    "total_tokens": 121,
   },
 }
 `;
@@ -15139,6 +15424,93 @@ exports[`chat-completions → google > topPReasoningModelParam > response 1`] = 
     },
     "prompt_tokens": 4,
     "total_tokens": 28,
+  },
+}
+`;
+
+exports[`chat-completions → responses > anthropicDuplicateToolResultBlocks > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What's the weather in San Francisco?",
+      "role": "user",
+    },
+    {
+      "arguments": "{"location":"San Francisco, CA"}",
+      "call_id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+      "name": "get_weather",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+      "output": "65°F and sunny.",
+      "type": "function_call_output",
+    },
+    {
+      "call_id": "toolu_01LiCAVceScBw7NA2zQf6oCA",
+      "output": "Light winds from the west.",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Get weather",
+      "name": "get_weather",
+      "parameters": {
+        "properties": {
+          "location": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "location",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > anthropicDuplicateToolResultBlocks > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "San Francisco, CA: 65°F and sunny with light winds from the west. Want a forecast or details like humidity or wind speed?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0143489cdeab3256006a10cb8e597081929c571c98b5080d10",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 362,
+    "completion_tokens_details": {
+      "reasoning_tokens": 320,
+    },
+    "prompt_tokens": 95,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 457,
   },
 }
 `;
@@ -27023,11 +27395,6 @@ exports[`responses → anthropic > parallelToolCallsRequest > request 1`] = `
           "tool_use_id": "call_sf",
           "type": "tool_result",
         },
-      ],
-      "role": "user",
-    },
-    {
-      "content": [
         {
           "content": "45°F and cloudy.",
           "tool_use_id": "call_nyc",

@@ -1,0 +1,599 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e",
+      "object": "response",
+      "created_at": 1779485585,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e",
+      "object": "response",
+      "created_at": 1779485585,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_02152eb729d6f84f006a10cb924678819682bf9d92498f845d",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_02152eb729d6f84f006a10cb924678819682bf9d92498f845d",
+      "type": "reasoning",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Right",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "AZnunIecDrK",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " now",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "WfZjRNgV4SKh",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " in",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "Ks1UnLkUjRqzF",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " San",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "CZdJM2WGn7y7",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Francisco",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "VeIqUJ",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "69PUHrHTAgZJglG",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " ",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "AQbP2kIUIDRnP3k",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "65",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "GIIcP8B3qYe7AX",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "°F",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "BUauS4sCVMuRRi",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "i8l0KMHwFgHR",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " sunny",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "IFvncy7awn",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "lCqIhmaPY5oVIgi",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " with",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "ba6dHGOiKgd",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " light",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "ITEJYjAlHc",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " winds",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "0flvKZKS7m",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " from",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "1oaVSTwY4L4",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "vZnmNDstgHE1",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " west",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "pNmWrUMeEQh",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "Hl6DY6E0AOZpmWS",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Want",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "mFATLm6iUfH",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " an",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "hTlBwEh9DHcLn",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " hourly",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "HRxBJTdWN",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " forecast",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "RyfxX0T",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "BN1XdJgrJeLpL",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "SPp44nKJNFjH6W",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " longer",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "UniuUMPpF",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " outlook",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "CBL1ymDK",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "?",
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "obfuscation": "U00JRrVI8Ikyqvm",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 34,
+    "text": "Right now in San Francisco: 65°F and sunny, with light winds from the west. Want an hourly forecast or a longer outlook?"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Right now in San Francisco: 65°F and sunny, with light winds from the west. Want an hourly forecast or a longer outlook?"
+    },
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Right now in San Francisco: 65°F and sunny, with light winds from the west. Want an hourly forecast or a longer outlook?"
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_02152eb729d6f84f006a10cb91e408819693c9791c9115a98e",
+      "object": "response",
+      "created_at": 1779485585,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1779485589,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_02152eb729d6f84f006a10cb924678819682bf9d92498f845d",
+          "type": "reasoning",
+          "summary": []
+        },
+        {
+          "id": "msg_02152eb729d6f84f006a10cb94cd44819694750ec4504890ba",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Right now in San Francisco: 65°F and sunny, with light winds from the west. Want an hourly forecast or a longer outlook?"
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get weather",
+          "name": "get_weather",
+          "parameters": {
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 95,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 331,
+        "output_tokens_details": {
+          "reasoning_tokens": 256
+        },
+        "total_tokens": 426
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 37
+  }
+]
