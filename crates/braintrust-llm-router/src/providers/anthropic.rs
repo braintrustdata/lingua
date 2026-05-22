@@ -44,7 +44,13 @@ pub struct AnthropicProvider {
 
 impl AnthropicProvider {
     pub fn new(config: AnthropicConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: AnthropicConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -60,6 +66,7 @@ impl AnthropicProvider {
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
         metadata: &std::collections::HashMap<String, lingua::serde_json::Value>,
+        client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         use lingua::serde_json::Value;
         let mut config = AnthropicConfig::default();
@@ -74,7 +81,7 @@ impl AnthropicProvider {
             config.version = version.to_string();
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn messages_url(&self) -> Url {

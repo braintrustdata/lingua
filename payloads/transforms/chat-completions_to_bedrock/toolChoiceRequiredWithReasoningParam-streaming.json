@@ -1,0 +1,236 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "The user is asking for"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " the"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " weather in Tokyo. I have"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " the"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " `"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "get_weather` function available, which"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " requires"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " a location parameter. The user has provide"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "d the"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " location as"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " \"Tokyo\", so I have"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " all the information"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " I need to make the function call."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "signature": "EpgDCkgIDRABGAIqQMBIw7gPnb9Nkj4XYjVktaq2I4jpktm9+c+xnOtfQw4c920cZjlja4D7vhNfYkVgBnbn9iFrTwOa38UT1j/VtRsSDJ+IP4c+3Fe7SiKOWRoMpAK/kurPG2P25SfIIjD4ubzUTknFmR/lEDoRnBW/cgfP/NciYbjtfei29dN190nbPbSspwlK/bwM6Jbojv8q/QFFyfX/V4tI1H/e4KL6FOT0M14MLrmfp5fj9IIXi5FZ/aCSl/5qoQcGrC7aabthWKogOKeRAPGL4CXLsDbTo2QPvU1CVSNvBSWBFelHTd8uqIATdT0WjLI8QRWbFk/k4R6JF7//kCe9bWTaRERh0TgfrGcpRyDt2LGhpOyGxIjIuWuo9VEwHnYNcCG2l/jJHcQkGCbQDuM8Lxhj1YMhQJoq0hS9vzfi8p3EQM+VdkO/NW2zALYfiwgSJ9j31Sy3DJjCtdbCaViObSBPv0ADODhkQ/FeZMWQfZh0CL8C5rH0Kq7SJQLxmBQ4FBL8ar3yvRu3dlHG9IyNNYS9jKakGAE="
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_7ZW3gDX0xbT4VePrqjqEMb",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"lo"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "cation\": \""
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "Tokyo\"}"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "tool_use"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 592,
+        "outputTokens": 112,
+        "totalTokens": 704
+      },
+      "metrics": {
+        "latencyMs": 1485
+      }
+    }
+  }
+]

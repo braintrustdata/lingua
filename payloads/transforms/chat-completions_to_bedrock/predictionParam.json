@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Updated Function with Error Handling\n\n```javascript\nfunction divide(a, b) {\n  // Check if inputs are numbers\n  if (typeof a !== 'number' || typeof b !== 'number') {\n    throw new Error('Both arguments must be numbers');\n  }\n  \n  // Check for division by zero\n  if (b === 0) {\n    throw new Error('Division by zero is not allowed');\n  }\n  \n  return a / b;\n}\n```\n\n## Usage Examples\n\n```javascript\n// Valid calls\nconsole.log(divide(10, 2));      // 5\nconsole.log(divide(15, 3));      // 5\n\n// Error cases\ntry {\n  divide(10, 0);                 // Error: Division by zero\n} catch (error) {\n  console.error(error.message);\n}\n\ntry {\n  divide('10', 2);               // Error: Both arguments must be numbers\n} catch (error) {\n  console.error(error.message);\n}\n```\n\n## Alternative: Returning Error Objects\n\nIf you prefer not to throw exceptions:\n\n```javascript\nfunction divide(a, b) {\n  if (typeof a !== 'number' || typeof b !== 'number') {\n    return { success: false, error: 'Both arguments must be numbers' };\n  }\n  \n  if (b === 0) {\n    return { success: false, error: 'Division by zero is not allowed' };\n  }\n  \n  return { success: true, result: a / b };\n}\n\n// Usage\nconst result = divide(10, 2);\nif (result.success) {\n  console.log(result.result);\n} else {\n  console.error(result.error);\n}\n```\n\nChoose the approach based on your application's error handling strategy!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 33,
+    "outputTokens": 429,
+    "totalTokens": 462,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 2644
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "a3cdd9cb-32c8-4ec5-8312-badf5bb86838",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

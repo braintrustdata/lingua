@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I pick **7**."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 11,
+    "outputTokens": 8,
+    "totalTokens": 19,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1300
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "7c537435-1a14-4d7d-8fbc-8b2c7ea44cfa",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

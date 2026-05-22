@@ -278,4 +278,4 @@ make generate-types
 
 ## License
 
-TBD
+[MIT](LICENSE)

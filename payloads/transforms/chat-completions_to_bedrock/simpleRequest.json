@@ -1,0 +1,37 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "reasoningContent": {
+            "reasoningText": {
+              "text": "This is a straightforward factual question. The capital of France is Paris.",
+              "signature": "EvUBCkgIDRABGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QSDF/TQ11VoY9pMQ7qoxoMvYp23wOp8A7+g3+vIjDf39VQLyWUFpkjTgrQ0hcw5xXTCtvpZSfzoXBwypvw8/5mBQnbiirftD7C5qMmd88qW+vHG6orwTJxJoFZVvrycmvSmnucv+Ta4kHz/9WrY26wUaRULo/eL8UbWmZ3tJSn06fsYHR2H8hQiX92kR++OcJn8autQ1jN9KHq1IcD8hlfdBRHkgJLGbj2utUYAQ=="
+            }
+          }
+        },
+        {
+          "text": "The capital of France is Paris."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 43,
+    "outputTokens": 34,
+    "totalTokens": 77,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1137
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "3682b6a6-c596-4503-9065-b24b3496b6cb",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

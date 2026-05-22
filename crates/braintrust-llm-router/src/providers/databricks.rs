@@ -27,7 +27,13 @@ pub struct DatabricksProvider {
 
 impl DatabricksProvider {
     pub fn new(config: DatabricksConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: DatabricksConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -35,11 +41,18 @@ impl DatabricksProvider {
         Ok(Self { client, config })
     }
 
-    pub fn from_config(api_base: Option<&Url>, timeout: Option<Duration>) -> Result<Self> {
+    pub fn from_config(
+        api_base: Option<&Url>,
+        timeout: Option<Duration>,
+        client_settings: Option<ClientSettings>,
+    ) -> Result<Self> {
         let api_base = api_base
             .cloned()
             .ok_or_else(|| Error::InvalidRequest("databricks provider requires api_base".into()))?;
-        Self::new(DatabricksConfig { api_base, timeout })
+        Self::new_with_client_settings(
+            DatabricksConfig { api_base, timeout },
+            client_settings.unwrap_or_default(),
+        )
     }
 
     // This does not support Databrick's new AI gateway URL format yet, only
@@ -230,7 +243,7 @@ mod tests {
 
     #[test]
     fn from_config_requires_api_base() {
-        let err = DatabricksProvider::from_config(None, None).unwrap_err();
+        let err = DatabricksProvider::from_config(None, None, None).unwrap_err();
         assert!(matches!(err, Error::InvalidRequest(_)));
     }
 }

@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "ok"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 10,
+    "outputTokens": 4,
+    "totalTokens": 14,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 854
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "28f395bf-a118-413f-a6fa-b69ca83aeb71",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

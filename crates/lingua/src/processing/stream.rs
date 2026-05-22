@@ -1,9 +1,10 @@
 use bytes::Bytes;
+use std::collections::BTreeMap;
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::adapter_for_format;
 use crate::processing::transform::{
-    serialize_stream_value, transform_stream_chunk_step, TransformError,
+    serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
 };
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
@@ -55,6 +56,8 @@ pub struct StreamTransformSession {
     buffered_delta: Option<StreamOutputChunk>,
     buffered_stop: Option<StreamOutputChunk>,
     anthropic_message_started: bool,
+    bedrock_tool_call_indexes: BTreeMap<u32, u32>,
+    next_bedrock_tool_call_index: u32,
 }
 
 impl StreamTransformSession {
@@ -72,6 +75,8 @@ impl StreamTransformSession {
             buffered_delta: None,
             buffered_stop: None,
             anthropic_message_started: false,
+            bedrock_tool_call_indexes: BTreeMap::new(),
+            next_bedrock_tool_call_index: 0,
         }
     }
 
@@ -93,8 +98,10 @@ impl StreamTransformSession {
             }]);
         }
 
+        let result = self.normalize_bedrock_to_openai_stream_result(&step)?;
+
         let chunks = build_session_chunks(
-            step.result,
+            result,
             step.source_format,
             self.target_format,
             step.universal.as_ref(),
@@ -102,6 +109,76 @@ impl StreamTransformSession {
             self.anthropic_message_started,
         )?;
         Ok(self.process_chunks(chunks))
+    }
+
+    fn normalize_bedrock_to_openai_stream_result(
+        &mut self,
+        step: &crate::processing::transform::StreamTransformStep,
+    ) -> Result<TransformResult, TransformError> {
+        if step.source_format != ProviderFormat::Converse
+            || self.target_format != ProviderFormat::ChatCompletions
+            || !step.source_is_native_stream
+        {
+            return Ok(step.result.clone());
+        }
+
+        let Some(mut universal) = step.universal.clone() else {
+            return Ok(step.result.clone());
+        };
+
+        self.remap_bedrock_tool_call_indexes(&mut universal);
+
+        let should_reset = universal
+            .choices
+            .iter()
+            .any(|choice| choice.finish_reason.is_some());
+
+        let target_adapter = adapter_for_format(self.target_format)
+            .ok_or(TransformError::UnsupportedTargetFormat(self.target_format))?;
+        let bytes = serialize_stream_value(&target_adapter.stream_from_universal(&universal)?)?;
+
+        if should_reset {
+            self.bedrock_tool_call_indexes.clear();
+            self.next_bedrock_tool_call_index = 0;
+        }
+
+        Ok(TransformResult::Transformed {
+            bytes,
+            source_format: step.source_format,
+            actual_target_format: self.target_format,
+        })
+    }
+
+    fn remap_bedrock_tool_call_indexes(&mut self, universal: &mut UniversalStreamChunk) {
+        for choice in &mut universal.choices {
+            let Some(mut delta) = choice.delta_view() else {
+                continue;
+            };
+
+            if delta.tool_calls.is_empty() {
+                continue;
+            }
+
+            for tool_call in &mut delta.tool_calls {
+                let Some(bedrock_block_index) = tool_call.index else {
+                    continue;
+                };
+                let openai_tool_index =
+                    match self.bedrock_tool_call_indexes.get(&bedrock_block_index) {
+                        Some(index) => *index,
+                        None => {
+                            let index = self.next_bedrock_tool_call_index;
+                            self.next_bedrock_tool_call_index += 1;
+                            self.bedrock_tool_call_indexes
+                                .insert(bedrock_block_index, index);
+                            index
+                        }
+                    };
+                tool_call.index = Some(openai_tool_index);
+            }
+
+            choice.delta = Some(Value::from(delta));
+        }
     }
 
     pub fn finish(&mut self) -> Vec<StreamOutputChunk> {
@@ -860,5 +937,310 @@ mod tests {
         let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
         let out = session.finish_sse();
         assert_eq!(out, vec![Bytes::from_static(b"data: [DONE]\n\n")]);
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_stream_session_converts_bedrock_tool_events_to_openai_chunks() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+
+        let message_start = to_bytes(&json!({
+            "messageStart": {
+                "role": "assistant"
+            }
+        }));
+        let message_start_out = session.push(message_start).unwrap();
+        assert_eq!(message_start_out.len(), 1);
+        let message_start_chunk: Value =
+            crate::serde_json::from_slice(&message_start_out[0].data).unwrap();
+        assert_eq!(
+            message_start_chunk,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": []
+            })
+        );
+
+        let tool_start = to_bytes(&json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 0,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_123",
+                        "name": "list_campaigns",
+                        "type": "tool_use"
+                    }
+                }
+            }
+        }));
+        let start_out = session.push(tool_start).unwrap();
+        assert_eq!(start_out.len(), 1);
+        let start_chunk: Value = crate::serde_json::from_slice(&start_out[0].data).unwrap();
+        assert_eq!(
+            start_chunk,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": [{
+                    "index": 0,
+                    "delta": {
+                        "role": "assistant",
+                        "content": null,
+                        "tool_calls": [{
+                            "index": 0,
+                            "id": "tooluse_123",
+                            "type": "function",
+                            "function": {
+                                "name": "list_campaigns",
+                                "arguments": ""
+                            }
+                        }]
+                    },
+                    "finish_reason": null
+                }]
+            })
+        );
+
+        let tool_args = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "toolUse": {
+                        "input": "{\"campaign"
+                    }
+                }
+            }
+        }));
+        let args_out = session.push(tool_args).unwrap();
+        assert_eq!(args_out.len(), 1);
+        let args_chunk: Value = crate::serde_json::from_slice(&args_out[0].data).unwrap();
+        assert_eq!(
+            args_chunk,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": [{
+                    "index": 0,
+                    "delta": {
+                        "content": null,
+                        "tool_calls": [{
+                            "index": 0,
+                            "function": {
+                                "arguments": "{\"campaign"
+                            }
+                        }]
+                    },
+                    "finish_reason": null
+                }]
+            })
+        );
+
+        let stop = to_bytes(&json!({
+            "messageStop": {
+                "stopReason": "tool_use"
+            }
+        }));
+        let stop_out = session.push(stop).unwrap();
+        assert_eq!(stop_out.len(), 1);
+        let stop_chunk: Value = crate::serde_json::from_slice(&stop_out[0].data).unwrap();
+        assert_eq!(
+            stop_chunk,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": [{
+                    "index": 0,
+                    "delta": {},
+                    "finish_reason": "tool_calls"
+                }]
+            })
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_stream_session_keeps_single_choice_index_for_bedrock_reasoning_and_text_blocks() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+
+        let reasoning = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "reasoningContent": {
+                        "text": "Thinking"
+                    }
+                }
+            }
+        }));
+        let reasoning_out = session.push(reasoning).unwrap();
+        assert_eq!(reasoning_out.len(), 1);
+        let reasoning_chunk: Value = crate::serde_json::from_slice(&reasoning_out[0].data).unwrap();
+        assert_eq!(
+            reasoning_chunk
+                .get("choices")
+                .and_then(Value::as_array)
+                .and_then(|choices| choices.first())
+                .and_then(|choice| choice.get("index"))
+                .and_then(Value::as_u64),
+            Some(0)
+        );
+
+        let text = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 1,
+                "delta": {
+                    "text": "Final answer"
+                }
+            }
+        }));
+        let text_out = session.push(text).unwrap();
+        assert_eq!(text_out.len(), 1);
+        let text_chunk: Value = crate::serde_json::from_slice(&text_out[0].data).unwrap();
+        let text_choice = text_chunk
+            .get("choices")
+            .and_then(Value::as_array)
+            .and_then(|choices| choices.first())
+            .unwrap();
+
+        assert_eq!(text_choice.get("index").and_then(Value::as_u64), Some(0));
+        assert_eq!(
+            text_choice
+                .get("delta")
+                .and_then(|delta| delta.get("content"))
+                .and_then(Value::as_str),
+            Some("Final answer")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_stream_session_maps_bedrock_tool_block_to_sequential_openai_tool_index() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+
+        let reasoning = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "reasoningContent": {
+                        "text": "Thinking"
+                    }
+                }
+            }
+        }));
+        assert_eq!(session.push(reasoning).unwrap().len(), 1);
+
+        let tool_start = to_bytes(&json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 1,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_123",
+                        "name": "list_campaigns"
+                    }
+                }
+            }
+        }));
+        let start_out = session.push(tool_start).unwrap();
+        let start_chunk: Value = crate::serde_json::from_slice(&start_out[0].data).unwrap();
+        assert_eq!(
+            start_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
+
+        let tool_args = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 1,
+                "delta": {
+                    "toolUse": {
+                        "input": "{\"campaign"
+                    }
+                }
+            }
+        }));
+        let args_out = session.push(tool_args).unwrap();
+        let args_chunk: Value = crate::serde_json::from_slice(&args_out[0].data).unwrap();
+        assert_eq!(
+            args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
+        assert_eq!(
+            args_chunk["choices"][0]["delta"]["tool_calls"][0]["function"]["arguments"],
+            json!("{\"campaign")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "bedrock"))]
+    fn test_stream_session_maps_parallel_bedrock_tool_blocks_to_sequential_openai_tool_indexes() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+
+        let first_tool_start = to_bytes(&json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 2,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_2",
+                        "name": "first_tool"
+                    }
+                }
+            }
+        }));
+        let first_out = session.push(first_tool_start).unwrap();
+        let first_chunk: Value = crate::serde_json::from_slice(&first_out[0].data).unwrap();
+        assert_eq!(
+            first_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
+
+        let second_tool_start = to_bytes(&json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 4,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_4",
+                        "name": "second_tool"
+                    }
+                }
+            }
+        }));
+        let second_out = session.push(second_tool_start).unwrap();
+        let second_chunk: Value = crate::serde_json::from_slice(&second_out[0].data).unwrap();
+        assert_eq!(
+            second_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(1)
+        );
+
+        let first_args = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 2,
+                "delta": {
+                    "toolUse": {
+                        "input": "{\"first\":"
+                    }
+                }
+            }
+        }));
+        let first_args_out = session.push(first_args).unwrap();
+        let first_args_chunk: Value =
+            crate::serde_json::from_slice(&first_args_out[0].data).unwrap();
+        assert_eq!(
+            first_args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
+
+        let second_args = to_bytes(&json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 4,
+                "delta": {
+                    "toolUse": {
+                        "input": "{\"second\":"
+                    }
+                }
+            }
+        }));
+        let second_args_out = session.push(second_args).unwrap();
+        let second_args_chunk: Value =
+            crate::serde_json::from_slice(&second_args_out[0].data).unwrap();
+        assert_eq!(
+            second_args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(1)
+        );
     }
 }

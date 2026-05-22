@@ -3,6 +3,10 @@
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models"
   },
+  "chat-completions_to_bedrock": {
+    "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
+    "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes"
+  },
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
     "webSearchToolParam": "Tool 'web_search_preview' of type 'web_search_preview' is not supported by anthropic",
