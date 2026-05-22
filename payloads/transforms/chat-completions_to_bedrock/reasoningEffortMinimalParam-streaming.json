@@ -1,0 +1,100 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "This"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " is a straightforward arithmetic question. "
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "2+2 equals 4."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "signature": "EuYBCkgIDRABGAIqQGW7poVQtktVTdvnSMYcH8M4Ljz6jLmYEsgD/CR5LXsSVGZRfb9eTCddb+aAmExA0lISP/8+dNo6XjbZfnU3TRASDKn9b6fwsbQWm7CnARoMXXCGFKJOsD635Di9IjC1bm0gouxEvf2SxTSZiTPHm8xm37fU8L416DDZlOK2OLRBXBEbXGpb8g9o81AknD0qTNuwqTwvlipeohkfZv8ulHJcFRnF+dQoROff97gLrlTaEBX3F/TmEP+g6jKy87nlvjTkg+KBStMpdAboyRV33ddFNmxSA0IeR8r7j7EYAQ=="
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "2 "
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "+ 2 = 4"
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 43,
+        "outputTokens": 35,
+        "totalTokens": 78
+      },
+      "metrics": {
+        "latencyMs": 1016
+      }
+    }
+  }
+]

@@ -18,12 +18,65 @@ import {
   GOOGLE_GEMINI_3_MODEL,
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
+  BEDROCK_MODEL,
 } from "./models";
 
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  bedrockDocumentCitationStreamingParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              document: {
+                name: "gateway-release-notes",
+                format: "txt",
+                source: {
+                  bytes: new TextEncoder().encode(
+                    "Braintrust Gateway supports OpenAI-compatible streaming over Bedrock Converse."
+                  ),
+                },
+              },
+            },
+            {
+              text: "Answer using the document and cite the source: what streaming route is supported?",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  bedrockGuardrailStopReasonStreamingParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              text: "If a configured Bedrock guardrail intervenes, return the guardrail intervention response.",
+            },
+          ],
+        },
+      ],
+      additionalModelResponseFieldPaths: ["/stop_sequence"],
+    },
+  },
+
   // === Reasoning Configuration ===
 
   reasoningSummaryParam: {

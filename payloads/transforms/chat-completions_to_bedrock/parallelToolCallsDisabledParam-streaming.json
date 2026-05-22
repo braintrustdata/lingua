@@ -1,0 +1,118 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_ESoVJnmJYu2OYBXeeTg4s1",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"location\""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ": \"NYC\"}"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_oGEqx1zkwR9jss0iT8cJpN",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"location\":"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": " \"LA\"}"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "tool_use"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 566,
+        "outputTokens": 90,
+        "totalTokens": 656
+      },
+      "metrics": {
+        "latencyMs": 1032
+      }
+    }
+  }
+]
