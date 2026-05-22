@@ -10,6 +10,7 @@
 
 import { getWasm } from "./wasm-runtime";
 import type { Message } from "./generated/Message";
+import type { ProviderFormat } from "./generated/ProviderFormat";
 import type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
@@ -26,6 +27,19 @@ type GoogleWasmExports = {
   google_contents_to_lingua: (value: unknown) => unknown;
   lingua_to_google_contents: (value: unknown) => unknown;
 };
+
+export type TransformRequestResult<TData = unknown> =
+  | {
+      passThrough: true;
+      data: TData;
+    }
+  | {
+      transformed: true;
+      data: TData;
+      sourceFormat: ProviderFormat;
+    };
+
+export type TransformResponseResult<TData = unknown> = TransformRequestResult<TData>;
 
 // ============================================================================
 // Error handling
@@ -403,6 +417,58 @@ export function importAndDeduplicateMessages(
     throw new ConversionError(
       "Failed to import and deduplicate messages from spans",
       undefined,
+      undefined,
+      error
+    );
+  }
+}
+
+/**
+ * Transform a request payload to a target provider format.
+ *
+ * @param json - Source request JSON string.
+ * @param targetFormat - Target provider format, including "universal".
+ * @param model - Optional model override applied during transformation.
+ * @returns Transform result containing either pass-through or transformed data.
+ * @throws {ConversionError} If transformation fails.
+ */
+export function transformRequest<TData = unknown>(
+  json: string,
+  targetFormat: ProviderFormat,
+  model?: string | null
+): TransformRequestResult<TData> {
+  try {
+    const result = getWasm().transform_request(json, targetFormat, model);
+    return convertMapsToObjects(result) as TransformRequestResult<TData>;
+  } catch (error: unknown) {
+    throw new ConversionError(
+      "Failed to transform request",
+      targetFormat,
+      undefined,
+      error
+    );
+  }
+}
+
+/**
+ * Transform a response payload to a target provider format.
+ *
+ * @param json - Source response JSON string.
+ * @param targetFormat - Target provider format, including "universal".
+ * @returns Transform result containing either pass-through or transformed data.
+ * @throws {ConversionError} If transformation fails.
+ */
+export function transformResponse<TData = unknown>(
+  json: string,
+  targetFormat: ProviderFormat
+): TransformResponseResult<TData> {
+  try {
+    const result = getWasm().transform_response(json, targetFormat);
+    return convertMapsToObjects(result) as TransformResponseResult<TData>;
+  } catch (error: unknown) {
+    throw new ConversionError(
+      "Failed to transform response",
+      targetFormat,
       undefined,
       error
     );

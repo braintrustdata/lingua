@@ -166,10 +166,8 @@ impl ProviderAdapter for UniversalAdapter {
         ))
     }
 
-    fn response_from_universal(&self, _resp: &UniversalResponse) -> Result<Value, TransformError> {
-        Err(TransformError::UnsupportedTargetFormat(
-            ProviderFormat::Universal,
-        ))
+    fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
+        serde_json::to_value(resp).map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
     }
 }
 

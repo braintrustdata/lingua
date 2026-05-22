@@ -1172,6 +1172,43 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_response_to_universal() {
+        let payload = json!({
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "model": "gpt-5-mini",
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop"
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_response(input, ProviderFormat::Universal).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                bytes,
+                source_format,
+                actual_target_format,
+            } => {
+                assert_eq!(source_format, ProviderFormat::ChatCompletions);
+                assert_eq!(actual_target_format, ProviderFormat::Universal);
+                let payload: Value = serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    payload.get("model").and_then(Value::as_str),
+                    Some("gpt-5-mini")
+                );
+                assert!(payload.get("messages").is_some());
+                assert!(payload.get("usage").is_some());
+            }
+            TransformResult::PassThrough(_) => panic!("provider response should transform"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_reasoning_model_forces_translation() {
         // Reasoning models (gpt-5.*, o1-*, o3-*) require max_completion_tokens
         // Even for OpenAI → OpenAI, we must translate to convert max_tokens → max_completion_tokens

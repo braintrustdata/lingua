@@ -45,6 +45,8 @@ describe("Browser exports", () => {
     expect(typeof exports.linguaToChatCompletionsMessages).toBe("function");
     expect(typeof exports.anthropicMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
+    expect(typeof exports.transformRequest).toBe("function");
+    expect(typeof exports.transformResponse).toBe("function");
   });
 
   test("should export validation functions", async () => {
@@ -83,6 +85,55 @@ describe("Browser exports", () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(1);
     expect(result[0].role).toBe("user");
+  });
+
+  test("should transform chat completions request to universal after init()", async () => {
+    const { init, transformRequest } = await import("../src/index.browser");
+
+    const wasmBuffer = readFileSync(wasmPath);
+    await init(wasmBuffer);
+
+    const result = transformRequest(
+      JSON.stringify({
+        model: "gpt-5-mini",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+      "universal",
+    );
+
+    expect(result.data).toMatchObject({
+      model: "gpt-5-mini",
+      messages: [{ role: "user", content: "Hello" }],
+    });
+  });
+
+  test("should transform chat completions response to universal after init()", async () => {
+    const { init, transformResponse } = await import("../src/index.browser");
+
+    const wasmBuffer = readFileSync(wasmPath);
+    await init(wasmBuffer);
+
+    const result = transformResponse(
+      JSON.stringify({
+        id: "chatcmpl-123",
+        object: "chat.completion",
+        model: "gpt-5-mini",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "Hello!" },
+            finish_reason: "stop",
+          },
+        ],
+      }),
+      "universal",
+    );
+
+    expect(result.data).toMatchObject({
+      model: "gpt-5-mini",
+      messages: [{ role: "assistant", content: "Hello!" }],
+      finish_reason: "Stop",
+    });
   });
 
   test("init() can be called multiple times safely", async () => {

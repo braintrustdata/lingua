@@ -22,6 +22,8 @@ export {
   deduplicateMessages,
   importMessagesFromSpans,
   importAndDeduplicateMessages,
+  transformRequest,
+  transformResponse,
 
   // Chat Completions validation
   validateChatCompletionsRequest,
@@ -50,5 +52,7 @@ export type {
   StreamSessionChunk,
   TransformStreamChunkResult,
   TransformStreamSessionHandle,
+  TransformRequestResult,
+  TransformResponseResult,
   ValidationResult,
 } from "./converters";
