@@ -244,8 +244,11 @@ fn clear_cached_clients() {
 }
 
 #[cfg(test)]
-fn cached_client_count() -> usize {
-    SHARED_CLIENTS.len()
+fn cached_client_count_for(settings: &[ClientSettings]) -> usize {
+    SHARED_CLIENTS
+        .iter()
+        .filter(|entry| settings.iter().any(|settings| entry.key() == settings))
+        .count()
 }
 
 #[cfg(test)]
@@ -276,7 +279,7 @@ mod tests {
         let first = build_middleware_client(&settings).expect("first client");
         let second = build_middleware_client(&settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 1);
+        assert_eq!(cached_client_count_for(std::slice::from_ref(&settings)), 1);
         assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 
@@ -295,7 +298,10 @@ mod tests {
         build_middleware_client(&first_settings).expect("first client");
         build_middleware_client(&second_settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 2);
+        assert_eq!(
+            cached_client_count_for(&[first_settings.clone(), second_settings.clone()]),
+            2
+        );
     }
 
     #[test]
@@ -315,7 +321,7 @@ mod tests {
         let first = build_middleware_client(&settings).expect("first client");
         let second = build_middleware_client(&settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 1);
+        assert_eq!(cached_client_count_for(std::slice::from_ref(&settings)), 1);
         assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 
