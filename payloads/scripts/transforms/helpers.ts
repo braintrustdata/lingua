@@ -393,6 +393,12 @@ export const STREAMING_PAIRS: TransformPair[] = [
   },
   {
     source: "chat-completions",
+    target: "bedrock",
+    wasmSource: "OpenAI",
+    wasmTarget: "Converse",
+  },
+  {
+    source: "chat-completions",
     target: "vertex-anthropic",
     wasmSource: "OpenAI",
     wasmTarget: "Anthropic",
@@ -403,8 +409,11 @@ export function getStreamingTransformableCases(
   pair: TransformPair,
   filter?: string
 ): string[] {
+  const includeParamCases =
+    pair.source === "chat-completions" && pair.target === "bedrock";
+
   return getTransformableCases(pair, filter).filter(
-    (caseName) => !isParamCase(caseName)
+    (caseName) => includeParamCases || !isParamCase(caseName)
   );
 }
 

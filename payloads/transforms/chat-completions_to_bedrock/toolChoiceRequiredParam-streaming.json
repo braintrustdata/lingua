@@ -1,0 +1,81 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_IvJX4IGj3RtZNzmHe7dZuN",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"location\":"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": " \"Toky"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "o\"}"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "tool_use"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 562,
+        "outputTokens": 54,
+        "totalTokens": 616
+      },
+      "metrics": {
+        "latencyMs": 889
+      }
+    }
+  }
+]

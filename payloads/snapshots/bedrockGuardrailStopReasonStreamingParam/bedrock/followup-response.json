@@ -1,0 +1,32 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Next Steps After Guardrail Intervention\n\nHere are your recommended actions:\n\n## 1. **Understand the Violation**\n- Review the `guardrailDetails` to identify which policy was triggered\n- Determine if it was intentional or accidental\n- Check what type of content was blocked (topic, PII, harmful content, etc.)\n\n## 2. **Handle the User Request**\n```python\nif response.get('stopReason') == 'guardrail_intervened':\n    violation_type = list(response['guardrailDetails'].keys())[0]\n    \n    if 'topicPolicyViolation' in response['guardrailDetails']:\n        return \"I can't help with that topic. Please try a different question.\"\n    elif 'sensitiveInformationPolicyViolation' in response['guardrailDetails']:\n        return \"Please avoid sharing sensitive information.\"\n    else:\n        return \"That request violates our safety policies.\"\n```\n\n## 3. **Rephrase or Redirect**\n- Ask the user to **rephrase their request** without triggering violations\n- Suggest **alternative approaches** that align with guidelines\n- Provide helpful context about what you *can* assist with\n\n## 4. **Log and Monitor**\n```python\nimport logging\n\nlogging.warning(f\"Guardrail blocked: {violation_type}\")\nlogging.info(f\"User ID: {user_id}, Timestamp: {timestamp}\")\n# Track patterns to improve guardrail configuration\n```\n\n## 5. **Review Guardrail Configuration**\n- If legitimate requests are blocked, adjust guardrail sensitivity\n- Consider adding exceptions or custom filters\n- Balance safety with usability\n\n## 6. **Inform Your User Appropriately**\n- Provide a clear, non-technical message\n- Don't expose internal security details\n- Offer constructive guidance on what they *can* ask\n\n---\n\n**What specific scenario are you dealing with?** I can provide more targeted guidance."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 480,
+    "outputTokens": 459,
+    "totalTokens": 939,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 4201
+  },
+  "additionalModelResponseFields": {
+    "stop_sequence": null
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "5b32e947-3a9b-4216-86cb-1a8a0272d7e0",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

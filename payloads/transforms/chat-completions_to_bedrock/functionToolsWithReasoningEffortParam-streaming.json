@@ -1,0 +1,206 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "The user is asking for the"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " weather in"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " Tokyo. I"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " have access"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " to a get"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "_weather function that takes"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " a location parameter. I"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " should call"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " this function with \""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "Tokyo\" as the location."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "signature": "EtoCCkgIDRABGAIqQJQTl/cuawOtyAdhz2jY9/tq6FfSBwNbs1gmAOJ2hmkXs0AiYP0DIDDuEzyhTq/qCCK+2DDc0r8XHruzuG910vISDKg/kZ+ahXxTwDuSFRoML0+OrSp+rtvyQyOUIjBRiginhHfgmIsM+4ORBW7ix2OKtDUVcvQ3pjiW23AfKjXAtkUSH1ITF3gEV0ctbxAqvwFMQCH9NdZfD1RJHx77Xmm0GZkSzup40LrQmOASOVn4kxlOOOyHPTWCS1+paV1Ett58gqMobAJBHY9DOgiEQqeFEshyATk88Jp3NoZTslo+zg4BiXZH8jj/n5kOEWmzjxceDD5FROUJhH4jlvx/768ndT83u67x4bpODasqRACfFMkjaZiSV57THDBOFSHoi31BxtNeHjFmoHBzHspa5i3Cw/yhtCGiwzNdjtG3yRX7wkUADDaLNUNX6Qo0vO+x/hgB"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStart": {
+      "start": {
+        "toolUse": {
+          "toolUseId": "tooluse_C31xUefdt0kOrRKG9FRCXh",
+          "name": "get_weather",
+          "type": "tool_use"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": ""
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "{\"locat"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "ion\": \"Tokyo"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "toolUse": {
+          "input": "\"}"
+        }
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "tool_use"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 592,
+        "outputTokens": 99,
+        "totalTokens": 691
+      },
+      "metrics": {
+        "latencyMs": 1337
+      }
+    }
+  }
+]

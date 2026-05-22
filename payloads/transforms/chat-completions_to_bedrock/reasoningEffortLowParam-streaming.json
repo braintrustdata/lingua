@@ -1,0 +1,120 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "This"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " is a straightforward arithmetic"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " question. "
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "2 "
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "+ 2 = 4."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "signature": "EuMBCkgIDRABGAIqQGx+Uu1CfPmNAzRQnCZAOSMPxWWU5P9n+q4oh7TMg4z3K1LFSazF4e2dNUshJjiVDMzB0k9mddJWB9HeJtbe5jwSDG10ib3CllbzvUTDjBoMhntKQGMri5pQE4MjIjAWPN4LtrPRlpT1GdKb5dyQC45eI81/b7rjG6Z8bAsy4qAhtsEalVhbAD8gmoP40rcqSXytd1gFK7/TqH/3u3XhSHumjs0DH3BLPmz+BqOcZshiSc/J02AEjWu4ccFN/rmd5jIER0uTZq86gMxW0HgcvAB1X6mH5xrPEDoYAQ=="
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "2 + 2 = "
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "4"
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 43,
+        "outputTokens": 39,
+        "totalTokens": 82
+      },
+      "metrics": {
+        "latencyMs": 956
+      }
+    }
+  }
+]

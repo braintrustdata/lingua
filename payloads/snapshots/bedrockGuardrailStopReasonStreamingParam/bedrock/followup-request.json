@@ -1,0 +1,32 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "If a configured Bedrock guardrail intervenes, return the guardrail intervention response."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Bedrock Guardrail Intervention Response\n\nIf a configured Amazon Bedrock guardrail intervenes, the API will return a response like this:\n\n```json\n{\n  \"output\": {\n    \"text\": \"\"\n  },\n  \"stopReason\": \"guardrail_intervened\",\n  \"guardrailAction\": \"BLOCKED\",\n  \"guardrailDetails\": {\n    \"topicPolicyViolation\": [\n      {\n        \"topic\": \"Violence\",\n        \"type\": \"DENY\",\n        \"action\": \"BLOCKED\"\n      }\n    ]\n  }\n}\n```\n\n## Key Components:\n\n| Field | Meaning |\n|-------|---------|\n| `stopReason` | Set to `\"guardrail_intervened\"` |\n| `guardrailAction` | `\"BLOCKED\"` or `\"GUARDRAIL_INTERVENED\"` |\n| `output.text` | Empty string (no model response generated) |\n| `guardrailDetails` | Contains specific policy violations |\n\n## Possible Violation Types:\n\n- **topicPolicyViolation** - Blocked topics detected\n- **contentPolicyViolation** - Harmful content (violence, hate, etc.)\n- **wordFilterViolation** - Profanity or sensitive words\n- **sensitiveInformationPolicyViolation** - PII, credentials, etc.\n\n## Handling in Code:\n\n```python\nresponse = bedrock_runtime.invoke_model(...)\n\nif response.get('stopReason') == 'guardrail_intervened':\n    print(f\"Request blocked by guardrail\")\n    print(f\"Action: {response.get('guardrailAction')}\")\n    print(f\"Details: {response.get('guardrailDetails')}\")\n```\n\nThis prevents harmful content from being generated while maintaining transparency about why the request was blocked."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "additionalModelResponseFieldPaths": [
+    "/stop_sequence"
+  ]
+}
