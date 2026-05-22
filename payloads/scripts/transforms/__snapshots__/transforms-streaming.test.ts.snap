@@ -3621,24 +3621,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → anthropic > parallelToolResultsFollowupRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01Fbn785LEffxQTSbgyMF6o7","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":734,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":735}}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"The","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" weather in **San Francisco** is 65°F and sunny, while **New York** is 45°F and cloudy.","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":32,"prompt_tokens":734,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":766}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → anthropic > reasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01K9siESHp7XobPKYd98zCcM","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":45,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":46}}
 
@@ -5005,58 +4987,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → bedrock > parallelToolResultsFollowupRequest > streaming 1`] = `
-"data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"Here","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"'s the weather for both cities:","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"\\n\\n**San Francisco**:","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" 65°F and sunny ","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"☀️","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"\\n\\n**New York**: 45°F","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" and cloudy ","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"☁️\\n\\nSan","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" Francisco has much","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" ni","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"cer weather today","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" with war","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"mer temperatures an","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"d clear","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" skies,","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" while New York is coo","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"ler an","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"d over","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"cast.","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk","usage":{"completion_tokens":67,"prompt_tokens":734,"total_tokens":801}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → bedrock > predictionParam > streaming 1`] = `
 "data: {"choices":[],"object":"chat.completion.chunk"}
 
@@ -6407,18 +6337,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → google > parallelToolResultsFollowupRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"The weather in San","role":"assistant"},"finish_reason":null,"index":0}],"id":"1qcQauPuEJXc_uMP4qjKmAo","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":4,"prompt_tokens":123,"total_tokens":127}}
-
-data: {"choices":[{"delta":{"content":" Francisco is 65°F and sunny. In New York, it'","role":"assistant"},"finish_reason":null,"index":0}],"id":"1qcQauPuEJXc_uMP4qjKmAo","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":20,"prompt_tokens":123,"total_tokens":143}}
-
-data: {"choices":[{"delta":{"content":"s 45°F and cloudy.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"1qcQauPuEJXc_uMP4qjKmAo","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":29,"prompt_tokens":123,"total_tokens":152}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → google > reasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"To find the average speed, we need to calculate the total distance traveled and the total time taken. The formula for average speed is:\\n\\n$$\\\\text{Average Speed} = \\\\frac","role":"assistant"},"finish_reason":null,"index":0}],"id":"8Tr6aaruBdu91MkP_vrd8A4","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":703,"completion_tokens_details":{"reasoning_tokens":666},"prompt_tokens":37,"total_tokens":740}}
 
@@ -7171,102 +7089,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → responses > parallelToolResultsFollowupRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_09e835612642ba96006a10a7d641648196b6f931eef4fe5789","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_09e835612642ba96006a10a7d641648196b6f931eef4fe5789","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" San","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" Francisco","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" CA","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"65","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"°F","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" sunny","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"-","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" New","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" York","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":",","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" NY","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":":","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"45","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"°F","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" and","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" cloudy","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"\\n\\n","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"Want","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" a","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"7","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"-day","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" forecast","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" or","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" convert","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" to","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" Celsius","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"?","role":"assistant"},"finish_reason":null,"index":1}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_09e835612642ba96006a10a7d641648196b6f931eef4fe5789","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk","usage":{"completion_tokens":688,"completion_tokens_details":{"reasoning_tokens":640},"prompt_tokens":117,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":805}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → responses > reasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_0d756503a3bee7100069d566dd3a588192b3e6f8187073c206","model":"gpt-5-nano-2025-08-07","object":"chat.completion.chunk"}
 
@@ -7927,14 +7749,6 @@ data: [DONE]
 
 exports[`streaming: chat-completions → vertex-anthropic > parallelToolCallsRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"Here's the current weather for both cities:\\n\\n**San Francisco, CA:** 65°F and sunny ☀️\\n\\n**New York, NY:** 45°F and cloudy ☁️\\n\\nSan Francisco is enjoying nice sunny weather, while New York is cooler and cloudy today.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_019mDvTnrEKMjT8ePHqdfxXW","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":67,"prompt_tokens":757,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":824}}
-
-data: [DONE]
-
-"
-`;
-
-exports[`streaming: chat-completions → vertex-anthropic > parallelToolResultsFollowupRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"Here's the weather for both cities:\\n\\n- **San Francisco**: 65°F and sunny\\n- **New York**: 45°F and cloudy\\n\\nSan Francisco is enjoying pleasant sunny weather, while New York is a bit cooler and overcast.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"msg_vrtx_01UnNXE7Pq8BYPpF9TSGxAy8","model":"claude-haiku-4-5-20251001","object":"chat.completion.chunk","usage":{"completion_tokens":57,"prompt_tokens":734,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":791}}
 
 data: [DONE]
 
