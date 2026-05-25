@@ -25,9 +25,6 @@
  * The action type.
  *
  *
- * The action type. Always `open_page`.
- *
- *
  * The type of the local shell action. Always `exec`.
  */
 export type ActionType = "click" | "double_click" | "drag" | "exec" | "find_in_page" | "keypress" | "move" | "open_page" | "screenshot" | "scroll" | "search" | "type" | "wait";
