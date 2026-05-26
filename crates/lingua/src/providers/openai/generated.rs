@@ -2320,9 +2320,6 @@ pub struct InputItemAction {
     /// The action type.
     ///
     ///
-    /// The action type. Always `open_page`.
-    ///
-    ///
     /// The type of the local shell action. Always `exec`.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2436,9 +2433,6 @@ pub enum ClickButtonType {
 /// Specifies the event type. For a wait action, this property is always set to `wait`.
 ///
 /// The action type.
-///
-///
-/// The action type. Always `open_page`.
 ///
 ///
 /// The type of the local shell action. Always `exec`.
@@ -5726,9 +5720,6 @@ pub struct OutputItemAction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<WebSearchSource>>,
     /// The action type.
-    ///
-    ///
-    /// The action type. Always `open_page`.
     ///
     ///
     /// Specifies the event type. For a click action, this property is always `click`.
