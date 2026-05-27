@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\"tuple\": [\"gateway\", 7]}\n```"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 20,
+    "outputTokens": 17,
+    "totalTokens": 37,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 921
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "1e971bf4-5750-4433-9111-556157b57ce1",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

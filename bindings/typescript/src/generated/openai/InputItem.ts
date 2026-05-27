@@ -113,6 +113,8 @@ import type { ToolSearchExecutionType } from "./ToolSearchExecutionType";
  * A call to a custom tool created by the model.
  *
  *
+ * Compacts the current context. Must be the final input item.
+ *
  * An internal identifier for an item to reference.
  */
 export type InputItem = { 
@@ -208,6 +210,9 @@ role: InputItemRole | null,
  *
  *
  * The type of the custom tool call. Always `custom_tool_call`.
+ *
+ *
+ * The type of the item. Always `compaction_trigger`.
  */
 type: InputItemType | null, 
 /**

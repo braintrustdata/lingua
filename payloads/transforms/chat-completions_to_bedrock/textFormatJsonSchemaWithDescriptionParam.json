@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "# Extracted Information\n\n**Name:** John  \n**Age:** 25"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 14,
+    "outputTokens": 19,
+    "totalTokens": 33,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 947
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "56fc6708-f817-4877-965d-39435259ce44",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

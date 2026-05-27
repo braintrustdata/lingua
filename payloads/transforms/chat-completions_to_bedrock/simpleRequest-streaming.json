@@ -1,0 +1,92 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": "This"
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " is a straightforward factual question."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": " The capital of France is Paris."
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "text": ""
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "reasoningContent": {
+          "signature": "EvUBCkgIDRABGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QSDDX1STCUrJdTh+/F7xoMAoIeOw5VPOMojEeRIjDP2ePaLiShmp2if/7cqzo42yfUdlvIblnxAiMTo84Dr6l04RMqsx7O8lda6tE1TcsqWyKpD7/SzMFwAAuLR8zTgvFfDIrMFaE6vlu6Vbvm8PqucmvRm+tZK+xUywB4bERLABwhc44ZORaavUXE3dtqWrEJY3HG74SZbCh6bGK37t8EKAqlFfUYjueEQvoYAQ=="
+        }
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "The capital of France is Paris."
+      },
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 1
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 43,
+        "outputTokens": 31,
+        "totalTokens": 74
+      },
+      "metrics": {
+        "latencyMs": 1012
+      }
+    }
+  }
+]

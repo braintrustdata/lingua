@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "According to the document, Braintrust Gateway supports **OpenAI-compatible streaming over Bedrock Converse**.\n\n**Source:** gateway-release-notes.txt"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 89,
+    "outputTokens": 40,
+    "totalTokens": 129,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 962
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "6ac927e1-8f8f-452d-8a29-659b6440da67",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

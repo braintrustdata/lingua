@@ -10,6 +10,7 @@ use bytes::Bytes;
 
 use crate::auth::AuthConfig;
 use crate::catalog::{load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec};
+use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
@@ -42,6 +43,7 @@ use crate::providers::{
 /// * `endpoint_template` - Endpoint template with `<model>` placeholder (optional, OpenAI only)
 /// * `timeout` - Request timeout (optional)
 /// * `metadata` - Provider-specific options (organization_id, project, api_version, etc.)
+/// * `client_settings` - HTTP client settings, including optional DNS pins.
 ///
 /// # Example
 ///
@@ -50,7 +52,7 @@ use crate::providers::{
 /// use std::collections::HashMap;
 ///
 /// let metadata = HashMap::new();
-/// let provider = create_provider("openai", None, None, None, &metadata)?;
+/// let provider = create_provider("openai", None, None, None, &metadata, None)?;
 /// let router = Router::builder()
 ///     .with_catalog(catalog)
 ///     .add_provider("openai", provider)
@@ -63,6 +65,7 @@ pub fn create_provider(
     endpoint_template: Option<&str>,
     timeout: Option<Duration>,
     metadata: &HashMap<String, Value>,
+    client_settings: Option<ClientSettings>,
 ) -> Result<Arc<dyn Provider>> {
     match kind {
         "openai" => Ok(Arc::new(OpenAIProvider::from_config(
@@ -70,29 +73,53 @@ pub fn create_provider(
             endpoint_template,
             timeout,
             metadata,
+            client_settings,
         )?)),
         "anthropic" => Ok(Arc::new(AnthropicProvider::from_config(
-            endpoint, timeout, metadata,
+            endpoint,
+            timeout,
+            metadata,
+            client_settings,
         )?)),
         "azure" => Ok(Arc::new(AzureProvider::from_config(
-            endpoint, timeout, metadata,
+            endpoint,
+            timeout,
+            metadata,
+            client_settings,
         )?)),
-        "google" => Ok(Arc::new(GoogleProvider::from_config(endpoint, timeout)?)),
+        "google" => Ok(Arc::new(GoogleProvider::from_config(
+            endpoint,
+            timeout,
+            client_settings,
+        )?)),
         "vertex" => Ok(Arc::new(VertexProvider::from_config(
-            endpoint, timeout, metadata,
+            endpoint,
+            timeout,
+            metadata,
+            client_settings,
         )?)),
         "bedrock" => Ok(Arc::new(BedrockProvider::from_config(
-            endpoint, timeout, metadata,
+            endpoint,
+            timeout,
+            metadata,
+            client_settings,
         )?)),
         "databricks" => Ok(Arc::new(DatabricksProvider::from_config(
-            endpoint, timeout,
+            endpoint,
+            timeout,
+            client_settings,
         )?)),
-        "mistral" => Ok(Arc::new(MistralProvider::from_config(endpoint, timeout)?)),
+        "mistral" => Ok(Arc::new(MistralProvider::from_config(
+            endpoint,
+            timeout,
+            client_settings,
+        )?)),
         kind if is_openai_compatible(kind) => Ok(Arc::new(OpenAIProvider::from_config(
             endpoint,
             endpoint_template,
             timeout,
             metadata,
+            client_settings,
         )?)),
         other => Err(Error::InvalidRequest(format!(
             "unsupported provider kind: {other}"

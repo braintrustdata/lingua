@@ -701,7 +701,75 @@ export const advancedCases: TestCaseCollection = {
         },
       ],
     },
-    bedrock: null,
+    bedrock: {
+      modelId: BEDROCK_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { text: "What's the weather in San Francisco and New York?" },
+          ],
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              toolUse: {
+                toolUseId: "call_sf",
+                name: "get_weather",
+                input: { location: "San Francisco, CA" },
+              },
+            },
+            {
+              toolUse: {
+                toolUseId: "call_nyc",
+                name: "get_weather",
+                input: { location: "New York, NY" },
+              },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              toolResult: {
+                toolUseId: "call_sf",
+                content: [{ text: "65°F and sunny." }],
+              },
+            },
+            {
+              toolResult: {
+                toolUseId: "call_nyc",
+                content: [{ text: "45°F and cloudy." }],
+              },
+            },
+          ],
+        },
+      ],
+      toolConfig: {
+        tools: [
+          {
+            toolSpec: {
+              name: "get_weather",
+              description: "Get the current weather for a location",
+              inputSchema: {
+                json: {
+                  type: "object",
+                  properties: {
+                    location: {
+                      type: "string",
+                      description: "The city and state, e.g. San Francisco, CA",
+                    },
+                  },
+                  required: ["location"],
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
     "bedrock-anthropic": {
       model: BEDROCK_ANTHROPIC_MODEL,
       max_tokens: 1024,

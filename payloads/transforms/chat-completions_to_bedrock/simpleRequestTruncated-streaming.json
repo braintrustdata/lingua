@@ -1,0 +1,37 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "#"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "max_tokens"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 16,
+        "outputTokens": 1,
+        "totalTokens": 17
+      },
+      "metrics": {
+        "latencyMs": 1126
+      }
+    }
+  }
+]

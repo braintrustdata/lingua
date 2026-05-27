@@ -9398,6 +9398,2703 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
 }
 `;
 
+exports[`chat-completions → bedrock > complexReasoningRequest > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 20000,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > complexReasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Digital Clock Digit Analysis
+
+Let me work through this systematically by counting how often each digit appears in all times from 00:00 to 23:59.
+
+## Structure
+- **Hours**: 00-23 (24 values)
+- **Minutes**: 00-59 (60 values)
+- **Total times**: 24 × 60 = 1,440 times
+- **Total digit positions**: 1,440 × 4 = 5,760 digits
+
+## Counting Each Digit
+
+Let me count occurrences in each position:
+
+### Hours (00-23)
+Going through each two-digit hour:
+- Each digit 0-9 appears in the tens place: 0(00-09)=10, 1(10-19)=10, 2(20-23)=4, others=0
+- In the ones place: 0,1,2,3,4,5,6,7,8,9 each appear 2-3 times across all hours
+
+### Minutes (00-59)
+- Tens place: 0(00-09)=10, 1(10-19)=10, 2(20-29)=10, 3(30-39)=10, 4(40-49)=10, 5(50-59)=10
+- Ones place: 0-9 each appear 6 times
+
+## Complete Count (across all 1,440 times)
+
+| Digit | Count | Percentage |
+|-------|-------|-----------|
+| **0** | 858 | **14.90%** |
+| **1** | 588 | **10.21%** |
+| **2** | 588 | **10.21%** |
+| **3** | 480 | 8.33% |
+| **4** | 480 | 8.33% |
+| **5** | 480 | 8.33% |
+| **6** | 360 | 6.25% |
+| **7** | 360 | 6.25% |
+| **8** | 360 | 6.25% |
+| **9** | 216 | 3.75% |
+
+## Answer
+
+- **Most common**: **0** at **14.90%** (858 times)
+- **Rarest**: **9** at **3.75%** (216 times)
+
+The digit 0 appears much more frequently because it dominates the hours position (00-09, 20-23) and appears in every tens place of minutes. The digit 9 is rare because it only appears in the ones place of minutes (09, 19, 29, etc.) and never in the hours tens position or minutes tens position.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 644,
+    "prompt_tokens": 80,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 724,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > exclusiveMinimumToolParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Configure the LLM.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Configure LLM generation parameters",
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "max_tokens": {
+                  "description": "Maximum number of tokens to generate",
+                  "exclusiveMinimum": 0,
+                  "type": "number",
+                },
+              },
+              "required": [
+                "max_tokens",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "configure_llm",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > exclusiveMinimumToolParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help configure the LLM! However, I need one piece of information from you:
+
+**What maximum number of tokens would you like to set for generation?**
+
+This determines the maximum length of the LLM's responses. Please provide a number greater than 0. For reference:
+- Smaller values (e.g., 100-500) produce brief responses
+- Medium values (e.g., 1000-2000) produce moderate-length responses
+- Larger values (e.g., 4000+) allow for lengthy responses
+
+What would you prefer?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 132,
+    "prompt_tokens": 596,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 728,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > frequencyPenaltyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > frequencyPenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 2048,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get weather",
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "location": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "The user is asking for the weather in Tokyo. I have a get_weather function available that takes a location parameter. I should call this function with "Tokyo" as the location.",
+        "reasoning_signature": "EtoCCkgIDRABGAIqQCp5kPHtLqmDVjEU1Zv3wAnGh1gZeqzCMJgWVSY6ZXnprXCKZKRMtFyIhIfPj1/TUHz1bwfwHk1ktnf+da71Rj0SDNI+JPizVhPh7SeE6xoM7h7Mc0rPCZie/OPpIjCIjE6ZqqCfWwIRUCXkI2DahOwTolpJYz4RggN71Qtva3XyvKzr5zAD+bgjwii8jkIqvwGlAljnNfVai2uhnx2BDTlfn1CrnW3KPx0aT/NeMys/hmvUUz+w1hRyyt1d2dCyqvy4cJ8ADymGYORJaaNfN8+/DTaH9Kci/nD64Z6jj56aZClwQtfWK0jGbqCiD5AjZXAgQxUYs+a70kTLlosH8Cqgc26iaFximTfkhrX+oel9r/taIr6DxRPhkrA4fktM6Q2Cu8eALkxDntJdyIHJsLq66G0BXsXoEVi3vQsJEeKWJ9YiGNFIMroI5WMt/xYh1hgB",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_os8tpj87k5jOuc2WsOUb1a",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 98,
+    "prompt_tokens": 592,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 690,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > imageUrlMimeTypeFallbackParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Describe this image.",
+        },
+        {
+          "image": {
+            "format": "jpeg",
+            "source": {
+              "bytes": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > instructionsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "System: Always say ok.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "Hi",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > instructionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 19,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaFormatParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return JSON with an ISO 8601 timestamp in created_at.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaFormatParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`json
+{
+  "created_at": "2024-12-19T10:30:45Z",
+  "message": "success"
+}
+\`\`\`
+
+Here's an example with the current timestamp in ISO 8601 format. The \`Z\` indicates UTC/Zulu time.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 70,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 92,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaMinMaxItemsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return JSON with tags as an array of 2 to 3 strings.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaMinMaxItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`json
+{
+  "tags": ["example", "json", "response"]
+}
+\`\`\`",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "prompt_tokens": 24,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 49,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaMinimumMaximumParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return JSON with score as an integer from 0 to 10.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaMinimumMaximumParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`json
+{
+  "score": 5
+}
+\`\`\`",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 18,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 40,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaPrefixItemsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return {"tuple": ["gateway", 7]} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > jsonSchemaPrefixItemsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`json
+{"tuple": ["gateway", 7]}
+\`\`\`",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 20,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 37,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > logitBiasParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > logitBiasParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > logprobsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2 + 2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > logprobsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 29,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > maxCompletionTokensParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 500,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > maxCompletionTokensParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 5,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > metadataParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > metadataParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > multimodalRequest > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 300,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What do you see in this image?",
+        },
+        {
+          "image": {
+            "format": "jpeg",
+            "source": {
+              "bytes": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > nMultipleCompletionsParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say a word.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > nMultipleCompletionsParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Butterfly.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 17,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 2048,
+      "type": "enabled",
+    },
+  },
+  "inferenceConfig": {
+    "maxTokens": 4096,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > opus47AdaptiveThinkingReasoningEffortParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "This is a simple arithmetic question. 2 + 2 = 4.",
+        "reasoning_signature": "EtoBCkgIDRABGAIqQADDvv94KJnYEknPI0wpdhdTXqgQN3nR5te7cAc6Kj5JJsxRRQ1TJBfIEGkIRF62ylBpcmAwEsSdSH6Szu6WJmYSDGj29TujACtgHv1WzhoM/DWsufa6v5B3jtjaIjAZVNKcdhetLuTDzfDDiK9tUB3jMt/EN5JsTvl70orwht9QJUQRc0US9sm4ImYXKSsqQFSXzVaja6FpLs2gu1ePQSoXnNdPWkyMzcWK0PA8OdbvcBKx2m8sRgSYnYNzVAJyDoSxuEgaobtTJ0P6JwUZ+ycYAQ==",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 38,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 81,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > parallelToolCallsDisabledParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Weather in NYC and LA?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get weather",
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "location": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > parallelToolCallsDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"NYC"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_cvmz5gjQYe9jRQvJaYmMzL",
+            "type": "function",
+          },
+          {
+            "function": {
+              "arguments": "{"location":"LA"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_MysSEa5Ksl0YTeHBtIRbf6",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 90,
+    "prompt_tokens": 566,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 656,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > parallelToolCallsRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What's the weather in San Francisco and New York?",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "toolUse": {
+            "input": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+            "toolUseId": "call_sf",
+          },
+        },
+        {
+          "toolUse": {
+            "input": {
+              "location": "New York, NY",
+            },
+            "name": "get_weather",
+            "toolUseId": "call_nyc",
+          },
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "65°F and sunny.",
+              },
+            ],
+            "toolUseId": "call_sf",
+          },
+        },
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "45°F and cloudy.",
+              },
+            ],
+            "toolUseId": "call_nyc",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get the current weather for a location",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "location": {
+                  "description": "The city and state, e.g. San Francisco, CA",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > parallelToolCallsRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Here's the current weather for both cities:
+
+- **San Francisco, CA**: 65°F and sunny
+- **New York, NY**: 45°F and cloudy
+
+San Francisco is enjoying pleasant, sunny weather, while New York is cooler and cloudy. If you're planning to visit either city, you might want to bring a light jacket for New York!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 82,
+    "prompt_tokens": 757,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 839,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > predictionParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Update this function to add error handling:
+
+function divide(a, b) {
+  return a / b;
+}",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > predictionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Updated Function with Error Handling
+
+\`\`\`javascript
+function divide(a, b) {
+  // Check if inputs are numbers
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error('Both arguments must be numbers');
+  }
+  
+  // Check for division by zero
+  if (b === 0) {
+    throw new Error('Division by zero is not allowed');
+  }
+  
+  return a / b;
+}
+\`\`\`
+
+## Usage Examples
+
+\`\`\`javascript
+// Valid calls
+console.log(divide(10, 2));      // 5
+console.log(divide(15, 3));      // 5
+
+// Error cases
+try {
+  divide(10, 0);                 // Error: Division by zero
+} catch (error) {
+  console.error(error.message);
+}
+
+try {
+  divide('10', 2);               // Error: Both arguments must be numbers
+} catch (error) {
+  console.error(error.message);
+}
+\`\`\`
+
+## Alternative: Returning Error Objects
+
+If you prefer not to throw exceptions:
+
+\`\`\`javascript
+function divide(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    return { success: false, error: 'Both arguments must be numbers' };
+  }
+  
+  if (b === 0) {
+    return { success: false, error: 'Division by zero is not allowed' };
+  }
+  
+  return { success: true, result: a / b };
+}
+
+// Usage
+const result = divide(10, 2);
+if (result.success) {
+  console.log(result.result);
+} else {
+  console.error(result.error);
+}
+\`\`\`
+
+Choose the approach based on your application's error handling strategy!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 429,
+    "prompt_tokens": 33,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 462,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > presencePenaltyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > presencePenaltyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > promptCacheKeyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > promptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortLowParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 1024,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortLowParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "This is a straightforward arithmetic question. 2 + 2 = 4.",
+        "reasoning_signature": "EuMBCkgIDRABGAIqQGx+Uu1CfPmNAzRQnCZAOSMPxWWU5P9n+q4oh7TMg4z3K1LFSazF4e2dNUshJjiVDMzB0k9mddJWB9HeJtbe5jwSDP0vXjUIdZ3FcS3Q0xoMjHk8RS8q7tDTdCq4IjBpoiUvcHf24czhBBTSQ1J+1iN7qtIxnX5ad888T4nyPlwCp3dBLc/TecXO0U28Fu8qSXGdGkbLJSJMSOVOV5rU00lvokUv9JldTHEBXn5fRZNNS2zlawQeyy//DypyHwac6FiV3QNJRqY2HaRPEQrZxoDK8BZtjFwOHvUYAQ==",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 39,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 82,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortMinimalParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 1024,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortMinimalParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "This is a straightforward arithmetic question. 2 + 2 = 4.",
+        "reasoning_signature": "EuMBCkgIDRABGAIqQGx+Uu1CfPmNAzRQnCZAOSMPxWWU5P9n+q4oh7TMg4z3K1LFSazF4e2dNUshJjiVDMzB0k9mddJWB9HeJtbe5jwSDBvdBrubz4mAmbW/ChoMtuX/2AGFMf0iKRxEIjBYNoFEM1UQ65DyZI9H2Kfoae6GxJ6C8o+Z/45FDr/igcJKZfkt9QVDPMKR8AsfZ98qSb5SN3uBQ1QP/8kj/MjiO4ZdBvXeJQY0wZKsWz5CI4ZjmQmkE3MnFJtoAFIstnwukNq0w8C3IqS6mVD6DlqZ39GbiTNjGQIM3rAYAQ==",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 39,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 82,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortNoneParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "type": "disabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningEffortNoneParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 27,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Average Speed Calculation
+
+## Step 1: Find the distance for each segment
+
+**First segment:**
+- Speed = 60 mph
+- Time = 2 hours
+- Distance = 60 × 2 = **120 miles**
+
+**Second segment:**
+- Speed = 80 mph
+- Time = 1 hour
+- Distance = 80 × 1 = **80 miles**
+
+## Step 2: Find total distance and total time
+
+- Total distance = 120 + 80 = **200 miles**
+- Total time = 2 + 1 = **3 hours**
+
+## Step 3: Calculate average speed
+
+Average speed = Total distance ÷ Total time
+
+Average speed = 200 ÷ 3 = **66.67 mph** (or 66⅔ mph)
+
+---
+
+**Key takeaway:** Average speed is *not* the average of the two speeds (which would be 70). It's always total distance divided by total time.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 234,
+    "prompt_tokens": 45,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 279,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningRequestTruncated > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 100,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Average Speed Calculation
+
+## Step 1: Find the distance for each segment
+
+**First segment:**
+- Speed = 60 mph, Time = 2 hours
+- Distance = 60 × 2 = **120 miles**
+
+**Second segment:**
+- Speed = 80 mph, Time = 1 hour
+- Distance = 80 × 1 = **80 miles**
+
+## Step 2: Calculate total distance",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 100,
+    "prompt_tokens": 45,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 145,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningSummaryParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 2048,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningSummaryParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "2 + 2 = 4",
+        "reasoning": "This is a straightforward arithmetic question. 2 + 2 = 4.",
+        "reasoning_signature": "EuMBCkgIDRABGAIqQGx+Uu1CfPmNAzRQnCZAOSMPxWWU5P9n+q4oh7TMg4z3K1LFSazF4e2dNUshJjiVDMzB0k9mddJWB9HeJtbe5jwSDE/BsJKT3kiW+bMSLBoMhPMZBPnJZNjr0esBIjDXvNI6ZkYpfgwhUPu/bCsVNSH4qf8vdbmZybFpWezEsRp05T1MW2P6G70CL7J4IZsqSQcZ8U8U+bcFnsSwqkBB0jYMmjIJRZUdHSsuBHN77zN4TGuCrI/p4qG0QOwtt+KrhvrbEO2BdG1WXTG3f8Y8ftslfqsgPwguTE8YAQ==",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 39,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 82,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningWithOutput > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What color is the sky?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > reasoningWithOutput > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The sky is typically **blue** during the day. This happens because of **Rayleigh scattering**, where blue wavelengths of sunlight scatter more in Earth's atmosphere than other colors.
+
+However, the sky can appear different colors depending on conditions:
+- **Red/orange** at sunrise and sunset
+- **Gray or white** on cloudy days
+- **Dark blue or black** at night",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 90,
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 103,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > safetyIdentifierParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > safetyIdentifierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > seedParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Pick a number.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > seedParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I pick **7**.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 8,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 19,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > serviceTierParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > serviceTierParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > simpleRequest > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 1024,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What is the capital of France?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > simpleRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The capital of France is Paris.",
+        "reasoning": "This is a straightforward factual question. The capital of France is Paris.",
+        "reasoning_signature": "EvUBCkgIDRABGAIqQOxcy514CRbJR0uzurQry6hdAZxym2LmbrKwOEcyrgBtuk+lo1PPdOXgfkOyXHPFMKEN1u+5VssNMAU5aoaSA7QSDF/TQ11VoY9pMQ7qoxoMvYp23wOp8A7+g3+vIjDf39VQLyWUFpkjTgrQ0hcw5xXTCtvpZSfzoXBwypvw8/5mBQnbiirftD7C5qMmd88qW+vHG6orwTJxJoFZVvrycmvSmnucv+Ta4kHz/9WrY26wUaRULo/eL8UbWmZ3tJSn06fsYHR2H8hQiX92kR++OcJn8autQ1jN9KHq1IcD8hlfdBRHkgJLGbj2utUYAQ==",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 34,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 77,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > simpleRequestTruncated > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 1,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Write a very long essay about the ocean.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > simpleRequestTruncated > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "#",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 17,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > stopSequencesParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "stopSequences": [
+      "10",
+      "ten",
+    ],
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Count from 1 to 20.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > stopSequencesParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, ",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 29,
+    "prompt_tokens": 16,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 45,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > storeDisabledParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say ok.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > storeDisabledParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > systemMessageArrayContent > request 1`] = `
+{
+  "inferenceConfig": {
+    "maxTokens": 300,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "System: You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "What errors occurred recently?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > systemMessageArrayContent > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "length",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I don't have access to the actual project_logs database with id abc-123, as I'm an AI assistant without direct database connections.
+
+However, I can help you **query for recent errors** in a few ways:
+
+## If you have database access, try queries like:
+
+**SQL example:**
+\`\`\`sql
+SELECT timestamp, error_type, message, severity
+FROM project_logs
+WHERE id = 'abc-123'
+  AND timestamp >= NOW() - INTERVAL '7 days'
+  AND status = 'ERROR'
+ORDER BY timestamp DESC;
+\`\`\`
+
+**Python example:**
+\`\`\`python
+import pandas as pd
+
+logs = pd.read_csv('project_logs.csv')
+recent_errors = logs[
+    (logs['id'] == 'abc-123') & 
+    (logs['status'] == 'ERROR')
+].sort_values('timestamp', ascending=False)
+\`\`\`
+
+## What would help me assist you better:
+
+1. **Share sample log data** - Paste a few log entries
+2. **Specify the time range** - Last 24 hours? Week? Month?
+3. **Clarify error types** - Any particular errors you're investigating?
+4. **Provide the data format** - JSON, CSV, database type?
+
+Feel free to share the data or details, and I'll analyze it",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 300,
+    "prompt_tokens": 35,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 335,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > temperatureParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "temperature": 0.7,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > temperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonObjectParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return {"status": "ok"} as JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonObjectParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "\`\`\`json
+{"status": "ok"}
+\`\`\`",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 14,
+    "prompt_tokens": 18,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 32,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Classify the query and return JSON.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'd be happy to help classify a query, but I don't see a query in your message. Could you please provide the query you'd like me to classify?
+
+Once you share it, I can return a JSON response with a classification. For example:
+
+\`\`\`json
+{
+  "query": "your query here",
+  "classification": "category",
+  "confidence": 0.95
+}
+\`\`\`
+
+Please share the query you'd like classified!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 102,
+    "prompt_tokens": 15,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 117,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Extracted Information
+
+**Name:** John  
+**Age:** 25",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaWithDescriptionParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Extract: John is 25.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaWithDescriptionParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Extracted Information
+
+**Name:** John  
+**Age:** 25",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 19,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 33,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatTextParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatTextParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hello! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolCallRequest > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What's the weather like in San Francisco?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get the current weather for a location",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "location": {
+                  "description": "The city and state, e.g. San Francisco, CA",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolCallRequest > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"San Francisco, CA"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_Tahd5nkVTg6dy6G5HQXphL",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 57,
+    "prompt_tokens": 585,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 642,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolChoiceRequiredParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get weather",
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "location": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolChoiceRequiredParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_VeUBBJR4s8swkyrQlFUj0G",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 54,
+    "prompt_tokens": 562,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 616,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolChoiceRequiredWithReasoningParam > request 1`] = `
+{
+  "additionalModelRequestFields": {
+    "thinking": {
+      "budget_tokens": 2048,
+      "type": "enabled",
+    },
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Tokyo weather",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "Get weather",
+          "inputSchema": {
+            "json": {
+              "additionalProperties": false,
+              "properties": {
+                "location": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "location",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "get_weather",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > toolChoiceRequiredWithReasoningParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "The user is asking for the weather in Tokyo. I have a function \`get_weather\` that takes a location parameter. I have all the information I need to make this call - the location is "Tokyo".",
+        "reasoning_signature": "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ==",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{"location":"Tokyo"}",
+              "name": "get_weather",
+            },
+            "id": "tooluse_HkYi3RzCZvEWLZNgZJtVUF",
+            "type": "function",
+          },
+        ],
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 104,
+    "prompt_tokens": 592,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 696,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > topPParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "topP": 0.9,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > topPParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > topPReasoningModelParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "topP": 0.9,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > topPReasoningModelParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
 exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
 {
   "contents": [

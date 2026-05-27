@@ -1,0 +1,36 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_VeUBBJR4s8swkyrQlFUj0G",
+            "name": "get_weather",
+            "input": {
+              "location": "Tokyo"
+            },
+            "type": "tool_use"
+          }
+        }
+      ]
+    }
+  },
+  "stopReason": "tool_use",
+  "usage": {
+    "inputTokens": 562,
+    "outputTokens": 54,
+    "totalTokens": 616,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1104
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "fc31091b-6c89-4ceb-8968-e58d4b230ac2",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

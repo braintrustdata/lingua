@@ -19,3 +19,11 @@ trustPolicy: no-downgrade
 # Useful for older packages that pre-date provenance support
 trustPolicyIgnoreAfter: 43200 # minutes (30 days)
 minimumReleaseAge: 4320 # 3 days (in minutes)
+
+overrides:
+  tar: 7.5.11
+  "@mikro-orm/knex": 6.6.14
+  "@tootallnate/once": ^3.0.1
+  uuid: ^11.1.1
+  ip-address: ^10.1.1
+  brace-expansion: ^5.0.6

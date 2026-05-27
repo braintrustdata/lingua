@@ -37,7 +37,13 @@ pub struct GoogleProvider {
 
 impl GoogleProvider {
     pub fn new(config: GoogleConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: GoogleConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -46,7 +52,11 @@ impl GoogleProvider {
     }
 
     /// Create a Google provider from configuration parameters.
-    pub fn from_config(endpoint: Option<&Url>, timeout: Option<Duration>) -> Result<Self> {
+    pub fn from_config(
+        endpoint: Option<&Url>,
+        timeout: Option<Duration>,
+        client_settings: Option<ClientSettings>,
+    ) -> Result<Self> {
         let mut config = GoogleConfig::default();
 
         if let Some(ep) = endpoint {
@@ -56,7 +66,7 @@ impl GoogleProvider {
             config.timeout = Some(t);
         }
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn generate_url(&self, model: &str, stream: bool) -> Result<Url> {

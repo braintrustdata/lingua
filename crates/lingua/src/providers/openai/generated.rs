@@ -59,12 +59,16 @@ pub struct CreateChatCompletionRequestClass {
     pub service_tier: Option<ServiceTier>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
-    /// An integer between 0 and 20 specifying the number of most likely tokens to
-    /// return at each token position, each with an associated log probability.
+    /// An integer between 0 and 20 specifying the maximum number of most likely
+    /// tokens to return at each token position, each with an associated log
+    /// probability. In some cases, the number of returned tokens may be fewer than
+    /// requested.
     ///
     ///
-    /// An integer between 0 and 20 specifying the number of most likely tokens to
-    /// return at each token position, each with an associated log probability.
+    /// An integer between 0 and 20 specifying the maximum number of most likely
+    /// tokens to return at each token position, each with an associated log
+    /// probability. In some cases, the number of returned tokens may be fewer than
+    /// requested.
     /// `logprobs` must be set to `true` if this parameter is used.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_logprobs: Option<i64>,
@@ -1287,8 +1291,8 @@ pub struct ChatCompletionTokenLogprob {
     pub logprob: f64,
     /// The token.
     pub token: String,
-    /// List of the most likely tokens and their log probability, at this token position. In rare
-    /// cases, there may be fewer than the number of requested `top_logprobs` returned.
+    /// List of the most likely tokens and their log probability, at this token position. The
+    /// number of entries may be fewer than the requested `top_logprobs`.
     pub top_logprobs: Vec<TopLogprob>,
 }
 
@@ -1655,8 +1659,10 @@ pub struct CreateResponseClass {
     pub service_tier: Option<ServiceTier>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
-    /// An integer between 0 and 20 specifying the number of most likely tokens to
-    /// return at each token position, each with an associated log probability.
+    /// An integer between 0 and 20 specifying the maximum number of most likely
+    /// tokens to return at each token position, each with an associated log
+    /// probability. In some cases, the number of returned tokens may be fewer than
+    /// requested.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_logprobs: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1898,6 +1904,8 @@ pub enum InputParam {
 /// A call to a custom tool created by the model.
 ///
 ///
+/// Compacts the current context. Must be the final input item.
+///
 /// An internal identifier for an item to reference.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "openai/")]
@@ -1993,6 +2001,9 @@ pub struct InputItem {
     ///
     ///
     /// The type of the custom tool call. Always `custom_tool_call`.
+    ///
+    ///
+    /// The type of the item. Always `compaction_trigger`.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_item_type: Option<InputItemType>,
@@ -2963,6 +2974,8 @@ pub enum ToolSearchExecutionType {
 /// The type of the custom tool call. Always `custom_tool_call`.
 ///
 ///
+/// The type of the item. Always `compaction_trigger`.
+///
 /// The type of item to reference. Always `item_reference`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
@@ -2975,6 +2988,8 @@ pub enum InputItemType {
     #[serde(rename = "code_interpreter_call")]
     CodeInterpreterCall,
     Compaction,
+    #[serde(rename = "compaction_trigger")]
+    CompactionTrigger,
     #[serde(rename = "computer_call")]
     ComputerCall,
     #[serde(rename = "computer_call_output")]
@@ -3648,10 +3663,17 @@ pub struct InputItemTool {
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<Quality>,
-    /// The size of the generated image. One of `1024x1024`, `1024x1536`,
-    /// `1536x1024`, or `auto`. Default: `auto`.
+    /// The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`,
+    /// arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`.
+    /// Width and height must both be divisible by 16 and the requested aspect ratio must be
+    /// between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
+    /// supported resolution is `3840x2160`. The requested size must also satisfy the model's
+    /// current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    /// `1024x1536` are supported by the GPT image models; `auto` is supported for models that
+    /// allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`.
+    /// For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<Size>,
+    pub size: Option<String>,
     /// The input format for the custom tool. Default is unconstrained text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<ToolFormat>,
@@ -4217,21 +4239,6 @@ pub enum McpToolApprovalSetting {
 pub enum SearchContentType {
     Image,
     Text,
-}
-
-/// The size of the generated image. One of `1024x1024`, `1024x1536`,
-/// `1536x1024`, or `auto`. Default: `auto`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum Size {
-    Auto,
-    #[serde(rename = "1024x1024")]
-    The1024X1024,
-    #[serde(rename = "1024x1536")]
-    The1024X1536,
-    #[serde(rename = "1536x1024")]
-    The1536X1024,
 }
 
 /// The type of the function tool. Always `function`.
@@ -4916,10 +4923,10 @@ pub struct ImageGenTool {
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<String>,
-    /// The size of the generated image. One of `1024x1024`, `1024x1536`,
-    /// `1536x1024`, or `auto`. Default: `auto`.
+    /// The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<String>,
+    #[ts(type = "unknown")]
+    pub size: Option<serde_json::Value>,
 }
 
 /// A tool that allows the model to execute shell commands in a local environment.
@@ -6339,10 +6346,17 @@ pub struct OutputItemTool {
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<Quality>,
-    /// The size of the generated image. One of `1024x1024`, `1024x1536`,
-    /// `1536x1024`, or `auto`. Default: `auto`.
+    /// The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`,
+    /// arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`.
+    /// Width and height must both be divisible by 16 and the requested aspect ratio must be
+    /// between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
+    /// supported resolution is `3840x2160`. The requested size must also satisfy the model's
+    /// current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    /// `1024x1536` are supported by the GPT image models; `auto` is supported for models that
+    /// allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`.
+    /// For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<Size>,
+    pub size: Option<String>,
     /// The input format for the custom tool. Default is unconstrained text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<ToolFormat>,

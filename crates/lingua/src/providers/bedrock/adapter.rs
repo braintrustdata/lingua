@@ -13,8 +13,13 @@ use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::generated::Thinking;
+use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
 use crate::providers::bedrock::request::{BedrockInferenceConfiguration, BedrockMessage};
+use crate::providers::bedrock::response::{
+    BedrockConverseStreamEvent, BedrockStopReason, BedrockStreamContentBlockDeltaValue,
+    BedrockStreamContentBlockStartValue,
+};
 use crate::providers::bedrock::try_parse_bedrock;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -22,12 +27,27 @@ use crate::universal::message::Message;
 use crate::universal::request::ReasoningConfig;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, TokenBudget, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage,
+    TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage,
 };
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
+
+fn bedrock_stop_reason_to_finish_reason(stop_reason: &BedrockStopReason) -> &'static str {
+    match stop_reason {
+        BedrockStopReason::EndTurn | BedrockStopReason::StopSequence => "stop",
+        BedrockStopReason::MaxTokens => "length",
+        BedrockStopReason::ToolUse => "tool_calls",
+        BedrockStopReason::ContentFiltered
+        | BedrockStopReason::GuardrailIntervened
+        | BedrockStopReason::MalformedModelOutput
+        | BedrockStopReason::MalformedToolUse => "content_filter",
+        BedrockStopReason::ModelContextWindowExceeded => "length",
+        BedrockStopReason::Other(_) => "stop",
+    }
+}
 
 impl ProviderAdapter for BedrockAdapter {
     fn format(&self) -> ProviderFormat {
@@ -166,9 +186,8 @@ impl ProviderAdapter for BedrockAdapter {
         })?;
 
         // Convert messages to Bedrock format
-        let bedrock_messages: Vec<BedrockMessage> =
-            <Vec<BedrockMessage> as TryFromLLM<Vec<Message>>>::try_from(req.messages.clone())
-                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        let bedrock_messages: Vec<BedrockMessage> = universal_to_bedrock_messages(&req.messages)
+            .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
 
         let mut obj = Map::new();
         obj.insert("modelId".into(), Value::String(model_id.clone()));
@@ -372,104 +391,168 @@ impl ProviderAdapter for BedrockAdapter {
     // =========================================================================
 
     fn detect_stream_response(&self, payload: &Value) -> bool {
-        // Bedrock streaming has unique top-level keys
-        payload.get("messageStart").is_some()
-            || payload.get("contentBlockDelta").is_some()
-            || payload.get("contentBlockStop").is_some()
-            || payload.get("messageStop").is_some()
-            || payload.get("metadata").is_some()
+        serde_json::from_value::<BedrockConverseStreamEvent>(payload.clone()).is_ok()
     }
 
     fn stream_to_universal(
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
-        // Handle contentBlockDelta - text content
-        if let Some(delta_event) = payload.get("contentBlockDelta") {
-            let index = delta_event
-                .get("contentBlockIndex")
-                .and_then(Value::as_u64)
-                .unwrap_or(0) as u32;
+        let event: BedrockConverseStreamEvent = serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-            // Only handle text deltas for basic text support
-            if let Some(text) = delta_event
-                .get("delta")
-                .and_then(|d| d.get("text"))
-                .and_then(Value::as_str)
-            {
-                return Ok(Some(UniversalStreamChunk::new(
+        match event {
+            BedrockConverseStreamEvent::ContentBlockStart {
+                content_block_start,
+            } => match content_block_start.start {
+                BedrockStreamContentBlockStartValue::ToolUse { tool_use } => {
+                    Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(Value::from(UniversalStreamDelta {
+                                role: Some("assistant".to_string()),
+                                tool_calls: vec![UniversalToolCallDelta {
+                                    index: Some(content_block_start.content_block_index),
+                                    id: Some(tool_use.tool_use_id),
+                                    call_type: Some("function".to_string()),
+                                    function: Some(UniversalToolFunctionDelta {
+                                        name: Some(tool_use.name),
+                                        arguments: Some(String::new()),
+                                    }),
+                                }],
+                                ..Default::default()
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )))
+                }
+                BedrockStreamContentBlockStartValue::Other(_) => {
+                    Ok(Some(UniversalStreamChunk::keep_alive()))
+                }
+            },
+            BedrockConverseStreamEvent::ContentBlockDelta {
+                content_block_delta,
+            } => match content_block_delta.delta {
+                BedrockStreamContentBlockDeltaValue::Text { text } => {
+                    Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({
+                                "role": "assistant",
+                                "content": text
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )))
+                }
+                BedrockStreamContentBlockDeltaValue::ReasoningContent { reasoning_content } => {
+                    let is_empty_text = reasoning_content.text.as_deref().is_none_or(str::is_empty);
+                    if is_empty_text && reasoning_content.signature.is_none() {
+                        return Ok(Some(UniversalStreamChunk::keep_alive()));
+                    }
+
+                    Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(Value::from(UniversalStreamDelta {
+                                role: Some("assistant".to_string()),
+                                reasoning: reasoning_content
+                                    .text
+                                    .filter(|text| !text.is_empty())
+                                    .map(|text| {
+                                        vec![UniversalReasoningDelta {
+                                            content: Some(text),
+                                        }]
+                                    })
+                                    .unwrap_or_default(),
+                                reasoning_signature: reasoning_content.signature,
+                                ..Default::default()
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )))
+                }
+                BedrockStreamContentBlockDeltaValue::ToolUse { tool_use } => {
+                    Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(Value::from(UniversalStreamDelta {
+                                tool_calls: vec![UniversalToolCallDelta {
+                                    index: Some(content_block_delta.content_block_index),
+                                    function: Some(UniversalToolFunctionDelta {
+                                        arguments: Some(tool_use.input),
+                                        ..Default::default()
+                                    }),
+                                    ..Default::default()
+                                }],
+                                ..Default::default()
+                            })),
+                            finish_reason: None,
+                        }],
+                        None,
+                        None,
+                    )))
+                }
+                BedrockStreamContentBlockDeltaValue::Citation { .. }
+                | BedrockStreamContentBlockDeltaValue::Image { .. }
+                | BedrockStreamContentBlockDeltaValue::ToolResult { .. }
+                | BedrockStreamContentBlockDeltaValue::Other(_) => {
+                    Ok(Some(UniversalStreamChunk::keep_alive()))
+                }
+            },
+            BedrockConverseStreamEvent::MessageStop { message_stop } => {
+                let finish_reason = bedrock_stop_reason_to_finish_reason(&message_stop.stop_reason);
+                Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index,
-                        delta: Some(serde_json::json!({
-                            "role": "assistant",
-                            "content": text
-                        })),
-                        finish_reason: None,
+                        index: 0,
+                        delta: Some(serde_json::json!({})),
+                        finish_reason: Some(finish_reason.to_string()),
                     }],
                     None,
                     None,
-                )));
+                )))
             }
+            BedrockConverseStreamEvent::Metadata { metadata } => {
+                let usage = metadata
+                    .usage
+                    .map(serde_json::to_value)
+                    .transpose()
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?
+                    .map(|u| UniversalUsage::from_provider_value(&u, self.format()));
 
-            // Non-text delta (tool use) - return keep-alive
-            return Ok(Some(UniversalStreamChunk::keep_alive()));
-        }
-
-        // Handle messageStop - finish reason
-        if let Some(stop_event) = payload.get("messageStop") {
-            let stop_reason = stop_event.get("stopReason").and_then(Value::as_str);
-            let finish_reason = stop_reason
-                .map(|r| FinishReason::from_provider_string(r, self.format()).to_string());
-
-            return Ok(Some(UniversalStreamChunk::new(
-                None,
-                None,
-                vec![UniversalStreamChoice {
-                    index: 0,
-                    delta: Some(serde_json::json!({})),
-                    finish_reason,
-                }],
-                None,
-                None,
-            )));
-        }
-
-        // Handle metadata - usage info
-        if let Some(meta) = payload.get("metadata") {
-            let usage = meta
-                .get("usage")
-                .map(|u| UniversalUsage::from_provider_value(u, self.format()));
-
-            if usage.is_some() {
-                return Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![],
-                    None,
-                    usage,
-                )));
+                if usage.is_some() {
+                    Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![],
+                        None,
+                        usage,
+                    )))
+                } else {
+                    Ok(Some(UniversalStreamChunk::keep_alive()))
+                }
+            }
+            BedrockConverseStreamEvent::MessageStart { .. }
+            | BedrockConverseStreamEvent::ContentBlockStop { .. } => {
+                Ok(Some(UniversalStreamChunk::keep_alive()))
             }
         }
-
-        // Handle messageStart - role initialization
-        if payload.get("messageStart").is_some() {
-            return Ok(Some(UniversalStreamChunk::new(
-                None,
-                None,
-                vec![UniversalStreamChoice {
-                    index: 0,
-                    delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
-                    finish_reason: None,
-                }],
-                None,
-                None,
-            )));
-        }
-
-        // Other events (contentBlockStart, contentBlockStop) - keep-alive
-        Ok(Some(UniversalStreamChunk::keep_alive()))
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
@@ -756,5 +839,300 @@ mod tests {
             inference_config.get("temperature").is_none(),
             "Temperature should be omitted when thinking is enabled"
         );
+    }
+
+    #[test]
+    fn test_bedrock_stream_detects_content_block_start() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 0,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_123",
+                        "name": "list_campaigns",
+                        "type": "tool_use"
+                    }
+                }
+            }
+        });
+
+        assert!(adapter.detect_stream_response(&payload));
+    }
+
+    #[test]
+    fn test_bedrock_stream_tool_start_to_universal_tool_call_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 0,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_123",
+                        "name": "list_campaigns",
+                        "type": "tool_use"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+        let tool_call = delta.tool_calls.first().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(delta.role.as_deref(), Some("assistant"));
+        assert_eq!(tool_call.index, Some(0));
+        assert_eq!(tool_call.id.as_deref(), Some("tooluse_123"));
+        assert_eq!(tool_call.call_type.as_deref(), Some("function"));
+        assert_eq!(
+            tool_call.function.as_ref().unwrap().name.as_deref(),
+            Some("list_campaigns")
+        );
+        assert_eq!(
+            tool_call.function.as_ref().unwrap().arguments.as_deref(),
+            Some("")
+        );
+    }
+
+    #[test]
+    fn test_bedrock_stream_tool_input_to_universal_argument_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "toolUse": {
+                        "input": "{\"campaign"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+        let tool_call = delta.tool_calls.first().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(tool_call.index, Some(0));
+        assert_eq!(
+            tool_call.function.as_ref().unwrap().arguments.as_deref(),
+            Some("{\"campaign")
+        );
+    }
+
+    #[test]
+    fn test_bedrock_stream_reasoning_content_to_universal_reasoning_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "reasoningContent": {
+                        "text": "Thinking"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(delta.role.as_deref(), Some("assistant"));
+        assert_eq!(delta.reasoning.len(), 1);
+        assert_eq!(delta.reasoning[0].content.as_deref(), Some("Thinking"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_reasoning_signature_to_universal_signature_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "reasoningContent": {
+                        "signature": "sig_123"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(delta.reasoning_signature.as_deref(), Some("sig_123"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_text_block_uses_single_openai_choice_index() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 1,
+                "delta": {
+                    "text": "Final answer"
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(delta.content.as_deref(), Some("Final answer"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_tool_block_keeps_tool_call_index_separate_from_choice_index() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockStart": {
+                "contentBlockIndex": 2,
+                "start": {
+                    "toolUse": {
+                        "toolUseId": "tooluse_456",
+                        "name": "list_campaigns"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+        let delta = choice.delta_view().unwrap();
+        let tool_call = delta.tool_calls.first().unwrap();
+
+        assert_eq!(choice.index, 0);
+        assert_eq!(tool_call.index, Some(2));
+        assert_eq!(tool_call.id.as_deref(), Some("tooluse_456"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_tool_stop_to_tool_calls_finish_reason() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "messageStop": {
+                "stopReason": "tool_use"
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_ignores_citation_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "citation": {
+                        "generatedResponsePart": {
+                            "textResponsePart": {
+                                "text": "Paris",
+                                "span": { "start": 0, "end": 5 }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+
+        assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_bedrock_stream_ignores_image_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "image": {
+                        "bytes": "AAAA"
+                    }
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+
+        assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_bedrock_stream_ignores_tool_result_delta() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "contentBlockDelta": {
+                "contentBlockIndex": 0,
+                "delta": {
+                    "toolResult": [{
+                        "content": [{ "text": "done" }]
+                    }]
+                }
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+
+        assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_bedrock_stream_guardrail_stop_to_content_filter_finish_reason() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "messageStop": {
+                "stopReason": "guardrail_intervened"
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("content_filter"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_context_window_stop_to_length_finish_reason() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "messageStop": {
+                "stopReason": "model_context_window_exceeded"
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("length"));
+    }
+
+    #[test]
+    fn test_bedrock_stream_unknown_stop_reason_to_stop_finish_reason() {
+        let adapter = BedrockAdapter;
+        let payload = json!({
+            "messageStop": {
+                "stopReason": "future_stop_reason"
+            }
+        });
+
+        let chunk = adapter.stream_to_universal(payload).unwrap().unwrap();
+        let choice = chunk.choices.first().unwrap();
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("stop"));
     }
 }

@@ -52,7 +52,13 @@ struct VertexModelExtra {
 
 impl VertexProvider {
     pub fn new(config: VertexConfig) -> Result<Self> {
-        let mut settings = ClientSettings::default();
+        Self::new_with_client_settings(config, ClientSettings::default())
+    }
+
+    pub fn new_with_client_settings(
+        config: VertexConfig,
+        mut settings: ClientSettings,
+    ) -> Result<Self> {
         if let Some(timeout) = config.timeout {
             settings.request_timeout = timeout;
         }
@@ -70,6 +76,7 @@ impl VertexProvider {
         endpoint: Option<&Url>,
         timeout: Option<Duration>,
         metadata: &std::collections::HashMap<String, Value>,
+        client_settings: Option<ClientSettings>,
     ) -> Result<Self> {
         let project = metadata
             .get("project")
@@ -108,7 +115,7 @@ impl VertexProvider {
             timeout,
         };
 
-        Self::new(config)
+        Self::new_with_client_settings(config, client_settings.unwrap_or_default())
     }
 
     fn resolve_location(&self, spec: &ModelSpec) -> String {
@@ -117,7 +124,7 @@ impl VertexProvider {
             ::serde_json::Value::Object(spec.extra.clone()),
         ) {
             if !extra.locations.is_empty() {
-                let idx = rand::thread_rng().gen_range(0..extra.locations.len());
+                let idx = rand::rng().random_range(0..extra.locations.len());
                 return extra.locations[idx].clone();
             }
         }
@@ -611,7 +618,7 @@ mod tests {
         metadata.insert("location".into(), Value::String("us-east5".into()));
 
         let provider =
-            VertexProvider::from_config(Some(&global_endpoint), None, &metadata).unwrap();
+            VertexProvider::from_config(Some(&global_endpoint), None, &metadata, None).unwrap();
         assert!(provider.config.api_base.is_none());
         assert_eq!(provider.config.location, "us-east5");
     }
@@ -624,7 +631,7 @@ mod tests {
         metadata.insert("location".into(), Value::String("us-east5".into()));
 
         let provider =
-            VertexProvider::from_config(Some(&custom_endpoint), None, &metadata).unwrap();
+            VertexProvider::from_config(Some(&custom_endpoint), None, &metadata, None).unwrap();
         assert_eq!(
             provider.config.api_base.as_deref(),
             Some("https://my-proxy.example.com/")
@@ -640,7 +647,7 @@ mod tests {
             Value::String("https://custom-proxy.example.com".into()),
         );
 
-        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        let provider = VertexProvider::from_config(None, None, &metadata, None).unwrap();
         assert_eq!(
             provider.config.api_base.as_deref(),
             Some("https://custom-proxy.example.com")
@@ -653,7 +660,7 @@ mod tests {
         metadata.insert("project".into(), Value::String("my-project".into()));
         metadata.insert("api_base".into(), Value::String("".into()));
 
-        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        let provider = VertexProvider::from_config(None, None, &metadata, None).unwrap();
         assert!(provider.config.api_base.is_none());
     }
 
@@ -663,7 +670,7 @@ mod tests {
         metadata.insert("project".into(), Value::String("my-project".into()));
         metadata.insert("location".into(), Value::String("  ".into()));
 
-        let provider = VertexProvider::from_config(None, None, &metadata).unwrap();
+        let provider = VertexProvider::from_config(None, None, &metadata, None).unwrap();
         assert_eq!(provider.config.location, "global");
     }
 }

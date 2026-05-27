@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "```json\n{\n  \"created_at\": \"2024-12-19T10:30:45Z\",\n  \"message\": \"success\"\n}\n```\n\nHere's an example with the current timestamp in ISO 8601 format. The `Z` indicates UTC/Zulu time."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 22,
+    "outputTokens": 70,
+    "totalTokens": 92,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1366
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "18b4b071-fccb-44d1-9173-099cdda256c5",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

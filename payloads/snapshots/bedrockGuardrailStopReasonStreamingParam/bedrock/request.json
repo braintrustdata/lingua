@@ -1,0 +1,16 @@
+{
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "If a configured Bedrock guardrail intervenes, return the guardrail intervention response."
+        }
+      ]
+    }
+  ],
+  "additionalModelResponseFieldPaths": [
+    "/stop_sequence"
+  ]
+}

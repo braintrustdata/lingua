@@ -11,11 +11,12 @@ use crate::import_parse::{
 };
 use crate::providers::bedrock::request::{
     BedrockContentBlock, BedrockConversationRole, BedrockImageBlock, BedrockImageFormat,
-    BedrockImageSource, BedrockMessage, BedrockToolResultBlock, BedrockToolResultContent,
-    BedrockToolUseBlock, ConverseRequest,
+    BedrockImageSource, BedrockMessage, BedrockReasoningContentBlock, BedrockReasoningTextBlock,
+    BedrockToolResultBlock, BedrockToolResultContent, BedrockToolUseBlock, ConverseRequest,
 };
 use crate::providers::bedrock::response::{
-    BedrockOutputContentBlock, BedrockOutputMessage, ConverseResponse,
+    BedrockOutputContentBlock, BedrockOutputMessage, BedrockOutputReasoningContentBlock,
+    BedrockOutputReasoningTextBlock, ConverseResponse,
 };
 use crate::serde_json::{self, Value};
 use crate::universal::convert::TryFromLLM;
@@ -68,6 +69,9 @@ impl TryFromLLM<BedrockMessage> for Message {
                         BedrockContentBlock::Image { .. } => {
                             // Skip images for now
                         }
+                        BedrockContentBlock::ReasoningContent { .. } => {
+                            // Reasoning content is only expected on assistant messages.
+                        }
                         BedrockContentBlock::ToolUse { .. } => {
                             // Tool use shouldn't be in user messages
                         }
@@ -107,6 +111,16 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 provider_options: None,
                                 provider_executed: None,
                             });
+                        }
+                        BedrockContentBlock::ReasoningContent { reasoning_content } => {
+                            if let Some((text, encrypted_content)) =
+                                reasoning_content_to_universal(reasoning_content)
+                            {
+                                content_parts.push(AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                });
+                            }
                         }
                         _ => {}
                     }
@@ -205,6 +219,15 @@ impl TryFromLLM<Message> for BedrockMessage {
                             AssistantContentPart::Text(t) => {
                                 Some(BedrockContentBlock::Text { text: t.text })
                             }
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => Some(BedrockContentBlock::ReasoningContent {
+                                reasoning_content: reasoning_content_from_universal(
+                                    text,
+                                    encrypted_content,
+                                ),
+                            }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
@@ -232,30 +255,102 @@ impl TryFromLLM<Message> for BedrockMessage {
                 (BedrockConversationRole::Assistant, blocks)
             }
             Message::Tool { content } => {
-                let blocks: Vec<BedrockContentBlock> = content
-                    .into_iter()
-                    .map(|part| {
-                        let ToolContentPart::ToolResult(result) = part;
-                        let content_text = match result.output {
-                            Value::String(s) => s,
-                            other => serde_json::to_string(&other).unwrap_or_default(),
-                        };
-                        BedrockContentBlock::ToolResult {
-                            tool_result: BedrockToolResultBlock {
-                                tool_use_id: result.tool_call_id,
-                                content: vec![BedrockToolResultContent::Text {
-                                    text: content_text,
-                                }],
-                                status: None,
-                            },
-                        }
-                    })
-                    .collect();
+                let blocks = tool_result_blocks_from_content(content)?;
                 (BedrockConversationRole::User, blocks)
             }
         };
 
         Ok(BedrockMessage { role, content })
+    }
+}
+
+fn tool_result_blocks_from_content(
+    content: Vec<ToolContentPart>,
+) -> Result<Vec<BedrockContentBlock>, ConvertError> {
+    content
+        .into_iter()
+        .map(|part| {
+            let ToolContentPart::ToolResult(result) = part;
+            let content_text = match result.output {
+                Value::String(s) => s,
+                other => serde_json::to_string(&other).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "tool_result.output".to_string(),
+                        error: e.to_string(),
+                    }
+                })?,
+            };
+            Ok(BedrockContentBlock::ToolResult {
+                tool_result: BedrockToolResultBlock {
+                    tool_use_id: result.tool_call_id,
+                    content: vec![BedrockToolResultContent::Text { text: content_text }],
+                    status: None,
+                },
+            })
+        })
+        .collect()
+}
+
+fn is_tool_result_message(message: &BedrockMessage) -> bool {
+    message.role == BedrockConversationRole::User
+        && !message.content.is_empty()
+        && message
+            .content
+            .iter()
+            .all(|block| matches!(block, BedrockContentBlock::ToolResult { .. }))
+}
+
+fn reasoning_content_to_universal(
+    reasoning_content: BedrockReasoningContentBlock,
+) -> Option<(String, Option<String>)> {
+    match reasoning_content {
+        BedrockReasoningContentBlock::ReasoningText { reasoning_text } => {
+            Some((reasoning_text.text, reasoning_text.signature))
+        }
+        BedrockReasoningContentBlock::RedactedContent { redacted_content } => {
+            Some((String::new(), Some(redacted_content)))
+        }
+    }
+}
+
+fn output_reasoning_content_to_universal(
+    reasoning_content: BedrockOutputReasoningContentBlock,
+) -> Option<(String, Option<String>)> {
+    match reasoning_content {
+        BedrockOutputReasoningContentBlock::ReasoningText { reasoning_text } => {
+            Some((reasoning_text.text, reasoning_text.signature))
+        }
+        BedrockOutputReasoningContentBlock::RedactedContent { redacted_content } => {
+            Some((String::new(), Some(redacted_content)))
+        }
+    }
+}
+
+fn reasoning_content_from_universal(
+    text: String,
+    encrypted_content: Option<String>,
+) -> BedrockReasoningContentBlock {
+    match (text.is_empty(), encrypted_content) {
+        (true, Some(redacted_content)) => {
+            BedrockReasoningContentBlock::RedactedContent { redacted_content }
+        }
+        (_, signature) => BedrockReasoningContentBlock::ReasoningText {
+            reasoning_text: BedrockReasoningTextBlock { text, signature },
+        },
+    }
+}
+
+fn output_reasoning_content_from_universal(
+    text: String,
+    encrypted_content: Option<String>,
+) -> BedrockOutputReasoningContentBlock {
+    match (text.is_empty(), encrypted_content) {
+        (true, Some(redacted_content)) => {
+            BedrockOutputReasoningContentBlock::RedactedContent { redacted_content }
+        }
+        (_, signature) => BedrockOutputReasoningContentBlock::ReasoningText {
+            reasoning_text: BedrockOutputReasoningTextBlock { text, signature },
+        },
     }
 }
 
@@ -272,7 +367,31 @@ pub fn bedrock_to_universal(request: &ConverseRequest) -> Result<Vec<Message>, C
 pub fn universal_to_bedrock_messages(
     messages: &[Message],
 ) -> Result<Vec<BedrockMessage>, ConvertError> {
-    <Vec<BedrockMessage> as TryFromLLM<Vec<Message>>>::try_from(messages.to_vec())
+    let mut bedrock_messages = Vec::new();
+
+    for message in messages.iter().cloned() {
+        match message {
+            Message::Tool { content } => {
+                let blocks = tool_result_blocks_from_content(content)?;
+                if let Some(last_message) = bedrock_messages.last_mut() {
+                    if is_tool_result_message(last_message) {
+                        last_message.content.extend(blocks);
+                        continue;
+                    }
+                }
+
+                bedrock_messages.push(BedrockMessage {
+                    role: BedrockConversationRole::User,
+                    content: blocks,
+                });
+            }
+            other => {
+                bedrock_messages.push(<BedrockMessage as TryFromLLM<Message>>::try_from(other)?);
+            }
+        }
+    }
+
+    Ok(bedrock_messages)
 }
 
 /// Convert universal messages to Bedrock Converse format as JSON Value.
@@ -378,6 +497,16 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                         provider_executed: None,
                     });
                 }
+                BedrockOutputContentBlock::ReasoningContent { reasoning_content } => {
+                    if let Some((text, encrypted_content)) =
+                        output_reasoning_content_to_universal(reasoning_content)
+                    {
+                        content_parts.push(AssistantContentPart::Reasoning {
+                            text,
+                            encrypted_content,
+                        });
+                    }
+                }
             }
         }
 
@@ -416,6 +545,15 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
                             AssistantContentPart::Text(t) => {
                                 Some(BedrockOutputContentBlock::Text { text: t.text })
                             }
+                            AssistantContentPart::Reasoning {
+                                text,
+                                encrypted_content,
+                            } => Some(BedrockOutputContentBlock::ReasoningContent {
+                                reasoning_content: output_reasoning_content_from_universal(
+                                    text,
+                                    encrypted_content,
+                                ),
+                            }),
                             AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
@@ -707,5 +845,115 @@ mod tests {
         assert_eq!(arr.len(), 1);
         assert_eq!(arr[0]["role"], "assistant");
         assert!(arr[0]["content"][0].get("toolUse").is_some());
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_preserves_redacted_reasoning() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                text: String::new(),
+                encrypted_content: Some("redacted-by-provider".to_string()),
+            }]),
+            id: None,
+        }];
+
+        let result = universal_to_bedrock(&messages).unwrap();
+        assert_eq!(
+            result,
+            json!([{
+                "role": "assistant",
+                "content": [{
+                    "reasoningContent": {
+                        "redactedContent": "redacted-by-provider"
+                    }
+                }]
+            }])
+        );
+    }
+
+    #[test]
+    fn test_bedrock_output_message_redacted_reasoning_roundtrip() {
+        let output = BedrockOutputMessage {
+            role: "assistant".to_string(),
+            content: vec![BedrockOutputContentBlock::ReasoningContent {
+                reasoning_content: BedrockOutputReasoningContentBlock::RedactedContent {
+                    redacted_content: "redacted-by-provider".to_string(),
+                },
+            }],
+        };
+
+        let message = <Message as TryFromLLM<BedrockOutputMessage>>::try_from(output).unwrap();
+        let roundtrip = <BedrockOutputMessage as TryFromLLM<Message>>::try_from(message).unwrap();
+
+        assert_eq!(
+            roundtrip.content,
+            vec![BedrockOutputContentBlock::ReasoningContent {
+                reasoning_content: BedrockOutputReasoningContentBlock::RedactedContent {
+                    redacted_content: "redacted-by-provider".to_string(),
+                },
+            }]
+        );
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_coalesces_parallel_tool_results() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![
+                    AssistantContentPart::ToolCall {
+                        tool_call_id: "call_sf".to_string(),
+                        tool_name: "get_weather".to_string(),
+                        arguments: ToolCallArguments::from(
+                            r#"{"location":"San Francisco, CA"}"#.to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    },
+                    AssistantContentPart::ToolCall {
+                        tool_call_id: "call_nyc".to_string(),
+                        tool_name: "get_weather".to_string(),
+                        arguments: ToolCallArguments::from(
+                            r#"{"location":"New York, NY"}"#.to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    },
+                ]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_sf".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    output: Value::String("65°F and sunny.".to_string()),
+                    provider_options: None,
+                })],
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_nyc".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    output: Value::String("45°F and cloudy.".to_string()),
+                    provider_options: None,
+                })],
+            },
+        ];
+
+        let result = universal_to_bedrock_messages(&messages).unwrap();
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[1].role, BedrockConversationRole::User);
+        assert_eq!(result[1].content.len(), 2);
+
+        let tool_use_ids: Vec<String> = result[1]
+            .content
+            .iter()
+            .map(|block| match block {
+                BedrockContentBlock::ToolResult { tool_result } => tool_result.tool_use_id.clone(),
+                _ => panic!("Expected tool result block"),
+            })
+            .collect();
+        assert_eq!(tool_use_ids, vec!["call_sf", "call_nyc"]);
     }
 }

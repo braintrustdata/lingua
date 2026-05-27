@@ -1,0 +1,37 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "reasoningContent": {
+            "reasoningText": {
+              "text": "This is a straightforward arithmetic question. 2 + 2 = 4.",
+              "signature": "EuMBCkgIDRABGAIqQGx+Uu1CfPmNAzRQnCZAOSMPxWWU5P9n+q4oh7TMg4z3K1LFSazF4e2dNUshJjiVDMzB0k9mddJWB9HeJtbe5jwSDE/BsJKT3kiW+bMSLBoMhPMZBPnJZNjr0esBIjDXvNI6ZkYpfgwhUPu/bCsVNSH4qf8vdbmZybFpWezEsRp05T1MW2P6G70CL7J4IZsqSQcZ8U8U+bcFnsSwqkBB0jYMmjIJRZUdHSsuBHN77zN4TGuCrI/p4qG0QOwtt+KrhvrbEO2BdG1WXTG3f8Y8ftslfqsgPwguTE8YAQ=="
+            }
+          }
+        },
+        {
+          "text": "2 + 2 = 4"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 43,
+    "outputTokens": 39,
+    "totalTokens": 82,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1272
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "fadb79b3-101d-4e4f-816a-5c816cf507c4",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
