@@ -368,29 +368,11 @@ impl Router {
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete_stream",
-            skip(self, request, client_headers),
-            fields(llm.model = %request.inner.spec.model)
-        )
-    )]
-    pub async fn complete_stream(
-        &self,
-        request: PreparedStreamRequest<'_>,
-        client_headers: &ClientHeaders,
-    ) -> Result<ResponseStream> {
-        self.complete_stream_with_gateway_request_id(request, client_headers, None)
-            .await
-    }
-
-    /// Execute a prepared streaming request with gateway request correlation.
-    #[cfg_attr(
-        feature = "tracing",
-        tracing::instrument(
-            name = "bt.router.complete_stream",
             skip(self, request, client_headers, gateway_request_id),
             fields(llm.model = %request.inner.spec.model)
         )
     )]
-    pub async fn complete_stream_with_gateway_request_id(
+    pub async fn complete_stream(
         &self,
         request: PreparedStreamRequest<'_>,
         client_headers: &ClientHeaders,
