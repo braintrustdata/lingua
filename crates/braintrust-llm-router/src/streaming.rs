@@ -93,7 +93,9 @@ pub fn transform_stream(
     raw: RawResponseStream,
     output_format: ProviderFormat,
     allow_full_response_fallback: bool,
-    gateway_request_id: Option<String>,
+    #[cfg_attr(not(feature = "tracing"), allow(unused_variables))] gateway_request_id: Option<
+        String,
+    >,
 ) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
@@ -101,6 +103,7 @@ pub fn transform_stream(
             output_format,
             allow_full_response_fallback,
         ),
+        #[cfg(feature = "tracing")]
         gateway_request_id,
         pending: Vec::new(),
         done: false,
@@ -110,6 +113,7 @@ pub fn transform_stream(
 struct SessionTransformStream {
     raw: RawResponseStream,
     session: lingua::StreamTransformSession,
+    #[cfg(feature = "tracing")]
     gateway_request_id: Option<String>,
     pending: Vec<Result<StreamChunk>>,
     done: bool,
