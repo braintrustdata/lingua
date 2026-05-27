@@ -814,6 +814,63 @@ mod tests {
     }
 
     #[test]
+    fn test_transform_request_universal_accepts_lowercase_summary() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "reasoning": {
+                    "summary": "detailed"
+                }
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_openai_to_universal_preserves_provider_extras() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "user": "user_123",
+            "custom_field": {"nested": true}
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+        let universal_bytes = result.into_bytes();
+        let universal: crate::universal::UniversalRequest =
+            crate::serde_json::from_slice(&universal_bytes).unwrap();
+        let openai_extras = universal
+            .params
+            .extras
+            .get(&ProviderFormat::ChatCompletions)
+            .unwrap();
+
+        assert_eq!(openai_extras.get("user"), Some(&json!("user_123")));
+        assert_eq!(
+            openai_extras.get("custom_field"),
+            Some(&json!({"nested": true}))
+        );
+
+        let roundtrip =
+            transform_request(universal_bytes, ProviderFormat::ChatCompletions, None).unwrap();
+        let roundtrip_payload: Value =
+            crate::serde_json::from_slice(&roundtrip.into_bytes()).unwrap();
+
+        assert_eq!(
+            roundtrip_payload.get("custom_field"),
+            Some(&json!({"nested": true}))
+        );
+        assert_eq!(roundtrip_payload.get("user"), Some(&json!("user_123")));
+    }
+
+    #[test]
     #[cfg(feature = "openai")]
     fn test_transform_request_passthrough_repairs_lone_surrogate() {
         let input = Bytes::from_static(

@@ -3,4 +3,4 @@
 /**
  * Summary mode for reasoning output.
  */
-export type SummaryMode = "None" | "Auto" | "Detailed";
+export type SummaryMode = "none" | "auto" | "detailed";

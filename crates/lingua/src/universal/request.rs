@@ -204,7 +204,7 @@ pub struct UniversalParams {
     ///
     /// Keyed by source `ProviderFormat` - only restored when converting back to
     /// the same provider (no cross-provider contamination).
-    #[serde(skip)]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[ts(skip)]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
@@ -427,6 +427,7 @@ pub enum ReasoningCanonical {
 
 /// Summary mode for reasoning output.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum SummaryMode {
     /// No summary included in response.
