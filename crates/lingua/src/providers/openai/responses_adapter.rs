@@ -1537,6 +1537,46 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_omits_top_logprobs_for_reasoning_models() {
+        let req = UniversalRequest {
+            model: Some("gpt-5-mini".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_logprobs: Some(0),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_logprobs, None);
+    }
+
+    #[test]
+    fn test_responses_preserves_top_logprobs_for_non_reasoning_models() {
+        let req = UniversalRequest {
+            model: Some("gpt-4.1".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                top_logprobs: Some(2),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(typed.top_logprobs, Some(2));
+    }
+
+    #[test]
     fn test_responses_clamps_reasoning_effort_for_target_model() {
         let req = UniversalRequest {
             model: Some("gpt-5.1".to_string()),
