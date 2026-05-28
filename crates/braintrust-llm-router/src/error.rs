@@ -203,6 +203,9 @@ mod tests {
 
         // Client errors
         assert!(TransformError::UnableToDetectFormat.is_client_error());
+        assert!(TransformError::UnableToDetectRequestFormat.is_client_error());
+        assert!(TransformError::UnableToDetectResponseFormat.is_client_error());
+        assert!(TransformError::UnableToDetectStreamFormat.is_client_error());
         assert!(TransformError::ValidationFailed {
             target: ProviderFormat::ChatCompletions,
             reason: "test".into()
@@ -233,7 +236,9 @@ mod tests {
         assert!(Error::UnknownModel("gpt-5".into()).is_client_error());
         assert!(Error::NoProvider(ProviderFormat::ChatCompletions).is_client_error());
         assert!(Error::InvalidRequest("bad".into()).is_client_error());
-        assert!(Error::Lingua(lingua::TransformError::UnableToDetectFormat).is_client_error());
+        assert!(
+            Error::Lingua(lingua::TransformError::UnableToDetectRequestFormat).is_client_error()
+        );
 
         // Auth errors
         assert!(Error::NoAuth("openai".into()).is_auth_error());

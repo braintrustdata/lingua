@@ -87,7 +87,7 @@ where
         .find(|adapter| adapter.detect_request(&payload))
     {
         Some(adapter) => adapter,
-        None => return Err(TransformError::UnableToDetectFormat.into()),
+        None => return Err(TransformError::UnableToDetectRequestFormat.into()),
     };
 
     if source_adapter.format() == format {

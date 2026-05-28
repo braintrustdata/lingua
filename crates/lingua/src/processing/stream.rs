@@ -927,7 +927,7 @@ mod tests {
 
         assert!(matches!(
             session.push(full_response),
-            Err(TransformError::UnableToDetectFormat)
+            Err(TransformError::UnableToDetectStreamFormat)
         ));
     }
 
