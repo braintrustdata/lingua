@@ -1852,6 +1852,7 @@ mod tests {
         let adapter = AnthropicAdapter;
 
         for model in [
+            "claude-opus-4-20250514",
             "claude-opus-4-6",
             "claude-opus-4-5-20250514",
             "claude-sonnet-4-5-20250929",

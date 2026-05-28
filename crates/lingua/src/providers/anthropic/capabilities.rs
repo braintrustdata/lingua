@@ -7,8 +7,10 @@ use std::sync::LazyLock;
 
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(^|[./:@])claude-opus-(4[-.]([7-9]|\d{2,})|([5-9]|\d{2,})[-.]\d+)($|[-./:@])")
-        .expect("valid Opus 4.7+ model regex")
+    Regex::new(
+        r"(^|[./:@])claude-opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-./:@])",
+    )
+    .expect("valid Opus 4.7+ model regex")
 });
 
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
@@ -133,6 +135,7 @@ mod tests {
 
         // Other models do not
         assert!(!supports_output_config_effort("claude-opus-4-4"));
+        assert!(!supports_output_config_effort("claude-opus-4-20250514"));
         assert!(!supports_output_config_effort(
             "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
         ));
@@ -161,6 +164,7 @@ mod tests {
             "anthropic/claude-opus-5-0@20260701",
         ];
         let legacy_models = [
+            "claude-opus-4-20250514",
             "claude-opus-4-6",
             "claude-opus-4-5-20250514",
             "claude-sonnet-4-5-20250929",
@@ -208,6 +212,7 @@ mod tests {
                 &[StripSamplingParams][..],
             ),
             ("claude-opus-4-6", &[][..]),
+            ("claude-opus-4-20250514", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
             ("claude-sonnet-4-5-20250929", &[][..]),
             ("claude-3-5-sonnet-20241022", &[][..]),
@@ -231,6 +236,7 @@ mod tests {
             "claude-opus-5-1-20260701",
         ];
         let no_needs = [
+            "claude-opus-4-20250514",
             "claude-opus-4-6",
             "claude-opus-4-5",
             "claude-sonnet-4-5-20250929",
@@ -262,6 +268,7 @@ mod tests {
             "anthropic/claude-opus-5-0@20260701",
         ];
         let preserve_models = [
+            "claude-opus-4-20250514",
             "claude-opus-4-6",
             "claude-opus-4-5-20250514",
             "claude-sonnet-4-5-20250929",
