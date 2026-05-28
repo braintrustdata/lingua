@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(^|[./:@])claude-opus-4-([7-9]|\d{2,})($|[-./:@])")
+    Regex::new(r"(^|[./:@])claude-opus-(4[-.]([7-9]|\d{2,})|([5-9]|\d{2,})[-.]\d+)($|[-./:@])")
         .expect("valid Opus 4.7+ model regex")
 });
 
@@ -124,10 +124,15 @@ mod tests {
         assert!(supports_output_config_effort(
             "anthropic/claude-opus-4-10@20260601"
         ));
+        assert!(supports_output_config_effort("claude-opus-5-0"));
+        assert!(supports_output_config_effort("claude-opus-5.0"));
+        assert!(supports_output_config_effort("claude-opus-5-1-20260701"));
+        assert!(supports_output_config_effort(
+            "anthropic/claude-opus-5-0@20260701"
+        ));
 
         // Other models do not
         assert!(!supports_output_config_effort("claude-opus-4-4"));
-        assert!(!supports_output_config_effort("claude-opus-5-0"));
         assert!(!supports_output_config_effort(
             "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
         ));
@@ -150,6 +155,10 @@ mod tests {
             "anthropic/claude-opus-4-8@20260528",
             "claude-opus-4-10",
             "anthropic/claude-opus-4-10@20260601",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+            "claude-opus-5-1-20260701",
+            "anthropic/claude-opus-5-0@20260701",
         ];
         let legacy_models = [
             "claude-opus-4-6",
@@ -191,6 +200,13 @@ mod tests {
                 "anthropic/claude-opus-4-10@20260601",
                 &[StripSamplingParams][..],
             ),
+            ("claude-opus-5-0", &[StripSamplingParams][..]),
+            ("claude-opus-5.0", &[StripSamplingParams][..]),
+            ("claude-opus-5-1-20260701", &[StripSamplingParams][..]),
+            (
+                "anthropic/claude-opus-5-0@20260701",
+                &[StripSamplingParams][..],
+            ),
             ("claude-opus-4-6", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
             ("claude-sonnet-4-5-20250929", &[][..]),
@@ -210,6 +226,9 @@ mod tests {
             "claude-opus-4-8",
             "claude-opus-4-8-20260528",
             "claude-opus-4-10",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+            "claude-opus-5-1-20260701",
         ];
         let no_needs = [
             "claude-opus-4-6",
@@ -237,6 +256,10 @@ mod tests {
             "anthropic/claude-opus-4-8@20260528",
             "claude-opus-4-10",
             "anthropic/claude-opus-4-10@20260601",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+            "claude-opus-5-1-20260701",
+            "anthropic/claude-opus-5-0@20260701",
         ];
         let preserve_models = [
             "claude-opus-4-6",
