@@ -1615,7 +1615,13 @@ mod tests {
 
         let adapter = AnthropicAdapter;
 
-        for model in ["claude-opus-4-7", "claude-opus-4-8"] {
+        for model in [
+            "claude-opus-4-7",
+            "claude-opus-4-8",
+            "claude-opus-4-10",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+        ] {
             let req = UniversalRequest {
                 model: Some(model.to_string()),
                 messages: vec![Message::User {
