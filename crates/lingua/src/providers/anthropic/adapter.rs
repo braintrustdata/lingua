@@ -354,7 +354,7 @@ impl ProviderAdapter for AnthropicAdapter {
         obj.insert("max_tokens".into(), Value::Number(max_tokens.into()));
 
         // Determine reasoning style based on model capability and source:
-        // - Opus 4.7+ → thinking.type=adaptive + output_config.effort
+        // - Opus 4.7/4.8 → thinking.type=adaptive + output_config.effort
         // - Opus 4.5/4.6 with effort canonical → output_config.effort
         // - All other cases → thinking object (legacy, broad model support)
         // Both branches use output_config.format for structured output (never output_format).
@@ -1615,37 +1615,39 @@ mod tests {
 
         let adapter = AnthropicAdapter;
 
-        let req = UniversalRequest {
-            model: Some("claude-opus-4-7".to_string()),
-            messages: vec![Message::User {
-                content: UserContent::String("Hello".to_string()),
-            }],
-            params: UniversalParams {
-                temperature: Some(0.7),
-                top_p: Some(0.9),
-                top_k: Some(40),
-                token_budget: Some(TokenBudget::OutputTokens(1024)),
-                ..Default::default()
-            },
-        };
+        for model in ["claude-opus-4-7", "claude-opus-4-8"] {
+            let req = UniversalRequest {
+                model: Some(model.to_string()),
+                messages: vec![Message::User {
+                    content: UserContent::String("Hello".to_string()),
+                }],
+                params: UniversalParams {
+                    temperature: Some(0.7),
+                    top_p: Some(0.9),
+                    top_k: Some(40),
+                    token_budget: Some(TokenBudget::OutputTokens(1024)),
+                    ..Default::default()
+                },
+            };
 
-        let result: AnthropicParams =
-            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+            let result: AnthropicParams =
+                serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
-        assert!(
-            result.temperature.is_none(),
-            "Temperature should be stripped for claude-opus-4-7"
-        );
-        assert!(
-            result.top_p.is_none(),
-            "top_p should be stripped for claude-opus-4-7"
-        );
-        assert!(
-            result.top_k.is_none(),
-            "top_k should be stripped for claude-opus-4-7"
-        );
-        assert_eq!(result.model, Some("claude-opus-4-7".to_string()));
-        assert_eq!(result.max_tokens, Some(1024));
+            assert!(
+                result.temperature.is_none(),
+                "Temperature should be stripped for {model}"
+            );
+            assert!(
+                result.top_p.is_none(),
+                "top_p should be stripped for {model}"
+            );
+            assert!(
+                result.top_k.is_none(),
+                "top_k should be stripped for {model}"
+            );
+            assert_eq!(result.model, Some(model.to_string()));
+            assert_eq!(result.max_tokens, Some(1024));
+        }
     }
 
     #[test]
@@ -1665,6 +1667,43 @@ mod tests {
                     enabled: Some(true),
                     effort: Some(ReasoningEffort::Medium),
                     canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        let thinking = result.thinking.expect("thinking should be present");
+        assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+        assert_eq!(thinking.budget_tokens, None);
+
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(output_config.effort, Some(EffortLevel::Medium));
+    }
+
+    #[test]
+    fn test_anthropic_opus_4_8_uses_adaptive_thinking_with_budget() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::ReasoningConfig;
+
+        let adapter = AnthropicAdapter;
+
+        let req = UniversalRequest {
+            model: Some("claude-opus-4-8".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("What is 2+2?".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    canonical: Some(ReasoningCanonical::BudgetTokens),
                     ..Default::default()
                 }),
                 token_budget: Some(TokenBudget::OutputTokens(4096)),
@@ -1801,7 +1840,7 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_preserves_sampling_params_for_non_opus_4_7() {
+    fn test_anthropic_preserves_sampling_params_for_non_fixed_sampling_opus() {
         use crate::universal::message::UserContent;
 
         let adapter = AnthropicAdapter;

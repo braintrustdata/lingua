@@ -24,6 +24,7 @@ ts-rs = { version = "11.0", features = ["serde-compat", "no-serde-warnings"] }
 anyhow = "1.0"
 thiserror = "2.0"
 assert-json-diff = "2.0.2"
+regex = "1"
 
 # Schema generation
 typify = "0.4"
