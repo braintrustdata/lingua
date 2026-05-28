@@ -64,7 +64,7 @@ async fn main() -> Result<()> {
         .create_stream_request(body, model, ProviderFormat::ChatCompletions)
         .await?;
     let mut stream = router
-        .complete_stream(request, &ClientHeaders::default())
+        .complete_stream(request, &ClientHeaders::default(), None)
         .await?;
 
     // Process the stream
@@ -141,7 +141,7 @@ async fn main() -> Result<()> {
             .create_stream_request(body, model, ProviderFormat::ChatCompletions)
             .await?;
         let stream = router
-            .complete_stream(request, &ClientHeaders::default())
+            .complete_stream(request, &ClientHeaders::default(), None)
             .await?;
         streams.push((model.to_string(), stream));
     }
