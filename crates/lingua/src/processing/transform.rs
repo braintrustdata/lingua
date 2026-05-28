@@ -39,6 +39,15 @@ pub enum TransformError {
     #[error("Unable to detect source format")]
     UnableToDetectFormat,
 
+    #[error("Unable to detect request source format")]
+    UnableToDetectRequestFormat,
+
+    #[error("Unable to detect response source format")]
+    UnableToDetectResponseFormat,
+
+    #[error("Unable to detect stream source format")]
+    UnableToDetectStreamFormat,
+
     #[error("Validation failed for target format {target:?}: {reason}")]
     ValidationFailed {
         target: ProviderFormat,
@@ -78,6 +87,9 @@ impl TransformError {
         matches!(
             self,
             TransformError::UnableToDetectFormat
+                | TransformError::UnableToDetectRequestFormat
+                | TransformError::UnableToDetectResponseFormat
+                | TransformError::UnableToDetectStreamFormat
                 | TransformError::ValidationFailed { .. }
                 | TransformError::DeserializationFailed(_)
                 | TransformError::UnsupportedTargetFormat(_)
@@ -603,7 +615,15 @@ fn detect_adapter_with_kind(
         }
     }
 
-    Err(TransformError::UnableToDetectFormat)
+    Err(unable_to_detect_format_error(kind))
+}
+
+fn unable_to_detect_format_error(kind: DetectKind) -> TransformError {
+    match kind {
+        DetectKind::Request => TransformError::UnableToDetectRequestFormat,
+        DetectKind::Response => TransformError::UnableToDetectResponseFormat,
+        DetectKind::Stream => TransformError::UnableToDetectStreamFormat,
+    }
 }
 
 fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dyn ProviderAdapter> {
@@ -943,6 +963,16 @@ mod tests {
     }
 
     #[test]
+    fn test_transform_request_unable_to_detect_mentions_request() {
+        let input = Bytes::from_static(br#"{"not":"a supported request shape"}"#);
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+
+        assert!(matches!(err, TransformError::UnableToDetectRequestFormat));
+        assert_eq!(err.to_string(), "Unable to detect request source format");
+    }
+
+    #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_response() {
         // OpenAI response format
@@ -971,6 +1001,16 @@ mod tests {
         let output_bytes = result.into_bytes();
         let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
         assert!(output.get("content").is_some() || output.get("choices").is_some());
+    }
+
+    #[test]
+    fn test_transform_response_unable_to_detect_mentions_response() {
+        let input = Bytes::from_static(br#"{"not":"a supported response shape"}"#);
+
+        let err = transform_response(input, ProviderFormat::ChatCompletions).unwrap_err();
+
+        assert!(matches!(err, TransformError::UnableToDetectResponseFormat));
+        assert_eq!(err.to_string(), "Unable to detect response source format");
     }
 
     #[test]

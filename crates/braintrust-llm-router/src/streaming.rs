@@ -154,7 +154,7 @@ impl Stream for SessionTransformStream {
                             }
                             continue;
                         }
-                        Err(lingua::TransformError::UnableToDetectFormat) => {
+                        Err(lingua::TransformError::UnableToDetectStreamFormat) => {
                             #[cfg(feature = "tracing")]
                             log_stream_transform_detection_failure(
                                 &data,
