@@ -78,6 +78,61 @@ mod tests {
     }
 
     #[test]
+    fn test_try_parse_google_accepts_numeric_schema_int64_fields() {
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "tools": [{
+                "functionDeclarations": [{
+                    "name": "demo",
+                    "description": "demo tool",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 9
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                                "minItems": 1,
+                                "maxItems": 3
+                            }
+                        }
+                    }
+                }]
+            }]
+        });
+
+        assert!(try_parse_google(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_google_accepts_string_schema_int64_fields() {
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "tools": [{
+                "functionDeclarations": [{
+                    "name": "demo",
+                    "description": "demo tool",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": "1"
+                            }
+                        }
+                    }
+                }]
+            }]
+        });
+
+        assert!(try_parse_google(&payload).is_ok());
+    }
+
+    #[test]
     fn test_try_parse_google_with_model_role() {
         let payload = json!({
             "contents": [

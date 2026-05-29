@@ -1,0 +1,62 @@
+{
+  "model": "gemini-2.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Validate tool schema bounds."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "I can do that. What is the `index_name` and `tags` (list of strings) you want to validate?",
+          "thoughtSignature": "Cu0BAQw51seMqrFmFnucSlGqnmQJOgD0sb+XT9VWZcJLZ3E8yb1dLaBSoXvI1JQGhBr8OxNdYx0AB639dy6/LaPvlh8AYFDrBj70SaX8AckSASuG/yvubgNZquVxt1Ujc7QKayINMrsEkbOKztYyRg1k3Bw7ByLfJpbVWCkVGclUtSSG9UxWe6oymeOohAfTB8wFet8EH3fP85c/uXgegWV9KqH3LmWqRKvfJ4wIJ20TEtVYSdvIJp2K5cp0jK7B0F64N6oH9mU8EN5uhfG4Y/wOtPsyeTVh8NqJsHMyPriiBijUoYnxbxC6wmbghGe3"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "validate_bounds",
+          "description": "Validate bounded string and array inputs.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "index_name": {
+                "type": "STRING",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "tags": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "STRING"
+                },
+                "minItems": 1,
+                "maxItems": 3
+              }
+            },
+            "required": [
+              "index_name",
+              "tags"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

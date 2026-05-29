@@ -5,7 +5,7 @@ import {
   Modality,
   MediaResolution,
 } from "@google/genai";
-import { TestCaseCollection } from "./types";
+import { TestCase, TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -2248,6 +2248,52 @@ export const paramsCases: TestCaseCollection = {
     },
     bedrock: null,
   },
+
+  googleToolSchemaNumericInt64Param: (() => {
+    const indexNameSchema: Record<string, unknown> = {
+      type: Type.STRING,
+      minLength: 1,
+      maxLength: 128,
+    };
+    const tagsSchema: Record<string, unknown> = {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      minItems: 1,
+      maxItems: 3,
+    };
+
+    const testCase: TestCase = {
+      "chat-completions": null,
+      responses: null,
+      anthropic: null,
+      google: {
+        model: GOOGLE_MODEL,
+        contents: [
+          { role: "user", parts: [{ text: "Validate tool schema bounds." }] },
+        ],
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "validate_bounds",
+                description: "Validate bounded string and array inputs.",
+                parameters: {
+                  type: Type.OBJECT,
+                  properties: {
+                    index_name: indexNameSchema,
+                    tags: tagsSchema,
+                  },
+                  required: ["index_name", "tags"],
+                },
+              },
+            ],
+          },
+        ],
+      },
+      bedrock: null,
+    };
+    return testCase;
+  })(),
 
   exclusiveMinimumToolParam: {
     "chat-completions": {

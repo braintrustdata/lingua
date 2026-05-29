@@ -11,7 +11,11 @@ use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
 #[cfg(feature = "tracing")]
-fn log_stream_transform_detection_failure(data: &Bytes, output_format: ProviderFormat) {
+fn log_stream_transform_detection_failure(
+    data: &Bytes,
+    output_format: ProviderFormat,
+    gateway_request_id: Option<&str>,
+) {
     let (payload_type, payload_keys) =
         lingua::serde_json::from_slice::<lingua::serde_json::Value>(data)
             .ok()
@@ -28,8 +32,10 @@ fn log_stream_transform_detection_failure(data: &Bytes, output_format: ProviderF
                 (payload_type, payload_keys)
             })
             .unwrap_or_default();
+    let gateway_request_id = gateway_request_id.unwrap_or("");
 
     tracing::info!(
+        gateway.request.id = gateway_request_id,
         router.stream.input_bytes = data.len(),
         router.stream.output_format = %output_format,
         router.stream.payload_type = payload_type,
@@ -87,6 +93,9 @@ pub fn transform_stream(
     raw: RawResponseStream,
     output_format: ProviderFormat,
     allow_full_response_fallback: bool,
+    #[cfg_attr(not(feature = "tracing"), allow(unused_variables))] gateway_request_id: Option<
+        String,
+    >,
 ) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
@@ -94,6 +103,8 @@ pub fn transform_stream(
             output_format,
             allow_full_response_fallback,
         ),
+        #[cfg(feature = "tracing")]
+        gateway_request_id,
         pending: Vec::new(),
         done: false,
     })
@@ -102,6 +113,8 @@ pub fn transform_stream(
 struct SessionTransformStream {
     raw: RawResponseStream,
     session: lingua::StreamTransformSession,
+    #[cfg(feature = "tracing")]
+    gateway_request_id: Option<String>,
     pending: Vec<Result<StreamChunk>>,
     done: bool,
 }
@@ -141,11 +154,12 @@ impl Stream for SessionTransformStream {
                             }
                             continue;
                         }
-                        Err(lingua::TransformError::UnableToDetectFormat) => {
+                        Err(lingua::TransformError::UnableToDetectStreamFormat) => {
                             #[cfg(feature = "tracing")]
                             log_stream_transform_detection_failure(
                                 &data,
                                 this.session.target_format(),
+                                this.gateway_request_id.as_deref(),
                             );
 
                             return Poll::Ready(Some(Ok(chunk)));
@@ -539,7 +553,7 @@ mod tests {
             let full_response = full_response.clone();
             async move { Ok(StreamChunk::data(full_response)) }
         }));
-        let mut stream = transform_stream(raw, ProviderFormat::ChatCompletions, false);
+        let mut stream = transform_stream(raw, ProviderFormat::ChatCompletions, false, None);
 
         let first = futures::executor::block_on(stream.next())
             .expect("stream should yield a chunk")

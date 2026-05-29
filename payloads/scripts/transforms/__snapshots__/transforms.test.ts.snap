@@ -18334,6 +18334,124 @@ exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > resp
 }
 `;
 
+exports[`google → anthropic > googleToolSchemaNumericInt64Param > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Validate tool schema bounds.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "Validate bounded string and array inputs.",
+      "input_schema": {
+        "properties": {
+          "index_name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+          },
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array",
+          },
+        },
+        "required": [
+          "index_name",
+          "tags",
+        ],
+        "type": "object",
+      },
+      "name": "validate_bounds",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > googleToolSchemaNumericInt64Param > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I'll help you validate the bounds of the tool schema by testing various scenarios. Let me make several calls to test different boundary conditions:",
+          },
+          {
+            "functionCall": {
+              "args": {
+                "index_name": "a",
+                "tags": [
+                  "tag1",
+                ],
+              },
+              "id": "toolu_01PMw5ePG7oTsYwA1GRVmrY6",
+              "name": "validate_bounds",
+            },
+          },
+          {
+            "functionCall": {
+              "args": {
+                "index_name": "this_is_exactly_128_characters_long_string_padding_with_more_text_to_reach_the_limit_and_ensure_we_hit_maximum_boundary_check_X",
+                "tags": [
+                  "tag1",
+                  "tag2",
+                  "tag3",
+                ],
+              },
+              "id": "toolu_012eTSUrPPrFSCmsY8mpptbb",
+              "name": "validate_bounds",
+            },
+          },
+          {
+            "functionCall": {
+              "args": {
+                "index_name": "valid_index_name",
+                "tags": [
+                  "minimum",
+                ],
+              },
+              "id": "toolu_015YDkvKcTjt4atdyf8B3VWY",
+              "name": "validate_bounds",
+            },
+          },
+          {
+            "functionCall": {
+              "args": {
+                "index_name": "another_valid_index",
+                "tags": [
+                  "tag1",
+                  "tag2",
+                ],
+              },
+              "id": "toolu_01FTQMSoXB3Vqqmtz3AizfoV",
+              "name": "validate_bounds",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 340,
+    "promptTokenCount": 619,
+    "totalTokenCount": 959,
+  },
+}
+`;
+
 exports[`google → anthropic > imageConfigParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -20743,6 +20861,85 @@ exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam
 }
 `;
 
+exports[`google → chat-completions > googleToolSchemaNumericInt64Param > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Validate tool schema bounds.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "Validate bounded string and array inputs.",
+        "name": "validate_bounds",
+        "parameters": {
+          "properties": {
+            "index_name": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string",
+            },
+            "tags": {
+              "items": {
+                "type": "string",
+              },
+              "maxItems": 3,
+              "minItems": 1,
+              "type": "array",
+            },
+          },
+          "required": [
+            "index_name",
+            "tags",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > googleToolSchemaNumericInt64Param > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "args": {
+                "index_name": "example",
+                "tags": [
+                  "tag1",
+                  "tag2",
+                ],
+              },
+              "name": "validate_bounds",
+            },
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 33,
+    "promptTokenCount": 162,
+    "thoughtsTokenCount": 832,
+    "totalTokenCount": 1027,
+  },
+}
+`;
+
 exports[`google → chat-completions > imageConfigParam > request 1`] = `
 {
   "messages": [
@@ -23036,6 +23233,103 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > resp
     "promptTokenCount": 42,
     "thoughtsTokenCount": 128,
     "totalTokenCount": 170,
+  },
+}
+`;
+
+exports[`google → responses > googleToolSchemaNumericInt64Param > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Validate tool schema bounds.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "Validate bounded string and array inputs.",
+      "name": "validate_bounds",
+      "parameters": {
+        "properties": {
+          "index_name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+          },
+          "tags": {
+            "items": {
+              "type": "string",
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array",
+          },
+        },
+        "required": [
+          "index_name",
+          "tags",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > googleToolSchemaNumericInt64Param > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Here are the bounds the tool schema enforces:
+
+- index_name: string with length between 1 and 128 (inclusive)
+- tags: array of strings with length between 1 and 3 (inclusive); each item is a string
+
+If you’d like, I can validate specific inputs. Examples:
+
+- Valid:
+  - index_name = "users"
+  - tags = ["admin"]
+- Invalid:
+  - index_name = "" (violates minLength 1)
+  - index_name = "a" repeated 129 times (violates maxLength 128)
+  - tags = [] (violates minItems 1)
+  - tags = ["t1", "t2", "t3", "t4"] (violates maxItems 3)
+
+Please provide values for index_name and tags (an array of strings), and I’ll run the validation. Or tell me to run a few test cases for you.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 238,
+    "promptTokenCount": 80,
+    "thoughtsTokenCount": 960,
+    "totalTokenCount": 1278,
   },
 }
 `;

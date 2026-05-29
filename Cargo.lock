@@ -2103,6 +2103,7 @@ dependencies = [
  "paste",
  "proptest",
  "pyo3",
+ "regex",
  "reqwest",
  "serde",
  "serde-wasm-bindgen",

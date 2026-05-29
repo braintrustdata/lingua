@@ -21,6 +21,26 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
 
+fn deserialize_optional_i64_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum I64String {
+        String(String),
+        I64(i64),
+        U64(u64),
+    }
+
+    Ok(
+        Option::<I64String>::deserialize(deserializer)?.map(|value| match value {
+            I64String::String(value) => value,
+            I64String::I64(value) => value.to_string(),
+            I64String::U64(value) => value.to_string(),
+        }),
+    )
+}
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
 pub struct GoogleSchemas {
@@ -940,12 +960,15 @@ pub struct Schema {
     pub maximum: Option<f64>,
     /// Optional. Maximum number of the elements for Type.ARRAY.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub max_items: Option<String>,
     /// Optional. Maximum length of the Type.STRING
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub max_length: Option<String>,
     /// Optional. Maximum number of the properties for Type.OBJECT.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub max_properties: Option<String>,
     /// Optional. SCHEMA FIELDS FOR TYPE INTEGER and NUMBER Minimum value of the Type.INTEGER and
     /// Type.NUMBER
@@ -953,12 +976,15 @@ pub struct Schema {
     pub minimum: Option<f64>,
     /// Optional. Minimum number of the elements for Type.ARRAY.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub min_items: Option<String>,
     /// Optional. SCHEMA FIELDS FOR TYPE STRING Minimum length of the Type.STRING
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub min_length: Option<String>,
     /// Optional. Minimum number of the properties for Type.OBJECT.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, deserialize_with = "deserialize_optional_i64_string")]
     pub min_properties: Option<String>,
     /// Optional. Indicates if the value may be null.
     #[serde(skip_serializing_if = "Option::is_none")]

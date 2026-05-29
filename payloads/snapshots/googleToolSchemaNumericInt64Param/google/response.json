@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "I can do that. What is the `index_name` and `tags` (list of strings) you want to validate?",
+            "thoughtSignature": "Cu0BAQw51seMqrFmFnucSlGqnmQJOgD0sb+XT9VWZcJLZ3E8yb1dLaBSoXvI1JQGhBr8OxNdYx0AB639dy6/LaPvlh8AYFDrBj70SaX8AckSASuG/yvubgNZquVxt1Ujc7QKayINMrsEkbOKztYyRg1k3Bw7ByLfJpbVWCkVGclUtSSG9UxWe6oymeOohAfTB8wFet8EH3fP85c/uXgegWV9KqH3LmWqRKvfJ4wIJ20TEtVYSdvIJp2K5cp0jK7B0F64N6oH9mU8EN5uhfG4Y/wOtPsyeTVh8NqJsHMyPriiBijUoYnxbxC6wmbghGe3"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 62,
+    "candidatesTokenCount": 27,
+    "totalTokenCount": 139,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 62
+      }
+    ],
+    "thoughtsTokenCount": 50,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "Hq4ZaonDAaHO_uMPzevviQc"
+}

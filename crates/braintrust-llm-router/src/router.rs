@@ -368,7 +368,7 @@ impl Router {
         feature = "tracing",
         tracing::instrument(
             name = "bt.router.complete_stream",
-            skip(self, request, client_headers),
+            skip(self, request, client_headers, gateway_request_id),
             fields(llm.model = %request.inner.spec.model)
         )
     )]
@@ -376,6 +376,7 @@ impl Router {
         &self,
         request: PreparedStreamRequest<'_>,
         client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
     ) -> Result<ResponseStream> {
         let PreparedRequestInner {
             provider,
@@ -395,6 +396,7 @@ impl Router {
             raw_stream,
             output_format,
             allow_full_response_fallback,
+            gateway_request_id,
         ))
     }
 
