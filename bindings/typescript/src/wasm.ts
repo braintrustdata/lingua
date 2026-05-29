@@ -19,6 +19,7 @@ export {
   linguaToAnthropicMessages,
 
   // Processing functions
+  transformRequest,
   deduplicateMessages,
   importMessagesFromSpans,
   importAndDeduplicateMessages,
@@ -50,5 +51,6 @@ export type {
   StreamSessionChunk,
   TransformStreamChunkResult,
   TransformStreamSessionHandle,
+  TransformRequestResult,
   ValidationResult,
 } from "./converters";

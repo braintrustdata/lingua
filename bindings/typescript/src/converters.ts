@@ -10,6 +10,7 @@
 
 import { getWasm } from "./wasm-runtime";
 import type { Message } from "./generated/Message";
+import type { ProviderFormat } from "./generated/ProviderFormat";
 import type { ChatCompletionRequestMessage } from "./generated/openai/ChatCompletionRequestMessage";
 import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
@@ -26,6 +27,39 @@ type GoogleWasmExports = {
   google_contents_to_lingua: (value: unknown) => unknown;
   lingua_to_google_contents: (value: unknown) => unknown;
 };
+
+export type TransformRequestResult = {
+  passThrough?: boolean;
+  transformed?: boolean;
+  sourceFormat?: ProviderFormat;
+  data: unknown;
+};
+
+function isProviderFormat(value: unknown): value is ProviderFormat {
+  return (
+    typeof value === "string" &&
+    [
+      "openai",
+      "anthropic",
+      "google",
+      "mistral",
+      "converse",
+      "responses",
+      "unknown",
+    ].includes(value)
+  );
+}
+
+function isTransformRequestResult(
+  value: unknown
+): value is TransformRequestResult {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const sourceFormat = Reflect.get(value, "sourceFormat");
+  return sourceFormat === undefined || isProviderFormat(sourceFormat);
+}
 
 // ============================================================================
 // Error handling
@@ -45,6 +79,46 @@ export class ConversionError extends Error {
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ConversionError);
     }
+  }
+}
+
+export function transformRequest(
+  input: unknown,
+  targetFormat: ProviderFormat,
+  model?: string
+): TransformRequestResult {
+  const transformRequestFn = Reflect.get(
+    getWasm(),
+    "transform_request"
+  );
+  if (typeof transformRequestFn !== "function") {
+    throw new ConversionError(
+      "Lingua WASM transform_request export is unavailable",
+      targetFormat,
+      "from_lingua"
+    );
+  }
+
+  const inputString = typeof input === "string" ? input : JSON.stringify(input);
+  try {
+    const result = convertMapsToObjects(
+      Reflect.apply(transformRequestFn, undefined, [
+        inputString,
+        targetFormat,
+        model,
+      ])
+    );
+    if (!isTransformRequestResult(result)) {
+      throw new Error("Lingua WASM returned an invalid transform result");
+    }
+    return result;
+  } catch (error: unknown) {
+    throw new ConversionError(
+      `Failed to transform request to ${targetFormat}`,
+      targetFormat,
+      "from_lingua",
+      error
+    );
   }
 }
 

@@ -20,6 +20,7 @@ describe("Node.js exports", () => {
 
     expect(typeof exports.chatCompletionsMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToChatCompletionsMessages).toBe("function");
+    expect(typeof exports.transformRequest).toBe("function");
     expect(typeof exports.anthropicMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
   });
@@ -55,6 +56,28 @@ describe("Node.js exports", () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(1);
     expect(result[0].role).toBe("user");
+  });
+
+  test("should transform full requests through WASM", async () => {
+    const { transformRequest } = await import("../src/index");
+
+    const result = transformRequest(
+      {
+        model: "gpt-5-mini",
+        messages: [{ role: "user", content: "Hello" }],
+        stream: true,
+        max_tokens: 16,
+      },
+      "responses",
+      "gpt-5-mini",
+    );
+
+    expect(result.data).toEqual({
+      model: "gpt-5-mini",
+      input: [{ role: "user", content: "Hello" }],
+      max_output_tokens: 16,
+      stream: true,
+    });
   });
 
   test("should import messages from prompt wrapper with tool calls", async () => {

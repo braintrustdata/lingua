@@ -818,6 +818,29 @@ mod tests {
     }
 
     #[test]
+    fn test_universal_tool_to_responses_web_search_passthrough() {
+        let config = json!({
+            "type": "web_search",
+            "user_location": {
+                "type": "approximate",
+                "city": "San Francisco",
+                "region": "California",
+                "country": "US",
+                "timezone": "America/Los_Angeles"
+            }
+        });
+        let tool = UniversalTool::builtin(
+            "web_search",
+            BuiltinToolProvider::Responses,
+            "web_search",
+            Some(config.clone()),
+        );
+
+        let value = tool.to_responses_value().unwrap();
+        assert_eq!(value, config);
+    }
+
+    #[test]
     fn test_universal_tool_roundtrip_anthropic() {
         let original = json!({
             "name": "get_weather",
