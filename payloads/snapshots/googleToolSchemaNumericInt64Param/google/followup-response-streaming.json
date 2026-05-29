@@ -1,0 +1,64 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Please provide the `index_name` and `tags` (as a list of strings) so I can validate the",
+              "thoughtSignature": "CmQBDDnWx9OXW813/tt8IX/WCiMMogtmjdkMyDj4YuARMzZFKtEahM06bYSwaVgF2mEcD9JZVmMLdcMOYCIPhHXCNZKQOZTF0YOTcIw7pF8k3BfNnohMDcjpBXSHxlfj8J4iCIPgCoUBAQw51sex+TbhFiplxsIy+CEkbt2ldSHA1aDmoWCAJzOvPiGvSPjbuIic04OQ85jD1YXtppmcDUaULUkJgEAfvHOCd5KTYKCayDMILMbE47m2TXsf/YGETOCmPxM0ocTp0d6Y3jarb9igzT/PrfJK/5ooLZJ5ec4qZFHhHqpbkCo6FleVRA=="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 97,
+      "candidatesTokenCount": 24,
+      "totalTokenCount": 161,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 97
+        }
+      ],
+      "thoughtsTokenCount": 40,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Hq4ZaoCiO6vi_uMP6KW32Q4"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " tool schema bounds."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 97,
+      "candidatesTokenCount": 28,
+      "totalTokenCount": 165,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 97
+        }
+      ],
+      "thoughtsTokenCount": 40,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Hq4ZaoCiO6vi_uMP6KW32Q4"
+  }
+]

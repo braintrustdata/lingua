@@ -1,0 +1,64 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I",
+              "thoughtSignature": "CiQBDDnWx1pziXrm4EnTxx04NfY/KGP3llYj9EW9B9sO6qMv+jcKdwEMOdbHXaBrAJYSLf/94T7c0lSjmrC6QcJ4asbFn7ZTvsExmQ2qLXcQAf9ZMjhZGikSRZWPXmFXgmL84/ChbL4CmIws/qYYK8fq0jlrktoifvGvmM5mXW96BlzUapvhjGB15oDy0iPWRI0wApUGgbuMGwyUgbbaCvIBAQw51sd4G6tXg6iI5pHK5zR0nh6qq7tdgqYOATPJyi6F1tC1f+5UxlsxP61KrfyHWh2Wsgq3KteGmE8BupeFlRTy44205vlOBEei/IoAprAMXzEsYl9gHlOzTGEqxjTtJoi6dI/1vdAFpI/vJTc1pkugY1H4khYQ8a3lHo9T0bORVh3Z48iMNZKXWhwrAMUALSZ+zqWZcr7yVa0JNPzZFZAiNFehCyclca6utBpRUpAsOJGOCa8gAWcTR9I4TLobRYIRZPzSMVY1n9vBjlcdhHNzHQFAINo64ncZ5mfr5AuzZIrK/uiAdFaL6o8382/qhok="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 129,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 66,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Hq4ZasLPAqTK_uMPr6b2qQw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " need more information to validate the tool schema bounds. Could you please provide the `index_name` and `tags`?"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 62,
+      "candidatesTokenCount": 26,
+      "totalTokenCount": 154,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 62
+        }
+      ],
+      "thoughtsTokenCount": 66,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "Hq4ZasLPAqTK_uMPr6b2qQw"
+  }
+]

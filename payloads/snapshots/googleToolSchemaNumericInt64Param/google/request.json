@@ -1,0 +1,45 @@
+{
+  "model": "gemini-2.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Validate tool schema bounds."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "validate_bounds",
+          "description": "Validate bounded string and array inputs.",
+          "parameters": {
+            "type": "OBJECT",
+            "properties": {
+              "index_name": {
+                "type": "STRING",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "tags": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "STRING"
+                },
+                "minItems": 1,
+                "maxItems": 3
+              }
+            },
+            "required": [
+              "index_name",
+              "tags"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

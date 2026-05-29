@@ -792,11 +792,15 @@ impl From<&FunctionDeclaration> for UniversalTool {
 fn normalize_google_schema_types(mut value: Value) -> Value {
     match &mut value {
         Value::Object(map) => {
-            if let Some(Value::String(t)) = map.get_mut("type") {
-                *t = t.to_lowercase();
-            }
             map.retain(|_, v| !v.is_null());
-            for v in map.values_mut() {
+            for (key, v) in map.iter_mut() {
+                if key == "type" {
+                    if let Value::String(t) = v {
+                        *t = t.to_lowercase();
+                    }
+                } else if is_google_schema_int64_keyword(key) {
+                    normalize_google_schema_int64_value(v);
+                }
                 *v = normalize_google_schema_types(std::mem::take(v));
             }
         }
@@ -808,6 +812,25 @@ fn normalize_google_schema_types(mut value: Value) -> Value {
         _ => {}
     }
     value
+}
+
+fn is_google_schema_int64_keyword(key: &str) -> bool {
+    matches!(
+        key,
+        "minLength" | "maxLength" | "minItems" | "maxItems" | "minProperties" | "maxProperties"
+    )
+}
+
+fn normalize_google_schema_int64_value(value: &mut Value) {
+    let Value::String(s) = value else {
+        return;
+    };
+
+    let Ok(parsed) = s.parse::<i64>() else {
+        return;
+    };
+
+    *value = Value::Number(parsed.into());
 }
 
 /// Recursively strip `exclusiveMinimum` fields from a JSON schema value in-place.
@@ -1565,6 +1588,53 @@ mod tests {
         assert_eq!(tool.description, Some("Get weather info".to_string()));
         assert!(tool.parameters.is_some());
         assert!(tool.is_function());
+    }
+
+    #[test]
+    fn test_function_declaration_schema_int64_fields_normalize_to_json_numbers() {
+        let decl: FunctionDeclaration = serde_json::from_value(json!({
+            "name": "demo",
+            "description": "demo tool",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": "9"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "maxItems": "3"
+                    }
+                }
+            }
+        }))
+        .unwrap();
+
+        let tool = UniversalTool::from(&decl);
+
+        assert_eq!(
+            tool.parameters,
+            Some(json!({
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 9
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "maxItems": 3
+                    }
+                }
+            }))
+        );
     }
 
     #[test]

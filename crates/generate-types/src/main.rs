@@ -1689,6 +1689,11 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
 
+    // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
+    // strings. Accept numeric JSON Schema input too, while preserving string
+    // serialization in the generated Google type.
+    processed = add_google_schema_int64_deserializers(&processed);
+
     processed
 }
 
@@ -1742,6 +1747,78 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
                         variant_name.to_lowercase()
                     ));
                 }
+            }
+        }
+
+        result_lines.push(line.to_string());
+    }
+
+    result_lines.join("\n")
+}
+
+fn add_google_schema_int64_deserializers(content: &str) -> String {
+    const INT64_SCHEMA_FIELDS: &[&str] = &[
+        "max_items",
+        "min_items",
+        "min_properties",
+        "max_properties",
+        "min_length",
+        "max_length",
+    ];
+
+    let mut processed = content.to_string();
+    let helper = r#"
+fn deserialize_optional_i64_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum I64String {
+        String(String),
+        I64(i64),
+        U64(u64),
+    }
+
+    Ok(Option::<I64String>::deserialize(deserializer)?.map(|value| match value {
+        I64String::String(value) => value,
+        I64String::I64(value) => value.to_string(),
+        I64String::U64(value) => value.to_string(),
+    }))
+}
+"#;
+
+    if let Some(insert_at) = processed.find("#[derive(") {
+        processed.insert_str(insert_at, helper);
+    }
+
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut result_lines = Vec::new();
+    let mut in_schema = false;
+
+    for line in lines {
+        let trimmed = line.trim();
+
+        if trimmed == "pub struct Schema {" || trimmed.ends_with("pub struct Schema {") {
+            in_schema = true;
+        } else if in_schema && trimmed == "}" {
+            in_schema = false;
+        }
+
+        if in_schema
+            && INT64_SCHEMA_FIELDS
+                .iter()
+                .any(|field| trimmed == format!("pub {field}: Option<String>,"))
+        {
+            let already_has_attr = result_lines
+                .last()
+                .is_some_and(|prev: &String| prev.contains("deserialize_optional_i64_string"));
+            if !already_has_attr {
+                let indent = line.len() - line.trim_start().len();
+                result_lines.push(format!(
+                    "{}#[serde(default, deserialize_with = \"deserialize_optional_i64_string\")]",
+                    " ".repeat(indent)
+                ));
             }
         }
 
