@@ -1,0 +1,86 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01HyqMJ9csHXdUiikvBW6xqv",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'll help you validate the bounds of the tool schema by testing various scenarios. Let me make several calls to test different boundary conditions:"
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01PMw5ePG7oTsYwA1GRVmrY6",
+      "name": "validate_bounds",
+      "input": {
+        "index_name": "a",
+        "tags": [
+          "tag1"
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_012eTSUrPPrFSCmsY8mpptbb",
+      "name": "validate_bounds",
+      "input": {
+        "index_name": "this_is_exactly_128_characters_long_string_padding_with_more_text_to_reach_the_limit_and_ensure_we_hit_maximum_boundary_check_X",
+        "tags": [
+          "tag1",
+          "tag2",
+          "tag3"
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_015YDkvKcTjt4atdyf8B3VWY",
+      "name": "validate_bounds",
+      "input": {
+        "index_name": "valid_index_name",
+        "tags": [
+          "minimum"
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01FTQMSoXB3Vqqmtz3AizfoV",
+      "name": "validate_bounds",
+      "input": {
+        "index_name": "another_valid_index",
+        "tags": [
+          "tag1",
+          "tag2"
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 619,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 340,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

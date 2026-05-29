@@ -1,0 +1,109 @@
+{
+  "id": "resp_091fe5272963963f006a19ae2080f48193887ab188885883b5",
+  "object": "response",
+  "created_at": 1780067872,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780067880,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_091fe5272963963f006a19ae20d6e481938c6bd86545fdea52",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_091fe5272963963f006a19ae2708d481938c20610ded0a3bd8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are the bounds the tool schema enforces:\n\n- index_name: string with length between 1 and 128 (inclusive)\n- tags: array of strings with length between 1 and 3 (inclusive); each item is a string\n\nIf you’d like, I can validate specific inputs. Examples:\n\n- Valid:\n  - index_name = \"users\"\n  - tags = [\"admin\"]\n- Invalid:\n  - index_name = \"\" (violates minLength 1)\n  - index_name = \"a\" repeated 129 times (violates maxLength 128)\n  - tags = [] (violates minItems 1)\n  - tags = [\"t1\", \"t2\", \"t3\", \"t4\"] (violates maxItems 3)\n\nPlease provide values for index_name and tags (an array of strings), and I’ll run the validation. Or tell me to run a few test cases for you."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Validate bounded string and array inputs.",
+      "name": "validate_bounds",
+      "parameters": {
+        "properties": {
+          "index_name": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "index_name",
+          "tags"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 80,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1198,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1278
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here are the bounds the tool schema enforces:\n\n- index_name: string with length between 1 and 128 (inclusive)\n- tags: array of strings with length between 1 and 3 (inclusive); each item is a string\n\nIf you’d like, I can validate specific inputs. Examples:\n\n- Valid:\n  - index_name = \"users\"\n  - tags = [\"admin\"]\n- Invalid:\n  - index_name = \"\" (violates minLength 1)\n  - index_name = \"a\" repeated 129 times (violates maxLength 128)\n  - tags = [] (violates minItems 1)\n  - tags = [\"t1\", \"t2\", \"t3\", \"t4\"] (violates maxItems 3)\n\nPlease provide values for index_name and tags (an array of strings), and I’ll run the validation. Or tell me to run a few test cases for you."
+}
