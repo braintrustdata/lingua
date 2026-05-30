@@ -255,6 +255,7 @@ impl ProviderAdapter for AnthropicAdapter {
             store: None,
             conversation_reference: None,
             service_tier: typed_params.service_tier,
+            prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
             extras: Default::default(),

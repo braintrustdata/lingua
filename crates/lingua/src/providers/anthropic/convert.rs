@@ -92,6 +92,139 @@ fn infer_media_type_from_reference(reference: &str) -> Option<String> {
     }
 }
 
+fn anthropic_text_provider_options<C, T>(
+    cache_control: Option<C>,
+    citations: Option<T>,
+) -> Result<Option<ProviderOptions>, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    let mut options = serde_json::Map::new();
+    if let Some(cache_control) = cache_control {
+        options.insert(
+            "cache_control".into(),
+            serde_json::to_value(cache_control).map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "cache_control".to_string(),
+                    error: e.to_string(),
+                }
+            })?,
+        );
+    }
+    if let Some(citations) = citations {
+        options.insert(
+            "citations".into(),
+            serde_json::to_value(citations).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "citations".to_string(),
+                error: e.to_string(),
+            })?,
+        );
+    }
+
+    Ok((!options.is_empty()).then_some(ProviderOptions { options }))
+}
+
+fn anthropic_user_text_part<C, T>(
+    text: String,
+    cache_control: Option<C>,
+    citations: Option<T>,
+) -> Result<UserContentPart, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    Ok(UserContentPart::Text(TextContentPart {
+        text,
+        encrypted_content: None,
+        provider_options: anthropic_text_provider_options(cache_control, citations)?,
+    }))
+}
+
+fn anthropic_mid_conv_system_parts(
+    content: generated::InputContentBlockContent,
+) -> Result<Vec<UserContentPart>, ConvertError> {
+    match content {
+        generated::InputContentBlockContent::String(text) => {
+            Ok(vec![UserContentPart::Text(TextContentPart {
+                text,
+                encrypted_content: None,
+                provider_options: None,
+            })])
+        }
+        generated::InputContentBlockContent::BlockArray(blocks) => {
+            let mut parts = Vec::new();
+            for block in blocks {
+                if let Some(text) = block.text {
+                    parts.push(anthropic_user_text_part(
+                        text,
+                        block.cache_control,
+                        block.citations,
+                    )?);
+                }
+                if let Some(content) = block.content {
+                    for text_block in content {
+                        parts.push(anthropic_user_text_part(
+                            text_block.text,
+                            text_block.cache_control,
+                            text_block.citations,
+                        )?);
+                    }
+                }
+            }
+            Ok(parts)
+        }
+        generated::InputContentBlockContent::RequestWebSearchToolResultError(_) => {
+            Err(ConvertError::ContentConversionFailed {
+                reason: "web search tool result errors cannot be used as Anthropic system content"
+                    .to_string(),
+            })
+        }
+    }
+}
+
+fn anthropic_system_message_content(
+    content: generated::MessageContent,
+) -> Result<UserContent, ConvertError> {
+    match content {
+        generated::MessageContent::String(text) => Ok(UserContent::String(text)),
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            let mut parts = Vec::new();
+            for block in blocks {
+                match block.input_content_block_type {
+                    generated::InputContentBlockType::Text => {
+                        if let Some(text) = block.text {
+                            parts.push(anthropic_user_text_part(
+                                text,
+                                block.cache_control,
+                                block.citations,
+                            )?);
+                        }
+                    }
+                    generated::InputContentBlockType::MidConvSystem => {
+                        if let Some(content) = block.content {
+                            parts.extend(anthropic_mid_conv_system_parts(content)?);
+                        }
+                    }
+                    other => {
+                        return Err(ConvertError::ContentConversionFailed {
+                            reason: format!(
+                                "unsupported Anthropic system content block type: {other:?}"
+                            ),
+                        });
+                    }
+                }
+            }
+
+            if parts.is_empty() {
+                Ok(UserContent::String(String::new()))
+            } else {
+                Ok(UserContent::Array(parts))
+            }
+        }
+    }
+}
+
 fn normalize_anthropic_tool_schema_value(value: &mut Value) {
     match value {
         Value::Object(map) => {
@@ -275,6 +408,9 @@ impl TryFromLLM<generated::InputMessage> for Message {
         }
 
         match input_msg.role {
+            generated::MessageRole::System => Ok(Message::System {
+                content: anthropic_system_message_content(input_msg.content)?,
+            }),
             generated::MessageRole::User => {
                 let content = match input_msg.content {
                     generated::MessageContent::String(text) => UserContent::String(text),
@@ -1691,6 +1827,62 @@ mod tests {
             JsonOutputFormat::try_from(&config).is_err(),
             "json_object should not map to Anthropic output_config.format; adapter shim handles it"
         );
+    }
+
+    #[test]
+    fn test_anthropic_system_role_imports_to_system_message() {
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": "Follow the project style guide."
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::String(text),
+            } => assert_eq!(text, "Follow the project style guide."),
+            other => panic!("expected system message, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_anthropic_mid_conv_system_imports_to_system_message() {
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": [
+                {
+                    "type": "mid_conv_system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Use the updated policy.",
+                            "cache_control": { "type": "ephemeral" }
+                        }
+                    ]
+                }
+            ]
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::Array(parts),
+            } => {
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    UserContentPart::Text(text) => {
+                        assert_eq!(text.text, "Use the updated policy.");
+                        assert!(text.provider_options.is_some());
+                    }
+                    other => panic!("expected text part, got {other:?}"),
+                }
+            }
+            other => panic!("expected system message with array content, got {other:?}"),
+        }
     }
 
     #[test]

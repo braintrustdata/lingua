@@ -77,6 +77,22 @@ export const paramsCases: TestCaseCollection = {
     },
   },
 
+  openaiPromptCacheKeyParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Summarize the cached policy." }],
+      prompt_cache_key: "policy-cache-v1",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Summarize the cached policy." }],
+      prompt_cache_key: "policy-cache-v1",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   // === Reasoning Configuration ===
 
   reasoningSummaryParam: {

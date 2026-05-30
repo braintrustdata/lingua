@@ -357,6 +357,70 @@
       ]
     },
     {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Bedrock Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Vertex Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Google does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Bedrock Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Vertex Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Google does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "ChatCompletions",

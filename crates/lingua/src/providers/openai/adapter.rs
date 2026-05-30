@@ -152,6 +152,7 @@ impl ProviderAdapter for OpenAIAdapter {
             store: typed_params.store,
             conversation_reference: None,
             service_tier: typed_params.service_tier,
+            prompt_cache_key: typed_params.prompt_cache_key.clone(),
             logprobs: typed_params.logprobs,
             top_logprobs: typed_params.top_logprobs,
             extras: Default::default(),
@@ -390,6 +391,14 @@ impl ProviderAdapter for OpenAIAdapter {
         // Add service_tier from canonical params
         if let Some(ref service_tier) = req.params.service_tier {
             obj.insert("service_tier".into(), Value::String(service_tier.clone()));
+        }
+
+        // Add prompt_cache_key from canonical params
+        if let Some(ref prompt_cache_key) = req.params.prompt_cache_key {
+            obj.insert(
+                "prompt_cache_key".into(),
+                Value::String(prompt_cache_key.clone()),
+            );
         }
 
         // Merge back provider-specific extras (only for OpenAI)
@@ -713,6 +722,7 @@ fn build_reasoning_config(
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::message::UserContent;
 
     #[test]
     fn test_openai_detect_request() {
@@ -739,6 +749,42 @@ mod tests {
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
         assert_eq!(reconstructed.get("model").unwrap(), "gpt-4");
         assert!(reconstructed.get("messages").is_some());
+    }
+
+    #[test]
+    fn test_openai_prompt_cache_key_imports_to_canonical_param() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "prompt_cache_key": "cache-key-1"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        assert_eq!(
+            universal.params.prompt_cache_key,
+            Some("cache-key-1".to_string())
+        );
+    }
+
+    #[test]
+    fn test_openai_prompt_cache_key_exports_from_canonical_param() {
+        let adapter = OpenAIAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                prompt_cache_key: Some("cache-key-1".to_string()),
+                ..Default::default()
+            },
+        };
+
+        let value = adapter.request_from_universal(&req).unwrap();
+
+        assert_eq!(value["prompt_cache_key"], json!("cache-key-1"));
     }
 
     #[test]
