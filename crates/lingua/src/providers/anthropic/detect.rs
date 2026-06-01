@@ -9,6 +9,7 @@ actual struct validation.
 
 use crate::providers::anthropic::generated::CreateMessageParams;
 use crate::serde_json::{self, Value};
+use serde::Deserialize;
 use thiserror::Error;
 
 /// Fields that only exist in OpenAI format, never in Anthropic.
@@ -35,6 +36,46 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
     "max_completion_tokens",
 ];
 
+#[derive(Debug, Deserialize)]
+struct DetectionRequestShape {
+    model: Option<String>,
+    messages: Option<Vec<DetectionMessageShape>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct DetectionMessageShape {
+    role: Option<String>,
+}
+
+fn is_openai_model(model: &str) -> bool {
+    model.starts_with("gpt-")
+        || model.starts_with("chatgpt-")
+        || model.starts_with("o1")
+        || model.starts_with("o3")
+        || model.starts_with("o4")
+        || model.starts_with("ft:gpt-")
+}
+
+fn looks_like_openai_system_message_request(payload: &Value) -> bool {
+    let Ok(shape) = serde_json::from_value::<DetectionRequestShape>(payload.clone()) else {
+        return false;
+    };
+
+    let Some(model) = shape.model.as_deref() else {
+        return false;
+    };
+    if !is_openai_model(model) {
+        return false;
+    }
+
+    shape
+        .messages
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .any(|message| message.role.as_deref() == Some("system"))
+}
+
 /// Attempt to parse a JSON Value as Anthropic CreateMessageParams.
 ///
 /// Returns the parsed struct if successful, or an error if the payload
@@ -50,6 +91,10 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
         }
     }
 
+    if looks_like_openai_system_message_request(payload) {
+        return Err(DetectionError::OpenAISystemMessageShape);
+    }
+
     serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
@@ -61,6 +106,8 @@ pub enum DetectionError {
     DeserializationFailed(String),
     #[error("OpenAI-specific field present: {0}")]
     OpenAIFieldPresent(String),
+    #[error("OpenAI model with system message is not Anthropic format")]
+    OpenAISystemMessageShape,
 }
 
 #[cfg(test)]
@@ -186,18 +233,21 @@ mod tests {
 
     #[test]
     fn test_try_parse_anthropic_fails_for_openai_format() {
-        // OpenAI-style payload with system role in messages - won't parse as Anthropic
-        // because Anthropic's MessageRole enum only has User and Assistant
+        // OpenAI-style payload with legacy max_tokens and a system role in messages
+        // overlaps with Anthropic fields now that generated MessageRole includes System.
         let payload = json!({
             "model": "gpt-4",
+            "max_tokens": 1024,
             "messages": [
                 {"role": "system", "content": "You are helpful"},
                 {"role": "user", "content": "Hello"}
             ]
         });
 
-        // This should fail because "system" is not a valid Anthropic role
-        assert!(try_parse_anthropic(&payload).is_err());
+        assert!(matches!(
+            try_parse_anthropic(&payload),
+            Err(DetectionError::OpenAISystemMessageShape)
+        ));
     }
 
     #[test]

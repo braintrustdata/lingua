@@ -843,6 +843,44 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_legacy_max_tokens_system_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-4",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful"},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output_bytes = result.into_bytes();
+        let output: Value = crate::serde_json::from_slice(&output_bytes).unwrap();
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("You are helpful")
+        );
+        assert_eq!(
+            output
+                .get("messages")
+                .and_then(Value::as_array)
+                .and_then(|messages| messages.first())
+                .and_then(|message| message.get("role"))
+                .and_then(Value::as_str),
+            Some("user")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_openai_system_only_to_anthropic_rejected() {
         let payload = json!({
             "model": "gpt-4",

@@ -1407,6 +1407,7 @@ mod tests {
                     { "type": "text", "text": "Before" },
                     {
                         "type": "mid_conv_system",
+                        "cache_control": { "type": "ephemeral" },
                         "content": [{ "type": "text", "text": "Use terse answers." }]
                     },
                     { "type": "text", "text": "After" }
@@ -1430,7 +1431,17 @@ mod tests {
             Message::System {
                 content: UserContent::Array(parts),
             } => match &parts[..] {
-                [UserContentPart::Text(text)] => assert_eq!(text.text, "Use terse answers."),
+                [UserContentPart::Text(text)] => {
+                    assert_eq!(text.text, "Use terse answers.");
+                    assert_eq!(
+                        text.provider_options
+                            .as_ref()
+                            .and_then(|options| options.options.get("cache_control"))
+                            .and_then(|value| value.get("type"))
+                            .and_then(Value::as_str),
+                        Some("ephemeral")
+                    );
+                }
                 other => panic!("expected mid-conversation system text, got {:?}", other),
             },
             other => panic!("expected mid-conversation system message, got {:?}", other),

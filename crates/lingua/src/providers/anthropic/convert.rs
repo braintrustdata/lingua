@@ -195,6 +195,7 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
 fn mid_conv_system_content_to_user_content(
     block: generated::InputContentBlock,
 ) -> Result<UserContent, ConvertError> {
+    let outer_cache_control = block.cache_control;
     let content = block
         .content
         .ok_or_else(|| ConvertError::MissingRequiredField {
@@ -213,7 +214,7 @@ fn mid_conv_system_content_to_user_content(
     };
 
     let mut parts = Vec::new();
-    for block in blocks {
+    for (index, block) in blocks.into_iter().enumerate() {
         if block.block_type != generated::WebSearchToolResultBlockItemType::Text {
             return Err(ConvertError::ContentConversionFailed {
                 reason: "Anthropic mid_conv_system content only supports text blocks".to_string(),
@@ -227,6 +228,24 @@ fn mid_conv_system_content_to_user_content(
             })?;
 
         let mut options = serde_json::Map::new();
+        if index == 0 {
+            if let Some(cache_control) = outer_cache_control.as_ref() {
+                if block.cache_control.is_some() {
+                    return Err(ConvertError::ContentConversionFailed {
+                        reason: "Anthropic mid_conv_system has cache_control on both the outer block and first nested text block".to_string(),
+                    });
+                }
+                options.insert(
+                    "cache_control".into(),
+                    serde_json::to_value(cache_control).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: "mid_conv_system.cache_control".to_string(),
+                            error: e.to_string(),
+                        }
+                    })?,
+                );
+            }
+        }
         if let Some(cache_control) = block.cache_control {
             options.insert(
                 "cache_control".into(),
