@@ -556,6 +556,41 @@ impl TryFromLLM<generated::InputMessage> for Message {
 
                 Ok(Message::Assistant { content, id: None })
             }
+            generated::MessageRole::System => {
+                let content = match input_msg.content {
+                    generated::MessageContent::String(text) => UserContent::String(text),
+                    generated::MessageContent::InputContentBlockArray(blocks) => {
+                        let mut content_parts = Vec::new();
+
+                        for block in blocks {
+                            match block.input_content_block_type {
+                                generated::InputContentBlockType::Text => {
+                                    if let Some(text) = block.text {
+                                        content_parts.push(UserContentPart::Text(
+                                            TextContentPart {
+                                                text,
+                                                encrypted_content: None,
+                                                provider_options: None,
+                                            },
+                                        ));
+                                    }
+                                }
+                                _ => {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if content_parts.is_empty() {
+                            UserContent::String(String::new())
+                        } else {
+                            UserContent::Array(content_parts)
+                        }
+                    }
+                };
+
+                Ok(Message::System { content })
+            }
         }
     }
 }

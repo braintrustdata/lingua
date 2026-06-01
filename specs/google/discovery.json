@@ -1,5 +1,11 @@
 {
-  "baseUrl": "https://generativelanguage.googleapis.com/",
+  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
+  "batchPath": "batch",
+  "protocol": "rest",
+  "discoveryVersion": "v1",
+  "fullyEncodeReservedExpansion": true,
+  "documentationLink": "https://developers.generativeai.google/api",
+  "title": "Gemini API",
   "parameters": {
     "access_token": {
       "type": "string",
@@ -77,10 +83,6 @@
       "location": "query"
     }
   },
-  "basePath": "",
-  "revision": "20260522",
-  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
-  "batchPath": "batch",
   "schemas": {
     "ListOperationsResponse": {
       "id": "ListOperationsResponse",
@@ -1737,7 +1739,8 @@
             "Model generated a tool call but no tools were enabled in the request.",
             "Model called too many tools consecutively, thus the system exited execution.",
             "Request has at least one thought signature missing.",
-            "Finished due to malformed response."
+            "Finished due to malformed response.",
+            "Request was filtered by an escalation rule."
           ],
           "enum": [
             "FINISH_REASON_UNSPECIFIED",
@@ -1759,7 +1762,8 @@
             "UNEXPECTED_TOOL_CALL",
             "TOO_MANY_TOOL_CALLS",
             "MISSING_THOUGHT_SIGNATURE",
-            "MALFORMED_RESPONSE"
+            "MALFORMED_RESPONSE",
+            "ESCALATION"
           ]
         },
         "finishMessage": {
@@ -5598,28 +5602,14 @@
       }
     }
   },
-  "auth": {
-    "oauth2": {
-      "scopes": {
-        "https://www.googleapis.com/auth/devstorage.read_only": {
-          "description": "View your data in Google Cloud Storage"
-        }
-      }
-    }
-  },
-  "version": "v1beta",
-  "canonicalName": "Generative Language",
-  "documentationLink": "https://developers.generativeai.google/api",
-  "id": "generativelanguage:v1beta",
-  "discoveryVersion": "v1",
-  "protocol": "rest",
-  "rootUrl": "https://generativelanguage.googleapis.com/",
+  "ownerName": "Google",
+  "kind": "discovery#restDescription",
   "icons": {
     "x16": "http://www.google.com/images/icons/product/search-16.gif",
     "x32": "http://www.google.com/images/icons/product/search-32.gif"
   },
-  "name": "generativelanguage",
-  "title": "Gemini API",
+  "version": "v1beta",
+  "revision": "20260530",
   "resources": {
     "batches": {
       "methods": {
@@ -7755,11 +7745,23 @@
       }
     }
   },
-  "servicePath": "",
-  "kind": "discovery#restDescription",
-  "fullyEncodeReservedExpansion": true,
-  "ownerName": "Google",
+  "id": "generativelanguage:v1beta",
+  "baseUrl": "https://generativelanguage.googleapis.com/",
   "version_module": true,
+  "servicePath": "",
+  "auth": {
+    "oauth2": {
+      "scopes": {
+        "https://www.googleapis.com/auth/devstorage.read_only": {
+          "description": "View your data in Google Cloud Storage"
+        }
+      }
+    }
+  },
+  "basePath": "",
+  "rootUrl": "https://generativelanguage.googleapis.com/",
+  "canonicalName": "Generative Language",
+  "name": "generativelanguage",
   "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/",
   "ownerDomain": "google.com"
 }
