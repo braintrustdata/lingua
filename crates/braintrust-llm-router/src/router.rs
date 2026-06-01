@@ -891,36 +891,6 @@ mod tests {
         spec
     }
 
-    fn bedrock_spec(model: &str, format: ProviderFormat) -> ModelSpec {
-        ModelSpec {
-            model: model.to_string(),
-            format,
-            flavor: ModelFlavor::Chat,
-            display_name: None,
-            parent: None,
-            input_cost_per_mil_tokens: None,
-            output_cost_per_mil_tokens: None,
-            input_cache_read_cost_per_mil_tokens: None,
-            multimodal: None,
-            reasoning: None,
-            max_input_tokens: None,
-            max_output_tokens: None,
-            supports_streaming: true,
-            extra: Default::default(),
-            available_providers: Default::default(),
-        }
-    }
-
-    fn bedrock_spec_with_available_providers(
-        model: &str,
-        format: ProviderFormat,
-        providers: Vec<String>,
-    ) -> ModelSpec {
-        let mut spec = bedrock_spec(model, format);
-        spec.available_providers = providers;
-        spec
-    }
-
     fn resolved_aliases(
         router: &Router,
         model: &str,
@@ -1170,11 +1140,29 @@ mod tests {
 
     #[test]
     fn bedrock_openai_catalog_format_uses_chat_completions_transport() {
+        let bedrock_spec =
+            |model: &str, format: ProviderFormat, providers: Vec<String>| ModelSpec {
+                model: model.to_string(),
+                format,
+                flavor: ModelFlavor::Chat,
+                display_name: None,
+                parent: None,
+                input_cost_per_mil_tokens: None,
+                output_cost_per_mil_tokens: None,
+                input_cache_read_cost_per_mil_tokens: None,
+                multimodal: None,
+                reasoning: None,
+                max_input_tokens: None,
+                max_output_tokens: None,
+                supports_streaming: true,
+                extra: Default::default(),
+                available_providers: providers,
+            };
         let model = "us.anthropic.claude-sonnet-4-6";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(
             model.into(),
-            bedrock_spec_with_available_providers(
+            bedrock_spec(
                 model,
                 ProviderFormat::ChatCompletions,
                 vec!["bedrock".into()],
@@ -1204,6 +1192,23 @@ mod tests {
 
     #[test]
     fn bedrock_converse_catalog_format_keeps_converse_transport_for_chat_output() {
+        let bedrock_spec = |model: &str, format: ProviderFormat| ModelSpec {
+            model: model.to_string(),
+            format,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        };
         let model = "amazon.nova-lite-v1:0";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), bedrock_spec(model, ProviderFormat::Converse));
