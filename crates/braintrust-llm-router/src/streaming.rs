@@ -1,4 +1,5 @@
 use std::pin::Pin;
+use std::sync::Arc;
 use std::task::{Context, Poll};
 
 #[cfg(feature = "provider-bedrock")]
@@ -76,6 +77,8 @@ pub type ResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Send>
 /// Each chunk contains the JSON bytes for a single SSE event.
 pub type RawResponseStream = Pin<Box<dyn Stream<Item = Result<StreamChunk>> + Send>>;
 
+pub type RawStreamChunkCapture = Arc<dyn Fn(&StreamChunk) + Send + Sync>;
+
 /// Create a raw SSE stream that yields JSON bytes without transformation.
 ///
 /// Parses Server-Sent Events from the HTTP response and yields raw JSON bytes.
@@ -97,6 +100,24 @@ pub fn transform_stream(
         String,
     >,
 ) -> ResponseStream {
+    transform_stream_with_capture(
+        raw,
+        output_format,
+        allow_full_response_fallback,
+        gateway_request_id,
+        None,
+    )
+}
+
+pub fn transform_stream_with_capture(
+    raw: RawResponseStream,
+    output_format: ProviderFormat,
+    allow_full_response_fallback: bool,
+    #[cfg_attr(not(feature = "tracing"), allow(unused_variables))] gateway_request_id: Option<
+        String,
+    >,
+    raw_chunk_capture: Option<RawStreamChunkCapture>,
+) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
         session: lingua::StreamTransformSession::with_full_response_fallback(
@@ -105,6 +126,7 @@ pub fn transform_stream(
         ),
         #[cfg(feature = "tracing")]
         gateway_request_id,
+        raw_chunk_capture,
         pending: Vec::new(),
         done: false,
     })
@@ -115,6 +137,7 @@ struct SessionTransformStream {
     session: lingua::StreamTransformSession,
     #[cfg(feature = "tracing")]
     gateway_request_id: Option<String>,
+    raw_chunk_capture: Option<RawStreamChunkCapture>,
     pending: Vec<Result<StreamChunk>>,
     done: bool,
 }
@@ -137,6 +160,10 @@ impl Stream for SessionTransformStream {
             match Pin::new(&mut this.raw).poll_next(cx) {
                 Poll::Ready(Some(Ok(chunk))) => {
                     let data = chunk.data.clone();
+                    if let Some(capture) = this.raw_chunk_capture.as_ref() {
+                        capture(&chunk);
+                    }
+
                     if data.is_empty() || data.iter().all(|b| b.is_ascii_whitespace()) {
                         continue;
                     }
