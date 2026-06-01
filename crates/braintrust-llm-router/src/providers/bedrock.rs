@@ -162,7 +162,6 @@ where
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
     pub endpoint: Url,
-    pub chat_completions_endpoint: Option<Url>,
     pub service: String,
     pub timeout: Option<Duration>,
 }
@@ -172,7 +171,6 @@ impl Default for BedrockConfig {
         Self {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/")
                 .expect("valid Bedrock endpoint"),
-            chat_completions_endpoint: None,
             service: "bedrock".to_string(),
             timeout: None,
         }
@@ -226,15 +224,6 @@ impl BedrockProvider {
         if let Some(service) = metadata.get("service").and_then(Value::as_str) {
             config.service = service.to_string();
         }
-        if let Some(endpoint) = metadata
-            .get("chat_completions_api_base")
-            .or_else(|| metadata.get("openai_api_base"))
-            .and_then(Value::as_str)
-        {
-            config.chat_completions_endpoint = Some(Url::parse(endpoint).map_err(|e| {
-                Error::InvalidRequest(format!("invalid Bedrock chat completions endpoint: {e}"))
-            })?);
-        }
         if let Some(t) = timeout {
             config.timeout = Some(t);
         }
@@ -267,11 +256,7 @@ impl BedrockProvider {
     }
 
     fn chat_completions_url(&self) -> Result<Url> {
-        let mut url = self
-            .config
-            .chat_completions_endpoint
-            .clone()
-            .unwrap_or_else(|| self.config.endpoint.clone());
+        let mut url = self.config.endpoint.clone();
         let has_v1 = url
             .path_segments()
             .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
@@ -529,7 +514,6 @@ mod tests {
     fn provider() -> BedrockProvider {
         let config = BedrockConfig {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
-            chat_completions_endpoint: None,
             service: "bedrock".to_string(),
             timeout: None,
         };
@@ -610,25 +594,6 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://bedrock-runtime.us-east-1.amazonaws.com/v1/chat/completions"
-        );
-    }
-
-    #[test]
-    fn chat_completions_url_accepts_v1_base_override() {
-        let config = BedrockConfig {
-            endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
-            chat_completions_endpoint: Some(
-                Url::parse("https://bedrock-mantle.us-east-1.api.aws/v1").unwrap(),
-            ),
-            service: "bedrock".to_string(),
-            timeout: None,
-        };
-        let provider = BedrockProvider::new(config).unwrap();
-
-        let url = provider.chat_completions_url().unwrap();
-        assert_eq!(
-            url.as_str(),
-            "https://bedrock-mantle.us-east-1.api.aws/v1/chat/completions"
         );
     }
 
