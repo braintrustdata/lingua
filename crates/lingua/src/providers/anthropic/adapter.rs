@@ -15,7 +15,9 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
-use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::convert::{
+    input_messages_to_universal_messages, system_to_user_content,
+};
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
     ToolChoice, ToolChoiceType,
@@ -179,7 +181,7 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = input_messages_to_universal_messages(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(system) = typed_params.system.clone() {
@@ -1391,6 +1393,57 @@ mod tests {
             "claude-3-5-sonnet-20241022"
         );
         assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_anthropic_request_preserves_mid_conv_system() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{
+                "role": "user",
+                "content": [
+                    { "type": "text", "text": "Before" },
+                    {
+                        "type": "mid_conv_system",
+                        "content": [{ "type": "text", "text": "Use terse answers." }]
+                    },
+                    { "type": "text", "text": "After" }
+                ]
+            }]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        assert_eq!(universal.messages.len(), 3);
+        match &universal.messages[0] {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[..] {
+                [UserContentPart::Text(text)] => assert_eq!(text.text, "Before"),
+                other => panic!("expected leading user text, got {:?}", other),
+            },
+            other => panic!("expected leading user message, got {:?}", other),
+        }
+        match &universal.messages[1] {
+            Message::System {
+                content: UserContent::Array(parts),
+            } => match &parts[..] {
+                [UserContentPart::Text(text)] => assert_eq!(text.text, "Use terse answers."),
+                other => panic!("expected mid-conversation system text, got {:?}", other),
+            },
+            other => panic!("expected mid-conversation system message, got {:?}", other),
+        }
+        match &universal.messages[2] {
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[..] {
+                [UserContentPart::Text(text)] => assert_eq!(text.text, "After"),
+                other => panic!("expected trailing user text, got {:?}", other),
+            },
+            other => panic!("expected trailing user message, got {:?}", other),
+        }
     }
 
     #[test]

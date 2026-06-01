@@ -3,8 +3,7 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_and_convert, try_parse_vec_or_single,
-    try_parsers_in_order, MessageParser,
+    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -193,6 +192,148 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
     }
 }
 
+fn mid_conv_system_content_to_user_content(
+    block: generated::InputContentBlock,
+) -> Result<UserContent, ConvertError> {
+    let content = block
+        .content
+        .ok_or_else(|| ConvertError::MissingRequiredField {
+            field: "mid_conv_system.content".to_string(),
+        })?;
+
+    let blocks = match content {
+        generated::InputContentBlockContent::BlockArray(blocks) => blocks,
+        generated::InputContentBlockContent::String(_)
+        | generated::InputContentBlockContent::RequestWebSearchToolResultError(_) => {
+            return Err(ConvertError::ContentConversionFailed {
+                reason: "Anthropic mid_conv_system content must be an array of text blocks"
+                    .to_string(),
+            });
+        }
+    };
+
+    let mut parts = Vec::new();
+    for block in blocks {
+        if block.block_type != generated::WebSearchToolResultBlockItemType::Text {
+            return Err(ConvertError::ContentConversionFailed {
+                reason: "Anthropic mid_conv_system content only supports text blocks".to_string(),
+            });
+        }
+
+        let text = block
+            .text
+            .ok_or_else(|| ConvertError::MissingRequiredField {
+                field: "mid_conv_system.content[].text".to_string(),
+            })?;
+
+        let mut options = serde_json::Map::new();
+        if let Some(cache_control) = block.cache_control {
+            options.insert(
+                "cache_control".into(),
+                serde_json::to_value(cache_control).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "mid_conv_system.content[].cache_control".to_string(),
+                        error: e.to_string(),
+                    }
+                })?,
+            );
+        }
+        if let Some(citations) = block.citations {
+            options.insert(
+                "citations".into(),
+                serde_json::to_value(citations).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "mid_conv_system.content[].citations".to_string(),
+                        error: e.to_string(),
+                    }
+                })?,
+            );
+        }
+
+        parts.push(UserContentPart::Text(TextContentPart {
+            text,
+            encrypted_content: None,
+            provider_options: if options.is_empty() {
+                None
+            } else {
+                Some(ProviderOptions { options })
+            },
+        }));
+    }
+
+    Ok(UserContent::Array(parts))
+}
+
+pub(crate) fn input_messages_to_universal_messages(
+    input_messages: Vec<generated::InputMessage>,
+) -> Result<Vec<Message>, ConvertError> {
+    let mut messages = Vec::new();
+
+    for input_msg in input_messages {
+        if input_msg.role != generated::MessageRole::User {
+            messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                input_msg,
+            )?);
+            continue;
+        }
+
+        let blocks = match input_msg.content {
+            generated::MessageContent::InputContentBlockArray(blocks) => blocks,
+            generated::MessageContent::String(text) => {
+                messages.push(Message::User {
+                    content: UserContent::String(text),
+                });
+                continue;
+            }
+        };
+
+        if !blocks.iter().any(|block| {
+            block.input_content_block_type == generated::InputContentBlockType::MidConvSystem
+        }) {
+            messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                generated::InputMessage {
+                    role: generated::MessageRole::User,
+                    content: generated::MessageContent::InputContentBlockArray(blocks),
+                },
+            )?);
+            continue;
+        }
+
+        let mut pending_user_blocks = Vec::new();
+        for block in blocks {
+            if block.input_content_block_type == generated::InputContentBlockType::MidConvSystem {
+                if !pending_user_blocks.is_empty() {
+                    messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                        generated::InputMessage {
+                            role: generated::MessageRole::User,
+                            content: generated::MessageContent::InputContentBlockArray(
+                                std::mem::take(&mut pending_user_blocks),
+                            ),
+                        },
+                    )?);
+                }
+
+                messages.push(Message::System {
+                    content: mid_conv_system_content_to_user_content(block)?,
+                });
+            } else {
+                pending_user_blocks.push(block);
+            }
+        }
+
+        if !pending_user_blocks.is_empty() {
+            messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                generated::InputMessage {
+                    role: generated::MessageRole::User,
+                    content: generated::MessageContent::InputContentBlockArray(pending_user_blocks),
+                },
+            )?);
+        }
+    }
+
+    Ok(messages)
+}
+
 impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
 
@@ -271,6 +412,34 @@ impl TryFromLLM<generated::InputMessage> for Message {
                         });
                     }
                 }
+            }
+        }
+
+        if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
+            if !blocks.is_empty()
+                && blocks.iter().all(|block| {
+                    block.input_content_block_type
+                        == generated::InputContentBlockType::MidConvSystem
+                })
+            {
+                let mut content_parts = Vec::new();
+                for block in blocks.clone() {
+                    let content = mid_conv_system_content_to_user_content(block)?;
+                    match content {
+                        UserContent::String(text) => {
+                            content_parts.push(UserContentPart::Text(TextContentPart {
+                                text,
+                                encrypted_content: None,
+                                provider_options: None,
+                            }));
+                        }
+                        UserContent::Array(parts) => content_parts.extend(parts),
+                    }
+                }
+
+                return Ok(Message::System {
+                    content: UserContent::Array(content_parts),
+                });
             }
         }
 
@@ -398,6 +567,11 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             }
                                         }
                                     }
+                                }
+                                generated::InputContentBlockType::MidConvSystem => {
+                                    return Err(ConvertError::ContentConversionFailed {
+                                        reason: "Anthropic mid_conv_system must be expanded with input_messages_to_universal_messages to preserve message order".to_string(),
+                                    });
                                 }
                                 _ => {
                                     // Skip other types for now
@@ -573,6 +747,21 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 provider_options: None,
                                             },
                                         ));
+                                    }
+                                }
+                                generated::InputContentBlockType::MidConvSystem => {
+                                    let content = mid_conv_system_content_to_user_content(block)?;
+                                    match content {
+                                        UserContent::String(text) => {
+                                            content_parts.push(UserContentPart::Text(
+                                                TextContentPart {
+                                                    text,
+                                                    encrypted_content: None,
+                                                    provider_options: None,
+                                                },
+                                            ));
+                                        }
+                                        UserContent::Array(parts) => content_parts.extend(parts),
                                     }
                                 }
                                 _ => {
@@ -1095,9 +1284,7 @@ fn try_messages_from_anthropic_request(
         });
     }
 
-    let mut request_messages =
-        <Vec<Message> as TryFromLLM<Vec<generated::InputMessage>>>::try_from(request.messages)
-            .ok()?;
+    let mut request_messages = input_messages_to_universal_messages(request.messages).ok()?;
     messages.append(&mut request_messages);
 
     if messages.is_empty() {
@@ -1112,7 +1299,8 @@ fn try_messages_from_anthropic_response(response: generated::Message) -> Option<
 }
 
 fn try_parse_input_messages_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
-    try_parse_and_convert::<Vec<generated::InputMessage>>(data)
+    let input_messages = try_parse::<Vec<generated::InputMessage>>(data)?;
+    input_messages_to_universal_messages(input_messages).ok()
 }
 
 fn try_parse_anthropic_request_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
