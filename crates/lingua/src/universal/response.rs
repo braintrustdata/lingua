@@ -259,7 +259,7 @@ impl UniversalResponse {
     /// If the stored ID originated from the same format, it is returned as-is so
     /// that round-trips preserve the original value.  Otherwise we attempt to
     /// generate a vaguely reasonable-looking placeholder (e.g.
-    /// `"msg_transformed"`, `"chatcmpl-transformed"`).
+    /// `"msg_transformed"`, `"chatcmpl-transformed"`, `"universal_transformed"`).
     /// Extract the `id` field from a provider response payload using typed
     /// deserialization, avoiding direct `Value::get` access.
     pub fn extract_id_from_payload(payload: &Value) -> Option<String> {
@@ -277,10 +277,9 @@ impl UniversalResponse {
             ProviderFormat::Anthropic => "msg_",
             ProviderFormat::BedrockAnthropic => "msg_bdrk_",
             ProviderFormat::VertexAnthropic => "msg_vrtx_",
-            ProviderFormat::ChatCompletions
-            | ProviderFormat::Mistral
-            | ProviderFormat::Universal
-            | ProviderFormat::Unknown => "chatcmpl-",
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral => "chatcmpl-",
+            ProviderFormat::Universal => "universal_",
+            ProviderFormat::Unknown => "resp_",
             ProviderFormat::Responses => "resp_",
             ProviderFormat::Google => "resp_",
             ProviderFormat::Converse => "msg_",
@@ -289,10 +288,17 @@ impl UniversalResponse {
             if self.id_format == Some(format) {
                 return id.to_string();
             }
-            let unique_part = ["msg_bdrk_", "msg_vrtx_", "resp_", "chatcmpl-", "msg_"]
-                .iter()
-                .find_map(|p| id.strip_prefix(p))
-                .unwrap_or(id);
+            let unique_part = [
+                "msg_bdrk_",
+                "msg_vrtx_",
+                "universal_",
+                "resp_",
+                "chatcmpl-",
+                "msg_",
+            ]
+            .iter()
+            .find_map(|p| id.strip_prefix(p))
+            .unwrap_or(id);
             if !unique_part.is_empty() && unique_part != PLACEHOLDER_ID {
                 return format!("{}{}", prefix, unique_part);
             }
@@ -504,5 +510,44 @@ impl UniversalUsage {
                 Value::Object(map)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn response_with_id(id: Option<&str>, id_format: Option<ProviderFormat>) -> UniversalResponse {
+        UniversalResponse {
+            id: id.map(ToString::to_string),
+            id_format,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: None,
+        }
+    }
+
+    #[test]
+    fn id_for_uses_neutral_prefixes_for_universal_and_unknown() {
+        let response = response_with_id(None, None);
+
+        assert_eq!(
+            response.id_for(ProviderFormat::Universal),
+            "universal_transformed"
+        );
+        assert_eq!(response.id_for(ProviderFormat::Unknown), "resp_transformed");
+    }
+
+    #[test]
+    fn id_for_rewrites_universal_prefix_for_provider_targets() {
+        let response =
+            response_with_id(Some("universal_existing"), Some(ProviderFormat::Universal));
+
+        assert_eq!(
+            response.id_for(ProviderFormat::ChatCompletions),
+            "chatcmpl-existing"
+        );
+        assert_eq!(response.id_for(ProviderFormat::Responses), "resp_existing");
     }
 }

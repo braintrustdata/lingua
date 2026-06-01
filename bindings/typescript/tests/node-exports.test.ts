@@ -78,6 +78,43 @@ describe("Node.js exports", () => {
     });
   });
 
+  test("should report actual target format when universal request upgrades to responses", async () => {
+    const { transformRequest } = await import("../src/index");
+
+    const result = transformRequest(
+      JSON.stringify({
+        model: "gpt-5.4-mini",
+        messages: [{ role: "user", content: "Tokyo weather" }],
+        params: {
+          reasoning: {
+            enabled: true,
+            effort: "medium",
+          },
+          tools: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: "object",
+                properties: { location: { type: "string" } },
+                required: ["location"],
+              },
+              kind: "function",
+            },
+          ],
+        },
+      }),
+      "openai",
+    );
+
+    expect(result).toMatchObject({
+      transformed: true,
+      sourceFormat: "universal",
+      actualTargetFormat: "responses",
+    });
+    expect(result.data).toHaveProperty("input");
+  });
+
   test("should transform chat completions response to universal response", async () => {
     const { transformResponse } = await import("../src/index");
 

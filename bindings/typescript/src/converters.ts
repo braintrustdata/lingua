@@ -37,6 +37,7 @@ export type TransformRequestResult<TData = unknown> =
       transformed: true;
       data: TData;
       sourceFormat: ProviderFormat;
+      actualTargetFormat: ProviderFormat;
     };
 
 export type TransformResponseResult<TData = unknown> = TransformRequestResult<TData>;

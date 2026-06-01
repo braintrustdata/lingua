@@ -55,6 +55,7 @@ fn transform_result_to_js(
     pass_through: bool,
     bytes: bytes::Bytes,
     source_format: Option<crate::capabilities::ProviderFormat>,
+    actual_target_format: Option<crate::capabilities::ProviderFormat>,
 ) -> Result<JsValue, JsValue> {
     let data_str = String::from_utf8_lossy(&bytes);
     let data =
@@ -67,6 +68,9 @@ fn transform_result_to_js(
         js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
         if let Some(sf) = source_format {
             js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
+        }
+        if let Some(tf) = actual_target_format {
+            js_sys::Reflect::set(&obj, &"actualTargetFormat".into(), &tf.to_string().into())?;
         }
     }
     js_sys::Reflect::set(&obj, &"data".into(), &data)?;
@@ -347,7 +351,7 @@ pub fn validate_google_response(json: &str) -> Result<JsValue, JsValue> {
 ///
 /// Returns an object with either:
 /// - `{ passThrough: true, data: ... }` if payload is already valid for target
-/// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+/// - `{ transformed: true, data: ..., sourceFormat: "...", actualTargetFormat: "..." }` if transformed
 #[wasm_bindgen]
 pub fn transform_request(
     input: &str,
@@ -368,30 +372,21 @@ pub fn transform_request(
 
     // Use JS native JSON.parse to avoid serde_wasm_bindgen serialization issues
     // (Map objects, $serde_json::private::Number from arbitrary_precision)
-    let (pass_through, bytes, source_format) = match result {
-        TransformResult::PassThrough(bytes) => (true, bytes, None),
+    let (pass_through, bytes, source_format, actual_target_format) = match result {
+        TransformResult::PassThrough(bytes) => (true, bytes, None, None),
         TransformResult::Transformed {
             bytes,
             source_format,
-            ..
-        } => (false, bytes, Some(source_format)),
+            actual_target_format,
+        } => (
+            false,
+            bytes,
+            Some(source_format),
+            Some(actual_target_format),
+        ),
     };
 
-    let data_str = String::from_utf8_lossy(&bytes);
-    let data =
-        js_sys::JSON::parse(&data_str).map_err(|_| JsValue::from_str("Failed to parse JSON"))?;
-
-    let obj = js_sys::Object::new();
-    if pass_through {
-        js_sys::Reflect::set(&obj, &"passThrough".into(), &JsValue::TRUE)?;
-    } else {
-        js_sys::Reflect::set(&obj, &"transformed".into(), &JsValue::TRUE)?;
-        if let Some(sf) = source_format {
-            js_sys::Reflect::set(&obj, &"sourceFormat".into(), &sf.to_string().into())?;
-        }
-    }
-    js_sys::Reflect::set(&obj, &"data".into(), &data)?;
-    Ok(obj.into())
+    transform_result_to_js(pass_through, bytes, source_format, actual_target_format)
 }
 
 /// Transform a response payload from one format to another.
@@ -401,7 +396,7 @@ pub fn transform_request(
 ///
 /// Returns an object with either:
 /// - `{ passThrough: true, data: ... }` if payload is already valid for target
-/// - `{ transformed: true, data: ..., sourceFormat: "..." }` if transformed
+/// - `{ transformed: true, data: ..., sourceFormat: "...", actualTargetFormat: "..." }` if transformed
 #[wasm_bindgen]
 pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, JsValue> {
     use crate::capabilities::ProviderFormat;
@@ -417,16 +412,21 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
 
     // Use JS native JSON.parse to avoid serde_wasm_bindgen serialization issues
     // (Map objects, $serde_json::private::Number from arbitrary_precision)
-    let (pass_through, bytes, source_format) = match result {
-        TransformResult::PassThrough(bytes) => (true, bytes, None),
+    let (pass_through, bytes, source_format, actual_target_format) = match result {
+        TransformResult::PassThrough(bytes) => (true, bytes, None, None),
         TransformResult::Transformed {
             bytes,
             source_format,
-            ..
-        } => (false, bytes, Some(source_format)),
+            actual_target_format,
+        } => (
+            false,
+            bytes,
+            Some(source_format),
+            Some(actual_target_format),
+        ),
     };
 
-    transform_result_to_js(pass_through, bytes, source_format)
+    transform_result_to_js(pass_through, bytes, source_format, actual_target_format)
 }
 
 /// Transform a streaming chunk payload from one format to another.
@@ -459,7 +459,7 @@ pub fn transform_stream_chunk(input: &str, target_format: &str) -> Result<JsValu
         } => (false, bytes, Some(source_format)),
     };
 
-    transform_result_to_js(pass_through, bytes, source_format)
+    transform_result_to_js(pass_through, bytes, source_format, None)
 }
 
 #[wasm_bindgen]
