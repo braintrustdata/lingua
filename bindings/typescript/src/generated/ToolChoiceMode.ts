@@ -3,4 +3,4 @@
 /**
  * Tool selection mode (portable across providers).
  */
-export type ToolChoiceMode = "Auto" | "None" | "Required" | "Tool";
+export type ToolChoiceMode = "auto" | "none" | "required" | "tool";

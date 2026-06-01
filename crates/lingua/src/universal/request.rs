@@ -501,6 +501,7 @@ pub struct ToolChoiceConfig {
 
 /// Tool selection mode (portable across providers).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum ToolChoiceMode {
     /// Provider decides whether to use tools
@@ -587,6 +588,7 @@ pub struct ResponseFormatConfig {
 
 /// Response format type (portable across providers).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum ResponseFormatType {
     /// Plain text output (default)
@@ -771,5 +773,34 @@ mod tests {
             crate::providers::anthropic::generated::ToolChoiceType::Auto
         );
         assert_eq!(tool_choice.disable_parallel_tool_use, Some(true));
+    }
+
+    #[test]
+    fn test_tool_choice_mode_deserializes_canonical_values() {
+        let cases = [
+            ("auto", ToolChoiceMode::Auto),
+            ("none", ToolChoiceMode::None),
+            ("required", ToolChoiceMode::Required),
+            ("tool", ToolChoiceMode::Tool),
+        ];
+
+        for (input, expected) in cases {
+            let actual: ToolChoiceMode = crate::serde_json::from_value(json!(input)).unwrap();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_response_format_type_deserializes_canonical_values() {
+        let cases = [
+            ("text", ResponseFormatType::Text),
+            ("json_object", ResponseFormatType::JsonObject),
+            ("json_schema", ResponseFormatType::JsonSchema),
+        ];
+
+        for (input, expected) in cases {
+            let actual: ResponseFormatType = crate::serde_json::from_value(json!(input)).unwrap();
+            assert_eq!(actual, expected);
+        }
     }
 }

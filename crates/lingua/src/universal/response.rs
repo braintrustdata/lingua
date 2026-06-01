@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// Universal response envelope for LLM API responses.
 ///
 /// This type captures the common structure across all provider response formats.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UniversalResponse {
     /// Original response ID from the provider (e.g. "msg_abc123"), and the
     /// format it came from. Both are skipped during serialization — IDs are
@@ -60,18 +60,22 @@ pub struct UniversalUsage {
 /// Reason why the model stopped generating.
 ///
 /// Normalized across provider-specific values.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FinishReason {
     /// Normal completion (OpenAI: "stop", Anthropic: "end_turn", Google: "STOP")
+    #[serde(alias = "stop")]
     Stop,
 
     /// Hit token limit (OpenAI: "length", Anthropic: "max_tokens")
+    #[serde(alias = "length")]
     Length,
 
     /// Model wants to call tools (OpenAI: "tool_calls", Anthropic: "tool_use")
+    #[serde(alias = "tool_calls")]
     ToolCalls,
 
     /// Content was filtered
+    #[serde(alias = "content_filter")]
     ContentFilter,
 
     /// Provider-specific reason not in the canonical set

@@ -156,14 +156,13 @@ impl ProviderAdapter for UniversalAdapter {
         serde_json::to_value(req).map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
     }
 
-    fn detect_response(&self, _payload: &Value) -> bool {
-        false
+    fn detect_response(&self, payload: &Value) -> bool {
+        serde_json::from_value::<UniversalResponse>(payload.clone()).is_ok()
     }
 
-    fn response_to_universal(&self, _payload: Value) -> Result<UniversalResponse, TransformError> {
-        Err(TransformError::UnsupportedSourceFormat(
-            ProviderFormat::Universal,
-        ))
+    fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
+        serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
     }
 
     fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {

@@ -322,6 +322,7 @@ pub fn transform_request(
 
     #[cfg(feature = "openai")]
     let target_format = if target_format == ProviderFormat::ChatCompletions
+        && source_adapter.format() == ProviderFormat::Universal
         && universal_request_needs_responses_upgrade(&universal)
     {
         ProviderFormat::Responses
@@ -877,6 +878,37 @@ mod tests {
     }
 
     #[test]
+    fn test_transform_request_universal_accepts_canonical_tool_choice_and_response_format() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "tool_choice": {
+                    "mode": "required"
+                },
+                "response_format": {
+                    "format_type": "json_schema",
+                    "json_schema": {
+                        "name": "answer",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "answer": { "type": "string" }
+                            },
+                            "required": ["answer"]
+                        }
+                    }
+                }
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
     #[cfg(feature = "openai")]
     fn test_transform_request_openai_to_universal_preserves_provider_extras() {
         let payload = json!({
@@ -1326,6 +1358,50 @@ mod tests {
                 assert!(payload.get("usage").is_some());
             }
             TransformResult::PassThrough(_) => panic!("provider response should transform"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_response_universal_roundtrips_to_provider() {
+        let payload = json!({
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "model": "gpt-5-mini",
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop"
+            }],
+            "usage": {
+                "prompt_tokens": 3,
+                "completion_tokens": 2,
+                "total_tokens": 5
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let universal = transform_response(input, ProviderFormat::Universal)
+            .unwrap()
+            .into_bytes();
+        let provider = transform_response(universal, ProviderFormat::ChatCompletions).unwrap();
+
+        match provider {
+            TransformResult::Transformed {
+                source_format,
+                actual_target_format,
+                bytes,
+            } => {
+                assert_eq!(source_format, ProviderFormat::Universal);
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
+                let output: Value = crate::serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    output.get("object").and_then(Value::as_str),
+                    Some("chat.completion")
+                );
+                assert!(output.get("choices").is_some());
+            }
+            TransformResult::PassThrough(_) => panic!("universal response should transform"),
         }
     }
 
