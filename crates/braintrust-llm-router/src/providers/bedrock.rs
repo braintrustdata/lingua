@@ -24,7 +24,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, RawResponseStream};
+use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
@@ -162,6 +162,7 @@ where
 #[derive(Debug, Clone)]
 pub struct BedrockConfig {
     pub endpoint: Url,
+    pub chat_completions_endpoint: Option<Url>,
     pub service: String,
     pub timeout: Option<Duration>,
 }
@@ -171,6 +172,7 @@ impl Default for BedrockConfig {
         Self {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/")
                 .expect("valid Bedrock endpoint"),
+            chat_completions_endpoint: None,
             service: "bedrock".to_string(),
             timeout: None,
         }
@@ -224,6 +226,15 @@ impl BedrockProvider {
         if let Some(service) = metadata.get("service").and_then(Value::as_str) {
             config.service = service.to_string();
         }
+        if let Some(endpoint) = metadata
+            .get("chat_completions_api_base")
+            .or_else(|| metadata.get("openai_api_base"))
+            .and_then(Value::as_str)
+        {
+            config.chat_completions_endpoint = Some(Url::parse(endpoint).map_err(|e| {
+                Error::InvalidRequest(format!("invalid Bedrock chat completions endpoint: {e}"))
+            })?);
+        }
         if let Some(t) = timeout {
             config.timeout = Some(t);
         }
@@ -253,6 +264,29 @@ impl BedrockProvider {
             .endpoint
             .join(&path)
             .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
+    }
+
+    fn chat_completions_url(&self) -> Result<Url> {
+        let mut url = self
+            .config
+            .chat_completions_endpoint
+            .clone()
+            .unwrap_or_else(|| self.config.endpoint.clone());
+        let has_v1 = url
+            .path_segments()
+            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            if !has_v1 {
+                segments.push("v1");
+            }
+            segments.push("chat");
+            segments.push("completions");
+        }
+        Ok(url)
     }
 
     fn sign_request(
@@ -417,11 +451,10 @@ impl crate::providers::Provider for BedrockProvider {
         format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
-        let url = if use_invoke {
-            self.invoke_model_url(&spec.model, false)?
-        } else {
-            self.converse_url(&spec.model, false)?
+        let url = match format {
+            ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(response.bytes().await?)
@@ -441,15 +474,18 @@ impl crate::providers::Provider for BedrockProvider {
                 .await;
         }
 
-        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
-        let url = if use_invoke {
-            self.invoke_model_url(&spec.model, true)?
-        } else {
-            self.converse_url(&spec.model, true)?
+        let url = match format {
+            ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            _ => self.converse_url(&spec.model, true)?,
         };
 
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        Ok(bedrock_event_stream(response))
+        if matches!(format, ProviderFormat::ChatCompletions) {
+            Ok(sse_stream(response))
+        } else {
+            Ok(bedrock_event_stream(response))
+        }
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
@@ -493,6 +529,7 @@ mod tests {
     fn provider() -> BedrockProvider {
         let config = BedrockConfig {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
+            chat_completions_endpoint: None,
             service: "bedrock".to_string(),
             timeout: None,
         };
@@ -564,6 +601,35 @@ mod tests {
             }
             other => panic!("expected Error::Auth, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn chat_completions_url_uses_bedrock_runtime_v1_path() {
+        let provider = provider();
+        let url = provider.chat_completions_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_accepts_v1_base_override() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
+            chat_completions_endpoint: Some(
+                Url::parse("https://bedrock-mantle.us-east-1.api.aws/v1").unwrap(),
+            ),
+            service: "bedrock".to_string(),
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+
+        let url = provider.chat_completions_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-mantle.us-east-1.api.aws/v1/chat/completions"
+        );
     }
 
     #[test]

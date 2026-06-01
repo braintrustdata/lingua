@@ -536,6 +536,16 @@ impl Router {
             } else {
                 ProviderFormat::Anthropic
             }
+        } else if provider.id() == "bedrock" {
+            // Bedrock supports both native Converse/invoke endpoints and an
+            // OpenAI-compatible Chat Completions endpoint. Use the OpenAI-compatible
+            // endpoint only when the model entry explicitly declares OpenAI format;
+            // otherwise preserve the catalog's Bedrock wire format.
+            if catalog_format == ProviderFormat::ChatCompletions {
+                ProviderFormat::ChatCompletions
+            } else {
+                catalog_format
+            }
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {
@@ -881,6 +891,36 @@ mod tests {
         spec
     }
 
+    fn bedrock_spec(model: &str, format: ProviderFormat) -> ModelSpec {
+        ModelSpec {
+            model: model.to_string(),
+            format,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        }
+    }
+
+    fn bedrock_spec_with_available_providers(
+        model: &str,
+        format: ProviderFormat,
+        providers: Vec<String>,
+    ) -> ModelSpec {
+        let mut spec = bedrock_spec(model, format);
+        spec.available_providers = providers;
+        spec
+    }
+
     fn resolved_aliases(
         router: &Router,
         model: &str,
@@ -1126,6 +1166,67 @@ mod tests {
         assert_eq!(routes.len(), 1);
         let (_, _, _, _, format, _) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn bedrock_openai_catalog_format_uses_chat_completions_transport() {
+        let model = "us.anthropic.claude-sonnet-4-6";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            bedrock_spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["bedrock".into()],
+            ),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "bedrock",
+                FakeProvider {
+                    name: "bedrock",
+                    formats: vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, _, format, _) = routes[0];
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn bedrock_converse_catalog_format_keeps_converse_transport_for_chat_output() {
+        let model = "amazon.nova-lite-v1:0";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), bedrock_spec(model, ProviderFormat::Converse));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "bedrock",
+                FakeProvider {
+                    name: "bedrock",
+                    formats: vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, _, format, _) = routes[0];
+        assert_eq!(format, ProviderFormat::Converse);
     }
 
     #[test]
