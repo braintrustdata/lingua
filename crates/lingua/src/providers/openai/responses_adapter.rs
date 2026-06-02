@@ -1018,6 +1018,46 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_preserves_deferred_namespace_tool_search_tools() {
+        let adapter = ResponsesAdapter;
+        let namespace = json!({
+            "type": "namespace",
+            "name": "inventory",
+            "description": "Deferred inventory lookup tools.",
+            "tools": [{
+                "type": "function",
+                "name": "lookup_inventory_sku",
+                "description": "Look up the internal inventory SKU for a named item.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "item_name": {"type": "string"}
+                    },
+                    "required": ["item_name"]
+                },
+                "defer_loading": true
+            }]
+        });
+        let tool_search = json!({
+            "type": "tool_search"
+        });
+        let payload = json!({
+            "model": "gpt-5.4-2026-03-05",
+            "input": [{"role": "user", "content": "Look up cobalt-bandage."}],
+            "tools": [namespace.clone(), tool_search.clone()]
+        });
+
+        let universal = adapter
+            .request_to_universal(payload)
+            .expect("deferred namespace tools should parse");
+        let round_tripped = adapter
+            .request_from_universal(&universal)
+            .expect("deferred namespace tools should serialize");
+
+        assert_eq!(round_tripped["tools"], json!([namespace, tool_search]));
+    }
+
+    #[test]
     fn test_responses_item_reference_imports_to_conversation_reference() {
         let adapter = ResponsesAdapter;
         let payload = json!({
