@@ -389,14 +389,6 @@
       ]
     },
     {
-      "testCase": "toolChoiceRequiredWithReasoningParam",
-      "source": "Google",
-      "target": "ChatCompletions",
-      "errors": [
-        { "pattern": "mixes signed and unsigned tool/reasoning parts", "reason": "ChatCompletions has one top-level reasoning_signature and cannot represent Google responses that mix signed reasoning with unsigned tool calls without smearing the signature onto replayed tool calls" }
-      ]
-    },
-    {
       "testCase": "responseModalitiesAudioParam",
       "source": "Google",
       "target": "Anthropic",
