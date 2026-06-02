@@ -1,0 +1,124 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "I'",
+              "thoughtSignature": "Cl0BDDnWx7h2ZnTXKMbSAdIb3jby8Vv4YThyzs3ZaKZp5ny6y93qTXf9zQuda1ICQ4BjluueKF2ogY2WMIOg9OGuK/T7O1OW7FqWwMHDBVE3uEVff6wCcJ0Q1XSeFmAKjQIBDDnWx/SUcrNRQ+RTa7ZXs8MBxliFnhWoaahq4+YtmESa3WPIUyyAnJsw9zhvOqFmVV+S2aPatjMkCahl4+X8HdMMrUmcajUejHBd8jbTtUSY190z1zOPPwbKo71Ht3yMoQklxGtIYZYKv3WIYAacBfGBz4RD40KQjTmF7rLwcf4JSIi7xbMW8F3+6PYjVN/w8z0WBF1sohuxaF6w8Czpv19umTsNdz9H1wAC36tBadoj6mwSCvSPYg6YQwRSHFECPPI/ZLc5wA9FISQ7G3k/F/ZECDzeRVaEzhepkAc3TVOkmA0q+Cnzskz8YdglLChZRd2VrWjrPQnErdJX/xdz/QW6BPXeWO35QtjMjQ=="
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 107,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 168,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 107
+        }
+      ],
+      "thoughtsTokenCount": 59,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "m not sure what you mean by \"next\". Could you please provide more context? For example, are you looking to:\n\n*   **Query one of the collections?** (e.g., \"Show me all movies released in 20"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 107,
+      "candidatesTokenCount": 53,
+      "totalTokenCount": 219,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 107
+        }
+      ],
+      "thoughtsTokenCount": 59,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "23.\")\n*   **Add data to a collection?** (e.g., \"Add a new user to the 'users' collection.\")\n*   **Perform a different database operation?**\n*   **Do something completely unrelated"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 107,
+      "candidatesTokenCount": 103,
+      "totalTokenCount": 269,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 107
+        }
+      ],
+      "thoughtsTokenCount": 59,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " to databases?**"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 107,
+      "candidatesTokenCount": 107,
+      "totalTokenCount": 273,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 107
+        }
+      ],
+      "thoughtsTokenCount": 59,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+  }
+]

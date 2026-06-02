@@ -1,0 +1,98 @@
+{
+  "id": "resp_065e504389243eaa006a1e853c8b70819aaa433808cf406cba",
+  "object": "response",
+  "created_at": 1780385084,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780385086,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_065e504389243eaa006a1e853d4068819a9b2f5a3bb4fdef36",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_065e504389243eaa006a1e853e0398819aad6f1e938280b4fb",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "database"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 89,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 174,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 263
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection."
+}

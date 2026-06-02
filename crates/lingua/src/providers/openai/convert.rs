@@ -3776,16 +3776,22 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    encrypted_content,
                                     ..
-                                } => Some(openai::ToolCall {
-                                    id: tool_call_id.clone(),
-                                    tool_call_type: openai::FluffyType::Function,
-                                    function: Some(openai::PurpleFunction {
-                                        name: tool_name.clone(),
-                                        arguments: arguments.to_string(),
-                                    }),
-                                    custom: None,
-                                }),
+                                } => {
+                                    if signature.is_none() {
+                                        signature = encrypted_content.clone();
+                                    }
+                                    Some(openai::ToolCall {
+                                        id: tool_call_id.clone(),
+                                        tool_call_type: openai::FluffyType::Function,
+                                        function: Some(openai::PurpleFunction {
+                                            name: tool_name.clone(),
+                                            arguments: arguments.to_string(),
+                                        }),
+                                        custom: None,
+                                    })
+                                }
                                 _ => None,
                             })
                             .collect();
@@ -3910,6 +3916,39 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(tool_call.as_deref(), Some("thought_signature_123"));
+    }
+
+    #[test]
+    fn response_message_tool_call_signature_becomes_reasoning_signature() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "list_collections".to_string(),
+                arguments: ToolCallArguments::from(r#"{"database":"mydb"}"#.to_string()),
+                encrypted_content: Some("dGhvdWdodF9zaWduYXR1cmVfMTIz".to_string()),
+                provider_options: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        };
+
+        let converted =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("message should convert");
+
+        assert_eq!(
+            converted.reasoning_signature.as_deref(),
+            Some("dGhvdWdodF9zaWduYXR1cmVfMTIz")
+        );
+        assert_eq!(
+            converted
+                .base
+                .tool_calls
+                .as_ref()
+                .and_then(|tool_calls| tool_calls.first())
+                .map(|tool_call| tool_call.id.as_str()),
+            Some("call_123")
+        );
     }
 
     #[test]

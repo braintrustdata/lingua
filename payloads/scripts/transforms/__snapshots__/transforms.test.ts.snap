@@ -7032,6 +7032,93 @@ exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam 
 }
 `;
 
+exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_123",
+          "input": {
+            "database": "mydb",
+          },
+          "name": "list_collections",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "["movies","users"]",
+          "tool_use_id": "call_123",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "input_schema": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "name": "list_collections",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-015LQHcNzXwfqPkWxys7rTWo",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 26,
+    "prompt_tokens": 639,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 665,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9692,6 +9779,105 @@ exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > 
       "cached_tokens": 0,
     },
     "total_tokens": 690,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "List the collections in the mydb database.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "toolUse": {
+            "input": {
+              "database": "mydb",
+            },
+            "name": "list_collections",
+            "toolUseId": "call_123",
+          },
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "["movies","users"]",
+              },
+            ],
+            "toolUseId": "call_123",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "List the collections in a MongoDB database.",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "database": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "database",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "list_collections",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 26,
+    "prompt_tokens": 639,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 665,
   },
 }
 `;
@@ -12388,6 +12574,7 @@ exports[`chat-completions → google > functionToolsWithReasoningEffortParam > r
 
 Okay, so the user wants to know the weather in Tokyo. That's straightforward enough. I know I have a \`get_weather\` tool at my disposal, and that tool is designed specifically for retrieving weather information based on a given location. Therefore, my next logical step is to utilize this tool. I need to call \`get_weather\` with the input "Tokyo." That should give me the weather data the user is seeking. It's a simple request, and I can fulfill it directly using the appropriate function.
 ",
+        "reasoning_signature": "CucBAQw51sf3ly4/NPgf7Ek2GW7TFKExYspWKxo1FDh0SEd3bhvkBUsqj/hKTP/t5K52qzd+94aqzwD0qEtQmndHMjheAavUlU8wNTaJlyMxYPLgyr6njdSASQT19OGN6CvTdhikTvvHCeuYoQ5cLTTX/cQmaU35dmDsq+jQww4KejnIzuiA0S//0DXztUy5K+uiGDu/ghNOOePgNJbKNbGGChP7qnCbSgi5lb3GRIJBRhQPbiRHG0Hh6gVrWWHw4jOqBcDOZaYgSslwDeWZQZebPhxPMlDq4GUcR7l+0Kjh38Aoctmx4RVn",
         "role": "assistant",
         "tool_calls": [
           {
@@ -12413,6 +12600,105 @@ Okay, so the user wants to know the weather in Tokyo. That's straightforward eno
     },
     "prompt_tokens": 37,
     "total_tokens": 98,
+  },
+}
+`;
+
+exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "List the collections in the mydb database.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "database": "mydb",
+            },
+            "name": "list_collections",
+          },
+          "thoughtSignature": "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "list_collections",
+            "response": {
+              "output": [
+                "movies",
+                "users",
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-2.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "List the collections in a MongoDB database.",
+          "name": "list_collections",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "database": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "database",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The \`mydb\` database has two collections: \`movies\` and \`users\`.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 83,
+    "total_tokens": 99,
   },
 }
 `;
@@ -13185,6 +13471,7 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "CoQCAb4+9vsZLZBZClmxBgaHNtTauUi3lKai7dwaC7SSTYxuGDJBT95LEogTdUW2OacVT9P8kv0p5U1O2/FL3ue1kRlg0Y9i7UdNtDBRVo0vYANrHAqDZv70t7fRUPMwYWnLgPYGb478EimjKH0q5eRfBBj1V95//TOZ/Y6ENK9fWpmzDgp0mBiuIsFzLHyDjYc3w/jnwAUDKJ6n/cipjq2PxN0Ml7DJnA2sXwy1TV2uUzB8ElTpcyqMuVXicrgeTKjbnFhapiJTOoG2iNE8uX8I7v6g19LW62L4EqxM79pJorubztmFVNQNk5NO7MWdyCL83jAC1bIE69ojOPakz3zwstgO3u4=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -14837,6 +15124,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "Eo4DCosDAQw51scBWT4vkiVr013+EFv8M/dPtDJ/ro0rBk5a2H7rgnIeSGwQumwOPiXDyMXQ3H59equt90wNc0MWs6TuCSTeRSQVGG7NJKSQ3vdK8EZdqZkf76/SZxpSuOkKru/FXet38iTRTA19XdOTEFqdZKvQ3PHvIfh1mIQDdOCeKCe+urFniCXqZUU6MKZ8HxnqECbW0dDmYNNFvZTQBzjZwzaO9iQK0zm24ABsmghGC0MTLzk2R0vpBnESCip9j2gNm8+5y0vvMsdJ9Focej7nw4PnnBDEpLtGZUKORQKWiOFsNw0MUqPPMbSJaPwEaPUYShUhUcjDmd9ZUH/fzzLHfspHvaZp1BrGx/kAVLOeIZwR3rFCMvvJnCelT19fcYqhqZCy5s+23Pewh98khfqnAB42+P0+V5uIfB5IUirMnVVTq0H0YiDlzzJkOFH9/Ofnl+kGMVvyuAwvfaQDp6p1sk/SMp4eVdRIy9pj5MV56wBZkB9uDmJ02SCEFhxjiXfvmfL9usc+hV346XE=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -14922,6 +15210,7 @@ exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = 
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "CucBAb4+9vs+L8b5DWxZLf3YrtyE8jaiRvH3+WfoYiFe+3UsTHFrh6yby+drplwgFn9zcIL7y6DA1G/RT7Xdo489paNL+GTgzaqw0vV0Xj0wdOOsrVkgGfJLhdGpxtFTsaCC3XD+Py7LoBV2qQ14IZmtfdXvHvyQISbziF3U9el7zQj7ksoPMudDWHE7tA6aCsU63lJbAoEtvdIyImcxvT9ikCONlFXlNKi1fhKgmqlaiSthawjVpRH3yNNQRWsfILjR09Z4F6noiN5v4m25/GoVOxwGfo5QaqtF1vXeVHD1fa5NMyLlTsHy",
         "role": "assistant",
         "tool_calls": [
           {
@@ -15018,6 +15307,7 @@ exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > re
 
 Okay, here's the situation: the user needs the weather for Tokyo. Thankfully, I have the \`get_weather\` tool at my disposal! This tool is specifically designed to provide weather information, and it takes a location as input. So, the path forward is clear. I need to call the \`get_weather\` tool. The key piece of information needed to get the job done is "Tokyo." I'll feed "Tokyo" to the \`get_weather\` tool, and hopefully, I'll return the user with the meteorological insights they require.
 ",
+        "reasoning_signature": "CvUBAb4+9vvbHYYDxRU+GMpl6jV1aX39BlEBVrnr13g03xCinYCWIH9Y0VT1bdLVQIRGR0fylIRuhSQ670AxC+5nVEoPUWm9lQ2qf88khbkpAJjKU1e1fVZlKqx2Zyt/2vjX8da5CC3pRLDG+GW7/3JxZmQiZMsmgyiOSrJw3gM4LN983UyoKFDR19zVywnySpo30MZGToMDR+/CKXddu43tqpE/5Hwxy92pUEjGX/sFIoKqR2oiI7Y9ThytQBxvHnIORZzO8+vEg1VZWq1dOour0qbyuOfVJTIpfDVrU1AFJiGLlU3q/f7m8RKvqQM3kD1RX3IY2l8=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -15429,6 +15719,89 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
       "cached_tokens": 0,
     },
     "total_tokens": 93,
+  },
+}
+`;
+
+exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "arguments": "{"database":"mydb"}",
+      "call_id": "call_123",
+      "name": "list_collections",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_123",
+      "output": "["movies","users"]",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-065e504389243eaa006a1e853c8b70819aaa433808cf406cba",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 174,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 89,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 263,
   },
 }
 `;
@@ -18334,6 +18707,88 @@ exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > resp
 }
 `;
 
+exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_123",
+          "input": {
+            "database": "mydb",
+          },
+          "name": "list_collections",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "{"output":["movies","users"]}",
+          "tool_use_id": "call_123",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "input_schema": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "name": "list_collections",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 26,
+    "promptTokenCount": 642,
+    "totalTokenCount": 668,
+  },
+}
+`;
+
 exports[`google → anthropic > googleToolSchemaNumericInt64Param > request 1`] = `
 {
   "max_tokens": 4096,
@@ -20861,6 +21316,86 @@ exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam
 }
 `;
 
+exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "reasoning_signature": "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{"database":"mydb"}",
+            "name": "list_collections",
+          },
+          "id": "call_123",
+          "type": "function",
+        },
+      ],
+    },
+    {
+      "content": "{"output":["movies","users"]}",
+      "role": "tool",
+      "tool_call_id": "call_123",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "List the collections in a MongoDB database.",
+        "name": "list_collections",
+        "parameters": {
+          "properties": {
+            "database": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "database",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The mydb database contains 2 collections:
+- movies
+- users",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 176,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 327,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleToolSchemaNumericInt64Param > request 1`] = `
 {
   "messages": [
@@ -23233,6 +23768,89 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > resp
     "promptTokenCount": 42,
     "thoughtsTokenCount": 128,
     "totalTokenCount": 170,
+  },
+}
+`;
+
+exports[`google → responses > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "arguments": "{"database":"mydb"}",
+      "call_id": "call_123",
+      "name": "list_collections",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_123",
+      "name": "list_collections",
+      "output": "{"output":["movies","users"]}",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in mydb are: movies and users.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 59,
+    "promptTokenCount": 92,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 279,
   },
 }
 `;

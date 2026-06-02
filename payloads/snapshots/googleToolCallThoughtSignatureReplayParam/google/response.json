@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in the `mydb` database are `movies` and `users`."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 83,
+    "candidatesTokenCount": 16,
+    "totalTokenCount": 99,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 83
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "LoUeasfqF9DK_uMPqJKf6Aw"
+}

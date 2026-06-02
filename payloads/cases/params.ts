@@ -1178,6 +1178,108 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  googleToolCallThoughtSignatureReplayParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "List the collections in the mydb database.",
+        },
+        {
+          role: "assistant",
+          content: null,
+          reasoning_signature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+          tool_calls: [
+            {
+              id: "call_123",
+              type: "function",
+              function: {
+                name: "list_collections",
+                arguments: JSON.stringify({ database: "mydb" }),
+              },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_123",
+          content: JSON.stringify(["movies", "users"]),
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "list_collections",
+            description: "List the collections in a MongoDB database.",
+            parameters: {
+              type: "object",
+              properties: {
+                database: { type: "string" },
+              },
+              required: ["database"],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "List the collections in the mydb database." }],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              functionCall: {
+                id: "call_123",
+                name: "list_collections",
+                args: { database: "mydb" },
+              },
+              thoughtSignature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                id: "call_123",
+                name: "list_collections",
+                response: { output: ["movies", "users"] },
+              },
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "list_collections",
+              description: "List the collections in a MongoDB database.",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  database: { type: Type.STRING },
+                },
+                required: ["database"],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
   parallelToolCallsDisabledParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
