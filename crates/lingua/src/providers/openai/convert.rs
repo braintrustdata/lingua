@@ -99,22 +99,38 @@ fn input_item_output_to_output(output: Option<openai::Output>) -> Option<openai:
 }
 
 fn merge_reasoning_signature(
-    current: &mut Option<String>,
+    current: &mut Option<Option<String>>,
     next: &Option<String>,
 ) -> Result<(), ConvertError> {
-    let Some(next) = next else {
-        return Ok(());
-    };
-
-    match current {
-        Some(current) if current != next => Err(ConvertError::ContentConversionFailed {
-            reason: "OpenAI Chat Completions response messages only support one reasoning_signature, but the assistant content contains multiple distinct encrypted tool/reasoning signatures".to_string(),
-        }),
-        Some(_) => Ok(()),
-        None => {
-            *current = Some(next.clone());
+    match (current.as_ref(), next) {
+        (Some(Some(current)), Some(next)) if current != next => {
+            Err(ConvertError::ContentConversionFailed {
+                reason: "OpenAI Chat Completions response messages only support one reasoning_signature, but the assistant content contains multiple distinct encrypted tool/reasoning signatures".to_string(),
+            })
+        }
+        (Some(Some(_)), None) | (Some(None), Some(_)) => {
+            Err(ConvertError::ContentConversionFailed {
+                reason: "OpenAI Chat Completions response messages only support one reasoning_signature, but the assistant content mixes signed and unsigned tool/reasoning parts".to_string(),
+            })
+        }
+        (Some(_), _) => Ok(()),
+        (None, Some(next)) => {
+            *current = Some(Some(next.clone()));
             Ok(())
         }
+        (None, None) => {
+            *current = Some(None);
+            Ok(())
+        }
+    }
+}
+
+fn reasoning_signature_value(
+    signature: Option<Option<String>>,
+) -> Result<Option<String>, ConvertError> {
+    match signature {
+        Some(Some(signature)) => Ok(Some(signature)),
+        Some(None) | None => Ok(None),
     }
 }
 
@@ -3773,7 +3789,7 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 
                         // Extract reasoning from parts and concatenate, also capture signature
                         let mut reasonings: Vec<String> = Vec::new();
-                        let mut signature: Option<String> = None;
+                        let mut signature: Option<Option<String>> = None;
                         for part in parts {
                             if let AssistantContentPart::Reasoning {
                                 text,
@@ -3827,7 +3843,12 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             Some(tool_calls)
                         };
 
-                        (content_text, tool_calls_option, reasoning, signature)
+                        (
+                            content_text,
+                            tool_calls_option,
+                            reasoning,
+                            reasoning_signature_value(signature)?,
+                        )
                     }
                 };
 
@@ -3997,6 +4018,38 @@ mod tests {
         assert!(error
             .to_string()
             .contains("multiple distinct encrypted tool/reasoning signatures"));
+    }
+
+    #[test]
+    fn response_message_rejects_mixed_signed_and_unsigned_tool_calls() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "first_tool".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("signature_one".to_string()),
+                    provider_options: None,
+                    provider_executed: None,
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_2".to_string(),
+                    tool_name: "second_tool".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+            .expect_err("mixed signed and unsigned tool calls should not be collapsed");
+
+        assert!(error
+            .to_string()
+            .contains("mixes signed and unsigned tool/reasoning parts"));
     }
 
     #[test]
