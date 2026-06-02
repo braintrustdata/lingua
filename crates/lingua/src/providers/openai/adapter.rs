@@ -208,10 +208,6 @@ impl ProviderAdapter for OpenAIAdapter {
         if let Some(safety_identifier) = typed_params.safety_identifier {
             extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
         }
-        if let Some(prompt_cache_key) = typed_params.prompt_cache_key {
-            extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
-        }
-
         if !extras_map.is_empty() {
             params
                 .extras
@@ -404,6 +400,9 @@ impl ProviderAdapter for OpenAIAdapter {
         // Merge back provider-specific extras (only for OpenAI)
         if let Some(extras) = openai_extras {
             for (k, v) in extras {
+                if k == "prompt_cache_key" && req.params.prompt_cache_key.is_some() {
+                    continue;
+                }
                 obj.insert(k.clone(), v.clone());
             }
         }
@@ -766,6 +765,11 @@ mod tests {
             universal.params.prompt_cache_key,
             Some("cache-key-1".to_string())
         );
+        assert!(!universal
+            .params
+            .extras
+            .get(&ProviderFormat::ChatCompletions)
+            .is_some_and(|extras| extras.contains_key("prompt_cache_key")));
     }
 
     #[test]
@@ -785,6 +789,23 @@ mod tests {
         let value = adapter.request_from_universal(&req).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-1"));
+    }
+
+    #[test]
+    fn test_openai_prompt_cache_key_canonical_value_overrides_stale_extra() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "prompt_cache_key": "cache-key-original"
+        });
+
+        let mut universal = adapter.request_to_universal(payload).unwrap();
+        universal.params.prompt_cache_key = Some("cache-key-updated".to_string());
+
+        let value = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
     }
 
     #[test]

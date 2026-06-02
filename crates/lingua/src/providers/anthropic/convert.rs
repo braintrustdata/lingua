@@ -141,33 +141,72 @@ where
     }))
 }
 
+fn combine_anthropic_text_provider_options(
+    inherited: Option<ProviderOptions>,
+    own: Option<ProviderOptions>,
+) -> Option<ProviderOptions> {
+    match (inherited, own) {
+        (None, None) => None,
+        (Some(options), None) | (None, Some(options)) => Some(options),
+        (Some(inherited), Some(own)) => {
+            let mut options = inherited.options;
+            options.extend(own.options);
+            Some(ProviderOptions { options })
+        }
+    }
+}
+
+fn anthropic_user_text_part_with_inherited_options<C, T>(
+    text: String,
+    cache_control: Option<C>,
+    citations: Option<T>,
+    inherited_options: Option<ProviderOptions>,
+) -> Result<UserContentPart, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    Ok(UserContentPart::Text(TextContentPart {
+        text,
+        encrypted_content: None,
+        provider_options: combine_anthropic_text_provider_options(
+            inherited_options,
+            anthropic_text_provider_options(cache_control, citations)?,
+        ),
+    }))
+}
+
 fn anthropic_mid_conv_system_parts(
     content: generated::InputContentBlockContent,
+    parent_provider_options: Option<ProviderOptions>,
 ) -> Result<Vec<UserContentPart>, ConvertError> {
     match content {
         generated::InputContentBlockContent::String(text) => {
             Ok(vec![UserContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
-                provider_options: None,
+                provider_options: parent_provider_options,
             })])
         }
         generated::InputContentBlockContent::BlockArray(blocks) => {
             let mut parts = Vec::new();
+            let mut inherited_parent_options = parent_provider_options;
             for block in blocks {
                 if let Some(text) = block.text {
-                    parts.push(anthropic_user_text_part(
+                    parts.push(anthropic_user_text_part_with_inherited_options(
                         text,
                         block.cache_control,
                         block.citations,
+                        inherited_parent_options.take(),
                     )?);
                 }
                 if let Some(content) = block.content {
                     for text_block in content {
-                        parts.push(anthropic_user_text_part(
+                        parts.push(anthropic_user_text_part_with_inherited_options(
                             text_block.text,
                             text_block.cache_control,
                             text_block.citations,
+                            inherited_parent_options.take(),
                         )?);
                     }
                 }
@@ -202,8 +241,13 @@ fn anthropic_system_message_content(
                         }
                     }
                     generated::InputContentBlockType::MidConvSystem => {
+                        let parent_provider_options =
+                            anthropic_text_provider_options(block.cache_control, block.citations)?;
                         if let Some(content) = block.content {
-                            parts.extend(anthropic_mid_conv_system_parts(content)?);
+                            parts.extend(anthropic_mid_conv_system_parts(
+                                content,
+                                parent_provider_options,
+                            )?);
                         }
                     }
                     other => {
@@ -1877,6 +1921,62 @@ mod tests {
                     UserContentPart::Text(text) => {
                         assert_eq!(text.text, "Use the updated policy.");
                         assert!(text.provider_options.is_some());
+                    }
+                    other => panic!("expected text part, got {other:?}"),
+                }
+            }
+            other => panic!("expected system message with array content, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_anthropic_mid_conv_system_import_preserves_parent_cache_control() {
+        #[derive(serde::Deserialize)]
+        struct TextProviderOptionsView {
+            cache_control: Option<generated::CacheControlEphemeral>,
+        }
+
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": [
+                {
+                    "type": "mid_conv_system",
+                    "cache_control": { "type": "ephemeral" },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Use the updated policy."
+                        }
+                    ]
+                }
+            ]
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::Array(parts),
+            } => {
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    UserContentPart::Text(text) => {
+                        assert_eq!(text.text, "Use the updated policy.");
+                        let provider_options = text
+                            .provider_options
+                            .as_ref()
+                            .expect("parent cache_control should be preserved");
+                        let options: TextProviderOptionsView =
+                            serde_json::from_value(Value::Object(provider_options.options.clone()))
+                                .unwrap();
+                        assert_eq!(
+                            options
+                                .cache_control
+                                .expect("cache_control should exist")
+                                .cache_control_ephemeral_type,
+                            generated::CacheControlEphemeralType::Ephemeral
+                        );
                     }
                     other => panic!("expected text part, got {other:?}"),
                 }

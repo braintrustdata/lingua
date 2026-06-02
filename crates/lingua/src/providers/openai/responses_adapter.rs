@@ -236,10 +236,6 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(safety_identifier) = typed_params.safety_identifier {
             extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
         }
-        if let Some(prompt_cache_key) = typed_params.prompt_cache_key {
-            extras_map.insert("prompt_cache_key".into(), Value::String(prompt_cache_key));
-        }
-
         if let Some(v) = typed_params.max_output_tokens {
             extras_map.insert("max_output_tokens".into(), Value::Number(v.into()));
         }
@@ -1041,6 +1037,11 @@ mod tests {
             universal.params.prompt_cache_key,
             Some("cache-key-1".to_string())
         );
+        assert!(!universal
+            .params
+            .extras
+            .get(&ProviderFormat::Responses)
+            .is_some_and(|extras| extras.contains_key("prompt_cache_key")));
     }
 
     #[test]
@@ -1060,6 +1061,23 @@ mod tests {
         let value = adapter.request_from_universal(&req).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-1"));
+    }
+
+    #[test]
+    fn test_responses_prompt_cache_key_canonical_value_overrides_stale_extra() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Hello"}],
+            "prompt_cache_key": "cache-key-original"
+        });
+
+        let mut universal = adapter.request_to_universal(payload).unwrap();
+        universal.params.prompt_cache_key = Some("cache-key-updated".to_string());
+
+        let value = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
     }
 
     #[test]
