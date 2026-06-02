@@ -65,26 +65,28 @@ fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
 }
 
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
-    let tool: openai::Tool = serde_json::from_value(value.clone()).ok()?;
+    let tool: openai::InputItemTool = serde_json::from_value(value.clone()).ok()?;
+    let tool_type = tool.tool_type?;
 
-    match tool {
-        openai::Tool::Function(function) => {
-            let parameters = Value::Object(function.parameters);
+    match tool_type {
+        openai::ToolType::Function => {
+            let name = tool.name?;
+            let parameters = tool.parameters.map(Value::Object);
             Some(UniversalTool::function(
-                function.name,
-                function.description,
-                Some(parameters),
-                Some(function.strict),
+                name,
+                tool.description,
+                parameters,
+                tool.strict,
             ))
         }
-        openai::Tool::CustomParam(custom) => Some(UniversalTool::custom(
-            custom.name,
-            custom.description,
-            custom.format,
-        )),
-        _ => {
-            let typed_tool: openai::InputItemTool = serde_json::from_value(value.clone()).ok()?;
-            let tool_type = typed_tool.tool_type?;
+        openai::ToolType::Custom => {
+            let name = tool.name?;
+            let format = tool
+                .format
+                .and_then(|format| serde_json::to_value(format).ok());
+            Some(UniversalTool::custom(name, tool.description, format))
+        }
+        tool_type => {
             let tool_type_name = generated_tool_type_name(tool_type)?;
             Some(UniversalTool::builtin(
                 tool_type_name.clone(),
