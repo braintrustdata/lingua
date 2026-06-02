@@ -5,8 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "I'",
-              "thoughtSignature": "Cl0BDDnWx7h2ZnTXKMbSAdIb3jby8Vv4YThyzs3ZaKZp5ny6y93qTXf9zQuda1ICQ4BjluueKF2ogY2WMIOg9OGuK/T7O1OW7FqWwMHDBVE3uEVff6wCcJ0Q1XSeFmAKjQIBDDnWx/SUcrNRQ+RTa7ZXs8MBxliFnhWoaahq4+YtmESa3WPIUyyAnJsw9zhvOqFmVV+S2aPatjMkCahl4+X8HdMMrUmcajUejHBd8jbTtUSY190z1zOPPwbKo71Ht3yMoQklxGtIYZYKv3WIYAacBfGBz4RD40KQjTmF7rLwcf4JSIi7xbMW8F3+6PYjVN/w8z0WBF1sohuxaF6w8Czpv19umTsNdz9H1wAC36tBadoj6mwSCvSPYg6YQwRSHFECPPI/ZLc5wA9FISQ7G3k/F/ZECDzeRVaEzhepkAc3TVOkmA0q+Cnzskz8YdglLChZRd2VrWjrPQnErdJX/xdz/QW6BPXeWO35QtjMjQ=="
+              "text": "I can help you"
             }
           ],
           "role": "model"
@@ -15,20 +14,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 107,
-      "candidatesTokenCount": 2,
-      "totalTokenCount": 168,
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 109,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 107
+          "tokenCount": 105
         }
       ],
-      "thoughtsTokenCount": 59,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
   },
   {
     "candidates": [
@@ -36,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": "m not sure what you mean by \"next\". Could you please provide more context? For example, are you looking to:\n\n*   **Query one of the collections?** (e.g., \"Show me all movies released in 20"
+              "text": " with a few more things related to MongoDB. Do you want to:\n\n1"
             }
           ],
           "role": "model"
@@ -45,20 +43,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 107,
-      "candidatesTokenCount": 53,
-      "totalTokenCount": 219,
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 20,
+      "totalTokenCount": 125,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 107
+          "tokenCount": 105
         }
       ],
-      "thoughtsTokenCount": 59,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
   },
   {
     "candidates": [
@@ -66,7 +63,7 @@
         "content": {
           "parts": [
             {
-              "text": "23.\")\n*   **Add data to a collection?** (e.g., \"Add a new user to the 'users' collection.\")\n*   **Perform a different database operation?**\n*   **Do something completely unrelated"
+              "text": ". **List documents in a collection?** (e.g., \"List all movies in the 'movies' collection.\")\n2. **Find a specific document in a collection?** (e.g., \"Find the user named"
             }
           ],
           "role": "model"
@@ -75,20 +72,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 107,
-      "candidatesTokenCount": 103,
-      "totalTokenCount": 269,
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 68,
+      "totalTokenCount": 173,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 107
+          "tokenCount": 105
         }
       ],
-      "thoughtsTokenCount": 59,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
   },
   {
     "candidates": [
@@ -96,7 +92,65 @@
         "content": {
           "parts": [
             {
-              "text": " to databases?**"
+              "text": " 'John Doe' in the 'users' collection.\")\n3. **Insert a new document into a collection?** (e.g., \"Add a new movie titled 'The Matrix' to the 'movies' collection.\")\n4. **Update"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 119,
+      "totalTokenCount": 224,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 105
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " an existing document in a collection?** (e.g., \"Change the genre of 'The Matrix' to 'Sci-Fi'.\")\n5. **Delete a document from a collection?** (e.g., \"Delete"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 167,
+      "totalTokenCount": 272,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 105
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " the movie 'The Matrix'.\")\n\nLet me know what you'd like to do!"
             }
           ],
           "role": "model"
@@ -106,19 +160,18 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 107,
-      "candidatesTokenCount": 107,
-      "totalTokenCount": 273,
+      "promptTokenCount": 105,
+      "candidatesTokenCount": 186,
+      "totalTokenCount": 291,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 107
+          "tokenCount": 105
         }
       ],
-      "thoughtsTokenCount": 59,
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-2.5-flash",
-    "responseId": "LoUeareVPNDK_uMPqJKf6Aw"
+    "responseId": "EjMfasnPAdKJz7IPsNTVeA"
   }
 ]

@@ -4,8 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "You could try inserting, finding, updating, or deleting documents within one of the collections. What would you like to do?",
-            "thoughtSignature": "CssDAQw51sebZ2IO/6FLyjjQzcQGmwIuyqAGl7CYIcFN660Fb1q/wllLPvo7PiRISQpmsau1/EKI6jhkwLLKjZR8kUESk9U6nG4xw2QHj0QeLlT2bZjz14vK3dQI99kMdIZZFzP7Q3B1puCcPCpgFOT7eKxnq4gBNRUU2jL6RCio52gy8B90htz9zrvAl5+nip7JZNxjYt3mBjtXfQhz8AlQJFHTLrsa9FK2006IjFmLoogmFyUV3E1jpGqk6wgSC9vP42brgLRJF3a1aJAkvjJa3Pl1mRhFseupJJg24QyPbZ/B2DfM1BMJOZ/bnR1UQfMzru91MWm8pcT9U/1rTt50NFhaIoDo7AV3hSYXGdf9+i0KSiAI76tU1h4zkc8TKeSJUzx2RgeoPm/SKUHeoJ8Z02WLYZvwz+Py5ZyaN5YdnCsJ8VSaZqHJrE1OO9GsP7YjVQcYw6CQZX4flo9xUqySwZJ8GaSfbz8b9XwTNm6QSSwbkjfOXR3PJrcFOH9eN0QoJw+rXTTtbg7p8ZOIYbxj+hP0Gf2QYTjd0TPjFr+I/IiW+U9iS3RFXoap+OvmxvNX+R1oDVdsavbEmacuUhgGASjpOlTDg4x3X3MN"
+            "text": "That depends on what you're trying to achieve! Since you've just listed the collections, perhaps you'd like to:\n\n*   **View the documents within a collection:** You could specify a collection name and ask to see what's inside.\n*   **Query a collection:** If you're looking for specific data, you could ask to search a collection with certain criteria.\n*   **Add data to a collection:** If you're building up your database, you might want to insert new documents.\n*   **Update or delete data:** If you need to modify existing information.\n\nCould you tell me what you're interested in doing with the `movies` or `users` collections?"
           }
         ],
         "role": "model"
@@ -15,18 +14,17 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 107,
-    "candidatesTokenCount": 25,
-    "totalTokenCount": 215,
+    "promptTokenCount": 105,
+    "candidatesTokenCount": 148,
+    "totalTokenCount": 253,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 107
+        "tokenCount": 105
       }
     ],
-    "thoughtsTokenCount": 83,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "LoUeauzsOLfL_uMP_p-iyAw"
+  "responseId": "ETMfaqCnPMjqz7IPpqqj8AI"
 }

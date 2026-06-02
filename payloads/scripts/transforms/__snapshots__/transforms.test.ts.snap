@@ -7105,7 +7105,7 @@ exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayPa
     },
   ],
   "created": 0,
-  "id": "chatcmpl-015LQHcNzXwfqPkWxys7rTWo",
+  "id": "chatcmpl-01S9JLYYZe4k5uctkuMhmrhv",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -12686,7 +12686,7 @@ exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "The \`mydb\` database has two collections: \`movies\` and \`users\`.",
+        "content": "The collections in the \`mydb\` database are \`movies\` and \`users\`.",
         "role": "assistant",
       },
     },
@@ -15783,17 +15783,21 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
       "index": 1,
       "message": {
         "annotations": [],
-        "content": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection.",
+        "content": "The collections in the mydb database are:
+- movies
+- users
+
+Would you like to see document counts or sample documents from any of these?",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
-  "id": "chatcmpl-065e504389243eaa006a1e853c8b70819aaa433808cf406cba",
+  "id": "chatcmpl-0b84110d340c2d3c006a1f332124ac8199b234ca6f6df198ba",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 174,
+    "completion_tokens": 222,
     "completion_tokens_details": {
       "reasoning_tokens": 128,
     },
@@ -15801,7 +15805,7 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 263,
+    "total_tokens": 311,
   },
 }
 `;
@@ -18718,7 +18722,7 @@ exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > requ
     {
       "content": [
         {
-          "id": "call_123",
+          "id": "call_0",
           "input": {
             "database": "mydb",
           },
@@ -18732,7 +18736,7 @@ exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > requ
       "content": [
         {
           "content": "{"output":["movies","users"]}",
-          "tool_use_id": "call_123",
+          "tool_use_id": "call_0",
           "type": "tool_result",
         },
       ],
@@ -21332,7 +21336,7 @@ exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam
             "arguments": "{"database":"mydb"}",
             "name": "list_collections",
           },
-          "id": "call_123",
+          "id": "call_0",
           "type": "function",
         },
       ],
@@ -21340,7 +21344,7 @@ exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam
     {
       "content": "{"output":["movies","users"]}",
       "role": "tool",
-      "tool_call_id": "call_123",
+      "tool_call_id": "call_0",
     },
   ],
   "model": "gpt-5-nano",
@@ -21374,7 +21378,7 @@ exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam
       "content": {
         "parts": [
           {
-            "text": "The mydb database contains 2 collections:
+            "text": "The collections in the mydb database are:
 - movies
 - users",
           },
@@ -23781,13 +23785,13 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > requ
     },
     {
       "arguments": "{"database":"mydb"}",
-      "call_id": "call_123",
+      "call_id": "call_0",
       "name": "list_collections",
       "status": "completed",
       "type": "function_call",
     },
     {
-      "call_id": "call_123",
+      "call_id": "call_0",
       "name": "list_collections",
       "output": "{"output":["movies","users"]}",
       "type": "function_call_output",
@@ -23835,7 +23839,11 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > resp
       "content": {
         "parts": [
           {
-            "text": "The collections in mydb are: movies and users.",
+            "text": "The collections in mydb are:
+- movies
+- users
+
+Would you like any details from these collections (e.g., document counts or sample documents)?",
           },
         ],
         "role": "model",
@@ -23847,10 +23855,10 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > resp
   "modelVersion": "gpt-5-nano-2025-08-07",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 59,
+    "candidatesTokenCount": 41,
     "promptTokenCount": 92,
-    "thoughtsTokenCount": 128,
-    "totalTokenCount": 279,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 325,
   },
 }
 `;

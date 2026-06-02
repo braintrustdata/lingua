@@ -1,13 +1,13 @@
 {
-  "id": "resp_065e504389243eaa006a1e853c8b70819aaa433808cf406cba",
+  "id": "resp_0b84110d340c2d3c006a1f332124ac8199b234ca6f6df198ba",
   "object": "response",
-  "created_at": 1780385084,
+  "created_at": 1780429601,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1780385086,
+  "completed_at": 1780429602,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,12 +18,13 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_065e504389243eaa006a1e853d4068819a9b2f5a3bb4fdef36",
+      "id": "rs_0b84110d340c2d3c006a1f33217628819999ed2532d4f88152",
       "type": "reasoning",
+      "content": [],
       "summary": []
     },
     {
-      "id": "msg_065e504389243eaa006a1e853e0398819aad6f1e938280b4fb",
+      "id": "msg_0b84110d340c2d3c006a1f33229414819999567a18c6e8b83a",
       "type": "message",
       "status": "completed",
       "content": [
@@ -31,7 +32,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection."
+          "text": "The collections in the mydb database are:\n- movies\n- users\n\nWould you like to see document counts or sample documents from any of these?"
         }
       ],
       "role": "assistant"
@@ -86,13 +87,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 174,
+    "output_tokens": 222,
     "output_tokens_details": {
       "reasoning_tokens": 128
     },
-    "total_tokens": 263
+    "total_tokens": 311
   },
   "user": null,
   "metadata": {},
-  "output_text": "The collections in mydb are: movies and users. If you’d like, I can show document counts or sample documents from either collection."
+  "output_text": "The collections in the mydb database are:\n- movies\n- users\n\nWould you like to see document counts or sample documents from any of these?"
 }

@@ -1238,7 +1238,6 @@ export const paramsCases: TestCaseCollection = {
           parts: [
             {
               functionCall: {
-                id: "call_123",
                 name: "list_collections",
                 args: { database: "mydb" },
               },
@@ -1251,7 +1250,6 @@ export const paramsCases: TestCaseCollection = {
           parts: [
             {
               functionResponse: {
-                id: "call_123",
                 name: "list_collections",
                 response: { output: ["movies", "users"] },
               },

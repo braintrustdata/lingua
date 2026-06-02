@@ -4646,13 +4646,15 @@ data: [DONE]
 exports[`streaming: chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > streaming 1`] = `
 "data: {"choices":[],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":"The **","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":"The","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":"mydb** database contains the","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":" collections","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":" following collections:\\n\\n1. **movies","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":" in the **","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":"**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":"mydb** database are:","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\n1. **movies**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":"\\n2. **users**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 

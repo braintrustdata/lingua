@@ -4,7 +4,7 @@
       "content": {
         "parts": [
           {
-            "text": "The `mydb` database has two collections: `movies` and `users`."
+            "text": "The collections in the `mydb` database are `movies` and `users`."
           }
         ],
         "role": "model"
@@ -26,5 +26,5 @@
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-2.5-flash",
-  "responseId": "PIUeaqSqIc3TjMcPy766gQM"
+  "responseId": "ITMfaq70ApWFz7IPp7XT0QQ"
 }

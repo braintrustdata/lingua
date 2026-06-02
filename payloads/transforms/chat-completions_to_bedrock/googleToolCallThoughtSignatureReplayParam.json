@@ -18,11 +18,11 @@
     "cacheWriteInputTokens": 0
   },
   "metrics": {
-    "latencyMs": 1195
+    "latencyMs": 1408
   },
   "$metadata": {
     "httpStatusCode": 200,
-    "requestId": "81244456-39d4-4ae7-8b19-3d35072f1e84",
+    "requestId": "890315d5-44b5-4c75-bfcc-5c87296e10bb",
     "attempts": 1,
     "totalRetryDelay": 0
   }

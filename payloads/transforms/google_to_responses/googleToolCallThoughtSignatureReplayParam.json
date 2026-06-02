@@ -1,13 +1,13 @@
 {
-  "id": "resp_0ba185e790d38d2b006a1e853dd19c819b85950374125c53a7",
+  "id": "resp_029792e03dc7334d006a1f3322b8c0819bbb49a1f14bba521b",
   "object": "response",
-  "created_at": 1780385085,
+  "created_at": 1780429602,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1780385087,
+  "completed_at": 1780429604,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,12 +18,13 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0ba185e790d38d2b006a1e853e7d48819b8610bbc023579e46",
+      "id": "rs_029792e03dc7334d006a1f3322ff20819b971c0d7951e9b941",
       "type": "reasoning",
+      "content": [],
       "summary": []
     },
     {
-      "id": "msg_0ba185e790d38d2b006a1e853f7a54819babddec1cdc3d1f85",
+      "id": "msg_029792e03dc7334d006a1f33242b60819bae00a15015be25c7",
       "type": "message",
       "status": "completed",
       "content": [
@@ -31,7 +32,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The collections in mydb are: movies and users."
+          "text": "The collections in mydb are:\n- movies\n- users\n\nWould you like any details from these collections (e.g., document counts or sample documents)?"
         }
       ],
       "role": "assistant"
@@ -86,13 +87,13 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 187,
+    "output_tokens": 233,
     "output_tokens_details": {
-      "reasoning_tokens": 128
+      "reasoning_tokens": 192
     },
-    "total_tokens": 279
+    "total_tokens": 325
   },
   "user": null,
   "metadata": {},
-  "output_text": "The collections in mydb are: movies and users."
+  "output_text": "The collections in mydb are:\n- movies\n- users\n\nWould you like any details from these collections (e.g., document counts or sample documents)?"
 }

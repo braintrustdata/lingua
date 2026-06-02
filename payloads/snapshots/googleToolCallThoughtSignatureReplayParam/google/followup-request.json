@@ -13,7 +13,6 @@
       "parts": [
         {
           "functionCall": {
-            "id": "call_123",
             "name": "list_collections",
             "args": {
               "database": "mydb"
@@ -28,7 +27,6 @@
       "parts": [
         {
           "functionResponse": {
-            "id": "call_123",
             "name": "list_collections",
             "response": {
               "output": [
@@ -44,7 +42,7 @@
       "role": "model",
       "parts": [
         {
-          "text": "The collections in the `mydb` database are `movies` and `users`."
+          "text": "The collections in the 'mydb' database are: movies, users."
         }
       ]
     },

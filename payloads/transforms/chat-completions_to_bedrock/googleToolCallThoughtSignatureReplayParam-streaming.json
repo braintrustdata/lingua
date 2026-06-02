@@ -7,7 +7,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "The **"
+        "text": "The"
       },
       "contentBlockIndex": 0
     }
@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "mydb** database contains the"
+        "text": " collections"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " following collections:\n\n1. **movies"
+        "text": " in the **"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "**"
+        "text": "mydb** database are:"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\n1. **movies**"
       },
       "contentBlockIndex": 0
     }
@@ -62,7 +70,7 @@
         "totalTokens": 664
       },
       "metrics": {
-        "latencyMs": 1472
+        "latencyMs": 1347
       }
     }
   }

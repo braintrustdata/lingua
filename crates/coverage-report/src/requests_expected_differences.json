@@ -293,14 +293,6 @@
       ]
     },
     {
-      "testCase": "googleToolCallThoughtSignatureReplayParam",
-      "source": "Google",
-      "target": "Google",
-      "fields": [
-        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Google omits synthetic call IDs with the call_ prefix on export, then regenerates positional synthetic IDs on re-parse" }
-      ]
-    },
-    {
       "testCase": "imageUrlMimeTypeFallbackParam",
       "source": "*",
       "target": "Bedrock",
