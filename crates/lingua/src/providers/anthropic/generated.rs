@@ -334,6 +334,11 @@ pub enum MessageContent {
 ///
 /// A content block that represents a file to be uploaded to the container
 /// Files uploaded via this block will be available in the container's input directory.
+///
+/// System instructions that appear mid-conversation.
+///
+/// Use this block to provide or update system-level instructions at a specific
+/// point in the conversation, rather than only via the top-level `system` parameter.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct InputContentBlock {
@@ -352,6 +357,7 @@ pub struct InputContentBlock {
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    /// System instruction text blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<InputContentBlockContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -847,6 +853,8 @@ pub enum ToolResultErrorCode {
     UrlNotAccessible,
     #[serde(rename = "url_not_allowed")]
     UrlNotAllowed,
+    #[serde(rename = "url_not_in_prior_context")]
+    UrlNotInPriorContext,
     #[serde(rename = "url_too_long")]
     UrlTooLong,
 }
@@ -926,6 +934,8 @@ pub enum InputContentBlockType {
     ContainerUpload,
     Document,
     Image,
+    #[serde(rename = "mid_conv_system")]
+    MidConvSystem,
     #[serde(rename = "redacted_thinking")]
     RedactedThinking,
     #[serde(rename = "search_result")]
@@ -953,6 +963,7 @@ pub enum InputContentBlockType {
 #[ts(export_to = "anthropic/")]
 pub enum MessageRole {
     Assistant,
+    System,
     User,
 }
 
@@ -2141,6 +2152,14 @@ pub struct Usage {
     pub input_tokens: i64,
     /// The number of output tokens which were used.
     pub output_tokens: i64,
+    /// Breakdown of output tokens by category.
+    ///
+    /// `output_tokens` remains the inclusive, authoritative total used for billing.
+    /// This object provides a read-only decomposition for observability — for example,
+    /// how many of the billed output tokens were spent on internal reasoning that may
+    /// have been summarized before being returned to you.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_tokens_details: Option<OutputTokensDetails>,
     /// The number of server tool requests.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_tool_use: Option<ServerToolUsage>,
@@ -2158,6 +2177,20 @@ pub struct CacheCreation {
     /// The number of input tokens used to create the 5 minute cache entry.
     #[serde(rename = "ephemeral_5m_input_tokens")]
     pub ephemeral_5_m_input_tokens: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct OutputTokensDetails {
+    /// Number of output tokens the model generated as internal reasoning, including
+    /// the thinking-block delimiter tokens.
+    ///
+    /// Reflects the raw reasoning the model produced, not the (possibly shorter)
+    /// summarized thinking text returned in the response body. Computed by
+    /// re-tokenizing the raw reasoning text, so it may differ from the model's exact
+    /// generation count by a small number of tokens. Always ≤ `output_tokens`;
+    /// `output_tokens - thinking_tokens` approximates the non-reasoning output.
+    pub thinking_tokens: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]

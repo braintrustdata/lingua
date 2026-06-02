@@ -1,5 +1,5 @@
 import { Type, FunctionCallingConfigMode } from "@google/genai";
-import { TestCaseCollection } from "./types";
+import { AnthropicMessageCreateParams, TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -13,8 +13,39 @@ import {
 const IMAGE_BASE64 =
   "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
 
+const anthropicMidConversationSystemRequest = {
+  model: ANTHROPIC_MODEL,
+  max_tokens: 16,
+  temperature: 0,
+  system:
+    "If there is no later system message, answer the final question with exactly INITIAL.",
+  messages: [
+    {
+      role: "user",
+      content: "What is the required answer?",
+    },
+    {
+      role: "system",
+      content: [
+        {
+          type: "text",
+          text: "For the next user message, answer with exactly UPDATED and no other text.",
+        },
+      ],
+    },
+  ],
+} as unknown as AnthropicMessageCreateParams;
+
 // Advanced test cases - complex functionality testing
 export const advancedCases: TestCaseCollection = {
+  anthropicMidConversationSystemMessage: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: anthropicMidConversationSystemRequest,
+    google: null,
+    bedrock: null,
+  },
+
   multimodalRequest: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

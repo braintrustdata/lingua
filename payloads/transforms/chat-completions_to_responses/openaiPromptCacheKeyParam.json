@@ -1,0 +1,79 @@
+{
+  "id": "resp_01ea2ae9a7dbf6ee006a1b4a17ec5c81a3b6d9fb8d538b970b",
+  "object": "response",
+  "created_at": 1780173335,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780173341,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_01ea2ae9a7dbf6ee006a1b4a18435c81a3b5ffb657bcaab1ae",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_01ea2ae9a7dbf6ee006a1b4a1c92b881a3977aee3dbb66d8f8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have access to a specific “cached policy” in this chat. If you share the policy text (or a link/document), I’ll summarize it right away.\n\nIf you’d like to proceed with a summary structure yourself, here’s a concise template you can use:\n- Purpose and scope: what the policy covers and who it applies to.\n- Key requirements: the main rules or actions required or prohibited.\n- Roles and responsibilities: who enforces it and who must comply.\n- Exceptions and compliance: how exceptions are requested/approved and how compliance is monitored.\n- Enforcement and penalties: consequences for violations.\n- Review and update: how often it’s reviewed and updated.\n- Definitions and references: key terms and any related documents.\n\nIf you paste the policy text, I can provide:\n- A one-paragraph executive summary.\n- A bullet-point outline of the main requirements.\n- A brief section-by-section summary (if the document is long). \n\nWould you like to share the policy now, or tell me your preferred length and audience for the summary?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": "policy-cache-v1",
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1122,
+    "output_tokens_details": {
+      "reasoning_tokens": 896
+    },
+    "total_tokens": 1135
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t have access to a specific “cached policy” in this chat. If you share the policy text (or a link/document), I’ll summarize it right away.\n\nIf you’d like to proceed with a summary structure yourself, here’s a concise template you can use:\n- Purpose and scope: what the policy covers and who it applies to.\n- Key requirements: the main rules or actions required or prohibited.\n- Roles and responsibilities: who enforces it and who must comply.\n- Exceptions and compliance: how exceptions are requested/approved and how compliance is monitored.\n- Enforcement and penalties: consequences for violations.\n- Review and update: how often it’s reviewed and updated.\n- Definitions and references: key terms and any related documents.\n\nIf you paste the policy text, I can provide:\n- A one-paragraph executive summary.\n- A bullet-point outline of the main requirements.\n- A brief section-by-section summary (if the document is long). \n\nWould you like to share the policy now, or tell me your preferred length and audience for the summary?"
+}

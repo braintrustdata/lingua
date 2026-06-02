@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I don't have access to any cached policy to summarize. I don't see any policy document in our conversation history.\n\nCould you please:\n1. **Share the policy** you'd like me to summarize, or\n2. **Clarify which policy** you're referring to (company policy, privacy policy, terms of service, etc.), or\n3. **Paste the policy text** directly if you'd like me to analyze it?\n\nOnce you provide the policy, I'll be happy to create a clear, concise summary for you."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 14,
+    "outputTokens": 120,
+    "totalTokens": 134,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1427
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "7a5bdeb4-1dc3-4d14-a962-e326e1909cac",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

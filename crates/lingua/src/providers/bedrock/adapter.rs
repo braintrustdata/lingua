@@ -159,6 +159,7 @@ impl ProviderAdapter for BedrockAdapter {
             store: None,
             conversation_reference: None,
             service_tier: None,
+            prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
             extras: Default::default(),
