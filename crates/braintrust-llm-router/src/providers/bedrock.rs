@@ -24,7 +24,7 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, RawResponseStream};
+use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
@@ -255,6 +255,25 @@ impl BedrockProvider {
             .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
     }
 
+    fn chat_completions_url(&self) -> Result<Url> {
+        let mut url = self.config.endpoint.clone();
+        let has_v1 = url
+            .path_segments()
+            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            if !has_v1 {
+                segments.push("v1");
+            }
+            segments.push("chat");
+            segments.push("completions");
+        }
+        Ok(url)
+    }
+
     fn sign_request(
         &self,
         url: &Url,
@@ -417,11 +436,10 @@ impl crate::providers::Provider for BedrockProvider {
         format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
-        let url = if use_invoke {
-            self.invoke_model_url(&spec.model, false)?
-        } else {
-            self.converse_url(&spec.model, false)?
+        let url = match format {
+            ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
         Ok(response.bytes().await?)
@@ -441,15 +459,18 @@ impl crate::providers::Provider for BedrockProvider {
                 .await;
         }
 
-        let use_invoke = matches!(format, ProviderFormat::BedrockAnthropic);
-        let url = if use_invoke {
-            self.invoke_model_url(&spec.model, true)?
-        } else {
-            self.converse_url(&spec.model, true)?
+        let url = match format {
+            ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            _ => self.converse_url(&spec.model, true)?,
         };
 
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        Ok(bedrock_event_stream(response))
+        if matches!(format, ProviderFormat::ChatCompletions) {
+            Ok(sse_stream(response))
+        } else {
+            Ok(bedrock_event_stream(response))
+        }
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
@@ -564,6 +585,16 @@ mod tests {
             }
             other => panic!("expected Error::Auth, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn chat_completions_url_uses_bedrock_runtime_v1_path() {
+        let provider = provider();
+        let url = provider.chat_completions_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/v1/chat/completions"
+        );
     }
 
     #[test]
