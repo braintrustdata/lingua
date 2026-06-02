@@ -261,6 +261,38 @@
       ]
     },
     {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Responses requests cannot carry it on function_call items" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Bedrock Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Vertex Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
       "testCase": "imageUrlMimeTypeFallbackParam",
       "source": "*",
       "target": "Bedrock",

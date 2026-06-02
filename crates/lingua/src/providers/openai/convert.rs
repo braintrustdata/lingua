@@ -98,6 +98,26 @@ fn input_item_output_to_output(output: Option<openai::Output>) -> Option<openai:
     })
 }
 
+fn merge_reasoning_signature(
+    current: &mut Option<String>,
+    next: &Option<String>,
+) -> Result<(), ConvertError> {
+    let Some(next) = next else {
+        return Ok(());
+    };
+
+    match current {
+        Some(current) if current != next => Err(ConvertError::ContentConversionFailed {
+            reason: "OpenAI Chat Completions response messages only support one reasoning_signature, but the assistant content contains multiple distinct encrypted tool/reasoning signatures".to_string(),
+        }),
+        Some(_) => Ok(()),
+        None => {
+            *current = Some(next.clone());
+            Ok(())
+        }
+    }
+}
+
 /// Extended ChatCompletionRequest/ResponseMessage with reasoning support.
 ///
 /// The official OpenAI Chat Completions API doesn't include a `reasoning` field on messages.`                                         
@@ -3761,23 +3781,23 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             } = part
                             {
                                 reasonings.push(text.clone());
-                                // Take the first signature if multiple reasoning blocks exist
-                                if signature.is_none() {
-                                    signature = encrypted_content.clone();
-                                }
+                                merge_reasoning_signature(&mut signature, encrypted_content)?;
                             }
                         }
 
                         // Extract tool calls from parts
-                        let tool_calls: Vec<openai::ToolCall> = parts
-                            .iter()
-                            .filter_map(|part| match part {
-                                AssistantContentPart::ToolCall {
-                                    tool_call_id,
-                                    tool_name,
-                                    arguments,
-                                    ..
-                                } => Some(openai::ToolCall {
+                        let mut tool_calls: Vec<openai::ToolCall> = Vec::new();
+                        for part in parts {
+                            if let AssistantContentPart::ToolCall {
+                                tool_call_id,
+                                tool_name,
+                                arguments,
+                                encrypted_content,
+                                ..
+                            } = part
+                            {
+                                merge_reasoning_signature(&mut signature, encrypted_content)?;
+                                tool_calls.push(openai::ToolCall {
                                     id: tool_call_id.clone(),
                                     tool_call_type: openai::FluffyType::Function,
                                     function: Some(openai::PurpleFunction {
@@ -3785,10 +3805,9 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                                         arguments: arguments.to_string(),
                                     }),
                                     custom: None,
-                                }),
-                                _ => None,
-                            })
-                            .collect();
+                                });
+                            }
+                        }
 
                         let content_text = if texts.is_empty() {
                             None
@@ -3910,6 +3929,74 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(tool_call.as_deref(), Some("thought_signature_123"));
+    }
+
+    #[test]
+    fn response_message_tool_call_signature_becomes_reasoning_signature() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "list_collections".to_string(),
+                arguments: ToolCallArguments::from(r#"{"database":"mydb"}"#.to_string()),
+                encrypted_content: Some("dGhvdWdodF9zaWduYXR1cmVfMTIz".to_string()),
+                provider_options: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        };
+
+        let converted =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("message should convert");
+
+        assert_eq!(
+            converted.reasoning_signature.as_deref(),
+            Some("dGhvdWdodF9zaWduYXR1cmVfMTIz")
+        );
+        assert_eq!(
+            converted.base.tool_calls,
+            Some(vec![openai::ToolCall {
+                id: "call_123".to_string(),
+                tool_call_type: openai::FluffyType::Function,
+                function: Some(openai::PurpleFunction {
+                    name: "list_collections".to_string(),
+                    arguments: r#"{"database":"mydb"}"#.to_string(),
+                }),
+                custom: None,
+            }])
+        );
+    }
+
+    #[test]
+    fn response_message_rejects_distinct_tool_call_signatures() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "first_tool".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("signature_one".to_string()),
+                    provider_options: None,
+                    provider_executed: None,
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_2".to_string(),
+                    tool_name: "second_tool".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("signature_two".to_string()),
+                    provider_options: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+            .expect_err("distinct per-call signatures should not be collapsed");
+
+        assert!(error
+            .to_string()
+            .contains("multiple distinct encrypted tool/reasoning signatures"));
     }
 
     #[test]

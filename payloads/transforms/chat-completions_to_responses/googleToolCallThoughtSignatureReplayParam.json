@@ -1,0 +1,99 @@
+{
+  "id": "resp_0b84110d340c2d3c006a1f332124ac8199b234ca6f6df198ba",
+  "object": "response",
+  "created_at": 1780429601,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780429602,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0b84110d340c2d3c006a1f33217628819999ed2532d4f88152",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0b84110d340c2d3c006a1f33229414819999567a18c6e8b83a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The collections in the mydb database are:\n- movies\n- users\n\nWould you like to see document counts or sample documents from any of these?"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "database"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 89,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 222,
+    "output_tokens_details": {
+      "reasoning_tokens": 128
+    },
+    "total_tokens": 311
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The collections in the mydb database are:\n- movies\n- users\n\nWould you like to see document counts or sample documents from any of these?"
+}

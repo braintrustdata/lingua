@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends on what you're trying to achieve! Since you've just listed the collections, perhaps you'd like to:\n\n*   **View the documents within a collection:** You could specify a collection name and ask to see what's inside.\n*   **Query a collection:** If you're looking for specific data, you could ask to search a collection with certain criteria.\n*   **Add data to a collection:** If you're building up your database, you might want to insert new documents.\n*   **Update or delete data:** If you need to modify existing information.\n\nCould you tell me what you're interested in doing with the `movies` or `users` collections?"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 105,
+    "candidatesTokenCount": 148,
+    "totalTokenCount": 253,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 105
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "ETMfaqCnPMjqz7IPpqqj8AI"
+}
