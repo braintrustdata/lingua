@@ -1,6 +1,6 @@
 use crate::providers::openai::generated as openai;
 use crate::serde_json::{self, Value};
-use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -144,6 +144,7 @@ pub(crate) fn parse_openai_responses_tools_array(tools: &Value) -> Vec<Universal
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::tools::UniversalToolType;
 
     #[test]
     fn test_parse_chat_custom_tool() {
