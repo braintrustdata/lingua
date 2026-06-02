@@ -1,3 +1,4 @@
+use crate::providers::openai::generated as openai;
 use crate::serde_json::{self, Value};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 use serde::Deserialize;
@@ -17,33 +18,18 @@ struct OpenAIChatCustomWire {
     format: Option<Value>,
 }
 
-#[derive(Debug, Deserialize)]
-struct OpenAIResponsesToolHeader {
-    #[serde(rename = "type")]
-    tool_type: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct OpenAIResponsesFunctionWire {
-    name: String,
-    description: Option<String>,
-    parameters: Option<Value>,
-    strict: Option<bool>,
-}
-
-#[derive(Debug, Deserialize)]
-struct OpenAIResponsesCustomWire {
-    name: String,
-    description: Option<String>,
-    format: Option<Value>,
-}
-
 fn parse_tool_array(tools: &Value) -> Vec<Value> {
     serde_json::from_value(tools.clone()).unwrap_or_default()
 }
 
 fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
-    let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
+    #[derive(Debug, Deserialize)]
+    struct OpenAIChatToolHeader {
+        #[serde(rename = "type")]
+        tool_type: String,
+    }
+
+    let header: OpenAIChatToolHeader = serde_json::from_value(value.clone()).ok()?;
 
     match header.tool_type.as_ref() {
         "function" => {
@@ -79,38 +65,40 @@ fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
 }
 
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
-    let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
+    let tool: openai::Tool = serde_json::from_value(value.clone()).ok()?;
 
-    match header.tool_type.as_ref() {
-        "function" => {
-            let function: OpenAIResponsesFunctionWire =
-                serde_json::from_value(value.clone()).ok()?;
+    match tool {
+        openai::Tool::Function(function) => {
+            let parameters = Value::Object(function.parameters);
             Some(UniversalTool::function(
                 function.name,
                 function.description,
-                function.parameters,
-                function.strict,
+                Some(parameters),
+                Some(function.strict),
             ))
         }
-        "custom" => {
-            let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
-            Some(UniversalTool::custom(
-                custom.name,
-                custom.description,
-                custom.format,
-            ))
-        }
-        "code_interpreter"
-        | "web_search"
-        | "web_search_preview"
-        | "mcp"
-        | "file_search"
-        | "computer_use_preview" => Some(UniversalTool::builtin(
-            header.tool_type.clone(),
-            BuiltinToolProvider::Responses,
-            header.tool_type,
-            Some(value.clone()),
+        openai::Tool::CustomParam(custom) => Some(UniversalTool::custom(
+            custom.name,
+            custom.description,
+            custom.format,
         )),
+        _ => {
+            let typed_tool: openai::InputItemTool = serde_json::from_value(value.clone()).ok()?;
+            let tool_type = typed_tool.tool_type?;
+            let tool_type_name = generated_tool_type_name(tool_type)?;
+            Some(UniversalTool::builtin(
+                tool_type_name.clone(),
+                BuiltinToolProvider::Responses,
+                tool_type_name,
+                Some(value.clone()),
+            ))
+        }
+    }
+}
+
+fn generated_tool_type_name(tool_type: openai::ToolType) -> Option<String> {
+    match serde_json::to_value(tool_type).ok()? {
+        Value::String(tool_type) => Some(tool_type),
         _ => None,
     }
 }
@@ -167,6 +155,46 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_responses_function_tool_uses_generated_shape() {
+        let responses = json!({
+            "type": "function",
+            "name": "lookup_inventory_sku",
+            "description": "Look up the internal inventory SKU for a named item.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "item_name": {"type": "string"}
+                },
+                "required": ["item_name"]
+            },
+            "strict": true
+        });
+
+        let tools = parse_openai_responses_tools_array(&json!([responses]));
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "lookup_inventory_sku");
+        assert!(tools[0].is_function());
+        assert_eq!(tools[0].strict, Some(true));
+    }
+
+    #[test]
+    fn test_parse_responses_generated_builtin_passthrough() {
+        let apply_patch = json!({
+            "type": "apply_patch"
+        });
+
+        let tools = parse_openai_responses_tools_array(&json!([apply_patch]));
+
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "apply_patch");
+        assert!(tools[0].is_builtin());
+        assert_eq!(
+            tools[0].builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
+    }
+
+    #[test]
     fn test_parse_chat_tools_is_schema_scoped() {
         let responses_like = json!([{
             "type": "function",
@@ -186,5 +214,46 @@ mod tests {
         }]);
         let tools = parse_openai_responses_tools_array(&chat_like);
         assert!(tools.is_empty());
+    }
+
+    #[test]
+    fn test_parse_responses_deferred_namespace_tool_search_tools() {
+        let namespace = json!({
+            "type": "namespace",
+            "name": "inventory",
+            "description": "Deferred inventory lookup tools.",
+            "tools": [{
+                "type": "function",
+                "name": "lookup_inventory_sku",
+                "description": "Look up the internal inventory SKU for a named item.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "item_name": {"type": "string"}
+                    },
+                    "required": ["item_name"]
+                },
+                "defer_loading": true
+            }]
+        });
+        let tool_search = json!({
+            "type": "tool_search"
+        });
+
+        let tools = parse_openai_responses_tools_array(&json!([namespace, tool_search]));
+
+        assert_eq!(tools.len(), 2);
+        assert_eq!(tools[0].name, "namespace");
+        assert_eq!(tools[1].name, "tool_search");
+        assert!(tools[0].is_builtin());
+        assert!(tools[1].is_builtin());
+        assert_eq!(
+            tools[0].builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
+        assert_eq!(
+            tools[1].builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
     }
 }
