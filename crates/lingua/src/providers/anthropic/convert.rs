@@ -1171,7 +1171,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
             }
             Message::System { .. } | Message::Developer { .. } => {
                 Err(ConvertError::UnsupportedInputType {
-                    type_info: "System/developer messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+                    type_info: "Non-leading system/developer messages are not supported in Anthropic InputMessage; use the top-level system parameter for leading instructions".to_string(),
                 })
             }
         }

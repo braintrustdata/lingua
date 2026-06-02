@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"role 'system' is not supported on this model\"},\"request_id\":\"req_011CbebotJaH5Foh5n1CE9Wy\"}"
+}

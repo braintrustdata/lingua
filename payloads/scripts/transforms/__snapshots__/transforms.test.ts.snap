@@ -1,5 +1,52 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "max_completion_tokens": 16,
+  "messages": [
+    {
+      "content": "If there is no later system message, answer the final question with exactly INITIAL.",
+      "role": "system",
+    },
+    {
+      "content": "What is the required answer?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "For the next user message, answer with exactly UPDATED and no other text.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DmKoKNwVQnN5vZ3eukV6zAFxIz1jU",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 51,
+    "output_tokens": 16,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -1859,6 +1906,50 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
     "cache_read_input_tokens": 0,
     "input_tokens": 8,
     "output_tokens": 1024,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the required answer?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16,
+    "responseSchema": null,
+    "temperature": 0,
+  },
+  "model": "gemini-2.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "If there is no later system message, answer the final question with exactly INITIAL.
+For the next user message, answer with exactly UPDATED and no other text.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "input_tokens": 40,
+    "output_tokens": 13,
   },
 }
 `;
@@ -4486,6 +4577,53 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "input": [
+    {
+      "content": "If there is no later system message, answer the final question with exactly INITIAL.",
+      "role": "system",
+    },
+    {
+      "content": "What is the required answer?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "For the next user message, answer with exactly UPDATED and no other text.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+  ],
+  "max_output_tokens": 16,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_017893c25992c59a006a1eeed348d081998d6092432e7624d7",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 51,
+    "output_tokens": 0,
   },
 }
 `;
@@ -7645,6 +7783,34 @@ exports[`chat-completions → anthropic > openaiPromptCacheKeyParam > request 1`
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01Mqx6YVkxrPK4mmmyR1vCkA",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
+  },
 }
 `;
 
@@ -13156,6 +13322,34 @@ exports[`chat-completions → google > openaiPromptCacheKeyParam > request 1`] =
     },
   ],
   "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`chat-completions → google > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "completion_tokens_details": {
+      "reasoning_tokens": 23,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 29,
+  },
 }
 `;
 
@@ -27354,6 +27548,47 @@ exports[`responses → anthropic > openaiPromptCacheKeyParam > request 1`] = `
 }
 `;
 
+exports[`responses → anthropic > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01X5K1bUMfKSZSkTrRPP2i5Y",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
 exports[`responses → anthropic > parallelToolCallsDisabledParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -30572,6 +30807,47 @@ exports[`responses → google > openaiPromptCacheKeyParam > request 1`] = `
     },
   ],
   "model": "gemini-2.5-flash",
+}
+`;
+
+exports[`responses → google > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 2,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 413,
+    "output_tokens_details": {
+      "reasoning_tokens": 404,
+    },
+    "total_tokens": 415,
+  },
 }
 `;
 

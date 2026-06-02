@@ -31,7 +31,6 @@ use crate::universal::request::{
     UniversalMetadataUserView,
 };
 use crate::universal::tools::UniversalTool;
-use crate::universal::transform::extract_system_messages;
 use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
@@ -55,6 +54,36 @@ fn parse_anthropic_extras(
             TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
         })
         .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
+
+fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
+    let mut system_contents = Vec::new();
+
+    while matches!(
+        messages.first(),
+        Some(Message::System { .. } | Message::Developer { .. })
+    ) {
+        let message = messages.remove(0);
+        if let Message::System { content } | Message::Developer { content } = message {
+            system_contents.push(content);
+        }
+    }
+
+    system_contents
+}
+
+fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), TransformError> {
+    if messages
+        .iter()
+        .any(|message| matches!(message, Message::System { .. } | Message::Developer { .. }))
+    {
+        return Err(TransformError::ValidationFailed {
+            target: ProviderFormat::Anthropic,
+            reason: "Anthropic generated types include system-role input messages, but the live Messages API currently rejects role 'system' for available models; non-leading system/developer messages cannot be exported to Anthropic without changing semantics".to_string(),
+        });
+    }
+
+    Ok(())
 }
 
 fn is_forced_tool_choice(value: &Value) -> bool {
@@ -290,9 +319,10 @@ impl ProviderAdapter for AnthropicAdapter {
         let anthropic_extras = req.params.extras.get(&ProviderFormat::Anthropic);
         let anthropic_extras_view = parse_anthropic_extras(anthropic_extras)?;
 
-        // Clone messages and extract system messages (Anthropic uses separate `system` param)
+        // Clone messages and extract only leading system/developer messages to top-level `system`.
+        // Later instructions cannot be moved there without changing their placement.
         let mut msgs = req.messages.clone();
-        let system_contents = extract_system_messages(&mut msgs);
+        let system_contents = extract_leading_system_messages(&mut msgs);
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
@@ -311,6 +341,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     reason,
                 });
             }
+            validate_no_non_leading_system_messages(&msgs)?;
             // Convert remaining messages
             let anthropic_messages: Vec<InputMessage> =
                 <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
@@ -1428,6 +1459,32 @@ mod tests {
             req.params.token_budget,
             Some(TokenBudget::OutputTokens(8192))
         );
+    }
+
+    #[test]
+    fn test_anthropic_rejects_non_leading_system_message() {
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![
+                Message::System {
+                    content: UserContent::String("Use the initial policy.".to_string()),
+                },
+                Message::User {
+                    content: UserContent::String("First turn.".to_string()),
+                },
+                Message::System {
+                    content: UserContent::String("Use the updated policy.".to_string()),
+                },
+            ],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let err = adapter.request_from_universal(&req).unwrap_err();
+        assert!(format!("{err}").contains("live Messages API currently rejects"));
     }
 
     #[test]
