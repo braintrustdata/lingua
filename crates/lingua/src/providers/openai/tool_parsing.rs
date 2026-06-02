@@ -1,6 +1,6 @@
 use crate::providers::openai::generated as openai;
 use crate::serde_json::{self, Value};
-use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -13,6 +13,27 @@ struct OpenAIChatFunctionWire {
 
 #[derive(Debug, Deserialize)]
 struct OpenAIChatCustomWire {
+    name: String,
+    description: Option<String>,
+    format: Option<Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesToolHeader {
+    #[serde(rename = "type")]
+    tool_type: openai::ToolType,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesFunctionWire {
+    name: String,
+    description: Option<String>,
+    parameters: Option<Value>,
+    strict: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OpenAIResponsesCustomWire {
     name: String,
     description: Option<String>,
     format: Option<Value>,
@@ -65,26 +86,26 @@ fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
 }
 
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
-    let tool: openai::InputItemTool = serde_json::from_value(value.clone()).ok()?;
-    let tool_type = tool.tool_type?;
+    let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
 
-    match tool_type {
+    match header.tool_type {
         openai::ToolType::Function => {
-            let name = tool.name?;
-            let parameters = tool.parameters.map(Value::Object);
+            let function: OpenAIResponsesFunctionWire =
+                serde_json::from_value(value.clone()).ok()?;
             Some(UniversalTool::function(
-                name,
-                tool.description,
-                parameters,
-                tool.strict,
+                function.name,
+                function.description,
+                function.parameters,
+                function.strict,
             ))
         }
         openai::ToolType::Custom => {
-            let name = tool.name?;
-            let format = tool
-                .format
-                .and_then(|format| serde_json::to_value(format).ok());
-            Some(UniversalTool::custom(name, tool.description, format))
+            let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
+            Some(UniversalTool::custom(
+                custom.name,
+                custom.description,
+                custom.format,
+            ))
         }
         tool_type => {
             let tool_type_name = generated_tool_type_name(tool_type)?;
@@ -194,6 +215,29 @@ mod tests {
             tools[0].builtin_provider(),
             Some(BuiltinToolProvider::Responses)
         );
+    }
+
+    #[test]
+    fn test_parse_responses_builtin_preserves_unknown_config_values() {
+        let mcp = json!({
+            "type": "mcp",
+            "connector_id": "connector_new_service",
+            "server_label": "new-service"
+        });
+
+        let tools = parse_openai_responses_tools_array(&json!([mcp.clone()]));
+
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "mcp");
+        assert!(tools[0].is_builtin());
+        assert_eq!(
+            tools[0].builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
+        match &tools[0].tool_type {
+            UniversalToolType::Builtin { config, .. } => assert_eq!(config.as_ref(), Some(&mcp)),
+            other => panic!("expected builtin tool, got {:?}", other),
+        }
     }
 
     #[test]
