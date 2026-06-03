@@ -12,6 +12,10 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     )
     .expect("valid Opus 4.7+ model regex")
 });
+static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
+        .expect("valid direct Opus 4.8+ model regex")
+});
 
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
@@ -39,6 +43,15 @@ pub fn supports_adaptive_thinking(model: &str) -> bool {
     is_opus_4_7_or_later(&lower)
 }
 
+/// Check if a direct Anthropic model supports system-role entries in `messages`.
+///
+/// This intentionally excludes provider-wrapped model IDs such as Bedrock
+/// (`us.anthropic.*`), where Anthropic documents mid-conversation system
+/// messages as unsupported.
+pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
+    is_direct_opus_4_8_or_later(&model.to_ascii_lowercase())
+}
+
 /// Transforms required for specific Anthropic model families.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelTransform {
@@ -52,6 +65,10 @@ const OPUS_4_7_OR_LATER_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
 
 fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
+}
+
+fn is_direct_opus_4_8_or_later(model: &str) -> bool {
+    OPUS_4_8_OR_LATER_RE.is_match(model)
 }
 
 /// Get the transforms required for a model.
@@ -177,6 +194,39 @@ mod tests {
         for model in legacy_models {
             assert!(!supports_adaptive_thinking(model), "model: {}", model);
         }
+    }
+
+    #[test]
+    fn test_supports_mid_conversation_system_messages() {
+        assert!(supports_mid_conversation_system_messages("claude-opus-4-8"));
+        assert!(supports_mid_conversation_system_messages(
+            "claude-opus-4-8-20260528"
+        ));
+        assert!(supports_mid_conversation_system_messages("claude-opus-4.8"));
+        assert!(supports_mid_conversation_system_messages(
+            "claude-opus-4-10"
+        ));
+        assert!(supports_mid_conversation_system_messages(
+            "claude-opus-4-10-20260601"
+        ));
+        assert!(supports_mid_conversation_system_messages("claude-opus-5-0"));
+        assert!(supports_mid_conversation_system_messages("claude-opus-5.0"));
+
+        assert!(!supports_mid_conversation_system_messages(
+            "us.anthropic.claude-opus-4-8-v1:0"
+        ));
+        assert!(!supports_mid_conversation_system_messages(
+            "anthropic/claude-opus-4-8@20260528"
+        ));
+        assert!(!supports_mid_conversation_system_messages(
+            "us.anthropic.claude-opus-4-10-v1:0"
+        ));
+        assert!(!supports_mid_conversation_system_messages(
+            "claude-opus-4-7"
+        ));
+        assert!(!supports_mid_conversation_system_messages(
+            "claude-haiku-4-5-20251001"
+        ));
     }
 
     #[test]

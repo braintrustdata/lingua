@@ -7,7 +7,10 @@ Anthropic struct types. This replaces heuristic-based detection with
 actual struct validation.
 */
 
-use crate::providers::anthropic::generated::CreateMessageParams;
+use crate::providers::anthropic::capabilities;
+use crate::providers::anthropic::generated::{
+    CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
+};
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -39,7 +42,8 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
 ///
 /// Returns the parsed struct if successful, or an error if the payload
 /// is not valid Anthropic format. Also rejects payloads containing
-/// OpenAI-specific fields to prevent misdetection.
+/// OpenAI-specific fields to prevent misdetection. This also validates the
+/// model-gated `messages[].role = "system"` feature and its placement rules.
 pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
     // First, reject if any OpenAI-only fields are present
     if let Some(obj) = payload.as_object() {
@@ -50,8 +54,86 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
         }
     }
 
-    serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+    let request: CreateMessageParams = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    validate_system_message_support_and_placement(request.model.as_str(), &request.messages)?;
+    Ok(request)
+}
+
+pub(crate) fn system_messages_are_supported_and_well_placed(
+    model: &str,
+    raw_messages: &Value,
+) -> Result<bool, DetectionError> {
+    let messages: Vec<InputMessage> = serde_json::from_value(raw_messages.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    Ok(validate_system_message_support_and_placement(model, &messages).is_ok())
+}
+
+fn validate_system_message_support_and_placement(
+    model: &str,
+    messages: &[InputMessage],
+) -> Result<(), DetectionError> {
+    if messages
+        .iter()
+        .all(|message| !matches!(message.role, MessageRole::System))
+    {
+        return Ok(());
+    }
+
+    if !capabilities::supports_mid_conversation_system_messages(model) {
+        return Err(DetectionError::UnsupportedSystemRoleMessages {
+            model: model.to_string(),
+        });
+    }
+
+    if !mid_conversation_system_messages_have_valid_placement(messages) {
+        return Err(DetectionError::InvalidSystemRolePlacement);
+    }
+
+    Ok(())
+}
+
+fn assistant_message_ends_with_server_tool_use(message: &InputMessage) -> bool {
+    if !matches!(message.role, MessageRole::Assistant) {
+        return false;
+    }
+
+    let MessageContent::InputContentBlockArray(blocks) = &message.content else {
+        return false;
+    };
+
+    blocks.last().is_some_and(|block| {
+        matches!(
+            block.input_content_block_type,
+            InputContentBlockType::ServerToolUse
+        )
+    })
+}
+
+fn mid_conversation_system_messages_have_valid_placement(messages: &[InputMessage]) -> bool {
+    for (index, message) in messages.iter().enumerate() {
+        if !matches!(message.role, MessageRole::System) {
+            continue;
+        }
+
+        let Some(previous) = index.checked_sub(1).and_then(|prev| messages.get(prev)) else {
+            return false;
+        };
+        let previous_allows_system = matches!(previous.role, MessageRole::User)
+            || assistant_message_ends_with_server_tool_use(previous);
+        if !previous_allows_system {
+            return false;
+        }
+
+        let next_allows_system = messages
+            .get(index + 1)
+            .is_none_or(|next| matches!(next.role, MessageRole::Assistant));
+        if !next_allows_system {
+            return false;
+        }
+    }
+
+    true
 }
 
 /// Error type for payload detection
@@ -61,6 +143,10 @@ pub enum DetectionError {
     DeserializationFailed(String),
     #[error("OpenAI-specific field present: {0}")]
     OpenAIFieldPresent(String),
+    #[error("system-role messages are not supported for model: {model}")]
+    UnsupportedSystemRoleMessages { model: String },
+    #[error("system-role message placement is invalid")]
+    InvalidSystemRolePlacement,
 }
 
 #[cfg(test)]
@@ -186,18 +272,52 @@ mod tests {
 
     #[test]
     fn test_try_parse_anthropic_fails_for_openai_format() {
-        // OpenAI-style payload with system role in messages - won't parse as Anthropic
-        // because Anthropic's MessageRole enum only has User and Assistant
+        // OpenAI-style leading system role in messages is not supported or
+        // correctly placed for non-Opus 4.8 Anthropic requests.
         let payload = json!({
-            "model": "gpt-4",
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 1024,
             "messages": [
                 {"role": "system", "content": "You are helpful"},
                 {"role": "user", "content": "Hello"}
             ]
         });
 
-        // This should fail because "system" is not a valid Anthropic role
-        assert!(try_parse_anthropic(&payload).is_err());
+        assert!(matches!(
+            try_parse_anthropic(&payload),
+            Err(DetectionError::UnsupportedSystemRoleMessages { .. })
+        ));
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_allows_opus_4_8_mid_conversation_system() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Review this function."},
+                {"role": "system", "content": "From now on, include type annotations."}
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_rejects_invalid_opus_4_8_system_placement() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful"},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(matches!(
+            try_parse_anthropic(&payload),
+            Err(DetectionError::InvalidSystemRolePlacement)
+        ));
     }
 
     #[test]

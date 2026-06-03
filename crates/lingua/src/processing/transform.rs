@@ -843,6 +843,61 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_system_role_to_anthropic_top_level_system() {
+        let payload = json!({
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 50,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello."}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("You are a helpful assistant.")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 1);
+        assert_eq!(
+            messages[0].get("role").and_then(Value::as_str),
+            Some("user")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_transform_request_opus_4_8_mid_conversation_system_passthrough() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 50,
+            "messages": [
+                {"role": "user", "content": "Review this function."},
+                {"role": "system", "content": "From now on, include type annotations."}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_openai_system_only_to_anthropic_rejected() {
         let payload = json!({
             "model": "gpt-4",
@@ -1391,6 +1446,83 @@ mod tests {
         );
         assert!(output.get("max_tokens").is_some());
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_bedrock_anthropic_system_role_becomes_top_level_system() {
+        let payload = json!({
+            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello."}
+            ],
+            "max_tokens": 50
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").and_then(Value::as_str),
+            Some("bedrock-2023-05-31")
+        );
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("You are a helpful assistant.")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 1);
+        assert_eq!(
+            messages[0].get("role").and_then(Value::as_str),
+            Some("user")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_bedrock_anthropic_rejects_mid_conversation_system_role() {
+        let payload = json!({
+            "model": "us.anthropic.claude-opus-4-8-v1:0",
+            "messages": [
+                {"role": "user", "content": "Review this function."},
+                {"role": "system", "content": "From now on, include type annotations."}
+            ],
+            "max_tokens": 50
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-opus-4-8-v1:0"),
+        )
+        .unwrap_err();
+
+        assert!(err.is_client_error());
+        match err {
+            TransformError::ValidationFailed { target, reason } => {
+                assert_eq!(target, ProviderFormat::Anthropic);
+                assert!(reason.contains("role 'system'"));
+            }
+            other => panic!("expected Anthropic validation failure, got {other:?}"),
+        }
     }
 
     #[test]
