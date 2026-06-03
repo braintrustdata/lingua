@@ -22,6 +22,8 @@ describe("Node.js exports", () => {
     expect(typeof exports.linguaToChatCompletionsMessages).toBe("function");
     expect(typeof exports.anthropicMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
+    expect(typeof exports.transformRequest).toBe("function");
+    expect(typeof exports.transformResponse).toBe("function");
   });
 
   test("should export validation functions", async () => {
@@ -55,6 +57,88 @@ describe("Node.js exports", () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result.length).toBe(1);
     expect(result[0].role).toBe("user");
+  });
+
+  test("should transform chat completions request to universal request", async () => {
+    const { transformRequest } = await import("../src/index");
+
+    const result = transformRequest(
+      JSON.stringify({
+        model: "gpt-5-mini",
+        messages: [{ role: "user", content: "Hello" }],
+        temperature: 0.2,
+      }),
+      "universal",
+    );
+
+    expect(result.data).toMatchObject({
+      model: "gpt-5-mini",
+      messages: [{ role: "user", content: "Hello" }],
+      params: { temperature: 0.2 },
+    });
+  });
+
+  test("should report actual target format when universal request upgrades to responses", async () => {
+    const { transformRequest } = await import("../src/index");
+
+    const result = transformRequest(
+      JSON.stringify({
+        model: "gpt-5.4-mini",
+        messages: [{ role: "user", content: "Tokyo weather" }],
+        params: {
+          reasoning: {
+            enabled: true,
+            effort: "medium",
+          },
+          tools: [
+            {
+              name: "get_weather",
+              description: "Get weather",
+              parameters: {
+                type: "object",
+                properties: { location: { type: "string" } },
+                required: ["location"],
+              },
+              kind: "function",
+            },
+          ],
+        },
+      }),
+      "openai",
+    );
+
+    expect(result).toMatchObject({
+      transformed: true,
+      sourceFormat: "universal",
+      actualTargetFormat: "responses",
+    });
+    expect(result.data).toHaveProperty("input");
+  });
+
+  test("should transform chat completions response to universal response", async () => {
+    const { transformResponse } = await import("../src/index");
+
+    const result = transformResponse(
+      JSON.stringify({
+        id: "chatcmpl-123",
+        object: "chat.completion",
+        model: "gpt-5-mini",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "Hello!" },
+            finish_reason: "stop",
+          },
+        ],
+      }),
+      "universal",
+    );
+
+    expect(result.data).toMatchObject({
+      model: "gpt-5-mini",
+      messages: [{ role: "assistant", content: "Hello!" }],
+      finish_reason: "Stop",
+    });
   });
 
   test("should import messages from prompt wrapper with tool calls", async () => {

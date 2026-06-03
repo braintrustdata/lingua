@@ -9,4 +9,4 @@
  * 2. Update detection heuristics in `processing/detect.rs`
  * 3. Add conversion logic in `providers/<name>/convert.rs` if needed
  */
-export type ProviderFormat = "openai" | "anthropic" | "google" | "mistral" | "converse" | "responses" | "unknown";
+export type ProviderFormat = "openai" | "anthropic" | "google" | "mistral" | "converse" | "responses" | "universal" | "unknown";

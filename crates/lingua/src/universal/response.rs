@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// Universal response envelope for LLM API responses.
 ///
 /// This type captures the common structure across all provider response formats.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UniversalResponse {
     /// Original response ID from the provider (e.g. "msg_abc123"), and the
     /// format it came from. Both are skipped during serialization — IDs are
@@ -60,18 +60,22 @@ pub struct UniversalUsage {
 /// Reason why the model stopped generating.
 ///
 /// Normalized across provider-specific values.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FinishReason {
     /// Normal completion (OpenAI: "stop", Anthropic: "end_turn", Google: "STOP")
+    #[serde(alias = "stop")]
     Stop,
 
     /// Hit token limit (OpenAI: "length", Anthropic: "max_tokens")
+    #[serde(alias = "length")]
     Length,
 
     /// Model wants to call tools (OpenAI: "tool_calls", Anthropic: "tool_use")
+    #[serde(alias = "tool_calls")]
     ToolCalls,
 
     /// Content was filtered
+    #[serde(alias = "content_filter")]
     ContentFilter,
 
     /// Provider-specific reason not in the canonical set
@@ -186,13 +190,19 @@ impl FinishReason {
             (Self::Stop, ProviderFormat::Responses) => "completed",
             (
                 Self::Stop,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Universal
+                | ProviderFormat::Unknown,
             ) => "stop",
 
             // Length variants
             (
                 Self::Length,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Universal
+                | ProviderFormat::Unknown,
             ) => "length",
             (Self::Length, ProviderFormat::Responses) => "incomplete",
             (Self::Length, ProviderFormat::Google) => "MAX_TOKENS",
@@ -216,7 +226,10 @@ impl FinishReason {
             (Self::ToolCalls, ProviderFormat::Responses) => "completed", // Tool calls also complete
             (
                 Self::ToolCalls,
-                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions
+                | ProviderFormat::Mistral
+                | ProviderFormat::Universal
+                | ProviderFormat::Unknown,
             ) => "tool_calls",
 
             // ContentFilter variants
@@ -230,6 +243,7 @@ impl FinishReason {
                 | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::VertexAnthropic
                 | ProviderFormat::Mistral
+                | ProviderFormat::Universal
                 | ProviderFormat::Unknown,
             ) => "content_filter",
 
@@ -245,7 +259,7 @@ impl UniversalResponse {
     /// If the stored ID originated from the same format, it is returned as-is so
     /// that round-trips preserve the original value.  Otherwise we attempt to
     /// generate a vaguely reasonable-looking placeholder (e.g.
-    /// `"msg_transformed"`, `"chatcmpl-transformed"`).
+    /// `"msg_transformed"`, `"chatcmpl-transformed"`, `"universal_transformed"`).
     /// Extract the `id` field from a provider response payload using typed
     /// deserialization, avoiding direct `Value::get` access.
     pub fn extract_id_from_payload(payload: &Value) -> Option<String> {
@@ -263,9 +277,9 @@ impl UniversalResponse {
             ProviderFormat::Anthropic => "msg_",
             ProviderFormat::BedrockAnthropic => "msg_bdrk_",
             ProviderFormat::VertexAnthropic => "msg_vrtx_",
-            ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
-                "chatcmpl-"
-            }
+            ProviderFormat::ChatCompletions | ProviderFormat::Mistral => "chatcmpl-",
+            ProviderFormat::Universal => "universal_",
+            ProviderFormat::Unknown => "resp_",
             ProviderFormat::Responses => "resp_",
             ProviderFormat::Google => "resp_",
             ProviderFormat::Converse => "msg_",
@@ -274,10 +288,17 @@ impl UniversalResponse {
             if self.id_format == Some(format) {
                 return id.to_string();
             }
-            let unique_part = ["msg_bdrk_", "msg_vrtx_", "resp_", "chatcmpl-", "msg_"]
-                .iter()
-                .find_map(|p| id.strip_prefix(p))
-                .unwrap_or(id);
+            let unique_part = [
+                "msg_bdrk_",
+                "msg_vrtx_",
+                "universal_",
+                "resp_",
+                "chatcmpl-",
+                "msg_",
+            ]
+            .iter()
+            .find_map(|p| id.strip_prefix(p))
+            .unwrap_or(id);
             if !unique_part.is_empty() && unique_part != PLACEHOLDER_ID {
                 return format!("{}{}", prefix, unique_part);
             }
@@ -297,6 +318,9 @@ impl UniversalUsage {
     /// - Mistral: uses OpenAI format
     pub fn from_provider_value(usage: &Value, provider: ProviderFormat) -> Self {
         match provider {
+            ProviderFormat::Universal => {
+                Self::from_provider_value(usage, ProviderFormat::ChatCompletions)
+            }
             // OpenAI, Mistral, and Unknown use OpenAI format
             ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
                 Self {
@@ -371,6 +395,7 @@ impl UniversalUsage {
         let completion = self.completion_tokens.unwrap_or(0);
 
         match provider {
+            ProviderFormat::Universal => self.to_provider_value(ProviderFormat::ChatCompletions),
             // OpenAI, Mistral, and Unknown use OpenAI format
             ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
                 let mut map = serde_json::Map::new();
@@ -485,5 +510,44 @@ impl UniversalUsage {
                 Value::Object(map)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn response_with_id(id: Option<&str>, id_format: Option<ProviderFormat>) -> UniversalResponse {
+        UniversalResponse {
+            id: id.map(ToString::to_string),
+            id_format,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: None,
+        }
+    }
+
+    #[test]
+    fn id_for_uses_neutral_prefixes_for_universal_and_unknown() {
+        let response = response_with_id(None, None);
+
+        assert_eq!(
+            response.id_for(ProviderFormat::Universal),
+            "universal_transformed"
+        );
+        assert_eq!(response.id_for(ProviderFormat::Unknown), "resp_transformed");
+    }
+
+    #[test]
+    fn id_for_rewrites_universal_prefix_for_provider_targets() {
+        let response =
+            response_with_id(Some("universal_existing"), Some(ProviderFormat::Universal));
+
+        assert_eq!(
+            response.id_for(ProviderFormat::ChatCompletions),
+            "chatcmpl-existing"
+        );
+        assert_eq!(response.id_for(ProviderFormat::Responses), "resp_existing");
     }
 }

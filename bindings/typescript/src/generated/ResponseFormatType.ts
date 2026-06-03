@@ -3,4 +3,4 @@
 /**
  * Response format type (portable across providers).
  */
-export type ResponseFormatType = "Text" | "JsonObject" | "JsonSchema";
+export type ResponseFormatType = "text" | "json_object" | "json_schema";

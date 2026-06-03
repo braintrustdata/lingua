@@ -202,6 +202,7 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
         | ProviderFormat::Converse
         | ProviderFormat::BedrockAnthropic
         | ProviderFormat::VertexAnthropic
+        | ProviderFormat::Universal
         | ProviderFormat::Unknown => return payload,
     }
 

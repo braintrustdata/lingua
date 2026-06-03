@@ -5,6 +5,7 @@
       "target": "*",
       "fields": [
         { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal across providers" },
+        { "pattern": "params.extras", "reason": "Provider-specific extras are scoped to the originating format and are not cross-provider semantics" },
         { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific (OpenAI uses response-level IDs, Anthropic uses message-level IDs, Bedrock has none)" },
         { "pattern": "params.reasoning.canonical", "reason": "Metadata indicating source format (effort vs budget_tokens) - changes when converting between providers with different canonical representations" }
       ]
@@ -200,6 +201,15 @@
       "target": "Anthropic",
       "skip": true,
       "reason": "Anthropic assistant messages don't support image content"
+    },
+    {
+      "testCase": "outputFormatJsonSchemaParam",
+      "source": "Anthropic",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.extras.anthropic.output_format", "reason": "Legacy Anthropic output_format is normalized to output_config.format" },
+        { "pattern": "params.extras.anthropic.output_config", "reason": "Legacy Anthropic output_format is normalized to output_config.format" }
+      ]
     },
     {
       "testCase": "documentContentParam",

@@ -22,9 +22,9 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta,
+    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -269,6 +269,22 @@ fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
     has_reasoning_effort && has_tools
 }
 
+#[cfg(feature = "openai")]
+fn universal_request_needs_responses_upgrade(req: &UniversalRequest) -> bool {
+    let has_reasoning = req
+        .params
+        .reasoning
+        .as_ref()
+        .is_some_and(|reasoning| !reasoning.is_effectively_disabled());
+    let has_tools = req
+        .params
+        .tools
+        .as_ref()
+        .is_some_and(|tools| !tools.is_empty());
+
+    has_reasoning && has_tools
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -298,15 +314,25 @@ pub fn transform_request(
         return Ok(TransformResult::PassThrough(request_bytes));
     }
 
-    let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-
     let mut universal = source_adapter.request_to_universal(payload)?;
 
     if let Some(model) = model {
         universal.model = Some(model.to_string());
     }
+
+    #[cfg(feature = "openai")]
+    let target_format = if target_format == ProviderFormat::ChatCompletions
+        && source_adapter.format() == ProviderFormat::Universal
+        && universal_request_needs_responses_upgrade(&universal)
+    {
+        ProviderFormat::Responses
+    } else {
+        target_format
+    };
+
+    let source_format = source_adapter.format();
+    let target_adapter = adapter_for_format(target_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     target_adapter.apply_defaults(&mut universal);
@@ -783,6 +809,146 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_universal_to_openai() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "temperature": 0.2,
+                "top_p": null,
+                "top_k": null,
+                "seed": null,
+                "presence_penalty": null,
+                "frequency_penalty": null,
+                "token_budget": null,
+                "stop": null,
+                "logprobs": null,
+                "top_logprobs": null,
+                "tools": null,
+                "tool_choice": null,
+                "parallel_tool_calls": null,
+                "response_format": null,
+                "reasoning": null,
+                "metadata": null,
+                "store": null,
+                "conversation_reference": null,
+                "service_tier": null,
+                "stream": null
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                bytes,
+                source_format,
+                actual_target_format,
+            } => {
+                assert_eq!(source_format, ProviderFormat::Universal);
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
+                let payload: Value = serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    payload.get("temperature").and_then(Value::as_f64),
+                    Some(0.2)
+                );
+                assert!(payload.get("params").is_none());
+            }
+            TransformResult::PassThrough(_) => panic!("universal input should transform"),
+        }
+    }
+
+    #[test]
+    fn test_transform_request_universal_accepts_lowercase_summary() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "reasoning": {
+                    "summary": "detailed"
+                }
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
+    fn test_transform_request_universal_accepts_canonical_tool_choice_and_response_format() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "params": {
+                "tool_choice": {
+                    "mode": "required"
+                },
+                "response_format": {
+                    "format_type": "json_schema",
+                    "json_schema": {
+                        "name": "answer",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "answer": { "type": "string" }
+                            },
+                            "required": ["answer"]
+                        }
+                    }
+                }
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_openai_to_universal_preserves_provider_extras() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "user": "user_123",
+            "custom_field": {"nested": true}
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Universal, None).unwrap();
+        let universal_bytes = result.into_bytes();
+        let universal: crate::universal::UniversalRequest =
+            crate::serde_json::from_slice(&universal_bytes).unwrap();
+        let openai_extras = universal
+            .params
+            .extras
+            .get(&ProviderFormat::ChatCompletions)
+            .unwrap();
+
+        assert_eq!(openai_extras.get("user"), Some(&json!("user_123")));
+        assert_eq!(
+            openai_extras.get("custom_field"),
+            Some(&json!({"nested": true}))
+        );
+
+        let roundtrip =
+            transform_request(universal_bytes, ProviderFormat::ChatCompletions, None).unwrap();
+        let roundtrip_payload: Value =
+            crate::serde_json::from_slice(&roundtrip.into_bytes()).unwrap();
+
+        assert_eq!(
+            roundtrip_payload.get("custom_field"),
+            Some(&json!({"nested": true}))
+        );
+        assert_eq!(roundtrip_payload.get("user"), Some(&json!("user_123")));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_passthrough_repairs_lone_surrogate() {
         let input = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83D text"}]}"#,
@@ -1211,6 +1377,87 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_response_to_universal() {
+        let payload = json!({
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "model": "gpt-5-mini",
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop"
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_response(input, ProviderFormat::Universal).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                bytes,
+                source_format,
+                actual_target_format,
+            } => {
+                assert_eq!(source_format, ProviderFormat::ChatCompletions);
+                assert_eq!(actual_target_format, ProviderFormat::Universal);
+                let payload: Value = serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    payload.get("model").and_then(Value::as_str),
+                    Some("gpt-5-mini")
+                );
+                assert!(payload.get("messages").is_some());
+                assert!(payload.get("usage").is_some());
+            }
+            TransformResult::PassThrough(_) => panic!("provider response should transform"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_response_universal_roundtrips_to_provider() {
+        let payload = json!({
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "model": "gpt-5-mini",
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop"
+            }],
+            "usage": {
+                "prompt_tokens": 3,
+                "completion_tokens": 2,
+                "total_tokens": 5
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let universal = transform_response(input, ProviderFormat::Universal)
+            .unwrap()
+            .into_bytes();
+        let provider = transform_response(universal, ProviderFormat::ChatCompletions).unwrap();
+
+        match provider {
+            TransformResult::Transformed {
+                source_format,
+                actual_target_format,
+                bytes,
+            } => {
+                assert_eq!(source_format, ProviderFormat::Universal);
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
+                let output: Value = crate::serde_json::from_slice(&bytes).unwrap();
+                assert_eq!(
+                    output.get("object").and_then(Value::as_str),
+                    Some("chat.completion")
+                );
+                assert!(output.get("choices").is_some());
+            }
+            TransformResult::PassThrough(_) => panic!("universal response should transform"),
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_reasoning_model_forces_translation() {
         // Reasoning models (gpt-5.*, o1-*, o3-*) require max_completion_tokens
         // Even for OpenAI → OpenAI, we must translate to convert max_tokens → max_completion_tokens
@@ -1567,6 +1814,56 @@ mod tests {
                     ProviderFormat::Responses,
                     "Should upgrade to Responses when reasoning_effort + tools are present"
                 );
+            }
+            TransformResult::PassThrough(_) => {
+                panic!("Expected transformation, got passthrough");
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_upgrades_universal_target_to_responses_for_reasoning_plus_tools() {
+        let payload = json!({
+            "model": "gpt-5.4-mini",
+            "messages": [{"role": "user", "content": "Tokyo weather?"}],
+            "params": {
+                "reasoning": {
+                    "enabled": true,
+                    "effort": "medium"
+                },
+                "tools": [{
+                    "name": "get_weather",
+                    "description": "Get weather",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"location": {"type": "string"}},
+                        "required": ["location"]
+                    },
+                    "kind": "function"
+                }]
+            }
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::Transformed {
+                source_format,
+                actual_target_format,
+                bytes,
+            } => {
+                assert_eq!(source_format, ProviderFormat::Universal);
+                assert_eq!(
+                    actual_target_format,
+                    ProviderFormat::Responses,
+                    "Universal requests should also upgrade when reasoning + tools are present"
+                );
+                let output: Value = crate::serde_json::from_slice(&bytes).unwrap();
+                assert!(output.get("input").is_some());
+                assert!(output.get("tools").is_some());
+                assert!(output.get("reasoning").is_some());
             }
             TransformResult::PassThrough(_) => {
                 panic!("Expected transformation, got passthrough");

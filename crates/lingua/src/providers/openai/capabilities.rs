@@ -11,6 +11,8 @@ pub enum ModelTransform {
     StripTemperature,
     /// Strip top_p parameter (reasoning models don't support it)
     StripTopP,
+    /// Strip top_logprobs parameter (reasoning models don't support it)
+    StripTopLogprobs,
     /// Convert max_tokens to max_completion_tokens
     ForceMaxCompletionTokens,
     /// Convert max_completion_tokens to max_tokens
@@ -26,19 +28,39 @@ use ModelTransform::*;
 const MODEL_TRANSFORM_RULES: &[(&str, &[ModelTransform])] = &[
     (
         "o1",
-        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+        &[
+            StripTemperature,
+            StripTopP,
+            StripTopLogprobs,
+            ForceMaxCompletionTokens,
+        ],
     ),
     (
         "o3",
-        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+        &[
+            StripTemperature,
+            StripTopP,
+            StripTopLogprobs,
+            ForceMaxCompletionTokens,
+        ],
     ),
     (
         "o4",
-        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+        &[
+            StripTemperature,
+            StripTopP,
+            StripTopLogprobs,
+            ForceMaxCompletionTokens,
+        ],
     ),
     (
         "gpt-5",
-        &[StripTemperature, StripTopP, ForceMaxCompletionTokens],
+        &[
+            StripTemperature,
+            StripTopP,
+            StripTopLogprobs,
+            ForceMaxCompletionTokens,
+        ],
     ),
     // TODO: would be nice if we could apply these rules by provider instead of model name, and
     // apply these to all Mistral models
@@ -202,6 +224,9 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
             StripTopP => {
                 obj.remove("top_p");
             }
+            StripTopLogprobs => {
+                obj.remove("top_logprobs");
+            }
             ForceMaxCompletionTokens => {
                 // (Responses API) max_output_tokens is valid.
                 if obj.contains_key("max_output_tokens") {
@@ -236,23 +261,48 @@ mod tests {
         let cases = [
             (
                 "o1",
-                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+                &[
+                    StripTemperature,
+                    StripTopP,
+                    StripTopLogprobs,
+                    ForceMaxCompletionTokens,
+                ][..],
             ),
             (
                 "o1-mini",
-                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+                &[
+                    StripTemperature,
+                    StripTopP,
+                    StripTopLogprobs,
+                    ForceMaxCompletionTokens,
+                ][..],
             ),
             (
                 "o3",
-                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+                &[
+                    StripTemperature,
+                    StripTopP,
+                    StripTopLogprobs,
+                    ForceMaxCompletionTokens,
+                ][..],
             ),
             (
                 "o4-preview",
-                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+                &[
+                    StripTemperature,
+                    StripTopP,
+                    StripTopLogprobs,
+                    ForceMaxCompletionTokens,
+                ][..],
             ),
             (
                 "gpt-5-mini",
-                &[StripTemperature, StripTopP, ForceMaxCompletionTokens][..],
+                &[
+                    StripTemperature,
+                    StripTopP,
+                    StripTopLogprobs,
+                    ForceMaxCompletionTokens,
+                ][..],
             ),
             ("gpt-4", &[][..]),
             ("gpt-4o", &[][..]),
@@ -380,6 +430,42 @@ mod tests {
             .unwrap();
             apply_model_transforms(model, &mut obj);
             assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
+        }
+    }
+
+    #[test]
+    fn test_strip_top_logprobs() {
+        let reasoning_models = ["o1", "o1-mini", "o3", "gpt-5-mini"];
+        let non_reasoning_models = ["gpt-4", "gpt-4o", "claude-3"];
+
+        for model in reasoning_models {
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "top_logprobs": 0
+            }))
+            .unwrap();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("top_logprobs"),
+                "{} should strip top_logprobs",
+                model
+            );
+        }
+
+        for model in non_reasoning_models {
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "Hello"}],
+                "top_logprobs": 0
+            }))
+            .unwrap();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("top_logprobs"),
+                "{} should preserve top_logprobs",
+                model
+            );
         }
     }
 

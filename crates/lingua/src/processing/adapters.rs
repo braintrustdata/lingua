@@ -16,7 +16,7 @@ use std::sync::LazyLock;
 
 use crate::capabilities::ProviderFormat;
 use crate::processing::transform::TransformError;
-use crate::serde_json::{Map, Number, Value};
+use crate::serde_json::{self, Map, Number, Value};
 use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
 
 /// Trait for provider-specific request and response handling.
@@ -128,6 +128,48 @@ pub trait ProviderAdapter: Send + Sync {
     }
 }
 
+struct UniversalAdapter;
+
+impl ProviderAdapter for UniversalAdapter {
+    fn format(&self) -> ProviderFormat {
+        ProviderFormat::Universal
+    }
+
+    fn directory_name(&self) -> &'static str {
+        "universal"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Universal"
+    }
+
+    fn detect_request(&self, payload: &Value) -> bool {
+        serde_json::from_value::<UniversalRequest>(payload.clone()).is_ok()
+    }
+
+    fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+    }
+
+    fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
+        serde_json::to_value(req).map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
+    }
+
+    fn detect_response(&self, payload: &Value) -> bool {
+        serde_json::from_value::<UniversalResponse>(payload.clone()).is_ok()
+    }
+
+    fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
+        serde_json::from_value(payload)
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+    }
+
+    fn response_from_universal(&self, resp: &UniversalResponse) -> Result<Value, TransformError> {
+        serde_json::to_value(resp).map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
+    }
+}
+
 // ============================================================================
 // Helper functions for adapter implementations
 // ============================================================================
@@ -195,6 +237,8 @@ static ADAPTERS: LazyLock<Vec<Box<dyn ProviderAdapter>>> = LazyLock::new(|| {
     let mut list: Vec<Box<dyn ProviderAdapter>> = Vec::new();
 
     // Note: Order matters for detection - more specific formats first
+    list.push(Box::new(UniversalAdapter));
+
     #[cfg(feature = "openai")]
     list.push(Box::new(crate::providers::openai::ResponsesAdapter));
 

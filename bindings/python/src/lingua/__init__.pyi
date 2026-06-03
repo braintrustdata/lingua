@@ -8,7 +8,7 @@ from typing_extensions import TypedDict
 # Provider format
 # ============================================================================
 
-ProviderFormat = Literal["openai", "anthropic", "google", "mistral", "converse", "responses", "unknown"]
+ProviderFormat = Literal["openai", "anthropic", "google", "mistral", "converse", "responses", "universal", "unknown"]
 
 
 # ============================================================================

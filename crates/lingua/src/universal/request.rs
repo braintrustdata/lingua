@@ -46,7 +46,8 @@ use crate::universal::tools::UniversalTool;
 /// Universal request envelope for LLM API calls.
 ///
 /// This type captures the common structure across all provider request formats.
-#[derive(Debug, Clone, Serialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub struct UniversalRequest {
     /// Model identifier (may be None for providers that use endpoint-based model selection)
@@ -82,7 +83,8 @@ pub enum TokenBudget {
 ///
 /// Uses canonical names - adapters handle mapping to provider-specific names.
 /// Provider-specific fields without canonical mappings are stored in `extras`.
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub struct UniversalParams {
     // === Sampling parameters ===
@@ -207,7 +209,7 @@ pub struct UniversalParams {
     ///
     /// Keyed by source `ProviderFormat` - only restored when converting back to
     /// the same provider (no cross-provider contamination).
-    #[serde(skip)]
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     #[ts(skip)]
     pub extras: HashMap<ProviderFormat, Map<String, Value>>,
 }
@@ -430,6 +432,7 @@ pub enum ReasoningCanonical {
 
 /// Summary mode for reasoning output.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum SummaryMode {
     /// No summary included in response.
@@ -491,7 +494,7 @@ impl AsRef<str> for SummaryMode {
 /// - OpenAI Chat: `"auto"` | `"none"` | `"required"` | `{ type: "function", function: { name } }`
 /// - OpenAI Responses: `"auto"` | `{ type: "function", name }`
 /// - Anthropic: `{ type: "auto" | "any" | "none" | "tool", name?, disable_parallel_tool_use? }`
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ToolChoiceConfig {
     /// Selection mode - the semantic intent of the tool choice
@@ -502,7 +505,8 @@ pub struct ToolChoiceConfig {
 }
 
 /// Tool selection mode (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum ToolChoiceMode {
     /// Provider decides whether to use tools
@@ -577,7 +581,7 @@ impl AsRef<str> for ToolChoiceMode {
 /// - OpenAI Responses: nested under `text.format`
 /// - Google: `response_mime_type` + `response_schema`
 /// - Anthropic: `{ type: "json_schema", schema, name?, strict?, description? }`
-#[derive(Debug, Clone, Default, Serialize, TS)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ResponseFormatConfig {
     /// Output format type
@@ -588,7 +592,8 @@ pub struct ResponseFormatConfig {
 }
 
 /// Response format type (portable across providers).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum ResponseFormatType {
     /// Plain text output (default)
@@ -639,7 +644,7 @@ impl AsRef<str> for ResponseFormatType {
 }
 
 /// JSON schema configuration for structured output.
-#[derive(Debug, Clone, Serialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct JsonSchemaConfig {
     /// Schema name (required by OpenAI)
@@ -773,5 +778,34 @@ mod tests {
             crate::providers::anthropic::generated::ToolChoiceType::Auto
         );
         assert_eq!(tool_choice.disable_parallel_tool_use, Some(true));
+    }
+
+    #[test]
+    fn test_tool_choice_mode_deserializes_canonical_values() {
+        let cases = [
+            ("auto", ToolChoiceMode::Auto),
+            ("none", ToolChoiceMode::None),
+            ("required", ToolChoiceMode::Required),
+            ("tool", ToolChoiceMode::Tool),
+        ];
+
+        for (input, expected) in cases {
+            let actual: ToolChoiceMode = crate::serde_json::from_value(json!(input)).unwrap();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_response_format_type_deserializes_canonical_values() {
+        let cases = [
+            ("text", ResponseFormatType::Text),
+            ("json_object", ResponseFormatType::JsonObject),
+            ("json_schema", ResponseFormatType::JsonSchema),
+        ];
+
+        for (input, expected) in cases {
+            let actual: ResponseFormatType = crate::serde_json::from_value(json!(input)).unwrap();
+            assert_eq!(actual, expected);
+        }
     }
 }
