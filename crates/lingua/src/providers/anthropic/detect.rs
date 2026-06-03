@@ -31,6 +31,9 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
     "reasoning_effort",
     // Braintrust extension for disabling reasoning
     "reasoning_enabled",
+    // Braintrust/OpenAI-compatible gateway extensions
+    "suffix_messages",
+    "chat_template_kwargs",
     // OpenAI alias for max_tokens
     "max_completion_tokens",
 ];
@@ -257,6 +260,16 @@ mod tests {
             "logprobs": true
         });
         assert!(try_parse_anthropic(&payload_with_logprobs).is_err());
+
+        let payload_with_suffix_messages = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Shared prefix"}],
+            "suffix_messages": [
+                [{ "role": "user", "content": "Does this mention billing?" }]
+            ]
+        });
+        assert!(try_parse_anthropic(&payload_with_suffix_messages).is_err());
     }
 
     #[test]

@@ -801,6 +801,57 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_preserves_suffix_messages_in_chat_rewrite() {
+        let payload = json!({
+            "model": "brain-facet-1",
+            "messages": [
+                { "role": "system", "content": "Classify each request." },
+                {
+                    "role": "user",
+                    "content": "Shared preprocessed conversation text for topic facets."
+                }
+            ],
+            "suffix_messages": [
+                [{ "role": "user", "content": "Does this mention billing?" }],
+                [{ "role": "user", "content": "Does this mention deployment?" }]
+            ],
+            "stream": false,
+            "max_tokens": 20000,
+            "chat_template_kwargs": { "enable_thinking": false }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-nano")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(output.get("max_tokens").is_none());
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(20000)
+        );
+        assert_eq!(
+            output.get("suffix_messages"),
+            payload.get("suffix_messages")
+        );
+        assert_eq!(
+            output.get("chat_template_kwargs"),
+            payload.get("chat_template_kwargs")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_rejects_truncated_unicode_escape() {
         let input = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83"}]}"#,
