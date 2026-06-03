@@ -1497,7 +1497,7 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
-    fn test_bedrock_anthropic_rejects_mid_conversation_system_role() {
+    fn test_bedrock_anthropic_opus_4_8_mid_conversation_system_role_passthrough() {
         let payload = json!({
             "model": "us.anthropic.claude-opus-4-8-v1:0",
             "messages": [
@@ -1508,21 +1508,29 @@ mod tests {
         });
         let input = to_bytes(&payload);
 
-        let err = transform_request(
+        let result = transform_request(
             input,
             ProviderFormat::BedrockAnthropic,
             Some("us.anthropic.claude-opus-4-8-v1:0"),
         )
-        .unwrap_err();
+        .unwrap();
 
-        assert!(err.is_client_error());
-        match err {
-            TransformError::ValidationFailed { target, reason } => {
-                assert_eq!(target, ProviderFormat::Anthropic);
-                assert!(reason.contains("role 'system'"));
-            }
-            other => panic!("expected Anthropic validation failure, got {other:?}"),
-        }
+        assert!(!result.is_passthrough());
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").and_then(Value::as_str),
+            Some("bedrock-2023-05-31")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 2);
+        assert_eq!(
+            messages[1].get("role").and_then(Value::as_str),
+            Some("system")
+        );
     }
 
     #[test]

@@ -13,8 +13,8 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     .expect("valid Opus 4.7+ model regex")
 });
 static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
-        .expect("valid direct Opus 4.8+ model regex")
+    Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.:])|^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
+        .expect("valid Opus 4.8+ model regex")
 });
 
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
@@ -43,13 +43,13 @@ pub fn supports_adaptive_thinking(model: &str) -> bool {
     is_opus_4_7_or_later(&lower)
 }
 
-/// Check if a direct Anthropic model supports system-role entries in `messages`.
+/// Check if an Anthropic model supports system-role entries in `messages`.
 ///
-/// This intentionally excludes provider-wrapped model IDs such as Bedrock
-/// (`us.anthropic.*`), where Anthropic documents mid-conversation system
-/// messages as unsupported.
+/// Direct Anthropic and Bedrock Anthropic Opus 4.8+ model IDs support these
+/// messages. Slash/at provider-wrapped IDs remain excluded until their provider
+/// documents the same behavior.
 pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
-    is_direct_opus_4_8_or_later(&model.to_ascii_lowercase())
+    is_supported_mid_conversation_system_model(&model.to_ascii_lowercase())
 }
 
 /// Transforms required for specific Anthropic model families.
@@ -67,7 +67,7 @@ fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
 }
 
-fn is_direct_opus_4_8_or_later(model: &str) -> bool {
+fn is_supported_mid_conversation_system_model(model: &str) -> bool {
     OPUS_4_8_OR_LATER_RE.is_match(model)
 }
 
@@ -212,14 +212,17 @@ mod tests {
         assert!(supports_mid_conversation_system_messages("claude-opus-5-0"));
         assert!(supports_mid_conversation_system_messages("claude-opus-5.0"));
 
-        assert!(!supports_mid_conversation_system_messages(
+        assert!(supports_mid_conversation_system_messages(
             "us.anthropic.claude-opus-4-8-v1:0"
+        ));
+        assert!(supports_mid_conversation_system_messages(
+            "anthropic.claude-opus-4-8-v1:0"
+        ));
+        assert!(supports_mid_conversation_system_messages(
+            "us.anthropic.claude-opus-4-10-v1:0"
         ));
         assert!(!supports_mid_conversation_system_messages(
             "anthropic/claude-opus-4-8@20260528"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "us.anthropic.claude-opus-4-10-v1:0"
         ));
         assert!(!supports_mid_conversation_system_messages(
             "claude-opus-4-7"

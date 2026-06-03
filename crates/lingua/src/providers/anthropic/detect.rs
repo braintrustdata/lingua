@@ -56,7 +56,7 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
 
     let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-    validate_system_message_support_and_placement(request.model.as_str(), &request.messages)?;
+    validate_system_message_support_and_placement(&request.model, &request.messages)?;
     Ok(request)
 }
 

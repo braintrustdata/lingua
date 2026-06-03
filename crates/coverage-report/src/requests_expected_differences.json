@@ -301,6 +301,15 @@
       ]
     },
     {
+      "testCase": "anthropicMidConversationSystemMessage",
+      "source": "Anthropic",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].role", "reason": "Bedrock Converse does not preserve Anthropic system-role message entries and converts them to user text" },
+        { "pattern": "messages[*].content[*].text", "reason": "Bedrock Converse prefixes converted Anthropic system-role message text with System:" }
+      ]
+    },
+    {
       "testCase": "imageUrlMimeTypeFallbackParam",
       "source": "*",
       "target": "Bedrock Anthropic",

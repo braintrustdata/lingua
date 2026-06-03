@@ -1,7 +1,6 @@
 {
-  "model": "claude-sonnet-4-5-20250929",
+  "model": "claude-opus-4-8",
   "max_tokens": 16,
-  "temperature": 0,
   "system": "If there is no later system message, answer the final question with exactly INITIAL.",
   "messages": [
     {

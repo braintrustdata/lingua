@@ -5,6 +5,7 @@ import {
   Modality,
   MediaResolution,
 } from "@google/genai";
+import OpenAI from "openai";
 import { TestCase, TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -20,6 +21,28 @@ import {
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
 } from "./models";
+
+type ChatCompletionAssistantMessageWithReasoningSignature =
+  OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
+    reasoning_signature: string;
+  };
+
+const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
+  {
+    role: "assistant",
+    content: null,
+    reasoning_signature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+    tool_calls: [
+      {
+        id: "call_123",
+        type: "function",
+        function: {
+          name: "list_collections",
+          arguments: JSON.stringify({ database: "mydb" }),
+        },
+      },
+    ],
+  };
 
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
@@ -1202,21 +1225,7 @@ export const paramsCases: TestCaseCollection = {
           role: "user",
           content: "List the collections in the mydb database.",
         },
-        {
-          role: "assistant",
-          content: null,
-          reasoning_signature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
-          tool_calls: [
-            {
-              id: "call_123",
-              type: "function",
-              function: {
-                name: "list_collections",
-                arguments: JSON.stringify({ database: "mydb" }),
-              },
-            },
-          ],
-        },
+        googleToolCallThoughtSignatureReplayAssistantMessage,
         {
           role: "tool",
           tool_call_id: "call_123",
