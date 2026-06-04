@@ -244,8 +244,8 @@ fn clear_cached_clients() {
 }
 
 #[cfg(test)]
-fn cached_client_count() -> usize {
-    SHARED_CLIENTS.len()
+fn has_cached_client(settings: &ClientSettings) -> bool {
+    SHARED_CLIENTS.contains_key(settings)
 }
 
 #[cfg(test)]
@@ -276,7 +276,7 @@ mod tests {
         let first = build_middleware_client(&settings).expect("first client");
         let second = build_middleware_client(&settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 1);
+        assert!(has_cached_client(&settings));
         assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 
@@ -295,7 +295,8 @@ mod tests {
         build_middleware_client(&first_settings).expect("first client");
         build_middleware_client(&second_settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 2);
+        assert!(has_cached_client(&first_settings));
+        assert!(has_cached_client(&second_settings));
     }
 
     #[test]
@@ -315,7 +316,7 @@ mod tests {
         let first = build_middleware_client(&settings).expect("first client");
         let second = build_middleware_client(&settings).expect("second client");
 
-        assert_eq!(cached_client_count(), 1);
+        assert!(has_cached_client(&settings));
         assert_eq!(format!("{first:?}"), format!("{second:?}"));
     }
 

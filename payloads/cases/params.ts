@@ -2503,4 +2503,68 @@ export const paramsCases: TestCaseCollection = {
     })(),
     bedrock: null,
   },
+
+  anthropicMessageWithSystemMessage: (() => {
+    const testCase: TestCase = {
+      "chat-completions": null,
+      responses: null,
+      anthropic: {
+        model: "claude-opus-4-8",
+        max_tokens: 32_000,
+        system: [
+          {
+            type: "text",
+            text: "You are running inside Claude Code.",
+          },
+          {
+            type: "text",
+            text: "Preserve the user's coding instructions.",
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "hello world",
+                cache_control: { type: "ephemeral" },
+              },
+            ],
+          },
+          {
+            role: "system",
+            content: "Only use the exact tools provided by Claude Code.",
+          },
+        ],
+        tools: [
+          {
+            name: "Read",
+            description: "Reads a file from the local filesystem.",
+            input_schema: {
+              type: "object",
+              properties: {
+                file_path: {
+                  type: "string",
+                },
+              },
+              required: ["file_path"],
+              additionalProperties: false,
+            },
+          },
+        ],
+        thinking: {
+          type: "adaptive",
+        },
+        output_config: {
+          effort: "high",
+        },
+      },
+      google: null,
+      bedrock: null,
+    };
+
+    return testCase;
+  })(),
 };

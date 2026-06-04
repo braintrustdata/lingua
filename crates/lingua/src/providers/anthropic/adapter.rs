@@ -16,7 +16,9 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::convert::system_to_user_content;
-use crate::providers::anthropic::detect::system_messages_are_supported_and_well_placed;
+use crate::providers::anthropic::detect::{
+    system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
+};
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
     ToolChoice, ToolChoiceType,
@@ -193,6 +195,10 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
+        try_parse_anthropic_source(payload).is_ok()
+    }
+
+    fn detect_passthrough_request(&self, payload: &Value) -> bool {
         try_parse_anthropic(payload).is_ok()
     }
 

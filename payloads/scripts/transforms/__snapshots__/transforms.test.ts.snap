@@ -1,5 +1,85 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "max_completion_tokens": 32000,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "You are running inside Claude Code.",
+          "type": "text",
+        },
+        {
+          "text": "Preserve the user's coding instructions.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": [
+        {
+          "text": "hello world",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": "Only use the exact tools provided by Claude Code.",
+      "role": "system",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+  "tools": [
+    {
+      "function": {
+        "description": "Reads a file from the local filesystem.",
+        "name": "Read",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "file_path": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "file_path",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hello, world!
+
+Would you like a Hello World example in a specific programming language? Tell me which language and I’ll provide it.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DnBJzLc6L0UZ12oPjGwYXQDekWPWu",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 158,
+    "output_tokens": 612,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage > request 1`] = `
 {
   "max_completion_tokens": 16,
@@ -1906,6 +1986,92 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
     "cache_read_input_tokens": 0,
     "input_tokens": 8,
     "output_tokens": 1024,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hello world",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 32000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingBudget": 1024,
+    },
+  },
+  "model": "gemini-2.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are running inside Claude Code.
+Preserve the user's coding instructions.
+Only use the exact tools provided by Claude Code.",
+      },
+    ],
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Reads a file from the local filesystem.",
+          "name": "Read",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "file_path": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "file_path",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`anthropic → google > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "Okay, here's my interpretation of that thought process, tailored for an expert user:
+
+**Initial Assessment: Minimal Task, Standard Response**
+
+Right, so the user offered a straightforward "hello world." No complex query there, no data analysis needed, and certainly no need to invoke any specialized tools. That's essentially a conversational opening. My assessment is that a reciprocal greeting is the appropriate and expected response in this context. It's a foundational exchange, establishing a baseline level of interaction. I'll stick with a similar greeting.
+",
+      "type": "thinking",
+    },
+    {
+      "text": "Hello there! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 73,
+    "output_tokens": 38,
   },
 }
 `;
@@ -4576,6 +4742,98 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "You are running inside Claude Code.",
+          "type": "input_text",
+        },
+        {
+          "text": "Preserve the user's coding instructions.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": [
+        {
+          "text": "hello world",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": "Only use the exact tools provided by Claude Code.",
+      "role": "system",
+    },
+  ],
+  "max_output_tokens": 32000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+  "tools": [
+    {
+      "description": "Reads a file from the local filesystem.",
+      "name": "Read",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "file_path": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "file_path",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hello!
+
+Would you like a Hello World example in a specific language? Here are quick options:
+
+- Python: print("Hello, World!")
+- JavaScript: console.log("Hello, World!")
+- C: #include <stdio.h> int main(void) { printf("Hello, World!"); return 0; }
+- Java: public class HelloWorld { public static void main(String[] args) { System.out.println("Hello, World!"); } }
+- Go: package main; import "fmt"; func main() { fmt.Println("Hello, World!") }
+
+Tell me your preferred language (or share another), and I’ll tailor it.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_07783fa1fa2249d6006a22034b1d8881a3ab3ad6b14bc34de6",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 77,
+    "output_tokens": 2245,
   },
 }
 `;
