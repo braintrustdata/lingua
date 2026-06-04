@@ -274,6 +274,33 @@ pub fn transform_request(
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
+    transform_request_with_options(
+        input,
+        target_format,
+        model,
+        TransformRequestOptions::default(),
+    )
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct TransformRequestOptions {
+    pub allow_chat_completions_responses_upgrade: bool,
+}
+
+impl Default for TransformRequestOptions {
+    fn default() -> Self {
+        Self {
+            allow_chat_completions_responses_upgrade: true,
+        }
+    }
+}
+
+pub fn transform_request_with_options(
+    input: Bytes,
+    target_format: ProviderFormat,
+    model: Option<&str>,
+    options: TransformRequestOptions,
+) -> Result<TransformResult, TransformError> {
     let parsed = parse_json_body(input)?;
     let payload = parsed.value;
     let request_bytes = parsed.bytes;
@@ -284,7 +311,8 @@ pub fn transform_request(
     // The /v1/chat/completions endpoint rejects this combination for certain models;
     // /v1/responses handles it correctly.
     #[cfg(feature = "openai")]
-    let target_format = if target_format == ProviderFormat::ChatCompletions
+    let target_format = if options.allow_chat_completions_responses_upgrade
+        && target_format == ProviderFormat::ChatCompletions
         && chat_completions_needs_responses_upgrade(&payload)
     {
         ProviderFormat::Responses
@@ -1710,6 +1738,48 @@ mod tests {
             }
             TransformResult::PassThrough(_) => {
                 panic!("Expected transformation, got passthrough");
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_option_disables_responses_upgrade() {
+        let payload = json!({
+            "model": "gemini-2.5-flash",
+            "messages": [{"role": "user", "content": "Tokyo weather?"}],
+            "reasoning_effort": "medium",
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                }
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request_with_options(
+            input,
+            ProviderFormat::ChatCompletions,
+            None,
+            TransformRequestOptions {
+                allow_chat_completions_responses_upgrade: false,
+            },
+        )
+        .unwrap();
+
+        match result {
+            TransformResult::PassThrough(_) => {}
+            TransformResult::Transformed {
+                actual_target_format,
+                ..
+            } => {
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
             }
         }
     }

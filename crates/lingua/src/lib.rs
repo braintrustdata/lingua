@@ -38,8 +38,9 @@ pub use capabilities::ProviderFormat;
 pub use processing::{
     extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
     parse_json_value, parse_stream_event, response_to_universal, sanitize_payload,
-    transform_request, transform_response, transform_stream_chunk, ParsedJsonBody,
-    ParsedStreamEvent, StreamOutputChunk, StreamTransformSession, TransformError, TransformResult,
+    transform_request, transform_request_with_options, transform_response, transform_stream_chunk,
+    ParsedJsonBody, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession, TransformError,
+    TransformRequestOptions, TransformResult,
 };
 
 // Re-export universal types
