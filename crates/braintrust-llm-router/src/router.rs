@@ -643,6 +643,10 @@ struct ProviderEntry {
     default_for_formats: Vec<ProviderFormat>,
 }
 
+fn provider_format_can_be_backup_default(provider_id: &str, format: ProviderFormat) -> bool {
+    !(provider_id == "google" && format == ProviderFormat::ChatCompletions)
+}
+
 pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
     custom_catalog: Option<ModelCatalog>,
@@ -763,6 +767,9 @@ impl RouterBuilder {
                 formats.insert(format, entry.alias.clone());
             }
             for format in entry.provider.provider_formats() {
+                if !provider_format_can_be_backup_default(entry.provider.id(), format) {
+                    continue;
+                }
                 #[cfg(feature = "tracing")]
                 tracing::debug!(
                     "adding backup format: {format} -> {alias}",
@@ -1137,6 +1144,36 @@ mod tests {
         assert_eq!(alias, "openai");
         assert_eq!(provider.id(), "openai");
         assert_eq!(*format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn openai_model_without_openai_provider_does_not_fallback_to_google_chat_completions() {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match router.resolve_providers(model, ProviderFormat::ChatCompletions) {
+            Ok(_) => panic!("should not route OpenAI model to Google fallback"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
     }
 
     #[test]
