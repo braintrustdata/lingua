@@ -16,6 +16,7 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::detect::system_messages_are_supported_and_well_placed;
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
     ToolChoice, ToolChoiceType,
@@ -328,7 +329,32 @@ impl ProviderAdapter for AnthropicAdapter {
         obj.insert("model".into(), Value::String(model.clone()));
 
         if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
-            obj.insert("messages".into(), raw_messages.clone());
+            if system_messages_are_supported_and_well_placed(model, raw_messages)
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?
+            {
+                obj.insert("messages".into(), raw_messages.clone());
+            } else {
+                if msgs.is_empty() {
+                    let reason = if system_contents.is_empty() {
+                        "Anthropic requires at least one message in 'messages'.".to_string()
+                    } else {
+                        "Anthropic requires at least one non-system message; a system prompt alone cannot be sent because Anthropic stores system prompts in the top-level 'system' field and requires at least one user or assistant message in 'messages'.".to_string()
+                    };
+                    return Err(TransformError::ValidationFailed {
+                        target: ProviderFormat::Anthropic,
+                        reason,
+                    });
+                }
+                validate_no_non_leading_system_messages(&msgs)?;
+                let anthropic_messages: Vec<InputMessage> =
+                    <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                obj.insert(
+                    "messages".into(),
+                    serde_json::to_value(anthropic_messages)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
         } else {
             if msgs.is_empty() {
                 let reason = if system_contents.is_empty() {

@@ -1,8 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  ANTHROPIC_MODEL,
-  OPENAI_CHAT_COMPLETIONS_MODEL,
-} from "../../cases";
+import { ANTHROPIC_MODEL, OPENAI_CHAT_COMPLETIONS_MODEL } from "../../cases";
 import { transformAndValidateRequest } from "./helpers";
 
 describe("anthropic mid-conversation system messages", () => {

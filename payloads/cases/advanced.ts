@@ -4,6 +4,7 @@ import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
   ANTHROPIC_MODEL,
+  ANTHROPIC_OPUS_4_8_MODEL,
   BEDROCK_MODEL,
   BEDROCK_ANTHROPIC_MODEL,
   GOOGLE_GEMINI_3_MODEL,
@@ -13,10 +14,10 @@ import {
 const IMAGE_BASE64 =
   "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Anthropic SDK types do not yet include Opus 4.8 system-role messages.
 const anthropicMidConversationSystemRequest = {
-  model: ANTHROPIC_MODEL,
+  model: ANTHROPIC_OPUS_4_8_MODEL,
   max_tokens: 16,
-  temperature: 0,
   system:
     "If there is no later system message, answer the final question with exactly INITIAL.",
   messages: [
