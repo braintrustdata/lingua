@@ -1,0 +1,92 @@
+{
+  "id": "resp_0c6dbce448cc8b0b006a2327e35590819c90e13b4fd27d3f54",
+  "object": "response",
+  "created_at": 1780688867,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780688873,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0c6dbce448cc8b0b006a2327e47c88819c81c61315bc2d1899",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0c6dbce448cc8b0b006a2327e8fc20819c9edd24c2ca621d1b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The connected MongoDB instance has these databases:\n- admin\n- config\n- local"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "List databases in the connected MongoDB instance.",
+      "name": "list_databases",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 104,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 246,
+    "output_tokens_details": {
+      "reasoning_tokens": 192
+    },
+    "total_tokens": 350
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "The connected MongoDB instance has these databases:\n- admin\n- config\n- local"
+}

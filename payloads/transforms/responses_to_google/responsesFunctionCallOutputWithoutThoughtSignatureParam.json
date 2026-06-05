@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The following databases exist in the connected MongoDB instance:\n\n* admin\n* config\n* local",
+            "thoughtSignature": "Eq4BCqsBAQw51sccpXKT3SDDj0U+Xm1hQXYesMrpMUZy0PCiYzf6gGu6QDdvbPYiz7BNiB9/zxvbWk9TptlkXdJn58Oci+wJPbUQ2ZE1C7zAg9pViAVGzu99WE/ZD6AoHJr/SbYolJRLKzEr8GHgeXwzKo7bi8knMsJbKDjspo6XEzjg5wE3He1esWZL3TuahSRwYAROdU6xQ4V+lUsTCBOZhRZaM8MnHLmzU09O7fQ6"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 78,
+    "candidatesTokenCount": 19,
+    "totalTokenCount": 125,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 78
+      }
+    ],
+    "thoughtsTokenCount": 28,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "-icjapXcArrL_uMPi4_H0A4"
+}

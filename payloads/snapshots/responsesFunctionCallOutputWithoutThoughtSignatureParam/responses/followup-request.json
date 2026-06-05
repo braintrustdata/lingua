@@ -1,0 +1,63 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool."
+        }
+      ]
+    },
+    {
+      "type": "function_call",
+      "call_id": "6k7x6c84",
+      "name": "list_databases",
+      "arguments": "{}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "6k7x6c84",
+      "output": "[{\"type\":\"text\",\"text\":\"{\\\"databases\\\":[\\\"admin\\\",\\\"config\\\",\\\"local\\\"]}\"}]"
+    },
+    {
+      "id": "rs_0c6dbce448cc8b0b006a2327e47c88819c81c61315bc2d1899",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0c6dbce448cc8b0b006a2327e8fc20819c9edd24c2ca621d1b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The connected MongoDB instance has these databases:\n- admin\n- config\n- local"
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "list_databases",
+      "description": "List databases in the connected MongoDB instance.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "tool_choice": "auto"
+}

@@ -18,6 +18,7 @@ use crate::providers::google::generated::{
     ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
+use crate::providers::google::GoogleCapabilities;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
@@ -200,6 +201,19 @@ impl ProviderAdapter for GoogleAdapter {
         // Fill in tool names from preceding tool_calls — Google requires functionResponse.name
         // but some formats (e.g. OpenAI chat-completions role:tool) don't carry the function name
         fill_tool_names_from_context(&mut messages);
+
+        let capabilities = GoogleCapabilities::detect(req.model.as_deref());
+        if capabilities.requires_thought_signature_for_function_call_history {
+            // Gemini 3 rejects replayed model functionCall parts without thoughtSignature.
+            // Responses follow-up requests can include an unsigned function_call solely to
+            // pair call_id -> name for a following function_call_output. After filling tool
+            // result names from that context, drop only unsigned function calls that have a
+            // matching later tool result, because the result is preserved as functionResponse.
+            // Leave unpaired unsigned function calls intact so Google can return the native
+            // provider validation error instead of Lingua silently changing semantics.
+            sanitize_function_call_history_for_google_capabilities(&mut messages);
+            flatten_consecutive_messages(&mut messages);
+        }
 
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
@@ -768,6 +782,52 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     }
 }
 
+fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Message>) {
+    let mut later_tool_result_ids = std::collections::HashSet::new();
+    let mut sanitized_reversed = Vec::with_capacity(messages.len());
+
+    for mut msg in messages.drain(..).rev() {
+        match &mut msg {
+            Message::Tool { content } => {
+                for part in content {
+                    let ToolContentPart::ToolResult(result) = part;
+                    later_tool_result_ids.insert(result.tool_call_id.clone());
+                }
+                sanitized_reversed.push(msg);
+            }
+            Message::Assistant { content, .. } => match content {
+                AssistantContent::String(_) => sanitized_reversed.push(msg),
+                AssistantContent::Array(parts) => {
+                    let mut kept_parts = Vec::with_capacity(parts.len());
+                    for part in parts.drain(..) {
+                        if let AssistantContentPart::ToolCall {
+                            tool_call_id,
+                            encrypted_content: None,
+                            ..
+                        } = &part
+                        {
+                            if later_tool_result_ids.contains(tool_call_id) {
+                                continue;
+                            }
+                        }
+
+                        kept_parts.push(part);
+                    }
+
+                    *parts = kept_parts;
+                    if !parts.is_empty() {
+                        sanitized_reversed.push(msg);
+                    }
+                }
+            },
+            _ => sanitized_reversed.push(msg),
+        }
+    }
+
+    sanitized_reversed.reverse();
+    *messages = sanitized_reversed;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -881,6 +941,108 @@ mod tests {
             mode,
             Some(crate::providers::google::generated::FunctionCallingConfigMode::Any)
         );
+    }
+
+    #[test]
+    fn test_google_drops_paired_unsigned_function_call_history_for_signature_models() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("List databases.".to_string()),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                        tool_call_id: "call_1".to_string(),
+                        tool_name: "list_databases".to_string(),
+                        arguments: crate::universal::message::ToolCallArguments::from(
+                            "{}".to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    }]),
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(
+                        crate::universal::message::ToolResultContentPart {
+                            tool_call_id: "call_1".to_string(),
+                            tool_name: "list_databases".to_string(),
+                            output: json!({"databases": ["admin", "config", "local"]}),
+                            provider_options: None,
+                        },
+                    )],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let contents = payload
+            .get("contents")
+            .and_then(Value::as_array)
+            .expect("contents should be an array");
+        let payload_text = serde_json::to_string(&contents).unwrap();
+
+        assert!(!payload_text.contains("functionCall"));
+        assert!(payload_text.contains("functionResponse"));
+        assert!(payload_text.contains("list_databases"));
+    }
+
+    #[test]
+    fn test_google_keeps_signed_function_call_history_for_signature_models() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![Message::Assistant {
+                id: None,
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "list_databases".to_string(),
+                    arguments: crate::universal::message::ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("thought_signature_123".to_string()),
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let payload_text = serde_json::to_string(&payload).unwrap();
+
+        assert!(payload_text.contains("functionCall"));
+        assert!(payload_text.contains("thoughtSignature"));
+        assert!(payload_text.contains("thought_signature_123"));
+    }
+
+    #[test]
+    fn test_google_keeps_unpaired_unsigned_function_call_history_for_provider_validation() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![Message::Assistant {
+                id: None,
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "list_databases".to_string(),
+                    arguments: crate::universal::message::ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let payload_text = serde_json::to_string(&payload).unwrap();
+
+        assert!(payload_text.contains("functionCall"));
+        assert!(payload_text.contains("call_1"));
+        assert!(!payload_text.contains("thoughtSignature"));
     }
 
     #[test]

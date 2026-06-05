@@ -34,6 +34,7 @@ const THINKING_BUDGET_PREFIXES: &[&str] = &["gemini-2.5", "gemini-2.0"];
 /// Google model capabilities
 pub struct GoogleCapabilities {
     pub thinking_style: GoogleThinkingStyle,
+    pub requires_thought_signature_for_function_call_history: bool,
 }
 
 impl GoogleCapabilities {
@@ -59,7 +60,13 @@ impl GoogleCapabilities {
             })
             .unwrap_or(GoogleThinkingStyle::ThinkingBudget);
 
-        Self { thinking_style }
+        let requires_thought_signature_for_function_call_history =
+            thinking_style == GoogleThinkingStyle::ThinkingLevelBased;
+
+        Self {
+            thinking_style,
+            requires_thought_signature_for_function_call_history,
+        }
     }
 }
 
