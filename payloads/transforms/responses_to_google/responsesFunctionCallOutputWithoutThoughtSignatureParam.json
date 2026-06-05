@@ -4,8 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "The following databases exist in the connected MongoDB instance:\n\n* admin\n* config\n* local",
-            "thoughtSignature": "Eq4BCqsBAQw51sccpXKT3SDDj0U+Xm1hQXYesMrpMUZy0PCiYzf6gGu6QDdvbPYiz7BNiB9/zxvbWk9TptlkXdJn58Oci+wJPbUQ2ZE1C7zAg9pViAVGzu99WE/ZD6AoHJr/SbYolJRLKzEr8GHgeXwzKo7bi8knMsJbKDjspo6XEzjg5wE3He1esWZL3TuahSRwYAROdU6xQ4V+lUsTCBOZhRZaM8MnHLmzU09O7fQ6"
+            "text": "The databases that exist in the connected MongoDB instance are:\n\n*   **admin**\n*   **config**\n*   **local**",
+            "thoughtSignature": "EuMBCuABAQw51se5ZzrKp68e73j4RBzFcyA+bgRDplXU+XyjZa0iJqMJJsWefElYNq4FW5nM15SSgADVzsrH+9Fnj5LJr0Fo1i0gpTA9fms3Mzl6l6RjuyTgLFQyJ2mDmoL2LVvTTcnzZIH9cezM6bSxhJv6FQ6dDkzJn7FHDtxaSzxpZwx8IPG7FCrRArRol1FmyyYW1TW0KSAYKK347XAyICUtKXQrCjN6FwwaU/wCGvMA+h5rrEN0aK9F2gKvHdcJiuBh1o0o9F/rpBrGECmOG6+/RYWdUqbE7GnxvgG3sEz3N9s="
           }
         ],
         "role": "model"
@@ -15,18 +15,18 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 78,
-    "candidatesTokenCount": 19,
-    "totalTokenCount": 125,
+    "promptTokenCount": 87,
+    "candidatesTokenCount": 29,
+    "totalTokenCount": 152,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 78
+        "tokenCount": 87
       }
     ],
-    "thoughtsTokenCount": 28,
+    "thoughtsTokenCount": 36,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "-icjapXcArrL_uMPi4_H0A4"
+  "responseId": "vDwjap7zCNOb_uMP7Z__oA4"
 }

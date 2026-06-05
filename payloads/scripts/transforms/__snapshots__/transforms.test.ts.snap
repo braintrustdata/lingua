@@ -3059,6 +3059,30 @@ exports[`anthropic → google > parallelToolCallsRequest > request 1`] = `
     {
       "parts": [
         {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "id": "toolu_sf",
+            "name": "get_weather",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+        {
+          "functionCall": {
+            "args": {
+              "location": "New York, NY",
+            },
+            "id": "toolu_nyc",
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
           "functionResponse": {
             "id": "toolu_sf",
             "name": "get_weather",
@@ -3121,18 +3145,18 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
 {
   "content": [
     {
-      "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+      "text": "The current weather in San Francisco is 65°F and sunny, while in New York it is 45°F and cloudy.",
       "type": "text",
     },
   ],
   "id": "msg_transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
-    "input_tokens": 140,
-    "output_tokens": 32,
+    "input_tokens": 151,
+    "output_tokens": 29,
   },
 }
 `;
@@ -14031,6 +14055,28 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
     {
       "parts": [
         {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+        {
+          "functionCall": {
+            "args": {
+              "location": "New York, NY",
+            },
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
           "functionResponse": {
             "name": "get_weather",
             "response": {
@@ -14086,19 +14132,22 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+        "content": "In San Francisco, the weather is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 32,
-    "prompt_tokens": 140,
-    "total_tokens": 172,
+    "completion_tokens": 123,
+    "completion_tokens_details": {
+      "reasoning_tokens": 93,
+    },
+    "prompt_tokens": 151,
+    "total_tokens": 274,
   },
 }
 `;
@@ -31895,6 +31944,28 @@ exports[`responses → google > parallelToolCallsRequest > request 1`] = `
     {
       "parts": [
         {
+          "functionCall": {
+            "args": {
+              "location": "San Francisco, CA",
+            },
+            "name": "get_weather",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+        {
+          "functionCall": {
+            "args": {
+              "location": "New York, NY",
+            },
+            "name": "get_weather",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
           "functionResponse": {
             "name": "get_weather",
             "response": {
@@ -31947,14 +32018,14 @@ exports[`responses → google > parallelToolCallsRequest > response 1`] = `
   "created_at": 0,
   "id": "resp_transformed",
   "incomplete_details": null,
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "object": "response",
   "output": [
     {
       "content": [
         {
           "annotations": [],
-          "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+          "text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
           "type": "output_text",
         },
       ],
@@ -31964,21 +32035,21 @@ exports[`responses → google > parallelToolCallsRequest > response 1`] = `
       "type": "message",
     },
   ],
-  "output_text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+  "output_text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 140,
+    "input_tokens": 151,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 32,
+    "output_tokens": 113,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 85,
     },
-    "total_tokens": 172,
+    "total_tokens": 264,
   },
 }
 `;
@@ -32754,6 +32825,19 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
     {
       "parts": [
         {
+          "functionCall": {
+            "args": {},
+            "id": "6k7x6c84",
+            "name": "list_databases",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
           "functionResponse": {
             "id": "6k7x6c84",
             "name": "list_databases",
@@ -32809,11 +32893,11 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
       "content": [
         {
           "annotations": [],
-          "text": "The following databases exist in the connected MongoDB instance:
+          "text": "The databases that exist in the connected MongoDB instance are:
 
-* admin
-* config
-* local",
+*   **admin**
+*   **config**
+*   **local**",
           "type": "output_text",
         },
       ],
@@ -32823,25 +32907,25 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
       "type": "message",
     },
   ],
-  "output_text": "The following databases exist in the connected MongoDB instance:
+  "output_text": "The databases that exist in the connected MongoDB instance are:
 
-* admin
-* config
-* local",
+*   **admin**
+*   **config**
+*   **local**",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 78,
+    "input_tokens": 87,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 47,
+    "output_tokens": 65,
     "output_tokens_details": {
-      "reasoning_tokens": 28,
+      "reasoning_tokens": 36,
     },
-    "total_tokens": 125,
+    "total_tokens": 152,
   },
 }
 `;

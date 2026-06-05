@@ -204,15 +204,7 @@ impl ProviderAdapter for GoogleAdapter {
 
         let capabilities = GoogleCapabilities::detect(req.model.as_deref());
         if capabilities.requires_thought_signature_for_function_call_history {
-            // Gemini 3 rejects replayed model functionCall parts without thoughtSignature.
-            // Responses follow-up requests can include an unsigned function_call solely to
-            // pair call_id -> name for a following function_call_output. After filling tool
-            // result names from that context, drop only unsigned function calls that have a
-            // matching later tool result, because the result is preserved as functionResponse.
-            // Leave unpaired unsigned function calls intact so Google can return the native
-            // provider validation error instead of Lingua silently changing semantics.
-            sanitize_function_call_history_for_google_capabilities(&mut messages);
-            flatten_consecutive_messages(&mut messages);
+            add_dummy_thought_signatures_for_transferred_function_call_history(&mut messages);
         }
 
         // Convert messages to Google contents
@@ -782,7 +774,9 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     }
 }
 
-fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Message>) {
+const GOOGLE_DUMMY_THOUGHT_SIGNATURE: &str = "skip_thought_signature_validator";
+
+fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: &mut [Message]) {
     let Some(current_turn_start) = messages
         .iter()
         .rposition(|message| matches!(message, Message::User { .. }))
@@ -806,7 +800,7 @@ fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Mes
                 content: AssistantContent::Array(parts),
                 ..
             } => {
-                let has_signed_tool_call = parts.iter().any(|part| {
+                if parts.iter().any(|part| {
                     matches!(
                         part,
                         AssistantContentPart::ToolCall {
@@ -814,27 +808,35 @@ fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Mes
                             ..
                         }
                     )
-                });
+                }) {
+                    continue;
+                }
 
-                parts.retain(|part| {
+                let mut first_paired_unsigned_call = None;
+                for (part_index, part) in parts.iter().enumerate() {
                     if let AssistantContentPart::ToolCall {
                         tool_call_id,
                         encrypted_content: None,
                         ..
                     } = part
                     {
-                        // Gemini parallel calls put the signature only on the first sibling.
-                        // Only all-unsigned paired calls are synthetic Responses bridge history.
-                        if !has_signed_tool_call && later_tool_result_ids.contains(tool_call_id) {
-                            return false;
+                        if later_tool_result_ids.contains(tool_call_id) {
+                            first_paired_unsigned_call = Some(part_index);
+                            break;
                         }
                     }
+                }
 
-                    true
-                });
-
-                if parts.is_empty() {
-                    messages.remove(index);
+                if let Some(part_index) = first_paired_unsigned_call {
+                    // Google documents these dummy signatures for function-call history that
+                    // did not come from Gemini. Preserve the call/response pairing and mark the
+                    // first current-turn call so Gemini 3 skips signature validation.
+                    if let AssistantContentPart::ToolCall {
+                        encrypted_content, ..
+                    } = &mut parts[part_index]
+                    {
+                        *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
+                    }
                 }
             }
             _ => {}
@@ -962,7 +964,7 @@ mod tests {
     }
 
     #[test]
-    fn test_google_drops_paired_unsigned_function_call_history_for_signature_models() {
+    fn test_google_marks_transferred_function_call_history_for_signature_models() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
             model: Some("gemini-3.5-flash".to_string()),
@@ -1002,105 +1004,28 @@ mod tests {
             serde_json::from_value(payload).expect("request should deserialize");
         let contents = typed_payload.contents.expect("contents should be present");
 
-        let mut has_function_call = false;
+        let mut function_call_signature = None;
         let mut function_response_name = None;
         for content in contents {
             for part in content.parts.unwrap_or_default() {
-                has_function_call |= part.function_call.is_some();
+                if part.function_call.is_some() {
+                    function_call_signature = part.thought_signature;
+                }
                 if let Some(function_response) = part.function_response {
                     function_response_name = function_response.name;
                 }
             }
         }
 
-        assert!(!has_function_call);
+        assert_eq!(
+            function_call_signature.as_deref(),
+            Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE)
+        );
         assert_eq!(function_response_name.as_deref(), Some("list_databases"));
     }
 
     #[test]
-    fn test_google_keeps_unsigned_function_call_history_before_current_turn() {
-        let adapter = GoogleAdapter;
-        let req = UniversalRequest {
-            model: Some("gemini-3.5-flash".to_string()),
-            messages: vec![
-                Message::User {
-                    content: UserContent::String("List databases.".to_string()),
-                },
-                Message::Assistant {
-                    id: None,
-                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
-                        tool_call_id: "call_1".to_string(),
-                        tool_name: "list_databases".to_string(),
-                        arguments: crate::universal::message::ToolCallArguments::from(
-                            "{}".to_string(),
-                        ),
-                        encrypted_content: None,
-                        provider_options: None,
-                        provider_executed: None,
-                    }]),
-                },
-                Message::Tool {
-                    content: vec![ToolContentPart::ToolResult(
-                        crate::universal::message::ToolResultContentPart {
-                            tool_call_id: "call_1".to_string(),
-                            tool_name: "list_databases".to_string(),
-                            output: json!({"databases": ["admin", "config", "local"]}),
-                            provider_options: None,
-                        },
-                    )],
-                },
-                Message::User {
-                    content: UserContent::String("Summarize that.".to_string()),
-                },
-            ],
-            params: UniversalParams::default(),
-        };
-
-        let payload = adapter.request_from_universal(&req).unwrap();
-        let typed_payload: GenerateContentRequest =
-            serde_json::from_value(payload).expect("request should deserialize");
-        let contents = typed_payload.contents.expect("contents should be present");
-
-        let has_function_call = contents.into_iter().any(|content| {
-            content
-                .parts
-                .unwrap_or_default()
-                .into_iter()
-                .any(|part| part.function_call.is_some())
-        });
-
-        assert!(has_function_call);
-    }
-
-    #[test]
-    fn test_google_keeps_signed_function_call_history_for_signature_models() {
-        let adapter = GoogleAdapter;
-        let req = UniversalRequest {
-            model: Some("gemini-3.5-flash".to_string()),
-            messages: vec![Message::Assistant {
-                id: None,
-                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
-                    tool_call_id: "call_1".to_string(),
-                    tool_name: "list_databases".to_string(),
-                    arguments: crate::universal::message::ToolCallArguments::from("{}".to_string()),
-                    encrypted_content: Some("thought_signature_123".to_string()),
-                    provider_options: None,
-                    provider_executed: None,
-                }]),
-            }],
-            params: UniversalParams::default(),
-        };
-
-        let payload = adapter.request_from_universal(&req).unwrap();
-        let payload_text = serde_json::to_string(&payload).unwrap();
-
-        assert!(payload_text.contains("functionCall"));
-        assert!(payload_text.contains("thoughtSignature"));
-        assert!(payload_text.contains("thought_signature_123"));
-    }
-
-    #[test]
-    fn test_google_keeps_unsigned_parallel_function_call_sibling_for_signature_models() {
+    fn test_google_preserves_parallel_transferred_function_call_history_for_signature_models() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
             model: Some("gemini-3.5-flash".to_string()),
@@ -1119,7 +1044,7 @@ mod tests {
                             arguments: crate::universal::message::ToolCallArguments::from(
                                 r#"{"location":"Paris"}"#.to_string(),
                             ),
-                            encrypted_content: Some("thought_signature_123".to_string()),
+                            encrypted_content: None,
                             provider_options: None,
                             provider_executed: None,
                         },
@@ -1164,70 +1089,23 @@ mod tests {
             serde_json::from_value(payload).expect("request should deserialize");
         let contents = typed_payload.contents.expect("contents should be present");
 
-        let model_parts = contents
+        let function_call_signatures: Vec<_> = contents
             .iter()
-            .find(|content| content.role.as_deref() == Some("model"))
-            .and_then(|content| content.parts.as_ref())
-            .expect("model content should have parts");
-        let function_calls: Vec<_> = model_parts
-            .iter()
-            .filter_map(|part| {
-                part.function_call
-                    .as_ref()
-                    .map(|call| (call, part.thought_signature.as_deref()))
-            })
+            .flat_map(|content| content.parts.as_deref().unwrap_or(&[]))
+            .filter(|part| part.function_call.is_some())
+            .map(|part| part.thought_signature.as_deref())
             .collect();
+        let function_response_count = contents
+            .iter()
+            .flat_map(|content| content.parts.as_deref().unwrap_or(&[]))
+            .filter(|part| part.function_response.is_some())
+            .count();
 
-        assert_eq!(function_calls.len(), 2);
         assert_eq!(
-            function_calls[0].0.name.as_deref(),
-            Some("get_current_temperature")
+            function_call_signatures,
+            vec![Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE), None]
         );
-        assert_eq!(function_calls[0].1, Some("thought_signature_123"));
-        assert_eq!(
-            function_calls[1].0.name.as_deref(),
-            Some("get_current_temperature")
-        );
-        assert_eq!(function_calls[1].1, None);
-    }
-
-    #[test]
-    fn test_google_keeps_unpaired_unsigned_function_call_history_for_provider_validation() {
-        let adapter = GoogleAdapter;
-        let req = UniversalRequest {
-            model: Some("gemini-3.5-flash".to_string()),
-            messages: vec![Message::Assistant {
-                id: None,
-                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
-                    tool_call_id: "call_1".to_string(),
-                    tool_name: "list_databases".to_string(),
-                    arguments: crate::universal::message::ToolCallArguments::from("{}".to_string()),
-                    encrypted_content: None,
-                    provider_options: None,
-                    provider_executed: None,
-                }]),
-            }],
-            params: UniversalParams::default(),
-        };
-
-        let payload = adapter.request_from_universal(&req).unwrap();
-        let typed_payload: GenerateContentRequest =
-            serde_json::from_value(payload).expect("request should deserialize");
-        let contents = typed_payload.contents.expect("contents should be present");
-
-        let mut function_call_name = None;
-        let mut function_call_thought_signature = None;
-        for content in contents {
-            for part in content.parts.unwrap_or_default() {
-                if let Some(function_call) = part.function_call {
-                    function_call_name = function_call.name;
-                    function_call_thought_signature = part.thought_signature;
-                }
-            }
-        }
-
-        assert_eq!(function_call_name.as_deref(), Some("list_databases"));
-        assert!(function_call_thought_signature.is_none());
+        assert_eq!(function_response_count, 2);
     }
 
     #[test]
