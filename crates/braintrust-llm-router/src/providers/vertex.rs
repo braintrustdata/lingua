@@ -170,6 +170,16 @@ impl VertexProvider {
         }
     }
 
+    fn determine_mode_for_format(&self, model: &str, format: ProviderFormat) -> VertexMode {
+        let mode = self.determine_mode(model);
+        if format == ProviderFormat::ChatCompletions
+            && matches!(mode, VertexMode::Generative { .. })
+        {
+            return VertexMode::OpenApi { api_version: "v1" };
+        }
+        mode
+    }
+
     fn endpoint_for_mode(
         &self,
         mode: &VertexMode,
@@ -237,10 +247,10 @@ impl crate::providers::Provider for VertexProvider {
         payload: Bytes,
         auth: &AuthConfig,
         spec: &ModelSpec,
-        _format: ProviderFormat,
+        format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        let mode = self.determine_mode(&spec.model);
+        let mode = self.determine_mode_for_format(&spec.model, format);
         let location = self.resolve_location(spec);
         let base_url = self.base_url(&location)?;
         let url = self.endpoint_for_mode(&mode, &base_url, &location, false)?;
@@ -296,7 +306,7 @@ impl crate::providers::Provider for VertexProvider {
                 .await;
         }
 
-        let mode = self.determine_mode(&spec.model);
+        let mode = self.determine_mode_for_format(&spec.model, format);
         let location = self.resolve_location(spec);
         let base_url = self.base_url(&location)?;
         let url = self.endpoint_for_mode(&mode, &base_url, &location, true)?;
@@ -421,6 +431,18 @@ mod tests {
     }
 
     #[test]
+    fn selects_openapi_mode_for_openai_format_gemini_models() {
+        let provider = provider();
+        assert!(matches!(
+            provider.determine_mode_for_format(
+                "publishers/google/models/gemini-3.1-flash-lite-preview",
+                ProviderFormat::ChatCompletions,
+            ),
+            VertexMode::OpenApi { api_version: "v1" }
+        ));
+    }
+
+    #[test]
     fn selects_anthropic_mode_for_anthropic_models() {
         let provider = provider();
         assert!(matches!(
@@ -511,6 +533,23 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://us-central1-aiplatform.googleapis.com/v1/projects/test-project/locations/us-central1/endpoints/openapi/chat/completions"
+        );
+    }
+
+    #[test]
+    fn builds_openapi_endpoint_for_openai_format_gemini_model() {
+        let provider = provider();
+        let mode = provider.determine_mode_for_format(
+            "publishers/google/models/gemini-3.1-flash-lite-preview",
+            ProviderFormat::ChatCompletions,
+        );
+        let bu = base_url("global");
+        let url = provider
+            .endpoint_for_mode(&mode, &bu, "global", false)
+            .expect("url");
+        assert_eq!(
+            url.as_str(),
+            "https://aiplatform.googleapis.com/v1/projects/test-project/locations/global/endpoints/openapi/chat/completions"
         );
     }
 

@@ -555,6 +555,12 @@ impl Router {
             && (model.starts_with("models/gemini-") || spec.model.starts_with("models/gemini-"))
         {
             ProviderFormat::Google
+        } else if provider.id() == "vertex"
+            && output_format == ProviderFormat::ChatCompletions
+            && spec.format == ProviderFormat::ChatCompletions
+            && !spec.available_providers.is_empty()
+        {
+            ProviderFormat::ChatCompletions
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {
@@ -1385,6 +1391,66 @@ mod tests {
             resolved_aliases(&router, vertex_model, ProviderFormat::Google).unwrap(),
             vec!["google".to_string()]
         );
+    }
+
+    #[test]
+    fn vertex_google_model_with_openai_format_keeps_google_transport() {
+        let model = "publishers/google/models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::Google],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (_, _, _, _, format, _) = routes[0];
+        assert_eq!(format, ProviderFormat::Google);
+    }
+
+    #[test]
+    fn custom_vertex_openai_model_uses_chat_completions_transport() {
+        let model = "publishers/google/models/gemini-3.1-flash-lite-preview";
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["custom-vertex".into()];
+
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec);
+
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "custom-vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::Google],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (alias, _, _, _, format, _) = &routes[0];
+        assert_eq!(alias, "custom-vertex");
+        assert_eq!(*format, ProviderFormat::ChatCompletions);
     }
 
     #[test]
