@@ -420,6 +420,7 @@ impl Router {
             .iter()
             .map(|alias| {
                 self.resolve_provider(
+                    model,
                     output_format,
                     spec.clone(),
                     catalog_format,
@@ -457,6 +458,7 @@ impl Router {
         if successes.is_empty() {
             if let Some(fallback_alias) = self.formats.get(&catalog_format).cloned() {
                 match self.resolve_provider(
+                    model,
                     output_format,
                     spec,
                     catalog_format,
@@ -489,6 +491,7 @@ impl Router {
 
     fn resolve_provider(
         &self,
+        model: &str,
         output_format: ProviderFormat,
         spec: Arc<ModelSpec>,
         catalog_format: ProviderFormat,
@@ -546,6 +549,11 @@ impl Router {
             } else {
                 catalog_format
             }
+        } else if provider.id() == "google"
+            && output_format == ProviderFormat::ChatCompletions
+            && (model.starts_with("models/gemini-") || spec.model.starts_with("models/gemini-"))
+        {
+            ProviderFormat::Google
         } else if provider.id() == "vertex"
             && output_format == ProviderFormat::ChatCompletions
             && spec.format == ProviderFormat::ChatCompletions
@@ -769,6 +777,9 @@ impl RouterBuilder {
                 formats.insert(format, entry.alias.clone());
             }
             for format in entry.provider.provider_formats() {
+                if entry.provider.id() == "google" && format == ProviderFormat::ChatCompletions {
+                    continue;
+                }
                 #[cfg(feature = "tracing")]
                 tracing::debug!(
                     "adding backup format: {format} -> {alias}",
@@ -992,6 +1003,387 @@ mod tests {
             header: Some("authorization".into()),
             prefix: Some("Bearer".into()),
         }
+    }
+
+    fn google_chat_router(model: &str) -> Router {
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), google_spec(model));
+        Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds")
+    }
+
+    #[tokio::test]
+    async fn gemini_chat_completions_request_routes_to_google_chat_completions() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.payload, body);
+    }
+
+    #[tokio::test]
+    async fn bare_gemini_route_normalizes_prefixed_chat_completions_payload_model() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.format, ProviderFormat::ChatCompletions);
+        assert_ne!(request.inner.payload, body);
+        assert_eq!(
+            payload.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
+        assert!(payload.get("messages").is_some());
+    }
+
+    #[tokio::test]
+    async fn prefixed_gemini_chat_completions_request_uses_native_google_format() {
+        let model = "models/gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::Google);
+        assert_eq!(request.inner.format, ProviderFormat::Google);
+        assert_ne!(request.inner.payload, body);
+        assert!(payload.get("contents").is_some());
+        assert!(payload.get("messages").is_none());
+    }
+
+    #[tokio::test]
+    async fn prefixed_gemini_key_with_bare_spec_model_uses_native_google_format() {
+        let model = "models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), google_spec("gemini-2.5-flash"));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(metadata.provider_format, ProviderFormat::Google);
+        assert_eq!(request.inner.format, ProviderFormat::Google);
+        assert_ne!(request.inner.payload, body);
+        assert!(payload.get("contents").is_some());
+        assert!(payload.get("messages").is_none());
+    }
+
+    #[tokio::test]
+    async fn prefixed_gemini_chat_completions_catalog_uses_native_google_format() {
+        let model = "models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(metadata.provider_format, ProviderFormat::Google);
+        assert_eq!(request.inner.format, ProviderFormat::Google);
+        assert_ne!(request.inner.payload, body);
+        assert!(payload.get("contents").is_some());
+        assert!(payload.get("messages").is_none());
+    }
+
+    #[tokio::test]
+    async fn gemini_chat_completions_with_reasoning_and_tools_does_not_upgrade_to_responses() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"gemini-2.5-flash","reasoning_effort":"medium","messages":[{"role":"user","content":"Ping"}],"tools":[{"type":"function","function":{"name":"lookup","parameters":{"type":"object","properties":{},"required":[]}}}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.payload, body);
+    }
+
+    #[tokio::test]
+    async fn gemini_stream_chat_completions_request_sets_stream_flag() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_stream_request(body, model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create stream request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+        assert_eq!(payload.get("stream"), Some(&Value::Bool(true)));
+    }
+
+    #[test]
+    fn native_google_request_still_uses_google_format() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::Google)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (alias, provider, _, _, format, _) = &routes[0];
+        assert_eq!(alias, "google");
+        assert_eq!(provider.id(), "google");
+        assert_eq!(*format, ProviderFormat::Google);
+    }
+
+    #[test]
+    fn vertex_google_model_does_not_use_google_chat_completions() {
+        let model = "publishers/google/models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), google_spec(model));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .add_provider(
+                "vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::Google],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (alias, provider, _, _, format, _) = &routes[0];
+        assert_eq!(alias, "vertex");
+        assert_eq!(provider.id(), "vertex");
+        assert_eq!(*format, ProviderFormat::Google);
+    }
+
+    #[test]
+    fn openai_model_does_not_route_to_google_when_google_supports_chat_completions() {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_providers(model, ProviderFormat::ChatCompletions)
+            .expect("resolves");
+        assert_eq!(routes.len(), 1);
+        let (alias, provider, _, _, format, _) = &routes[0];
+        assert_eq!(alias, "openai");
+        assert_eq!(provider.id(), "openai");
+        assert_eq!(*format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn openai_model_without_openai_provider_does_not_fallback_to_google_chat_completions() {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match router.resolve_providers(model, ProviderFormat::ChatCompletions) {
+            Ok(_) => panic!("should not route OpenAI model to Google fallback"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
+    }
+
+    #[test]
+    fn gemini_model_without_google_provider_does_not_fallback_to_openai_chat_completions() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), google_spec(model));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match router.resolve_providers(model, ProviderFormat::ChatCompletions) {
+            Ok(_) => panic!("should not route Gemini model to OpenAI fallback"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(err, Error::NoProvider(ProviderFormat::Google)));
+    }
+
+    #[test]
+    fn gemini_chat_completions_catalog_without_google_provider_does_not_fallback_to_openai() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match router.resolve_providers(model, ProviderFormat::ChatCompletions) {
+            Ok(_) => panic!("should not route Gemini model to OpenAI fallback"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(err, Error::NoProvider(ProviderFormat::Google)));
     }
 
     #[test]

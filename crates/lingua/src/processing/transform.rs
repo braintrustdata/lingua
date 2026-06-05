@@ -269,6 +269,35 @@ fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
     has_reasoning_effort && has_tools
 }
 
+#[cfg(feature = "openai")]
+fn chat_completions_model_disables_responses_upgrade(model: &str) -> bool {
+    model.starts_with("gemini-") || model.starts_with("models/gemini-")
+}
+
+#[cfg(feature = "openai")]
+fn chat_completions_request_model(request_bytes: &[u8]) -> Option<String> {
+    #[derive(serde::Deserialize)]
+    struct RequestModel {
+        model: Option<String>,
+    }
+
+    parse_json::<RequestModel>(request_bytes)
+        .ok()
+        .and_then(|request| request.model)
+}
+
+#[cfg(feature = "openai")]
+fn chat_completions_upgrade_model(
+    model: Option<&str>,
+    request_model: Option<&str>,
+) -> Option<String> {
+    if let Some(model) = model {
+        return Some(model.to_string());
+    }
+
+    request_model.map(str::to_string)
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -280,12 +309,24 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
-    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are both present.
-    // The /v1/chat/completions endpoint rejects this combination for certain models;
-    // /v1/responses handles it correctly.
+    #[cfg(feature = "openai")]
+    let request_model = chat_completions_request_model(&request_bytes);
+    #[cfg(feature = "openai")]
+    let upgrade_model = chat_completions_upgrade_model(model, request_model.as_deref());
+    #[cfg(not(feature = "openai"))]
+    let request_model: Option<String> = None;
+    #[cfg(not(feature = "openai"))]
+    let upgrade_model = model.map(str::to_string);
+
+    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are
+    // both present, except for OpenAI-compatible providers that do not support
+    // the Responses API.
     #[cfg(feature = "openai")]
     let target_format = if target_format == ProviderFormat::ChatCompletions
         && chat_completions_needs_responses_upgrade(&payload)
+        && !upgrade_model
+            .as_deref()
+            .is_some_and(chat_completions_model_disables_responses_upgrade)
     {
         ProviderFormat::Responses
     } else {
@@ -297,7 +338,7 @@ pub fn transform_request(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     if source_format == target_format
-        && !needs_forced_translation(&payload, model, target_format)
+        && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
         && target_adapter.detect_passthrough_request(&payload)
     {
         return Ok(TransformResult::PassThrough(request_bytes));
@@ -638,8 +679,12 @@ fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dy
         .map(|a| a.as_ref())
 }
 
-/// Check if a request needs forced translation even when source == target format.
-fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
+#[cfg(feature = "openai")]
+fn request_model_needs_forced_translation(
+    request_model: Option<&str>,
+    override_model: Option<&str>,
+    target: ProviderFormat,
+) -> bool {
     if !matches!(
         target,
         ProviderFormat::ChatCompletions | ProviderFormat::Responses
@@ -647,14 +692,35 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
         return false;
     }
 
-    #[cfg(feature = "openai")]
-    {
-        // Force translation if model needs any transforms (temperature/top_p stripping, max_tokens conversion, etc.)
-        let request_model = model.or_else(|| payload.get("model").and_then(Value::as_str));
-        request_model.map(model_needs_transforms).unwrap_or(false)
+    if request_model.map(model_needs_transforms).unwrap_or(false) {
+        return true;
     }
 
-    #[cfg(not(feature = "openai"))]
+    if override_model.map(model_needs_transforms).unwrap_or(false) {
+        return true;
+    }
+
+    target == ProviderFormat::ChatCompletions
+        && request_model.is_some_and(is_models_prefixed_gemini_model)
+        && override_model.is_some_and(is_bare_gemini_model)
+}
+
+#[cfg(feature = "openai")]
+fn is_models_prefixed_gemini_model(model: &str) -> bool {
+    model.starts_with("models/gemini-")
+}
+
+#[cfg(feature = "openai")]
+fn is_bare_gemini_model(model: &str) -> bool {
+    model.starts_with("gemini-")
+}
+
+#[cfg(not(feature = "openai"))]
+fn request_model_needs_forced_translation(
+    _request_model: Option<&str>,
+    _override_model: Option<&str>,
+    _target: ProviderFormat,
+) -> bool {
     false
 }
 
@@ -1854,6 +1920,69 @@ mod tests {
                 panic!("Expected transformation, got passthrough");
             }
         }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_does_not_upgrade_gemini_reasoning_plus_tools() {
+        let payload = json!({
+            "model": "gemini-2.5-flash",
+            "messages": [{"role": "user", "content": "Tokyo weather?"}],
+            "reasoning_effort": "medium",
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                }
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        match result {
+            TransformResult::PassThrough(_) => {}
+            TransformResult::Transformed {
+                actual_target_format,
+                ..
+            } => {
+                assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_normalizes_prefixed_gemini_chat_completions_model() {
+        let payload = json!({
+            "model": "models/gemini-2.5-flash",
+            "messages": [{"role": "user", "content": "Ping"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::ChatCompletions,
+            Some("gemini-2.5-flash"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
     }
 
     #[test]
