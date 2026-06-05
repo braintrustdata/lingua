@@ -6608,11 +6608,11 @@ data: [DONE]
 `;
 
 exports[`streaming: chat-completions → google > parallelToolCallsRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"The weather in San","role":"assistant"},"finish_reason":null,"index":0}],"id":"8jr6aarKHc2f1MkPlq-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":4,"prompt_tokens":140,"total_tokens":144}}
+"data: {"choices":[{"delta":{"content":"The weather in San Francisco is 65°F and sunny. In New York, it","role":"assistant"},"finish_reason":null,"index":0}],"id":"tjwjap2YAqCb9MoPjsLu8AE","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":19,"prompt_tokens":151,"total_tokens":170}}
 
-data: {"choices":[{"delta":{"content":" Francisco, CA is 65°F and sunny. In New York, NY","role":"assistant"},"finish_reason":null,"index":0}],"id":"8jr6aarKHc2f1MkPlq-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":21,"prompt_tokens":140,"total_tokens":161}}
+data: {"choices":[{"delta":{"content":" is 45°F and cloudy.","role":"assistant"},"finish_reason":null,"index":0}],"id":"tjwjap2YAqCb9MoPjsLu8AE","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":28,"prompt_tokens":151,"total_tokens":179}}
 
-data: {"choices":[{"delta":{"content":", it is 45°F and cloudy.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"8jr6aarKHc2f1MkPlq-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":32,"prompt_tokens":140,"total_tokens":172}}
+data: {"choices":[{"delta":{"content":"","reasoning_signature":"EjQKMgEMOdbHOJySIIza8a3N6ADqxqUsPx0vnACleDwU5HBUkO172QSmDZZSOAzZ0nKYVoY7","role":"assistant"},"finish_reason":"stop","index":0}],"id":"tjwjap2YAqCb9MoPjsLu8AE","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":28,"prompt_tokens":151,"total_tokens":179}}
 
 data: [DONE]
 
@@ -10015,13 +10015,13 @@ data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","ob
 
 exports[`streaming: responses → google > parallelToolCallsRequest > streaming 1`] = `
 "event: response.output_text.delta
-data: {"content_index":0,"delta":"The weather in San","output_index":0,"type":"response.output_text.delta"}
+data: {"content_index":0,"delta":"In San Francisco, CA, it is currently 65°","output_index":0,"type":"response.output_text.delta"}
 
 event: response.output_text.delta
-data: {"content_index":0,"delta":" Francisco, CA is 65°F and sunny. In New York, NY","output_index":0,"type":"response.output_text.delta"}
+data: {"content_index":0,"delta":"F and sunny. In New York, NY, it is 45°F and cloudy.","output_index":0,"type":"response.output_text.delta"}
 
 event: response.completed
-data: {"response":{"id":"im_VaZyKKI3m_uMPnpjMmQY","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":140,"input_tokens_details":{"cached_tokens":0},"output_tokens":33,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":173}},"type":"response.completed"}
+data: {"response":{"id":"ujwjap_VJNTQjMcP2rTuuA0","model":"gemini-3.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":151,"input_tokens_details":{"cached_tokens":0},"output_tokens":33,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":184}},"type":"response.completed"}
 
 "
 `;
