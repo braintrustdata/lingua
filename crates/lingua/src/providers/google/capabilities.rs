@@ -42,7 +42,7 @@ impl GoogleCapabilities {
     pub fn detect(model: Option<&str>) -> Self {
         let thinking_style = model
             .map(|m| {
-                let m_lower = m.to_ascii_lowercase();
+                let m_lower = normalize_google_model_id(m).to_ascii_lowercase();
                 if THINKING_LEVEL_PREFIXES
                     .iter()
                     .any(|p| m_lower.starts_with(p))
@@ -68,6 +68,13 @@ impl GoogleCapabilities {
             requires_thought_signature_for_function_call_history,
         }
     }
+}
+
+fn normalize_google_model_id(model: &str) -> &str {
+    model
+        .strip_prefix("publishers/google/models/")
+        .or_else(|| model.strip_prefix("models/"))
+        .unwrap_or(model)
 }
 
 pub fn thinking_level_to_effort(level: &ThinkingLevel) -> ReasoningEffort {
@@ -110,6 +117,21 @@ mod tests {
             GoogleCapabilities::detect(Some("Gemini-3-Flash")).thinking_style,
             GoogleThinkingStyle::ThinkingLevelBased
         );
+
+        let vertex_capabilities =
+            GoogleCapabilities::detect(Some("publishers/google/models/gemini-3.5-flash"));
+        assert_eq!(
+            vertex_capabilities.thinking_style,
+            GoogleThinkingStyle::ThinkingLevelBased
+        );
+        assert!(vertex_capabilities.requires_thought_signature_for_function_call_history);
+
+        let gemini_api_capabilities = GoogleCapabilities::detect(Some("models/gemini-3.5-flash"));
+        assert_eq!(
+            gemini_api_capabilities.thinking_style,
+            GoogleThinkingStyle::ThinkingLevelBased
+        );
+        assert!(gemini_api_capabilities.requires_thought_signature_for_function_call_history);
     }
 
     #[test]

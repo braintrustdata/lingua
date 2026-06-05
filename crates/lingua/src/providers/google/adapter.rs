@@ -1004,6 +1004,62 @@ mod tests {
     }
 
     #[test]
+    fn test_google_sanitizes_vertex_gemini_unsigned_function_call_history() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("publishers/google/models/gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("List databases.".to_string()),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                        tool_call_id: "call_1".to_string(),
+                        tool_name: "list_databases".to_string(),
+                        arguments: crate::universal::message::ToolCallArguments::from(
+                            "{}".to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    }]),
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(
+                        crate::universal::message::ToolResultContentPart {
+                            tool_call_id: "call_1".to_string(),
+                            tool_name: "list_databases".to_string(),
+                            output: json!({"databases": ["admin", "config", "local"]}),
+                            provider_options: None,
+                        },
+                    )],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let mut has_function_call = false;
+        let mut function_response_name = None;
+        for content in contents {
+            for part in content.parts.unwrap_or_default() {
+                has_function_call |= part.function_call.is_some();
+                if let Some(function_response) = part.function_response {
+                    function_response_name = function_response.name;
+                }
+            }
+        }
+
+        assert!(!has_function_call);
+        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
+    }
+
+    #[test]
     fn test_google_keeps_signed_function_call_history_for_signature_models() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
