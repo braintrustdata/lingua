@@ -4,7 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy."
+            "text": "The current weather in San Francisco is 65°F and sunny, while in New York it is 45°F and cloudy.",
+            "thoughtSignature": "EjQKMgEMOdbHDCAaiPldOXhHyZobvZhH6bRNf5KOhXLeSkVEME0knNYIfaKmSq51K+m6aY/g"
           }
         ],
         "role": "model"
@@ -14,16 +15,17 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 140,
-    "candidatesTokenCount": 32,
-    "totalTokenCount": 172,
+    "promptTokenCount": 151,
+    "candidatesTokenCount": 29,
+    "totalTokenCount": 180,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 140
+        "tokenCount": 151
       }
-    ]
+    ],
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "f57MacDBAZOb-8YP37yX4AE"
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "tzwjaoehHY2U_uMPopCm6A4"
 }

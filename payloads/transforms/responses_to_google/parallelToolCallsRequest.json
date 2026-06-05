@@ -4,7 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy."
+            "text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
+            "thoughtSignature": "EpQDCpEDAQw51seltpJZbFFHK9rrRsbfyurKRncYKxtMNhh+fpvGXEeNHd/471P1yImG7C2F8By/ma/G904WZZU8l9mQHMiNHVEEmCSXpxVXoUT3MhSA3+Wvihvy7pBuDBQsr9svkwSx2sfwVudYQgS/FdcwbIJnqSmzRKGAS4JkjbYTvkm1m9H+bxJ2gdE78bnyacQeTWwUlSs/3k4N1+RdKZbNWYoPw8dUxTHOMIMktHNm+Le3Yxa4SbWlMPmDshK3BA+vgj4j3CUhkxvoO2+yXUQxNQv93AgQzwULw8ZxJbfxikEEkzkkMZBAMOXilbTnBPp+vM05smMyFcy7ugHCuWz+EYCZr65t354rTsFa7Q/4jdVehavscQDpQBmnYpyFC3eU8TaxYTs9Z/2Ul73h2cQPqsWl6p9/Yx0l0/pV74nwXuuCzJML8PmY53KKFOy7x7Vr8D88yWckO+bpdocp3DZxonj8xM2oFWZ/EY+P5PQKl1IJOcQKa7KsGmH5hXh2WXPxy7hMolTxT14xE1nr1EbF+gM="
           }
         ],
         "role": "model"
@@ -14,16 +15,18 @@
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 140,
-    "candidatesTokenCount": 32,
-    "totalTokenCount": 172,
+    "promptTokenCount": 151,
+    "candidatesTokenCount": 28,
+    "totalTokenCount": 264,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 140
+        "tokenCount": 151
       }
-    ]
+    ],
+    "thoughtsTokenCount": 85,
+    "serviceTier": "standard"
   },
-  "modelVersion": "gemini-2.5-flash",
-  "responseId": "T6rMaZLHBZvwjrEPysPtgQI"
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "uTwjavi0DMzFjMcP1cWN4Ao"
 }

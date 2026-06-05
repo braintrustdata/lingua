@@ -11,7 +11,7 @@ export const ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929";
 export const ANTHROPIC_OPUS_MODEL = "claude-opus-4-6";
 // For Anthropic mid-conversation system messages (requires Opus 4.8+)
 export const ANTHROPIC_OPUS_4_8_MODEL = "claude-opus-4-8";
-export const GOOGLE_MODEL = "gemini-2.5-flash";
+export const GOOGLE_MODEL = "gemini-3.5-flash";
 export const GOOGLE_GEMINI_3_MODEL = "gemini-3-flash-preview";
 export const GOOGLE_IMAGE_MODEL = "gemini-2.5-flash-image";
 export const GOOGLE_TTS_MODEL = "gemini-2.5-flash-preview-tts";

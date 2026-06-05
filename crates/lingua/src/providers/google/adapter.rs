@@ -18,6 +18,7 @@ use crate::providers::google::generated::{
     ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
+use crate::providers::google::GoogleCapabilities;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
@@ -200,6 +201,11 @@ impl ProviderAdapter for GoogleAdapter {
         // Fill in tool names from preceding tool_calls — Google requires functionResponse.name
         // but some formats (e.g. OpenAI chat-completions role:tool) don't carry the function name
         fill_tool_names_from_context(&mut messages);
+
+        let capabilities = GoogleCapabilities::detect(req.model.as_deref());
+        if capabilities.requires_thought_signature_for_function_call_history {
+            add_dummy_thought_signatures_for_transferred_function_call_history(&mut messages);
+        }
 
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
@@ -768,6 +774,76 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     }
 }
 
+const GOOGLE_DUMMY_THOUGHT_SIGNATURE: &str = "skip_thought_signature_validator";
+
+fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: &mut [Message]) {
+    let Some(current_turn_start) = messages
+        .iter()
+        .rposition(|message| matches!(message, Message::User { .. }))
+    else {
+        return;
+    };
+
+    let mut later_tool_result_ids = std::collections::HashSet::new();
+    let mut index = messages.len();
+    while index > current_turn_start + 1 {
+        index -= 1;
+
+        match &mut messages[index] {
+            Message::Tool { content } => {
+                for part in content {
+                    let ToolContentPart::ToolResult(result) = part;
+                    later_tool_result_ids.insert(result.tool_call_id.clone());
+                }
+            }
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => {
+                if parts.iter().any(|part| {
+                    matches!(
+                        part,
+                        AssistantContentPart::ToolCall {
+                            encrypted_content: Some(_),
+                            ..
+                        }
+                    )
+                }) {
+                    continue;
+                }
+
+                let mut first_paired_unsigned_call = None;
+                for (part_index, part) in parts.iter().enumerate() {
+                    if let AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        encrypted_content: None,
+                        ..
+                    } = part
+                    {
+                        if later_tool_result_ids.contains(tool_call_id) {
+                            first_paired_unsigned_call = Some(part_index);
+                            break;
+                        }
+                    }
+                }
+
+                if let Some(part_index) = first_paired_unsigned_call {
+                    // Google documents these dummy signatures for function-call history that
+                    // did not come from Gemini. Preserve the call/response pairing and mark the
+                    // first current-turn call so Gemini 3 skips signature validation.
+                    if let AssistantContentPart::ToolCall {
+                        encrypted_content, ..
+                    } = &mut parts[part_index]
+                    {
+                        *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -810,8 +886,10 @@ mod tests {
         );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
-        assert!(reconstructed.get("generationConfig").is_some());
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        assert!(reconstructed.contents.is_some());
+        assert!(reconstructed.generation_config.is_some());
     }
 
     #[test]
@@ -830,7 +908,9 @@ mod tests {
         // but it should be preserved through serialization
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        assert!(reconstructed.contents.is_some());
     }
 
     #[test]
@@ -881,6 +961,151 @@ mod tests {
             mode,
             Some(crate::providers::google::generated::FunctionCallingConfigMode::Any)
         );
+    }
+
+    #[test]
+    fn test_google_marks_transferred_function_call_history_for_signature_models() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("List databases.".to_string()),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                        tool_call_id: "call_1".to_string(),
+                        tool_name: "list_databases".to_string(),
+                        arguments: crate::universal::message::ToolCallArguments::from(
+                            "{}".to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    }]),
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(
+                        crate::universal::message::ToolResultContentPart {
+                            tool_call_id: "call_1".to_string(),
+                            tool_name: "list_databases".to_string(),
+                            output: json!({"databases": ["admin", "config", "local"]}),
+                            provider_options: None,
+                        },
+                    )],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let mut function_call_signature = None;
+        let mut function_response_name = None;
+        for content in contents {
+            for part in content.parts.unwrap_or_default() {
+                if part.function_call.is_some() {
+                    function_call_signature = part.thought_signature;
+                }
+                if let Some(function_response) = part.function_response {
+                    function_response_name = function_response.name;
+                }
+            }
+        }
+
+        assert_eq!(
+            function_call_signature.as_deref(),
+            Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE)
+        );
+        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
+    }
+
+    #[test]
+    fn test_google_preserves_parallel_transferred_function_call_history_for_signature_models() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String(
+                        "Check the weather in Paris and London.".to_string(),
+                    ),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_paris".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"Paris"}"#.to_string(),
+                            ),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_london".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"London"}"#.to_string(),
+                            ),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                },
+                Message::Tool {
+                    content: vec![
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_paris".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "15C"}),
+                                provider_options: None,
+                            },
+                        ),
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_london".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "12C"}),
+                                provider_options: None,
+                            },
+                        ),
+                    ],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let function_call_signatures: Vec<_> = contents
+            .iter()
+            .flat_map(|content| content.parts.as_deref().unwrap_or(&[]))
+            .filter(|part| part.function_call.is_some())
+            .map(|part| part.thought_signature.as_deref())
+            .collect();
+        let function_response_count = contents
+            .iter()
+            .flat_map(|content| content.parts.as_deref().unwrap_or(&[]))
+            .filter(|part| part.function_response.is_some())
+            .count();
+
+        assert_eq!(
+            function_call_signatures,
+            vec![Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE), None]
+        );
+        assert_eq!(function_response_count, 2);
     }
 
     #[test]
