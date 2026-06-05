@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Okay, here's my interpretation of that thought process, tailored for an expert user:\n\n**Initial Assessment: Minimal Task, Standard Response**\n\nRight, so the user offered a straightforward \"hello world.\" No complex query there, no data analysis needed, and certainly no need to invoke any specialized tools. That's essentially a conversational opening. My assessment is that a reciprocal greeting is the appropriate and expected response in this context. It's a foundational exchange, establishing a baseline level of interaction. I'll stick with a similar greeting.\n",
+            "thought": true
+          },
+          {
+            "text": "Hello there! How can I help you today?",
+            "thoughtSignature": "CqQBAQw51se/ZOndVln40UX7PWLkb06tV9xaAVoU/emZOFnzgalF9ihOgpgZaLKBTaoEeCqSKIqBwj7cmkD2gY7Cv/vUAJlWm3Tdh7O9kdl3rR2y2M4WMiQt/GRhbXCFTgGwohwNhBqOuptVPJ/6fIIP+QH4t+FvQo86/Oxj1VOzCbTvRWuNPB3YlCfX/yUtfdlkN3Eq+hJHFlEYKHsVAWSHkB4gyVc="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 73,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 111,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 73
+      }
+    ],
+    "thoughtsTokenCount": 28,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash",
+  "responseId": "SwMiaq2xCNWu_uMPq96nqA4"
+}

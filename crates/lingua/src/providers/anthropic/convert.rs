@@ -50,6 +50,12 @@ struct AnthropicToolUseProviderOptionsView {
     caller: Option<generated::Caller>,
 }
 
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicTextProviderOptionsView {
+    cache_control: Option<generated::CacheControlEphemeral>,
+}
+
 fn anthropic_tool_use_provider_options_from_caller(
     caller: Option<generated::Caller>,
 ) -> Option<ProviderOptions> {
@@ -72,6 +78,20 @@ fn anthropic_tool_use_caller_from_provider_options(
             .ok()
         })
         .and_then(|view| view.caller)
+}
+
+fn anthropic_cache_control_from_provider_options(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<generated::CacheControlEphemeral> {
+    provider_options
+        .as_ref()
+        .and_then(|opts| {
+            serde_json::from_value::<AnthropicTextProviderOptionsView>(Value::Object(
+                opts.options.clone(),
+            ))
+            .ok()
+        })?
+        .cache_control
 }
 
 fn infer_media_type_from_reference(reference: &str) -> Option<String> {
@@ -465,11 +485,15 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             match block.input_content_block_type {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
+                                        let provider_options = anthropic_text_provider_options(
+                                            block.cache_control,
+                                            block.citations,
+                                        )?;
                                         content_parts.push(UserContentPart::Text(
                                             TextContentPart {
                                                 text,
                                                 encrypted_content: None,
-                                                provider_options: None,
+                                                provider_options,
                                             },
                                         ));
                                     }
@@ -606,15 +630,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             match block.input_content_block_type {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
-                                        // Preserve citations in provider_options for roundtrip
-                                        let provider_options =
-                                            block.citations.as_ref().map(|citations| {
-                                                let mut opts = serde_json::Map::new();
-                                                if let Ok(v) = serde_json::to_value(citations) {
-                                                    opts.insert("citations".into(), v);
-                                                }
-                                                ProviderOptions { options: opts }
-                                            });
+                                        let provider_options = anthropic_text_provider_options(
+                                            block.cache_control,
+                                            block.citations,
+                                        )?;
 
                                         content_parts.push(AssistantContentPart::Text(
                                             TextContentPart {
@@ -755,9 +774,12 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                                 UserContentPart::Text(text_part) => {
-                                    // Regular text content
+                                    let cache_control =
+                                        anthropic_cache_control_from_provider_options(
+                                            &text_part.provider_options,
+                                        );
                                     Some(generated::InputContentBlock {
-                                        cache_control: None,
+                                        cache_control,
                                         citations: None,
                                         text: Some(text_part.text),
                                         input_content_block_type:
@@ -1009,6 +1031,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                             AssistantContentPart::Text(text_part) => {
+                                let cache_control = anthropic_cache_control_from_provider_options(
+                                    &text_part.provider_options,
+                                );
                                 // Restore citations from provider_options
                                 let citations = text_part.provider_options
                                     .as_ref()
@@ -1016,7 +1041,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     .and_then(|v| serde_json::from_value::<generated::Citations>(v.clone()).ok());
 
                                 Some(generated::InputContentBlock {
-                                    cache_control: None,
+                                    cache_control,
                                     citations,
                                     text: Some(text_part.text),
                                     input_content_block_type:
