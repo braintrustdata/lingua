@@ -138,7 +138,6 @@ impl Error {
             self,
             Error::UnknownModel(_) | Error::NoProvider(_) | Error::InvalidRequest(_)
         ) || matches!(self, Error::Lingua(e) if e.is_client_error())
-            || matches!(self, Error::ResponseTransform { source, .. } if source.is_client_error())
     }
 
     /// Returns true if this is an authentication error (401 Unauthorized).
@@ -255,6 +254,11 @@ mod tests {
         assert!(
             Error::Lingua(lingua::TransformError::UnableToDetectRequestFormat).is_client_error()
         );
+        assert!(!Error::ResponseTransform {
+            source: lingua::TransformError::UnableToDetectResponseFormat,
+            raw_response: Bytes::from_static(b"{}"),
+        }
+        .is_client_error());
 
         // Auth errors
         assert!(Error::NoAuth("openai".into()).is_auth_error());
