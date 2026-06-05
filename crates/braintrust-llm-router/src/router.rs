@@ -28,7 +28,11 @@ use lingua::{TransformError, TransformResult};
 pub use lingua::{extract_request_hints, RequestHints};
 use reqwest::Url;
 
-pub type RawResponseCapture = Arc<dyn Fn(&Bytes) + Send + Sync>;
+#[derive(Debug, Clone)]
+pub struct CompleteResponseWithRaw {
+    pub response: Bytes,
+    pub raw_response: Bytes,
+}
 
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, DatabricksProvider,
@@ -310,25 +314,33 @@ impl Router {
         request: PreparedRequest<'_>,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
-        self.complete_internal(request, client_headers, None).await
+        Ok(self
+            .complete_internal(request, client_headers)
+            .await?
+            .response)
     }
 
-    pub async fn complete_with_raw_response_capture(
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_with_raw_response(
         &self,
         request: PreparedRequest<'_>,
         client_headers: &ClientHeaders,
-        raw_response_capture: RawResponseCapture,
-    ) -> Result<Bytes> {
-        self.complete_internal(request, client_headers, Some(raw_response_capture))
-            .await
+    ) -> Result<CompleteResponseWithRaw> {
+        self.complete_internal(request, client_headers).await
     }
 
     async fn complete_internal(
         &self,
         request: PreparedRequest<'_>,
         client_headers: &ClientHeaders,
-        raw_response_capture: Option<RawResponseCapture>,
-    ) -> Result<Bytes> {
+    ) -> Result<CompleteResponseWithRaw> {
         let PreparedRequestInner {
             provider,
             auth,
@@ -349,15 +361,15 @@ impl Router {
                 client_headers,
             )
             .await?;
-        if let Some(capture) = raw_response_capture.as_ref() {
-            capture(&response_bytes);
-        }
         let result = lingua::transform_response(response_bytes.clone(), output_format)?;
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => bytes,
         };
-        Ok(response)
+        Ok(CompleteResponseWithRaw {
+            response,
+            raw_response: response_bytes,
+        })
     }
 
     /// Create a prepared streaming request from raw body bytes.
@@ -408,6 +420,14 @@ impl Router {
             .await
     }
 
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers, gateway_request_id, raw_chunk_capture),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
     pub async fn complete_stream_with_raw_response_capture(
         &self,
         request: PreparedStreamRequest<'_>,
@@ -1134,8 +1154,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn complete_raw_response_capture_runs_before_transform_error() {
-        let raw_response = Bytes::from_static(b"not-json");
+    async fn complete_with_raw_response_returns_response_and_raw_response() {
+        let raw_response = chat_response_body();
         let router = router_with_static_provider(StaticProvider {
             response: raw_response.clone(),
             stream_chunks: Vec::new(),
@@ -1148,26 +1168,14 @@ mod tests {
             )
             .await
             .expect("request prepares");
-        let captured = Arc::new(Mutex::new(Vec::new()));
-        let capture: RawResponseCapture = Arc::new({
-            let captured = Arc::clone(&captured);
-            move |payload: &Bytes| {
-                captured
-                    .lock()
-                    .expect("capture lock poisoned")
-                    .push(payload.clone());
-            }
-        });
 
         let result = router
-            .complete_with_raw_response_capture(prepared, &ClientHeaders::default(), capture)
-            .await;
+            .complete_with_raw_response(prepared, &ClientHeaders::default())
+            .await
+            .expect("complete succeeds");
 
-        assert!(result.is_err());
-        assert_eq!(
-            captured.lock().expect("capture lock poisoned").as_slice(),
-            &[raw_response]
-        );
+        assert_eq!(result.response, raw_response);
+        assert_eq!(result.raw_response, raw_response);
     }
 
     #[tokio::test]
