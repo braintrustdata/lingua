@@ -798,6 +798,15 @@ fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Mes
             Message::Assistant { content, .. } => match content {
                 AssistantContent::String(_) => sanitized_reversed.push(msg),
                 AssistantContent::Array(parts) => {
+                    let has_signed_tool_call = parts.iter().any(|part| {
+                        matches!(
+                            part,
+                            AssistantContentPart::ToolCall {
+                                encrypted_content: Some(_),
+                                ..
+                            }
+                        )
+                    });
                     let mut kept_parts = Vec::with_capacity(parts.len());
                     for part in parts.drain(..) {
                         if let AssistantContentPart::ToolCall {
@@ -806,7 +815,12 @@ fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Mes
                             ..
                         } = &part
                         {
-                            if later_tool_result_ids.contains(tool_call_id) {
+                            // Gemini parallel function-call turns carry the thoughtSignature
+                            // only on the first functionCall. Keep unsigned siblings when the
+                            // same model turn has any signed call; drop only all-unsigned paired
+                            // calls used by Responses as call_id -> functionResponse metadata.
+                            if !has_signed_tool_call && later_tool_result_ids.contains(tool_call_id)
+                            {
                                 continue;
                             }
                         }
@@ -1060,6 +1074,62 @@ mod tests {
     }
 
     #[test]
+    fn test_google_sanitizes_resource_gemini_unsigned_function_call_history() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("models/gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("List databases.".to_string()),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                        tool_call_id: "call_1".to_string(),
+                        tool_name: "list_databases".to_string(),
+                        arguments: crate::universal::message::ToolCallArguments::from(
+                            "{}".to_string(),
+                        ),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    }]),
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(
+                        crate::universal::message::ToolResultContentPart {
+                            tool_call_id: "call_1".to_string(),
+                            tool_name: "list_databases".to_string(),
+                            output: json!({"databases": ["admin", "config", "local"]}),
+                            provider_options: None,
+                        },
+                    )],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let mut has_function_call = false;
+        let mut function_response_name = None;
+        for content in contents {
+            for part in content.parts.unwrap_or_default() {
+                has_function_call |= part.function_call.is_some();
+                if let Some(function_response) = part.function_response {
+                    function_response_name = function_response.name;
+                }
+            }
+        }
+
+        assert!(!has_function_call);
+        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
+    }
+
+    #[test]
     fn test_google_keeps_signed_function_call_history_for_signature_models() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
@@ -1084,6 +1154,98 @@ mod tests {
         assert!(payload_text.contains("functionCall"));
         assert!(payload_text.contains("thoughtSignature"));
         assert!(payload_text.contains("thought_signature_123"));
+    }
+
+    #[test]
+    fn test_google_keeps_unsigned_parallel_function_call_sibling_for_signature_models() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String(
+                        "Check the weather in Paris and London.".to_string(),
+                    ),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_paris".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"Paris"}"#.to_string(),
+                            ),
+                            encrypted_content: Some("thought_signature_123".to_string()),
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_london".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"London"}"#.to_string(),
+                            ),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                },
+                Message::Tool {
+                    content: vec![
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_paris".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "15C"}),
+                                provider_options: None,
+                            },
+                        ),
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_london".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "12C"}),
+                                provider_options: None,
+                            },
+                        ),
+                    ],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let model_parts = contents
+            .iter()
+            .find(|content| content.role.as_deref() == Some("model"))
+            .and_then(|content| content.parts.as_ref())
+            .expect("model content should have parts");
+        let function_calls: Vec<_> = model_parts
+            .iter()
+            .filter_map(|part| {
+                part.function_call
+                    .as_ref()
+                    .map(|call| (call, part.thought_signature.as_deref()))
+            })
+            .collect();
+
+        assert_eq!(function_calls.len(), 2);
+        assert_eq!(
+            function_calls[0].0.name.as_deref(),
+            Some("get_current_temperature")
+        );
+        assert_eq!(function_calls[0].1, Some("thought_signature_123"));
+        assert_eq!(
+            function_calls[1].0.name.as_deref(),
+            Some("get_current_temperature")
+        );
+        assert_eq!(function_calls[1].1, None);
     }
 
     #[test]
