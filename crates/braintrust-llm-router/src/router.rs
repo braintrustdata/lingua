@@ -1360,6 +1360,33 @@ mod tests {
     }
 
     #[test]
+    fn gemini_chat_completions_catalog_without_google_provider_does_not_fallback_to_openai() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match router.resolve_providers(model, ProviderFormat::ChatCompletions) {
+            Ok(_) => panic!("should not route Gemini model to OpenAI fallback"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(err, Error::NoProvider(ProviderFormat::Google)));
+    }
+
+    #[test]
     fn vertex_model_routes_to_vertex_provider() {
         let vertex_model = "publishers/google/models/gemini-2.5-flash-preview-04-17";
         let google_model = "gemini-2.5-flash";

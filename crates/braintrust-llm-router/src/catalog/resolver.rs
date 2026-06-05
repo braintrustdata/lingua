@@ -55,6 +55,8 @@ impl ModelResolver {
         } else if lingua::is_vertex_google_model(model) {
             // Force Google format regardless of what the spec says.
             ProviderFormat::Google
+        } else if is_gemini_api_model(model) {
+            ProviderFormat::Google
         } else {
             spec.format
         };
@@ -281,7 +283,7 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(format, ProviderFormat::Google);
         assert_eq!(aliases, vec!["google".to_string()]);
     }
 
