@@ -361,7 +361,12 @@ impl Router {
                 client_headers,
             )
             .await?;
-        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
+        let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
+            |source| Error::ResponseTransform {
+                source,
+                raw_response: response_bytes.clone(),
+            },
+        )?;
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => bytes,
@@ -1193,6 +1198,31 @@ mod tests {
 
         assert_eq!(result.response, raw_response);
         assert_eq!(result.raw_response, raw_response);
+    }
+
+    #[tokio::test]
+    async fn complete_with_raw_response_preserves_raw_response_on_transform_error() {
+        let raw_response = Bytes::from_static(b"not-json");
+        let router = router_with_static_provider(StaticProvider {
+            response: raw_response.clone(),
+            stream_chunks: Vec::new(),
+        });
+        let (prepared, _) = router
+            .create_request(
+                chat_request_body(),
+                "gpt-5-mini",
+                ProviderFormat::ChatCompletions,
+            )
+            .await
+            .expect("request prepares");
+
+        let err = router
+            .complete_with_raw_response(prepared, &ClientHeaders::default())
+            .await
+            .expect_err("transform fails");
+
+        assert!(matches!(err, Error::ResponseTransform { .. }));
+        assert_eq!(err.raw_response(), Some(&raw_response));
     }
 
     #[tokio::test]

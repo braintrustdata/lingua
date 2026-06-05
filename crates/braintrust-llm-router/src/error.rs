@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use bytes::Bytes;
 use http::HeaderMap;
 use thiserror::Error;
 
@@ -97,6 +98,13 @@ pub enum Error {
     #[error("{0}")]
     Lingua(#[from] lingua::TransformError),
 
+    #[error("response transformation failed: {source}")]
+    ResponseTransform {
+        #[source]
+        source: lingua::TransformError,
+        raw_response: Bytes,
+    },
+
     #[error("authentication error: {0}")]
     Auth(String),
 
@@ -130,6 +138,7 @@ impl Error {
             self,
             Error::UnknownModel(_) | Error::NoProvider(_) | Error::InvalidRequest(_)
         ) || matches!(self, Error::Lingua(e) if e.is_client_error())
+            || matches!(self, Error::ResponseTransform { source, .. } if source.is_client_error())
     }
 
     /// Returns true if this is an authentication error (401 Unauthorized).
@@ -145,6 +154,13 @@ impl Error {
     /// status code, headers, and body from the provider.
     pub fn is_upstream_error(&self) -> bool {
         matches!(self, Error::Provider { http: Some(_), .. })
+    }
+
+    pub fn raw_response(&self) -> Option<&Bytes> {
+        match self {
+            Error::ResponseTransform { raw_response, .. } => Some(raw_response),
+            _ => None,
+        }
     }
 }
 
