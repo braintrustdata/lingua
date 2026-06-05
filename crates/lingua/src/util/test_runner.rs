@@ -49,8 +49,24 @@ where
 
     debug!("↩️  Converting back to provider format...");
 
-    // Convert back to provider format
-    let roundtripped = convert_from_universal(universal_request.clone())?;
+    // Convert back to provider format. Error-only snapshots come from real requests
+    // that the provider rejected, so they still validate import but may not be
+    // exportable from universal without changing semantics.
+    let roundtripped = match convert_from_universal(universal_request.clone()) {
+        Ok(roundtripped) => roundtripped,
+        Err(_error)
+            if test_case.error.is_some()
+                && test_case.non_streaming_response.is_none()
+                && test_case.streaming_response.is_none() =>
+        {
+            println!(
+                "✅ {} - request import conversion passed for error snapshot",
+                test_case.name
+            );
+            return Ok(());
+        }
+        Err(error) => return Err(error),
+    };
 
     debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 

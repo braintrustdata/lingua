@@ -191,6 +191,11 @@ pub struct UniversalParams {
     /// **Providers:** OpenAI, Anthropic
     pub service_tier: Option<String>,
 
+    /// Stable cache-bucketing key for prompt caching.
+    ///
+    /// **Providers:** OpenAI Chat Completions, OpenAI Responses
+    pub prompt_cache_key: Option<String>,
+
     // === Streaming ===
     /// Stream the response as server-sent events.
     ///

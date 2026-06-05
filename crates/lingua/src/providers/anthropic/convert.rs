@@ -50,6 +50,12 @@ struct AnthropicToolUseProviderOptionsView {
     caller: Option<generated::Caller>,
 }
 
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicTextProviderOptionsView {
+    cache_control: Option<generated::CacheControlEphemeral>,
+}
+
 fn anthropic_tool_use_provider_options_from_caller(
     caller: Option<generated::Caller>,
 ) -> Option<ProviderOptions> {
@@ -74,6 +80,20 @@ fn anthropic_tool_use_caller_from_provider_options(
         .and_then(|view| view.caller)
 }
 
+fn anthropic_cache_control_from_provider_options(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<generated::CacheControlEphemeral> {
+    provider_options
+        .as_ref()
+        .and_then(|opts| {
+            serde_json::from_value::<AnthropicTextProviderOptionsView>(Value::Object(
+                opts.options.clone(),
+            ))
+            .ok()
+        })?
+        .cache_control
+}
+
 fn infer_media_type_from_reference(reference: &str) -> Option<String> {
     let extension = reference
         .rsplit('/')
@@ -89,6 +109,183 @@ fn infer_media_type_from_reference(reference: &str) -> Option<String> {
         Some("gif") => Some("image/gif".to_string()),
         Some("webp") => Some("image/webp".to_string()),
         _ => None,
+    }
+}
+
+fn anthropic_text_provider_options<C, T>(
+    cache_control: Option<C>,
+    citations: Option<T>,
+) -> Result<Option<ProviderOptions>, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    let mut options = serde_json::Map::new();
+    if let Some(cache_control) = cache_control {
+        options.insert(
+            "cache_control".into(),
+            serde_json::to_value(cache_control).map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "cache_control".to_string(),
+                    error: e.to_string(),
+                }
+            })?,
+        );
+    }
+    if let Some(citations) = citations {
+        options.insert(
+            "citations".into(),
+            serde_json::to_value(citations).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "citations".to_string(),
+                error: e.to_string(),
+            })?,
+        );
+    }
+
+    Ok((!options.is_empty()).then_some(ProviderOptions { options }))
+}
+
+fn anthropic_user_text_part<C, T>(
+    text: String,
+    cache_control: Option<C>,
+    citations: Option<T>,
+) -> Result<UserContentPart, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    Ok(UserContentPart::Text(TextContentPart {
+        text,
+        encrypted_content: None,
+        provider_options: anthropic_text_provider_options(cache_control, citations)?,
+    }))
+}
+
+fn combine_anthropic_text_provider_options(
+    inherited: Option<ProviderOptions>,
+    own: Option<ProviderOptions>,
+) -> Option<ProviderOptions> {
+    match (inherited, own) {
+        (None, None) => None,
+        (Some(options), None) | (None, Some(options)) => Some(options),
+        (Some(inherited), Some(own)) => {
+            let mut options = inherited.options;
+            options.extend(own.options);
+            Some(ProviderOptions { options })
+        }
+    }
+}
+
+fn anthropic_user_text_part_with_inherited_options<C, T>(
+    text: String,
+    cache_control: Option<C>,
+    citations: Option<T>,
+    inherited_options: Option<ProviderOptions>,
+) -> Result<UserContentPart, ConvertError>
+where
+    C: serde::Serialize,
+    T: serde::Serialize,
+{
+    Ok(UserContentPart::Text(TextContentPart {
+        text,
+        encrypted_content: None,
+        provider_options: combine_anthropic_text_provider_options(
+            inherited_options,
+            anthropic_text_provider_options(cache_control, citations)?,
+        ),
+    }))
+}
+
+fn anthropic_mid_conv_system_parts(
+    content: generated::InputContentBlockContent,
+    parent_provider_options: Option<ProviderOptions>,
+) -> Result<Vec<UserContentPart>, ConvertError> {
+    match content {
+        generated::InputContentBlockContent::String(text) => {
+            Ok(vec![UserContentPart::Text(TextContentPart {
+                text,
+                encrypted_content: None,
+                provider_options: parent_provider_options,
+            })])
+        }
+        generated::InputContentBlockContent::BlockArray(blocks) => {
+            let mut parts = Vec::new();
+            let mut inherited_parent_options = parent_provider_options;
+            for block in blocks {
+                if let Some(text) = block.text {
+                    parts.push(anthropic_user_text_part_with_inherited_options(
+                        text,
+                        block.cache_control,
+                        block.citations,
+                        inherited_parent_options.take(),
+                    )?);
+                }
+                if let Some(content) = block.content {
+                    for text_block in content {
+                        parts.push(anthropic_user_text_part_with_inherited_options(
+                            text_block.text,
+                            text_block.cache_control,
+                            text_block.citations,
+                            inherited_parent_options.take(),
+                        )?);
+                    }
+                }
+            }
+            Ok(parts)
+        }
+        generated::InputContentBlockContent::RequestWebSearchToolResultError(_) => {
+            Err(ConvertError::ContentConversionFailed {
+                reason: "web search tool result errors cannot be used as Anthropic system content"
+                    .to_string(),
+            })
+        }
+    }
+}
+
+fn anthropic_system_message_content(
+    content: generated::MessageContent,
+) -> Result<UserContent, ConvertError> {
+    match content {
+        generated::MessageContent::String(text) => Ok(UserContent::String(text)),
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            let mut parts = Vec::new();
+            for block in blocks {
+                match block.input_content_block_type {
+                    generated::InputContentBlockType::Text => {
+                        if let Some(text) = block.text {
+                            parts.push(anthropic_user_text_part(
+                                text,
+                                block.cache_control,
+                                block.citations,
+                            )?);
+                        }
+                    }
+                    generated::InputContentBlockType::MidConvSystem => {
+                        let parent_provider_options =
+                            anthropic_text_provider_options(block.cache_control, block.citations)?;
+                        if let Some(content) = block.content {
+                            parts.extend(anthropic_mid_conv_system_parts(
+                                content,
+                                parent_provider_options,
+                            )?);
+                        }
+                    }
+                    other => {
+                        return Err(ConvertError::ContentConversionFailed {
+                            reason: format!(
+                                "unsupported Anthropic system content block type: {other:?}"
+                            ),
+                        });
+                    }
+                }
+            }
+
+            if parts.is_empty() {
+                Ok(UserContent::String(String::new()))
+            } else {
+                Ok(UserContent::Array(parts))
+            }
+        }
     }
 }
 
@@ -275,6 +472,9 @@ impl TryFromLLM<generated::InputMessage> for Message {
         }
 
         match input_msg.role {
+            generated::MessageRole::System => Ok(Message::System {
+                content: anthropic_system_message_content(input_msg.content)?,
+            }),
             generated::MessageRole::User => {
                 let content = match input_msg.content {
                     generated::MessageContent::String(text) => UserContent::String(text),
@@ -285,11 +485,15 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             match block.input_content_block_type {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
+                                        let provider_options = anthropic_text_provider_options(
+                                            block.cache_control,
+                                            block.citations,
+                                        )?;
                                         content_parts.push(UserContentPart::Text(
                                             TextContentPart {
                                                 text,
                                                 encrypted_content: None,
-                                                provider_options: None,
+                                                provider_options,
                                             },
                                         ));
                                     }
@@ -426,15 +630,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                             match block.input_content_block_type {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
-                                        // Preserve citations in provider_options for roundtrip
-                                        let provider_options =
-                                            block.citations.as_ref().map(|citations| {
-                                                let mut opts = serde_json::Map::new();
-                                                if let Ok(v) = serde_json::to_value(citations) {
-                                                    opts.insert("citations".into(), v);
-                                                }
-                                                ProviderOptions { options: opts }
-                                            });
+                                        let provider_options = anthropic_text_provider_options(
+                                            block.cache_control,
+                                            block.citations,
+                                        )?;
 
                                         content_parts.push(AssistantContentPart::Text(
                                             TextContentPart {
@@ -575,9 +774,12 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                                 UserContentPart::Text(text_part) => {
-                                    // Regular text content
+                                    let cache_control =
+                                        anthropic_cache_control_from_provider_options(
+                                            &text_part.provider_options,
+                                        );
                                     Some(generated::InputContentBlock {
-                                        cache_control: None,
+                                        cache_control,
                                         citations: None,
                                         text: Some(text_part.text),
                                         input_content_block_type:
@@ -829,6 +1031,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                             AssistantContentPart::Text(text_part) => {
+                                let cache_control = anthropic_cache_control_from_provider_options(
+                                    &text_part.provider_options,
+                                );
                                 // Restore citations from provider_options
                                 let citations = text_part.provider_options
                                     .as_ref()
@@ -836,7 +1041,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     .and_then(|v| serde_json::from_value::<generated::Citations>(v.clone()).ok());
 
                                 Some(generated::InputContentBlock {
-                                    cache_control: None,
+                                    cache_control,
                                     citations,
                                     text: Some(text_part.text),
                                     input_content_block_type:
@@ -1035,7 +1240,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
             }
             Message::System { .. } | Message::Developer { .. } => {
                 Err(ConvertError::UnsupportedInputType {
-                    type_info: "System/developer messages are not supported in Anthropic InputMessage (use system parameter instead)".to_string(),
+                    type_info: "Non-leading system/developer messages are not supported in Anthropic InputMessage; use the top-level system parameter for leading instructions".to_string(),
                 })
             }
         }
@@ -1691,6 +1896,118 @@ mod tests {
             JsonOutputFormat::try_from(&config).is_err(),
             "json_object should not map to Anthropic output_config.format; adapter shim handles it"
         );
+    }
+
+    #[test]
+    fn test_anthropic_system_role_imports_to_system_message() {
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": "Follow the project style guide."
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::String(text),
+            } => assert_eq!(text, "Follow the project style guide."),
+            other => panic!("expected system message, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_anthropic_mid_conv_system_imports_to_system_message() {
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": [
+                {
+                    "type": "mid_conv_system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Use the updated policy.",
+                            "cache_control": { "type": "ephemeral" }
+                        }
+                    ]
+                }
+            ]
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::Array(parts),
+            } => {
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    UserContentPart::Text(text) => {
+                        assert_eq!(text.text, "Use the updated policy.");
+                        assert!(text.provider_options.is_some());
+                    }
+                    other => panic!("expected text part, got {other:?}"),
+                }
+            }
+            other => panic!("expected system message with array content, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_anthropic_mid_conv_system_import_preserves_parent_cache_control() {
+        #[derive(serde::Deserialize)]
+        struct TextProviderOptionsView {
+            cache_control: Option<generated::CacheControlEphemeral>,
+        }
+
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "system",
+            "content": [
+                {
+                    "type": "mid_conv_system",
+                    "cache_control": { "type": "ephemeral" },
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Use the updated policy."
+                        }
+                    ]
+                }
+            ]
+        }))
+        .unwrap();
+
+        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
+
+        match message {
+            Message::System {
+                content: UserContent::Array(parts),
+            } => {
+                assert_eq!(parts.len(), 1);
+                match &parts[0] {
+                    UserContentPart::Text(text) => {
+                        assert_eq!(text.text, "Use the updated policy.");
+                        let provider_options = text
+                            .provider_options
+                            .as_ref()
+                            .expect("parent cache_control should be preserved");
+                        let options: TextProviderOptionsView =
+                            serde_json::from_value(Value::Object(provider_options.options.clone()))
+                                .unwrap();
+                        assert_eq!(
+                            options
+                                .cache_control
+                                .expect("cache_control should exist")
+                                .cache_control_ephemeral_type,
+                            generated::CacheControlEphemeralType::Ephemeral
+                        );
+                    }
+                    other => panic!("expected text part, got {other:?}"),
+                }
+            }
+            other => panic!("expected system message with array content, got {other:?}"),
+        }
     }
 
     #[test]

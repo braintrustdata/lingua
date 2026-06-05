@@ -16,6 +16,9 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::detect::{
+    system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
+};
 use crate::providers::anthropic::generated::{
     ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
     ToolChoice, ToolChoiceType,
@@ -31,7 +34,6 @@ use crate::universal::request::{
     UniversalMetadataUserView,
 };
 use crate::universal::tools::UniversalTool;
-use crate::universal::transform::extract_system_messages;
 use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
@@ -55,6 +57,36 @@ fn parse_anthropic_extras(
             TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
         })
         .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
+
+fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
+    let mut system_contents = Vec::new();
+
+    while matches!(
+        messages.first(),
+        Some(Message::System { .. } | Message::Developer { .. })
+    ) {
+        let message = messages.remove(0);
+        if let Message::System { content } | Message::Developer { content } = message {
+            system_contents.push(content);
+        }
+    }
+
+    system_contents
+}
+
+fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), TransformError> {
+    if messages
+        .iter()
+        .any(|message| matches!(message, Message::System { .. } | Message::Developer { .. }))
+    {
+        return Err(TransformError::ValidationFailed {
+            target: ProviderFormat::Anthropic,
+            reason: "Anthropic generated types include system-role input messages, but the live Messages API currently rejects role 'system' for available models; non-leading system/developer messages cannot be exported to Anthropic without changing semantics".to_string(),
+        });
+    }
+
+    Ok(())
 }
 
 fn is_forced_tool_choice(value: &Value) -> bool {
@@ -163,6 +195,10 @@ impl ProviderAdapter for AnthropicAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
+        try_parse_anthropic_source(payload).is_ok()
+    }
+
+    fn detect_passthrough_request(&self, payload: &Value) -> bool {
         try_parse_anthropic(payload).is_ok()
     }
 
@@ -255,6 +291,7 @@ impl ProviderAdapter for AnthropicAdapter {
             store: None,
             conversation_reference: None,
             service_tier: typed_params.service_tier,
+            prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
             extras: Default::default(),
@@ -289,15 +326,41 @@ impl ProviderAdapter for AnthropicAdapter {
         let anthropic_extras = req.params.extras.get(&ProviderFormat::Anthropic);
         let anthropic_extras_view = parse_anthropic_extras(anthropic_extras)?;
 
-        // Clone messages and extract system messages (Anthropic uses separate `system` param)
+        // Clone messages and extract only leading system/developer messages to top-level `system`.
+        // Later instructions cannot be moved there without changing their placement.
         let mut msgs = req.messages.clone();
-        let system_contents = extract_system_messages(&mut msgs);
+        let system_contents = extract_leading_system_messages(&mut msgs);
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
 
         if let Some(raw_messages) = anthropic_extras_view.messages.as_ref() {
-            obj.insert("messages".into(), raw_messages.clone());
+            if system_messages_are_supported_and_well_placed(model, raw_messages)
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?
+            {
+                obj.insert("messages".into(), raw_messages.clone());
+            } else {
+                if msgs.is_empty() {
+                    let reason = if system_contents.is_empty() {
+                        "Anthropic requires at least one message in 'messages'.".to_string()
+                    } else {
+                        "Anthropic requires at least one non-system message; a system prompt alone cannot be sent because Anthropic stores system prompts in the top-level 'system' field and requires at least one user or assistant message in 'messages'.".to_string()
+                    };
+                    return Err(TransformError::ValidationFailed {
+                        target: ProviderFormat::Anthropic,
+                        reason,
+                    });
+                }
+                validate_no_non_leading_system_messages(&msgs)?;
+                let anthropic_messages: Vec<InputMessage> =
+                    <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                obj.insert(
+                    "messages".into(),
+                    serde_json::to_value(anthropic_messages)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
         } else {
             if msgs.is_empty() {
                 let reason = if system_contents.is_empty() {
@@ -310,6 +373,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     reason,
                 });
             }
+            validate_no_non_leading_system_messages(&msgs)?;
             // Convert remaining messages
             let anthropic_messages: Vec<InputMessage> =
                 <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
@@ -1427,6 +1491,32 @@ mod tests {
             req.params.token_budget,
             Some(TokenBudget::OutputTokens(8192))
         );
+    }
+
+    #[test]
+    fn test_anthropic_rejects_non_leading_system_message() {
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-3-5-sonnet-20241022".to_string()),
+            messages: vec![
+                Message::System {
+                    content: UserContent::String("Use the initial policy.".to_string()),
+                },
+                Message::User {
+                    content: UserContent::String("First turn.".to_string()),
+                },
+                Message::System {
+                    content: UserContent::String("Use the updated policy.".to_string()),
+                },
+            ],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                ..Default::default()
+            },
+        };
+
+        let err = adapter.request_from_universal(&req).unwrap_err();
+        assert!(format!("{err}").contains("live Messages API currently rejects"));
     }
 
     #[test]

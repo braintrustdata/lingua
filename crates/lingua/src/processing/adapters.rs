@@ -49,6 +49,14 @@ pub trait ProviderAdapter: Send + Sync {
     /// This should delegate to existing detection logic (e.g., `try_parse_*` functions).
     fn detect_request(&self, payload: &Value) -> bool;
 
+    /// Checks if a same-format request is valid to pass through unchanged.
+    ///
+    /// Defaults to request detection. Providers with lenient source detection can override
+    /// this to keep native passthrough validation strict.
+    fn detect_passthrough_request(&self, payload: &Value) -> bool {
+        self.detect_request(payload)
+    }
+
     /// Convert a provider-specific payload to universal request format.
     ///
     /// This extracts messages, params, and extras from the provider payload.

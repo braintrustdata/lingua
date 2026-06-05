@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The collections in the **mydb** database are:\n\n1. **movies**\n2. **users**"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 639,
+    "outputTokens": 26,
+    "totalTokens": 665,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1408
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "890315d5-44b5-4c75-bfcc-5c87296e10bb",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

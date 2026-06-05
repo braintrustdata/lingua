@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DlKgreWksO80ZnhThnfquAlV9H67k",
+  "object": "chat.completion",
+  "created": 1780173321,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I don’t have the cached policy text here. Please provide the policy you want summarized (paste the text or share a link), or tell me which policy it is (privacy policy, security policy, employee handbook, etc.).\n\nIf you’d like, I can deliver:\n- a high-level executive summary (1–2 paragraphs),\n- a bullet-point outline of key points (purpose, scope, data handling, rights, enforcement),\n- a line-by-line condensed version, or\n- a plain-language version for non-experts.\n\nAlso tell me the audience (legal team, general users, executives) and desired length.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 13,
+    "completion_tokens": 838,
+    "total_tokens": 851,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 704,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -292,15 +292,16 @@ pub fn transform_request(
         target_format
     };
 
-    if source_adapter.format() == target_format
-        && !needs_forced_translation(&payload, model, target_format)
-    {
-        return Ok(TransformResult::PassThrough(request_bytes));
-    }
-
     let source_format = source_adapter.format();
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
+    if source_format == target_format
+        && !needs_forced_translation(&payload, model, target_format)
+        && target_adapter.detect_passthrough_request(&payload)
+    {
+        return Ok(TransformResult::PassThrough(request_bytes));
+    }
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
@@ -801,6 +802,57 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_preserves_suffix_messages_in_chat_rewrite() {
+        let payload = json!({
+            "model": "brain-facet-1",
+            "messages": [
+                { "role": "system", "content": "Classify each request." },
+                {
+                    "role": "user",
+                    "content": "Shared preprocessed conversation text for topic facets."
+                }
+            ],
+            "suffix_messages": [
+                [{ "role": "user", "content": "Does this mention billing?" }],
+                [{ "role": "user", "content": "Does this mention deployment?" }]
+            ],
+            "stream": false,
+            "max_tokens": 20000,
+            "chat_template_kwargs": { "enable_thinking": false }
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-nano")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-nano")
+        );
+        assert!(output.get("max_tokens").is_none());
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(20000)
+        );
+        assert_eq!(
+            output.get("suffix_messages"),
+            payload.get("suffix_messages")
+        );
+        assert_eq!(
+            output.get("chat_template_kwargs"),
+            payload.get("chat_template_kwargs")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_rejects_truncated_unicode_escape() {
         let input = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83"}]}"#,
@@ -839,6 +891,202 @@ mod tests {
         assert!(output.get("max_tokens").is_some());
         // Should have messages
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_system_role_to_anthropic_top_level_system() {
+        let payload = json!({
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 50,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello."}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("You are a helpful assistant.")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 1);
+        assert_eq!(
+            messages[0].get("role").and_then(Value::as_str),
+            Some("user")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_transform_request_opus_4_8_mid_conversation_system_passthrough() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 50,
+            "messages": [
+                {"role": "user", "content": "Review this function."},
+                {"role": "system", "content": "From now on, include type annotations."}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(result.is_passthrough());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_empty_tools_not_detected_as_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful."},
+                {"role": "user", "content": "Hello"}
+            ],
+            "tools": []
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_invalid_leading_anthropic_system_role_not_detected_as_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "Top-level instructions.",
+            "messages": [
+                {"role": "system", "content": "Leading message instructions."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("Leading message instructions.")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_claude_code_messages_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 32000,
+            "system": [
+                {"type": "text", "text": "You are running inside Claude Code."},
+                {
+                    "type": "text",
+                    "text": "Preserve the user's coding instructions.",
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "hello world",
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ]
+                },
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "tools": [
+                {
+                    "name": "Read",
+                    "description": "Read a file.",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {"file_path": {"type": "string"}},
+                        "required": ["file_path"],
+                        "additionalProperties": false
+                    }
+                }
+            ],
+            "thinking": {"type": "adaptive"},
+            "output_config": {"effort": "high"}
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").and_then(Value::as_str), Some("gpt-5.5"));
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(32000)
+        );
+        assert!(output.get("max_tokens").is_none());
+        assert_eq!(
+            output.get("reasoning_effort").and_then(Value::as_str),
+            Some("high")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_transform_request_claude_code_messages_to_google() {
+        let payload = json!({
+            "model": "gemini-2.5-flash",
+            "max_tokens": 1024,
+            "system": [{"type": "text", "text": "You are running inside Claude Code."}],
+            "messages": [
+                {"role": "user", "content": "hello world"},
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "thinking": {"type": "adaptive"}
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Google, Some("gemini-2.5-flash")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
+        assert!(output.get("contents").is_some());
     }
 
     #[test]
@@ -1391,6 +1639,91 @@ mod tests {
         );
         assert!(output.get("max_tokens").is_some());
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_bedrock_anthropic_system_role_becomes_top_level_system() {
+        let payload = json!({
+            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello."}
+            ],
+            "max_tokens": 50
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").and_then(Value::as_str),
+            Some("bedrock-2023-05-31")
+        );
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("You are a helpful assistant.")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 1);
+        assert_eq!(
+            messages[0].get("role").and_then(Value::as_str),
+            Some("user")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_bedrock_anthropic_opus_4_8_mid_conversation_system_role_passthrough() {
+        let payload = json!({
+            "model": "us.anthropic.claude-opus-4-8-v1:0",
+            "messages": [
+                {"role": "user", "content": "Review this function."},
+                {"role": "system", "content": "From now on, include type annotations."}
+            ],
+            "max_tokens": 50
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::BedrockAnthropic,
+            Some("us.anthropic.claude-opus-4-8-v1:0"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("model").is_none());
+        assert_eq!(
+            output.get("anthropic_version").and_then(Value::as_str),
+            Some("bedrock-2023-05-31")
+        );
+        let messages = output
+            .get("messages")
+            .and_then(Value::as_array)
+            .expect("messages should be an array");
+        assert_eq!(messages.len(), 2);
+        assert_eq!(
+            messages[1].get("role").and_then(Value::as_str),
+            Some("system")
+        );
     }
 
     #[test]

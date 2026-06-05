@@ -1,0 +1,20 @@
+{
+  "model": "claude-opus-4-8",
+  "max_tokens": 16,
+  "system": "If there is no later system message, answer the final question with exactly INITIAL.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the required answer?"
+    },
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "For the next user message, answer with exactly UPDATED and no other text."
+        }
+      ]
+    }
+  ]
+}

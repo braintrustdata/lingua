@@ -606,17 +606,19 @@ fn try_choices_array_parsing(data: &Value) -> Option<Vec<Message>> {
 pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
     let mut messages = Vec::new();
 
-    for span in spans {
+    for mut span in spans {
         let mut span_messages = Vec::new();
 
-        // Try to extract messages from input
-        if let Some(Value::String(input_text)) = &span.input {
-            span_messages.push(Message::User {
-                content: UserContent::String(input_text.clone()),
-            });
-        } else if let Some(input) = &span.input {
-            let input_messages = try_converting_to_messages(input);
-            span_messages.extend(input_messages);
+        match span.input.take() {
+            Some(Value::String(input_text)) => {
+                span_messages.push(Message::User {
+                    content: UserContent::String(input_text),
+                });
+            }
+            Some(input) => {
+                span_messages.extend(try_converting_to_messages(&input));
+            }
+            None => {}
         }
 
         #[cfg(feature = "openai")]
@@ -633,17 +635,17 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
 
         messages.extend(span_messages);
 
-        // Try to extract messages from output
-        if let Some(Value::String(output_text)) = &span.output {
-            if !output_text.is_empty() {
+        match span.output.take() {
+            Some(Value::String(output_text)) if !output_text.is_empty() => {
                 messages.push(Message::Assistant {
-                    content: AssistantContent::String(output_text.clone()),
+                    content: AssistantContent::String(output_text),
                     id: None,
                 });
             }
-        } else if let Some(output) = &span.output {
-            let output_messages = try_converting_to_messages(output);
-            messages.extend(output_messages);
+            Some(output) => {
+                messages.extend(try_converting_to_messages(&output));
+            }
+            None => {}
         }
     }
 

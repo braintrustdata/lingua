@@ -1,0 +1,61 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "The collections in the"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 83,
+      "candidatesTokenCount": 4,
+      "totalTokenCount": 87,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 83
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "ETMfasOQCMHhz7IPzdfmmA8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " `mydb` database are: `movies` and `users`."
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 83,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 100,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 83
+        }
+      ],
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-2.5-flash",
+    "responseId": "ETMfasOQCMHhz7IPzdfmmA8"
+  }
+]
