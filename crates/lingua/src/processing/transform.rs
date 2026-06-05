@@ -274,6 +274,22 @@ fn chat_completions_model_disables_responses_upgrade(model: &str) -> bool {
     model.starts_with("gemini-") || model.starts_with("models/gemini-")
 }
 
+#[cfg(feature = "openai")]
+fn chat_completions_upgrade_model(model: Option<&str>, request_bytes: &[u8]) -> Option<String> {
+    if let Some(model) = model {
+        return Some(model.to_string());
+    }
+
+    #[derive(serde::Deserialize)]
+    struct RequestModel {
+        model: Option<String>,
+    }
+
+    parse_json::<RequestModel>(request_bytes)
+        .ok()
+        .and_then(|request| request.model)
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -285,14 +301,19 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
+    #[cfg(feature = "openai")]
+    let upgrade_model = chat_completions_upgrade_model(model, &request_bytes);
+    #[cfg(not(feature = "openai"))]
+    let upgrade_model = model.map(str::to_string);
+
     // Upgrade ChatCompletions → Responses when reasoning_effort + tools are
     // both present, except for OpenAI-compatible providers that do not support
     // the Responses API.
     #[cfg(feature = "openai")]
     let target_format = if target_format == ProviderFormat::ChatCompletions
         && chat_completions_needs_responses_upgrade(&payload)
-        && !model
-            .or_else(|| payload.get("model").and_then(Value::as_str))
+        && !upgrade_model
+            .as_deref()
             .is_some_and(chat_completions_model_disables_responses_upgrade)
     {
         ProviderFormat::Responses
@@ -301,7 +322,7 @@ pub fn transform_request(
     };
 
     if source_adapter.format() == target_format
-        && !needs_forced_translation(&payload, model, target_format)
+        && !request_model_needs_forced_translation(upgrade_model.as_deref(), target_format)
     {
         return Ok(TransformResult::PassThrough(request_bytes));
     }
@@ -645,8 +666,11 @@ fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dy
         .map(|a| a.as_ref())
 }
 
-/// Check if a request needs forced translation even when source == target format.
-fn needs_forced_translation(payload: &Value, model: Option<&str>, target: ProviderFormat) -> bool {
+#[cfg(feature = "openai")]
+fn request_model_needs_forced_translation(
+    request_model: Option<&str>,
+    target: ProviderFormat,
+) -> bool {
     if !matches!(
         target,
         ProviderFormat::ChatCompletions | ProviderFormat::Responses
@@ -654,14 +678,14 @@ fn needs_forced_translation(payload: &Value, model: Option<&str>, target: Provid
         return false;
     }
 
-    #[cfg(feature = "openai")]
-    {
-        // Force translation if model needs any transforms (temperature/top_p stripping, max_tokens conversion, etc.)
-        let request_model = model.or_else(|| payload.get("model").and_then(Value::as_str));
-        request_model.map(model_needs_transforms).unwrap_or(false)
-    }
+    request_model.map(model_needs_transforms).unwrap_or(false)
+}
 
-    #[cfg(not(feature = "openai"))]
+#[cfg(not(feature = "openai"))]
+fn request_model_needs_forced_translation(
+    _request_model: Option<&str>,
+    _target: ProviderFormat,
+) -> bool {
     false
 }
 
