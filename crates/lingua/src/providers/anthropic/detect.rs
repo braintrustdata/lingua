@@ -68,14 +68,19 @@ pub fn try_parse_anthropic_source(payload: &Value) -> Result<CreateMessageParams
 
     let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-    match validate_system_message_support_and_placement(&request.model, &request.messages) {
-        Ok(()) => Ok(request),
-        Err(
-            DetectionError::UnsupportedSystemRoleMessages { .. }
-            | DetectionError::InvalidSystemRolePlacement,
-        ) if has_anthropic_source_markers(&request) => Ok(request),
-        Err(err) => Err(err),
+
+    validate_system_message_placement(&request.messages)?;
+
+    if system_messages_present(&request.messages)
+        && !capabilities::supports_mid_conversation_system_messages(&request.model)
+        && !has_anthropic_source_markers(&request)
+    {
+        return Err(DetectionError::UnsupportedSystemRoleMessages {
+            model: request.model.clone(),
+        });
     }
+
+    Ok(request)
 }
 
 fn reject_openai_only_fields(payload: &Value) -> Result<(), DetectionError> {
@@ -97,8 +102,14 @@ fn has_anthropic_source_markers(request: &CreateMessageParams) -> bool {
         || request.output_config.is_some()
         || request.cache_control.is_some()
         || request.top_k.is_some()
-        || request.stop_sequences.is_some()
-        || request.tools.is_some()
+        || request
+            .stop_sequences
+            .as_ref()
+            .is_some_and(|stop_sequences| !stop_sequences.is_empty())
+        || request
+            .tools
+            .as_ref()
+            .is_some_and(|tools| !tools.is_empty())
 }
 
 pub(crate) fn system_messages_are_supported_and_well_placed(
@@ -114,10 +125,7 @@ fn validate_system_message_support_and_placement(
     model: &str,
     messages: &[InputMessage],
 ) -> Result<(), DetectionError> {
-    if messages
-        .iter()
-        .all(|message| !matches!(message.role, MessageRole::System))
-    {
+    if !system_messages_present(messages) {
         return Ok(());
     }
 
@@ -127,11 +135,23 @@ fn validate_system_message_support_and_placement(
         });
     }
 
-    if !mid_conversation_system_messages_have_valid_placement(messages) {
-        return Err(DetectionError::InvalidSystemRolePlacement);
-    }
+    validate_system_message_placement(messages)?;
 
     Ok(())
+}
+
+fn system_messages_present(messages: &[InputMessage]) -> bool {
+    messages
+        .iter()
+        .any(|message| matches!(message.role, MessageRole::System))
+}
+
+fn validate_system_message_placement(messages: &[InputMessage]) -> Result<(), DetectionError> {
+    if mid_conversation_system_messages_have_valid_placement(messages) {
+        Ok(())
+    } else {
+        Err(DetectionError::InvalidSystemRolePlacement)
+    }
 }
 
 fn assistant_message_ends_with_server_tool_use(message: &InputMessage) -> bool {
@@ -404,6 +424,42 @@ mod tests {
         });
 
         assert!(try_parse_anthropic_source(&payload).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_rejects_invalid_leading_system_message_with_marker() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "Top-level instructions.",
+            "messages": [
+                {"role": "system", "content": "Leading system instructions that must not be dropped."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(matches!(
+            try_parse_anthropic_source(&payload),
+            Err(DetectionError::InvalidSystemRolePlacement)
+        ));
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_rejects_empty_tools_as_marker() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "tools": []
+        });
+
+        assert!(matches!(
+            try_parse_anthropic_source(&payload),
+            Err(DetectionError::UnsupportedSystemRoleMessages { .. })
+        ));
     }
 
     #[test]
