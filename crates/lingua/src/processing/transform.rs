@@ -275,11 +275,7 @@ fn chat_completions_model_disables_responses_upgrade(model: &str) -> bool {
 }
 
 #[cfg(feature = "openai")]
-fn chat_completions_upgrade_model(model: Option<&str>, request_bytes: &[u8]) -> Option<String> {
-    if let Some(model) = model {
-        return Some(model.to_string());
-    }
-
+fn chat_completions_request_model(request_bytes: &[u8]) -> Option<String> {
     #[derive(serde::Deserialize)]
     struct RequestModel {
         model: Option<String>,
@@ -288,6 +284,18 @@ fn chat_completions_upgrade_model(model: Option<&str>, request_bytes: &[u8]) -> 
     parse_json::<RequestModel>(request_bytes)
         .ok()
         .and_then(|request| request.model)
+}
+
+#[cfg(feature = "openai")]
+fn chat_completions_upgrade_model(
+    model: Option<&str>,
+    request_model: Option<&str>,
+) -> Option<String> {
+    if let Some(model) = model {
+        return Some(model.to_string());
+    }
+
+    request_model.map(str::to_string)
 }
 
 pub fn transform_request(
@@ -302,7 +310,11 @@ pub fn transform_request(
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
     #[cfg(feature = "openai")]
-    let upgrade_model = chat_completions_upgrade_model(model, &request_bytes);
+    let request_model = chat_completions_request_model(&request_bytes);
+    #[cfg(feature = "openai")]
+    let upgrade_model = chat_completions_upgrade_model(model, request_model.as_deref());
+    #[cfg(not(feature = "openai"))]
+    let request_model: Option<String> = None;
     #[cfg(not(feature = "openai"))]
     let upgrade_model = model.map(str::to_string);
 
@@ -326,7 +338,7 @@ pub fn transform_request(
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
     if source_format == target_format
-        && !request_model_needs_forced_translation(upgrade_model.as_deref(), target_format)
+        && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
         && target_adapter.detect_passthrough_request(&payload)
     {
         return Ok(TransformResult::PassThrough(request_bytes));
@@ -670,6 +682,7 @@ fn detect_adapter_exact(payload: &Value, kind: DetectKind) -> Option<&'static dy
 #[cfg(feature = "openai")]
 fn request_model_needs_forced_translation(
     request_model: Option<&str>,
+    override_model: Option<&str>,
     target: ProviderFormat,
 ) -> bool {
     if !matches!(
@@ -679,12 +692,33 @@ fn request_model_needs_forced_translation(
         return false;
     }
 
-    request_model.map(model_needs_transforms).unwrap_or(false)
+    if request_model.map(model_needs_transforms).unwrap_or(false) {
+        return true;
+    }
+
+    if override_model.map(model_needs_transforms).unwrap_or(false) {
+        return true;
+    }
+
+    target == ProviderFormat::ChatCompletions
+        && request_model.is_some_and(is_models_prefixed_gemini_model)
+        && override_model.is_some_and(is_bare_gemini_model)
+}
+
+#[cfg(feature = "openai")]
+fn is_models_prefixed_gemini_model(model: &str) -> bool {
+    model.starts_with("models/gemini-")
+}
+
+#[cfg(feature = "openai")]
+fn is_bare_gemini_model(model: &str) -> bool {
+    model.starts_with("gemini-")
 }
 
 #[cfg(not(feature = "openai"))]
 fn request_model_needs_forced_translation(
     _request_model: Option<&str>,
+    _override_model: Option<&str>,
     _target: ProviderFormat,
 ) -> bool {
     false
@@ -1920,6 +1954,35 @@ mod tests {
                 assert_eq!(actual_target_format, ProviderFormat::ChatCompletions);
             }
         }
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_normalizes_prefixed_gemini_chat_completions_model() {
+        let payload = json!({
+            "model": "models/gemini-2.5-flash",
+            "messages": [{"role": "user", "content": "Ping"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::ChatCompletions,
+            Some("gemini-2.5-flash"),
+        )
+        .unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
     }
 
     #[test]

@@ -1042,6 +1042,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn bare_gemini_route_normalizes_prefixed_chat_completions_payload_model() {
+        let model = "gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
+        assert_eq!(request.inner.format, ProviderFormat::ChatCompletions);
+        assert_ne!(request.inner.payload, body);
+        assert_eq!(
+            payload.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
+        assert!(payload.get("messages").is_some());
+    }
+
+    #[tokio::test]
     async fn prefixed_gemini_chat_completions_request_uses_native_google_format() {
         let model = "models/gemini-2.5-flash";
         let router = google_chat_router(model);
