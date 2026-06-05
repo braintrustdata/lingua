@@ -270,18 +270,8 @@ fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
 }
 
 #[cfg(feature = "openai")]
-fn chat_completions_model_requires_responses(model: &str) -> bool {
-    let lower = model.to_ascii_lowercase();
-    let gpt5_minor = lower
-        .strip_prefix("gpt-5.")
-        .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
-        .and_then(|minor| (!minor.is_empty()).then_some(minor))
-        .and_then(|minor| minor.parse::<u32>().ok());
-    lower.starts_with("o1-pro")
-        || lower.starts_with("o3-pro")
-        || lower.starts_with("gpt-5-pro")
-        || gpt5_minor.is_some_and(|minor| minor >= 3)
-        || (lower.starts_with("gpt-5") && lower.contains("-codex"))
+fn chat_completions_model_disables_responses_upgrade(model: &str) -> bool {
+    model.starts_with("gemini-") || model.starts_with("models/gemini-")
 }
 
 pub fn transform_request(
@@ -295,14 +285,15 @@ pub fn transform_request(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
-    // Upgrade ChatCompletions → Responses for Responses-required models when
-    // reasoning_effort + tools are both present.
+    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are
+    // both present, except for OpenAI-compatible providers that do not support
+    // the Responses API.
     #[cfg(feature = "openai")]
     let target_format = if target_format == ProviderFormat::ChatCompletions
         && chat_completions_needs_responses_upgrade(&payload)
-        && model
+        && !model
             .or_else(|| payload.get("model").and_then(Value::as_str))
-            .is_some_and(chat_completions_model_requires_responses)
+            .is_some_and(chat_completions_model_disables_responses_upgrade)
     {
         ProviderFormat::Responses
     } else {

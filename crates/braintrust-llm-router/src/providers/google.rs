@@ -70,10 +70,23 @@ impl GoogleProvider {
     }
 
     fn chat_completions_url(&self) -> Result<Url> {
-        self.config
-            .endpoint
-            .join("openai/chat/completions")
-            .map_err(|e| Error::InvalidRequest(format!("invalid Google endpoint: {e}")))
+        let mut url = self.config.endpoint.clone();
+        let has_openai_suffix = url
+            .path_segments()
+            .and_then(|segments| segments.filter(|segment| !segment.is_empty()).next_back())
+            == Some("openai");
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            if !has_openai_suffix {
+                segments.push("openai");
+            }
+            segments.push("chat");
+            segments.push("completions");
+        }
+        Ok(url)
     }
 
     fn generate_url(&self, model: &str, stream: bool) -> Result<Url> {
@@ -309,6 +322,21 @@ mod tests {
     fn chat_completions_url_joins_openai_path() {
         let provider =
             provider(Url::parse("https://generativelanguage.googleapis.com/v1beta/").unwrap());
+        let url = provider
+            .url_for_format("gemini-2.5-flash", false, ProviderFormat::ChatCompletions)
+            .expect("url");
+
+        assert_eq!(
+            url.as_str(),
+            "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_does_not_duplicate_openai_suffix() {
+        let provider = provider(
+            Url::parse("https://generativelanguage.googleapis.com/v1beta/openai/").unwrap(),
+        );
         let url = provider
             .url_for_format("gemini-2.5-flash", false, ProviderFormat::ChatCompletions)
             .expect("url");
