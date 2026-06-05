@@ -546,6 +546,12 @@ impl Router {
             } else {
                 catalog_format
             }
+        } else if provider.id() == "google"
+            && output_format == ProviderFormat::ChatCompletions
+            && catalog_format == ProviderFormat::Google
+            && spec.model.starts_with("models/gemini-")
+        {
+            ProviderFormat::Google
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {
@@ -1030,6 +1036,32 @@ mod tests {
         assert_eq!(metadata.provider_format, ProviderFormat::ChatCompletions);
         assert_eq!(request.inner.format, ProviderFormat::ChatCompletions);
         assert_eq!(request.inner.payload, body);
+    }
+
+    #[tokio::test]
+    async fn prefixed_gemini_chat_completions_request_uses_native_google_format() {
+        let model = "models/gemini-2.5-flash";
+        let router = google_chat_router(model);
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(
+            metadata.detected_input_format,
+            ProviderFormat::ChatCompletions
+        );
+        assert_eq!(metadata.provider_format, ProviderFormat::Google);
+        assert_eq!(request.inner.format, ProviderFormat::Google);
+        assert_ne!(request.inner.payload, body);
+        assert!(payload.get("contents").is_some());
+        assert!(payload.get("messages").is_none());
     }
 
     #[tokio::test]

@@ -264,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn resolve_models_prefixed_gemini_routes_to_google_chat_completions() {
+    fn resolve_models_prefixed_gemini_routes_to_google_native_format() {
         let model = "models/gemini-2.5-flash";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), spec(model, ProviderFormat::Google));
