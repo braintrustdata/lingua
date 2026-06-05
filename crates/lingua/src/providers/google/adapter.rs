@@ -216,10 +216,9 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Convert messages to Google contents
-        let mut google_contents: Vec<GoogleContent> =
+        let google_contents: Vec<GoogleContent> =
             <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(messages)
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
-        merge_consecutive_google_contents_by_role(&mut google_contents);
 
         let mut obj = Map::new();
 
@@ -829,25 +828,6 @@ fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Mes
     *messages = sanitized_reversed;
 }
 
-fn merge_consecutive_google_contents_by_role(contents: &mut Vec<GoogleContent>) {
-    let mut merged: Vec<GoogleContent> = Vec::with_capacity(contents.len());
-
-    for mut content in contents.drain(..) {
-        if let Some(last) = merged.last_mut() {
-            if last.role == content.role {
-                let mut last_parts = last.parts.take().unwrap_or_default();
-                last_parts.extend(content.parts.take().unwrap_or_default());
-                last.parts = Some(last_parts);
-                continue;
-            }
-        }
-
-        merged.push(content);
-    }
-
-    *contents = merged;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1021,59 +1001,6 @@ mod tests {
 
         assert!(!has_function_call);
         assert_eq!(function_response_name.as_deref(), Some("list_databases"));
-    }
-
-    #[test]
-    fn test_google_merges_user_and_tool_result_after_dropping_unsigned_function_call() {
-        let adapter = GoogleAdapter;
-        let req = UniversalRequest {
-            model: Some("gemini-3.5-flash".to_string()),
-            messages: vec![
-                Message::User {
-                    content: UserContent::String("List databases.".to_string()),
-                },
-                Message::Assistant {
-                    id: None,
-                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
-                        tool_call_id: "call_1".to_string(),
-                        tool_name: "list_databases".to_string(),
-                        arguments: crate::universal::message::ToolCallArguments::from(
-                            "{}".to_string(),
-                        ),
-                        encrypted_content: None,
-                        provider_options: None,
-                        provider_executed: None,
-                    }]),
-                },
-                Message::Tool {
-                    content: vec![ToolContentPart::ToolResult(
-                        crate::universal::message::ToolResultContentPart {
-                            tool_call_id: "call_1".to_string(),
-                            tool_name: "list_databases".to_string(),
-                            output: json!({"databases": ["admin", "config", "local"]}),
-                            provider_options: None,
-                        },
-                    )],
-                },
-            ],
-            params: UniversalParams::default(),
-        };
-
-        let payload = adapter.request_from_universal(&req).unwrap();
-        let typed_payload: GenerateContentRequest =
-            serde_json::from_value(payload).expect("request should deserialize");
-        let contents = typed_payload.contents.expect("contents should be present");
-
-        assert_eq!(contents.len(), 1);
-        assert_eq!(contents[0].role.as_deref(), Some("user"));
-
-        let parts = contents[0]
-            .parts
-            .as_ref()
-            .expect("merged user content should have parts");
-        assert!(parts.iter().any(|part| part.text.is_some()));
-        assert!(parts.iter().any(|part| part.function_response.is_some()));
-        assert!(!parts.iter().any(|part| part.function_call.is_some()));
     }
 
     #[test]
