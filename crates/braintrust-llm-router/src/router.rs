@@ -551,7 +551,6 @@ impl Router {
             }
         } else if provider.id() == "google"
             && output_format == ProviderFormat::ChatCompletions
-            && catalog_format == ProviderFormat::Google
             && (model.starts_with("models/gemini-") || spec.model.starts_with("models/gemini-"))
         {
             ProviderFormat::Google
@@ -1107,6 +1106,42 @@ mod tests {
         let model = "models/gemini-2.5-flash";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), google_spec("gemini-2.5-flash"));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "google",
+                FakeProvider {
+                    name: "google",
+                    formats: vec![ProviderFormat::Google, ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::Google],
+            )
+            .build()
+            .expect("router builds");
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+
+        let (request, metadata) = router
+            .create_request(body.clone(), model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(metadata.provider_alias, "google");
+        assert_eq!(metadata.provider_format, ProviderFormat::Google);
+        assert_eq!(request.inner.format, ProviderFormat::Google);
+        assert_ne!(request.inner.payload, body);
+        assert!(payload.get("contents").is_some());
+        assert!(payload.get("messages").is_none());
+    }
+
+    #[tokio::test]
+    async fn prefixed_gemini_chat_completions_catalog_uses_native_google_format() {
+        let model = "models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
         let router = Router::builder()
             .with_catalog(Arc::new(catalog))
             .add_provider(
