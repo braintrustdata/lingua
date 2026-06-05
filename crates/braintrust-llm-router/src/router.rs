@@ -181,30 +181,23 @@ async fn prepare_provider_request(
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
-    allow_chat_completions_responses_upgrade: bool,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
         return Ok((bytes, Some(format), format));
     }
 
-    let (transformed, detected_format, actual_format) = match lingua::transform_request_with_options(
-        body.clone(),
-        format,
-        Some(&spec.model),
-        lingua::TransformRequestOptions {
-            allow_chat_completions_responses_upgrade,
-        },
-    ) {
-        Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format),
-        Ok(TransformResult::Transformed {
-            bytes,
-            source_format,
-            actual_target_format,
-        }) => (bytes, Some(source_format), actual_target_format),
-        Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
-        Err(err) => return Err(err.into()),
-    };
+    let (transformed, detected_format, actual_format) =
+        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format),
+            Ok(TransformResult::Transformed {
+                bytes,
+                source_format,
+                actual_target_format,
+            }) => (bytes, Some(source_format), actual_target_format),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
+            Err(err) => return Err(err.into()),
+        };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -250,16 +243,8 @@ impl Router {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         let (provider_alias, provider, auth, spec, format, strategy) = route;
-        let allow_chat_completions_responses_upgrade =
-            !(provider.id() == "google" && *format == ProviderFormat::ChatCompletions);
-        let (payload, detected_format, actual_format) = prepare_provider_request(
-            body,
-            spec.as_ref(),
-            *format,
-            stream,
-            allow_chat_completions_responses_upgrade,
-        )
-        .await?;
+        let (payload, detected_format, actual_format) =
+            prepare_provider_request(body, spec.as_ref(), *format, stream).await?;
         Ok((
             PreparedRequestInner {
                 provider: provider.clone(),
@@ -658,10 +643,6 @@ struct ProviderEntry {
     default_for_formats: Vec<ProviderFormat>,
 }
 
-fn provider_format_can_be_backup_default(provider_id: &str, format: ProviderFormat) -> bool {
-    !(provider_id == "google" && format == ProviderFormat::ChatCompletions)
-}
-
 pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
     custom_catalog: Option<ModelCatalog>,
@@ -782,7 +763,7 @@ impl RouterBuilder {
                 formats.insert(format, entry.alias.clone());
             }
             for format in entry.provider.provider_formats() {
-                if !provider_format_can_be_backup_default(entry.provider.id(), format) {
+                if entry.provider.id() == "google" && format == ProviderFormat::ChatCompletions {
                     continue;
                 }
                 #[cfg(feature = "tracing")]
@@ -936,7 +917,7 @@ mod tests {
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
         let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true, true)
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
                 .await
                 .expect("request prepares");
 
@@ -954,7 +935,7 @@ mod tests {
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
         let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false, true)
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
                 .await
                 .expect("request prepares");
 
@@ -991,7 +972,7 @@ mod tests {
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
         let (_, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false, true)
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
                 .await
                 .expect("request prepares");
 

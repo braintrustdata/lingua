@@ -269,37 +269,25 @@ fn chat_completions_needs_responses_upgrade(payload: &Value) -> bool {
     has_reasoning_effort && has_tools
 }
 
+#[cfg(feature = "openai")]
+fn chat_completions_model_requires_responses(model: &str) -> bool {
+    let lower = model.to_ascii_lowercase();
+    let gpt5_minor = lower
+        .strip_prefix("gpt-5.")
+        .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
+        .and_then(|minor| (!minor.is_empty()).then_some(minor))
+        .and_then(|minor| minor.parse::<u32>().ok());
+    lower.starts_with("o1-pro")
+        || lower.starts_with("o3-pro")
+        || lower.starts_with("gpt-5-pro")
+        || gpt5_minor.is_some_and(|minor| minor >= 3)
+        || (lower.starts_with("gpt-5") && lower.contains("-codex"))
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
     model: Option<&str>,
-) -> Result<TransformResult, TransformError> {
-    transform_request_with_options(
-        input,
-        target_format,
-        model,
-        TransformRequestOptions::default(),
-    )
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct TransformRequestOptions {
-    pub allow_chat_completions_responses_upgrade: bool,
-}
-
-impl Default for TransformRequestOptions {
-    fn default() -> Self {
-        Self {
-            allow_chat_completions_responses_upgrade: true,
-        }
-    }
-}
-
-pub fn transform_request_with_options(
-    input: Bytes,
-    target_format: ProviderFormat,
-    model: Option<&str>,
-    options: TransformRequestOptions,
 ) -> Result<TransformResult, TransformError> {
     let parsed = parse_json_body(input)?;
     let payload = parsed.value;
@@ -307,13 +295,14 @@ pub fn transform_request_with_options(
 
     let source_adapter = detect_adapter(&payload, DetectKind::Request)?;
 
-    // Upgrade ChatCompletions → Responses when reasoning_effort + tools are both present.
-    // The /v1/chat/completions endpoint rejects this combination for certain models;
-    // /v1/responses handles it correctly.
+    // Upgrade ChatCompletions → Responses for Responses-required models when
+    // reasoning_effort + tools are both present.
     #[cfg(feature = "openai")]
-    let target_format = if options.allow_chat_completions_responses_upgrade
-        && target_format == ProviderFormat::ChatCompletions
+    let target_format = if target_format == ProviderFormat::ChatCompletions
         && chat_completions_needs_responses_upgrade(&payload)
+        && model
+            .or_else(|| payload.get("model").and_then(Value::as_str))
+            .is_some_and(chat_completions_model_requires_responses)
     {
         ProviderFormat::Responses
     } else {
@@ -1744,7 +1733,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
-    fn test_transform_request_option_disables_responses_upgrade() {
+    fn test_transform_request_does_not_upgrade_gemini_reasoning_plus_tools() {
         let payload = json!({
             "model": "gemini-2.5-flash",
             "messages": [{"role": "user", "content": "Tokyo weather?"}],
@@ -1763,15 +1752,7 @@ mod tests {
         });
         let input = to_bytes(&payload);
 
-        let result = transform_request_with_options(
-            input,
-            ProviderFormat::ChatCompletions,
-            None,
-            TransformRequestOptions {
-                allow_chat_completions_responses_upgrade: false,
-            },
-        )
-        .unwrap();
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
         match result {
             TransformResult::PassThrough(_) => {}
