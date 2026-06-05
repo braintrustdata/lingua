@@ -73,7 +73,7 @@ impl GoogleProvider {
         let mut url = self.config.endpoint.clone();
         let has_openai_suffix = url
             .path_segments()
-            .and_then(|segments| segments.filter(|segment| !segment.is_empty()).next_back())
+            .and_then(|mut segments| segments.rfind(|segment| !segment.is_empty()))
             == Some("openai");
         {
             let mut segments = url

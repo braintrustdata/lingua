@@ -57,8 +57,6 @@ impl ModelResolver {
             // Custom models may declare format:openai but Vertex's Generative AI
             // API requires the Google generateContent wire format.
             ProviderFormat::Google
-        } else if spec.format == ProviderFormat::Google && is_gemini_api_model(model) {
-            ProviderFormat::ChatCompletions
         } else {
             spec.format
         };
@@ -261,7 +259,7 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(format, ProviderFormat::Google);
         assert_eq!(aliases, vec!["google".to_string()]);
     }
 
@@ -273,7 +271,7 @@ mod tests {
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(format, ProviderFormat::Google);
         assert_eq!(aliases, vec!["google".to_string()]);
     }
 
