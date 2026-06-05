@@ -546,6 +546,11 @@ impl Router {
             } else {
                 catalog_format
             }
+        } else if provider.id() == "vertex"
+            && output_format == ProviderFormat::ChatCompletions
+            && spec.format == ProviderFormat::ChatCompletions
+        {
+            ProviderFormat::ChatCompletions
         } else if output_format != catalog_format && provider_formats.contains(&output_format) {
             output_format
         } else {

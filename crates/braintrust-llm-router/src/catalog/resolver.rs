@@ -52,10 +52,12 @@ impl ModelResolver {
             && lingua::is_vertex_anthropic_model(model)
         {
             ProviderFormat::VertexAnthropic
-        } else if lingua::is_vertex_google_model(model) {
+        } else if lingua::is_vertex_google_model(model)
+            && spec.format != ProviderFormat::ChatCompletions
+        {
             // Force Google format regardless of what the spec says.
-            // Custom models may declare format:openai but Vertex's Generative AI
-            // API requires the Google generateContent wire format.
+            // Native Vertex catalog models should use Google generateContent;
+            // OpenAI-format entries opt into Vertex's OpenAPI chat endpoint.
             ProviderFormat::Google
         } else {
             spec.format
@@ -269,15 +271,34 @@ mod tests {
     }
 
     #[test]
-    fn resolve_vertex_google_model_with_openai_format_forces_google() {
+    fn resolve_vertex_google_model_with_openai_format_stays_chat_completions() {
         let model = "publishers/google/models/gemini-2.5-flash";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), spec(model, ProviderFormat::ChatCompletions));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
-        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(format, ProviderFormat::ChatCompletions);
         assert_eq!(aliases, vec!["vertex".to_string()]);
+    }
+
+    #[test]
+    fn resolve_vertex_google_custom_model_with_openai_format_stays_chat_completions() {
+        let model = "publishers/google/models/gemini-3.1-flash-lite-preview";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["custom-vertex".to_string()],
+            ),
+        );
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
+        assert_eq!(aliases, vec!["custom-vertex".to_string()]);
     }
 
     #[test]
