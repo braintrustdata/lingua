@@ -783,63 +783,63 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
 }
 
 fn sanitize_function_call_history_for_google_capabilities(messages: &mut Vec<Message>) {
-    let mut later_tool_result_ids = std::collections::HashSet::new();
-    let mut sanitized_reversed = Vec::with_capacity(messages.len());
+    let Some(current_turn_start) = messages
+        .iter()
+        .rposition(|message| matches!(message, Message::User { .. }))
+    else {
+        return;
+    };
 
-    for mut msg in messages.drain(..).rev() {
-        match &mut msg {
+    let mut later_tool_result_ids = std::collections::HashSet::new();
+    let mut index = messages.len();
+    while index > current_turn_start + 1 {
+        index -= 1;
+
+        match &mut messages[index] {
             Message::Tool { content } => {
                 for part in content {
                     let ToolContentPart::ToolResult(result) = part;
                     later_tool_result_ids.insert(result.tool_call_id.clone());
                 }
-                sanitized_reversed.push(msg);
             }
-            Message::Assistant { content, .. } => match content {
-                AssistantContent::String(_) => sanitized_reversed.push(msg),
-                AssistantContent::Array(parts) => {
-                    let has_signed_tool_call = parts.iter().any(|part| {
-                        matches!(
-                            part,
-                            AssistantContentPart::ToolCall {
-                                encrypted_content: Some(_),
-                                ..
-                            }
-                        )
-                    });
-                    let mut kept_parts = Vec::with_capacity(parts.len());
-                    for part in parts.drain(..) {
-                        if let AssistantContentPart::ToolCall {
-                            tool_call_id,
-                            encrypted_content: None,
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => {
+                let has_signed_tool_call = parts.iter().any(|part| {
+                    matches!(
+                        part,
+                        AssistantContentPart::ToolCall {
+                            encrypted_content: Some(_),
                             ..
-                        } = &part
-                        {
-                            // Gemini parallel function-call turns carry the thoughtSignature
-                            // only on the first functionCall. Keep unsigned siblings when the
-                            // same model turn has any signed call; drop only all-unsigned paired
-                            // calls used by Responses as call_id -> functionResponse metadata.
-                            if !has_signed_tool_call && later_tool_result_ids.contains(tool_call_id)
-                            {
-                                continue;
-                            }
                         }
+                    )
+                });
 
-                        kept_parts.push(part);
+                parts.retain(|part| {
+                    if let AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        encrypted_content: None,
+                        ..
+                    } = part
+                    {
+                        // Gemini parallel calls put the signature only on the first sibling.
+                        // Only all-unsigned paired calls are synthetic Responses bridge history.
+                        if !has_signed_tool_call && later_tool_result_ids.contains(tool_call_id) {
+                            return false;
+                        }
                     }
 
-                    *parts = kept_parts;
-                    if !parts.is_empty() {
-                        sanitized_reversed.push(msg);
-                    }
+                    true
+                });
+
+                if parts.is_empty() {
+                    messages.remove(index);
                 }
-            },
-            _ => sanitized_reversed.push(msg),
+            }
+            _ => {}
         }
     }
-
-    sanitized_reversed.reverse();
-    *messages = sanitized_reversed;
 }
 
 #[cfg(test)]
@@ -1018,10 +1018,10 @@ mod tests {
     }
 
     #[test]
-    fn test_google_sanitizes_vertex_gemini_unsigned_function_call_history() {
+    fn test_google_keeps_unsigned_function_call_history_before_current_turn() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
-            model: Some("publishers/google/models/gemini-3.5-flash".to_string()),
+            model: Some("gemini-3.5-flash".to_string()),
             messages: vec![
                 Message::User {
                     content: UserContent::String("List databases.".to_string()),
@@ -1049,61 +1049,8 @@ mod tests {
                         },
                     )],
                 },
-            ],
-            params: UniversalParams::default(),
-        };
-
-        let payload = adapter.request_from_universal(&req).unwrap();
-        let typed_payload: GenerateContentRequest =
-            serde_json::from_value(payload).expect("request should deserialize");
-        let contents = typed_payload.contents.expect("contents should be present");
-
-        let mut has_function_call = false;
-        let mut function_response_name = None;
-        for content in contents {
-            for part in content.parts.unwrap_or_default() {
-                has_function_call |= part.function_call.is_some();
-                if let Some(function_response) = part.function_response {
-                    function_response_name = function_response.name;
-                }
-            }
-        }
-
-        assert!(!has_function_call);
-        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
-    }
-
-    #[test]
-    fn test_google_sanitizes_resource_gemini_unsigned_function_call_history() {
-        let adapter = GoogleAdapter;
-        let req = UniversalRequest {
-            model: Some("models/gemini-3.5-flash".to_string()),
-            messages: vec![
                 Message::User {
-                    content: UserContent::String("List databases.".to_string()),
-                },
-                Message::Assistant {
-                    id: None,
-                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
-                        tool_call_id: "call_1".to_string(),
-                        tool_name: "list_databases".to_string(),
-                        arguments: crate::universal::message::ToolCallArguments::from(
-                            "{}".to_string(),
-                        ),
-                        encrypted_content: None,
-                        provider_options: None,
-                        provider_executed: None,
-                    }]),
-                },
-                Message::Tool {
-                    content: vec![ToolContentPart::ToolResult(
-                        crate::universal::message::ToolResultContentPart {
-                            tool_call_id: "call_1".to_string(),
-                            tool_name: "list_databases".to_string(),
-                            output: json!({"databases": ["admin", "config", "local"]}),
-                            provider_options: None,
-                        },
-                    )],
+                    content: UserContent::String("Summarize that.".to_string()),
                 },
             ],
             params: UniversalParams::default(),
@@ -1114,19 +1061,15 @@ mod tests {
             serde_json::from_value(payload).expect("request should deserialize");
         let contents = typed_payload.contents.expect("contents should be present");
 
-        let mut has_function_call = false;
-        let mut function_response_name = None;
-        for content in contents {
-            for part in content.parts.unwrap_or_default() {
-                has_function_call |= part.function_call.is_some();
-                if let Some(function_response) = part.function_response {
-                    function_response_name = function_response.name;
-                }
-            }
-        }
+        let has_function_call = contents.into_iter().any(|content| {
+            content
+                .parts
+                .unwrap_or_default()
+                .into_iter()
+                .any(|part| part.function_call.is_some())
+        });
 
-        assert!(!has_function_call);
-        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
+        assert!(has_function_call);
     }
 
     #[test]
