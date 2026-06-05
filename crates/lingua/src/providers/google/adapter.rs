@@ -870,8 +870,10 @@ mod tests {
         );
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
-        assert!(reconstructed.get("generationConfig").is_some());
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        assert!(reconstructed.contents.is_some());
+        assert!(reconstructed.generation_config.is_some());
     }
 
     #[test]
@@ -890,7 +892,9 @@ mod tests {
         // but it should be preserved through serialization
 
         let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        assert!(reconstructed.get("contents").is_some());
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        assert!(reconstructed.contents.is_some());
     }
 
     #[test]
@@ -980,15 +984,23 @@ mod tests {
         };
 
         let payload = adapter.request_from_universal(&req).unwrap();
-        let contents = payload
-            .get("contents")
-            .and_then(Value::as_array)
-            .expect("contents should be an array");
-        let payload_text = serde_json::to_string(&contents).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
 
-        assert!(!payload_text.contains("functionCall"));
-        assert!(payload_text.contains("functionResponse"));
-        assert!(payload_text.contains("list_databases"));
+        let mut has_function_call = false;
+        let mut function_response_name = None;
+        for content in contents {
+            for part in content.parts.unwrap_or_default() {
+                has_function_call |= part.function_call.is_some();
+                if let Some(function_response) = part.function_response {
+                    function_response_name = function_response.name;
+                }
+            }
+        }
+
+        assert!(!has_function_call);
+        assert_eq!(function_response_name.as_deref(), Some("list_databases"));
     }
 
     #[test]
@@ -1038,11 +1050,23 @@ mod tests {
         };
 
         let payload = adapter.request_from_universal(&req).unwrap();
-        let payload_text = serde_json::to_string(&payload).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
 
-        assert!(payload_text.contains("functionCall"));
-        assert!(payload_text.contains("call_1"));
-        assert!(!payload_text.contains("thoughtSignature"));
+        let mut function_call_name = None;
+        let mut function_call_thought_signature = None;
+        for content in contents {
+            for part in content.parts.unwrap_or_default() {
+                if let Some(function_call) = part.function_call {
+                    function_call_name = function_call.name;
+                    function_call_thought_signature = part.thought_signature;
+                }
+            }
+        }
+
+        assert_eq!(function_call_name.as_deref(), Some("list_databases"));
+        assert!(function_call_thought_signature.is_none());
     }
 
     #[test]
