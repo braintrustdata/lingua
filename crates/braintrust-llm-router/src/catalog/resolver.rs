@@ -54,8 +54,8 @@ impl ModelResolver {
             ProviderFormat::VertexAnthropic
         } else if lingua::is_vertex_google_model(model) {
             // Force Google format regardless of what the spec says.
-            // Custom models may declare format:openai but Vertex's Generative AI
-            // API requires the Google generateContent wire format.
+            ProviderFormat::Google
+        } else if is_gemini_api_model(model) {
             ProviderFormat::Google
         } else {
             spec.format
@@ -69,12 +69,19 @@ impl ModelResolver {
                     spec.available_providers.clone()
                 } else if lingua::is_vertex_model(model) {
                     vec!["vertex".to_string()]
+                } else if is_gemini_api_model(model) {
+                    vec!["google".to_string()]
                 } else {
                     vec![format_identifier(format)]
                 }
             });
         Ok((spec, format, provider_aliases))
     }
+}
+
+fn is_gemini_api_model(model: &str) -> bool {
+    !lingua::is_vertex_model(model)
+        && (model.starts_with("gemini-") || model.starts_with("models/gemini-"))
 }
 
 fn format_identifier(format: ProviderFormat) -> String {
@@ -245,10 +252,34 @@ mod tests {
     }
 
     #[test]
-    fn resolve_non_vertex_google_stays_google() {
+    fn resolve_non_vertex_google_routes_to_google_chat_completions() {
         let model = "gemini-2.5-flash";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), spec(model, ProviderFormat::Google));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(aliases, vec!["google".to_string()]);
+    }
+
+    #[test]
+    fn resolve_models_prefixed_gemini_routes_to_google_native_format() {
+        let model = "models/gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::Google));
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(aliases, vec!["google".to_string()]);
+    }
+
+    #[test]
+    fn resolve_gemini_chat_completions_catalog_model_routes_to_google() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), spec(model, ProviderFormat::ChatCompletions));
         let resolver = ModelResolver::new(Arc::new(catalog));
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
@@ -278,6 +309,25 @@ mod tests {
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Google);
         assert_eq!(aliases, vec!["vertex".to_string()]);
+    }
+
+    #[test]
+    fn resolve_vertex_google_custom_model_with_openai_format_forces_google() {
+        let model = "publishers/google/models/gemini-3.1-flash-lite-preview";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["custom-vertex".to_string()],
+            ),
+        );
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(aliases, vec!["custom-vertex".to_string()]);
     }
 
     #[test]
