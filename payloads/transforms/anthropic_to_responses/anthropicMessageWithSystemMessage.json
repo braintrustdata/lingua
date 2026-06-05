@@ -1,0 +1,99 @@
+{
+  "id": "resp_07783fa1fa2249d6006a22034b1d8881a3ab3ad6b14bc34de6",
+  "object": "response",
+  "created_at": 1780613963,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780613973,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 32000,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_07783fa1fa2249d6006a22034b5fcc81a3bb6b3ac161f6e5dc",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_07783fa1fa2249d6006a220354693081a3b02113fd4267d20f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Hello!\n\nWould you like a Hello World example in a specific language? Here are quick options:\n\n- Python: print(\"Hello, World!\")\n- JavaScript: console.log(\"Hello, World!\")\n- C: #include <stdio.h> int main(void) { printf(\"Hello, World!\"); return 0; }\n- Java: public class HelloWorld { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }\n- Go: package main; import \"fmt\"; func main() { fmt.Println(\"Hello, World!\") }\n\nTell me your preferred language (or share another), and I’ll tailor it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "description": "Reads a file from the local filesystem.",
+      "name": "Read",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "file_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file_path"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 77,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2245,
+    "output_tokens_details": {
+      "reasoning_tokens": 2048
+    },
+    "total_tokens": 2322
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Hello!\n\nWould you like a Hello World example in a specific language? Here are quick options:\n\n- Python: print(\"Hello, World!\")\n- JavaScript: console.log(\"Hello, World!\")\n- C: #include <stdio.h> int main(void) { printf(\"Hello, World!\"); return 0; }\n- Java: public class HelloWorld { public static void main(String[] args) { System.out.println(\"Hello, World!\"); } }\n- Go: package main; import \"fmt\"; func main() { fmt.Println(\"Hello, World!\") }\n\nTell me your preferred language (or share another), and I’ll tailor it."
+}

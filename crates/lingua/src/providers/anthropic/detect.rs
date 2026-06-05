@@ -11,6 +11,7 @@ use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
     CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
 };
+use crate::providers::anthropic::params::AnthropicParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -48,19 +49,67 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
 /// OpenAI-specific fields to prevent misdetection. This also validates the
 /// model-gated `messages[].role = "system"` feature and its placement rules.
 pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
-    // First, reject if any OpenAI-only fields are present
-    if let Some(obj) = payload.as_object() {
-        for field in OPENAI_ONLY_FIELDS {
-            if obj.contains_key(*field) {
-                return Err(DetectionError::OpenAIFieldPresent((*field).to_string()));
-            }
-        }
-    }
+    reject_openai_only_fields(payload)?;
 
     let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
     validate_system_message_support_and_placement(&request.model, &request.messages)?;
     Ok(request)
+}
+
+/// Attempt to parse a JSON Value as an Anthropic Messages-shaped source request.
+///
+/// This is intentionally less strict than `try_parse_anthropic`: it accepts
+/// Claude Code-style Messages payloads with system-role entries even when the
+/// requested model belongs to another provider. Native Anthropic passthrough
+/// still uses `try_parse_anthropic`.
+pub fn try_parse_anthropic_source(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
+    reject_openai_only_fields(payload)?;
+
+    let request: CreateMessageParams = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+
+    validate_system_message_placement(&request.messages)?;
+
+    if system_messages_present(&request.messages)
+        && !capabilities::supports_mid_conversation_system_messages(&request.model)
+        && !has_anthropic_source_markers(&request)
+    {
+        return Err(DetectionError::UnsupportedSystemRoleMessages {
+            model: request.model.clone(),
+        });
+    }
+
+    Ok(request)
+}
+
+fn reject_openai_only_fields(payload: &Value) -> Result<(), DetectionError> {
+    let params: AnthropicParams = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+
+    for field in OPENAI_ONLY_FIELDS {
+        if params.extras.contains_key(*field) {
+            return Err(DetectionError::OpenAIFieldPresent((*field).to_string()));
+        }
+    }
+
+    Ok(())
+}
+
+fn has_anthropic_source_markers(request: &CreateMessageParams) -> bool {
+    request.system.is_some()
+        || request.thinking.is_some()
+        || request.output_config.is_some()
+        || request.cache_control.is_some()
+        || request.top_k.is_some()
+        || request
+            .stop_sequences
+            .as_ref()
+            .is_some_and(|stop_sequences| !stop_sequences.is_empty())
+        || request
+            .tools
+            .as_ref()
+            .is_some_and(|tools| !tools.is_empty())
 }
 
 pub(crate) fn system_messages_are_supported_and_well_placed(
@@ -76,10 +125,7 @@ fn validate_system_message_support_and_placement(
     model: &str,
     messages: &[InputMessage],
 ) -> Result<(), DetectionError> {
-    if messages
-        .iter()
-        .all(|message| !matches!(message.role, MessageRole::System))
-    {
+    if !system_messages_present(messages) {
         return Ok(());
     }
 
@@ -89,11 +135,23 @@ fn validate_system_message_support_and_placement(
         });
     }
 
-    if !mid_conversation_system_messages_have_valid_placement(messages) {
-        return Err(DetectionError::InvalidSystemRolePlacement);
-    }
+    validate_system_message_placement(messages)?;
 
     Ok(())
+}
+
+fn system_messages_present(messages: &[InputMessage]) -> bool {
+    messages
+        .iter()
+        .any(|message| matches!(message.role, MessageRole::System))
+}
+
+fn validate_system_message_placement(messages: &[InputMessage]) -> Result<(), DetectionError> {
+    if mid_conversation_system_messages_have_valid_placement(messages) {
+        Ok(())
+    } else {
+        Err(DetectionError::InvalidSystemRolePlacement)
+    }
 }
 
 fn assistant_message_ends_with_server_tool_use(message: &InputMessage) -> bool {
@@ -320,6 +378,87 @@ mod tests {
         assert!(matches!(
             try_parse_anthropic(&payload),
             Err(DetectionError::InvalidSystemRolePlacement)
+        ));
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_allows_claude_code_system_messages_for_other_models() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {"type": "text", "text": "You are running inside Claude Code."}
+            ],
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "tools": [
+                {
+                    "name": "Read",
+                    "description": "Read a file.",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {"file_path": {"type": "string"}},
+                        "required": ["file_path"]
+                    }
+                }
+            ],
+            "thinking": {"type": "adaptive"},
+            "output_config": {"effort": "high"}
+        });
+
+        assert!(try_parse_anthropic(&payload).is_err());
+        assert!(try_parse_anthropic_source(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_rejects_plain_openai_system_messages() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(try_parse_anthropic_source(&payload).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_rejects_invalid_leading_system_message_with_marker() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "Top-level instructions.",
+            "messages": [
+                {"role": "system", "content": "Leading system instructions that must not be dropped."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(matches!(
+            try_parse_anthropic_source(&payload),
+            Err(DetectionError::InvalidSystemRolePlacement)
+        ));
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_source_rejects_empty_tools_as_marker() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "tools": []
+        });
+
+        assert!(matches!(
+            try_parse_anthropic_source(&payload),
+            Err(DetectionError::UnsupportedSystemRoleMessages { .. })
         ));
     }
 

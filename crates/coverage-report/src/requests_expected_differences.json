@@ -310,6 +310,28 @@
       ]
     },
     {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "live Messages API currently rejects role 'system'", "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but the live Anthropic Messages API rejects system-role input messages for available models" }
+      ]
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but Bedrock Anthropic targets use Anthropic Messages validation"
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but Vertex Anthropic targets use Anthropic Messages validation"
+    },
+    {
       "testCase": "imageUrlMimeTypeFallbackParam",
       "source": "*",
       "target": "Bedrock Anthropic",

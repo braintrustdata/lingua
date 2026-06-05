@@ -321,15 +321,16 @@ pub fn transform_request(
         target_format
     };
 
-    if source_adapter.format() == target_format
-        && !request_model_needs_forced_translation(upgrade_model.as_deref(), target_format)
-    {
-        return Ok(TransformResult::PassThrough(request_bytes));
-    }
-
     let source_format = source_adapter.format();
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
+    if source_format == target_format
+        && !request_model_needs_forced_translation(upgrade_model.as_deref(), target_format)
+        && target_adapter.detect_passthrough_request(&payload)
+    {
+        return Ok(TransformResult::PassThrough(request_bytes));
+    }
 
     let mut universal = source_adapter.request_to_universal(payload)?;
 
@@ -977,6 +978,147 @@ mod tests {
         let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
 
         assert!(result.is_passthrough());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_openai_empty_tools_not_detected_as_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "You are helpful."},
+                {"role": "user", "content": "Hello"}
+            ],
+            "tools": []
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_invalid_leading_anthropic_system_role_not_detected_as_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "Top-level instructions.",
+            "messages": [
+                {"role": "system", "content": "Leading message instructions."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("system").and_then(Value::as_str),
+            Some("Leading message instructions.")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_claude_code_messages_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 32000,
+            "system": [
+                {"type": "text", "text": "You are running inside Claude Code."},
+                {
+                    "type": "text",
+                    "text": "Preserve the user's coding instructions.",
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "hello world",
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ]
+                },
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "tools": [
+                {
+                    "name": "Read",
+                    "description": "Read a file.",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {"file_path": {"type": "string"}},
+                        "required": ["file_path"],
+                        "additionalProperties": false
+                    }
+                }
+            ],
+            "thinking": {"type": "adaptive"},
+            "output_config": {"effort": "high"}
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").and_then(Value::as_str), Some("gpt-5.5"));
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(32000)
+        );
+        assert!(output.get("max_tokens").is_none());
+        assert_eq!(
+            output.get("reasoning_effort").and_then(Value::as_str),
+            Some("high")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_transform_request_claude_code_messages_to_google() {
+        let payload = json!({
+            "model": "gemini-2.5-flash",
+            "max_tokens": 1024,
+            "system": [{"type": "text", "text": "You are running inside Claude Code."}],
+            "messages": [
+                {"role": "user", "content": "hello world"},
+                {"role": "system", "content": "Use the provided tools exactly."}
+            ],
+            "thinking": {"type": "adaptive"}
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::Google, Some("gemini-2.5-flash")).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Anthropic));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gemini-2.5-flash")
+        );
+        assert!(output.get("contents").is_some());
     }
 
     #[test]
