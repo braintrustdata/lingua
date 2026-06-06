@@ -520,8 +520,7 @@ impl Router {
             Error::NoProvider(catalog_format)
         })?;
         let provider_formats = provider.provider_formats();
-        let format = if output_format == ProviderFormat::ChatCompletions
-            && provider_formats.contains(&ProviderFormat::Responses)
+        let format = if provider_formats.contains(&ProviderFormat::Responses)
             && spec.requires_responses_api()
         {
             ProviderFormat::Responses
