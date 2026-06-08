@@ -1066,6 +1066,30 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_chat_completions_does_not_add_anthropic_cache_control() {
+        let payload = json!({
+            "model": "claude-sonnet-4-5-20250929",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "system", "content": "Be helpful."},
+                {"role": "user", "content": "Hello"}
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert!(output.get("cache_control").is_none());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_claude_code_messages_to_openai() {
         let payload = json!({
             "model": "gpt-5.5",

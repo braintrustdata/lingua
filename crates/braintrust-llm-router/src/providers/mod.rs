@@ -7,7 +7,7 @@ mod mistral;
 mod openai;
 mod vertex;
 
-pub use anthropic::{AnthropicConfig, AnthropicProvider};
+pub use anthropic::{AnthropicConfig, AnthropicProvider, ANTHROPIC_PROMPT_CACHE_HEADER};
 pub use azure::{AzureConfig, AzureProvider};
 pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
