@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\n  \"answer\": \"This is a placeholder answer.\",\n  \"reasoning\": \"The user did not provide a specific question or prompt, so a generic response has been generated to satisfy the schema requirements.\"\n}",
+            "thoughtSignature": "EpsGCpgGAQw51sfX5aXuFfX5XZ23WLvW462+b8PXpLZSmek4L3If93gvzBzIS+tFPcuXv7jgCOdiDpgG/C+5xt+bNlx9NZydFYxgpo6JelIvO4b2m3q2PdQfAlPqw/5QxmqcghSEfAFi8Tn8u00uCeMq3/p2vUwhFsFA8roskbmLCqbswIVjvjjOdNkn+5ITn7gc+CNpWEKp0sGv93SU7S+c8hhAoLyArJzmEKi4B01sSf7BvjD4qx9ItIuZqbr/4jpqhwPmput9tjlf9jBfkNcNg0msR5O68WE2n+jjYFPxU8iPQSkR+/zY/cQoSkhWYvmuwImYqpKA9Xe301Rl45tO4uh9XfVLYM0AKUB07rQwDEqhnOeQd9gWAICzCe+nXXPXfCAPba2aKKuYcES4/54KLRcuruO2ijHLjnRvon9RieCc/xIDZQi4rOqsG1amh7oketrWj83Rii7/an4JzMbZxfagdESmvSbc8JhW8rxbv1Bhv0eOD75K+tx399SBzBAn/yUkkw7vgdVRtkFXlCVbRDSRIVzPwY+LCBO4eeXGc/UtwZ8TQCl5mHZkGzT2lFhSGf6f8P5OqvF7gStckcRX4Pj8lo33CLnRczygbTQg81937uv+ZSRO48hcVLL3Y7OciFfsvfmlROb5n0Y93Zi0QpM2BmLOf9se7DxhyKZb/eSSNvJzlghN4byoardoyS3S24irCUMhEPnT92R8CXZPj4fF0/nhCckBxpnKEryMqBbNWShMUmjUKui1+9ZS23GH9vbUSfESlGxxYbOaGahhW4NuT8JV6HuKxFJymJ1x9hZB1N+TlprGdhereDSRCqzca/BjhboFF+Nb7nUCbOV03tpFW7RmI58tRu7oCLfZe3OjJ8BF6EldC1BfalYiV5jNr6fKuEcInF3ottFv5fHhWu7uzkMa3nlioi+CM+8Vcbgn4WxTLfQiSmfjSmpI/dqIctJYe0HbhdZa8mEt2I1LPiAyvGhw4ZDEymriaFMY+V2wZcP1L4sooTlGuncl3T9gb3JMpuLPS9zSiNYIOmfCrCONDAmsQP/jTdHV"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 46,
+    "totalTokenCount": 227,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 173,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "YOsmavD2CMXR1MkP6tWBsQo"
+}

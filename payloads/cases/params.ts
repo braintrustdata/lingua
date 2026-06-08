@@ -468,6 +468,62 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  textFormatJsonSchemaMissingRequiredPropertyParam: {
+    "chat-completions": {
+      model: OPENAI_MINI_REASONING_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   textFormatJsonSchemaWithDescriptionParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
