@@ -180,7 +180,12 @@ fn normalize_openai_required_properties(
     map: &mut Map<String, Value>,
     node: &StrictTargetSchemaNodeView,
     target_provider: ProviderFormat,
+    require_openai_strict_required_properties: bool,
 ) {
+    if !require_openai_strict_required_properties {
+        return;
+    }
+
     if !matches!(
         target_provider,
         ProviderFormat::ChatCompletions | ProviderFormat::Responses
@@ -214,10 +219,12 @@ fn normalize_openai_required_properties(
 pub(crate) fn normalize_response_schema_for_strict_target(
     schema: &Value,
     target_provider: ProviderFormat,
+    require_openai_strict_required_properties: bool,
 ) -> Result<Value, ConvertError> {
     fn normalize_node(
         value: &mut Value,
         target_provider: ProviderFormat,
+        require_openai_strict_required_properties: bool,
     ) -> Result<(), ConvertError> {
         let node: StrictTargetSchemaNodeView =
             serde_json::from_value(value.clone()).map_err(|e| {
@@ -265,21 +272,38 @@ pub(crate) fn normalize_response_schema_for_strict_target(
                     }
                 }
 
-                normalize_openai_required_properties(map, &node, target_provider);
+                normalize_openai_required_properties(
+                    map,
+                    &node,
+                    target_provider,
+                    require_openai_strict_required_properties,
+                );
             }
 
             if let Some(Value::Object(properties)) = map.get_mut("properties") {
                 for prop_schema in properties.values_mut() {
-                    normalize_node(prop_schema, target_provider)?;
+                    normalize_node(
+                        prop_schema,
+                        target_provider,
+                        require_openai_strict_required_properties,
+                    )?;
                 }
             }
             if let Some(items) = map.get_mut("items") {
-                normalize_node(items, target_provider)?;
+                normalize_node(
+                    items,
+                    target_provider,
+                    require_openai_strict_required_properties,
+                )?;
             }
             for key in ["anyOf", "oneOf", "allOf", "prefixItems"] {
                 if let Some(Value::Array(items)) = map.get_mut(key) {
                     for item in items {
-                        normalize_node(item, target_provider)?;
+                        normalize_node(
+                            item,
+                            target_provider,
+                            require_openai_strict_required_properties,
+                        )?;
                     }
                 }
             }
@@ -289,7 +313,11 @@ pub(crate) fn normalize_response_schema_for_strict_target(
     }
 
     let mut normalized = schema.clone();
-    normalize_node(&mut normalized, target_provider)?;
+    normalize_node(
+        &mut normalized,
+        target_provider,
+        require_openai_strict_required_properties,
+    )?;
     Ok(normalized)
 }
 
@@ -420,6 +448,7 @@ fn to_openai_chat(config: &ResponseFormatConfig) -> Result<Option<Value>, Conver
                 normalize_response_schema_for_strict_target(
                     &js.schema,
                     ProviderFormat::ChatCompletions,
+                    js.strict == Some(true),
                 )?,
             );
             if let Some(strict) = js.strict {
@@ -448,33 +477,36 @@ fn to_openai_responses_text(config: &ResponseFormatConfig) -> Result<Option<Valu
         return Ok(None);
     };
 
-    let format_obj = match format_type {
-        ResponseFormatType::Text => json!({ "type": "text" }),
-        ResponseFormatType::JsonObject => json!({ "type": "json_object" }),
-        ResponseFormatType::JsonSchema => {
-            let js =
-                config
-                    .json_schema
-                    .as_ref()
-                    .ok_or_else(|| ConvertError::MissingRequiredField {
+    let format_obj =
+        match format_type {
+            ResponseFormatType::Text => json!({ "type": "text" }),
+            ResponseFormatType::JsonObject => json!({ "type": "json_object" }),
+            ResponseFormatType::JsonSchema => {
+                let js = config.json_schema.as_ref().ok_or_else(|| {
+                    ConvertError::MissingRequiredField {
                         field: "json_schema".to_string(),
-                    })?;
-            let mut obj = Map::new();
-            obj.insert("type".into(), Value::String("json_schema".into()));
-            obj.insert("name".into(), Value::String(js.name.clone()));
-            obj.insert(
-                "schema".into(),
-                normalize_response_schema_for_strict_target(&js.schema, ProviderFormat::Responses)?,
-            );
-            if let Some(strict) = js.strict {
-                obj.insert("strict".into(), Value::Bool(strict));
+                    }
+                })?;
+                let mut obj = Map::new();
+                obj.insert("type".into(), Value::String("json_schema".into()));
+                obj.insert("name".into(), Value::String(js.name.clone()));
+                obj.insert(
+                    "schema".into(),
+                    normalize_response_schema_for_strict_target(
+                        &js.schema,
+                        ProviderFormat::Responses,
+                        js.strict == Some(true),
+                    )?,
+                );
+                if let Some(strict) = js.strict {
+                    obj.insert("strict".into(), Value::Bool(strict));
+                }
+                if let Some(ref desc) = js.description {
+                    obj.insert("description".into(), Value::String(desc.clone()));
+                }
+                Value::Object(obj)
             }
-            if let Some(ref desc) = js.description {
-                obj.insert("description".into(), Value::String(desc.clone()));
-            }
-            Value::Object(obj)
-        }
-    };
+        };
 
     Ok(Some(json!({ "format": format_obj })))
 }
@@ -773,7 +805,7 @@ mod tests {
             ProviderFormat::Responses,
         ] {
             let normalized =
-                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+                normalize_response_schema_for_strict_target(&schema, provider, false).unwrap();
             assert_eq!(
                 normalized.pointer("/propertyOrdering"),
                 None,
@@ -814,7 +846,8 @@ mod tests {
         });
 
         let normalized =
-            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Google).unwrap();
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Google, false)
+                .unwrap();
 
         assert_eq!(
             normalized.pointer("/propertyOrdering"),
@@ -848,7 +881,7 @@ mod tests {
 
         for provider in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
             let normalized =
-                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+                normalize_response_schema_for_strict_target(&schema, provider, true).unwrap();
             assert_eq!(
                 normalized.pointer("/required"),
                 Some(&json!(["answer", "legacy", "citation", "reasoning"])),
@@ -874,7 +907,7 @@ mod tests {
         });
 
         let normalized =
-            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Responses)
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Responses, true)
                 .unwrap();
 
         assert_eq!(normalized.pointer("/required"), Some(&json!(["outer"])));
@@ -882,6 +915,50 @@ mod tests {
             normalized.pointer("/properties/outer/required"),
             Some(&json!(["inner", "details"]))
         );
+    }
+
+    #[test]
+    fn test_openai_non_strict_targets_preserve_optional_properties() {
+        for strict in [None, Some(false)] {
+            let config = ResponseFormatConfig {
+                format_type: Some(ResponseFormatType::JsonSchema),
+                json_schema: Some(JsonSchemaConfig {
+                    name: "structured_response".into(),
+                    schema: json!({
+                        "type": "object",
+                        "properties": {
+                            "answer": { "type": "string" },
+                            "reasoning": { "type": "string" }
+                        },
+                        "required": ["answer"]
+                    }),
+                    strict,
+                    description: None,
+                }),
+            };
+
+            let chat_value = config
+                .to_provider(ProviderFormat::ChatCompletions)
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                chat_value.pointer("/json_schema/schema/required"),
+                Some(&json!(["answer"])),
+                "non-strict chat schema should preserve optional properties for {strict:?}"
+            );
+
+            let responses_value = config
+                .to_provider(ProviderFormat::Responses)
+                .unwrap()
+                .unwrap();
+            let responses: OpenAiResponsesTextView = serde_json::from_value(responses_value)
+                .expect("responses text config should deserialize");
+            assert_eq!(
+                responses.format.schema.pointer("/required"),
+                Some(&json!(["answer"])),
+                "non-strict responses schema should preserve optional properties for {strict:?}"
+            );
+        }
     }
 
     #[test]
@@ -897,7 +974,7 @@ mod tests {
 
         for provider in [ProviderFormat::Anthropic, ProviderFormat::Google] {
             let normalized =
-                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+                normalize_response_schema_for_strict_target(&schema, provider, true).unwrap();
             assert_eq!(
                 normalized.pointer("/required"),
                 Some(&json!(["answer"])),
@@ -935,7 +1012,7 @@ mod tests {
         });
 
         let anthropic =
-            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Anthropic)
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Anthropic, false)
                 .unwrap();
         assert_eq!(anthropic.pointer("/properties/tuple/prefixItems"), None);
         assert_eq!(anthropic.pointer("/properties/tuple/minItems"), None);
@@ -945,9 +1022,12 @@ mod tests {
         assert_eq!(anthropic.pointer("/properties/ratio/minimum"), None);
         assert_eq!(anthropic.pointer("/properties/ratio/maximum"), None);
 
-        let chat =
-            normalize_response_schema_for_strict_target(&schema, ProviderFormat::ChatCompletions)
-                .unwrap();
+        let chat = normalize_response_schema_for_strict_target(
+            &schema,
+            ProviderFormat::ChatCompletions,
+            false,
+        )
+        .unwrap();
         assert_eq!(
             chat.pointer("/properties/tuple/prefixItems/0/type"),
             Some(&Value::String("string".to_string()))

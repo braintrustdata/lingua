@@ -1710,6 +1710,7 @@ impl TryFrom<&ResponseFormatConfig> for JsonOutputFormat {
                 match normalize_response_schema_for_strict_target(
                     &js.schema,
                     ProviderFormat::Anthropic,
+                    false,
                 )? {
                     Value::Object(m) => Ok(JsonOutputFormat {
                         schema: m,
