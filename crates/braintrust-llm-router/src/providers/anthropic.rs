@@ -41,6 +41,10 @@ fn apply_prompt_cache_header(
     format: ProviderFormat,
     headers: &HeaderMap,
 ) -> Result<Bytes> {
+    // Non-Anthropic request formats do not have a native way to ask for
+    // Anthropic cache_control, and caching changes Anthropic billing behavior.
+    // Use this router-only header as the explicit opt-in bridge instead of
+    // enabling prompt caching for every transform to Anthropic.
     if format != ProviderFormat::Anthropic || !prompt_cache_header_enabled(headers) {
         return Ok(payload);
     }
