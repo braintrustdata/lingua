@@ -55,7 +55,7 @@ impl ModelResolver {
         } else if lingua::is_vertex_google_model(model) {
             // Force Google format regardless of what the spec says.
             ProviderFormat::Google
-        } else if is_gemini_api_model(model) {
+        } else if is_gemini_api_model(model) && spec.available_providers.is_empty() {
             ProviderFormat::Google
         } else {
             spec.format
@@ -284,6 +284,25 @@ mod tests {
 
         let (_, format, aliases) = resolver.resolve(model).expect("resolves");
         assert_eq!(format, ProviderFormat::Google);
+        assert_eq!(aliases, vec!["google".to_string()]);
+    }
+
+    #[test]
+    fn resolve_explicit_gemini_chat_completions_catalog_model_preserves_catalog_format() {
+        let model = "gemini-2.5-flash";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            spec_with_available_providers(
+                model,
+                ProviderFormat::ChatCompletions,
+                vec!["google".into()],
+            ),
+        );
+        let resolver = ModelResolver::new(Arc::new(catalog));
+
+        let (_, format, aliases) = resolver.resolve(model).expect("resolves");
+        assert_eq!(format, ProviderFormat::ChatCompletions);
         assert_eq!(aliases, vec!["google".to_string()]);
     }
 
