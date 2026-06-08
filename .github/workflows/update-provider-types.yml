@@ -209,6 +209,59 @@ jobs:
           echo "Changes detected:"
           git status --short
 
+      - name: Review generated provider integration
+        id: integration_review
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          show_full_output: "true"
+          display_report: "true"
+          timeout_minutes: "30"
+          claude_args: |
+            --model claude-opus-4-6
+            --max-turns 100
+            --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
+            --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            # Goal
+
+            The automated Lingua provider type update produced changes for `${{ matrix.provider }}`. Review the generated provider type diff for semantic integration gaps, update the hand-written adapter/converter code when needed, and add focused tests for clear behavior.
+
+            This step should run even when generation, build, and clippy currently pass. A compiling generated enum or field can still require normalization code changes.
+
+            # Local files to read first
+
+            - `AGENTS.md`
+            - `Makefile`
+            - `crates/lingua/src/providers/${{ matrix.provider }}/`
+            - `crates/lingua/src/universal/`
+            - `crates/coverage-report/README.md`
+            - `payloads/README.md`
+
+            # Process
+
+            1. Inspect `git diff` for `${{ matrix.provider }}` provider type updates, especially new enum variants, renamed wire values, new required fields, and response/request shape changes.
+            2. Trace each changed generated provider type into hand-written adapter/converter code under `crates/lingua/src/providers/${{ matrix.provider }}/`.
+            3. If a new provider value clearly maps to an existing universal concept, update the typed converter/adapter and add a focused Rust test. For example, new safety/filtering finish reasons should normalize to the existing content-filter path rather than falling through to `Other`.
+            4. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, do not invent a workaround. Leave the generated changes intact and add a concise note in `provider-type-update-notes.md` explaining what needs human clarification.
+            5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
+            6. Do not manually edit files named `generated.rs`.
+            7. Run the most focused test or build command that validates any hand-written change you make. If the command cannot run because credentials or external services are missing, note that in `provider-type-update-notes.md`.
+            8. Do not create or update GitHub issues, comments, pull requests, or branches.
+
+            # Output
+
+            Leave code changes in the working tree only. The workflow will regenerate TypeScript bindings, format, validate, and open a PR after this step.
+
+      - name: Regenerate TypeScript types after integration review
+        id: post_review_ts_types
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make generate-types
+
       - name: Format code
         id: fmt
         if: steps.changes.outputs.has_changes == 'true'
@@ -258,6 +311,8 @@ jobs:
               echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
             fi
             echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
+            echo "- Claude integration review: ${{ steps.integration_review.outcome }}"
+            echo "- Post-review \`make generate-types\`: ${{ steps.post_review_ts_types.outcome }}"
             echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
             echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
             echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
@@ -288,6 +343,8 @@ jobs:
             steps.generate.outcome == 'failure' ||
             steps.retry.outcome == 'failure' ||
             steps.ts_types.outcome == 'failure' ||
+            steps.integration_review.outcome == 'failure' ||
+            steps.post_review_ts_types.outcome == 'failure' ||
             steps.fmt.outcome == 'failure' ||
             steps.build.outcome == 'failure' ||
             steps.clippy.outcome == 'failure' ||
