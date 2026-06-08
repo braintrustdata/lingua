@@ -79,7 +79,7 @@ impl ModelResolver {
     }
 }
 
-fn is_gemini_api_model(model: &str) -> bool {
+pub(crate) fn is_gemini_api_model(model: &str) -> bool {
     !lingua::is_vertex_model(model)
         && (model.starts_with("gemini-") || model.starts_with("models/gemini-"))
 }
