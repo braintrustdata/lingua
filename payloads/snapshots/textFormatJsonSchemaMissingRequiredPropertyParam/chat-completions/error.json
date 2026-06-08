@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 Invalid schema for response_format 'structured_response': In context=(), 'required' is required to be supplied and to be an array including every key in properties. Missing 'reasoning'."
+}

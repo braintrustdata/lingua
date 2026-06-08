@@ -9387,6 +9387,67 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
 }
 `;
 
+exports[`chat-completions → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer": "I don't see a specific question in your message.", "reasoning": "You asked me to return an answer and short reasoning, but didn't provide a question to answer. Please provide a question so I can give you a meaningful response."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011EEoUMiJCZSHDPVAGK4NwL",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 56,
+    "prompt_tokens": 172,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 228,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -12238,6 +12299,54 @@ exports[`chat-completions → bedrock > textFormatJsonObjectParam > response 1`]
       "cached_tokens": 0,
     },
     "total_tokens": 32,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'm ready to help, but I don't see a specific question in your message. Could you please provide the question you'd like me to answer?
+
+Once you do, I'll give you:
+1. **A clear answer**
+2. **Short reasoning** explaining why",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 61,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 75,
   },
 }
 `;
@@ -15346,6 +15455,70 @@ exports[`chat-completions → google > textFormatJsonObjectParam > response 1`] 
 }
 `;
 
+exports[`chat-completions → google > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string",
+        },
+        "reasoning": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "answer",
+      ],
+      "title": "structured_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer":"Paris","reasoning":"Paris has been the capital of France since the late 10th century, serving as the country's political, cultural, and economic center."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 435,
+    "completion_tokens_details": {
+      "reasoning_tokens": 396,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 443,
+  },
+}
+`;
+
 exports[`chat-completions → google > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
 {
   "contents": [
@@ -18395,6 +18568,69 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 260,
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5.4-mini",
+  "text": {
+    "format": {
+      "name": "structured_response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+          "reasoning",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer":"Please provide the question or task you want answered.","reasoning":"Your message only asks for an answer and short reasoning, but no actual question was included."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-016f4883d0291359006a26eb5eee04819eb1833217fbb168c2",
+  "model": "gpt-5.4-mini-2026-03-17",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 43,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 86,
   },
 }
 `;
@@ -30031,6 +30267,80 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01LLQwDeZ9UVfjscXv4vPPAR",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"answer": "I need a specific question to provide an answer.", "reasoning": "No question was provided in the prompt, so I cannot generate a meaningful answer or reasoning without knowing what is being asked."}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"answer": "I need a specific question to provide an answer.", "reasoning": "No question was provided in the prompt, so I cannot generate a meaningful answer or reasoning without knowing what is being asked."}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 172,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 46,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 218,
+  },
+}
+`;
+
 exports[`responses → anthropic > textFormatJsonSchemaParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -33529,6 +33839,89 @@ exports[`responses → google > textFormatJsonObjectParam > response 1`] = `
       "reasoning_tokens": 28,
     },
     "total_tokens": 45,
+  },
+}
+`;
+
+exports[`responses → google > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string",
+        },
+        "reasoning": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "answer",
+      ],
+      "title": "structured_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{
+  "answer": "This is a placeholder answer.",
+  "reasoning": "The user did not provide a specific question or prompt, so a generic response has been generated to satisfy the schema requirements."
+}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{
+  "answer": "This is a placeholder answer.",
+  "reasoning": "The user did not provide a specific question or prompt, so a generic response has been generated to satisfy the schema requirements."
+}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 219,
+    "output_tokens_details": {
+      "reasoning_tokens": 173,
+    },
+    "total_tokens": 227,
   },
 }
 `;

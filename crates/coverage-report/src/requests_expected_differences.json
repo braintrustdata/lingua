@@ -562,6 +562,30 @@
       ]
     },
     {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
+      ]
+    },
+    {
       "testCase": "googleResponseSchemaPropertyOrderingParam",
       "source": "Google",
       "target": "ChatCompletions",

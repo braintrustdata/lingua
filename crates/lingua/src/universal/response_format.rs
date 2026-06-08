@@ -145,6 +145,10 @@ struct StrictTargetSchemaNodeView {
     minimum: Option<SchemaScalarConstraintView>,
     #[serde(rename = "maximum", default, skip_serializing_if = "Option::is_none")]
     maximum: Option<SchemaScalarConstraintView>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    properties: Option<Map<String, Value>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    required: Option<Vec<String>>,
 }
 
 /// Anthropic structured outputs accept a narrower JSON Schema subset than the
@@ -170,6 +174,41 @@ fn strip_anthropic_unsupported_schema_keywords(
         map.remove("minimum");
         map.remove("maximum");
     }
+}
+
+fn normalize_openai_required_properties(
+    map: &mut Map<String, Value>,
+    node: &StrictTargetSchemaNodeView,
+    target_provider: ProviderFormat,
+) {
+    if !matches!(
+        target_provider,
+        ProviderFormat::ChatCompletions | ProviderFormat::Responses
+    ) {
+        return;
+    }
+
+    let Some(properties) = node.properties.as_ref() else {
+        return;
+    };
+
+    let mut required = node.required.clone().unwrap_or_default();
+    let mut property_names: Vec<&String> = properties.keys().collect();
+    property_names.sort();
+
+    for property_name in property_names {
+        if !required
+            .iter()
+            .any(|required_name| required_name == property_name)
+        {
+            required.push(property_name.clone());
+        }
+    }
+
+    map.insert(
+        "required".into(),
+        Value::Array(required.into_iter().map(Value::String).collect()),
+    );
 }
 
 pub(crate) fn normalize_response_schema_for_strict_target(
@@ -225,6 +264,8 @@ pub(crate) fn normalize_response_schema_for_strict_target(
                         });
                     }
                 }
+
+                normalize_openai_required_properties(map, &node, target_provider);
             }
 
             if let Some(Value::Object(properties)) = map.get_mut("properties") {
@@ -791,6 +832,78 @@ mod tests {
             normalized.pointer("/properties/outer/additionalProperties"),
             Some(&Value::Bool(false))
         );
+    }
+
+    #[test]
+    fn test_openai_strict_targets_require_all_object_properties() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "reasoning": { "type": "string" },
+                "answer": { "type": "string" },
+                "citation": { "type": "string" }
+            },
+            "required": ["answer", "legacy"]
+        });
+
+        for provider in [ProviderFormat::ChatCompletions, ProviderFormat::Responses] {
+            let normalized =
+                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+            assert_eq!(
+                normalized.pointer("/required"),
+                Some(&json!(["answer", "legacy", "citation", "reasoning"])),
+                "required should preserve existing entries and append missing properties for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_openai_strict_targets_add_required_recursively() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "outer": {
+                    "type": "object",
+                    "properties": {
+                        "inner": { "type": "string" },
+                        "details": { "type": "string" }
+                    },
+                    "required": ["inner"]
+                }
+            }
+        });
+
+        let normalized =
+            normalize_response_schema_for_strict_target(&schema, ProviderFormat::Responses)
+                .unwrap();
+
+        assert_eq!(normalized.pointer("/required"), Some(&json!(["outer"])));
+        assert_eq!(
+            normalized.pointer("/properties/outer/required"),
+            Some(&json!(["inner", "details"]))
+        );
+    }
+
+    #[test]
+    fn test_non_openai_strict_targets_do_not_auto_fill_required() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "reasoning": { "type": "string" },
+                "answer": { "type": "string" }
+            },
+            "required": ["answer"]
+        });
+
+        for provider in [ProviderFormat::Anthropic, ProviderFormat::Google] {
+            let normalized =
+                normalize_response_schema_for_strict_target(&schema, provider).unwrap();
+            assert_eq!(
+                normalized.pointer("/required"),
+                Some(&json!(["answer"])),
+                "required should be unchanged for {provider:?}"
+            );
+        }
     }
 
     #[test]

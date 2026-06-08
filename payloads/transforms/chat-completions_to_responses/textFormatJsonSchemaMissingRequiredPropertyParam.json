@@ -1,0 +1,94 @@
+{
+  "id": "resp_016f4883d0291359006a26eb5eee04819eb1833217fbb168c2",
+  "object": "response",
+  "created_at": 1780935518,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780935519,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-mini-2026-03-17",
+  "moderation": null,
+  "output": [
+    {
+      "id": "msg_016f4883d0291359006a26eb5f4058819ebeb4d7dfc9fbaf43",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"answer\":\"Please provide the question or task you want answered.\",\"reasoning\":\"Your message only asks for an answer and short reasoning, but no actual question was included.\"}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "none",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "structured_response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string"
+          },
+          "reasoning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer",
+          "reasoning"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 43,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 43,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 86
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"answer\":\"Please provide the question or task you want answered.\",\"reasoning\":\"Your message only asks for an answer and short reasoning, but no actual question was included.\"}"
+}
