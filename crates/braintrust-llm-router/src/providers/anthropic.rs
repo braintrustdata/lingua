@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::Duration;
 
 use crate::auth::AuthConfig;
@@ -8,17 +9,27 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::providers::anthropic::generated::{CacheControlEphemeral, CacheControlEphemeralType};
 use lingua::serde_json::{self, Value};
 use lingua::ProviderFormat;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
+use serde::{Deserialize, Serialize};
 
 pub const ANTHROPIC_VERSION: &str = "anthropic-version";
 pub const DEFAULT_ANTHROPIC_VERSION_VALUE: &str = "2023-06-01";
 pub const ANTHROPIC_PROMPT_CACHE_HEADER: &str = "x-anthropic-prompt-cache";
 const ANTHROPIC_BETA: &str = "anthropic-beta";
 const STRUCTURED_OUTPUTS_BETA: &str = "structured-outputs-2025-11-13";
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AnthropicPromptCacheRequestView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_control: Option<CacheControlEphemeral>,
+    #[serde(flatten)]
+    extras: BTreeMap<String, Value>,
+}
 
 fn prompt_cache_header_enabled(headers: &ClientHeaders) -> bool {
     headers
@@ -44,25 +55,16 @@ fn apply_prompt_cache_header(
         return Ok(payload);
     }
 
-    let mut value: Value = serde_json::from_slice(&payload)?;
-    let Some(object) = value.as_object_mut() else {
-        return Err(Error::InvalidRequest(
-            "Anthropic prompt cache header requires a JSON object request body".to_string(),
-        ));
-    };
-
-    if object
-        .get("cache_control")
-        .is_some_and(|cache_control| !cache_control.is_null())
-    {
+    let mut request: AnthropicPromptCacheRequestView = serde_json::from_slice(&payload)?;
+    if request.cache_control.is_some() {
         return Ok(payload);
     }
 
-    object.insert(
-        "cache_control".to_string(),
-        serde_json::json!({ "type": "ephemeral" }),
-    );
-    Ok(Bytes::from(serde_json::to_vec(&value)?))
+    request.cache_control = Some(CacheControlEphemeral {
+        ttl: None,
+        cache_control_ephemeral_type: CacheControlEphemeralType::Ephemeral,
+    });
+    Ok(Bytes::from(serde_json::to_vec(&request)?))
 }
 
 #[derive(Debug, Clone)]
