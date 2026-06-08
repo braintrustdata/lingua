@@ -7,7 +7,7 @@ mod mistral;
 mod openai;
 mod vertex;
 
-pub use anthropic::{AnthropicConfig, AnthropicProvider};
+pub use anthropic::{AnthropicConfig, AnthropicProvider, ANTHROPIC_PROMPT_CACHE_HEADER};
 pub use azure::{AzureConfig, AzureProvider};
 pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
@@ -35,6 +35,11 @@ use lingua::ProviderFormat;
 
 /// Header prefixes blocked from forwarding to upstream LLM providers.
 pub const BLOCKED_HEADER_PREFIXES: &[&str] = &["x-amzn", "x-bt", "sec-", "cf-"];
+
+// Router-control headers must remain readable from ClientHeaders so provider
+// adapters can act on them, but they are internal controls and must never be
+// forwarded to upstream provider APIs.
+const ROUTER_CONTROL_HEADERS: &[&str] = &[anthropic::ANTHROPIC_PROMPT_CACHE_HEADER];
 
 /// Exact header names blocked from forwarding to upstream LLM providers
 /// from https://github.com/braintrustdata/braintrust-proxy/blob/e992f51734c71e689ea0090f9e0a6759c9a593a4/packages/proxy/src/proxy.ts#L247
@@ -78,11 +83,26 @@ impl ClientHeaders {
             || BLOCKED_HEADERS.iter().any(|&blocked| name == blocked)
     }
 
+    fn is_router_control(name: &str) -> bool {
+        let name = name.to_lowercase();
+        ROUTER_CONTROL_HEADERS
+            .iter()
+            .any(|&control| name == control)
+    }
+
     pub fn insert_if_allowed(&mut self, name: impl Into<String>, value: impl Into<String>) {
         let name = name.into();
         if !Self::is_blocked(&name) {
             self.inner.insert(name.to_lowercase(), value.into());
         }
+    }
+
+    pub(crate) fn get(&self, name: &str) -> Option<&str> {
+        let name = name.to_lowercase();
+        self.user_configured
+            .get(&name)
+            .or_else(|| self.inner.get(&name))
+            .map(String::as_str)
     }
 
     pub fn insert_user_configured(
@@ -105,8 +125,10 @@ impl ClientHeaders {
 
     fn apply_inner(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.inner {
-            if name == "host" {
+            if name == "host" || Self::is_router_control(name) {
                 // Don't forward client Host; reqwest sets it from the upstream URL.
+                // Router-control headers are consumed internally and should not
+                // be sent to any upstream provider.
                 continue;
             }
             if let (Ok(header_name), Ok(header_value)) = (
@@ -120,6 +142,9 @@ impl ClientHeaders {
 
     fn apply_user_configured(&self, headers: &mut HeaderMap) {
         for (name, value) in &self.user_configured {
+            if Self::is_router_control(name) {
+                continue;
+            }
             if let (Ok(header_name), Ok(header_value)) = (
                 HeaderName::from_bytes(name.as_bytes()),
                 HeaderValue::from_str(value),
