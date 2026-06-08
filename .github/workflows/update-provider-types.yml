@@ -5,11 +5,16 @@ on:
     - cron: "0 10 * * 1"
   workflow_dispatch:
     inputs:
-      providers:
-        description: 'Providers to update (comma-separated: openai,anthropic,google or "all")'
+      provider:
+        description: "Provider to update"
         required: false
         default: "all"
-        type: string
+        type: choice
+        options:
+          - all
+          - openai
+          - anthropic
+          - google
 
 concurrency:
   group: update-provider-types
@@ -20,8 +25,41 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-provider-types:
+  provider_matrix:
     runs-on: ubuntu-latest
+    outputs:
+      providers: ${{ steps.providers.outputs.providers }}
+
+    steps:
+      - name: Parse provider input
+        id: providers
+        env:
+          REQUESTED_PROVIDER: ${{ inputs.provider || 'all' }}
+        run: |
+          set -euo pipefail
+          case "$REQUESTED_PROVIDER" in
+            all)
+              providers='["openai","anthropic","google"]'
+              ;;
+            openai|anthropic|google)
+              providers="[\"$REQUESTED_PROVIDER\"]"
+              ;;
+            *)
+              echo "Unknown provider: $REQUESTED_PROVIDER" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "providers=$providers" >> "$GITHUB_OUTPUT"
+          echo "Will update providers: $providers"
+
+  update-provider-types:
+    needs: provider_matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: ${{ fromJSON(needs.provider_matrix.outputs.providers) }}
 
     steps:
       - name: Checkout repository
@@ -63,55 +101,27 @@ jobs:
           sudo apt-get install -y protobuf-compiler
           pnpm add -g quicktype
 
-      - name: Parse provider input
-        id: providers
-        env:
-          REQUESTED_PROVIDERS: ${{ inputs.providers || 'all' }}
-        run: |
-          set -euo pipefail
-          providers="$REQUESTED_PROVIDERS"
-          if [ "$providers" = "all" ]; then
-            providers="openai,anthropic,google"
-          fi
-          echo "providers=$providers" >> "$GITHUB_OUTPUT"
-          echo "Will update providers: $providers"
-
       - name: Update provider specifications and types
         id: generate
         continue-on-error: true
         run: |
-          set +e
+          set -o pipefail
           log_path="$RUNNER_TEMP/provider-type-generation.log"
           : > "$log_path"
 
-          providers="${{ steps.providers.outputs.providers }}"
-          status=0
-
-          IFS=',' read -ra provider_array <<< "$providers"
-          for provider in "${provider_array[@]}"; do
-            provider=$(echo "$provider" | xargs)
-            if [ -z "$provider" ]; then
-              continue
-            fi
-
-            {
-              echo
-              echo "## Updating $provider"
-              ./pipelines/generate-provider-types.sh "$provider"
-            } 2>&1 | tee -a "$log_path"
-
-            provider_status=${PIPESTATUS[0]}
-            if [ "$provider_status" -ne 0 ]; then
-              status="$provider_status"
-              break
-            fi
-          done
+          {
+            echo
+            echo "## Updating ${{ matrix.provider }}"
+            ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
+          } 2>&1 | tee -a "$log_path"
 
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
-          exit "$status"
+          exit "${PIPESTATUS[0]}"
 
       - name: Repair failed generation
+        id: repair
         if: steps.generate.outcome == 'failure'
+        continue-on-error: true
         uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -131,7 +141,7 @@ jobs:
 
             # Inputs
 
-            - Providers requested: `${{ steps.providers.outputs.providers }}`
+            - Provider requested: `${{ matrix.provider }}`
             - Generation/build log: `${{ steps.generate.outputs.log_path }}`
 
             # Local files to read first
@@ -140,7 +150,7 @@ jobs:
             - `Makefile`
             - `pipelines/generate-provider-types.sh`
             - `crates/generate-types/src/main.rs`
-            - Provider modules under `crates/lingua/src/providers/` for the providers requested above
+            - Provider modules under `crates/lingua/src/providers/${{ matrix.provider }}/`
 
             # Process
 
@@ -157,28 +167,25 @@ jobs:
             Leave code changes in the working tree only. The workflow will run TypeScript type generation, formatting, build validation, and PR creation after this step.
 
       - name: Re-run provider update after repair
+        id: retry
         if: steps.generate.outcome == 'failure'
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -o pipefail
           log_path="$RUNNER_TEMP/provider-type-generation.retry.log"
           : > "$log_path"
 
-          providers="${{ steps.providers.outputs.providers }}"
-          IFS=',' read -ra provider_array <<< "$providers"
-          for provider in "${provider_array[@]}"; do
-            provider=$(echo "$provider" | xargs)
-            if [ -z "$provider" ]; then
-              continue
-            fi
+          {
+            echo
+            echo "## Updating ${{ matrix.provider }}"
+            ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
+          } 2>&1 | tee -a "$log_path"
 
-            {
-              echo
-              echo "## Updating $provider"
-              ./pipelines/generate-provider-types.sh "$provider"
-            } 2>&1 | tee -a "$log_path"
-          done
+          exit "${PIPESTATUS[0]}"
 
       - name: Generate TypeScript types
+        id: ts_types
+        continue-on-error: true
         run: make generate-types
 
       - name: Build branch name
@@ -186,7 +193,7 @@ jobs:
         run: |
           set -euo pipefail
           short_sha=$(git rev-parse --short=8 HEAD)
-          echo "name=update-provider-types-${short_sha}-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
+          echo "name=update-${{ matrix.provider }}-provider-types-${short_sha}-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: changes
@@ -203,18 +210,36 @@ jobs:
           git status --short
 
       - name: Format code
+        id: fmt
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: cargo fmt --all
 
       - name: Validate build
+        id: build
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: |
           set -euo pipefail
           cargo build --all-features
 
       - name: Run clippy
+        id: clippy
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check typed boundaries
+        id: typed_boundary
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make typed-boundary-check
+
+      - name: Run cross-provider transform guard
+        id: cross_provider
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
 
       - name: Build PR body
         if: steps.changes.outputs.has_changes == 'true'
@@ -223,19 +248,23 @@ jobs:
           {
             echo "Automated update of Lingua provider types."
             echo
-            echo "Providers: \`${{ steps.providers.outputs.providers }}\`"
+            echo "Provider: \`${{ matrix.provider }}\`"
             echo
             echo "**Validation**"
             echo
-            echo "- Ran \`./pipelines/generate-provider-types.sh\` for each requested provider"
+            echo "- \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.generate.outcome }}"
             if [ "${{ steps.generate.outcome }}" = "failure" ]; then
-              echo "- Ran one Claude repair pass after the initial generation/build failure"
-              echo "- Re-ran \`./pipelines/generate-provider-types.sh\` for each requested provider after repair"
+              echo "- Claude repair pass: ${{ steps.repair.outcome }}"
+              echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
             fi
-            echo "- Ran \`make generate-types\`"
-            echo "- Ran \`cargo fmt --all\`"
-            echo "- Ran \`cargo build --all-features\`"
-            echo "- Ran \`cargo clippy --all-targets --all-features -- -D warnings\`"
+            echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
+            echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
+            echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
+            echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
+            echo "- \`make typed-boundary-check\`: ${{ steps.typed_boundary.outcome }}"
+            echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
+            echo
+            echo "This PR is created even when validation fails so the generated update and repair attempt are available for manual follow-up."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
       - name: Create PR
@@ -245,12 +274,29 @@ jobs:
           token: ${{ github.token }}
           base: main
           branch: ${{ steps.branch.outputs.name }}
-          commit-message: "Update ${{ steps.providers.outputs.providers }} provider types"
-          title: "Update ${{ steps.providers.outputs.providers }} provider types"
+          commit-message: "Update ${{ matrix.provider }} provider types"
+          title: "Update ${{ matrix.provider }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
           labels: auto-sync
           delete-branch: true
           signoff: false
+
+      - name: Fail after PR creation if validation failed
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          (
+            steps.generate.outcome == 'failure' ||
+            steps.retry.outcome == 'failure' ||
+            steps.ts_types.outcome == 'failure' ||
+            steps.fmt.outcome == 'failure' ||
+            steps.build.outcome == 'failure' ||
+            steps.clippy.outcome == 'failure' ||
+            steps.typed_boundary.outcome == 'failure' ||
+            steps.cross_provider.outcome == 'failure'
+          )
+        run: |
+          echo "Provider type update PR was created, but one or more validation steps failed." >&2
+          exit 1
 
       - name: Summary
         run: |
