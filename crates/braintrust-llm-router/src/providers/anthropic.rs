@@ -20,10 +20,9 @@ pub const ANTHROPIC_PROMPT_CACHE_HEADER: &str = "x-anthropic-prompt-cache";
 const ANTHROPIC_BETA: &str = "anthropic-beta";
 const STRUCTURED_OUTPUTS_BETA: &str = "structured-outputs-2025-11-13";
 
-fn prompt_cache_header_enabled(headers: &HeaderMap) -> bool {
+fn prompt_cache_header_enabled(headers: &ClientHeaders) -> bool {
     headers
         .get(ANTHROPIC_PROMPT_CACHE_HEADER)
-        .and_then(|value| value.to_str().ok())
         .is_some_and(|value| {
             matches!(
                 value.trim().to_ascii_lowercase().as_str(),
@@ -32,14 +31,10 @@ fn prompt_cache_header_enabled(headers: &HeaderMap) -> bool {
         })
 }
 
-fn strip_prompt_cache_header(headers: &mut HeaderMap) {
-    headers.remove(ANTHROPIC_PROMPT_CACHE_HEADER);
-}
-
 fn apply_prompt_cache_header(
     payload: Bytes,
     format: ProviderFormat,
-    headers: &HeaderMap,
+    headers: &ClientHeaders,
 ) -> Result<Bytes> {
     // Non-Anthropic request formats do not have a native way to ask for
     // Anthropic cache_control, and caching changes Anthropic billing behavior.
@@ -92,10 +87,10 @@ impl Default for AnthropicConfig {
 mod tests {
     use super::*;
 
-    fn headers_with_prompt_cache(value: &str) -> HeaderMap {
+    fn headers_with_prompt_cache(value: &str) -> ClientHeaders {
         let mut client_headers = ClientHeaders::new();
         client_headers.insert_if_allowed(ANTHROPIC_PROMPT_CACHE_HEADER, value);
-        client_headers.to_json_headers()
+        client_headers
     }
 
     #[test]
@@ -182,12 +177,12 @@ mod tests {
 
     #[test]
     fn prompt_cache_control_header_is_stripped_before_upstream() {
-        let mut headers = headers_with_prompt_cache("true");
-        assert!(headers.contains_key(ANTHROPIC_PROMPT_CACHE_HEADER));
+        let headers = headers_with_prompt_cache("true");
+        assert!(prompt_cache_header_enabled(&headers));
 
-        strip_prompt_cache_header(&mut headers);
-
-        assert!(!headers.contains_key(ANTHROPIC_PROMPT_CACHE_HEADER));
+        assert!(!headers
+            .to_json_headers()
+            .contains_key(ANTHROPIC_PROMPT_CACHE_HEADER));
     }
 }
 
@@ -292,12 +287,10 @@ impl crate::providers::Provider for AnthropicProvider {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         let mut base_headers = self.build_headers(client_headers);
-        let payload = apply_prompt_cache_header(payload, format, &base_headers)?;
-        strip_prompt_cache_header(&mut base_headers);
+        let payload = apply_prompt_cache_header(payload, format, client_headers)?;
 
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
-            strip_prompt_cache_header(&mut h);
             let key = auth.api_key().ok_or_else(|| {
                 Error::Auth("Anthropic /chat/completions requires an API key".to_string())
             })?;
@@ -362,12 +355,10 @@ impl crate::providers::Provider for AnthropicProvider {
 
         // Router should have already added stream options to payload
         let mut base_headers = self.build_headers(client_headers);
-        let payload = apply_prompt_cache_header(payload, format, &base_headers)?;
-        strip_prompt_cache_header(&mut base_headers);
+        let payload = apply_prompt_cache_header(payload, format, client_headers)?;
 
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
-            strip_prompt_cache_header(&mut h);
             let key = auth.api_key().ok_or_else(|| {
                 Error::Auth("Anthropic /chat/completions requires an API key".to_string())
             })?;
