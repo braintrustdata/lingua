@@ -1731,6 +1731,7 @@ pub struct CitationSource {
 #[ts(export_to = "google/")]
 pub enum FinishReason {
     Blocklist,
+    Escalation,
     #[serde(rename = "FINISH_REASON_UNSPECIFIED")]
     FinishReasonUnspecified,
     #[serde(rename = "IMAGE_OTHER")]

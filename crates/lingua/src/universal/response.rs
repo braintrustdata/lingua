@@ -155,7 +155,11 @@ impl FinishReason {
 
             // ContentFilter variants
             ("content_filtered", ProviderFormat::Converse) => Self::ContentFilter,
-            ("SAFETY" | "RECITATION" | "OTHER", ProviderFormat::Google) => Self::ContentFilter,
+            (
+                "SAFETY" | "RECITATION" | "OTHER" | "BLOCKLIST" | "PROHIBITED_CONTENT" | "SPII"
+                | "IMAGE_SAFETY" | "ESCALATION",
+                ProviderFormat::Google,
+            ) => Self::ContentFilter,
             ("content_filter", _) => Self::ContentFilter,
 
             // Unknown - pass through
@@ -484,6 +488,37 @@ impl UniversalUsage {
 
                 Value::Object(map)
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_google_escalation_string_maps_to_content_filter() {
+        let result = FinishReason::from_provider_string("ESCALATION", ProviderFormat::Google);
+        assert_eq!(result, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_google_safety_related_strings_map_to_content_filter() {
+        for reason in [
+            "SAFETY",
+            "RECITATION",
+            "OTHER",
+            "BLOCKLIST",
+            "PROHIBITED_CONTENT",
+            "SPII",
+            "IMAGE_SAFETY",
+            "ESCALATION",
+        ] {
+            assert_eq!(
+                FinishReason::from_provider_string(reason, ProviderFormat::Google),
+                FinishReason::ContentFilter,
+                "expected {reason} to map to ContentFilter"
+            );
         }
     }
 }
