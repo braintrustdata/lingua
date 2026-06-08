@@ -56,7 +56,10 @@ fn apply_prompt_cache_header(
         ));
     };
 
-    if object.contains_key("cache_control") {
+    if object
+        .get("cache_control")
+        .is_some_and(|cache_control| !cache_control.is_null())
+    {
         return Ok(payload);
     }
 
@@ -136,6 +139,28 @@ mod tests {
                 .and_then(|cache_control| cache_control.get("ttl"))
                 .and_then(Value::as_str),
             Some("1h")
+        );
+    }
+
+    #[test]
+    fn prompt_cache_header_replaces_null_cache_control() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":1024,"cache_control":null,"messages":[{"role":"user","content":"Hi"}]}"#,
+        );
+        let updated = apply_prompt_cache_header(
+            payload,
+            ProviderFormat::Anthropic,
+            &headers_with_prompt_cache("true"),
+        )
+        .expect("cache header should apply");
+        let parsed: Value = serde_json::from_slice(&updated).expect("valid json");
+
+        assert_eq!(
+            parsed
+                .get("cache_control")
+                .and_then(|cache_control| cache_control.get("type"))
+                .and_then(Value::as_str),
+            Some("ephemeral")
         );
     }
 
