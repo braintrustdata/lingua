@@ -56,8 +56,7 @@ mod tests {
                     Vec<Message>,
                 >>::try_from(messages)
                 .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
-                // Extract base messages (reasoning would be in separate field)
-                Ok(ext_messages.into_iter().map(Into::into).collect())
+                Ok(ext_messages)
             },
             // Extract response content (collect response messages from choices)
             |response: &CreateChatCompletionResponse| {
