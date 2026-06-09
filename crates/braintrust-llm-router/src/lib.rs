@@ -29,7 +29,6 @@ pub use providers::{
     AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, DatabricksConfig,
     DatabricksProvider, GoogleConfig, GoogleProvider, MistralConfig, MistralProvider,
     OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
-    ANTHROPIC_PROMPT_CACHE_HEADER,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
