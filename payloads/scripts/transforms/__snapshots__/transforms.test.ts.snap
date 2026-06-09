@@ -296,7 +296,16 @@ exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlPa
       "role": "user",
     },
     {
-      "content": "This assistant prefill should remain cacheable.",
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "text",
+        },
+      ],
       "role": "assistant",
     },
   ],
@@ -308,26 +317,19 @@ exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlPa
 {
   "content": [
     {
-      "text": "I can use a cached prefill, but I don’t have direct access to your cache. If you share the prefill text or specify the style, I’ll apply it. Otherwise, I can use a default cache-friendly template like:
-
-- Give a concise answer
-- List key steps or options
-- Ask a clarifying question if needed
-- Include sources or references if relevant
-
-Please paste the prefill content or tell me the task and the tone you want, and I’ll apply it.",
+      "text": "",
       "type": "text",
     },
   ],
-  "id": "msg_DoyknlA8upOxmY53OQBlIg8eJOZrc",
+  "id": "msg_Doz5dqccAkf821azRvDKYMbiBoTa5",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
-  "stop_reason": "end_turn",
+  "stop_reason": "max_tokens",
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 28,
-    "output_tokens": 879,
+    "output_tokens": 1024,
   },
 }
 `;
