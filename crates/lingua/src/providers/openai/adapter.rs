@@ -22,13 +22,13 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::WebSearch;
 use crate::providers::openai::params::{
-    OpenAIChatExtrasView, OpenAIChatParams, OpenAIReasoningEffort,
+    OpenAIChatExtrasView, OpenAIChatParams, OpenAICompletionPrompt, OpenAIReasoningEffort,
 };
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
-use crate::providers::openai::try_parse_openai;
+use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::Message;
+use crate::universal::message::{Message, UserContent};
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
@@ -57,6 +57,24 @@ fn parse_openai_chat_extras(
         .map(|v: Option<OpenAIChatExtrasView>| v.unwrap_or_default())
 }
 
+fn legacy_prompt_to_user_content(
+    prompt: OpenAICompletionPrompt,
+) -> Result<UserContent, TransformError> {
+    match prompt {
+        OpenAICompletionPrompt::String(content) => Ok(UserContent::String(content)),
+        OpenAICompletionPrompt::StringArray(_)
+        | OpenAICompletionPrompt::TokenArray(_)
+        | OpenAICompletionPrompt::TokenArrayArray(_) => Err(TransformError::ToUniversalFailed(
+            "OpenAI legacy prompt compatibility only supports a single string prompt for Chat Completions".to_string(),
+        )),
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct OpenAIChatMessagesView {
+    messages: Option<Vec<ChatCompletionRequestMessageExt>>,
+}
+
 impl ProviderAdapter for OpenAIAdapter {
     fn format(&self) -> ProviderFormat {
         ProviderFormat::ChatCompletions
@@ -71,6 +89,10 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
+        try_parse_openai(payload).is_ok() || try_parse_openai_legacy_prompt(payload).is_ok()
+    }
+
+    fn detect_passthrough_request(&self, payload: &Value) -> bool {
         try_parse_openai(payload).is_ok()
     }
 
@@ -79,27 +101,20 @@ impl ProviderAdapter for OpenAIAdapter {
         let typed_params: OpenAIChatParams = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Extract and parse messages as extended type to capture reasoning field
-        let messages_val = payload
-            .get("messages")
-            .ok_or_else(|| {
-                TransformError::ToUniversalFailed("OpenAI: missing 'messages' field".to_string())
-            })?
-            .as_array()
-            .ok_or_else(|| {
-                TransformError::ToUniversalFailed("OpenAI: 'messages' must be an array".to_string())
-            })?;
-
-        let provider_messages: Vec<ChatCompletionRequestMessageExt> = messages_val
-            .iter()
-            .map(|msg_val| {
-                serde_json::from_value(msg_val.clone())
-                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
+        let messages_view: OpenAIChatMessagesView = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let messages = if let Some(provider_messages) = messages_view.messages {
+            <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+        } else if let Some(prompt) = typed_params.prompt.clone() {
+            vec![Message::User {
+                content: legacy_prompt_to_user_content(prompt)?,
+            }]
+        } else {
+            return Err(TransformError::ToUniversalFailed(
+                "OpenAI: missing 'messages' field".to_string(),
+            ));
+        };
 
         // Extract max_tokens first - needed for reasoning budget computation
         let max_tokens = typed_params

@@ -19,6 +19,7 @@ pub struct OpenAIChatParams {
     // === Core fields ===
     pub model: Option<String>,
     pub messages: Option<Vec<ChatCompletionRequestMessage>>,
+    pub prompt: Option<OpenAICompletionPrompt>,
 
     // === Sampling parameters ===
     pub temperature: Option<f64>,
@@ -145,6 +146,15 @@ pub struct OpenAIChatExtrasView {
     pub max_tokens: Option<Value>,
     pub max_completion_tokens: Option<Value>,
     pub web_search_options: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAICompletionPrompt {
+    String(String),
+    StringArray(Vec<String>),
+    TokenArray(Vec<i64>),
+    TokenArrayArray(Vec<Vec<i64>>),
 }
 
 /// Typed view over `UniversalParams.extras[Responses]` used during universal
