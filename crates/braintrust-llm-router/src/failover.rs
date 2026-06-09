@@ -54,8 +54,8 @@ fn model_supports_any_provider_alias(
     let Some(spec) = catalog.get(model) else {
         return true;
     };
-    !spec.available_providers.is_empty()
-        && spec.available_providers.iter().any(|available| {
+    spec.available_providers.is_empty()
+        || spec.available_providers.iter().any(|available| {
             provider_aliases
                 .iter()
                 .any(|alias| available.eq_ignore_ascii_case(alias))
@@ -94,6 +94,13 @@ mod tests {
     }
 
     fn catalog() -> ModelCatalog {
+        catalog_with_available_providers(vec![
+            "OPENAI_API_KEY".to_string(),
+            "ANTHROPIC_API_KEY".to_string(),
+        ])
+    }
+
+    fn catalog_with_available_providers(available_providers: Vec<String>) -> ModelCatalog {
         let mut catalog = ModelCatalog::empty();
         catalog.insert(
             "model".to_string(),
@@ -112,10 +119,7 @@ mod tests {
                 max_output_tokens: None,
                 supports_streaming: true,
                 extra: Default::default(),
-                available_providers: vec![
-                    "OPENAI_API_KEY".to_string(),
-                    "ANTHROPIC_API_KEY".to_string(),
-                ],
+                available_providers,
             },
         );
         catalog
@@ -149,6 +153,22 @@ mod tests {
             ],
         )
         .is_none());
+    }
+
+    #[test]
+    fn plan_treats_empty_available_providers_as_unconstrained() {
+        let plan = plan_provider_failover_routes(
+            &catalog_with_available_providers(Vec::new()),
+            "model",
+            vec![
+                candidate("openai", &["openai", "OPENAI_API_KEY"], true),
+                candidate("anthropic", &["anthropic", "ANTHROPIC_API_KEY"], true),
+            ],
+        )
+        .expect("plan");
+
+        assert_eq!(plan.source_alias, "openai");
+        assert_eq!(plan.fallback_aliases, vec!["anthropic".to_string()]);
     }
 
     #[test]
