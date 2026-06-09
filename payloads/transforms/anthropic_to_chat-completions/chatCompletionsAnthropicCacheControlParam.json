@@ -1,30 +1,30 @@
 {
-  "id": "chatcmpl-DoyJIL6fHGqd39edNVCGLH2EhKV75",
+  "id": "chatcmpl-DoyXQmi2ZJ3lrkHlBv2e8rFfjAV5V",
   "object": "chat.completion",
-  "created": 1781040604,
+  "created": 1781041480,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "I don’t see the text yet. Please paste the stable reference text you want summarized.\n\nTips:\n- If it’s long, you can split it across multiple messages.\n- Tell me your preferred output:\n  - Length: short (1–2 sentences), medium (a few bullet points), or long (sectioned summary).\n  - Focus: key arguments, data points, methods, conclusions, and implications.\n  - Style: neutral/executive summary or more accessible language.\n\nExample of what I’ll output:\n- Short: A 1–2 sentence overview of the main takeaway.\n- Medium: 5–8 bullet points highlighting main points, evidence, and conclusions.\n- Long: A structured summary with sections (Introduction, Methods, Results, Conclusions) and a list of key takeaways.\n\nOnce you provide the text, I’ll generate the summary and can tailor it for caching as context for future tasks.",
+        "content": "",
         "refusal": null,
         "annotations": []
       },
-      "finish_reason": "stop"
+      "finish_reason": "length"
     }
   ],
   "usage": {
     "prompt_tokens": 19,
-    "completion_tokens": 963,
-    "total_tokens": 982,
+    "completion_tokens": 1024,
+    "total_tokens": 1043,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 768,
+      "reasoning_tokens": 1024,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

@@ -6,7 +6,13 @@ import {
   MediaResolution,
 } from "@google/genai";
 import OpenAI from "openai";
-import { TestCase, TestCaseCollection } from "./types";
+import {
+  ChatCompletionAssistantMessageWithCacheControl,
+  ChatCompletionTextPartWithCacheControl,
+  ChatCompletionUserMessageWithCacheControl,
+  TestCase,
+  TestCaseCollection,
+} from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -27,26 +33,22 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
     reasoning_signature: string;
   };
 
-type ChatCompletionTextPartWithCacheControl =
-  OpenAI.Chat.Completions.ChatCompletionContentPartText & {
-    cache_control: { type: "ephemeral" };
-  };
-
-type ChatCompletionUserMessageWithCacheControl = Omit<
-  OpenAI.Chat.Completions.ChatCompletionUserMessageParam,
-  "content"
-> & {
-  content: Array<
-    | OpenAI.Chat.Completions.ChatCompletionContentPart
-    | ChatCompletionTextPartWithCacheControl
-  >;
-};
-
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
-  cache_control: { type: "ephemeral" },
+  cache_control: { type: "ephemeral", ttl: "1h" },
 } satisfies ChatCompletionTextPartWithCacheControl;
+
+const chatCompletionAssistantCacheControlTextPart = {
+  type: "text",
+  text: "This assistant prefill should remain cacheable.",
+  cache_control: { type: "ephemeral", ttl: "1h" },
+} satisfies ChatCompletionTextPartWithCacheControl;
+
+const chatCompletionAssistantCacheControlMessage = {
+  role: "assistant",
+  content: [chatCompletionAssistantCacheControlTextPart],
+} satisfies ChatCompletionAssistantMessageWithCacheControl;
 
 const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
   {
@@ -164,11 +166,41 @@ export const paramsCases: TestCaseCollection = {
             {
               type: "text",
               text: chatCompletionCacheControlTextPart.text,
-              cache_control: { type: "ephemeral" },
+              cache_control: { type: "ephemeral", ttl: "1h" },
             },
             {
               type: "text",
               text: "Now summarize it.",
+            },
+          ],
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsAssistantCacheControlParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        { role: "user", content: "Use the cached assistant prefill." },
+        chatCompletionAssistantCacheControlMessage,
+      ],
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        { role: "user", content: "Use the cached assistant prefill." },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: "This assistant prefill should remain cacheable.",
+              cache_control: { type: "ephemeral", ttl: "1h" },
             },
           ],
         },

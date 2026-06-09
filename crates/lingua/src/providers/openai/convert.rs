@@ -255,6 +255,25 @@ fn cache_control_to_value(cache_control: Option<CacheControl>) -> Option<serde_j
     cache_control.and_then(|cache_control| serde_json::to_value(cache_control).ok())
 }
 
+fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> AssistantContent {
+    if content_parts.is_empty() {
+        AssistantContent::String(String::new())
+    } else if content_parts.len() == 1 {
+        match &content_parts[0] {
+            AssistantContentPart::Text(text_part)
+                if text_part.cache_control.is_none()
+                    && text_part.encrypted_content.is_none()
+                    && text_part.provider_options.is_none() =>
+            {
+                AssistantContent::String(text_part.text.clone())
+            }
+            _ => AssistantContent::Array(content_parts),
+        }
+    } else {
+        AssistantContent::Array(content_parts)
+    }
+}
+
 fn chat_completion_content_to_user_content(
     content: Option<ChatCompletionRequestMessageContentExt>,
     cache_control: Option<serde_json::Value>,
@@ -3317,19 +3336,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     }
                 }
 
-                let content = if content_parts.is_empty() {
-                    AssistantContent::String(String::new())
-                } else if content_parts.len() == 1 {
-                    // If there's only one text part, use string format
-                    match &content_parts[0] {
-                        AssistantContentPart::Text(text_part) => {
-                            AssistantContent::String(text_part.text.clone())
-                        }
-                        _ => AssistantContent::Array(content_parts),
-                    }
-                } else {
-                    AssistantContent::Array(content_parts)
-                };
+                let content = assistant_content_from_parts(content_parts);
 
                 Ok(Message::Assistant { content, id: None })
             }
@@ -3953,19 +3960,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                     }
                 }
 
-                let content = if content_parts.is_empty() {
-                    AssistantContent::String(String::new())
-                } else if content_parts.len() == 1 {
-                    // If there's only one text part, use string format
-                    match &content_parts[0] {
-                        AssistantContentPart::Text(text_part) => {
-                            AssistantContent::String(text_part.text.clone())
-                        }
-                        _ => AssistantContent::Array(content_parts),
-                    }
-                } else {
-                    AssistantContent::Array(content_parts)
-                };
+                let content = assistant_content_from_parts(content_parts);
 
                 Ok(Message::Assistant { content, id: None })
             }
@@ -4123,7 +4118,7 @@ mod tests {
                 {
                     "type": "text",
                     "text": "Use the cached reference text.",
-                    "cache_control": { "type": "ephemeral" }
+                    "cache_control": { "type": "ephemeral", "ttl": "1h" }
                 },
                 {
                     "type": "text",
@@ -4167,7 +4162,79 @@ mod tests {
                 .cache_control_ephemeral_type,
             crate::providers::anthropic::generated::CacheControlEphemeralType::Ephemeral
         );
+        assert_eq!(
+            content[0]
+                .cache_control
+                .as_ref()
+                .expect("cache_control should be preserved")
+                .ttl,
+            Some(crate::providers::anthropic::generated::Ttl::The1H)
+        );
         assert!(content[1].cache_control.is_none());
+    }
+
+    #[cfg(feature = "anthropic")]
+    #[test]
+    fn chat_completions_assistant_single_cache_control_part_roundtrips_to_anthropic() {
+        let value = json!({
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "This assistant prefill should remain cacheable.",
+                    "cache_control": { "type": "ephemeral", "ttl": "1h" }
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        else {
+            panic!("expected assistant array content");
+        };
+        assert_eq!(parts.len(), 1);
+        let AssistantContentPart::Text(text) = &parts[0] else {
+            panic!("expected text part");
+        };
+        assert_eq!(text.text, "This assistant prefill should remain cacheable.");
+        assert_eq!(
+            text.cache_control
+                .as_ref()
+                .expect("cache_control should be preserved")
+                .ttl,
+            Some(crate::universal::CacheControlTtl::The1H)
+        );
+
+        let anthropic_message =
+            <crate::providers::anthropic::generated::InputMessage as TryFromLLM<Message>>::try_from(
+                Message::Assistant {
+                    content: AssistantContent::Array(parts),
+                    id: None,
+                },
+            )
+            .expect("message should convert to anthropic");
+
+        let content = match anthropic_message.content {
+            crate::providers::anthropic::generated::MessageContent::InputContentBlockArray(
+                content,
+            ) => content,
+            other => panic!("expected anthropic content block array, got {other:?}"),
+        };
+        assert_eq!(
+            content[0]
+                .cache_control
+                .as_ref()
+                .expect("cache_control should be preserved")
+                .ttl,
+            Some(crate::providers::anthropic::generated::Ttl::The1H)
+        );
     }
 
     #[test]

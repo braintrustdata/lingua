@@ -145,6 +145,7 @@ exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
       "content": [
         {
           "cache_control": {
+            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Be helpful.",
@@ -166,11 +167,11 @@ exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help you today? I can answer questions, explain concepts, help with writing or editing, brainstorm ideas, assist with coding, plan things, or just chat. Tell me what you’d like to do.",
+      "text": "Hi there! How can I help today? Tell me what you’re looking to do—explain a concept, draft something, brainstorm ideas, code, plan something, or just chat. If you’re not sure, you can share a topic and I’ll suggest options.",
       "type": "text",
     },
   ],
-  "id": "msg_DoyJWrQMT0veDDiYyLawyxORMpNa7",
+  "id": "msg_DoyXcnDoLWiYmHaGyrxa5C5eTmZTh",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -178,7 +179,7 @@ exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 14,
-    "output_tokens": 312,
+    "output_tokens": 320,
   },
 }
 `;
@@ -191,6 +192,7 @@ exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
       "content": [
         {
           "cache_control": {
+            "ttl": "5m",
             "type": "ephemeral",
           },
           "text": "Be helpful.",
@@ -212,19 +214,20 @@ exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help today?  
-If you’re not sure where to start, here are a few ideas:
-- Explain a concept or topic you’re curious about
-- Help with writing, editing, or brainstorming
-- Solve a math problem or code snippet
-- Plan a project, trip, or study schedule
-- Answer questions or chat about something you enjoy
+      "text": "Hi there! How can I help today?
 
-Tell me what you’d like to do, or just say “surprise me.”",
+I can:
+- Answer questions or explain ideas
+- Help with writing, editing, or brainstorming
+- Assist with coding or math problems
+- Plan projects or study guides
+- Translate or summarize text
+
+Tell me what you’re working on or what you’d like to do, and I’ll tailor my response.",
       "type": "text",
     },
   ],
-  "id": "msg_DoyJSzrzkqXkHfoOQpRQjj7JqqEuX",
+  "id": "msg_DoyXY1rhrMhp1zV6HUmXXCJP5vjlx",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -232,7 +235,7 @@ Tell me what you’d like to do, or just say “surprise me.”",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 14,
-    "output_tokens": 358,
+    "output_tokens": 401,
   },
 }
 `;
@@ -245,6 +248,7 @@ exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlPa
       "content": [
         {
           "cache_control": {
+            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Use this stable reference text as cacheable context.",
@@ -266,33 +270,19 @@ exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlPa
 {
   "content": [
     {
-      "text": "I don’t see the text yet. Please paste the stable reference text you want summarized.
-
-Tips:
-- If it’s long, you can split it across multiple messages.
-- Tell me your preferred output:
-  - Length: short (1–2 sentences), medium (a few bullet points), or long (sectioned summary).
-  - Focus: key arguments, data points, methods, conclusions, and implications.
-  - Style: neutral/executive summary or more accessible language.
-
-Example of what I’ll output:
-- Short: A 1–2 sentence overview of the main takeaway.
-- Medium: 5–8 bullet points highlighting main points, evidence, and conclusions.
-- Long: A structured summary with sections (Introduction, Methods, Results, Conclusions) and a list of key takeaways.
-
-Once you provide the text, I’ll generate the summary and can tailor it for caching as context for future tasks.",
+      "text": "",
       "type": "text",
     },
   ],
-  "id": "msg_DoyJIL6fHGqd39edNVCGLH2EhKV75",
+  "id": "msg_DoyXQmi2ZJ3lrkHlBv2e8rFfjAV5V",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
-  "stop_reason": "end_turn",
+  "stop_reason": "max_tokens",
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 19,
-    "output_tokens": 963,
+    "output_tokens": 1024,
   },
 }
 `;
@@ -7309,6 +7299,7 @@ exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlPa
       "content": [
         {
           "cache_control": {
+            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Use this stable reference text as cacheable context.",
@@ -7336,9 +7327,11 @@ exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlPa
         "annotations": [],
         "content": "# Summary
 
-This appears to be a request to use provided text as cacheable context and then summarize it, but **no reference text was actually included** in your message.
+This appears to be instructions for a caching system, but no reference text was actually provided for me to summarize. 
 
-To help you, please provide the stable reference text you'd like me to:
+You've asked me to use a "stable reference text as cacheable context" and then summarize it, but the message only contains these instructions without any actual content to cache or summarize.
+
+To help you, please provide the reference text you'd like me to:
 1. Use as cacheable context
 2. Summarize
 
@@ -7348,16 +7341,16 @@ Once you share the text, I'll be happy to create a summary for you.",
     },
   ],
   "created": 0,
-  "id": "chatcmpl-01UCMRGZFXTFhLFsJTvXkN5m",
+  "id": "chatcmpl-01MWJzNpAnEXcqdDsjEYAad6",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 88,
+    "completion_tokens": 119,
     "prompt_tokens": 22,
     "prompt_tokens_details": {
       "cached_tokens": 0,
     },
-    "total_tokens": 110,
+    "total_tokens": 141,
   },
 }
 `;
