@@ -3076,7 +3076,6 @@ exports[`anthropic → google > parallelToolCallsRequest > request 1`] = `
             "id": "toolu_nyc",
             "name": "get_weather",
           },
-          "thoughtSignature": "skip_thought_signature_validator",
         },
       ],
       "role": "model",
@@ -3146,7 +3145,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
 {
   "content": [
     {
-      "text": "In San Francisco, CA, it is currently 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+      "text": "The weather in San Francisco is currently 65°F and sunny, while in New York, it is 45°F and cloudy.",
       "type": "text",
     },
   ],
@@ -3157,7 +3156,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 151,
-    "output_tokens": 33,
+    "output_tokens": 30,
   },
 }
 `;
@@ -14180,7 +14179,6 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
             },
             "name": "get_weather",
           },
-          "thoughtSignature": "skip_thought_signature_validator",
         },
       ],
       "role": "model",
@@ -14243,7 +14241,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "In San Francisco, CA, it is currently 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+        "content": "The weather in San Francisco is 65°F and sunny, and the weather in New York is 45°F and cloudy.",
         "role": "assistant",
       },
     },
@@ -14253,9 +14251,9 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
   "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 33,
+    "completion_tokens": 29,
     "prompt_tokens": 151,
-    "total_tokens": 184,
+    "total_tokens": 180,
   },
 }
 `;
@@ -32268,7 +32266,6 @@ exports[`responses → google > parallelToolCallsRequest > request 1`] = `
             },
             "name": "get_weather",
           },
-          "thoughtSignature": "skip_thought_signature_validator",
         },
       ],
       "role": "model",
@@ -32355,11 +32352,11 @@ exports[`responses → google > parallelToolCallsRequest > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 121,
+    "output_tokens": 113,
     "output_tokens_details": {
-      "reasoning_tokens": 92,
+      "reasoning_tokens": 85,
     },
-    "total_tokens": 272,
+    "total_tokens": 264,
   },
 }
 `;

@@ -5,7 +5,7 @@
         "parts": [
           {
             "text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
-            "thoughtSignature": "ErcDCrQDAQw51seZv88yjX9axnirLSdB3NbEx4WhIKxUAqVtNFnGS6VkZyZfiDHChGbiIdiIYMsOCfSKsTigEC5SUaytVZyqGIB5AbBybfATvWxsPsk7emuzPrAHy9PLFHR+jBmFKpsPZ6BwURBNVBhK1DGzwBNAAkF16AfxZzV5Dtn7otUDgm+Ab0n7UoaRqmmKmTvfxaV7z0vWkfgxSyvmw5YjGHeds3S6Sj41CMjMX0IMZNHsIi53QYiXEiXEMPqUfupeJoxPAZbIVzgn2ReLsJ7cjFv215f7YM6e/810gqe1TGcB3Vw0hz8xokZg+gzOOHz68dn+lF55WDpyrsR1xfWAM/zfcIbZ63bgGdmsK8tySANmZd0Udf4tiDZQci/umGU0nspuAQz5JFwXQTSyj3HQ45K5Bl7tyDtnAUqATWG71Z67RdWBdqi8NeG7HaLIvcK5OicS37s+vLQW0w2tC7gkL9cNSdkmETKw8lQmgU73lTU8tsvObBN0pmpgOd/5MCgtx9fuow/Rgg4XSRqUdaX9VzNctzdFGwbSTjurf2XqP3IR5iCuPDak8ZN41FYD1Rv7YXxVrQ=="
+            "thoughtSignature": "EqUDCqIDAQw51sfaw+5eUewU8eZtxQHWgSZH7bDDL2FVgOx3+bhI7nho1raPxDEvIbGsNxbMeY6HDIT/B2XAOPOF70Ef7L8jtxn2RQn3m+9rEO29IOUXnWy1xZNZkEe01Gjabnb1TysSAqcYZXqmlt059R1DWsDjpUw0ijtS69xOfGNu8xXmFmHSxp551mJllAoqqczCvDmlsxm7P+ps5Lr18cen2xUUSj22GV9WyzmqvwOHL2yBU3vPPSMpUwe0KysDaAsRVE6W5X7rkYaWbTuerroo1yzYXSW4iyXBXZ3uMTiBY2bccGgWL77e+SpY7CNNfgEmYwG+JCL+EMlqHboNaDc2gkgf2b+FFYzblHJQpoQUVjyAuEzqQFuiBskc0mydpL8XfTnMoOOzThWQHoeLz7R6fgZVuLCkIBJkPx0u5IWrVKFVCLkexz8QDp1d9Ytpr5+hhYrHXgFi4Gg0d8DUXqNATX3W4ff3/qRQPwfdaCUq51HcygflisemRlEHXWvc/m2rgwK1CPpkqM0quJYv+00HbuZiBPjwmqE1SwFr2EocvF43Nw=="
           }
         ],
         "role": "model"
@@ -16,17 +16,17 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 151,
-    "candidatesTokenCount": 29,
-    "totalTokenCount": 272,
+    "candidatesTokenCount": 28,
+    "totalTokenCount": 264,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 151
       }
     ],
-    "thoughtsTokenCount": 92,
+    "thoughtsTokenCount": 85,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "YCwoaoC6Gou8jrEPho3OiAw"
+  "responseId": "Ty8oarqaJ7el_uMP84uDMA"
 }

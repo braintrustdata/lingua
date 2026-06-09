@@ -800,21 +800,23 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
                 content: AssistantContent::Array(parts),
                 ..
             } => {
-                for part in parts.iter_mut() {
-                    if let AssistantContentPart::ToolCall {
-                        tool_call_id,
-                        encrypted_content,
-                        ..
-                    } = part
-                    {
-                        if encrypted_content.is_none()
-                            && later_tool_result_ids.contains(tool_call_id)
-                        {
-                            // Google documents this dummy signature for function-call history that
-                            // did not come from Gemini. Preserve each call/response pairing so
-                            // Gemini 3 skips signature validation.
-                            *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
-                        }
+                let first_paired_call = parts.iter_mut().find(|part| {
+                    if let AssistantContentPart::ToolCall { tool_call_id, .. } = part {
+                        later_tool_result_ids.contains(tool_call_id)
+                    } else {
+                        false
+                    }
+                });
+
+                if let Some(AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                }) = first_paired_call
+                {
+                    if encrypted_content.is_none() {
+                        // Google documents this dummy signature for transferred function-call
+                        // history. Only the first functionCall in a step is validated; native
+                        // Gemini parallel siblings should remain unsigned if returned that way.
+                        *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
                     }
                 }
             }
@@ -1082,12 +1084,87 @@ mod tests {
 
         assert_eq!(
             function_call_signatures,
-            vec![
-                Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE),
-                Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE)
-            ]
+            vec![Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE), None]
         );
         assert_eq!(function_response_count, 2);
+    }
+
+    #[test]
+    fn test_google_preserves_native_parallel_function_call_signatures() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String(
+                        "Check the weather in Paris and London.".to_string(),
+                    ),
+                },
+                Message::Assistant {
+                    id: None,
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_paris".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"Paris"}"#.to_string(),
+                            ),
+                            encrypted_content: Some("real_google_signature".to_string()),
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_london".to_string(),
+                            tool_name: "get_current_temperature".to_string(),
+                            arguments: crate::universal::message::ToolCallArguments::from(
+                                r#"{"location":"London"}"#.to_string(),
+                            ),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                },
+                Message::Tool {
+                    content: vec![
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_paris".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "15C"}),
+                                provider_options: None,
+                            },
+                        ),
+                        ToolContentPart::ToolResult(
+                            crate::universal::message::ToolResultContentPart {
+                                tool_call_id: "call_london".to_string(),
+                                tool_name: "get_current_temperature".to_string(),
+                                output: json!({"temp": "12C"}),
+                                provider_options: None,
+                            },
+                        ),
+                    ],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed_payload: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed_payload.contents.expect("contents should be present");
+
+        let function_call_signatures: Vec<_> = contents
+            .iter()
+            .flat_map(|content| content.parts.as_deref().unwrap_or(&[]))
+            .filter(|part| part.function_call.is_some())
+            .map(|part| part.thought_signature.as_deref())
+            .collect();
+
+        assert_eq!(
+            function_call_signatures,
+            vec![Some("real_google_signature"), None]
+        );
     }
 
     #[test]
