@@ -38,6 +38,7 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
+use std::collections::BTreeMap;
 use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
@@ -68,6 +69,45 @@ fn legacy_prompt_to_user_content(
             "OpenAI legacy prompt compatibility only supports a single string prompt for Chat Completions".to_string(),
         )),
     }
+}
+
+#[derive(Default, serde::Deserialize)]
+struct OpenAICompletionLegacyOnlyExtras {
+    suffix: Option<Value>,
+    best_of: Option<Value>,
+    echo: Option<Value>,
+}
+
+impl OpenAICompletionLegacyOnlyExtras {
+    fn unsupported_field(&self) -> Option<&'static str> {
+        if self.suffix.is_some() {
+            return Some("suffix");
+        }
+        if self.best_of.is_some() {
+            return Some("best_of");
+        }
+        if self.echo.is_some() {
+            return Some("echo");
+        }
+        None
+    }
+}
+
+fn reject_legacy_prompt_only_extras(
+    extras: &BTreeMap<String, Value>,
+) -> Result<(), TransformError> {
+    let legacy_extras: OpenAICompletionLegacyOnlyExtras =
+        serde_json::from_value(Value::Object(extras.clone().into_iter().collect()))
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+    if let Some(field) = legacy_extras.unsupported_field() {
+        return Err(TransformError::ToUniversalFailed(format!(
+            "OpenAI legacy prompt compatibility does not support legacy completions-only parameter '{}'",
+            field
+        )));
+    }
+
+    Ok(())
 }
 
 #[derive(serde::Deserialize)]
@@ -107,6 +147,7 @@ impl ProviderAdapter for OpenAIAdapter {
             <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
         } else if let Some(prompt) = typed_params.prompt.clone() {
+            reject_legacy_prompt_only_extras(&typed_params.extras)?;
             vec![Message::User {
                 content: legacy_prompt_to_user_content(prompt)?,
             }]

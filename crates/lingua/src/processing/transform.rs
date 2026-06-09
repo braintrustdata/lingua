@@ -934,6 +934,24 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_legacy_prompt_chat_completions_rejects_completion_only_params() {
+        let payload = json!({
+            "model": "gpt-4o",
+            "prompt": "Write a haiku about the ocean.",
+            "suffix": "End with a title.",
+            "max_tokens": 256
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+
+        assert!(
+            matches!(err, TransformError::ToUniversalFailed(reason) if reason.contains("suffix"))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_preserves_suffix_messages_in_chat_rewrite() {
         let payload = json!({
             "model": "brain-facet-1",
