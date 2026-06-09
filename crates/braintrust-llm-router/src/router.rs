@@ -158,6 +158,13 @@ pub struct RouterMetadata {
     pub provider_format: ProviderFormat,
 }
 
+/// Provider route resolved for a caller-specified provider alias.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ResolvedProviderRoute {
+    pub provider_alias: String,
+    pub wire_format: ProviderFormat,
+}
+
 /// Request prepared by the router and ready for execution.
 pub struct PreparedRequest<'a> {
     inner: PreparedRequestInner<'a>,
@@ -212,6 +219,14 @@ async fn prepare_provider_request(
     } else {
         Ok((transformed, detected_format, actual_format))
     }
+}
+
+fn explicit_alias_allowed_for_spec(spec: &ModelSpec, alias: &str) -> bool {
+    spec.available_providers.is_empty()
+        || spec
+            .available_providers
+            .iter()
+            .any(|available| available.eq_ignore_ascii_case(alias))
 }
 
 pub struct Router {
@@ -292,6 +307,26 @@ impl Router {
             .create_prepared_request_internal(body, model, output_format, false)
             .await?;
         Ok((PreparedRequest { inner }, metadata))
+    }
+
+    pub fn resolve_provider_routes(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+        aliases: &[String],
+    ) -> Result<Vec<ResolvedProviderRoute>> {
+        self.resolve_explicit_providers(model, output_format, aliases)
+            .map(|routes| {
+                routes
+                    .into_iter()
+                    .map(
+                        |(provider_alias, _, _, _, wire_format, _)| ResolvedProviderRoute {
+                            provider_alias,
+                            wire_format,
+                        },
+                    )
+                    .collect()
+            })
     }
 
     /// Execute a prepared request and return transformed response bytes.
@@ -487,6 +522,44 @@ impl Router {
                 aliases = ?aliases,
                 "no providers found for model",
             );
+            return Err(first_error.unwrap_or_else(|| Error::NoProvider(catalog_format)));
+        }
+        Ok(successes)
+    }
+
+    fn resolve_explicit_providers(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+        aliases: &[String],
+    ) -> Result<Vec<ResolvedRoute<'_>>> {
+        let (spec, catalog_format, _) = self.resolver.resolve(model)?;
+        let routes: Vec<Result<ResolvedRoute<'_>>> = aliases
+            .iter()
+            .filter(|alias| explicit_alias_allowed_for_spec(spec.as_ref(), alias))
+            .map(|alias| {
+                self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    catalog_format,
+                    alias.to_string(),
+                )
+            })
+            .collect();
+        let mut first_error = None;
+        let successes: Vec<ResolvedRoute<'_>> = routes
+            .into_iter()
+            .filter_map(|r| match r {
+                Ok(s) => Some(s),
+                Err(e) => {
+                    if first_error.is_none() {
+                        first_error = Some(e);
+                    }
+                    None
+                }
+            })
+            .collect();
+        if successes.is_empty() {
             return Err(first_error.unwrap_or_else(|| Error::NoProvider(catalog_format)));
         }
         Ok(successes)
@@ -924,6 +997,26 @@ mod tests {
                 routes
                     .into_iter()
                     .map(|(alias, _, _, _, _, _)| alias)
+                    .collect()
+            })
+    }
+
+    fn explicit_route_aliases(
+        router: &Router,
+        model: &str,
+        output_format: ProviderFormat,
+        aliases: &[&str],
+    ) -> Result<Vec<String>> {
+        let aliases = aliases
+            .iter()
+            .map(|alias| alias.to_string())
+            .collect::<Vec<_>>();
+        router
+            .resolve_provider_routes(model, output_format, &aliases)
+            .map(|routes| {
+                routes
+                    .into_iter()
+                    .map(|route| route.provider_alias)
                     .collect()
             })
     }
@@ -2004,6 +2097,147 @@ mod tests {
         let aliases = resolved_aliases(&router, model, ProviderFormat::ChatCompletions)
             .expect("resolved aliases");
         assert_eq!(aliases, vec!["openai".to_string(), "azure".to_string()]);
+    }
+
+    #[test]
+    fn explicit_provider_routes_preserve_requested_order() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["azure", "openai"]
+            )
+            .expect("routes"),
+            vec!["azure".to_string(), "openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn explicit_provider_routes_filter_unavailable_and_unregistered_aliases() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["custom", "openai", "azure"]
+            )
+            .expect("routes"),
+            vec!["openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn explicit_provider_routes_treat_empty_available_providers_as_unconstrained() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "custom",
+                FakeProvider {
+                    name: "custom",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(&router, model, ProviderFormat::ChatCompletions, &["custom"])
+                .expect("routes"),
+            vec!["custom".to_string()]
+        );
+    }
+
+    #[test]
+    fn explicit_provider_routes_resolve_overlay_custom_models() {
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            "base-model".into(),
+            openai_spec("base-model", ModelFlavor::Chat),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "custom-model".into(),
+            openai_spec_with_available_providers("custom-model", ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                "custom-model",
+                ProviderFormat::ChatCompletions,
+                &["azure"]
+            )
+            .expect("routes"),
+            vec!["azure".to_string()]
+        );
     }
 
     #[test]

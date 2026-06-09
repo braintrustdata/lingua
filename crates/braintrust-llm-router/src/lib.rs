@@ -4,7 +4,6 @@ mod client;
 pub use client::{clear_override_client, set_override_client, ClientSettings, DnsOverride};
 pub use reqwest_middleware::ClientWithMiddleware;
 mod error;
-mod failover;
 mod providers;
 mod retry;
 mod router;
@@ -23,7 +22,6 @@ pub use auth::{
 };
 pub use catalog::{ModelCatalog, ModelFlavor, ModelResolver, ModelSpec};
 pub use error::{Error, Result, UpstreamHttpError};
-pub use failover::{plan_provider_failover_routes, FailoverRouteCandidate, FailoverRoutePlan};
 pub use lingua::ProviderFormat;
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use providers::{
@@ -36,7 +34,7 @@ pub use providers::{
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
     create_provider, extract_request_hints, PreparedRequest, PreparedStreamRequest, RequestHints,
-    Router, RouterBuilder, RouterMetadata,
+    ResolvedProviderRoute, Router, RouterBuilder, RouterMetadata,
 };
 pub use streaming::{RawResponseStream, ResponseStream, StreamChunk};
 
