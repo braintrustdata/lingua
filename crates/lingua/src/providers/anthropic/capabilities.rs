@@ -8,19 +8,14 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@])claude-opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-./:@])",
+        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
     )
-    .expect("valid Opus 4.7+ model regex")
+    .expect("valid Opus 4.7+ or Fable model regex")
 });
 static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.:])|^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
         .expect("valid Opus 4.8+ model regex")
 });
-static FABLE_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(^|[./:@])claude-fable-[a-z0-9][a-z0-9.-]*($|[-./:@])")
-        .expect("valid Fable model regex")
-});
-
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
 /// Only Opus 4.5+ models support this. All models support `thinking` as fallback.
@@ -66,7 +61,6 @@ pub enum ModelTransform {
 use ModelTransform::*;
 
 const OPUS_4_7_OR_LATER_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
-const FABLE_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
 
 fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
@@ -76,18 +70,11 @@ fn is_supported_mid_conversation_system_model(model: &str) -> bool {
     OPUS_4_8_OR_LATER_RE.is_match(model)
 }
 
-fn is_fable_model(model: &str) -> bool {
-    FABLE_RE.is_match(model)
-}
-
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
     let lower = model.to_ascii_lowercase();
     if is_opus_4_7_or_later(&lower) {
         return OPUS_4_7_OR_LATER_TRANSFORMS;
-    }
-    if is_fable_model(&lower) {
-        return FABLE_TRANSFORMS;
     }
 
     &[]
