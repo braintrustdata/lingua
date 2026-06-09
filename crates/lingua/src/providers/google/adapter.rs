@@ -800,42 +800,21 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
                 content: AssistantContent::Array(parts),
                 ..
             } => {
-                if parts.iter().any(|part| {
-                    matches!(
-                        part,
-                        AssistantContentPart::ToolCall {
-                            encrypted_content: Some(_),
-                            ..
-                        }
-                    )
-                }) {
-                    continue;
-                }
-
-                let mut first_paired_unsigned_call = None;
-                for (part_index, part) in parts.iter().enumerate() {
+                for part in parts.iter_mut() {
                     if let AssistantContentPart::ToolCall {
                         tool_call_id,
-                        encrypted_content: None,
+                        encrypted_content,
                         ..
                     } = part
                     {
-                        if later_tool_result_ids.contains(tool_call_id) {
-                            first_paired_unsigned_call = Some(part_index);
-                            break;
+                        if encrypted_content.is_none()
+                            && later_tool_result_ids.contains(tool_call_id)
+                        {
+                            // Google documents this dummy signature for function-call history that
+                            // did not come from Gemini. Preserve each call/response pairing so
+                            // Gemini 3 skips signature validation.
+                            *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
                         }
-                    }
-                }
-
-                if let Some(part_index) = first_paired_unsigned_call {
-                    // Google documents these dummy signatures for function-call history that
-                    // did not come from Gemini. Preserve the call/response pairing and mark the
-                    // first current-turn call so Gemini 3 skips signature validation.
-                    if let AssistantContentPart::ToolCall {
-                        encrypted_content, ..
-                    } = &mut parts[part_index]
-                    {
-                        *encrypted_content = Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE.to_string());
                     }
                 }
             }
@@ -964,7 +943,7 @@ mod tests {
     }
 
     #[test]
-    fn test_google_marks_transferred_function_call_history_for_signature_models() {
+    fn test_google_marks_transferred_function_call_history() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
             model: Some("gemini-3.5-flash".to_string()),
@@ -1025,7 +1004,7 @@ mod tests {
     }
 
     #[test]
-    fn test_google_preserves_parallel_transferred_function_call_history_for_signature_models() {
+    fn test_google_preserves_parallel_transferred_function_call_history() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {
             model: Some("gemini-3.5-flash".to_string()),
@@ -1103,7 +1082,10 @@ mod tests {
 
         assert_eq!(
             function_call_signatures,
-            vec![Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE), None]
+            vec![
+                Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE),
+                Some(GOOGLE_DUMMY_THOUGHT_SIGNATURE)
+            ]
         );
         assert_eq!(function_response_count, 2);
     }

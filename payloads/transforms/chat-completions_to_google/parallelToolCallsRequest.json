@@ -4,8 +4,8 @@
       "content": {
         "parts": [
           {
-            "text": "In San Francisco, the weather is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
-            "thoughtSignature": "Eq4DCqsDAQw51sd9XgNAXrYmV0K+i2r3TrtHkJXrlbJ19RskrknMQYUlG+J1Idr5czNPBm8snZmy1kvwvhRT4fPImaRm0t7eFgAV+YG6rqZckL2s7yUWX3Oakgxnohs1WaujgY8gcVNl4ckv39J2GKCLdsucGZ8Jkf6CMPSuJyQyTeexZMjvabpAYDt7/kaWu8meRL4H32znl4eFGe+lhcMovSmBDTRLfM2j8b3zr3i/ubz6jqhLl3wpNLUCnw785s5L91DCAq1CCWqqiwKZZZi10+YhX2Agf1EehRDmSZ+bA7j5IYGu3eAlWpu8mP1DWAT60ZTvRBb+zmm8OkyuNcUS2lUJcRji3p/57MPmlndvFzU7j1ypRjcoIpjinsmTZwE9onK+p4fkHkB4K7v53+22Qg87/QJVPIwlIsITinHsFNZJFahHpK+Dawy8HZUMHQuPAfBcpqCbLaVV6BxIPlCutZrSLKgyX6KXPO/escwK4czn8hy5O097AYFIROXLOucV5XQB+5a+U+uddLbV/hkMng29rF6rh1Uepjdu1rfuw2cucROxgBkvX/X+fwAmgA=="
+            "text": "In San Francisco, CA, it is currently 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+            "thoughtSignature": "EjQKMgEMOdbHVWFajC1ofHYvLJM3cgd7QFV5nHwxVEECzCEXkVIdoT9dGpG2cDMGYenvsH+/"
           }
         ],
         "role": "model"
@@ -16,17 +16,16 @@
   ],
   "usageMetadata": {
     "promptTokenCount": 151,
-    "candidatesTokenCount": 30,
-    "totalTokenCount": 274,
+    "candidatesTokenCount": 33,
+    "totalTokenCount": 184,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 151
       }
     ],
-    "thoughtsTokenCount": 93,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "tDwjavGBK_PQ1MkPrc60wAQ"
+  "responseId": "XCwoapuKGPrF-sAP1P628Ag"
 }

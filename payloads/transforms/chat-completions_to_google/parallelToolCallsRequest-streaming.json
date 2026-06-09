@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "The weather in San Francisco is 65°F and sunny. In New York, it"
+              "text": "In San Francisco, CA, it is currently 65°F and sunny."
             }
           ],
           "role": "model"
@@ -15,8 +15,8 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 151,
-      "candidatesTokenCount": 19,
-      "totalTokenCount": 170,
+      "candidatesTokenCount": 17,
+      "totalTokenCount": 168,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
@@ -26,7 +26,7 @@
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3.5-flash",
-    "responseId": "tjwjap2YAqCb9MoPjsLu8AE"
+    "responseId": "XSwoat7bFuKxjMcP-cnIwAg"
   },
   {
     "candidates": [
@@ -34,7 +34,7 @@
         "content": {
           "parts": [
             {
-              "text": " is 45°F and cloudy."
+              "text": " In New York, NY, it is 45°F and cloudy."
             }
           ],
           "role": "model"
@@ -44,8 +44,8 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 151,
-      "candidatesTokenCount": 28,
-      "totalTokenCount": 179,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 184,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
@@ -55,7 +55,7 @@
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3.5-flash",
-    "responseId": "tjwjap2YAqCb9MoPjsLu8AE"
+    "responseId": "XSwoat7bFuKxjMcP-cnIwAg"
   },
   {
     "candidates": [
@@ -64,7 +64,7 @@
           "parts": [
             {
               "text": "",
-              "thoughtSignature": "EjQKMgEMOdbHOJySIIza8a3N6ADqxqUsPx0vnACleDwU5HBUkO172QSmDZZSOAzZ0nKYVoY7"
+              "thoughtSignature": "EjQKMgEMOdbH09mAny87i5amI4zZ1E5dtf7ni9DxnRVQKWdQrXkmGbltzlimRdsWNQ3aYgs9"
             }
           ],
           "role": "model"
@@ -75,8 +75,8 @@
     ],
     "usageMetadata": {
       "promptTokenCount": 151,
-      "candidatesTokenCount": 28,
-      "totalTokenCount": 179,
+      "candidatesTokenCount": 33,
+      "totalTokenCount": 184,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
@@ -86,6 +86,6 @@
       "serviceTier": "standard"
     },
     "modelVersion": "gemini-3.5-flash",
-    "responseId": "tjwjap2YAqCb9MoPjsLu8AE"
+    "responseId": "XSwoat7bFuKxjMcP-cnIwAg"
   }
 ]
