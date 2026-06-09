@@ -252,8 +252,10 @@ jobs:
             3. If the failure is a local generation or compile issue, fix the smallest responsible source area.
             4. Prefer fixing generation logic in `crates/generate-types/` or typed provider adapters/converters. Do not manually edit files named `generated.rs`.
             5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
-            6. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
-            7. Do not create or update GitHub issues, comments, pull requests, or branches.
+            6. Do not silently coerce newly generated provider roles, actors, enum variants, or required payloads into an existing universal value just to make conversion compile. In particular, never rewrite unsupported provider roles to `user`, and never drop newly generated required payloads such as mid-conversation tool definitions.
+            7. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, prefer an explicit unsupported-mapping error or leave a concise note in `provider-type-update-notes.md`; do not hide the loss behind fallback behavior.
+            8. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
+            9. Do not create or update GitHub issues, comments, pull requests, or branches.
 
             # Output
 
@@ -432,10 +434,12 @@ jobs:
             2. Trace each changed generated provider type into hand-written adapter/converter code under `crates/lingua/src/providers/${{ matrix.provider }}/`.
             3. If a new provider value clearly maps to an existing universal concept, update the typed converter/adapter and add a focused Rust test. For example, new safety/filtering finish reasons should normalize to the existing content-filter path rather than falling through to `Other`.
             4. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, do not invent a workaround. Leave the generated changes intact and add a concise note in `provider-type-update-notes.md` explaining what needs human clarification.
-            5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
-            6. Do not manually edit files named `generated.rs`.
-            7. Run the most focused test or build command that validates any hand-written change you make. If the command cannot run because credentials or external services are missing, note that in `provider-type-update-notes.md`.
-            8. Do not create or update GitHub issues, comments, pull requests, or branches.
+            5. Do not silently coerce newly generated provider roles or actors into existing universal roles. For example, if an OpenAI Responses item role such as `critic`, `discriminator`, `tool`, or `unknown` cannot be represented by `InputItemRole`, do not rewrite it to `user`; either model it explicitly, return an explicit unsupported-mapping error, or leave a note if the canonical representation needs human clarification.
+            6. Do not silently drop newly generated required request or response payloads. For example, if a Responses input contains `additional_tools` or a similar mid-conversation tool-definition payload and universal has no representation, fail explicitly or leave a note; do not emit a conversation that omits the required tools.
+            7. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
+            8. Do not manually edit files named `generated.rs`.
+            9. Run the most focused test or build command that validates any hand-written change you make. If the command cannot run because credentials or external services are missing, note that in `provider-type-update-notes.md`.
+            10. Do not create or update GitHub issues, comments, pull requests, or branches.
 
             # Output
 
