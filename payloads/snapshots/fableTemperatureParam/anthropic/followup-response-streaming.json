@@ -1,0 +1,120 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-fable-5",
+      "id": "msg_01RHGyzvXS1AdnMtijxWDRtm",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 36,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 36,
+        "service_tier": "standard",
+        "inference_geo": "global"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "thinking",
+      "thinking": "",
+      "signature": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "signature_delta",
+      "signature": "CAIS4wMKYggOGAIqQDgUVaWNAUawwZ+ghoDrTCMqS5HyT5IDH1uhLGWrrarYXWPfzQLAWPjXYV7mQEZrkn8v9syY4R49sZv51tzcGUEyDmNsYXVkZS1mYWJsZS01OAFCCHRoaW5raW5nEgz5FVSSsAZYnNoEpjAaDHTHk7Cna2isQCfZOiIw0H0OtgW8SHJXuCmZhZK1nHtcZGriZOH/kBPf2hyz0AUzpMAoUybra/gO55dT+OnSKq4C2nKqv0OaYeJ0H21kgqWAAw1iCPgZoHy5lknFk3ar7A/JAZLNIjy7QhEGFWl62jmKum0MaOL2M36eqk5hXP9AIBgLjBy4ZSKUYw/gx8hFtx8mNvYYYvbD6aepwUYD5/XZpEGMHc8VZWmM1rvwVhppYd5QSwDnw6uZ/ZVRP+0fNke4h4fJ7w6c/oSnnJ4NDRvNQ/kH90vr0dbpSp1OkiggD2DvNCQMCoRVwbz5m3f+XGvnp00VAp3HvddTuyAoccbHjNXxiO8fpfe+15sihiLhR16fQ9omqtNF/ZZckSi/J/GBMTw05pHoYcrcQB/zYXWmhl80wg9HGq+74mrCvssu9vGQaBLcquuXjDqPViwvVenSJYZZColK5zjg8XAS72q/RU4Yo3e8zTlt5W26XB4YAQ=="
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "That depends on what you're trying to do! I don't have any context about"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " your situation yet. Could you tell me a bit more?\n\nFor example:\n- Are you working on a"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " **project** and feeling stuck?\n- Testing out what I can do?\n- Looking for ideas on how"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": " to spend your time?\n- Trying to make a decision about something?\n\nGive me some details and I can offer more useful su"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "text_delta",
+      "text": "ggestions."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 36,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 209,
+      "output_tokens_details": {
+        "thinking_tokens": 88
+      }
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

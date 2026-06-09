@@ -57,11 +57,14 @@ pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
 pub enum ModelTransform {
     /// Strip deprecated sampling parameters (Opus 4.7+ doesn't support them)
     StripSamplingParams,
+    /// Strip deprecated temperature parameter.
+    StripTemperatureParam,
 }
 
 use ModelTransform::*;
 
 const OPUS_4_7_OR_LATER_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
+const FABLE_TRANSFORMS: &[ModelTransform] = &[StripTemperatureParam];
 
 fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
@@ -76,6 +79,9 @@ pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
     let lower = model.to_ascii_lowercase();
     if is_opus_4_7_or_later(&lower) {
         return OPUS_4_7_OR_LATER_TRANSFORMS;
+    }
+    if lower.starts_with("claude-fable-5") {
+        return FABLE_TRANSFORMS;
     }
 
     &[]
@@ -94,6 +100,9 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
                 obj.remove("temperature");
                 obj.remove("top_p");
                 obj.remove("top_k");
+            }
+            StripTemperatureParam => {
+                obj.remove("temperature");
             }
         }
     }
@@ -264,6 +273,8 @@ mod tests {
                 "anthropic/claude-opus-5-0@20260701",
                 &[StripSamplingParams][..],
             ),
+            ("claude-fable-5", &[StripTemperatureParam][..]),
+            ("claude-fable-5-20260601", &[StripTemperatureParam][..]),
             ("claude-opus-4-6", &[][..]),
             ("claude-opus-4-20250514", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
@@ -287,6 +298,8 @@ mod tests {
             "claude-opus-5-0",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
+            "claude-fable-5",
+            "claude-fable-5-20260601",
         ];
         let no_needs = [
             "claude-opus-4-20250514",
@@ -346,6 +359,21 @@ mod tests {
             assert!(
                 obj.contains_key("temperature"),
                 "{} should preserve temperature",
+                model
+            );
+            assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
+            assert!(obj.contains_key("top_k"), "{} should preserve top_k", model);
+        }
+    }
+
+    #[test]
+    fn test_fable_strips_temperature_only() {
+        for model in ["claude-fable-5", "claude-fable-5-20260601"] {
+            let mut obj = object_with_sampling_params();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("temperature"),
+                "{} should strip temperature",
                 model
             );
             assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);

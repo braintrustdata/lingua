@@ -7312,6 +7312,47 @@ What value would you like to use?",
 }
 `;
 
+exports[`chat-completions → anthropic > fableTemperatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-fable-5",
+}
+`;
+
+exports[`chat-completions → anthropic > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01QnbPtMoa2W4KoeG8XL7zTp",
+  "model": "claude-fable-5",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 28,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > frequencyPenaltyParam > request 1`] = `
 {
   "max_tokens": 4096,
