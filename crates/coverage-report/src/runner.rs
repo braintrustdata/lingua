@@ -79,6 +79,11 @@ pub fn test_request_transformation(
     let model: Option<&str> = match source_adapter.format() {
         ProviderFormat::Google => Some("gemini-1.5-pro"),
         ProviderFormat::Converse => Some("anthropic.claude-3-sonnet"),
+        ProviderFormat::BedrockAnthropic
+            if test_case == "anthropicMidConversationSystemMessage" =>
+        {
+            Some("us.anthropic.claude-opus-4-8-v1:0")
+        }
         ProviderFormat::BedrockAnthropic => Some("us.anthropic.claude-haiku-4-5-20251001-v1:0"),
         ProviderFormat::VertexAnthropic => Some("publishers/anthropic/models/claude-haiku-4-5"),
         _ => None,
@@ -122,22 +127,15 @@ pub fn test_request_transformation(
         Ok(v) => v,
         Err(e) => {
             let error_msg = format!("Conversion from universal failed: {}", e);
-            let context = CompareContext::for_cross_provider(
-                TestCategory::Requests,
-                source_adapter,
-                target_adapter,
-                test_case,
-            );
-            let reason = context.as_ref().and_then(|ctx| {
-                ctx.is_test_case_limitation().or_else(|| {
-                    is_expected_error(
-                        ctx.category,
-                        ctx.source,
-                        ctx.target,
-                        Some(ctx.test_case),
-                        &error_msg,
-                    )
-                })
+            let context = CompareContext::for_request(source_adapter, target_adapter, test_case);
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
             });
 
             let level = if reason.is_some() {

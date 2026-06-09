@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`anthropic mid-conversation system messages > rejects non-leading system messages for Anthropic export 1`] = `"Validation failed for target format Anthropic: Anthropic generated types include system-role input messages, but the live Messages API currently rejects role 'system' for available models; non-leading system/developer messages cannot be exported to Anthropic without changing semantics"`;

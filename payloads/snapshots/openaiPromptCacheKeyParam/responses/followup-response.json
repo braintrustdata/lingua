@@ -1,0 +1,79 @@
+{
+  "id": "resp_02b08795987a78c2006a1b4a0ffff481a183a7d69af769e7ab",
+  "object": "response",
+  "created_at": 1780173328,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1780173334,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_02b08795987a78c2006a1b4a10697081a186d0934ef1d237e2",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02b08795987a78c2006a1b4a15084081a18b969bd5f7b3820c",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Sure. Here are practical next steps you can take, plus options I can handle for you:\n\nWhat you can do now\n- Paste the policy text (or a link) here. I’ll produce:\n  - an executive summary (1–2 paragraphs)\n  - a section-by-section outline (bullet points for each section)\n  - a quick checklist for compliance/implementation\n  - an audience-tailored version (e.g., leadership, engineers, compliance)\n- If you can’t share the full text, tell me:\n  - the policy name\n  - the intended audience\n  - any specific aspects you want highlighted (e.g., data privacy, enforcement, owner responsibilities)\n\nFormat options (pick one)\n- Quick executive summary: 1–2 paragraphs capturing purpose, scope, and top requirements\n- Detailed section-by-section recap: bullets for each section\n- Policy at a glance: one-page, high-level overview with key owners, timelines, and exceptions\n- Implementation checklist: concrete steps to operationalize the policy\n- Audience-specific version: tailored wording for leadership vs. technical teams\n\nOptional templates I can provide\n- A reusable policy summary template you can drop any policy into\n- A one-page “policy at a glance” sheet for quick briefings\n- A risk/impact and owner assignment digest\n\nIf you’d like, I can start with a generic structure now and you can fill in the specifics later. Just tell me which format you want and whether you’ll share the text or just the policy name."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": "policy-cache-v1",
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 190,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1307,
+    "output_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "total_tokens": 1497
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Sure. Here are practical next steps you can take, plus options I can handle for you:\n\nWhat you can do now\n- Paste the policy text (or a link) here. I’ll produce:\n  - an executive summary (1–2 paragraphs)\n  - a section-by-section outline (bullet points for each section)\n  - a quick checklist for compliance/implementation\n  - an audience-tailored version (e.g., leadership, engineers, compliance)\n- If you can’t share the full text, tell me:\n  - the policy name\n  - the intended audience\n  - any specific aspects you want highlighted (e.g., data privacy, enforcement, owner responsibilities)\n\nFormat options (pick one)\n- Quick executive summary: 1–2 paragraphs capturing purpose, scope, and top requirements\n- Detailed section-by-section recap: bullets for each section\n- Policy at a glance: one-page, high-level overview with key owners, timelines, and exceptions\n- Implementation checklist: concrete steps to operationalize the policy\n- Audience-specific version: tailored wording for leadership vs. technical teams\n\nOptional templates I can provide\n- A reusable policy summary template you can drop any policy into\n- A one-page “policy at a glance” sheet for quick briefings\n- A risk/impact and owner assignment digest\n\nIf you’d like, I can start with a generic structure now and you can fill in the specifics later. Just tell me which format you want and whether you’ll share the text or just the policy name."
+}

@@ -5,6 +5,7 @@ import {
   Modality,
   MediaResolution,
 } from "@google/genai";
+import OpenAI from "openai";
 import { TestCase, TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -20,6 +21,28 @@ import {
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
 } from "./models";
+
+type ChatCompletionAssistantMessageWithReasoningSignature =
+  OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
+    reasoning_signature: string;
+  };
+
+const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
+  {
+    role: "assistant",
+    content: null,
+    reasoning_signature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+    tool_calls: [
+      {
+        id: "call_123",
+        type: "function",
+        function: {
+          name: "list_collections",
+          arguments: JSON.stringify({ database: "mydb" }),
+        },
+      },
+    ],
+  };
 
 // OpenAI Responses API and Chat Completions API parameter test cases
 // Each test case exercises specific parameters with bidirectional mappings where possible
@@ -75,6 +98,22 @@ export const paramsCases: TestCaseCollection = {
       ],
       additionalModelResponseFieldPaths: ["/stop_sequence"],
     },
+  },
+
+  openaiPromptCacheKeyParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [{ role: "user", content: "Summarize the cached policy." }],
+      prompt_cache_key: "policy-cache-v1",
+    },
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "Summarize the cached policy." }],
+      prompt_cache_key: "policy-cache-v1",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
   },
 
   // === Reasoning Configuration ===
@@ -222,6 +261,53 @@ export const paramsCases: TestCaseCollection = {
           ],
         },
       ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesFunctionCallOutputWithoutThoughtSignatureParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+            },
+          ],
+        },
+        {
+          type: "function_call",
+          call_id: "6k7x6c84",
+          name: "list_databases",
+          arguments: "{}",
+        },
+        {
+          type: "function_call_output",
+          call_id: "6k7x6c84",
+          output:
+            '[{"type":"text","text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}"}]',
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          name: "list_databases",
+          description: "List databases in the connected MongoDB instance.",
+          parameters: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+          strict: false,
+        },
+      ],
+      tool_choice: "auto",
     },
     anthropic: null,
     google: null,
@@ -379,6 +465,62 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
+    bedrock: null,
+  },
+
+  textFormatJsonSchemaMissingRequiredPropertyParam: {
+    "chat-completions": {
+      model: OPENAI_MINI_REASONING_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: null,
     bedrock: null,
   },
 
@@ -1175,6 +1317,92 @@ export const paramsCases: TestCaseCollection = {
     },
     anthropic: null,
     google: null,
+    bedrock: null,
+  },
+
+  googleToolCallThoughtSignatureReplayParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "List the collections in the mydb database.",
+        },
+        googleToolCallThoughtSignatureReplayAssistantMessage,
+        {
+          role: "tool",
+          tool_call_id: "call_123",
+          content: JSON.stringify(["movies", "users"]),
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "list_collections",
+            description: "List the collections in a MongoDB database.",
+            parameters: {
+              type: "object",
+              properties: {
+                database: { type: "string" },
+              },
+              required: ["database"],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
+    },
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "List the collections in the mydb database." }],
+        },
+        {
+          role: "model",
+          parts: [
+            {
+              functionCall: {
+                name: "list_collections",
+                args: { database: "mydb" },
+              },
+              thoughtSignature: "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              functionResponse: {
+                name: "list_collections",
+                response: { output: ["movies", "users"] },
+              },
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          functionDeclarations: [
+            {
+              name: "list_collections",
+              description: "List the collections in a MongoDB database.",
+              parameters: {
+                type: Type.OBJECT,
+                properties: {
+                  database: { type: Type.STRING },
+                },
+                required: ["database"],
+              },
+            },
+          ],
+        },
+      ],
+    },
     bedrock: null,
   },
 
@@ -2378,4 +2606,68 @@ export const paramsCases: TestCaseCollection = {
     })(),
     bedrock: null,
   },
+
+  anthropicMessageWithSystemMessage: (() => {
+    const testCase: TestCase = {
+      "chat-completions": null,
+      responses: null,
+      anthropic: {
+        model: "claude-opus-4-8",
+        max_tokens: 32_000,
+        system: [
+          {
+            type: "text",
+            text: "You are running inside Claude Code.",
+          },
+          {
+            type: "text",
+            text: "Preserve the user's coding instructions.",
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "hello world",
+                cache_control: { type: "ephemeral" },
+              },
+            ],
+          },
+          {
+            role: "system",
+            content: "Only use the exact tools provided by Claude Code.",
+          },
+        ],
+        tools: [
+          {
+            name: "Read",
+            description: "Reads a file from the local filesystem.",
+            input_schema: {
+              type: "object",
+              properties: {
+                file_path: {
+                  type: "string",
+                },
+              },
+              required: ["file_path"],
+              additionalProperties: false,
+            },
+          },
+        ],
+        thinking: {
+          type: "adaptive",
+        },
+        output_config: {
+          effort: "high",
+        },
+      },
+      google: null,
+      bedrock: null,
+    };
+
+    return testCase;
+  })(),
 };

@@ -53,35 +53,6 @@ export class ConversionError extends Error {
 // ============================================================================
 
 /**
- * Convert Map objects to plain objects recursively.
- * This is needed because serde-wasm-bindgen serializes serde_json::Map to JS Map
- * instead of plain objects.
- */
-function convertMapsToObjects(value: unknown): unknown {
-  if (value instanceof Map) {
-    const obj: Record<string, unknown> = {};
-    for (const [key, val] of value.entries()) {
-      obj[key] = convertMapsToObjects(val);
-    }
-    return obj;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => convertMapsToObjects(item));
-  }
-
-  if (value !== null && typeof value === "object") {
-    const obj: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value)) {
-      obj[key] = convertMapsToObjects(val);
-    }
-    return obj;
-  }
-
-  return value;
-}
-
-/**
  * Creates a converter function that transforms provider format to Lingua
  * @param wasmFn - The WASM function to call
  * @param provider - Provider name for error reporting
@@ -93,9 +64,7 @@ function createToLinguaConverter<TOutput extends Message | Message[]>(
 ): (input: unknown) => TOutput {
   return (input: unknown): TOutput => {
     try {
-      const result = wasmFn()(input);
-      // Convert any Map objects to plain objects
-      return convertMapsToObjects(result) as TOutput;
+      return wasmFn()(input) as TOutput;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert ${provider} message to Lingua`,
@@ -119,9 +88,7 @@ function createFromLinguaConverter<TInput extends Message | Message[], TOutput>(
 ): <T = TOutput>(input: TInput) => T {
   return <T = TOutput>(input: TInput): T => {
     try {
-      const result = wasmFn()(input);
-      // Convert any Map objects to plain objects
-      return convertMapsToObjects(result) as T;
+      return wasmFn()(input) as T;
     } catch (error: unknown) {
       throw new ConversionError(
         `Failed to convert Lingua to ${provider} format`,
@@ -338,9 +305,7 @@ export const linguaToGoogleContents = createFromLinguaConverter<
  */
 export function deduplicateMessages(messages: Message[]): Message[] {
   try {
-    const result = getWasm().deduplicate_messages(messages);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    return getWasm().deduplicate_messages(messages) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to deduplicate messages",
@@ -369,9 +334,7 @@ export function importMessagesFromSpans(
   spans: ImportSpan[]
 ): Message[] {
   try {
-    const result = getWasm().import_messages_from_spans(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    return getWasm().import_messages_from_spans(spans) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to import messages from spans",
@@ -396,9 +359,7 @@ export function importAndDeduplicateMessages(
   spans: ImportSpan[]
 ): Message[] {
   try {
-    const result = getWasm().import_and_deduplicate_messages(spans);
-    // Convert any Map objects to plain objects
-    return convertMapsToObjects(result) as Message[];
+    return getWasm().import_and_deduplicate_messages(spans) as Message[];
   } catch (error: unknown) {
     throw new ConversionError(
       "Failed to import and deduplicate messages from spans",

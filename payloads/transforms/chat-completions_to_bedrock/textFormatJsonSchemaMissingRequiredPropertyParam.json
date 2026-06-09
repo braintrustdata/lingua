@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I'm ready to help, but I don't see a specific question in your message. Could you please provide the question you'd like me to answer?\n\nOnce you do, I'll give you:\n1. **A clear answer**\n2. **Short reasoning** explaining why"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 14,
+    "outputTokens": 61,
+    "totalTokens": 75,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1307
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "c6e5c3e4-1569-4648-9b55-9ca3dd602c9f",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

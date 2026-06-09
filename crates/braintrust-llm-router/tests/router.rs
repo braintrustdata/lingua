@@ -799,6 +799,54 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
     );
 }
 
+#[tokio::test]
+async fn responses_required_model_uses_responses_for_anthropic_messages_output() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "gpt-5.5".into(),
+        ModelSpec {
+            model: "gpt-5.5".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let (router, _recorded_format) = openai_router(Arc::new(catalog));
+
+    let body = to_body(json!({
+        "model": "gpt-5.5",
+        "max_tokens": 1024,
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+
+    let (_request, metadata) = router
+        .create_request(body, "gpt-5.5", ProviderFormat::Anthropic)
+        .await
+        .expect("create request");
+
+    assert_eq!(
+        metadata.detected_input_format,
+        ProviderFormat::Anthropic,
+        "request should be detected as Anthropic messages input"
+    );
+    assert_eq!(
+        metadata.provider_format,
+        ProviderFormat::Responses,
+        "gpt-5.5 should use Responses transport even when the caller uses /v1/messages"
+    );
+}
+
 fn retry_model_catalog() -> Arc<ModelCatalog> {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(

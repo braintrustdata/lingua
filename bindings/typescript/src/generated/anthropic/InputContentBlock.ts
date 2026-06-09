@@ -26,9 +26,18 @@ import type { Source } from "./Source";
  *
  * A content block that represents a file to be uploaded to the container
  * Files uploaded via this block will be available in the container's input directory.
+ *
+ * System instructions that appear mid-conversation.
+ *
+ * Use this block to provide or update system-level instructions at a specific
+ * point in the conversation, rather than only via the top-level `system` parameter.
  */
 export type InputContentBlock = { 
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: Source | null, context: string | null, title: string | null, content: InputContentBlockContent | null, signature: string | null, thinking: string | null, data: string | null, caller: Caller | null, id: string | null, input: unknown, name: string | null, is_error: boolean | null, tool_use_id: string | null, file_id: string | null, };
+cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: Source | null, context: string | null, title: string | null, 
+/**
+ * System instruction text blocks.
+ */
+content: InputContentBlockContent | null, signature: string | null, thinking: string | null, data: string | null, caller: Caller | null, id: string | null, input: unknown, name: string | null, is_error: boolean | null, tool_use_id: string | null, file_id: string | null, };

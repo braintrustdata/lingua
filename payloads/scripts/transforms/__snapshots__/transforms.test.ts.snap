@@ -1,5 +1,132 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "max_completion_tokens": 32000,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "You are running inside Claude Code.",
+          "type": "text",
+        },
+        {
+          "text": "Preserve the user's coding instructions.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": [
+        {
+          "text": "hello world",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": "Only use the exact tools provided by Claude Code.",
+      "role": "system",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+  "tools": [
+    {
+      "function": {
+        "description": "Reads a file from the local filesystem.",
+        "name": "Read",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {
+            "file_path": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "file_path",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hello, world!
+
+Would you like a Hello World example in a specific programming language? Tell me which language and I’ll provide it.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DnBJzLc6L0UZ12oPjGwYXQDekWPWu",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 158,
+    "output_tokens": 612,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "max_completion_tokens": 16,
+  "messages": [
+    {
+      "content": "If there is no later system message, answer the final question with exactly INITIAL.",
+      "role": "system",
+    },
+    {
+      "content": "What is the required answer?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "For the next user message, answer with exactly UPDATED and no other text.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DmKoKNwVQnN5vZ3eukV6zAFxIz1jU",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 51,
+    "output_tokens": 16,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -1863,6 +1990,135 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
 }
 `;
 
+exports[`anthropic → google > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hello world",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 32000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are running inside Claude Code.
+Preserve the user's coding instructions.
+Only use the exact tools provided by Claude Code.",
+      },
+    ],
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Reads a file from the local filesystem.",
+          "name": "Read",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "file_path": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "file_path",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`anthropic → google > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "Okay, here's my interpretation of that thought process, tailored for an expert user:
+
+**Initial Assessment: Minimal Task, Standard Response**
+
+Right, so the user offered a straightforward "hello world." No complex query there, no data analysis needed, and certainly no need to invoke any specialized tools. That's essentially a conversational opening. My assessment is that a reciprocal greeting is the appropriate and expected response in this context. It's a foundational exchange, establishing a baseline level of interaction. I'll stick with a similar greeting.
+",
+      "type": "thinking",
+    },
+    {
+      "text": "Hello there! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 73,
+    "output_tokens": 38,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is the required answer?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "If there is no later system message, answer the final question with exactly INITIAL.
+For the next user message, answer with exactly UPDATED and no other text.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [],
+  "id": "msg_transformed",
+  "model": "gemini-2.5-flash",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "input_tokens": 40,
+    "output_tokens": 13,
+  },
+}
+`;
+
 exports[`anthropic → google > cacheControl1hParam > request 1`] = `
 {
   "contents": [
@@ -1879,7 +2135,7 @@ exports[`anthropic → google > cacheControl1hParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -1926,7 +2182,7 @@ exports[`anthropic → google > cacheControl5mParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -1973,7 +2229,7 @@ exports[`anthropic → google > codeInterpreterToolParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2028,7 +2284,7 @@ exports[`anthropic → google > complexReasoningRequest > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2154,7 +2410,7 @@ exports[`anthropic → google > documentContentParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2202,7 +2458,7 @@ exports[`anthropic → google > imageContentParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2244,7 +2500,7 @@ exports[`anthropic → google > instructionsParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -2306,7 +2562,7 @@ exports[`anthropic → google > jsonSchemaFormatParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2346,7 +2602,7 @@ exports[`anthropic → google > maxCompletionTokensParam > request 1`] = `
     "maxOutputTokens": 500,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2386,7 +2642,7 @@ exports[`anthropic → google > metadataParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2432,7 +2688,7 @@ exports[`anthropic → google > multimodalRequest > request 1`] = `
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2473,10 +2729,10 @@ exports[`anthropic → google > opus47AdaptiveThinkingReasoningEffortParam > req
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2544,10 +2800,10 @@ exports[`anthropic → google > outputConfigEffortWithJsonSchemaParam > request 
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2627,7 +2883,7 @@ exports[`anthropic → google > outputConfigJsonSchemaParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2685,7 +2941,7 @@ exports[`anthropic → google > outputFormatJsonSchemaParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -2725,7 +2981,7 @@ exports[`anthropic → google > parallelToolCallsDisabledParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "AUTO",
@@ -2810,6 +3066,7 @@ exports[`anthropic → google > parallelToolCallsRequest > request 1`] = `
             "id": "toolu_sf",
             "name": "get_weather",
           },
+          "thoughtSignature": "skip_thought_signature_validator",
         },
         {
           "functionCall": {
@@ -2851,7 +3108,7 @@ exports[`anthropic → google > parallelToolCallsRequest > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "AUTO",
@@ -2888,18 +3145,18 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
 {
   "content": [
     {
-      "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+      "text": "The weather in San Francisco is currently 65°F and sunny, while in New York, it is 45°F and cloudy.",
       "type": "text",
     },
   ],
   "id": "msg_transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
-    "input_tokens": 140,
-    "output_tokens": 32,
+    "input_tokens": 151,
+    "output_tokens": 30,
   },
 }
 `;
@@ -2920,7 +3177,7 @@ exports[`anthropic → google > promptCacheKeyParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -2968,10 +3225,10 @@ exports[`anthropic → google > reasoningEffortLowParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "LOW",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3021,10 +3278,10 @@ exports[`anthropic → google > reasoningEffortMaxClampsToGpt5NanoParam > reques
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "HIGH",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3073,7 +3330,7 @@ exports[`anthropic → google > reasoningRequest > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3144,7 +3401,7 @@ exports[`anthropic → google > reasoningRequestTruncated > request 1`] = `
     "maxOutputTokens": 100,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3185,10 +3442,10 @@ exports[`anthropic → google > reasoningSummaryParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3237,7 +3494,7 @@ exports[`anthropic → google > reasoningWithOutput > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3286,7 +3543,7 @@ exports[`anthropic → google > safetyIdentifierParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3326,7 +3583,7 @@ exports[`anthropic → google > serviceTierParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3366,7 +3623,7 @@ exports[`anthropic → google > simpleRequest > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3406,7 +3663,7 @@ exports[`anthropic → google > simpleRequestTruncated > request 1`] = `
     "maxOutputTokens": 1,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3445,7 +3702,7 @@ exports[`anthropic → google > stopSequencesParam > request 1`] = `
       "ten",
     ],
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3485,7 +3742,7 @@ exports[`anthropic → google > streamParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3525,7 +3782,7 @@ exports[`anthropic → google > systemMessageArrayContent > request 1`] = `
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -3581,7 +3838,7 @@ exports[`anthropic → google > temperatureParam > request 1`] = `
     "responseSchema": null,
     "temperature": 0.7,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3621,7 +3878,7 @@ exports[`anthropic → google > textEditorToolParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3675,7 +3932,7 @@ exports[`anthropic → google > textEditorToolV2Param > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3730,7 +3987,7 @@ exports[`anthropic → google > textEditorToolV3Param > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3801,7 +4058,7 @@ exports[`anthropic → google > textFormatJsonSchemaParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3859,7 +4116,7 @@ exports[`anthropic → google > textFormatJsonSchemaWithDescriptionParam > reque
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -3902,7 +4159,7 @@ exports[`anthropic → google > thinkingDisabledParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4015,7 +4272,7 @@ exports[`anthropic → google > toolChoiceAnyParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "ANY",
@@ -4087,7 +4344,7 @@ exports[`anthropic → google > toolChoiceAutoParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "AUTO",
@@ -4155,7 +4412,7 @@ exports[`anthropic → google > toolChoiceNoneParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "mode": "NONE",
@@ -4223,7 +4480,7 @@ exports[`anthropic → google > toolChoiceRequiredParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "allowedFunctionNames": [
@@ -4299,7 +4556,7 @@ exports[`anthropic → google > topKParam > request 1`] = `
     "responseSchema": null,
     "topK": 40,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4340,7 +4597,7 @@ exports[`anthropic → google > topPParam > request 1`] = `
     "responseSchema": null,
     "topP": 0.9,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4380,7 +4637,7 @@ exports[`anthropic → google > webSearchToolAdvancedParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4422,7 +4679,7 @@ exports[`anthropic → google > webSearchToolParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4466,7 +4723,7 @@ exports[`anthropic → google > webSearchUserLocationParam > request 1`] = `
     "maxOutputTokens": 1024,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -4486,6 +4743,145 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "You are running inside Claude Code.",
+          "type": "input_text",
+        },
+        {
+          "text": "Preserve the user's coding instructions.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": [
+        {
+          "text": "hello world",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": "Only use the exact tools provided by Claude Code.",
+      "role": "system",
+    },
+  ],
+  "max_output_tokens": 32000,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "high",
+  },
+  "tools": [
+    {
+      "description": "Reads a file from the local filesystem.",
+      "name": "Read",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "file_path": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "file_path",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > anthropicMessageWithSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hello!
+
+Would you like a Hello World example in a specific language? Here are quick options:
+
+- Python: print("Hello, World!")
+- JavaScript: console.log("Hello, World!")
+- C: #include <stdio.h> int main(void) { printf("Hello, World!"); return 0; }
+- Java: public class HelloWorld { public static void main(String[] args) { System.out.println("Hello, World!"); } }
+- Go: package main; import "fmt"; func main() { fmt.Println("Hello, World!") }
+
+Tell me your preferred language (or share another), and I’ll tailor it.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_07783fa1fa2249d6006a22034b1d8881a3ab3ad6b14bc34de6",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 77,
+    "output_tokens": 2245,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicMidConversationSystemMessage > request 1`] = `
+{
+  "input": [
+    {
+      "content": "If there is no later system message, answer the final question with exactly INITIAL.",
+      "role": "system",
+    },
+    {
+      "content": "What is the required answer?",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "For the next user message, answer with exactly UPDATED and no other text.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+    },
+  ],
+  "max_output_tokens": 16,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > anthropicMidConversationSystemMessage > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_017893c25992c59a006a1eeed348d081998d6092432e7624d7",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 51,
+    "output_tokens": 0,
   },
 }
 `;
@@ -7032,6 +7428,93 @@ exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam 
 }
 `;
 
+exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_123",
+          "input": {
+            "database": "mydb",
+          },
+          "name": "list_collections",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "["movies","users"]",
+          "tool_use_id": "call_123",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "input_schema": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "name": "list_collections",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01S9JLYYZe4k5uctkuMhmrhv",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 26,
+    "prompt_tokens": 639,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 665,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -7631,6 +8114,47 @@ exports[`chat-completions → anthropic > nMultipleCompletionsParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 16,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Summarize the cached policy.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01Mqx6YVkxrPK4mmmyR1vCkA",
+  "model": "claude-sonnet-4-20250514",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 4,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 14,
   },
 }
 `;
@@ -8863,6 +9387,67 @@ exports[`chat-completions → anthropic > textFormatJsonObjectParam > response 1
 }
 `;
 
+exports[`chat-completions → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer": "I don't see a specific question in your message.", "reasoning": "You asked me to return an answer and short reasoning, but didn't provide a question to answer. Please provide a question so I can give you a meaningful response."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011EEoUMiJCZSHDPVAGK4NwL",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 56,
+    "prompt_tokens": 172,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 228,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -9696,6 +10281,105 @@ exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > 
 }
 `;
 
+exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "List the collections in the mydb database.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "toolUse": {
+            "input": {
+              "database": "mydb",
+            },
+            "name": "list_collections",
+            "toolUseId": "call_123",
+          },
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "["movies","users"]",
+              },
+            ],
+            "toolUseId": "call_123",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "toolConfig": {
+    "tools": [
+      {
+        "toolSpec": {
+          "description": "List the collections in a MongoDB database.",
+          "inputSchema": {
+            "json": {
+              "properties": {
+                "database": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "database",
+              ],
+              "type": "object",
+            },
+          },
+          "name": "list_collections",
+        },
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 26,
+    "prompt_tokens": 639,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 665,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "messages": [
@@ -10211,6 +10895,57 @@ exports[`chat-completions → bedrock > nMultipleCompletionsParam > response 1`]
       "cached_tokens": 0,
     },
     "total_tokens": 17,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Summarize the cached policy.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I don't have access to any cached policy to summarize. I don't see any policy document in our conversation history.
+
+Could you please:
+1. **Share the policy** you'd like me to summarize, or
+2. **Clarify which policy** you're referring to (company policy, privacy policy, terms of service, etc.), or
+3. **Paste the policy text** directly if you'd like me to analyze it?
+
+Once you provide the policy, I'll be happy to create a clear, concise summary for you.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 120,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 134,
   },
 }
 `;
@@ -11568,6 +12303,54 @@ exports[`chat-completions → bedrock > textFormatJsonObjectParam > response 1`]
 }
 `;
 
+exports[`chat-completions → bedrock > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'm ready to help, but I don't see a specific question in your message. Could you please provide the question you'd like me to answer?
+
+Once you do, I'll give you:
+1. **A clear answer**
+2. **Short reasoning** explaining why",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 61,
+    "prompt_tokens": 14,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 75,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > textFormatJsonSchemaNullableUnionTypeGpt54NanoParam > request 1`] = `
 {
   "messages": [
@@ -12111,7 +12894,7 @@ exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
     "maxOutputTokens": 20000,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12226,7 +13009,7 @@ exports[`chat-completions → google > exclusiveMinimumToolParam > request 1`] =
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -12295,7 +13078,7 @@ exports[`chat-completions → google > frequencyPenaltyParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12343,10 +13126,10 @@ exports[`chat-completions → google > functionToolsWithReasoningEffortParam > r
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -12388,6 +13171,7 @@ exports[`chat-completions → google > functionToolsWithReasoningEffortParam > r
 
 Okay, so the user wants to know the weather in Tokyo. That's straightforward enough. I know I have a \`get_weather\` tool at my disposal, and that tool is designed specifically for retrieving weather information based on a given location. Therefore, my next logical step is to utilize this tool. I need to call \`get_weather\` with the input "Tokyo." That should give me the weather data the user is seeking. It's a simple request, and I can fulfill it directly using the appropriate function.
 ",
+        "reasoning_signature": "CucBAQw51sf3ly4/NPgf7Ek2GW7TFKExYspWKxo1FDh0SEd3bhvkBUsqj/hKTP/t5K52qzd+94aqzwD0qEtQmndHMjheAavUlU8wNTaJlyMxYPLgyr6njdSASQT19OGN6CvTdhikTvvHCeuYoQ5cLTTX/cQmaU35dmDsq+jQww4KejnIzuiA0S//0DXztUy5K+uiGDu/ghNOOePgNJbKNbGGChP7qnCbSgi5lb3GRIJBRhQPbiRHG0Hh6gVrWWHw4jOqBcDOZaYgSslwDeWZQZebPhxPMlDq4GUcR7l+0Kjh38Aoctmx4RVn",
         "role": "assistant",
         "tool_calls": [
           {
@@ -12417,6 +13201,105 @@ Okay, so the user wants to know the weather in Tokyo. That's straightforward eno
 }
 `;
 
+exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "List the collections in the mydb database.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "database": "mydb",
+            },
+            "name": "list_collections",
+          },
+          "thoughtSignature": "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "list_collections",
+            "response": {
+              "output": [
+                "movies",
+                "users",
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "List the collections in a MongoDB database.",
+          "name": "list_collections",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "database": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "database",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → google > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the \`mydb\` database are \`movies\` and \`users\`.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 83,
+    "total_tokens": 99,
+  },
+}
+`;
+
 exports[`chat-completions → google > imageUrlMimeTypeFallbackParam > request 1`] = `
 {
   "contents": [
@@ -12435,7 +13318,7 @@ exports[`chat-completions → google > imageUrlMimeTypeFallbackParam > request 1
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12493,7 +13376,7 @@ exports[`chat-completions → google > instructionsParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -12559,7 +13442,7 @@ exports[`chat-completions → google > jsonSchemaFormatParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12625,7 +13508,7 @@ exports[`chat-completions → google > jsonSchemaMinMaxItemsParam > request 1`] 
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12688,7 +13571,7 @@ exports[`chat-completions → google > jsonSchemaMinimumMaximumParam > request 1
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12769,7 +13652,7 @@ exports[`chat-completions → google > jsonSchemaPrefixItemsParam > request 1`] 
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12813,7 +13696,7 @@ exports[`chat-completions → google > logitBiasParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12857,7 +13740,7 @@ exports[`chat-completions → google > logprobsParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12905,7 +13788,7 @@ exports[`chat-completions → google > maxCompletionTokensParam > request 1`] = 
     "maxOutputTokens": 500,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -12949,7 +13832,7 @@ exports[`chat-completions → google > metadataParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13003,7 +13886,7 @@ exports[`chat-completions → google > multimodalRequest > request 1`] = `
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13047,7 +13930,7 @@ exports[`chat-completions → google > nMultipleCompletionsParam > request 1`] =
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13079,6 +13962,50 @@ exports[`chat-completions → google > nMultipleCompletionsParam > response 1`] 
 }
 `;
 
+exports[`chat-completions → google > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Summarize the cached policy.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "ok.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-2.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 25,
+    "completion_tokens_details": {
+      "reasoning_tokens": 23,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 29,
+  },
+}
+`;
+
 exports[`chat-completions → google > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
 {
   "contents": [
@@ -13096,10 +14023,10 @@ exports[`chat-completions → google > opus47AdaptiveThinkingReasoningEffortPara
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13149,7 +14076,7 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > request 
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -13185,6 +14112,7 @@ exports[`chat-completions → google > parallelToolCallsDisabledParam > response
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "CoQCAb4+9vsZLZBZClmxBgaHNtTauUi3lKai7dwaC7SSTYxuGDJBT95LEogTdUW2OacVT9P8kv0p5U1O2/FL3ue1kRlg0Y9i7UdNtDBRVo0vYANrHAqDZv70t7fRUPMwYWnLgPYGb478EimjKH0q5eRfBBj1V95//TOZ/Y6ENK9fWpmzDgp0mBiuIsFzLHyDjYc3w/jnwAUDKJ6n/cipjq2PxN0Ml7DJnA2sXwy1TV2uUzB8ElTpcyqMuVXicrgeTKjbnFhapiJTOoG2iNE8uX8I7v6g19LW62L4EqxM79pJorubztmFVNQNk5NO7MWdyCL83jAC1bIE69ojOPakz3zwstgO3u4=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -13242,6 +14170,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
             },
             "name": "get_weather",
           },
+          "thoughtSignature": "skip_thought_signature_validator",
         },
         {
           "functionCall": {
@@ -13276,7 +14205,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > request 1`] = 
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -13312,19 +14241,19 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+        "content": "The weather in San Francisco is 65°F and sunny, and the weather in New York is 45°F and cloudy.",
         "role": "assistant",
       },
     },
   ],
   "created": 0,
   "id": "chatcmpl-transformed",
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 32,
-    "prompt_tokens": 140,
-    "total_tokens": 172,
+    "completion_tokens": 29,
+    "prompt_tokens": 151,
+    "total_tokens": 180,
   },
 }
 `;
@@ -13345,7 +14274,7 @@ function divide(a, b) {
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13550,7 +14479,7 @@ exports[`chat-completions → google > presencePenaltyParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13594,7 +14523,7 @@ exports[`chat-completions → google > promptCacheKeyParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13642,10 +14571,10 @@ exports[`chat-completions → google > reasoningEffortLowParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "LOW",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13701,10 +14630,10 @@ exports[`chat-completions → google > reasoningEffortMinimalParam > request 1`]
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MINIMAL",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13756,10 +14685,10 @@ exports[`chat-completions → google > reasoningEffortNoneParam > request 1`] = 
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 0,
+      "thinkingLevel": "THINKING_LEVEL_UNSPECIFIED",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13800,7 +14729,7 @@ exports[`chat-completions → google > reasoningRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13879,7 +14808,7 @@ exports[`chat-completions → google > reasoningRequestTruncated > request 1`] =
     "maxOutputTokens": 100,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13927,10 +14856,10 @@ exports[`chat-completions → google > reasoningSummaryParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -13980,7 +14909,7 @@ exports[`chat-completions → google > reasoningWithOutput > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14040,7 +14969,7 @@ exports[`chat-completions → google > safetyIdentifierParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14084,7 +15013,7 @@ exports[`chat-completions → google > seedParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14128,7 +15057,7 @@ exports[`chat-completions → google > serviceTierParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14176,10 +15105,10 @@ exports[`chat-completions → google > simpleRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "LOW",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14231,7 +15160,7 @@ exports[`chat-completions → google > simpleRequestTruncated > request 1`] = `
     "maxOutputTokens": 1,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14278,7 +15207,7 @@ exports[`chat-completions → google > stopSequencesParam > request 1`] = `
       "ten",
     ],
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14322,7 +15251,7 @@ exports[`chat-completions → google > storeDisabledParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14370,7 +15299,7 @@ exports[`chat-completions → google > systemMessageArrayContent > request 1`] =
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -14443,7 +15372,7 @@ exports[`chat-completions → google > temperatureParam > request 1`] = `
     "responseSchema": null,
     "temperature": 0.7,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14491,7 +15420,7 @@ exports[`chat-completions → google > textFormatJsonObjectParam > request 1`] =
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14519,6 +15448,70 @@ exports[`chat-completions → google > textFormatJsonObjectParam > response 1`] 
     },
     "prompt_tokens": 11,
     "total_tokens": 40,
+  },
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string",
+        },
+        "reasoning": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "answer",
+      ],
+      "title": "structured_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer":"Paris","reasoning":"Paris has been the capital of France since the late 10th century, serving as the country's political, cultural, and economic center."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 435,
+    "completion_tokens_details": {
+      "reasoning_tokens": 396,
+    },
+    "prompt_tokens": 8,
+    "total_tokens": 443,
   },
 }
 `;
@@ -14563,7 +15556,7 @@ exports[`chat-completions → google > textFormatJsonSchemaNullableUnionTypeGpt5
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14632,7 +15625,7 @@ exports[`chat-completions → google > textFormatJsonSchemaParam > request 1`] =
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14701,7 +15694,7 @@ exports[`chat-completions → google > textFormatJsonSchemaWithDescriptionParam 
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14752,7 +15745,7 @@ exports[`chat-completions → google > textFormatTextParam > request 1`] = `
     "responseMimeType": "text/plain",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -14837,6 +15830,7 @@ exports[`chat-completions → google > toolCallRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "Eo4DCosDAQw51scBWT4vkiVr013+EFv8M/dPtDJ/ro0rBk5a2H7rgnIeSGwQumwOPiXDyMXQ3H59equt90wNc0MWs6TuCSTeRSQVGG7NJKSQ3vdK8EZdqZkf76/SZxpSuOkKru/FXet38iTRTA19XdOTEFqdZKvQ3PHvIfh1mIQDdOCeKCe+urFniCXqZUU6MKZ8HxnqECbW0dDmYNNFvZTQBzjZwzaO9iQK0zm24ABsmghGC0MTLzk2R0vpBnESCip9j2gNm8+5y0vvMsdJ9Focej7nw4PnnBDEpLtGZUKORQKWiOFsNw0MUqPPMbSJaPwEaPUYShUhUcjDmd9ZUH/fzzLHfspHvaZp1BrGx/kAVLOeIZwR3rFCMvvJnCelT19fcYqhqZCy5s+23Pewh98khfqnAB42+P0+V5uIfB5IUirMnVVTq0H0YiDlzzJkOFH9/Ofnl+kGMVvyuAwvfaQDp6p1sk/SMp4eVdRIy9pj5MV56wBZkB9uDmJ02SCEFhxjiXfvmfL9usc+hV346XE=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -14878,7 +15872,7 @@ exports[`chat-completions → google > toolChoiceRequiredParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "allowedFunctionNames": [
@@ -14922,6 +15916,7 @@ exports[`chat-completions → google > toolChoiceRequiredParam > response 1`] = 
       "index": 0,
       "message": {
         "annotations": [],
+        "reasoning_signature": "CucBAb4+9vs+L8b5DWxZLf3YrtyE8jaiRvH3+WfoYiFe+3UsTHFrh6yby+drplwgFn9zcIL7y6DA1G/RT7Xdo489paNL+GTgzaqw0vV0Xj0wdOOsrVkgGfJLhdGpxtFTsaCC3XD+Py7LoBV2qQ14IZmtfdXvHvyQISbziF3U9el7zQj7ksoPMudDWHE7tA6aCsU63lJbAoEtvdIyImcxvT9ikCONlFXlNKi1fhKgmqlaiSthawjVpRH3yNNQRWsfILjR09Z4F6noiN5v4m25/GoVOxwGfo5QaqtF1vXeVHD1fa5NMyLlTsHy",
         "role": "assistant",
         "tool_calls": [
           {
@@ -15018,6 +16013,7 @@ exports[`chat-completions → google > toolChoiceRequiredWithReasoningParam > re
 
 Okay, here's the situation: the user needs the weather for Tokyo. Thankfully, I have the \`get_weather\` tool at my disposal! This tool is specifically designed to provide weather information, and it takes a location as input. So, the path forward is clear. I need to call the \`get_weather\` tool. The key piece of information needed to get the job done is "Tokyo." I'll feed "Tokyo" to the \`get_weather\` tool, and hopefully, I'll return the user with the meteorological insights they require.
 ",
+        "reasoning_signature": "CvUBAb4+9vvbHYYDxRU+GMpl6jV1aX39BlEBVrnr13g03xCinYCWIH9Y0VT1bdLVQIRGR0fylIRuhSQ670AxC+5nVEoPUWm9lQ2qf88khbkpAJjKU1e1fVZlKqx2Zyt/2vjX8da5CC3pRLDG+GW7/3JxZmQiZMsmgyiOSrJw3gM4LN983UyoKFDR19zVywnySpo30MZGToMDR+/CKXddu43tqpE/5Hwxy92pUEjGX/sFIoKqR2oiI7Y9ThytQBxvHnIORZzO8+vEg1VZWq1dOour0qbyuOfVJTIpfDVrU1AFJiGLlU3q/f7m8RKvqQM3kD1RX3IY2l8=",
         "role": "assistant",
         "tool_calls": [
           {
@@ -15063,7 +16059,7 @@ exports[`chat-completions → google > topPParam > request 1`] = `
     "responseSchema": null,
     "topP": 0.9,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -15111,7 +16107,7 @@ exports[`chat-completions → google > topPReasoningModelParam > request 1`] = `
     "responseSchema": null,
     "topP": 0.9,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -15429,6 +16425,93 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
       "cached_tokens": 0,
     },
     "total_tokens": 93,
+  },
+}
+`;
+
+exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "arguments": "{"database":"mydb"}",
+      "call_id": "call_123",
+      "name": "list_collections",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_123",
+      "output": "["movies","users"]",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "The collections in the mydb database are:
+- movies
+- users
+
+Would you like to see document counts or sample documents from any of these?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0b84110d340c2d3c006a1f332124ac8199b234ca6f6df198ba",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 222,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 89,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 311,
   },
 }
 `;
@@ -16143,6 +17226,75 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > response 1
 }
 `;
 
+exports[`chat-completions → responses > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Summarize the cached policy.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "prompt_cache_key": "policy-cache-v1",
+}
+`;
+
+exports[`chat-completions → responses > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "I don’t have access to a specific “cached policy” in this chat. If you share the policy text (or a link/document), I’ll summarize it right away.
+
+If you’d like to proceed with a summary structure yourself, here’s a concise template you can use:
+- Purpose and scope: what the policy covers and who it applies to.
+- Key requirements: the main rules or actions required or prohibited.
+- Roles and responsibilities: who enforces it and who must comply.
+- Exceptions and compliance: how exceptions are requested/approved and how compliance is monitored.
+- Enforcement and penalties: consequences for violations.
+- Review and update: how often it’s reviewed and updated.
+- Definitions and references: key terms and any related documents.
+
+If you paste the policy text, I can provide:
+- A one-paragraph executive summary.
+- A bullet-point outline of the main requirements.
+- A brief section-by-section summary (if the document is long). 
+
+Would you like to share the policy now, or tell me your preferred length and audience for the summary?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01ea2ae9a7dbf6ee006a1b4a17ec5c81a3b6d9fb8d538b970b",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1122,
+    "completion_tokens_details": {
+      "reasoning_tokens": 896,
+    },
+    "prompt_tokens": 13,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1135,
+  },
+}
+`;
+
 exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortParam > request 1`] = `
 {
   "input": [
@@ -16530,6 +17682,7 @@ exports[`chat-completions → responses > promptCacheKeyParam > request 1`] = `
     },
   ],
   "model": "gpt-5-nano",
+  "prompt_cache_key": "user-123-ml-explanation",
 }
 `;
 
@@ -17412,6 +18565,69 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > response 1
       "cached_tokens": 0,
     },
     "total_tokens": 260,
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5.4-mini",
+  "text": {
+    "format": {
+      "name": "structured_response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+          "reasoning",
+        ],
+        "type": "object",
+      },
+      "strict": true,
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "{"answer":"Please provide the question or task you want answered.","reasoning":"Your message only asks for an answer and short reasoning, but no actual question was included."}",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-016f4883d0291359006a26eb5eee04819eb1833217fbb168c2",
+  "model": "gpt-5.4-mini-2026-03-17",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 43,
+    "prompt_tokens": 43,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 86,
   },
 }
 `;
@@ -18330,6 +19546,88 @@ exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > resp
     "candidatesTokenCount": 15,
     "promptTokenCount": 178,
     "totalTokenCount": 193,
+  },
+}
+`;
+
+exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_0",
+          "input": {
+            "database": "mydb",
+          },
+          "name": "list_collections",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "{"output":["movies","users"]}",
+          "tool_use_id": "call_0",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "input_schema": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "name": "list_collections",
+    },
+  ],
+}
+`;
+
+exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in the **mydb** database are:
+
+1. **movies**
+2. **users**",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 26,
+    "promptTokenCount": 642,
+    "totalTokenCount": 668,
   },
 }
 `;
@@ -20861,6 +22159,86 @@ exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam
 }
 `;
 
+exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "reasoning_signature": "dGhvdWdodF9zaWduYXR1cmVfMTIz",
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{"database":"mydb"}",
+            "name": "list_collections",
+          },
+          "id": "call_0",
+          "type": "function",
+        },
+      ],
+    },
+    {
+      "content": "{"output":["movies","users"]}",
+      "role": "tool",
+      "tool_call_id": "call_0",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "List the collections in a MongoDB database.",
+        "name": "list_collections",
+        "parameters": {
+          "properties": {
+            "database": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "database",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in the mydb database are:
+- movies
+- users",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 23,
+    "promptTokenCount": 176,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 327,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleToolSchemaNumericInt64Param > request 1`] = `
 {
   "messages": [
@@ -23233,6 +24611,93 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > resp
     "promptTokenCount": 42,
     "thoughtsTokenCount": 128,
     "totalTokenCount": 170,
+  },
+}
+`;
+
+exports[`google → responses > googleToolCallThoughtSignatureReplayParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "List the collections in the mydb database.",
+      "role": "user",
+    },
+    {
+      "arguments": "{"database":"mydb"}",
+      "call_id": "call_0",
+      "name": "list_collections",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_0",
+      "name": "list_collections",
+      "output": "{"output":["movies","users"]}",
+      "type": "function_call_output",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "description": "List the collections in a MongoDB database.",
+      "name": "list_collections",
+      "parameters": {
+        "properties": {
+          "database": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "database",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`google → responses > googleToolCallThoughtSignatureReplayParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The collections in mydb are:
+- movies
+- users
+
+Would you like any details from these collections (e.g., document counts or sample documents)?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 41,
+    "promptTokenCount": 92,
+    "thoughtsTokenCount": 192,
+    "totalTokenCount": 325,
   },
 }
 `;
@@ -27191,6 +28656,60 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Summarize the cached policy.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01X5K1bUMfKSZSkTrRPP2i5Y",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 12,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 20,
+  },
+}
+`;
+
 exports[`responses → anthropic > parallelToolCallsDisabledParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -27963,6 +29482,113 @@ However, the sky can appear different colors depending on conditions:
 }
 `;
 
+exports[`responses → anthropic > responsesFunctionCallOutputWithoutThoughtSignatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "6k7x6c84",
+          "input": {},
+          "name": "list_databases",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "[{"text":"{\\"databases\\":[\\"admin\\",\\"config\\",\\"local\\"]}","type":"text"}]",
+          "tool_use_id": "6k7x6c84",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "tool_choice": {
+    "type": "auto",
+  },
+  "tools": [
+    {
+      "description": "List databases in the connected MongoDB instance.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object",
+      },
+      "name": "list_databases",
+      "strict": false,
+    },
+  ],
+}
+`;
+
+exports[`responses → anthropic > responsesFunctionCallOutputWithoutThoughtSignatureParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01JimcjPekKD1ZgMUksBLG27",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "The connected MongoDB instance contains the following databases:
+
+1. **admin** - The administrative database for MongoDB
+2. **config** - Used for sharded cluster configuration data
+3. **local** - Contains local-only data (e.g., replication configuration)
+
+These are the standard system databases that come with a MongoDB installation. There don't appear to be any user-created databases in this instance yet.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The connected MongoDB instance contains the following databases:
+
+1. **admin** - The administrative database for MongoDB
+2. **config** - Used for sharded cluster configuration data
+3. **local** - Contains local-only data (e.g., replication configuration)
+
+These are the standard system databases that come with a MongoDB installation. There don't appear to be any user-created databases in this instance yet.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 642,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 89,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 731,
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesInputFileUrlParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -28638,6 +30264,80 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Return an answer and short reasoning.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "type": "string",
+          },
+          "reasoning": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "answer",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01LLQwDeZ9UVfjscXv4vPPAR",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{"answer": "I need a specific question to provide an answer.", "reasoning": "No question was provided in the prompt, so I cannot generate a meaningful answer or reasoning without knowing what is being asked."}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{"answer": "I need a specific question to provide an answer.", "reasoning": "No question was provided in the prompt, so I cannot generate a meaningful answer or reasoning without knowing what is being asked."}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 172,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 46,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 218,
+  },
+}
+`;
+
 exports[`responses → anthropic > textFormatJsonSchemaParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -29106,7 +30806,7 @@ exports[`responses → google > codeInterpreterToolParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -29322,10 +31022,10 @@ exports[`responses → google > complexReasoningRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 15000,
+      "thinkingLevel": "HIGH",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -29716,7 +31416,7 @@ exports[`responses → google > exclusiveMinimumToolParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -29802,10 +31502,10 @@ exports[`responses → google > functionToolsWithReasoningEffortParam > request 
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -29896,7 +31596,7 @@ exports[`responses → google > instructionsParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -29978,7 +31678,7 @@ exports[`responses → google > jsonSchemaFormatParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30057,7 +31757,7 @@ exports[`responses → google > jsonSchemaMinMaxItemsParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30133,7 +31833,7 @@ exports[`responses → google > jsonSchemaMinimumMaximumParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30227,7 +31927,7 @@ exports[`responses → google > jsonSchemaPrefixItemsParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30284,7 +31984,7 @@ exports[`responses → google > metadataParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30351,7 +32051,7 @@ exports[`responses → google > multimodalRequest > request 1`] = `
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30396,6 +32096,63 @@ exports[`responses → google > multimodalRequest > response 1`] = `
 }
 `;
 
+exports[`responses → google > openaiPromptCacheKeyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Summarize the cached policy.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > openaiPromptCacheKeyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-2.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Hello! How can I help you today?",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Hello! How can I help you today?",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 2,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 413,
+    "output_tokens_details": {
+      "reasoning_tokens": 404,
+    },
+    "total_tokens": 415,
+  },
+}
+`;
+
 exports[`responses → google > parallelToolCallsDisabledParam > request 1`] = `
 {
   "contents": [
@@ -30408,7 +32165,7 @@ exports[`responses → google > parallelToolCallsDisabledParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -30500,6 +32257,7 @@ exports[`responses → google > parallelToolCallsRequest > request 1`] = `
             },
             "name": "get_weather",
           },
+          "thoughtSignature": "skip_thought_signature_validator",
         },
         {
           "functionCall": {
@@ -30534,7 +32292,7 @@ exports[`responses → google > parallelToolCallsRequest > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "tools": [
     {
       "functionDeclarations": [
@@ -30567,14 +32325,14 @@ exports[`responses → google > parallelToolCallsRequest > response 1`] = `
   "created_at": 0,
   "id": "resp_transformed",
   "incomplete_details": null,
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "object": "response",
   "output": [
     {
       "content": [
         {
           "annotations": [],
-          "text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+          "text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
           "type": "output_text",
         },
       ],
@@ -30584,21 +32342,21 @@ exports[`responses → google > parallelToolCallsRequest > response 1`] = `
       "type": "message",
     },
   ],
-  "output_text": "The weather in San Francisco, CA is 65°F and sunny. In New York, NY, it is 45°F and cloudy.",
+  "output_text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 140,
+    "input_tokens": 151,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 32,
+    "output_tokens": 113,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 85,
     },
-    "total_tokens": 172,
+    "total_tokens": 264,
   },
 }
 `;
@@ -30615,7 +32373,7 @@ exports[`responses → google > promptCacheKeyParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30676,10 +32434,10 @@ exports[`responses → google > reasoningEffortLowParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "LOW",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30755,10 +32513,10 @@ exports[`responses → google > reasoningEffortMinimalParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MINIMAL",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30838,10 +32596,10 @@ exports[`responses → google > reasoningEffortNoneParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 0,
+      "thinkingLevel": "THINKING_LEVEL_UNSPECIFIED",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -30902,10 +32660,10 @@ exports[`responses → google > reasoningRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 3072,
+      "thinkingLevel": "HIGH",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31088,10 +32846,10 @@ exports[`responses → google > reasoningRequestTruncated > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "HIGH",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31169,10 +32927,10 @@ exports[`responses → google > reasoningSummaryParam > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 2048,
+      "thinkingLevel": "MEDIUM",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31248,10 +33006,10 @@ exports[`responses → google > reasoningWithOutput > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "LOW",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31360,6 +33118,125 @@ So, while we most commonly think of the sky as **blue**, it can be a beautiful s
 }
 `;
 
+exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {},
+            "id": "6k7x6c84",
+            "name": "list_databases",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "id": "6k7x6c84",
+            "name": "list_databases",
+            "response": {
+              "output": [
+                {
+                  "text": "{"databases":["admin","config","local"]}",
+                  "type": "text",
+                },
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO",
+    },
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "List databases in the connected MongoDB instance.",
+          "name": "list_databases",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatureParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "The databases that exist in the connected MongoDB instance are:
+
+*   **admin**
+*   **config**
+*   **local**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "The databases that exist in the connected MongoDB instance are:
+
+*   **admin**
+*   **config**
+*   **local**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 87,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 65,
+    "output_tokens_details": {
+      "reasoning_tokens": 36,
+    },
+    "total_tokens": 152,
+  },
+}
+`;
+
 exports[`responses → google > responsesInputFileUrlParam > request 1`] = `
 {
   "contents": [
@@ -31378,7 +33255,7 @@ exports[`responses → google > responsesInputFileUrlParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31513,7 +33390,7 @@ exports[`responses → google > safetyIdentifierParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31570,7 +33447,7 @@ exports[`responses → google > serviceTierParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31631,10 +33508,10 @@ exports[`responses → google > simpleRequest > request 1`] = `
     "responseSchema": null,
     "thinkingConfig": {
       "includeThoughts": true,
-      "thinkingBudget": 1024,
+      "thinkingLevel": "MINIMAL",
     },
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31708,7 +33585,7 @@ exports[`responses → google > simpleRequestTruncated > request 1`] = `
     "maxOutputTokens": 1,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31751,7 +33628,7 @@ exports[`responses → google > storeDisabledParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31812,7 +33689,7 @@ exports[`responses → google > systemMessageArrayContent > request 1`] = `
     "maxOutputTokens": 300,
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "systemInstruction": {
     "parts": [
       {
@@ -31914,7 +33791,7 @@ exports[`responses → google > textFormatJsonObjectParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -31963,6 +33840,89 @@ exports[`responses → google > textFormatJsonObjectParam > response 1`] = `
 }
 `;
 
+exports[`responses → google > textFormatJsonSchemaMissingRequiredPropertyParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Return an answer and short reasoning.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseJsonSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string",
+        },
+        "reasoning": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "answer",
+      ],
+      "title": "structured_response",
+      "type": "object",
+    },
+    "responseMimeType": "application/json",
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > textFormatJsonSchemaMissingRequiredPropertyParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "{
+  "answer": "This is a placeholder answer.",
+  "reasoning": "The user did not provide a specific question or prompt, so a generic response has been generated to satisfy the schema requirements."
+}",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "{
+  "answer": "This is a placeholder answer.",
+  "reasoning": "The user did not provide a specific question or prompt, so a generic response has been generated to satisfy the schema requirements."
+}",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 219,
+    "output_tokens_details": {
+      "reasoning_tokens": 173,
+    },
+    "total_tokens": 227,
+  },
+}
+`;
+
 exports[`responses → google > textFormatJsonSchemaParam > request 1`] = `
 {
   "contents": [
@@ -31996,7 +33956,7 @@ exports[`responses → google > textFormatJsonSchemaParam > request 1`] = `
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -32075,7 +34035,7 @@ exports[`responses → google > textFormatJsonSchemaWithDescriptionParam > reque
     "responseMimeType": "application/json",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -32136,7 +34096,7 @@ exports[`responses → google > textFormatTextParam > request 1`] = `
     "responseMimeType": "text/plain",
     "responseSchema": null,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -32274,7 +34234,7 @@ exports[`responses → google > toolChoiceRequiredParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
   "toolConfig": {
     "functionCallingConfig": {
       "allowedFunctionNames": [
@@ -32362,7 +34322,7 @@ exports[`responses → google > topPReasoningModelParam > request 1`] = `
     "responseSchema": null,
     "topP": 0.9,
   },
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -32419,7 +34379,7 @@ exports[`responses → google > truncationAutoParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 
@@ -32476,7 +34436,7 @@ exports[`responses → google > webSearchToolParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gemini-2.5-flash",
+  "model": "gemini-3.5-flash",
 }
 `;
 

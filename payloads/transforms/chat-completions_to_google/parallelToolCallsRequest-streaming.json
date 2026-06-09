@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "The weather in San"
+              "text": "In San"
             }
           ],
           "role": "model"
@@ -14,18 +14,20 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 4,
-      "totalTokenCount": 144,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 245,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 92,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "8jr6aarKHc2f1MkPlq-rgQM"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "TC8oaomFB_3njMcPyse0wQg"
   },
   {
     "candidates": [
@@ -33,7 +35,7 @@
         "content": {
           "parts": [
             {
-              "text": " Francisco, CA is 65°F and sunny. In New York, NY"
+              "text": " Francisco, it is currently 65°F and sunny. In New York, it is 45°F and"
             }
           ],
           "role": "model"
@@ -42,18 +44,20 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 21,
-      "totalTokenCount": 161,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 27,
+      "totalTokenCount": 270,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 92,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "8jr6aarKHc2f1MkPlq-rgQM"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "TC8oaomFB_3njMcPyse0wQg"
   },
   {
     "candidates": [
@@ -61,7 +65,38 @@
         "content": {
           "parts": [
             {
-              "text": ", it is 45°F and cloudy."
+              "text": " cloudy."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 29,
+      "totalTokenCount": 272,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 151
+        }
+      ],
+      "thoughtsTokenCount": 92,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "TC8oaomFB_3njMcPyse0wQg"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EtYDCtMDAQw51sdrYh6K11BHfpJ+JF/YgA+E1PBl2VKrkQIxw+tct1W07jxi6i8fAhveKZqwusEk6QjEj+2zMGYcpfqUstr0hncO76IMUMTOPsbd0pf8UMLe9NqiQRM18aYqp34eSwfc/uEHGHZiKOdeizEuooeTQ/NvQvUg6PnF0AofTMD4W9B8G29RV800/1Dd3W6ig9qe4Rr0ml3QBIi51H63zTo9R10Kr8CqyzDR3U2WNzJo0Ocfi7P3fliB/nRPFLtAWcbM/l4UuoJQReZ52Blp+w7CBDgvo7OG8JGXxRUpe5cAMAKss8I5VBKRE6D/+LXZtOM/DWfyVjzMAfbR+txWD7ayFS6mR0BDN+9H12c4u2Kyyg7tmTWknvTXM+bUpN1XsIoFdMatSNc61m8LYCbqkt47A8Nk2R6s6TChVYmv2CSnsVUCL42LEd3Q1bbQX4C8L7L0KSgpB+tK1bogFCjBlpbGcAIl7ZRkKJcgvaV4va8Ajfi/9ZU/qYurp+X6SaYD9avqHCRm2UHpxmwf2B9ejYhC6zskoJOw58pvbZ2r26/IqBu1BFiVQKlMaKCgbP+pM6iTk/t+fyIsBas9NXkHu5m3nx+wQ3tlrBWA21KxKmm+3N4="
             }
           ],
           "role": "model"
@@ -71,17 +106,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 32,
-      "totalTokenCount": 172,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 29,
+      "totalTokenCount": 272,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 92,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "8jr6aarKHc2f1MkPlq-rgQM"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "TC8oaomFB_3njMcPyse0wQg"
   }
 ]

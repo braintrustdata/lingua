@@ -1213,7 +1213,8 @@ impl From<&GoogleFinishReason> for FinishReason {
             | GoogleFinishReason::Blocklist
             | GoogleFinishReason::ProhibitedContent
             | GoogleFinishReason::Spii
-            | GoogleFinishReason::ImageSafety => FinishReason::ContentFilter,
+            | GoogleFinishReason::ImageSafety
+            | GoogleFinishReason::Escalation => FinishReason::ContentFilter,
             other => {
                 let s = serde_json::to_value(other)
                     .ok()
@@ -2006,5 +2007,12 @@ mod tests {
         let score_type = &schema.properties["score"].schema_type;
         assert_eq!(gateway_type.as_deref(), Some("string"));
         assert_eq!(score_type.as_deref(), Some("integer"));
+    }
+
+    #[test]
+    fn test_escalation_finish_reason_maps_to_content_filter() {
+        let reason = GoogleFinishReason::Escalation;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(universal, FinishReason::ContentFilter);
     }
 }

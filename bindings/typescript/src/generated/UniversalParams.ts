@@ -130,6 +130,12 @@ conversation_reference: Array<ConversationReference> | null,
  */
 service_tier: string | null, 
 /**
+ * Stable cache-bucketing key for prompt caching.
+ *
+ * **Providers:** OpenAI Chat Completions, OpenAI Responses
+ */
+prompt_cache_key: string | null, 
+/**
  * Stream the response as server-sent events.
  *
  * **Providers:** OpenAI, Anthropic

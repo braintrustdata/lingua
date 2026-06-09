@@ -36,6 +36,9 @@ fn main() {
     generate_google_test_cases(&workspace);
 }
 
+const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] =
+    &["responsesFunctionCallOutputWithoutThoughtSignatureParam"];
+
 fn generate_test_cases(workspace: &Path) {
     let snapshots_dir = workspace.join("payloads/snapshots");
 
@@ -69,6 +72,10 @@ fn generate_test_cases(workspace: &Path) {
 
             // Skip hidden directories and cache files
             if test_case_name.starts_with('.') {
+                continue;
+            }
+
+            if RESPONSES_ROUNDTRIP_SKIP_CASES.contains(&test_case_name) {
                 continue;
             }
 

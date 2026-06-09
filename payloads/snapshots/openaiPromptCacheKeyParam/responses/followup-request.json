@@ -1,0 +1,33 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Summarize the cached policy."
+    },
+    {
+      "id": "rs_02b08795987a78c2006a1b4a09ea3481a19f4e2ab79d54dc0b",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02b08795987a78c2006a1b4a0ec3c081a1938c84687d8380bc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have the cached policy content here. Could you share the text (or a link) to the policy you want summarized? If you can’t paste it, tell me the policy name and the intended audience.\n\nIf helpful, I can provide either a quick executive summary or a detailed section-by-section recap. Here are two common formats I can deliver:\n\n- Executive summary (1–2 paragraphs): captures purpose, scope, and the top requirements.\n- Section-by-section outline: bullet points for each section (Purpose, Scope, Key requirements, Roles and responsibilities, Data/privacy considerations, Enforcement, Exceptions, Review/update frequency, Definitions).\n\nIf you’d like, I can also tailor the summary to a specific audience (e.g., leadership, engineers, compliance) and keep it to a preferred length."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_key": "policy-cache-v1"
+}

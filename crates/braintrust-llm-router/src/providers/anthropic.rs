@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::time::Duration;
 
 use crate::auth::AuthConfig;
@@ -8,15 +9,63 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
+use lingua::providers::anthropic::generated::{CacheControlEphemeral, CacheControlEphemeralType};
+use lingua::serde_json::{self, Value};
 use lingua::ProviderFormat;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
+use serde::{Deserialize, Serialize};
 
 pub const ANTHROPIC_VERSION: &str = "anthropic-version";
 pub const DEFAULT_ANTHROPIC_VERSION_VALUE: &str = "2023-06-01";
+pub const ANTHROPIC_PROMPT_CACHE_HEADER: &str = "x-anthropic-prompt-cache";
 const ANTHROPIC_BETA: &str = "anthropic-beta";
 const STRUCTURED_OUTPUTS_BETA: &str = "structured-outputs-2025-11-13";
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AnthropicPromptCacheRequestView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_control: Option<CacheControlEphemeral>,
+    #[serde(flatten)]
+    extras: BTreeMap<String, Value>,
+}
+
+fn prompt_cache_header_enabled(headers: &ClientHeaders) -> bool {
+    headers
+        .get(ANTHROPIC_PROMPT_CACHE_HEADER)
+        .is_some_and(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+}
+
+fn apply_prompt_cache_header(
+    payload: Bytes,
+    format: ProviderFormat,
+    headers: &ClientHeaders,
+) -> Result<Bytes> {
+    // Non-Anthropic request formats do not have a native way to ask for
+    // Anthropic cache_control, and caching changes Anthropic billing behavior.
+    // Use this router-only header as the explicit opt-in bridge instead of
+    // enabling prompt caching for every transform to Anthropic.
+    if format != ProviderFormat::Anthropic || !prompt_cache_header_enabled(headers) {
+        return Ok(payload);
+    }
+
+    let mut request: AnthropicPromptCacheRequestView = serde_json::from_slice(&payload)?;
+    if request.cache_control.is_some() {
+        return Ok(payload);
+    }
+
+    request.cache_control = Some(CacheControlEphemeral {
+        ttl: None,
+        cache_control_ephemeral_type: CacheControlEphemeralType::Ephemeral,
+    });
+    Ok(Bytes::from(serde_json::to_vec(&request)?))
+}
 
 #[derive(Debug, Clone)]
 pub struct AnthropicConfig {
@@ -33,6 +82,109 @@ impl Default for AnthropicConfig {
             version: "2023-06-01".to_string(),
             timeout: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn headers_with_prompt_cache(value: &str) -> ClientHeaders {
+        let mut client_headers = ClientHeaders::new();
+        client_headers.insert_if_allowed(ANTHROPIC_PROMPT_CACHE_HEADER, value);
+        client_headers
+    }
+
+    #[test]
+    fn prompt_cache_header_adds_top_level_cache_control() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":1024,"messages":[{"role":"user","content":"Hi"}]}"#,
+        );
+        let updated = apply_prompt_cache_header(
+            payload,
+            ProviderFormat::Anthropic,
+            &headers_with_prompt_cache("true"),
+        )
+        .expect("cache header should apply");
+        let parsed: Value = serde_json::from_slice(&updated).expect("valid json");
+
+        assert_eq!(
+            parsed
+                .get("cache_control")
+                .and_then(|cache_control| cache_control.get("type"))
+                .and_then(Value::as_str),
+            Some("ephemeral")
+        );
+    }
+
+    #[test]
+    fn prompt_cache_header_preserves_existing_cache_control() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":1024,"cache_control":{"type":"ephemeral","ttl":"1h"},"messages":[{"role":"user","content":"Hi"}]}"#,
+        );
+        let updated = apply_prompt_cache_header(
+            payload,
+            ProviderFormat::Anthropic,
+            &headers_with_prompt_cache("true"),
+        )
+        .expect("cache header should apply");
+        let parsed: Value = serde_json::from_slice(&updated).expect("valid json");
+
+        assert_eq!(
+            parsed
+                .get("cache_control")
+                .and_then(|cache_control| cache_control.get("ttl"))
+                .and_then(Value::as_str),
+            Some("1h")
+        );
+    }
+
+    #[test]
+    fn prompt_cache_header_replaces_null_cache_control() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","max_tokens":1024,"cache_control":null,"messages":[{"role":"user","content":"Hi"}]}"#,
+        );
+        let updated = apply_prompt_cache_header(
+            payload,
+            ProviderFormat::Anthropic,
+            &headers_with_prompt_cache("true"),
+        )
+        .expect("cache header should apply");
+        let parsed: Value = serde_json::from_slice(&updated).expect("valid json");
+
+        assert_eq!(
+            parsed
+                .get("cache_control")
+                .and_then(|cache_control| cache_control.get("type"))
+                .and_then(Value::as_str),
+            Some("ephemeral")
+        );
+    }
+
+    #[test]
+    fn prompt_cache_header_does_not_apply_to_chat_completions_format() {
+        let payload = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-5","messages":[{"role":"user","content":"Hi"}]}"#,
+        );
+        let updated = apply_prompt_cache_header(
+            payload,
+            ProviderFormat::ChatCompletions,
+            &headers_with_prompt_cache("true"),
+        )
+        .expect("cache header should be ignored");
+        let parsed: Value = serde_json::from_slice(&updated).expect("valid json");
+
+        assert!(parsed.get("cache_control").is_none());
+    }
+
+    #[test]
+    fn prompt_cache_control_header_is_stripped_before_upstream() {
+        let headers = headers_with_prompt_cache("true");
+        assert!(prompt_cache_header_enabled(&headers));
+
+        assert!(!headers
+            .to_json_headers()
+            .contains_key(ANTHROPIC_PROMPT_CACHE_HEADER));
     }
 }
 
@@ -136,6 +288,9 @@ impl crate::providers::Provider for AnthropicProvider {
         format: ProviderFormat,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
+        let mut base_headers = self.build_headers(client_headers);
+        let payload = apply_prompt_cache_header(payload, format, client_headers)?;
+
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
             let key = auth.api_key().ok_or_else(|| {
@@ -148,9 +303,8 @@ impl crate::providers::Provider for AnthropicProvider {
             );
             (self.chat_completions_url(), h)
         } else {
-            let mut h = self.build_headers(client_headers);
-            auth.apply_headers(&mut h)?;
-            (self.messages_url(), h)
+            auth.apply_headers(&mut base_headers)?;
+            (self.messages_url(), base_headers)
         };
 
         let response = self
@@ -202,6 +356,9 @@ impl crate::providers::Provider for AnthropicProvider {
         }
 
         // Router should have already added stream options to payload
+        let mut base_headers = self.build_headers(client_headers);
+        let payload = apply_prompt_cache_header(payload, format, client_headers)?;
+
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
             let key = auth.api_key().ok_or_else(|| {
@@ -214,9 +371,8 @@ impl crate::providers::Provider for AnthropicProvider {
             );
             (self.chat_completions_url(), h)
         } else {
-            let mut h = self.build_headers(client_headers);
-            auth.apply_headers(&mut h)?;
-            (self.messages_url(), h)
+            auth.apply_headers(&mut base_headers)?;
+            (self.messages_url(), base_headers)
         };
 
         let response = self

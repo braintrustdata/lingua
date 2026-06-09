@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DlKgxtkW6v0UGThG1nPbDfdZnBBRn",
+  "object": "chat.completion",
+  "created": 1780173327,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here’s a practical plan for moving forward. Pick the options you prefer, and I can execute them for you.\n\nSteps to take\n- Gather the policy text: Find the exact policy you want summarized, confirm the version/date, and copy the full text or share a link.\n- Confirm context: who is the audience (legal, executives, general users) and how much detail you want (executive summary vs. full line-by-line).\n- Decide deliverables: choose from executive summary, key-point bullet outline, plain-language version, or a condensed line-by-line version.\n- Identify core elements to capture: purpose, scope, data types involved, data handling practices, rights and obligations, retention, security measures, enforcement, and contact for questions.\n- Draft and review: produce the chosen deliverables, then have a quick review with stakeholders (legal/compliance, privacy, security) if needed.\n- Publish and maintain: store the summary with version info, and set a date to review/update.\n\nWhat I can do next\n- If you paste the policy text (or share a link), I can generate:\n  - an executive summary (1–2 paragraphs),\n  - a key-points outline (bullet list),\n  - a plain-language version for non-experts,\n  - or a line-by-line condensed version.\n- If you’d prefer a ready-to-fill template, I can provide a generic summary template you can adapt to your policy.\n\nTell me:\n- the policy type and audience,\n- which deliverables you want,\n- and, if possible, paste the policy text or share a link.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 153,
+    "completion_tokens": 1165,
+    "total_tokens": 1318,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

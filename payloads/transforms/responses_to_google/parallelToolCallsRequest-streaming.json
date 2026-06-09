@@ -5,7 +5,7 @@
         "content": {
           "parts": [
             {
-              "text": "The weather in San"
+              "text": "In San Francisco, it is currently 65°F and sunny. In New York, it is 45"
             }
           ],
           "role": "model"
@@ -14,18 +14,20 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 4,
-      "totalTokenCount": 144,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 24,
+      "totalTokenCount": 268,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 93,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "im_VaZyKKI3m_uMPnpjMmQY"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "US8oarqkA-zQ_uMPs83E8A4"
   },
   {
     "candidates": [
@@ -33,7 +35,7 @@
         "content": {
           "parts": [
             {
-              "text": " Francisco, CA is 65°F and sunny. In New York, NY"
+              "text": "°F and cloudy."
             }
           ],
           "role": "model"
@@ -42,18 +44,20 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 21,
-      "totalTokenCount": 161,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 29,
+      "totalTokenCount": 273,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 93,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "im_VaZyKKI3m_uMPnpjMmQY"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "US8oarqkA-zQ_uMPs83E8A4"
   },
   {
     "candidates": [
@@ -61,7 +65,8 @@
         "content": {
           "parts": [
             {
-              "text": ", it's 45°F and cloudy."
+              "text": "",
+              "thoughtSignature": "EoYECoMEAQw51sfr++nfXAIv/U/ySUoImFxSZnMAAxrrwUQuavpw3LeMeY3Dmaex/uExZh2lwBJUZCKyP9+VIFPj2wBmyCT9RZIHm4bLB8v7Zbv6WtMaiJVeceQBaXkqCGQ8V3hZ87Ei6uSJJSzKPtz6z6andMraJC+IZQBR/MilRx4kopDY8KEveZfgDyZIJJrUN22HaUicvMgBT9N/k0Eqm/3iAkjZbv+Yh8Dip/zwxtpDwCvCwZ5AqXShPlGnRFF5HG8RU8WRnOYS3jUp5YVv0LmhNwVe+O4Dl4DGnpMHhrAZj9KlOn8MltbU48HLo9Fb/fURlxDkNjsCfUaHw58/lARM+AjaKPYdPmIKpEGX46+fWmhQS/18WOBadrbIiRnn5FugBcQrNluiSu7WDWddeyodMGUbQMaJSgcS9Msg7RdvBlE3jxnjmq63kgQ9kZunBUX1zsBeG5F1qfGz5SNV83MCFhIw7v4zf4ztaTvVlEuI0qxoQDMc1AwwXFxW/6GoUCjCol2eo8aF5q9vyj7IBygw6P5paHC1R2oGj7kPr6ErvzcaZ2m1NH69vRlwgosM9fAnxrnUvMDXj2EZSXLppnm1pq6mZzEEWack6Mpc13KUrLBPbExOo1hztSVmqkUcMsNJbUpNQBjak47zUAW2USzlMk7UmJSUjdnJ2sa4WlY/qNQdlBc="
             }
           ],
           "role": "model"
@@ -71,17 +76,19 @@
       }
     ],
     "usageMetadata": {
-      "promptTokenCount": 140,
-      "candidatesTokenCount": 33,
-      "totalTokenCount": 173,
+      "promptTokenCount": 151,
+      "candidatesTokenCount": 29,
+      "totalTokenCount": 273,
       "promptTokensDetails": [
         {
           "modality": "TEXT",
-          "tokenCount": 140
+          "tokenCount": 151
         }
-      ]
+      ],
+      "thoughtsTokenCount": 93,
+      "serviceTier": "standard"
     },
-    "modelVersion": "gemini-2.5-flash",
-    "responseId": "im_VaZyKKI3m_uMPnpjMmQY"
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "US8oarqkA-zQ_uMPs83E8A4"
   }
 ]

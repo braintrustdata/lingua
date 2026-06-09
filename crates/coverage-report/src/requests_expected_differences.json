@@ -261,12 +261,75 @@
       ]
     },
     {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Responses requests cannot carry it on function_call items" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Bedrock Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "ChatCompletions reasoning_signature is an extension used for Google thoughtSignature replay; Vertex Anthropic tool_use blocks cannot carry it" }
+      ]
+    },
+    {
       "testCase": "imageUrlMimeTypeFallbackParam",
       "source": "*",
       "target": "Bedrock",
       "fields": [
         { "pattern": "messages[*].content.length", "reason": "Bedrock Anthropic-compatible request path drops the image URL block for this case, leaving only the text part" }
       ]
+    },
+    {
+      "testCase": "anthropicMidConversationSystemMessage",
+      "source": "Anthropic",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].role", "reason": "Bedrock Converse does not preserve Anthropic system-role message entries and converts them to user text" },
+        { "pattern": "messages[*].content[*].text", "reason": "Bedrock Converse prefixes converted Anthropic system-role message text with System:" }
+      ]
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "live Messages API currently rejects role 'system'", "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but the live Anthropic Messages API rejects system-role input messages for available models" }
+      ]
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but Bedrock Anthropic targets use Anthropic Messages validation"
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but Vertex Anthropic targets use Anthropic Messages validation"
     },
     {
       "testCase": "imageUrlMimeTypeFallbackParam",
@@ -357,6 +420,70 @@
       ]
     },
     {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Bedrock Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Vertex Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Google does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Bedrock Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Vertex Anthropic does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
+      "testCase": "openaiPromptCacheKeyParam",
+      "source": "*",
+      "target": "Google",
+      "fields": [
+        { "pattern": "params.prompt_cache_key", "reason": "prompt_cache_key is OpenAI-specific and Google does not support an equivalent cache bucketing key" }
+      ]
+    },
+    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "ChatCompletions",
@@ -432,6 +559,30 @@
       "target": "Responses",
       "fields": [
         { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Strict OpenAI-style targets require explicit closed object schemas when Google omits additionalProperties" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "ChatCompletions",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
+      ]
+    },
+    {
+      "testCase": "textFormatJsonSchemaMissingRequiredPropertyParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.required", "reason": "Strict OpenAI-style targets require every object property to be listed in required" }
       ]
     },
     {
