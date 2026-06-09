@@ -529,7 +529,6 @@ jobs:
         if: >-
           steps.changes.outputs.has_changes == 'true' &&
           (
-            steps.generate.outcome == 'failure' ||
             steps.repair_trace.outcome == 'failure' ||
             steps.retry.outcome == 'failure' ||
             steps.ts_types.outcome == 'failure' ||
