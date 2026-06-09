@@ -816,6 +816,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     // UniversalParams::conversation_reference before message conversion.
                     continue;
                 }
+                Some(openai::InputItemType::AdditionalTools) => {
+                    // AdditionalTools items inject tool definitions mid-conversation.
+                    // They have no content and no universal message equivalent; skip them
+                    // so they don't trigger a MissingRequiredField error on `content`.
+                    continue;
+                }
                 Some(openai::InputItemType::Reasoning) => {
                     let mut summaries = vec![];
                     let mut first = true;
@@ -2114,6 +2120,9 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             Some(openai::OutputItemType::McpApprovalRequest) => {
                 Some(openai::InputItemType::McpApprovalRequest)
             }
+            Some(openai::OutputItemType::AdditionalTools) => {
+                Some(openai::InputItemType::AdditionalTools)
+            }
             // For other types, we might need to map them or handle specially
             _ => None, // Will be handled based on content
         };
@@ -2167,12 +2176,16 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             None
         };
 
-        // Convert role from MessageRole to InputItemRole
+        // Convert role from OutputItemRoleEnum to InputItemRole
         // If no role is provided, infer it from the output_item_type only for certain types
         let role = output_item
             .role
             .map(|mr| match mr {
-                openai::MessageRole::Assistant => openai::InputItemRole::Assistant,
+                openai::OutputItemRoleEnum::Assistant => openai::InputItemRole::Assistant,
+                openai::OutputItemRoleEnum::Developer => openai::InputItemRole::Developer,
+                openai::OutputItemRoleEnum::System => openai::InputItemRole::System,
+                openai::OutputItemRoleEnum::User => openai::InputItemRole::User,
+                _ => openai::InputItemRole::User, // Best-effort mapping for other roles (Critic, Discriminator, Unknown, Tool)
             })
             .or({
                 // Only infer role for regular messages, not for function calls or other items
@@ -2268,6 +2281,9 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             Some(openai::InputItemType::McpApprovalRequest) => {
                 Some(openai::OutputItemType::McpApprovalRequest)
             }
+            Some(openai::InputItemType::AdditionalTools) => {
+                Some(openai::OutputItemType::AdditionalTools)
+            }
             _ => None,
         };
 
@@ -2297,10 +2313,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             None
         };
 
-        // Convert role from InputItemRole to MessageRole
-        let role = input_item.role.and_then(|ir| match ir {
-            openai::InputItemRole::Assistant => Some(openai::MessageRole::Assistant),
-            _ => None, // OutputItem only supports Assistant role
+        // Convert role from InputItemRole to OutputItemRoleEnum
+        let role = input_item.role.map(|ir| match ir {
+            openai::InputItemRole::Assistant => openai::OutputItemRoleEnum::Assistant,
+            openai::InputItemRole::Developer => openai::OutputItemRoleEnum::Developer,
+            openai::InputItemRole::System => openai::OutputItemRoleEnum::System,
+            openai::InputItemRole::User => openai::OutputItemRoleEnum::User,
         });
 
         Ok(openai::OutputItem {
@@ -2611,7 +2629,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                     AssistantContent::String(text) => {
                         result.push(openai::OutputItem {
                             output_item_type: Some(openai::OutputItemType::Message),
-                            role: Some(openai::MessageRole::Assistant),
+                            role: Some(openai::OutputItemRoleEnum::Assistant),
                             content: Some(vec![openai::OutputMessageContent {
                                 output_message_content_type: openai::ContentType::OutputText,
                                 text: Some(text),
@@ -2709,7 +2727,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         };
                                     result.push(openai::OutputItem {
                                         output_item_type: Some(openai::OutputItemType::Message),
-                                        role: Some(openai::MessageRole::Assistant),
+                                        role: Some(openai::OutputItemRoleEnum::Assistant),
                                         content: Some(vec![openai::OutputMessageContent {
                                             output_message_content_type:
                                                 openai::ContentType::OutputText,
@@ -4261,5 +4279,125 @@ mod tests {
             }
             other => panic!("expected file content, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn output_item_to_input_item_preserves_developer_role() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::OutputItemRoleEnum::Developer),
+            content: Some(vec![openai::OutputMessageContent {
+                text: Some("system info".to_string()),
+                output_message_content_type: openai::ContentType::OutputText,
+                annotations: None,
+                logprobs: None,
+                refusal: None,
+            }]),
+            ..Default::default()
+        };
+
+        let input_item =
+            <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item).unwrap();
+        assert_eq!(input_item.role, Some(openai::InputItemRole::Developer));
+    }
+
+    #[test]
+    fn output_item_to_input_item_preserves_system_role() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::OutputItemRoleEnum::System),
+            content: Some(vec![openai::OutputMessageContent {
+                text: Some("config".to_string()),
+                output_message_content_type: openai::ContentType::OutputText,
+                annotations: None,
+                logprobs: None,
+                refusal: None,
+            }]),
+            ..Default::default()
+        };
+
+        let input_item =
+            <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item).unwrap();
+        assert_eq!(input_item.role, Some(openai::InputItemRole::System));
+    }
+
+    #[test]
+    fn input_item_to_output_item_preserves_developer_role() {
+        let input_item = openai::InputItem {
+            input_item_type: Some(openai::InputItemType::Message),
+            role: Some(openai::InputItemRole::Developer),
+            content: Some(openai::InputItemContent::String("dev msg".to_string())),
+            ..Default::default()
+        };
+
+        let output_item =
+            <openai::OutputItem as TryFromLLM<openai::InputItem>>::try_from(input_item).unwrap();
+        assert_eq!(
+            output_item.role,
+            Some(openai::OutputItemRoleEnum::Developer)
+        );
+    }
+
+    #[test]
+    fn additional_tools_output_to_input_preserves_type() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::AdditionalTools),
+            role: Some(openai::OutputItemRoleEnum::Developer),
+            tools: Some(vec![]),
+            ..Default::default()
+        };
+
+        let input_item =
+            <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item).unwrap();
+        assert_eq!(
+            input_item.input_item_type,
+            Some(openai::InputItemType::AdditionalTools)
+        );
+        assert_eq!(input_item.role, Some(openai::InputItemRole::Developer));
+    }
+
+    #[test]
+    fn additional_tools_input_to_output_preserves_type() {
+        let input_item = openai::InputItem {
+            input_item_type: Some(openai::InputItemType::AdditionalTools),
+            role: Some(openai::InputItemRole::Developer),
+            tools: Some(vec![]),
+            ..Default::default()
+        };
+
+        let output_item =
+            <openai::OutputItem as TryFromLLM<openai::InputItem>>::try_from(input_item).unwrap();
+        assert_eq!(
+            output_item.output_item_type,
+            Some(openai::OutputItemType::AdditionalTools)
+        );
+        assert_eq!(
+            output_item.role,
+            Some(openai::OutputItemRoleEnum::Developer)
+        );
+    }
+
+    #[test]
+    fn additional_tools_input_item_skipped_in_universal_conversion() {
+        let items = vec![
+            openai::InputItem {
+                input_item_type: Some(openai::InputItemType::AdditionalTools),
+                role: Some(openai::InputItemRole::Developer),
+                tools: Some(vec![]),
+                ..Default::default()
+            },
+            openai::InputItem {
+                input_item_type: Some(openai::InputItemType::Message),
+                role: Some(openai::InputItemRole::User),
+                content: Some(openai::InputItemContent::String("hello".to_string())),
+                ..Default::default()
+            },
+        ];
+
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(items).unwrap();
+        // AdditionalTools should be skipped, only the user message remains
+        assert_eq!(messages.len(), 1);
+        assert!(matches!(messages[0], Message::User { .. }));
     }
 }

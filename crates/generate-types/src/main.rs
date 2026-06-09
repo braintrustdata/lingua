@@ -972,6 +972,63 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     processed
 }
 
+/// Find the name of a `pub enum` that contains a variant with the given serde rename.
+/// Quicktype generates arbitrary type names that shift when the schema changes, so we
+/// identify enums by their content rather than name.
+fn find_enum_name_by_variant(content: &str, variant_snake: &str) -> Option<String> {
+    // Look for the variant name directly in enum bodies
+    let lines: Vec<&str> = content.lines().collect();
+    let mut current_enum: Option<String> = None;
+
+    for line in &lines {
+        let trimmed = line.trim();
+        if trimmed.starts_with("pub enum ") {
+            let name = trimmed
+                .strip_prefix("pub enum ")
+                .and_then(|s| s.split_whitespace().next())
+                .map(|s| s.trim_end_matches(" {").to_string());
+            current_enum = name;
+        } else if trimmed == "}" {
+            current_enum = None;
+        } else if let Some(ref enum_name) = current_enum {
+            // Check for variant with matching name (e.g., `InputText,`)
+            let variant = trimmed.trim_end_matches(',');
+            if variant == variant_snake {
+                return Some(enum_name.clone());
+            }
+        }
+    }
+    None
+}
+
+/// Find the type used for `OutputItem.role` field.
+/// Returns the type name inside Option<...> if found.
+fn find_output_item_role_type(content: &str) -> Option<String> {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut in_output_item = false;
+
+    for line in &lines {
+        let trimmed = line.trim();
+        if trimmed == "pub struct OutputItem {" || trimmed.ends_with("pub struct OutputItem {") {
+            in_output_item = true;
+            continue;
+        }
+        if in_output_item && trimmed == "}" {
+            break;
+        }
+        if in_output_item && trimmed.starts_with("pub role:") {
+            // Extract type from "pub role: Option<SomeType>,"
+            if let Some(start) = trimmed.find("Option<") {
+                let after = &trimmed[start + 7..];
+                if let Some(end) = after.find('>') {
+                    return Some(after[..end].to_string());
+                }
+            }
+        }
+    }
+    None
+}
+
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
@@ -1096,16 +1153,34 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
 
-    processed.push_str(
+    // Quicktype generates arbitrary placeholder names (IndecentType, HilariousType, etc.)
+    // that shift when the OpenAPI spec adds new types. Find the correct enum by its variants.
+    let content_type_enum = find_enum_name_by_variant(&processed, "InputText")
+        .unwrap_or_else(|| "IndecentType".to_string());
+
+    // OutputItem.role may use a different enum than MessageRole (e.g. RoleEnum).
+    // Find the field's type and add an alias if needed.
+    let output_role_alias = find_output_item_role_type(&processed);
+
+    let mut aliases = format!(
         r#"
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
 pub type Instructions = InputParam;
 pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = IndecentType;
+pub type InputItemContentListType = {content_type_enum};
 pub type FunctionCallItemStatus = Status;
 "#,
     );
+    if let Some(role_type) = output_role_alias {
+        if role_type != "MessageRole" {
+            aliases.push_str(&format!(
+                "/// Alias so hand-written adapters can keep using `MessageRole` for OutputItem roles.\n\
+                 pub type OutputItemRoleEnum = {role_type};\n"
+            ));
+        }
+    }
+    processed.push_str(&aliases);
 
     processed
 }
