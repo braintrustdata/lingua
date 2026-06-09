@@ -16,6 +16,10 @@ static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.:])|^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
         .expect("valid Opus 4.8+ model regex")
 });
+static FABLE_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(^|[./:@])claude-fable-[a-z0-9][a-z0-9.-]*($|[-./:@])")
+        .expect("valid Fable model regex")
+});
 
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
@@ -74,13 +78,17 @@ fn is_supported_mid_conversation_system_model(model: &str) -> bool {
     OPUS_4_8_OR_LATER_RE.is_match(model)
 }
 
+fn is_fable_model(model: &str) -> bool {
+    FABLE_RE.is_match(model)
+}
+
 /// Get the transforms required for a model.
 pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
     let lower = model.to_ascii_lowercase();
     if is_opus_4_7_or_later(&lower) {
         return OPUS_4_7_OR_LATER_TRANSFORMS;
     }
-    if lower.starts_with("claude-fable-5") {
+    if is_fable_model(&lower) {
         return FABLE_TRANSFORMS;
     }
 
@@ -275,11 +283,23 @@ mod tests {
             ),
             ("claude-fable-5", &[StripTemperatureParam][..]),
             ("claude-fable-5-20260601", &[StripTemperatureParam][..]),
+            ("CLAUDE-FABLE-5", &[StripTemperatureParam][..]),
+            ("claude-fable-6", &[StripTemperatureParam][..]),
+            (
+                "us.anthropic.claude-fable-5-v1:0",
+                &[StripTemperatureParam][..],
+            ),
+            (
+                "anthropic/claude-fable-5@20260601",
+                &[StripTemperatureParam][..],
+            ),
             ("claude-opus-4-6", &[][..]),
             ("claude-opus-4-20250514", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
             ("claude-sonnet-4-5-20250929", &[][..]),
             ("claude-3-5-sonnet-20241022", &[][..]),
+            ("claude-fable", &[][..]),
+            ("not-claude-fable-5", &[][..]),
         ];
         for (model, expected) in cases {
             assert_eq!(get_model_transforms(model), expected, "model: {}", model);
@@ -300,6 +320,10 @@ mod tests {
             "claude-opus-5-1-20260701",
             "claude-fable-5",
             "claude-fable-5-20260601",
+            "CLAUDE-FABLE-5",
+            "claude-fable-6",
+            "us.anthropic.claude-fable-5-v1:0",
+            "anthropic/claude-fable-5@20260601",
         ];
         let no_needs = [
             "claude-opus-4-20250514",
@@ -307,6 +331,8 @@ mod tests {
             "claude-opus-4-5",
             "claude-sonnet-4-5-20250929",
             "claude-3-5-sonnet-20241022",
+            "claude-fable",
+            "not-claude-fable-5",
         ];
         for model in needs {
             assert!(model_needs_transforms(model), "should need: {}", model);
@@ -368,7 +394,14 @@ mod tests {
 
     #[test]
     fn test_fable_strips_temperature_only() {
-        for model in ["claude-fable-5", "claude-fable-5-20260601"] {
+        for model in [
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-FABLE-5",
+            "claude-fable-6",
+            "us.anthropic.claude-fable-5-v1:0",
+            "anthropic/claude-fable-5@20260601",
+        ] {
             let mut obj = object_with_sampling_params();
             apply_model_transforms(model, &mut obj);
             assert!(
