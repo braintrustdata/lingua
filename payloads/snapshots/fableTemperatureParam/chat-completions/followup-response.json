@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DoylIkDssscECCwX8s9rK3lAEW0nI",
+  "object": "chat.completion",
+  "created": 1781042340,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "That depends on what you're interested in! Here are a few suggestions:\n\n1. **Learn Something New**: Pick a topic you’re curious about and read an article or watch a video.\n2. **Set a Goal**: Think about something you want to achieve and make a plan to get started.\n3. **Get Creative**: Try drawing, writing, or doing a craft project.\n4. **Connect with Someone**: Reach out to a friend or family member for a chat.\n5. **Take a Break**: Enjoy some time to relax, meditate, or go for a walk.\n\nLet me know if you want more specific ideas!",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 131,
+    "total_tokens": 164,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_fc8bf6718c"
+}

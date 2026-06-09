@@ -3,7 +3,7 @@
     "type": "message_start",
     "message": {
       "model": "claude-fable-5",
-      "id": "msg_01Ctoobaxzk9dogXoYaYx8A8",
+      "id": "msg_01MVQef3PJh2azdQsruajDub",
       "type": "message",
       "role": "assistant",
       "content": [],
@@ -37,7 +37,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "Hi! "
+      "text": "Hi! How"
     }
   },
   {
@@ -45,7 +45,7 @@
     "index": 0,
     "delta": {
       "type": "text_delta",
-      "text": "👋 How can I help you today?"
+      "text": " can I help you today?"
     }
   },
   {
@@ -63,7 +63,7 @@
       "input_tokens": 11,
       "cache_creation_input_tokens": 0,
       "cache_read_input_tokens": 0,
-      "output_tokens": 17,
+      "output_tokens": 13,
       "output_tokens_details": {
         "thinking_tokens": 0
       }
