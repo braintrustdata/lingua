@@ -1101,7 +1101,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // when the spec changes, so we search for the enum containing both InputText and
     // OutputText variants.
     let content_list_type_name = find_enum_with_variants(&processed, &["InputText", "OutputText"])
-        .unwrap_or_else(|| "IndecentType".to_string());
+        .expect("quicktype output did not contain an enum with InputText and OutputText variants");
 
     processed.push_str(&format!(
         r#"

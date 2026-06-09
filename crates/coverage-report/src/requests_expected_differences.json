@@ -1010,6 +1010,14 @@
       "fields": [
         { "pattern": "params.tools[0].parameters.properties.max_tokens.exclusiveMinimum", "reason": "Gemini's Schema proto does not support JSON Schema Draft-07 keywords such as exclusiveMinimum; they are stripped during conversion to avoid a 400 INVALID_ARGUMENT error" }
       ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
+      ]
     }
   ]
 }
