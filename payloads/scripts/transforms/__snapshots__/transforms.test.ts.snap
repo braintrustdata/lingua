@@ -273,6 +273,40 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
 }
 `;
 
+exports[`anthropic → chat-completions > fableTemperatureParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+}
+`;
+
+exports[`anthropic → chat-completions > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I assist you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_Doyl4vuvgfxWmbLBPNPjPS8BeB3b9",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 9,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > imageContentParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -2432,6 +2466,46 @@ I need some content to work with!",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 538,
+  },
+}
+`;
+
+exports[`anthropic → google > fableTemperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 159,
   },
 }
 `;
@@ -5106,6 +5180,44 @@ Tell me the desired length and audience (e.g., plain language for a general audi
 }
 `;
 
+exports[`anthropic → responses > fableTemperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi there! How can I help today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0c10cd12118309dd006a288c97ea68819ba5481e2d426ebf9b",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 249,
+  },
+}
+`;
+
 exports[`anthropic → responses > imageContentParam > request 1`] = `
 {
   "input": [
@@ -7308,6 +7420,47 @@ What value would you like to use?",
       "cached_tokens": 0,
     },
     "total_tokens": 750,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > fableTemperatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-fable-5",
+}
+`;
+
+exports[`chat-completions → anthropic > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01HBekLcXyZecBzuto2SB7YD",
+  "model": "claude-fable-5",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 28,
   },
 }
 `;
@@ -10148,6 +10301,53 @@ What would you prefer?",
       "cached_tokens": 0,
     },
     "total_tokens": 728,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > fableTemperatureParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "temperature": 0.7,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
   },
 }
 `;
@@ -13062,6 +13262,54 @@ exports[`chat-completions → google > exclusiveMinimumToolParam > response 1`] 
     },
     "prompt_tokens": 53,
     "total_tokens": 120,
+  },
+}
+`;
+
+exports[`chat-completions → google > fableTemperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 170,
+    "completion_tokens_details": {
+      "reasoning_tokens": 160,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 174,
   },
 }
 `;
@@ -16289,6 +16537,58 @@ If you’d like, I can apply 2048 tokens right now as a balanced default. Would 
       "cached_tokens": 0,
     },
     "total_tokens": 834,
+  },
+}
+`;
+
+exports[`chat-completions → responses > fableTemperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-03405e803c9d6c6f006a288c9add2481999e664ea45ed23910",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 186,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 195,
   },
 }
 `;

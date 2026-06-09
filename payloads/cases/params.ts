@@ -14,6 +14,7 @@ import {
   OPENAI_NON_REASONING_MODEL,
   OPENAI_MINI_REASONING_MODEL,
   ANTHROPIC_MODEL,
+  ANTHROPIC_FABLE_MODEL,
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_MODEL,
   GOOGLE_GEMINI_3_MODEL,
@@ -1648,6 +1649,22 @@ export const paramsCases: TestCaseCollection = {
         temperature: 0.7,
       },
     },
+    bedrock: null,
+  },
+
+  fableTemperatureParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_FABLE_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+    },
+    google: null,
     bedrock: null,
   },
 
