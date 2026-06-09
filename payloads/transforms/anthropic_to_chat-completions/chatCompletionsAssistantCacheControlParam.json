@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DoyknlA8upOxmY53OQBlIg8eJOZrc",
+  "object": "chat.completion",
+  "created": 1781042309,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can use a cached prefill, but I don’t have direct access to your cache. If you share the prefill text or specify the style, I’ll apply it. Otherwise, I can use a default cache-friendly template like:\n\n- Give a concise answer\n- List key steps or options\n- Ask a clarifying question if needed\n- Include sources or references if relevant\n\nPlease paste the prefill content or tell me the task and the tone you want, and I’ll apply it.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 28,
+    "completion_tokens": 879,
+    "total_tokens": 907,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 768,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -287,6 +287,51 @@ exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlPa
 }
 `;
 
+exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": "This assistant prefill should remain cacheable.",
+      "role": "assistant",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "I can use a cached prefill, but I don’t have direct access to your cache. If you share the prefill text or specify the style, I’ll apply it. Otherwise, I can use a default cache-friendly template like:
+
+- Give a concise answer
+- List key steps or options
+- Ask a clarifying question if needed
+- Include sources or references if relevant
+
+Please paste the prefill content or tell me the task and the tone you want, and I’ll apply it.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DoyknlA8upOxmY53OQBlIg8eJOZrc",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 28,
+    "output_tokens": 879,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -2329,6 +2374,54 @@ exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > resp
   "usage": {
     "input_tokens": 15,
     "output_tokens": 620,
+  },
+}
+`;
+
+exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "model",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": " Let me know if you have a specific task or topic you'd like me to assist you with!",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 18,
+    "output_tokens": 21,
   },
 }
 `;
@@ -5164,6 +5257,59 @@ Notes:
 }
 `;
 
+exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "logprobs": [],
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "This assistant prefill should remain cacheable.
+
+If you",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0592e9ab206b9682006a288c85556081a0aabd0fb3e8ba4c63",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 28,
+    "output_tokens": 1024,
+  },
+}
+`;
+
 exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
 {
   "input": [
@@ -7351,6 +7497,62 @@ Once you share the text, I'll be happy to create a summary for you.",
       "cached_tokens": 0,
     },
     "total_tokens": 141,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "text",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "
+
+I'm ready to help you! Since you mentioned using the cached assistant prefill, I'm prepared to assist with whatever you need. What would you like to work on today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0176Wh6ZFBbCMXtSXaziEAWT",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 40,
+    "prompt_tokens": 23,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 63,
   },
 }
 `;
@@ -10272,6 +10474,60 @@ Once you provide the text, I'll be happy to summarize it for you!",
       "cached_tokens": 0,
     },
     "total_tokens": 132,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "
+
+This is my unique response to your request about using the cached assistant prefill. I'm ready to help you with any questions or tasks you have in mind.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 23,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 59,
   },
 }
 `;
@@ -13214,6 +13470,55 @@ exports[`chat-completions → google > chatCompletionsAnthropicCacheControlParam
     },
     "prompt_tokens": 15,
     "total_tokens": 222,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "model",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": " How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 7,
+    "prompt_tokens": 18,
+    "total_tokens": 25,
   },
 }
 `;
@@ -16561,6 +16866,85 @@ Once you provide the text, I’ll generate the summary in your chosen format and
       "cached_tokens": 0,
     },
     "total_tokens": 1360,
+  },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "logprobs": [],
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
+
+Here’s a compact, generic prefill you can use right away (store it and reuse):
+
+Prefill (system-like):
+- Role: Helpful assistant
+- Tone: concise, accurate, and polite
+- Scope: answers questions, provides steps, and asks clarifying questions if information is missing
+- Verification: do not fabricate facts; if unsure, say so
+- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible
+- Special cases: for code, give a minimal complete example with explanations
+
+How to use:
+- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
+- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1957,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1664,
+    },
+    "prompt_tokens": 28,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1985,
   },
 }
 `;
