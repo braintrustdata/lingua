@@ -129,6 +129,19 @@ jobs:
           show_full_output: "true"
           display_report: "true"
           timeout_minutes: "20"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "TRACE_TO_BRAINTRUST": "true",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
           claude_args: |
             --model claude-opus-4-6
             --max-turns 80
@@ -220,6 +233,19 @@ jobs:
           show_full_output: "true"
           display_report: "true"
           timeout_minutes: "30"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "TRACE_TO_BRAINTRUST": "true",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
           claude_args: |
             --model claude-opus-4-6
             --max-turns 100
