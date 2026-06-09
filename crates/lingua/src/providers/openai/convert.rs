@@ -3619,7 +3619,7 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
 
                 Ok(ChatCompletionRequestMessageExt {
                     role: openai::ChatCompletionRequestMessageRole::Assistant,
-                    content: text_content.map(chat_completion_content_ext_from_generated),
+                    content: text_content,
                     name: None,
                     tool_calls,
                     tool_call_id: None,
@@ -3715,26 +3715,6 @@ fn convert_user_content_to_chat_completion_content(
     }
 }
 
-fn chat_completion_content_ext_from_generated(
-    content: openai::ChatCompletionRequestMessageContent,
-) -> ChatCompletionRequestMessageContentExt {
-    match content {
-        openai::ChatCompletionRequestMessageContent::String(text) => {
-            ChatCompletionRequestMessageContentExt::String(text)
-        }
-        openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
-            parts,
-        ) => ChatCompletionRequestMessageContentExt::Parts(
-            parts.into_iter()
-                .map(|base| ChatCompletionRequestMessageContentPartExt {
-                    base,
-                    cache_control: None,
-                })
-                .collect(),
-        ),
-    }
-}
-
 fn convert_user_content_part_to_chat_completion_part_ext(
     part: UserContentPart,
 ) -> Result<ChatCompletionRequestMessageContentPartExt, ConvertError> {
@@ -3817,7 +3797,7 @@ and Anthropic document blocks do not map safely.",
 }
 
 type ExtractedContentResult = (
-    Option<openai::ChatCompletionRequestMessageContent>,
+    Option<ChatCompletionRequestMessageContentExt>,
     Option<Vec<openai::ToolCall>>,
     Option<String>,
     Option<String>, // reasoning_signature
@@ -3835,7 +3815,7 @@ fn extract_content_tool_calls_and_reasoning(
     match content {
         AssistantContent::String(text) => {
             return Ok((
-                Some(openai::ChatCompletionRequestMessageContent::String(text)),
+                Some(ChatCompletionRequestMessageContentExt::String(text)),
                 None,
                 None,
                 None,
@@ -3845,7 +3825,7 @@ fn extract_content_tool_calls_and_reasoning(
             for part in parts {
                 match part {
                     AssistantContentPart::Text(text_part) => {
-                        text_parts.push(text_part.text);
+                        text_parts.push(text_part);
                     }
                     AssistantContentPart::Reasoning {
                         text,
@@ -3885,13 +3865,7 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = if text_parts.is_empty() {
-        None
-    } else {
-        Some(openai::ChatCompletionRequestMessageContent::String(
-            text_parts.join(""),
-        ))
-    };
+    let text_content = chat_completion_assistant_text_content(text_parts);
 
     let tool_calls_option = if tool_calls.is_empty() {
         None
@@ -3910,6 +3884,47 @@ fn extract_content_tool_calls_and_reasoning(
         tool_calls_option,
         reasoning,
         reasoning_signature,
+    ))
+}
+
+fn chat_completion_assistant_text_content(
+    text_parts: Vec<TextContentPart>,
+) -> Option<ChatCompletionRequestMessageContentExt> {
+    if text_parts.is_empty() {
+        return None;
+    }
+
+    let has_metadata = text_parts.iter().any(|text_part| {
+        text_part.cache_control.is_some()
+            || text_part.encrypted_content.is_some()
+            || text_part.provider_options.is_some()
+    });
+
+    if !has_metadata {
+        return Some(ChatCompletionRequestMessageContentExt::String(
+            text_parts
+                .into_iter()
+                .map(|text_part| text_part.text)
+                .collect::<Vec<_>>()
+                .join(""),
+        ));
+    }
+
+    Some(ChatCompletionRequestMessageContentExt::Parts(
+        text_parts
+            .into_iter()
+            .map(|text_part| ChatCompletionRequestMessageContentPartExt {
+                cache_control: cache_control_to_value(text_part.cache_control),
+                base: openai::ChatCompletionRequestMessageContentPart {
+                    text: Some(text_part.text),
+                    chat_completion_request_message_content_part_type: openai::PurpleType::Text,
+                    image_url: None,
+                    input_audio: None,
+                    file: None,
+                    refusal: None,
+                },
+            })
+            .collect(),
     ))
 }
 
