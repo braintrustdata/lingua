@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The provided text consists of 240 identical sections outlining a **Loop Policy**. \n\nThe core policy requires the assistant to handle repetitive or stuck situations by doing the following:\n\n1. **Detection:** Identify loops, which include repeated user intents, repeated assistant outputs, stalled tool executions, and recursive repair attempts.\n2. **Mitigation:** Stop attempting the action after a limited (bounded) number of retries to prevent infinite loops.\n3. **User Control:** Summarize the repeated state to the user and ask for exactly **one concrete next action** to hand back control before proceeding.",
+            "thoughtSignature": "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"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 12376,
+    "candidatesTokenCount": 122,
+    "totalTokenCount": 12946,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 12376
+      }
+    ],
+    "thoughtsTokenCount": 448,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "KnwoaqGzIK7P_uMPpfHb2QY"
+}

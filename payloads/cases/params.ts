@@ -27,6 +27,37 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
     reasoning_signature: string;
   };
 
+type ChatCompletionTextPartWithCacheControl =
+  OpenAI.Chat.Completions.ChatCompletionContentPartText & {
+    cache_control: { type: "ephemeral" };
+  };
+
+type ChatCompletionUserMessageWithCacheControl = Omit<
+  OpenAI.Chat.Completions.ChatCompletionUserMessageParam,
+  "content"
+> & {
+  content: Array<
+    | OpenAI.Chat.Completions.ChatCompletionContentPart
+    | ChatCompletionTextPartWithCacheControl
+  >;
+};
+
+const LOOP_POLICY_CACHE_TEXT = Array.from(
+  { length: 240 },
+  (_, index) =>
+    `Loop policy section ${index + 1}: Detect repeated user intent, repeated assistant output, stalled tool execution, and recursive repair attempts. Preserve user control, stop after bounded retries, summarize the repeated state, and ask for one concrete next action before continuing.`
+).join("\n");
+
+function chatCompletionCachedTextPart(
+  text: string
+): ChatCompletionTextPartWithCacheControl {
+  return {
+    type: "text",
+    text,
+    cache_control: { type: "ephemeral" },
+  };
+}
+
 const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
   {
     role: "assistant",
@@ -112,6 +143,47 @@ export const paramsCases: TestCaseCollection = {
       prompt_cache_key: "policy-cache-v1",
     },
     anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsAnthropicCacheControlParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            chatCompletionCachedTextPart(LOOP_POLICY_CACHE_TEXT),
+            {
+              type: "text",
+              text: "Now summarize it.",
+            },
+          ],
+        } satisfies ChatCompletionUserMessageWithCacheControl,
+      ],
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: LOOP_POLICY_CACHE_TEXT,
+              cache_control: { type: "ephemeral" },
+            },
+            {
+              type: "text",
+              text: "Now summarize it.",
+            },
+          ],
+        },
+      ],
+    },
     google: null,
     bedrock: null,
   },

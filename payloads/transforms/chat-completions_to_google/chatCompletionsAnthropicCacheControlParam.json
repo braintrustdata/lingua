@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Based on the repeated sections, the text outlines a **loop policy** designed to handle repetitive, stalled, or recursive behaviors during an interaction. \n\nThe core guidelines of this policy are:\n\n* **Detection:** Identify repetitive loops, including repeated user intent, duplicate assistant output, stalled tool execution, and recursive repair attempts.\n* **Mitigation:** Stop the process after a limited (bounded) number of retries.\n* **Resolution:** Maintain user control by summarizing the current repetitive state and asking the user for a single, concrete next action before proceeding.",
+            "thoughtSignature": "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"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 12376,
+    "candidatesTokenCount": 113,
+    "totalTokenCount": 12977,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 12376
+      }
+    ],
+    "thoughtsTokenCount": 488,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "Jnwoau2-NefL_uMP477e6AE"
+}

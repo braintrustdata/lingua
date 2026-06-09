@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Doxf81dK1vj2xy1TmrL9Hmjfn6nJ0",
+  "object": "chat.completion",
+  "created": 1781038114,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "- Core goal: Detect loop-like repeats (same user intent, repeated assistant outputs, tool stalls, or recursive repair attempts).\n- User control: Preserve user control and require a single concrete next action from the user before proceeding.\n- Retry limit: Stop after a bounded number of retries.\n- State handling: When a loop is detected, summarize the repeated state.\n- Next step prompt: Ask for one concrete next action before continuing.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 11529,
+    "completion_tokens": 671,
+    "total_tokens": 12200,
+    "prompt_tokens_details": {
+      "cached_tokens": 11392,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 576,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

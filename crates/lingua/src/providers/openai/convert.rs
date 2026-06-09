@@ -137,15 +137,161 @@ pub struct ChatCompletionResponseMessageExt {
     pub reasoning_signature: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ChatCompletionRequestMessageExt {
     #[serde(flatten)]
     pub base: openai::ChatCompletionRequestMessage,
+    #[serde(skip)]
+    pub content_ext: Option<ChatCompletionRequestMessageContentExt>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<ChatCompletionRequestReasoning>,
     /// Encrypted reasoning signature for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_signature: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ChatCompletionRequestMessageContentExt {
+    Parts(Vec<ChatCompletionRequestMessageContentPartExt>),
+    String(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatCompletionRequestMessageContentPartExt {
+    #[serde(flatten)]
+    pub base: openai::ChatCompletionRequestMessageContentPart,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ChatCompletionRequestMessageExtWire {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<ChatCompletionRequestMessageContentExt>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    role: openai::ChatCompletionRequestMessageRole,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    audio: Option<openai::ChatCompletionRequestMessageAudio>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    function_call: Option<openai::ChatCompletionRequestMessageFunctionCall>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    refusal: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_calls: Option<Vec<openai::ToolCall>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_call_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_control: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning: Option<ChatCompletionRequestReasoning>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_signature: Option<String>,
+}
+
+impl From<ChatCompletionRequestMessageContentExt> for openai::ChatCompletionRequestMessageContent {
+    fn from(content: ChatCompletionRequestMessageContentExt) -> Self {
+        match content {
+            ChatCompletionRequestMessageContentExt::Parts(parts) => {
+                openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(
+                    parts.into_iter().map(|part| part.base).collect(),
+                )
+            }
+            ChatCompletionRequestMessageContentExt::String(text) => {
+                openai::ChatCompletionRequestMessageContent::String(text)
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ChatCompletionRequestMessageExt {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = ChatCompletionRequestMessageExtWire::deserialize(deserializer)?;
+        let base_content = wire.content.clone().map(Into::into);
+        Ok(Self {
+            base: openai::ChatCompletionRequestMessage {
+                content: base_content,
+                name: wire.name,
+                role: wire.role,
+                audio: wire.audio,
+                function_call: wire.function_call,
+                refusal: wire.refusal,
+                tool_calls: wire.tool_calls,
+                tool_call_id: wire.tool_call_id,
+            },
+            content_ext: wire.content,
+            cache_control: wire.cache_control,
+            reasoning: wire.reasoning,
+            reasoning_signature: wire.reasoning_signature,
+        })
+    }
+}
+
+fn provider_options_from_cache_control(
+    cache_control: Option<serde_json::Value>,
+) -> Option<ProviderOptions> {
+    let cache_control = cache_control?;
+    let mut options = serde_json::Map::new();
+    options.insert("cache_control".into(), cache_control);
+    Some(ProviderOptions { options })
+}
+
+fn chat_completion_content_to_user_content(
+    content_ext: Option<ChatCompletionRequestMessageContentExt>,
+    base_content: Option<openai::ChatCompletionRequestMessageContent>,
+    cache_control: Option<serde_json::Value>,
+) -> Result<UserContent, ConvertError> {
+    if let Some(content) = content_ext {
+        return match content {
+            ChatCompletionRequestMessageContentExt::String(text) => {
+                if cache_control.is_some() {
+                    Ok(UserContent::Array(vec![UserContentPart::Text(
+                        TextContentPart {
+                            text,
+                            encrypted_content: None,
+                            provider_options: provider_options_from_cache_control(cache_control),
+                        },
+                    )]))
+                } else {
+                    Ok(UserContent::String(text))
+                }
+            }
+            ChatCompletionRequestMessageContentExt::Parts(parts) => {
+                let user_parts: Result<Vec<_>, _> =
+                    parts.into_iter().map(TryFromLLM::try_from).collect();
+                Ok(UserContent::Array(user_parts?))
+            }
+        };
+    }
+
+    match base_content {
+        Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
+            if cache_control.is_some() {
+                Ok(UserContent::Array(vec![UserContentPart::Text(
+                    TextContentPart {
+                        text,
+                        encrypted_content: None,
+                        provider_options: provider_options_from_cache_control(cache_control),
+                    },
+                )]))
+            } else {
+                Ok(UserContent::String(text))
+            }
+        }
+        Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
+            let user_parts: Result<Vec<_>, _> = parts.into_iter().map(TryFromLLM::try_from).collect();
+            Ok(UserContent::Array(user_parts?))
+        }
+        None => Err(ConvertError::MissingRequiredField {
+            field: "content".to_string(),
+        }),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -3085,35 +3231,19 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
     fn try_from(msg: ChatCompletionRequestMessageExt) -> Result<Self, Self::Error> {
         match msg.base.role {
             openai::ChatCompletionRequestMessageRole::System => {
-                let content = match msg.base.content {
-                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        UserContent::String(text)
-                    }
-                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
-                        let user_parts: Result<Vec<_>, _> = parts
-                            .into_iter()
-                            .map(TryFromLLM::try_from)
-                            .collect();
-                        UserContent::Array(user_parts?)
-                    }
-                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
-                };
+                let content = chat_completion_content_to_user_content(
+                    msg.content_ext,
+                    msg.base.content,
+                    msg.cache_control,
+                )?;
                 Ok(Message::System { content })
             }
             openai::ChatCompletionRequestMessageRole::User => {
-                let content = match msg.base.content {
-                    Some(openai::ChatCompletionRequestMessageContent::String(text)) => {
-                        UserContent::String(text)
-                    }
-                    Some(openai::ChatCompletionRequestMessageContent::ChatCompletionRequestMessageContentPartArray(parts)) => {
-                        let user_parts: Result<Vec<_>, _> = parts
-                            .into_iter()
-                            .map(TryFromLLM::try_from)
-                            .collect();
-                        UserContent::Array(user_parts?)
-                    }
-                    None => return Err(ConvertError::MissingRequiredField { field: "content".to_string() }),
-                };
+                let content = chat_completion_content_to_user_content(
+                    msg.content_ext,
+                    msg.base.content,
+                    msg.cache_control,
+                )?;
                 Ok(Message::User { content })
             }
             openai::ChatCompletionRequestMessageRole::Assistant => {
@@ -3130,7 +3260,44 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                 }
 
                 // Add text content if present
-                match msg.base.content {
+                match msg.content_ext {
+                    Some(ChatCompletionRequestMessageContentExt::String(text))
+                        if !text.is_empty() =>
+                    {
+                        content_parts.push(AssistantContentPart::Text(TextContentPart {
+                            text,
+                            encrypted_content: None,
+                            provider_options: provider_options_from_cache_control(msg.cache_control),
+                        }));
+                    }
+                    Some(ChatCompletionRequestMessageContentExt::String(_)) => {}
+                    Some(ChatCompletionRequestMessageContentExt::Parts(parts)) => {
+                        let assistant_parts: Result<Vec<_>, _> = parts
+                            .into_iter()
+                            .map(|part| {
+                                match part.base.chat_completion_request_message_content_part_type {
+                                    openai::PurpleType::Text => {
+                                        if let Some(text) = part.base.text {
+                                            Ok(AssistantContentPart::Text(TextContentPart {
+                                                text,
+                                                encrypted_content: None,
+                                                provider_options: provider_options_from_cache_control(
+                                                    part.cache_control,
+                                                ),
+                                            }))
+                                        } else {
+                                            Err(ConvertError::MissingRequiredField { field: "text".to_string() })
+                                        }
+                                    }
+                                    _ => Err(ConvertError::UnsupportedInputType {
+                                        type_info: format!("ChatCompletionRequestMessageContentPart type: {:?}", part.base.chat_completion_request_message_content_part_type),
+                                    }),
+                                }
+                            })
+                            .collect();
+                        content_parts.extend(assistant_parts?);
+                    }
+                    None => match msg.base.content {
                     Some(openai::ChatCompletionRequestMessageContent::String(text))
                         if !text.is_empty() =>
                     {
@@ -3167,6 +3334,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                         content_parts.extend(assistant_parts?);
                     }
                     None => {} // Handle empty assistant messages
+                    },
                 }
 
                 // Add tool calls if present
@@ -3367,6 +3535,75 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
     }
 }
 
+impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart {
+    type Error = ConvertError;
+
+    fn try_from(part: ChatCompletionRequestMessageContentPartExt) -> Result<Self, Self::Error> {
+        match part.base.chat_completion_request_message_content_part_type {
+            openai::PurpleType::Text => {
+                if let Some(text) = part.base.text {
+                    Ok(UserContentPart::Text(TextContentPart {
+                        text,
+                        encrypted_content: None,
+                        provider_options: provider_options_from_cache_control(part.cache_control),
+                    }))
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "text".to_string(),
+                    })
+                }
+            }
+            openai::PurpleType::ImageUrl => {
+                if let Some(image_url) = part.base.image_url {
+                    let (image_data, media_type) =
+                        if let Some(block) = parse_base64_data_url(&image_url.url) {
+                            (block.data, Some(block.media_type))
+                        } else {
+                            (image_url.url.clone(), None)
+                        };
+
+                    Ok(UserContentPart::Image {
+                        image: serde_json::Value::String(image_data),
+                        media_type,
+                        provider_options: None,
+                    })
+                } else {
+                    Err(ConvertError::MissingRequiredField {
+                        field: "image_url".to_string(),
+                    })
+                }
+            }
+            openai::PurpleType::File => {
+                let file = part
+                    .base
+                    .file
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "file".to_string(),
+                    })?;
+                let (payload, filename) = universal_file_payload_from_openai(
+                    file.file_data,
+                    None,
+                    file.file_id,
+                    file.filename,
+                )?;
+
+                Ok(UserContentPart::File {
+                    data: payload.data,
+                    filename,
+                    media_type: payload.media_type,
+                    provider_options: None,
+                })
+            }
+            _ => Err(ConvertError::UnsupportedInputType {
+                type_info: format!(
+                    "ChatCompletionRequestMessageContentPart type: {:?}",
+                    part.base.chat_completion_request_message_content_part_type
+                ),
+            }),
+        }
+    }
+}
+
 /// Convert universal Message to ChatCompletionRequestMessage
 impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
     type Error = ConvertError;
@@ -3384,6 +3621,8 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     function_call: None,
                     refusal: None,
                 },
+                content_ext: None,
+                cache_control: None,
                 reasoning: None,
                 reasoning_signature: None,
             }),
@@ -3398,6 +3637,8 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     function_call: None,
                     refusal: None,
                 },
+                content_ext: None,
+                cache_control: None,
                 reasoning: None,
                 reasoning_signature: None,
             }),
@@ -3412,6 +3653,8 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     function_call: None,
                     refusal: None,
                 },
+                content_ext: None,
+                cache_control: None,
                 reasoning: None,
                 reasoning_signature: None,
             }),
@@ -3430,6 +3673,8 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                         function_call: None,
                         refusal: None,
                     },
+                    content_ext: None,
+                    cache_control: None,
                     reasoning: reasoning.map(ChatCompletionRequestReasoning::String),
                     reasoning_signature,
                 })
@@ -3498,6 +3743,8 @@ pub(crate) fn tool_result_to_chat_completion_message(
             function_call: None,
             refusal: None,
         },
+        content_ext: None,
+        cache_control: None,
         reasoning: None,
         reasoning_signature: None,
     })
@@ -3889,6 +4136,53 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[cfg(feature = "anthropic")]
+    #[test]
+    fn chat_completions_cache_control_content_part_roundtrips_to_anthropic() {
+        let value = json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Use the cached Loop policy.",
+                    "cache_control": { "type": "ephemeral" }
+                },
+                {
+                    "type": "text",
+                    "text": "Now summarize it."
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+        let anthropic_message =
+            <crate::providers::anthropic::generated::InputMessage as TryFromLLM<Message>>::try_from(
+                message,
+            )
+            .expect("message should convert to anthropic");
+
+        let content = match anthropic_message.content {
+            crate::providers::anthropic::generated::MessageContent::InputContentBlockArray(
+                content,
+            ) => content,
+            other => panic!("expected anthropic content block array, got {other:?}"),
+        };
+
+        assert_eq!(content.len(), 2);
+        assert_eq!(
+            content[0]
+                .cache_control
+                .as_ref()
+                .expect("cache_control should be preserved")
+                .cache_control_ephemeral_type,
+            crate::providers::anthropic::generated::CacheControlEphemeralType::Ephemeral
+        );
+        assert!(content[1].cache_control.is_none());
     }
 
     #[test]

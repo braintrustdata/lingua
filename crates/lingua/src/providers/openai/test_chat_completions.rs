@@ -45,6 +45,8 @@ mod tests {
                     .iter()
                     .map(|m| ChatCompletionRequestMessageExt {
                         base: m.clone(),
+                        content_ext: None,
+                        cache_control: None,
                         reasoning: None,
                         reasoning_signature: None,
                     })

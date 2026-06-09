@@ -1,0 +1,80 @@
+{
+  "id": "resp_0daae95d7c3a0d82006a287c22ae14819c99ad969a3763147a",
+  "object": "response",
+  "created_at": 1781038114,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1781038123,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0daae95d7c3a0d82006a287c231954819ca385989af981b4c8",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0daae95d7c3a0d82006a287c291054819c8946784bcc26610b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here’s a concise summary of the loop policy you provided (applies uniformly across all sections):\n\n- What to detect:\n  - Repeated user intent (the same goal/request appears again and again)\n  - Repeated assistant output (the same or nearly identical responses)\n  - Stalled tool execution (a tool or external action not progressing)\n  - Recursive repair attempts (ongoing, unproductive attempts to fix the issue)\n\n- How to respond:\n  - Preserve user control: let the user steer the next steps.\n  - Stop after a bounded number of retries: impose a limit on repeated attempts.\n  - Summarize the repeated state: provide a concise update on what is being repeated (intent, output, stalls, repairs).\n  - Ask for one concrete next action before continuing: request a single, specific action from the user to move forward.\n\n- Overall note:\n  - The policy sections are identical in structure and intent, just repeated across many sections. The behavior is to detect the loop, pause/retry within limits, report the loop state, and prompt for one clear next action."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 11529,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1054,
+    "output_tokens_details": {
+      "reasoning_tokens": 768
+    },
+    "total_tokens": 12583
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here’s a concise summary of the loop policy you provided (applies uniformly across all sections):\n\n- What to detect:\n  - Repeated user intent (the same goal/request appears again and again)\n  - Repeated assistant output (the same or nearly identical responses)\n  - Stalled tool execution (a tool or external action not progressing)\n  - Recursive repair attempts (ongoing, unproductive attempts to fix the issue)\n\n- How to respond:\n  - Preserve user control: let the user steer the next steps.\n  - Stop after a bounded number of retries: impose a limit on repeated attempts.\n  - Summarize the repeated state: provide a concise update on what is being repeated (intent, output, stalls, repairs).\n  - Ask for one concrete next action before continuing: request a single, specific action from the user to move forward.\n\n- Overall note:\n  - The policy sections are identical in structure and intent, just repeated across many sections. The behavior is to detect the loop, pause/retry within limits, report the loop state, and prompt for one clear next action."
+}
