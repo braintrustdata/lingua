@@ -1,13 +1,13 @@
 {
-  "id": "resp_0daae95d7c3a0d82006a287c22ae14819c99ad969a3763147a",
+  "id": "resp_0070295c6fa3899a006a2885cfbf5881a287efa197ea2ea6c2",
   "object": "response",
-  "created_at": 1781038114,
+  "created_at": 1781040591,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1781038123,
+  "completed_at": 1781040603,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,13 +18,13 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0daae95d7c3a0d82006a287c231954819ca385989af981b4c8",
+      "id": "rs_0070295c6fa3899a006a2885d0a6b081a2a7d7d207c03ca300",
       "type": "reasoning",
       "content": [],
       "summary": []
     },
     {
-      "id": "msg_0daae95d7c3a0d82006a287c291054819c8946784bcc26610b",
+      "id": "msg_0070295c6fa3899a006a2885d97df481a2b485ff2e9c529683",
       "type": "message",
       "status": "completed",
       "content": [
@@ -32,7 +32,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Here’s a concise summary of the loop policy you provided (applies uniformly across all sections):\n\n- What to detect:\n  - Repeated user intent (the same goal/request appears again and again)\n  - Repeated assistant output (the same or nearly identical responses)\n  - Stalled tool execution (a tool or external action not progressing)\n  - Recursive repair attempts (ongoing, unproductive attempts to fix the issue)\n\n- How to respond:\n  - Preserve user control: let the user steer the next steps.\n  - Stop after a bounded number of retries: impose a limit on repeated attempts.\n  - Summarize the repeated state: provide a concise update on what is being repeated (intent, output, stalls, repairs).\n  - Ask for one concrete next action before continuing: request a single, specific action from the user to move forward.\n\n- Overall note:\n  - The policy sections are identical in structure and intent, just repeated across many sections. The behavior is to detect the loop, pause/retry within limits, report the loop state, and prompt for one clear next action."
+          "text": "I don’t see the reference text yet. Please paste the stable reference text you want summarized. If it’s long, feel free to send it in chunks.\n\nI can return the summary in several formats (pick what you prefer):\n\n- One-sentence summary\n- Executive summary (2–4 sentences)\n- Key-points bullets (top 5–10 points)\n- Detailed bullet list (structured, with sections for purpose, scope, findings, conclusions)\n- Cacheable context card (compact data sheet)\n\nCacheable context card template (you can copy this to store and reuse):\n\n- Title:\n- Source/Author:\n- Date:\n- Purpose:\n- Scope:\n- Key Concepts:\n- Summary (1–2 sentences):\n- Key Points (bullets):\n- Metrics/Evidence:\n- Conclusions:\n- Assumptions/Limitations:\n- Keywords:\n\nOnce you provide the text, I’ll generate the summary in your chosen format and treat it as the cacheable context for this session."
         }
       ],
       "role": "assistant"
@@ -64,17 +64,17 @@
   "top_p": 1,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 11529,
+    "input_tokens": 19,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 1054,
+    "output_tokens": 1341,
     "output_tokens_details": {
-      "reasoning_tokens": 768
+      "reasoning_tokens": 1088
     },
-    "total_tokens": 12583
+    "total_tokens": 1360
   },
   "user": null,
   "metadata": {},
-  "output_text": "Here’s a concise summary of the loop policy you provided (applies uniformly across all sections):\n\n- What to detect:\n  - Repeated user intent (the same goal/request appears again and again)\n  - Repeated assistant output (the same or nearly identical responses)\n  - Stalled tool execution (a tool or external action not progressing)\n  - Recursive repair attempts (ongoing, unproductive attempts to fix the issue)\n\n- How to respond:\n  - Preserve user control: let the user steer the next steps.\n  - Stop after a bounded number of retries: impose a limit on repeated attempts.\n  - Summarize the repeated state: provide a concise update on what is being repeated (intent, output, stalls, repairs).\n  - Ask for one concrete next action before continuing: request a single, specific action from the user to move forward.\n\n- Overall note:\n  - The policy sections are identical in structure and intent, just repeated across many sections. The behavior is to detect the loop, pause/retry within limits, report the loop state, and prompt for one clear next action."
+  "output_text": "I don’t see the reference text yet. Please paste the stable reference text you want summarized. If it’s long, feel free to send it in chunks.\n\nI can return the summary in several formats (pick what you prefer):\n\n- One-sentence summary\n- Executive summary (2–4 sentences)\n- Key-points bullets (top 5–10 points)\n- Detailed bullet list (structured, with sections for purpose, scope, findings, conclusions)\n- Cacheable context card (compact data sheet)\n\nCacheable context card template (you can copy this to store and reuse):\n\n- Title:\n- Source/Author:\n- Date:\n- Purpose:\n- Scope:\n- Key Concepts:\n- Summary (1–2 sentences):\n- Key Points (bullets):\n- Metrics/Evidence:\n- Conclusions:\n- Assumptions/Limitations:\n- Keywords:\n\nOnce you provide the text, I’ll generate the summary in your chosen format and treat it as the cacheable context for this session."
 }

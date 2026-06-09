@@ -7,7 +7,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "#"
+        "text": "I don't see any reference text provide"
       },
       "contentBlockIndex": 0
     }
@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Loop"
+        "text": "d in your message. Could you please share"
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Policy Summary"
+        "text": " the text you'd like me to summar"
       },
       "contentBlockIndex": 0
     }
@@ -31,7 +31,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\nI"
+        "text": "ize? Once you provide it, I"
       },
       "contentBlockIndex": 0
     }
@@ -39,7 +39,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "'ve rea"
+        "text": "'ll be happy to:\n\n1."
       },
       "contentBlockIndex": 0
     }
@@ -47,7 +47,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "d through "
+        "text": " Use"
       },
       "contentBlockIndex": 0
     }
@@ -55,7 +55,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "240 identical"
+        "text": " it as cach"
       },
       "contentBlockIndex": 0
     }
@@ -63,7 +63,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " sections"
+        "text": "eable context"
       },
       "contentBlockIndex": 0
     }
@@ -71,7 +71,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " of a"
+        "text": "\n2. Create"
       },
       "contentBlockIndex": 0
     }
@@ -79,7 +79,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " loop"
+        "text": " a clear"
       },
       "contentBlockIndex": 0
     }
@@ -87,7 +87,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " detection"
+        "text": ", concise summary for"
       },
       "contentBlockIndex": 0
     }
@@ -95,7 +95,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " policy."
+        "text": " you\n\nPlease paste the text you'"
       },
       "contentBlockIndex": 0
     }
@@ -103,7 +103,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Each section states"
+        "text": "d like summar"
       },
       "contentBlockIndex": 0
     }
@@ -111,7 +111,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " the"
+        "text": "ized, and let"
       },
       "contentBlockIndex": 0
     }
@@ -119,7 +119,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " same directive"
+        "text": " me know if"
       },
       "contentBlockIndex": 0
     }
@@ -127,7 +127,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ":"
+        "text": " you have"
       },
       "contentBlockIndex": 0
     }
@@ -135,7 +135,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "\n\n**"
+        "text": " any specific preferences"
       },
       "contentBlockIndex": 0
     }
@@ -143,7 +143,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Core"
+        "text": " for the"
       },
       "contentBlockIndex": 0
     }
@@ -151,7 +151,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " Requirements"
+        "text": " summary ("
       },
       "contentBlockIndex": 0
     }
@@ -159,7 +159,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ":**\n1"
+        "text": "length"
       },
       "contentBlockIndex": 0
     }
@@ -167,7 +167,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": ". **"
+        "text": ", focus"
       },
       "contentBlockIndex": 0
     }
@@ -175,7 +175,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Detect**"
+        "text": " areas"
       },
       "contentBlockIndex": 0
     }
@@ -183,7 +183,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " repeated user intent,"
+        "text": ", format"
       },
       "contentBlockIndex": 0
     }
@@ -191,471 +191,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " repeated assistant output, stalled tool execution"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ", and recursive repair attempts\n2."
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " **Preserve** user control throughout"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n3. **Stop** after bounded ret"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "ries ("
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "not"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " infinite"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " loops)\n4. **Summar"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "ize** the repeated state clearly"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n5. **Ask** for one"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " concrete next action before continuing\n\n**In"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " Practice"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ","
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " This Means"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ":**\n- Monitor"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " for patterns"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " repe"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "ating across conversation"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " turns"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n- Don"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "'t keep"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " trying"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " same faile"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d approach"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " en"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "dlessly\n- Give"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " user clear"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " visibility"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " into what's stuck"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n- Request"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " explicit"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " direction"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " from"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " the user before proce"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "eding\n- Respect"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " user"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " agency"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "—"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "don"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "'t override"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " their choices"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "\n\nThis"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " policy is designed to prevent"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " frust"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "rating cycles"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " where"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " an"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " AI"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " assistant"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " gets"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " trappe"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d in ineffective patterns"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": ", ensuring"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " conversations"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": " remain productive and user"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "-controlle"
-      },
-      "contentBlockIndex": 0
-    }
-  },
-  {
-    "contentBlockDelta": {
-      "delta": {
-        "text": "d."
+        "text": ", etc.)."
       },
       "contentBlockIndex": 0
     }
@@ -673,12 +209,12 @@
   {
     "metadata": {
       "usage": {
-        "inputTokens": 12971,
-        "outputTokens": 201,
-        "totalTokens": 13172
+        "inputTokens": 22,
+        "outputTokens": 95,
+        "totalTokens": 117
       },
       "metrics": {
-        "latencyMs": 2869
+        "latencyMs": 1200
       }
     }
   }

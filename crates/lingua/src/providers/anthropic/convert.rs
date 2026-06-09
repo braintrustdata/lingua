@@ -19,9 +19,9 @@ use crate::universal::request::{
 use crate::universal::response_format::normalize_response_schema_for_strict_target;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
-    convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart, Message,
-    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
-    UserContentPart,
+    convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
+    CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -50,12 +50,6 @@ struct AnthropicToolUseProviderOptionsView {
     caller: Option<generated::Caller>,
 }
 
-#[derive(Debug, Clone, Default, serde::Deserialize)]
-#[serde(default)]
-struct AnthropicTextProviderOptionsView {
-    cache_control: Option<generated::CacheControlEphemeral>,
-}
-
 fn anthropic_tool_use_provider_options_from_caller(
     caller: Option<generated::Caller>,
 ) -> Option<ProviderOptions> {
@@ -80,18 +74,27 @@ fn anthropic_tool_use_caller_from_provider_options(
         .and_then(|view| view.caller)
 }
 
-fn anthropic_cache_control_from_provider_options(
-    provider_options: &Option<ProviderOptions>,
+fn universal_cache_control_from_anthropic(
+    cache_control: Option<generated::CacheControlEphemeral>,
+) -> Option<CacheControl> {
+    universal_cache_control_from_serde(cache_control)
+}
+
+fn universal_cache_control_from_serde<C>(cache_control: Option<C>) -> Option<CacheControl>
+where
+    C: serde::Serialize,
+{
+    cache_control
+        .and_then(|cache_control| serde_json::to_value(cache_control).ok())
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+fn anthropic_cache_control_from_universal(
+    cache_control: Option<CacheControl>,
 ) -> Option<generated::CacheControlEphemeral> {
-    provider_options
-        .as_ref()
-        .and_then(|opts| {
-            serde_json::from_value::<AnthropicTextProviderOptionsView>(Value::Object(
-                opts.options.clone(),
-            ))
-            .ok()
-        })?
-        .cache_control
+    cache_control
+        .and_then(|cache_control| serde_json::to_value(cache_control).ok())
+        .and_then(|value| serde_json::from_value(value).ok())
 }
 
 fn infer_media_type_from_reference(reference: &str) -> Option<String> {
@@ -113,7 +116,7 @@ fn infer_media_type_from_reference(reference: &str) -> Option<String> {
 }
 
 fn anthropic_text_provider_options<C, T>(
-    cache_control: Option<C>,
+    _cache_control: Option<C>,
     citations: Option<T>,
 ) -> Result<Option<ProviderOptions>, ConvertError>
 where
@@ -121,17 +124,6 @@ where
     T: serde::Serialize,
 {
     let mut options = serde_json::Map::new();
-    if let Some(cache_control) = cache_control {
-        options.insert(
-            "cache_control".into(),
-            serde_json::to_value(cache_control).map_err(|e| {
-                ConvertError::JsonSerializationFailed {
-                    field: "cache_control".to_string(),
-                    error: e.to_string(),
-                }
-            })?,
-        );
-    }
     if let Some(citations) = citations {
         options.insert(
             "citations".into(),
@@ -157,7 +149,8 @@ where
     Ok(UserContentPart::Text(TextContentPart {
         text,
         encrypted_content: None,
-        provider_options: anthropic_text_provider_options(cache_control, citations)?,
+        cache_control: universal_cache_control_from_serde(cache_control),
+        provider_options: anthropic_text_provider_options(None::<C>, citations)?,
     }))
 }
 
@@ -176,28 +169,9 @@ fn combine_anthropic_text_provider_options(
     }
 }
 
-fn anthropic_user_text_part_with_inherited_options<C, T>(
-    text: String,
-    cache_control: Option<C>,
-    citations: Option<T>,
-    inherited_options: Option<ProviderOptions>,
-) -> Result<UserContentPart, ConvertError>
-where
-    C: serde::Serialize,
-    T: serde::Serialize,
-{
-    Ok(UserContentPart::Text(TextContentPart {
-        text,
-        encrypted_content: None,
-        provider_options: combine_anthropic_text_provider_options(
-            inherited_options,
-            anthropic_text_provider_options(cache_control, citations)?,
-        ),
-    }))
-}
-
 fn anthropic_mid_conv_system_parts(
     content: generated::InputContentBlockContent,
+    parent_cache_control: Option<CacheControl>,
     parent_provider_options: Option<ProviderOptions>,
 ) -> Result<Vec<UserContentPart>, ConvertError> {
     match content {
@@ -205,29 +179,51 @@ fn anthropic_mid_conv_system_parts(
             Ok(vec![UserContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
+                cache_control: parent_cache_control,
                 provider_options: parent_provider_options,
             })])
         }
         generated::InputContentBlockContent::BlockArray(blocks) => {
             let mut parts = Vec::new();
+            let mut inherited_parent_cache_control = parent_cache_control;
             let mut inherited_parent_options = parent_provider_options;
             for block in blocks {
                 if let Some(text) = block.text {
-                    parts.push(anthropic_user_text_part_with_inherited_options(
-                        text,
-                        block.cache_control,
-                        block.citations,
+                    let cache_control =
+                        universal_cache_control_from_serde(block.cache_control.clone())
+                            .or_else(|| inherited_parent_cache_control.take());
+                    let provider_options = combine_anthropic_text_provider_options(
                         inherited_parent_options.take(),
-                    )?);
+                        anthropic_text_provider_options(
+                            None::<generated::CacheControlEphemeral>,
+                            block.citations,
+                        )?,
+                    );
+                    parts.push(UserContentPart::Text(TextContentPart {
+                        text,
+                        encrypted_content: None,
+                        cache_control,
+                        provider_options,
+                    }));
                 }
                 if let Some(content) = block.content {
                     for text_block in content {
-                        parts.push(anthropic_user_text_part_with_inherited_options(
-                            text_block.text,
-                            text_block.cache_control,
-                            text_block.citations,
+                        let cache_control =
+                            universal_cache_control_from_serde(text_block.cache_control.clone())
+                                .or_else(|| inherited_parent_cache_control.take());
+                        let provider_options = combine_anthropic_text_provider_options(
                             inherited_parent_options.take(),
-                        )?);
+                            anthropic_text_provider_options(
+                                None::<generated::CacheControlEphemeral>,
+                                text_block.citations,
+                            )?,
+                        );
+                        parts.push(UserContentPart::Text(TextContentPart {
+                            text: text_block.text,
+                            encrypted_content: None,
+                            cache_control,
+                            provider_options,
+                        }));
                     }
                 }
             }
@@ -261,11 +257,16 @@ fn anthropic_system_message_content(
                         }
                     }
                     generated::InputContentBlockType::MidConvSystem => {
-                        let parent_provider_options =
-                            anthropic_text_provider_options(block.cache_control, block.citations)?;
+                        let parent_cache_control =
+                            universal_cache_control_from_anthropic(block.cache_control);
+                        let parent_provider_options = anthropic_text_provider_options(
+                            None::<generated::CacheControlEphemeral>,
+                            block.citations,
+                        )?;
                         if let Some(content) = block.content {
                             parts.extend(anthropic_mid_conv_system_parts(
                                 content,
+                                parent_cache_control,
                                 parent_provider_options,
                             )?);
                         }
@@ -362,11 +363,6 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
                 .into_iter()
                 .map(|block| {
                     let mut options = serde_json::Map::new();
-                    if let Some(cache_control) = block.cache_control {
-                        if let Ok(v) = serde_json::to_value(cache_control) {
-                            options.insert("cache_control".into(), v);
-                        }
-                    }
                     if let Some(citations) = block.citations {
                         if let Ok(v) = serde_json::to_value(citations) {
                             options.insert("citations".into(), v);
@@ -382,6 +378,7 @@ pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
                     UserContentPart::Text(TextContentPart {
                         text: block.text,
                         encrypted_content: None,
+                        cache_control: universal_cache_control_from_anthropic(block.cache_control),
                         provider_options,
                     })
                 })
@@ -486,13 +483,17 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
                                         let provider_options = anthropic_text_provider_options(
-                                            block.cache_control,
+                                            block.cache_control.clone(),
                                             block.citations,
                                         )?;
                                         content_parts.push(UserContentPart::Text(
                                             TextContentPart {
                                                 text,
                                                 encrypted_content: None,
+                                                cache_control:
+                                                    universal_cache_control_from_anthropic(
+                                                        block.cache_control,
+                                                    ),
                                                 provider_options,
                                             },
                                         ));
@@ -631,7 +632,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 generated::InputContentBlockType::Text => {
                                     if let Some(text) = block.text {
                                         let provider_options = anthropic_text_provider_options(
-                                            block.cache_control,
+                                            block.cache_control.clone(),
                                             block.citations,
                                         )?;
 
@@ -639,6 +640,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             TextContentPart {
                                                 text,
                                                 encrypted_content: None,
+                                                cache_control:
+                                                    universal_cache_control_from_anthropic(
+                                                        block.cache_control,
+                                                    ),
                                                 provider_options,
                                             },
                                         ));
@@ -744,6 +749,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 TextContentPart {
                                     text: String::new(),
                                     encrypted_content: None,
+                                    cache_control: None,
                                     provider_options: None,
                                 },
                             )])
@@ -774,10 +780,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                             .into_iter()
                             .filter_map(|part| match part {
                                 UserContentPart::Text(text_part) => {
-                                    let cache_control =
-                                        anthropic_cache_control_from_provider_options(
-                                            &text_part.provider_options,
-                                        );
+                                    let cache_control = anthropic_cache_control_from_universal(
+                                        text_part.cache_control,
+                                    );
                                     Some(generated::InputContentBlock {
                                         cache_control,
                                         citations: None,
@@ -1030,10 +1035,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         let blocks = parts
                             .into_iter()
                             .filter_map(|part| match part {
-                            AssistantContentPart::Text(text_part) => {
-                                let cache_control = anthropic_cache_control_from_provider_options(
-                                    &text_part.provider_options,
-                                );
+                                AssistantContentPart::Text(text_part) => {
+                                    let cache_control = anthropic_cache_control_from_universal(
+                                        text_part.cache_control.clone(),
+                                    );
                                 // Restore citations from provider_options
                                 let citations = text_part.provider_options
                                     .as_ref()
@@ -1327,6 +1332,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                         content_parts.push(AssistantContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options,
                         }));
                     }
@@ -1422,6 +1428,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
             content_parts.push(AssistantContentPart::Text(TextContentPart {
                 text: String::new(),
                 encrypted_content: None,
+                cache_control: None,
                 provider_options: None,
             }));
         }
@@ -1946,7 +1953,13 @@ mod tests {
                 match &parts[0] {
                     UserContentPart::Text(text) => {
                         assert_eq!(text.text, "Use the updated policy.");
-                        assert!(text.provider_options.is_some());
+                        assert_eq!(
+                            text.cache_control
+                                .as_ref()
+                                .expect("cache_control should be preserved")
+                                .cache_control_type,
+                            crate::universal::CacheControlType::Ephemeral
+                        );
                     }
                     other => panic!("expected text part, got {other:?}"),
                 }
@@ -1957,11 +1970,6 @@ mod tests {
 
     #[test]
     fn test_anthropic_mid_conv_system_import_preserves_parent_cache_control() {
-        #[derive(serde::Deserialize)]
-        struct TextProviderOptionsView {
-            cache_control: Option<generated::CacheControlEphemeral>,
-        }
-
         let input: generated::InputMessage = serde_json::from_value(json!({
             "role": "system",
             "content": [
@@ -1989,19 +1997,12 @@ mod tests {
                 match &parts[0] {
                     UserContentPart::Text(text) => {
                         assert_eq!(text.text, "Use the updated policy.");
-                        let provider_options = text
-                            .provider_options
-                            .as_ref()
-                            .expect("parent cache_control should be preserved");
-                        let options: TextProviderOptionsView =
-                            serde_json::from_value(Value::Object(provider_options.options.clone()))
-                                .unwrap();
                         assert_eq!(
-                            options
-                                .cache_control
-                                .expect("cache_control should exist")
-                                .cache_control_ephemeral_type,
-                            generated::CacheControlEphemeralType::Ephemeral
+                            text.cache_control
+                                .as_ref()
+                                .expect("parent cache_control should be preserved")
+                                .cache_control_type,
+                            crate::universal::CacheControlType::Ephemeral
                         );
                     }
                     other => panic!("expected text part, got {other:?}"),

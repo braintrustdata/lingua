@@ -1,14 +1,14 @@
 {
-  "id": "chatcmpl-Doxf81dK1vj2xy1TmrL9Hmjfn6nJ0",
+  "id": "chatcmpl-DoyJIL6fHGqd39edNVCGLH2EhKV75",
   "object": "chat.completion",
-  "created": 1781038114,
+  "created": 1781040604,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "- Core goal: Detect loop-like repeats (same user intent, repeated assistant outputs, tool stalls, or recursive repair attempts).\n- User control: Preserve user control and require a single concrete next action from the user before proceeding.\n- Retry limit: Stop after a bounded number of retries.\n- State handling: When a loop is detected, summarize the repeated state.\n- Next step prompt: Ask for one concrete next action before continuing.",
+        "content": "I don’t see the text yet. Please paste the stable reference text you want summarized.\n\nTips:\n- If it’s long, you can split it across multiple messages.\n- Tell me your preferred output:\n  - Length: short (1–2 sentences), medium (a few bullet points), or long (sectioned summary).\n  - Focus: key arguments, data points, methods, conclusions, and implications.\n  - Style: neutral/executive summary or more accessible language.\n\nExample of what I’ll output:\n- Short: A 1–2 sentence overview of the main takeaway.\n- Medium: 5–8 bullet points highlighting main points, evidence, and conclusions.\n- Long: A structured summary with sections (Introduction, Methods, Results, Conclusions) and a list of key takeaways.\n\nOnce you provide the text, I’ll generate the summary and can tailor it for caching as context for future tasks.",
         "refusal": null,
         "annotations": []
       },
@@ -16,15 +16,15 @@
     }
   ],
   "usage": {
-    "prompt_tokens": 11529,
-    "completion_tokens": 671,
-    "total_tokens": 12200,
+    "prompt_tokens": 19,
+    "completion_tokens": 963,
+    "total_tokens": 982,
     "prompt_tokens_details": {
-      "cached_tokens": 11392,
+      "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 576,
+      "reasoning_tokens": 768,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

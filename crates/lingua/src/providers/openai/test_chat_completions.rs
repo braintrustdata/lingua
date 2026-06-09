@@ -41,16 +41,8 @@ mod tests {
             // Convert to universal (via extended type)
             |messages: &Vec<crate::providers::openai::generated::ChatCompletionRequestMessage>| {
                 // Wrap base messages in extended type for conversion
-                let ext_messages: Vec<ChatCompletionRequestMessageExt> = messages
-                    .iter()
-                    .map(|m| ChatCompletionRequestMessageExt {
-                        base: m.clone(),
-                        content_ext: None,
-                        cache_control: None,
-                        reasoning: None,
-                        reasoning_signature: None,
-                    })
-                    .collect();
+                let ext_messages: Vec<ChatCompletionRequestMessageExt> =
+                    messages.iter().cloned().map(Into::into).collect();
                 <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
                     ext_messages,
                 )
@@ -63,7 +55,7 @@ mod tests {
                 >>::try_from(messages)
                 .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
                 // Extract base messages (reasoning would be in separate field)
-                Ok(ext_messages.into_iter().map(|m| m.base).collect())
+                Ok(ext_messages.into_iter().map(Into::into).collect())
             },
             // Extract response content (collect response messages from choices)
             |response: &CreateChatCompletionResponse| {

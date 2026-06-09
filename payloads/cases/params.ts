@@ -42,21 +42,11 @@ type ChatCompletionUserMessageWithCacheControl = Omit<
   >;
 };
 
-const LOOP_POLICY_CACHE_TEXT = Array.from(
-  { length: 240 },
-  (_, index) =>
-    `Loop policy section ${index + 1}: Detect repeated user intent, repeated assistant output, stalled tool execution, and recursive repair attempts. Preserve user control, stop after bounded retries, summarize the repeated state, and ask for one concrete next action before continuing.`
-).join("\n");
-
-function chatCompletionCachedTextPart(
-  text: string
-): ChatCompletionTextPartWithCacheControl {
-  return {
-    type: "text",
-    text,
-    cache_control: { type: "ephemeral" },
-  };
-}
+const chatCompletionCacheControlTextPart = {
+  type: "text",
+  text: "Use this stable reference text as cacheable context.",
+  cache_control: { type: "ephemeral" },
+} satisfies ChatCompletionTextPartWithCacheControl;
 
 const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
   {
@@ -154,7 +144,7 @@ export const paramsCases: TestCaseCollection = {
         {
           role: "user",
           content: [
-            chatCompletionCachedTextPart(LOOP_POLICY_CACHE_TEXT),
+            chatCompletionCacheControlTextPart,
             {
               type: "text",
               text: "Now summarize it.",
@@ -173,7 +163,7 @@ export const paramsCases: TestCaseCollection = {
           content: [
             {
               type: "text",
-              text: LOOP_POLICY_CACHE_TEXT,
+              text: chatCompletionCacheControlTextPart.text,
               cache_control: { type: "ephemeral" },
             },
             {

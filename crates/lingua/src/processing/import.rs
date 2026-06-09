@@ -423,6 +423,7 @@ fn try_parse_lenient_text_content_part(item: &Value) -> Option<TextContentPart> 
         LenientTextContentPartCompat::Text { text } => Some(TextContentPart {
             text,
             encrypted_content: None,
+            cache_control: None,
             provider_options: None,
         }),
     }
@@ -453,6 +454,7 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
             Some(AssistantContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
+                cache_control: None,
                 provider_options: None,
             }))
         }
