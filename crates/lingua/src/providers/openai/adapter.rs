@@ -38,6 +38,7 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
+use serde::{de::IgnoredAny, Deserialize};
 use std::collections::BTreeMap;
 use std::convert::TryInto;
 
@@ -71,22 +72,33 @@ fn legacy_prompt_to_user_content(
     }
 }
 
+fn deserialize_present<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    IgnoredAny::deserialize(deserializer)?;
+    Ok(true)
+}
+
 #[derive(Default, serde::Deserialize)]
 struct OpenAICompletionLegacyOnlyExtras {
-    suffix: Option<Value>,
-    best_of: Option<Value>,
-    echo: Option<Value>,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    suffix: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    best_of: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    echo: bool,
 }
 
 impl OpenAICompletionLegacyOnlyExtras {
     fn unsupported_field(&self) -> Option<&'static str> {
-        if self.suffix.is_some() {
+        if self.suffix {
             return Some("suffix");
         }
-        if self.best_of.is_some() {
+        if self.best_of {
             return Some("best_of");
         }
-        if self.echo.is_some() {
+        if self.echo {
             return Some("echo");
         }
         None
