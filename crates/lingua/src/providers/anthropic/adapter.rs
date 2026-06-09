@@ -1969,8 +1969,8 @@ mod tests {
             result.temperature.is_none(),
             "temperature should be stripped for Fable, including extras"
         );
-        assert_eq!(result.top_p, Some(0.9));
-        assert_eq!(result.top_k, Some(40));
+        assert!(result.top_p.is_none(), "top_p should be stripped for Fable");
+        assert!(result.top_k.is_none(), "top_k should be stripped for Fable");
     }
 
     #[test]
