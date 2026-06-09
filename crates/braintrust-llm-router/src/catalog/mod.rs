@@ -1,6 +1,7 @@
 mod resolver;
 pub mod spec;
 
+pub(crate) use resolver::is_gemini_api_model;
 pub use resolver::ModelResolver;
 pub use spec::{ModelFlavor, ModelSpec};
 

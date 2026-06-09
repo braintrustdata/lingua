@@ -11,6 +11,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "type": "text",
         },
         {
+          "cache_control": {
+            "type": "ephemeral",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -20,6 +23,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
     {
       "content": [
         {
+          "cache_control": {
+            "type": "ephemeral",
+          },
           "text": "hello world",
           "type": "text",
         },
@@ -61,13 +67,17 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
 {
   "content": [
     {
-      "text": "Hello, world!
+      "text": "Hello! 👋 How can I help today? If you’d like a Hello World example in a specific language, I can provide it. For example:
 
-Would you like a Hello World example in a specific programming language? Tell me which language and I’ll provide it.",
+- Python: print("Hello, world!")
+- JavaScript: console.log("Hello, world!")
+- C: #include <stdio.h> int main(void){ printf("Hello, world!\\\\n"); return 0; }
+
+What would you like to do?",
       "type": "text",
     },
   ],
-  "id": "msg_DnBJzLc6L0UZ12oPjGwYXQDekWPWu",
+  "id": "msg_DoyJZIrbADTfB7D4Sy4GZYkOmC89L",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -75,7 +85,7 @@ Would you like a Hello World example in a specific programming language? Tell me
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 158,
-    "output_tokens": 612,
+    "output_tokens": 1310,
   },
 }
 `;
@@ -134,6 +144,10 @@ exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
     {
       "content": [
         {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
           "text": "Be helpful.",
           "type": "text",
         },
@@ -153,11 +167,11 @@ exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help today? I can answer questions, help with writing or editing, brainstorm ideas, explain concepts, or assist with code. If you’re not sure, tell me your goal and I’ll suggest something.",
+      "text": "Hi there! How can I help today? Tell me what you’re looking to do—explain a concept, draft something, brainstorm ideas, code, plan something, or just chat. If you’re not sure, you can share a topic and I’ll suggest options.",
       "type": "text",
     },
   ],
-  "id": "msg_DPVSonDHUFyqkBUAHfVZZu7VBv3wt",
+  "id": "msg_DoyXcnDoLWiYmHaGyrxa5C5eTmZTh",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -165,7 +179,7 @@ exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 14,
-    "output_tokens": 248,
+    "output_tokens": 320,
   },
 }
 `;
@@ -177,6 +191,10 @@ exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
     {
       "content": [
         {
+          "cache_control": {
+            "ttl": "5m",
+            "type": "ephemeral",
+          },
           "text": "Be helpful.",
           "type": "text",
         },
@@ -196,11 +214,20 @@ exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi! How can I help today? I can answer questions, explain concepts, draft or edit text, help with coding, plan a trip, summarize articles, translate, brainstorm ideas, and more. What would you like to do?",
+      "text": "Hi there! How can I help today?
+
+I can:
+- Answer questions or explain ideas
+- Help with writing, editing, or brainstorming
+- Assist with coding or math problems
+- Plan projects or study guides
+- Translate or summarize text
+
+Tell me what you’re working on or what you’d like to do, and I’ll tailor my response.",
       "type": "text",
     },
   ],
-  "id": "msg_DPVSo4YeK4792uQkf25XXVn5hWVIp",
+  "id": "msg_DoyXY1rhrMhp1zV6HUmXXCJP5vjlx",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -208,7 +235,101 @@ exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 14,
-    "output_tokens": 312,
+    "output_tokens": 401,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "text",
+        },
+        {
+          "text": "Now summarize it.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DoyXQmi2ZJ3lrkHlBv2e8rFfjAV5V",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 19,
+    "output_tokens": 1024,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "text",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_Doz5dqccAkf821azRvDKYMbiBoTa5",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 28,
+    "output_tokens": 1024,
   },
 }
 `;
@@ -269,6 +390,40 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
     "cache_read_input_tokens": 0,
     "input_tokens": 74,
     "output_tokens": 6276,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > fableTemperatureParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-4o-mini",
+}
+`;
+
+exports[`anthropic → chat-completions > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I assist you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_Doyl4vuvgfxWmbLBPNPjPS8BeB3b9",
+  "model": "gpt-4o-mini-2024-07-18",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 10,
+    "output_tokens": 9,
   },
 }
 `;
@@ -886,6 +1041,9 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
+          "cache_control": {
+            "type": "ephemeral",
+          },
           "text": "Be helpful.",
           "type": "text",
         },
@@ -905,11 +1063,11 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
 {
   "content": [
     {
-      "text": "ok",
+      "text": "Ok.",
       "type": "text",
     },
   ],
-  "id": "msg_DPVSiwqS73gbELbjrlBGAJOhzPaqR",
+  "id": "msg_DoyJPxizkXmuhEZY2dv9RvtO4wRRa",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -917,7 +1075,7 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 16,
-    "output_tokens": 138,
+    "output_tokens": 267,
   },
 }
 `;
@@ -2213,6 +2371,97 @@ exports[`anthropic → google > cacheControl5mParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+        },
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "It looks like you didn't include or paste the reference text! Please provide the text you would like me to use as the cacheable context, and I will be happy to summarize it for you.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 15,
+    "output_tokens": 620,
+  },
+}
+`;
+
+exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "model",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": " Let me know if you have a specific task or topic you'd like me to assist you with!",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 18,
+    "output_tokens": 21,
+  },
+}
+`;
+
 exports[`anthropic → google > codeInterpreterToolParam > request 1`] = `
 {
   "contents": [
@@ -2432,6 +2681,46 @@ I need some content to work with!",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 538,
+  },
+}
+`;
+
+exports[`anthropic → google > fableTemperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hi! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 4,
+    "output_tokens": 159,
   },
 }
 `;
@@ -3145,7 +3434,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
 {
   "content": [
     {
-      "text": "The current weather in San Francisco is 65°F and sunny, while in New York it is 45°F and cloudy.",
+      "text": "The weather in San Francisco is currently 65°F and sunny, while in New York, it is 45°F and cloudy.",
       "type": "text",
     },
   ],
@@ -3156,7 +3445,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 151,
-    "output_tokens": 29,
+    "output_tokens": 30,
   },
 }
 `;
@@ -4988,6 +5277,115 @@ exports[`anthropic → responses > cacheControl5mParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "input_text",
+        },
+        {
+          "text": "Now summarize it.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "I don’t see the stable reference text yet. Please paste the text here or upload it, and I’ll summarize it.
+
+If you want, tell me:
+- Summary length (e.g., 1 sentence, 5 bullets, or a short paragraph)
+- What to emphasize (main ideas, methods, results, dates, implications)
+- Any terms or sections to preserve verbatim
+
+Notes:
+- I’ll treat the provided text as the base context for this chat and summarize accordingly.
+- If the text is long, I can summarize in parts or provide a concise overview plus a detailed section-by-section summary.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0a27e71404f41641006a2885fe96588192a5a8d8381ede582a",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 19,
+    "output_tokens": 797,
+  },
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "logprobs": [],
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "This assistant prefill should remain cacheable.
+
+If you",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0592e9ab206b9682006a288c85556081a0aabd0fb3e8ba4c63",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 28,
+    "output_tokens": 1024,
+  },
+}
+`;
+
 exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
 {
   "input": [
@@ -5102,6 +5500,44 @@ Tell me the desired length and audience (e.g., plain language for a general audi
     "cache_read_input_tokens": 0,
     "input_tokens": 17,
     "output_tokens": 584,
+  },
+}
+`;
+
+exports[`anthropic → responses > fableTemperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "Hi there! How can I help today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0c10cd12118309dd006a288c97ea68819ba5481e2d426ebf9b",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 9,
+    "output_tokens": 249,
   },
 }
 `;
@@ -7115,6 +7551,126 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
 }
 `;
 
+exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "text",
+        },
+        {
+          "text": "Now summarize it.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Summary
+
+This appears to be instructions for a caching system, but no reference text was actually provided for me to summarize. 
+
+You've asked me to use a "stable reference text as cacheable context" and then summarize it, but the message only contains these instructions without any actual content to cache or summarize.
+
+To help you, please provide the reference text you'd like me to:
+1. Use as cacheable context
+2. Summarize
+
+Once you share the text, I'll be happy to create a summary for you.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01MWJzNpAnEXcqdDsjEYAad6",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 119,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 141,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "text",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "
+
+I'm ready to help you! Since you mentioned using the cached assistant prefill, I'm prepared to assist with whatever you need. What would you like to work on today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0176Wh6ZFBbCMXtSXaziEAWT",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 40,
+    "prompt_tokens": 23,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 63,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,
@@ -7308,6 +7864,47 @@ What value would you like to use?",
       "cached_tokens": 0,
     },
     "total_tokens": 750,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > fableTemperatureParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-fable-5",
+}
+`;
+
+exports[`chat-completions → anthropic > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-01HBekLcXyZecBzuto2SB7YD",
+  "model": "claude-fable-5",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 11,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 28,
   },
 }
 `;
@@ -9983,6 +10580,113 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
 }
 `;
 
+exports[`chat-completions → bedrock > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+        },
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I notice you'd like me to use a stable reference text as cacheable context, but I don't see any text provided in your message. 
+
+Could you please:
+1. **Share the text** you'd like me to use as context
+2. **Clarify what you mean by "cacheable context"** — are you referring to prompt caching, or do you want me to treat it as reference material?
+
+Once you provide the text, I'll be happy to summarize it for you!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 110,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 132,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "
+
+This is my unique response to your request about using the cached assistant prefill. I'm ready to help you with any questions or tasks you have in mind.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 36,
+    "prompt_tokens": 23,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 59,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > complexReasoningRequest > request 1`] = `
 {
   "inferenceConfig": {
@@ -10148,6 +10852,53 @@ What would you prefer?",
       "cached_tokens": 0,
     },
     "total_tokens": 728,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > fableTemperatureParam > request 1`] = `
+{
+  "inferenceConfig": {
+    "temperature": 0.7,
+  },
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
   },
 }
 `;
@@ -12878,6 +13629,102 @@ exports[`chat-completions → bedrock > topPReasoningModelParam > response 1`] =
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+        },
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Please provide or paste the stable reference text you would like me to use. Once you share it, I will be happy to summarize it for you!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 207,
+    "completion_tokens_details": {
+      "reasoning_tokens": 177,
+    },
+    "prompt_tokens": 15,
+    "total_tokens": 222,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the cached assistant prefill.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "This assistant prefill should remain cacheable.",
+        },
+      ],
+      "role": "model",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": " How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 7,
+    "prompt_tokens": 18,
+    "total_tokens": 25,
+  },
+}
+`;
+
 exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
 {
   "contents": [
@@ -13062,6 +13909,54 @@ exports[`chat-completions → google > exclusiveMinimumToolParam > response 1`] 
     },
     "prompt_tokens": 53,
     "total_tokens": 120,
+  },
+}
+`;
+
+exports[`chat-completions → google > fableTemperatureParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "temperature": 0.7,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 170,
+    "completion_tokens_details": {
+      "reasoning_tokens": 160,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 174,
   },
 }
 `;
@@ -14241,7 +15136,7 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "In San Francisco, the weather is currently 65°F and sunny. In New York, it is 45°F and cloudy.",
+        "content": "The weather in San Francisco is 65°F and sunny, and the weather in New York is 45°F and cloudy.",
         "role": "assistant",
       },
     },
@@ -14251,12 +15146,9 @@ exports[`chat-completions → google > parallelToolCallsRequest > response 1`] =
   "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 123,
-    "completion_tokens_details": {
-      "reasoning_tokens": 93,
-    },
+    "completion_tokens": 29,
     "prompt_tokens": 151,
-    "total_tokens": 274,
+    "total_tokens": 180,
   },
 }
 `;
@@ -16142,6 +17034,171 @@ exports[`chat-completions → google > topPReasoningModelParam > response 1`] = 
 }
 `;
 
+exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "input_text",
+        },
+        {
+          "text": "Now summarize it.",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "I don’t see the reference text yet. Please paste the stable reference text you want summarized. If it’s long, feel free to send it in chunks.
+
+I can return the summary in several formats (pick what you prefer):
+
+- One-sentence summary
+- Executive summary (2–4 sentences)
+- Key-points bullets (top 5–10 points)
+- Detailed bullet list (structured, with sections for purpose, scope, findings, conclusions)
+- Cacheable context card (compact data sheet)
+
+Cacheable context card template (you can copy this to store and reuse):
+
+- Title:
+- Source/Author:
+- Date:
+- Purpose:
+- Scope:
+- Key Concepts:
+- Summary (1–2 sentences):
+- Key Points (bullets):
+- Metrics/Evidence:
+- Conclusions:
+- Assumptions/Limitations:
+- Keywords:
+
+Once you provide the text, I’ll generate the summary in your chosen format and treat it as the cacheable context for this session.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0070295c6fa3899a006a2885cfbf5881a287efa197ea2ea6c2",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1341,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1088,
+    },
+    "prompt_tokens": 19,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1360,
+  },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Use the cached assistant prefill.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "logprobs": [],
+          "text": "This assistant prefill should remain cacheable.",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
+
+Here’s a compact, generic prefill you can use right away (store it and reuse):
+
+Prefill (system-like):
+- Role: Helpful assistant
+- Tone: concise, accurate, and polite
+- Scope: answers questions, provides steps, and asks clarifying questions if information is missing
+- Verification: do not fabricate facts; if unsure, say so
+- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible
+- Special cases: for code, give a minimal complete example with explanations
+
+How to use:
+- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
+- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1957,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1664,
+    },
+    "prompt_tokens": 28,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 1985,
+  },
+}
+`;
+
 exports[`chat-completions → responses > complexReasoningRequest > request 1`] = `
 {
   "input": [
@@ -16292,6 +17349,58 @@ If you’d like, I can apply 2048 tokens right now as a balanced default. Would 
       "cached_tokens": 0,
     },
     "total_tokens": 834,
+  },
+}
+`;
+
+exports[`chat-completions → responses > fableTemperatureParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > fableTemperatureParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "Hi there! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-03405e803c9d6c6f006a288c9add2481999e664ea45ed23910",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 186,
+    "completion_tokens_details": {
+      "reasoning_tokens": 128,
+    },
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 195,
   },
 }
 `;

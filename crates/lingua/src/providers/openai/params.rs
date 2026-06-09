@@ -19,6 +19,7 @@ pub struct OpenAIChatParams {
     // === Core fields ===
     pub model: Option<String>,
     pub messages: Option<Vec<ChatCompletionRequestMessage>>,
+    pub prompt: Option<OpenAICompletionPrompt>,
 
     // === Sampling parameters ===
     pub temperature: Option<f64>,
@@ -74,6 +75,23 @@ pub struct OpenAIChatParams {
     /// These are provider-specific fields not in the canonical set.
     #[serde(flatten)]
     pub extras: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct OpenAIChatLegacyPromptParams {
+    pub model: Option<String>,
+    pub messages: Option<Value>,
+    pub prompt: Option<OpenAICompletionPrompt>,
+    pub logprobs: Option<Value>,
+
+    #[serde(flatten)]
+    pub extras: BTreeMap<String, Value>,
+}
+
+impl OpenAIChatLegacyPromptParams {
+    pub fn is_legacy_prompt_request(&self) -> bool {
+        self.model.is_some() && self.messages.is_none() && self.prompt.is_some()
+    }
 }
 
 /// OpenAI Responses API request parameters.
@@ -145,6 +163,15 @@ pub struct OpenAIChatExtrasView {
     pub max_tokens: Option<Value>,
     pub max_completion_tokens: Option<Value>,
     pub web_search_options: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAICompletionPrompt {
+    String(String),
+    StringArray(Vec<String>),
+    TokenArray(Vec<i64>),
+    TokenArrayArray(Vec<Vec<i64>>),
 }
 
 /// Typed view over `UniversalParams.extras[Responses]` used during universal

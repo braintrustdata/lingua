@@ -1,0 +1,80 @@
+{
+  "id": "resp_0a27e71404f41641006a2885fe96588192a5a8d8381ede582a",
+  "object": "response",
+  "created_at": 1781040638,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1781040644,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 1024,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0a27e71404f41641006a2885fedac481928c030bd84d3055be",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0a27e71404f41641006a288603c9dc8192acdca2bc93e38429",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t see the stable reference text yet. Please paste the text here or upload it, and I’ll summarize it.\n\nIf you want, tell me:\n- Summary length (e.g., 1 sentence, 5 bullets, or a short paragraph)\n- What to emphasize (main ideas, methods, results, dates, implications)\n- Any terms or sections to preserve verbatim\n\nNotes:\n- I’ll treat the provided text as the base context for this chat and summarize accordingly.\n- If the text is long, I can summarize in parts or provide a concise overview plus a detailed section-by-section summary."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 19,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 797,
+    "output_tokens_details": {
+      "reasoning_tokens": 640
+    },
+    "total_tokens": 816
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t see the stable reference text yet. Please paste the text here or upload it, and I’ll summarize it.\n\nIf you want, tell me:\n- Summary length (e.g., 1 sentence, 5 bullets, or a short paragraph)\n- What to emphasize (main ideas, methods, results, dates, implications)\n- Any terms or sections to preserve verbatim\n\nNotes:\n- I’ll treat the provided text as the base context for this chat and summarize accordingly.\n- If the text is long, I can summarize in parts or provide a concise overview plus a detailed section-by-section summary."
+}

@@ -128,6 +128,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }));
                     }
@@ -139,6 +140,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }));
                     }
@@ -198,6 +200,7 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
                     converted_parts.push(AssistantContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }));
                 }
@@ -211,6 +214,7 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
                     converted_parts.push(AssistantContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }));
                 }
@@ -466,6 +470,7 @@ fn build_assistant_message_from_fields(obj: &serde_json::Map<String, Value>) -> 
             parts.push(AssistantContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
+                cache_control: None,
                 provider_options: None,
             }));
         }
@@ -518,6 +523,7 @@ fn parse_step_message(step: &Value) -> Option<Message> {
                             Some(AssistantContentPart::Text(TextContentPart {
                                 text,
                                 encrypted_content: None,
+                                cache_control: None,
                                 provider_options: None,
                             }))
                         }

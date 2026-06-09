@@ -200,13 +200,12 @@ jobs:
         id: repair
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
-        uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
+        timeout-minutes: 20
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
-          show_full_output: "true"
           display_report: "true"
-          timeout_minutes: "20"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -385,13 +384,12 @@ jobs:
         id: integration_review
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
+        timeout-minutes: 30
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
-          show_full_output: "true"
           display_report: "true"
-          timeout_minutes: "30"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |

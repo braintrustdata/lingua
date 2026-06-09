@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01MWJzNpAnEXcqdDsjEYAad6",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "# Summary\n\nThis appears to be instructions for a caching system, but no reference text was actually provided for me to summarize. \n\nYou've asked me to use a \"stable reference text as cacheable context\" and then summarize it, but the message only contains these instructions without any actual content to cache or summarize.\n\nTo help you, please provide the reference text you'd like me to:\n1. Use as cacheable context\n2. Summarize\n\nOnce you share the text, I'll be happy to create a summary for you."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 119,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

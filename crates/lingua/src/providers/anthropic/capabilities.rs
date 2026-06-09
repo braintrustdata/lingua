@@ -8,15 +8,14 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@])claude-opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-./:@])",
+        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
     )
-    .expect("valid Opus 4.7+ model regex")
+    .expect("valid Opus 4.7+ or Fable model regex")
 });
 static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.:])|^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
         .expect("valid Opus 4.8+ model regex")
 });
-
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
 /// Only Opus 4.5+ models support this. All models support `thinking` as fallback.
@@ -264,11 +263,25 @@ mod tests {
                 "anthropic/claude-opus-5-0@20260701",
                 &[StripSamplingParams][..],
             ),
+            ("claude-fable-5", &[StripSamplingParams][..]),
+            ("claude-fable-5-20260601", &[StripSamplingParams][..]),
+            ("CLAUDE-FABLE-5", &[StripSamplingParams][..]),
+            ("claude-fable-6", &[StripSamplingParams][..]),
+            (
+                "us.anthropic.claude-fable-5-v1:0",
+                &[StripSamplingParams][..],
+            ),
+            (
+                "anthropic/claude-fable-5@20260601",
+                &[StripSamplingParams][..],
+            ),
             ("claude-opus-4-6", &[][..]),
             ("claude-opus-4-20250514", &[][..]),
             ("claude-opus-4-5-20250514", &[][..]),
             ("claude-sonnet-4-5-20250929", &[][..]),
             ("claude-3-5-sonnet-20241022", &[][..]),
+            ("claude-fable", &[][..]),
+            ("not-claude-fable-5", &[][..]),
         ];
         for (model, expected) in cases {
             assert_eq!(get_model_transforms(model), expected, "model: {}", model);
@@ -287,6 +300,12 @@ mod tests {
             "claude-opus-5-0",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-FABLE-5",
+            "claude-fable-6",
+            "us.anthropic.claude-fable-5-v1:0",
+            "anthropic/claude-fable-5@20260601",
         ];
         let no_needs = [
             "claude-opus-4-20250514",
@@ -294,6 +313,8 @@ mod tests {
             "claude-opus-4-5",
             "claude-sonnet-4-5-20250929",
             "claude-3-5-sonnet-20241022",
+            "claude-fable",
+            "not-claude-fable-5",
         ];
         for model in needs {
             assert!(model_needs_transforms(model), "should need: {}", model);
@@ -350,6 +371,28 @@ mod tests {
             );
             assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
             assert!(obj.contains_key("top_k"), "{} should preserve top_k", model);
+        }
+    }
+
+    #[test]
+    fn test_fable_strips_sampling_params() {
+        for model in [
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-FABLE-5",
+            "claude-fable-6",
+            "us.anthropic.claude-fable-5-v1:0",
+            "anthropic/claude-fable-5@20260601",
+        ] {
+            let mut obj = object_with_sampling_params();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("temperature"),
+                "{} should strip temperature",
+                model
+            );
+            assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
+            assert!(!obj.contains_key("top_k"), "{} should strip top_k", model);
         }
     }
 }

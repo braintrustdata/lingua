@@ -1936,6 +1936,44 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_strips_temperature_for_fable() {
+        use crate::capabilities::ProviderFormat;
+        use crate::universal::message::UserContent;
+        use std::collections::HashMap;
+
+        let adapter = AnthropicAdapter;
+        let mut extras_map: HashMap<ProviderFormat, Map<String, Value>> = HashMap::new();
+        let mut anthropic_extras = Map::new();
+        anthropic_extras.insert("temperature".into(), json!(0.3));
+        extras_map.insert(ProviderFormat::Anthropic, anthropic_extras);
+
+        let req = UniversalRequest {
+            model: Some("claude-fable-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                top_k: Some(40),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                extras: extras_map,
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.temperature.is_none(),
+            "temperature should be stripped for Fable, including extras"
+        );
+        assert!(result.top_p.is_none(), "top_p should be stripped for Fable");
+        assert!(result.top_k.is_none(), "top_k should be stripped for Fable");
+    }
+
+    #[test]
     fn test_anthropic_preserves_sampling_params_for_non_fixed_sampling_opus() {
         use crate::universal::message::UserContent;
 

@@ -97,6 +97,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                             content_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text,
                                 encrypted_content: None,
+                                cache_control: None,
                                 provider_options: None,
                             }));
                         }
@@ -130,6 +131,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                     content_parts.push(AssistantContentPart::Text(TextContentPart {
                         text: String::new(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }));
                 }
@@ -482,6 +484,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                     content_parts.push(AssistantContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }));
                 }
@@ -514,6 +517,7 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
             content_parts.push(AssistantContentPart::Text(TextContentPart {
                 text: String::new(),
                 encrypted_content: None,
+                cache_control: None,
                 provider_options: None,
             }));
         }

@@ -149,6 +149,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                     Value::String(text) => parts.push(UserContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     })),
                     other => {
@@ -187,6 +188,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                             parts.push(UserContentPart::Text(TextContentPart {
                                 text,
                                 encrypted_content: None,
+                                cache_control: None,
                                 provider_options: None,
                             }));
                         }
@@ -214,6 +216,7 @@ fn assistant_text_part(value: Option<Value>) -> Option<AssistantContentPart> {
     Some(AssistantContentPart::Text(TextContentPart {
         text,
         encrypted_content: None,
+        cache_control: None,
         provider_options: None,
     }))
 }

@@ -167,7 +167,34 @@ pub struct ToolResultContentPart {
 pub struct TextContentPart {
     pub text: String,
     pub encrypted_content: Option<String>,
+    pub cache_control: Option<CacheControl>,
     pub provider_options: Option<ProviderOptions>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+pub struct CacheControl {
+    #[serde(rename = "type")]
+    pub cache_control_type: CacheControlType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub ttl: Option<CacheControlTtl>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum CacheControlType {
+    Ephemeral,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+pub enum CacheControlTtl {
+    #[serde(rename = "1h")]
+    The1H,
+    #[serde(rename = "5m")]
+    The5M,
 }
 
 /// Tool content parts - only tool results allowed
