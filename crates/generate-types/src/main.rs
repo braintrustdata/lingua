@@ -1096,16 +1096,23 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
 
-    processed.push_str(
+    // Dynamically find the enum that quicktype generated for content list types.
+    // Quicktype assigns arbitrary names (IndecentType, HilariousType, etc.) that shift
+    // when the spec changes, so we search for the enum containing both InputText and
+    // OutputText variants.
+    let content_list_type_name = find_enum_with_variants(&processed, &["InputText", "OutputText"])
+        .unwrap_or_else(|| "IndecentType".to_string());
+
+    processed.push_str(&format!(
         r#"
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
 pub type Instructions = InputParam;
 pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = IndecentType;
+pub type InputItemContentListType = {content_list_type_name};
 pub type FunctionCallItemStatus = Status;
 "#,
-    );
+    ));
 
     processed
 }
@@ -1754,6 +1761,59 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+/// Find an enum in generated Rust source whose body contains all of the given variant names.
+/// Returns the enum's identifier (e.g. "HilariousType") or `None`.
+fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
+    let mut current_enum: Option<String> = None;
+    let mut matched_variants = std::collections::HashSet::new();
+    let mut brace_depth: usize = 0;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+
+        if let Some(rest) = trimmed.strip_prefix("pub enum ") {
+            if let Some(name) = rest.split_whitespace().next() {
+                let name = name.trim_end_matches('{').trim();
+                if trimmed.contains('{') {
+                    current_enum = Some(name.to_string());
+                    matched_variants.clear();
+                    brace_depth = 1;
+                }
+            }
+            continue;
+        }
+
+        if current_enum.is_some() {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+
+            if brace_depth == 0 {
+                if required_variants
+                    .iter()
+                    .all(|v| matched_variants.contains(*v))
+                {
+                    return current_enum;
+                }
+                current_enum = None;
+                matched_variants.clear();
+                continue;
+            }
+
+            // Check for variant like "    InputText," or "    InputText"
+            let variant = trimmed.trim_end_matches(',');
+            if variant.chars().all(|c| c.is_alphanumeric() || c == '_')
+                && !variant.is_empty()
+                && !variant.starts_with('#')
+                && !variant.starts_with('/')
+            {
+                matched_variants.insert(variant.to_string());
+            }
+        }
+    }
+
+    None
 }
 
 fn add_google_schema_int64_deserializers(content: &str) -> String {

@@ -10,12 +10,12 @@ import type { FunctionToolParam } from "./FunctionToolParam";
 import type { ImageGenActionEnum } from "./ImageGenActionEnum";
 import type { InputFidelity } from "./InputFidelity";
 import type { InputImageMask } from "./InputImageMask";
-import type { Moderation } from "./Moderation";
+import type { ModerationEnum } from "./ModerationEnum";
 import type { OutputFormat } from "./OutputFormat";
 import type { Quality } from "./Quality";
 import type { RankingOptions } from "./RankingOptions";
 import type { RequireApproval } from "./RequireApproval";
-import type { SearchContentType } from "./SearchContentType";
+import type { TType } from "./TType";
 import type { ToolFormat } from "./ToolFormat";
 import type { ToolSearchExecutionType } from "./ToolSearchExecutionType";
 import type { ToolType } from "./ToolType";
@@ -233,7 +233,7 @@ input_image_mask: InputImageMask | null, model: string | null,
 /**
  * Moderation level for the generated image. Default: `auto`.
  */
-moderation: Moderation | null, 
+moderation: ModerationEnum | null, 
 /**
  * Compression level for the output image. Default: 100.
  */
@@ -275,7 +275,7 @@ tools: Array<FunctionToolParam> | null,
 /**
  * Whether tool search is executed by the server or by the client.
  */
-execution: ToolSearchExecutionType | null, search_content_types: Array<SearchContentType> | null, annotations: unknown, 
+execution: ToolSearchExecutionType | null, search_content_types: Array<TType> | null, annotations: unknown, 
 /**
  * The JSON schema describing the tool's input.
  */

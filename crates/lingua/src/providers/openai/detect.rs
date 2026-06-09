@@ -142,6 +142,7 @@ mod tests {
             tool_choice: None,
             tools: None,
             verbosity: None,
+            moderation: None,
             web_search_options: None,
         };
 
@@ -211,6 +212,7 @@ mod tests {
             tool_choice: None,
             tools: None,
             verbosity: None,
+            moderation: None,
             web_search_options: None,
         };
 
@@ -272,6 +274,7 @@ mod tests {
             tool_choice: None,
             tools: None,
             verbosity: None,
+            moderation: None,
             web_search_options: None,
         };
 

@@ -138,6 +138,9 @@ content: InputItemContent | null, phase: MessagePhase | null,
  *
  *
  * The role of the output message. Always `assistant`.
+ *
+ *
+ * The role that provided the additional tools. Only `developer` is supported.
  */
 role: InputItemRole | null, 
 /**
@@ -168,6 +171,8 @@ role: InputItemRole | null,
  * The item type. Always `tool_search_call`.
  *
  * The item type. Always `tool_search_output`.
+ *
+ * The item type. Always `additional_tools`.
  *
  * The type of the object. Always `reasoning`.
  *
@@ -391,6 +396,8 @@ namespace: string | null,
 execution: ToolSearchExecutionType | null, 
 /**
  * The loaded tool definitions returned by the tool search output.
+ *
+ * A list of additional tools made available at this item.
  *
  * The tools available on the server.
  */

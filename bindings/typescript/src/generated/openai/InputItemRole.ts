@@ -9,5 +9,8 @@
  *
  *
  * The role of the output message. Always `assistant`.
+ *
+ *
+ * The role that provided the additional tools. Only `developer` is supported.
  */
 export type InputItemRole = "assistant" | "developer" | "system" | "user";
