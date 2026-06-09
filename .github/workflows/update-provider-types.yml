@@ -529,10 +529,10 @@ jobs:
           delete-branch: true
           signoff: false
 
-      - name: Fail after PR creation if validation failed
+      - name: Fail workflow if validation failed
         if: >-
-          steps.changes.outputs.has_changes == 'true' &&
           (
+            (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
             steps.repair_trace.outcome == 'failure' ||
             steps.retry.outcome == 'failure' ||
             steps.ts_types.outcome == 'failure' ||
@@ -546,7 +546,7 @@ jobs:
             steps.cross_provider.outcome == 'failure'
           )
         run: |
-          echo "Provider type update PR was created, but one or more validation steps failed." >&2
+          echo "Provider type update failed validation. If changes were produced, the PR creation step already ran." >&2
           exit 1
 
       - name: Summary
@@ -554,6 +554,8 @@ jobs:
           set -euo pipefail
           if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
             echo "Provider types changed; PR creation step ran."
+          elif [ "${{ steps.generate.outcome }}" = "failure" ]; then
+            echo "Provider types are unchanged after a recovered generation failure."
           else
             echo "Provider types are already up to date."
           fi
