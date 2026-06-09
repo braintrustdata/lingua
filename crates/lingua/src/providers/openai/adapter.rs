@@ -22,7 +22,8 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::WebSearch;
 use crate::providers::openai::params::{
-    OpenAIChatExtrasView, OpenAIChatParams, OpenAICompletionPrompt, OpenAIReasoningEffort,
+    OpenAIChatExtrasView, OpenAIChatLegacyPromptParams, OpenAIChatParams, OpenAICompletionPrompt,
+    OpenAIReasoningEffort,
 };
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
@@ -122,6 +123,18 @@ fn reject_legacy_prompt_only_extras(
     Ok(())
 }
 
+fn reject_untyped_legacy_prompt_params(
+    params: &OpenAIChatLegacyPromptParams,
+) -> Result<(), TransformError> {
+    if params.logprobs.is_some() {
+        return Err(TransformError::ToUniversalFailed(
+            "OpenAI legacy prompt compatibility does not support legacy completions-only parameter 'logprobs'".to_string(),
+        ));
+    }
+
+    reject_legacy_prompt_only_extras(&params.extras)
+}
+
 #[derive(serde::Deserialize)]
 struct OpenAIChatMessagesView {
     messages: Option<Vec<ChatCompletionRequestMessageExt>>,
@@ -150,8 +163,18 @@ impl ProviderAdapter for OpenAIAdapter {
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         // Parse params (messages will be parsed separately to preserve reasoning field)
-        let typed_params: OpenAIChatParams = serde_json::from_value(payload.clone())
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let typed_params: OpenAIChatParams = match serde_json::from_value(payload.clone()) {
+            Ok(params) => params,
+            Err(err) => {
+                let legacy_params: OpenAIChatLegacyPromptParams =
+                    serde_json::from_value(payload.clone())
+                        .map_err(|_| TransformError::ToUniversalFailed(err.to_string()))?;
+                if legacy_params.is_legacy_prompt_request() {
+                    reject_untyped_legacy_prompt_params(&legacy_params)?;
+                }
+                return Err(TransformError::ToUniversalFailed(err.to_string()));
+            }
+        };
 
         let messages_view: OpenAIChatMessagesView = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;

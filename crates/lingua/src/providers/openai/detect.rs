@@ -7,7 +7,7 @@ the OpenAI struct types.
 */
 
 use crate::providers::openai::generated::{CreateChatCompletionRequestClass, CreateResponseClass};
-use crate::providers::openai::params::OpenAIChatParams;
+use crate::providers::openai::params::OpenAIChatLegacyPromptParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
 
@@ -43,11 +43,13 @@ pub fn try_parse_openai(
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
 }
 
-pub fn try_parse_openai_legacy_prompt(payload: &Value) -> Result<OpenAIChatParams, DetectionError> {
-    let params: OpenAIChatParams = serde_json::from_value(payload.clone())
+pub fn try_parse_openai_legacy_prompt(
+    payload: &Value,
+) -> Result<OpenAIChatLegacyPromptParams, DetectionError> {
+    let params: OpenAIChatLegacyPromptParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
 
-    if params.model.is_some() && params.messages.is_none() && params.prompt.is_some() {
+    if params.is_legacy_prompt_request() {
         return Ok(params);
     }
 

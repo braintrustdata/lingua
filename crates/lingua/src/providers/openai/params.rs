@@ -77,6 +77,23 @@ pub struct OpenAIChatParams {
     pub extras: BTreeMap<String, Value>,
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct OpenAIChatLegacyPromptParams {
+    pub model: Option<String>,
+    pub messages: Option<Value>,
+    pub prompt: Option<OpenAICompletionPrompt>,
+    pub logprobs: Option<Value>,
+
+    #[serde(flatten)]
+    pub extras: BTreeMap<String, Value>,
+}
+
+impl OpenAIChatLegacyPromptParams {
+    pub fn is_legacy_prompt_request(&self) -> bool {
+        self.model.is_some() && self.messages.is_none() && self.prompt.is_some()
+    }
+}
+
 /// OpenAI Responses API request parameters.
 ///
 /// The Responses API has different field names and structure than Chat Completions.
