@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I notice you'd like me to use a stable reference text as cacheable context, but I don't see any text provided in your message. \n\nCould you please:\n1. **Share the text** you'd like me to use as context\n2. **Clarify what you mean by \"cacheable context\"** — are you referring to prompt caching, or do you want me to treat it as reference material?\n\nOnce you provide the text, I'll be happy to summarize it for you!"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 22,
+    "outputTokens": 110,
+    "totalTokens": 132,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1722
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "180e7c26-73f8-40ce-a5bc-75e2e500e381",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

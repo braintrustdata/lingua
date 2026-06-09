@@ -607,10 +607,6 @@ impl ProviderAdapter for AnthropicAdapter {
             );
         }
 
-        if let Some(raw_cache_control) = anthropic_extras_view.cache_control.as_ref() {
-            obj.insert("cache_control".into(), raw_cache_control.clone());
-        }
-
         // Merge back provider-specific extras (only for Anthropic)
         if let Some(extras) = req.params.extras.get(&ProviderFormat::Anthropic) {
             for (k, v) in extras {

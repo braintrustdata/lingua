@@ -264,6 +264,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text: t.clone(),
                                 encrypted_content: part.thought_signature.clone(),
+                                cache_control: None,
                                 provider_options: None,
                             }));
                         }
@@ -271,6 +272,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: String::new(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: provider_options_from_google_assistant_part(
                                 Some(executable_code.clone()),
                                 None,
@@ -280,6 +282,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: String::new(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: provider_options_from_google_assistant_part(
                                 None,
                                 Some(code_execution_result.clone()),
@@ -347,6 +350,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }));
                     } else if let Some(blob) = &part.inline_data {

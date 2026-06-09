@@ -1,6 +1,6 @@
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContent, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, CacheControl, CacheControlTtl, CacheControlType,
+    Message, TextContentPart, ToolContent, UserContent, UserContentPart,
 };
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
@@ -50,10 +50,12 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
         UserContent::Array(parts) => {
             // Normalize array with single text part to match string representation
             if parts.len() == 1 {
-                if let Some(UserContentPart::Text(TextContentPart { text, .. })) = parts.first() {
-                    "text".hash(hasher);
-                    text.hash(hasher);
-                    return;
+                if let Some(UserContentPart::Text(text_part)) = parts.first() {
+                    if can_normalize_text_part_to_string(text_part) {
+                        "text".hash(hasher);
+                        text_part.text.hash(hasher);
+                        return;
+                    }
                 }
             }
 
@@ -62,9 +64,9 @@ fn hash_user_content(content: &UserContent, hasher: &mut DefaultHasher) {
             parts.len().hash(hasher);
             for part in parts {
                 match part {
-                    UserContentPart::Text(TextContentPart { text, .. }) => {
+                    UserContentPart::Text(text_part) => {
                         "text".hash(hasher);
-                        text.hash(hasher);
+                        hash_text_content_part(text_part, hasher);
                     }
                     UserContentPart::Image {
                         image, media_type, ..
@@ -99,12 +101,12 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
         AssistantContent::Array(parts) => {
             // Normalize array with single text part to match string representation
             if parts.len() == 1 {
-                if let Some(AssistantContentPart::Text(TextContentPart { text, .. })) =
-                    parts.first()
-                {
-                    "text".hash(hasher);
-                    text.hash(hasher);
-                    return;
+                if let Some(AssistantContentPart::Text(text_part)) = parts.first() {
+                    if can_normalize_text_part_to_string(text_part) {
+                        "text".hash(hasher);
+                        text_part.text.hash(hasher);
+                        return;
+                    }
                 }
             }
 
@@ -113,9 +115,9 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
             parts.len().hash(hasher);
             for part in parts {
                 match part {
-                    AssistantContentPart::Text(TextContentPart { text, .. }) => {
+                    AssistantContentPart::Text(text_part) => {
                         "text".hash(hasher);
-                        text.hash(hasher);
+                        hash_text_content_part(text_part, hasher);
                     }
                     AssistantContentPart::File {
                         data,
@@ -174,6 +176,33 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
     }
 }
 
+fn can_normalize_text_part_to_string(part: &TextContentPart) -> bool {
+    part.encrypted_content.is_none() && part.cache_control.is_none()
+}
+
+fn hash_text_content_part(part: &TextContentPart, hasher: &mut DefaultHasher) {
+    part.text.hash(hasher);
+    part.encrypted_content.hash(hasher);
+    hash_cache_control(&part.cache_control, hasher);
+}
+
+fn hash_cache_control(cache_control: &Option<CacheControl>, hasher: &mut DefaultHasher) {
+    match cache_control {
+        Some(cache_control) => {
+            "some".hash(hasher);
+            match cache_control.cache_control_type {
+                CacheControlType::Ephemeral => "ephemeral".hash(hasher),
+            }
+            match cache_control.ttl {
+                Some(CacheControlTtl::The1H) => "1h".hash(hasher),
+                Some(CacheControlTtl::The5M) => "5m".hash(hasher),
+                None => "none".hash(hasher),
+            }
+        }
+        None => "none".hash(hasher),
+    }
+}
+
 fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
     content.len().hash(hasher);
     for part in content {
@@ -217,7 +246,8 @@ pub fn deduplicate_messages(messages: Vec<Message>) -> Vec<Message> {
 mod tests {
     use super::*;
     use crate::universal::{
-        AssistantContent, Message, TextContentPart, UserContent, UserContentPart,
+        AssistantContent, CacheControl, CacheControlTtl, CacheControlType, Message,
+        TextContentPart, UserContent, UserContentPart,
     };
 
     #[test]
@@ -248,6 +278,7 @@ mod tests {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "foo".to_string(),
                     encrypted_content: None,
+                    cache_control: None,
                     provider_options: None,
                 })]),
             },
@@ -279,6 +310,41 @@ mod tests {
     }
 
     #[test]
+    fn test_dedup_preserves_user_cache_control_text_part() {
+        let messages = vec![
+            Message::User {
+                content: UserContent::String("foo".to_string()),
+            },
+            Message::User {
+                content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                    text: "foo".to_string(),
+                    encrypted_content: None,
+                    cache_control: Some(CacheControl {
+                        cache_control_type: CacheControlType::Ephemeral,
+                        ttl: Some(CacheControlTtl::The1H),
+                    }),
+                    provider_options: None,
+                })]),
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
+        assert!(matches!(
+            &result[1],
+            Message::User {
+                content: UserContent::Array(parts)
+            } if matches!(
+                parts.first(),
+                Some(UserContentPart::Text(TextContentPart {
+                    cache_control: Some(_),
+                    ..
+                }))
+            )
+        ));
+    }
+
+    #[test]
     fn test_dedup_assistant_string_vs_array() {
         let messages = vec![
             Message::Assistant {
@@ -290,6 +356,7 @@ mod tests {
                     TextContentPart {
                         text: "response".to_string(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     },
                 )]),
@@ -307,6 +374,46 @@ mod tests {
                 content: AssistantContent::String(_),
                 ..
             }
+        ));
+    }
+
+    #[test]
+    fn test_dedup_preserves_assistant_cache_control_text_part() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::String("response".to_string()),
+                id: None,
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::Text(
+                    TextContentPart {
+                        text: "response".to_string(),
+                        encrypted_content: None,
+                        cache_control: Some(CacheControl {
+                            cache_control_type: CacheControlType::Ephemeral,
+                            ttl: Some(CacheControlTtl::The1H),
+                        }),
+                        provider_options: None,
+                    },
+                )]),
+                id: None,
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
+        assert!(matches!(
+            &result[1],
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } if matches!(
+                parts.first(),
+                Some(AssistantContentPart::Text(TextContentPart {
+                    cache_control: Some(_),
+                    ..
+                }))
+            )
         ));
     }
 
@@ -415,11 +522,13 @@ mod tests {
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }),
                     UserContentPart::Text(TextContentPart {
                         text: "world".to_string(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }),
                 ]),
@@ -429,11 +538,13 @@ mod tests {
                     UserContentPart::Text(TextContentPart {
                         text: "hello".to_string(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }),
                     UserContentPart::Text(TextContentPart {
                         text: "world".to_string(),
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }),
                 ]),
@@ -451,6 +562,7 @@ mod tests {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     encrypted_content: None,
+                    cache_control: None,
                     provider_options: None,
                 })]),
             },
@@ -458,6 +570,7 @@ mod tests {
                 content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                     text: "test".to_string(),
                     encrypted_content: None,
+                    cache_control: None,
                     provider_options: Some(crate::universal::ProviderOptions {
                         options: serde_json::Map::new(),
                     }),
@@ -477,6 +590,7 @@ mod tests {
             content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
                 text: "preserve me".to_string(),
                 encrypted_content: None,
+                cache_control: None,
                 provider_options: Some(crate::universal::ProviderOptions {
                     options: {
                         let mut map = serde_json::Map::new();

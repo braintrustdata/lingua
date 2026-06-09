@@ -948,6 +948,7 @@ mod tests {
                         AssistantContentPart::Text(TextContentPart {
                             text: "OK".to_string(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }),
                     ]),

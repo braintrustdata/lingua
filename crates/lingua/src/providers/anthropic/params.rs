@@ -6,8 +6,7 @@ eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
 use crate::providers::anthropic::generated::{
-    CacheControlEphemeral, InputMessage, JsonOutputFormat, Metadata, OutputConfig, System,
-    Thinking, Tool, ToolChoice,
+    InputMessage, JsonOutputFormat, Metadata, OutputConfig, System, Thinking, Tool, ToolChoice,
 };
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
@@ -25,7 +24,6 @@ pub struct AnthropicParams {
 
     // === System prompt (string or array with cache_control) ===
     pub system: Option<System>,
-    pub cache_control: Option<CacheControlEphemeral>,
 
     // === Required output control ===
     pub max_tokens: Option<i64>,
@@ -71,7 +69,6 @@ pub struct AnthropicParams {
 pub struct AnthropicExtrasView {
     pub messages: Option<Value>,
     pub system: Option<Value>,
-    pub cache_control: Option<Value>,
     pub temperature: Option<Value>,
     pub tools: Option<Value>,
     pub tool_choice: Option<Value>,

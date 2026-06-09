@@ -2,7 +2,7 @@
 
 exports[`streaming: anthropic → chat-completions > anthropicMessageWithSystemMessage > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"chatcmpl-DnBK9WXBnsbXkr2PX5IRR1sqIElbo","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+data: {"message":{"content":[],"id":"chatcmpl-DoyJh5CptPU5m81A5YGIeULvSezar","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
 
 event: content_block_start
 data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
@@ -26,37 +26,28 @@ event: content_block_delta
 data: {"delta":{"text":" help","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" you","type":"text_delta"},"index":0,"type":"content_block_delta"}
-
-event: content_block_delta
 data: {"delta":{"text":" today","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":"?","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"?\\n\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" If","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"If","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":" you","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":"’d","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"’re","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" like","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" just","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" after","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" I","type":"text_delta"},"index":0,"type":"content_block_delta"}
-
-event: content_block_delta
-data: {"delta":{"text":" can","type":"text_delta"},"index":0,"type":"content_block_delta"}
-
-event: content_block_delta
-data: {"delta":{"text":" share","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" a","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":" quick","type":"text_delta"},"index":0,"type":"content_block_delta"}
@@ -65,13 +56,25 @@ event: content_block_delta
 data: {"delta":{"text":" Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
-
-event: content_block_delta
 data: {"delta":{"text":" World","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":"!","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" here","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" are","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" a","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" few","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" minimal","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":" examples","type":"text_delta"},"index":0,"type":"content_block_delta"}
@@ -80,79 +83,334 @@ event: content_block_delta
 data: {"delta":{"text":" in","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" different","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" popular","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":" languages","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
+data: {"delta":{"text":":\\n\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"-","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" Python","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":":\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" print","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"('","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
 data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" help","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" World","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" debug","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"!')\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" code","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"-","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" Java","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Script","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":":\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" console","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".log","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"('","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" or","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" World","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" assist","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"!')\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" with","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":"-","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" reading","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" C","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":":\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" #","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"include","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" <","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"stdio","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".h","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":">\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" int","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" main","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"(void","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":")","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" {\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"     ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" printf","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"(\\"","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" World","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"!\\");\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"     ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" return","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"0","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":";\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" }\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"-","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" Java","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":":\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" public","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" class","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"World","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" {\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"     ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" public","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" static","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" void","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" main","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"(String","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"[]","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" args","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":")","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" {\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"         ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" System","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".out","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".println","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"(\\"","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Hello","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" World","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"!\\");\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"     ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" }\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" }\\n\\n","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"Want","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" it","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" in","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":" a","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" file","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" different","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" from","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" language","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" your","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" or","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" system","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" need","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" an","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" What","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" explanation","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" would","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" of","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" you","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" how","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" like","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" it","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
-data: {"delta":{"text":" to","type":"text_delta"},"index":0,"type":"content_block_delta"}
-
-event: content_block_delta
-data: {"delta":{"text":" do","type":"text_delta"},"index":0,"type":"content_block_delta"}
+data: {"delta":{"text":" works","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
 event: content_block_delta
 data: {"delta":{"text":"?","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
+event: content_block_delta
+data: {"delta":{"text":" Tell","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" me","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" the","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" language","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" and","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" context","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":158,"output_tokens":1337}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":158,"output_tokens":1423}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -4325,6 +4583,132 @@ data: {"choices":[{"delta":{"tool_calls":[{"function":{"arguments":"CA\\"}"},"in
 data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":41,"prompt_tokens":677,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":718}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → bedrock > chatCompletionsAnthropicCacheControlParam > streaming 1`] = `
+"data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"I don't see any reference text provide","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d in your message. Could you please share","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" the text you'd like me to summar","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"ize? Once you provide it, I","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"'ll be happy to:\\n\\n1.","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" Use","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" it as cach","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"eable context","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n2. Create","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" a clear","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":", concise summary for","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" you\\n\\nPlease paste the text you'","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d like summar","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"ized, and let","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" me know if","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" you have","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" any specific preferences","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" for the","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" summary (","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"length","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":", focus","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" areas","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":", format","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":", etc.).","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk","usage":{"completion_tokens":95,"prompt_tokens":22,"total_tokens":117}}
+
+data: [DONE]
+
+"
+`;
+
+exports[`streaming: chat-completions → bedrock > chatCompletionsAssistantCacheControlParam > streaming 1`] = `
+"data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\nI","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" can help","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" with various tasks using","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" cached context","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":". Here are some things","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" I can assist with:\\n\\n-","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" **Answering questions** about","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" cache","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d information","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n- **","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"Analyzing","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" documents","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" or data you","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"'ve","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" provide","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d\\n- **Writing","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"** an","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"d editing tasks","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n- **Problem","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"-solving** and brainstorming","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n- **Coding** assistance","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n- **Creative projects**","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":"\\n\\nHow","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{"content":" can I help you today?","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk"}
+
+data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk"}
+
+data: {"choices":[],"object":"chat.completion.chunk","usage":{"completion_tokens":86,"prompt_tokens":23,"total_tokens":109}}
 
 data: [DONE]
 

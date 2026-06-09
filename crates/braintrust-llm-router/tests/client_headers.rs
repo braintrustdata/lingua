@@ -1,4 +1,4 @@
-use braintrust_llm_router::{ClientHeaders, ANTHROPIC_PROMPT_CACHE_HEADER};
+use braintrust_llm_router::ClientHeaders;
 use http::HeaderMap;
 
 fn apply_headers(cases: &[(&str, &str, bool)]) -> HeaderMap {
@@ -26,7 +26,6 @@ fn client_headers_filter_and_host_behavior() {
         ("cache-control", "no-cache", false),
         ("host", "api.example.com", false),
         ("anthropic-beta", "tools-2024-05-16", true),
-        (ANTHROPIC_PROMPT_CACHE_HEADER, "true", false),
         ("accept", "application/json", true),
         ("x-custom-header", "1", true),
     ];
@@ -49,9 +48,6 @@ fn user_configured_headers_are_not_filtered() {
     client_headers
         .insert_user_configured("x-bt-project-id", "configured-project")
         .expect("x-bt-project-id header");
-    client_headers
-        .insert_user_configured(ANTHROPIC_PROMPT_CACHE_HEADER, "true")
-        .expect("prompt cache header");
     let mut headers = HeaderMap::new();
 
     client_headers.apply(&mut headers);
@@ -68,5 +64,4 @@ fn user_configured_headers_are_not_filtered() {
         headers.get("x-bt-project-id").and_then(|v| v.to_str().ok()),
         Some("configured-project")
     );
-    assert!(!headers.contains_key(ANTHROPIC_PROMPT_CACHE_HEADER));
 }
