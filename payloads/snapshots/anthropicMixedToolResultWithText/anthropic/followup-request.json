@@ -1,0 +1,66 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Look up the latest records."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "call_repro_123",
+          "name": "search_records",
+          "input": {
+            "collection": "example_collection"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "call_repro_123",
+          "content": "{\"records\":[{\"id\":\"record_1\",\"status\":\"ok\"}]}"
+        },
+        {
+          "type": "text",
+          "text": "What details are available?"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Based on the record that was retrieved, the following details are available:\n\n- **ID**: record_1\n- **Status**: ok\n\nThe record appears to be quite minimal with just these two fields. If you'd like to search for records in a different collection or need more specific information, please let me know which collection you'd like me to search in."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "name": "search_records",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection"
+        ]
+      }
+    }
+  ]
+}

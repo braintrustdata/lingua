@@ -434,6 +434,22 @@ data: {"type":"message_stop"}
 "
 `;
 
+exports[`streaming: anthropic → chat-completions > anthropicMixedToolResultWithText > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"chatcmpl-Dp4RF3MuIGYlGOoQIJBvJ6q7UDIo9","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: message_delta
+data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":176,"output_tokens":1024}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
 exports[`streaming: anthropic → chat-completions > complexReasoningRequest > streaming 1`] = `
 "event: message_start
 data: {"message":{"content":[],"id":"chatcmpl-DQJkt7wWytDi8Nj25RE2kiFvAJAw7","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
