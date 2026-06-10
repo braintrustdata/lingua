@@ -1302,24 +1302,6 @@ fn mixed_user_tool_result_groups(
     Some(groups)
 }
 
-fn input_message_content_contains_tool_result(content: &generated::MessageContent) -> bool {
-    match content {
-        generated::MessageContent::String(_) => false,
-        generated::MessageContent::InputContentBlockArray(blocks) => {
-            blocks.iter().any(input_content_block_is_tool_result)
-        }
-    }
-}
-
-fn input_message_content_contains_non_tool_result(content: &generated::MessageContent) -> bool {
-    match content {
-        generated::MessageContent::String(_) => true,
-        generated::MessageContent::InputContentBlockArray(blocks) => blocks
-            .iter()
-            .any(|block| !input_content_block_is_tool_result(block)),
-    }
-}
-
 fn text_input_content_block(text: String) -> generated::InputContentBlock {
     generated::InputContentBlock {
         cache_control: None,
@@ -1361,15 +1343,41 @@ fn try_merge_adjacent_user_tool_result_message(
         return Ok(Some(current));
     }
 
-    let previous_has_tool_result = input_message_content_contains_tool_result(&previous.content);
-    let current_has_tool_result = input_message_content_contains_tool_result(&current.content);
-    let previous_has_non_tool_result =
-        input_message_content_contains_non_tool_result(&previous.content);
-    let current_has_non_tool_result =
-        input_message_content_contains_non_tool_result(&current.content);
+    let previous_is_pure_tool_result = match &previous.content {
+        generated::MessageContent::String(_) => false,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
+        }
+    };
+    let current_is_pure_tool_result = match &current.content {
+        generated::MessageContent::String(_) => false,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
+        }
+    };
+    let previous_is_pure_non_tool_result = match &previous.content {
+        generated::MessageContent::String(_) => true,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            !blocks.is_empty()
+                && blocks
+                    .iter()
+                    .all(|block| !input_content_block_is_tool_result(block))
+        }
+    };
+    let current_is_pure_non_tool_result = match &current.content {
+        generated::MessageContent::String(_) => true,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            !blocks.is_empty()
+                && blocks
+                    .iter()
+                    .all(|block| !input_content_block_is_tool_result(block))
+        }
+    };
 
-    if !(previous_has_tool_result && current_has_non_tool_result
-        || current_has_tool_result && previous_has_non_tool_result)
+    // Only rejoin a pure tool-result segment with its adjacent pure user-content
+    // segment. Once merged, the mixed message must not absorb later user turns.
+    if !(previous_is_pure_tool_result && current_is_pure_non_tool_result
+        || current_is_pure_tool_result && previous_is_pure_non_tool_result)
     {
         return Ok(Some(current));
     }
@@ -2221,6 +2229,51 @@ mod tests {
         assert_eq!(text_from_user(&messages[0]), "Before");
         assert_eq!(tool_call_id_from_tool(&messages[1]), "call_repro_123");
         assert_eq!(text_from_user(&messages[2]), "After");
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_does_not_absorb_later_user_turns() {
+        let messages = vec![
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_repro_123".to_string(),
+                    tool_name: String::new(),
+                    output: json!({"records": [{"id": "record_1", "status": "ok"}]}),
+                    provider_options: None,
+                })],
+            },
+            Message::User {
+                content: UserContent::String("first".to_string()),
+            },
+            Message::User {
+                content: UserContent::String("second".to_string()),
+            },
+        ];
+
+        let input_messages = universal_messages_to_anthropic_input_messages(messages)
+            .expect("conversion should succeed");
+
+        assert_eq!(input_messages.len(), 2);
+        match &input_messages[0].content {
+            generated::MessageContent::InputContentBlockArray(blocks) => {
+                assert_eq!(blocks.len(), 2);
+                assert_eq!(
+                    blocks[0].input_content_block_type,
+                    generated::InputContentBlockType::ToolResult
+                );
+                assert_eq!(
+                    blocks[1].input_content_block_type,
+                    generated::InputContentBlockType::Text
+                );
+                assert_eq!(blocks[1].text.as_deref(), Some("first"));
+            }
+            other => panic!("expected mixed content blocks, got {other:?}"),
+        }
+        assert_eq!(input_messages[1].role, generated::MessageRole::User);
+        match &input_messages[1].content {
+            generated::MessageContent::String(text) => assert_eq!(text, "second"),
+            other => panic!("expected second user turn to remain separate, got {other:?}"),
+        }
     }
 
     #[test]
