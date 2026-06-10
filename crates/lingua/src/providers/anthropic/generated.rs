@@ -176,7 +176,7 @@ pub struct CreateMessageParams {
     ///
     /// There are two types of tools: **client tools** and **server tools**. The behavior
     /// described below applies to client tools. For [server
-    /// tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview\#server-tools),
+    /// tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
     /// see their individual documentation as each has its own behavior (e.g., the [web search
     /// tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
     ///
@@ -2092,6 +2092,10 @@ pub struct RefusalStopDetails {
 pub enum Category {
     Bio,
     Cyber,
+    #[serde(rename = "frontier_llm")]
+    FrontierLlm,
+    #[serde(rename = "reasoning_extraction")]
+    ReasoningExtraction,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
