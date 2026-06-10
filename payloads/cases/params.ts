@@ -439,7 +439,7 @@ export const paramsCases: TestCaseCollection = {
           ],
         },
       ],
-    } as unknown as OpenAI.Responses.ResponseCreateParams,
+    },
     anthropic: null,
     google: null,
     bedrock: null,

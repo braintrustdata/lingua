@@ -56,6 +56,7 @@ pub struct StreamTransformSession {
     buffered_delta: Option<StreamOutputChunk>,
     buffered_stop: Option<StreamOutputChunk>,
     anthropic_message_started: bool,
+    anthropic_tool_use_started: bool,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -75,6 +76,7 @@ impl StreamTransformSession {
             buffered_delta: None,
             buffered_stop: None,
             anthropic_message_started: false,
+            anthropic_tool_use_started: false,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -233,9 +235,19 @@ impl StreamTransformSession {
         let is_delta = chunk.event_type.as_deref() == Some("message_delta");
         let is_stop = chunk.event_type.as_deref() == Some("message_stop");
         let is_start = chunk.event_type.as_deref() == Some("message_start");
+        let is_tool_use_start = is_anthropic_tool_use_start(&chunk);
+        let chunk = if is_delta && self.anthropic_tool_use_started {
+            with_anthropic_tool_use_stop_reason(chunk)
+        } else {
+            chunk
+        };
 
         if is_start {
             self.anthropic_message_started = true;
+            self.anthropic_tool_use_started = false;
+        }
+        if is_tool_use_start {
+            self.anthropic_tool_use_started = true;
         }
 
         if is_delta && self.buffered_delta.is_some() {
@@ -247,6 +259,8 @@ impl StreamTransformSession {
             );
             let mut out = vec![merged];
             if let Some(stop) = self.buffered_stop.take() {
+                self.anthropic_message_started = false;
+                self.anthropic_tool_use_started = false;
                 out.push(stop);
             }
             return out;
@@ -264,6 +278,7 @@ impl StreamTransformSession {
 
         if is_stop {
             self.anthropic_message_started = false;
+            self.anthropic_tool_use_started = false;
         }
 
         let mut out = self.flush_buffered();
@@ -278,9 +293,47 @@ impl StreamTransformSession {
         }
         if let Some(stop) = self.buffered_stop.take() {
             self.anthropic_message_started = false;
+            self.anthropic_tool_use_started = false;
             out.push(stop);
         }
         out
+    }
+}
+
+fn is_anthropic_tool_use_start(chunk: &StreamOutputChunk) -> bool {
+    if chunk.event_type.as_deref() != Some("content_block_start") {
+        return false;
+    }
+
+    let Ok(data) = crate::serde_json::from_slice::<Value>(&chunk.data) else {
+        return false;
+    };
+
+    data.get("content_block")
+        .and_then(|block| block.get("type"))
+        .and_then(Value::as_str)
+        == Some("tool_use")
+}
+
+fn with_anthropic_tool_use_stop_reason(chunk: StreamOutputChunk) -> StreamOutputChunk {
+    let Ok(mut data) = crate::serde_json::from_slice::<Value>(&chunk.data) else {
+        return chunk;
+    };
+
+    let Some(delta) = data.get_mut("delta").and_then(Value::as_object_mut) else {
+        return chunk;
+    };
+    let Some(stop_reason) = delta.get_mut("stop_reason") else {
+        return chunk;
+    };
+    if !matches!(stop_reason.as_str(), Some("end_turn" | "stop")) {
+        return chunk;
+    }
+
+    *stop_reason = Value::String("tool_use".to_string());
+    StreamOutputChunk {
+        data: serialize_stream_value(&data).unwrap_or(chunk.data),
+        event_type: chunk.event_type,
     }
 }
 
@@ -850,6 +903,92 @@ mod tests {
         let second = session.push(tool_args).unwrap();
         assert_eq!(second.len(), 1);
         assert_eq!(second[0].event_type.as_deref(), Some("content_block_delta"));
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_responses_tool_call_after_metadata_does_not_repeat_message_start() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let created = to_bytes(&json!({
+            "type": "response.created",
+            "response": {
+                "id": "resp_123",
+                "model": "gpt-5.5-2026-04-23",
+                "usage": {
+                    "input_tokens": 0,
+                    "output_tokens": 0
+                }
+            }
+        }));
+        let tool_start = to_bytes(&json!({
+            "type": "response.output_item.added",
+            "output_index": 1,
+            "item": {
+                "type": "function_call",
+                "call_id": "call_123",
+                "name": "mcp__braintrust__list_recent_objects"
+            }
+        }));
+        let completed = to_bytes(&json!({
+            "type": "response.completed",
+            "response": {
+                "id": "resp_123",
+                "model": "gpt-5.5-2026-04-23",
+                "usage": {
+                    "input_tokens": 10,
+                    "output_tokens": 20
+                }
+            }
+        }));
+
+        let first = session.push(created).unwrap();
+        assert_eq!(
+            first
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("message_start"), Some("content_block_start")]
+        );
+
+        let second = session.push(tool_start).unwrap();
+        assert_eq!(
+            second
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_start")]
+        );
+
+        let tool_block: Value = crate::serde_json::from_slice(&second[0].data).unwrap();
+        assert_eq!(
+            tool_block
+                .get("content_block")
+                .and_then(|block| block.get("type"))
+                .and_then(Value::as_str),
+            Some("tool_use")
+        );
+
+        let third = session.push(completed).unwrap();
+        assert!(third.is_empty());
+
+        let final_chunks = session.finish();
+        assert_eq!(
+            final_chunks
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("message_delta"), Some("message_stop")]
+        );
+
+        let message_delta: Value = crate::serde_json::from_slice(&final_chunks[0].data).unwrap();
+        assert_eq!(
+            message_delta
+                .get("delta")
+                .and_then(|delta| delta.get("stop_reason"))
+                .and_then(Value::as_str),
+            Some("tool_use")
+        );
     }
 
     #[test]
