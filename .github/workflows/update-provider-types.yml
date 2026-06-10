@@ -536,7 +536,7 @@ jobs:
             (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
             steps.repair_trace.outcome == 'failure' ||
             steps.retry.outcome == 'failure' ||
-            steps.ts_types.outcome == 'failure' ||
+            (steps.ts_types.outcome == 'failure' && steps.post_review_ts_types.outcome != 'success') ||
             steps.integration_review_trace.outcome == 'failure' ||
             steps.integration_review.outcome == 'failure' ||
             steps.post_review_ts_types.outcome == 'failure' ||
