@@ -2273,7 +2273,7 @@ mod tests {
     }
 
     #[test]
-    fn explicit_provider_routes_treat_empty_available_providers_as_unconstrained() {
+    fn explicit_provider_routes_do_not_treat_empty_available_providers_as_unconstrained() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
@@ -2294,7 +2294,7 @@ mod tests {
         assert_eq!(
             explicit_route_aliases(&router, model, ProviderFormat::ChatCompletions, &["custom"])
                 .expect("routes"),
-            vec!["custom".to_string()]
+            Vec::<String>::new()
         );
     }
 
