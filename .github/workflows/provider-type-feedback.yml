@@ -1,0 +1,47 @@
+name: Provider type update feedback
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  log-feedback:
+    if: github.event.issue.pull_request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Parse feedback command
+        id: feedback
+        run: node .github/scripts/braintrust-provider-types.mjs extract-feedback-event
+
+      - name: Install Braintrust SDK
+        if: steps.feedback.outputs.should_log == 'true'
+        run: npm install -g braintrust
+
+      - name: Log feedback to Braintrust
+        if: steps.feedback.outputs.should_log == 'true'
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PR_METADATA: ${{ steps.feedback.outputs.metadata }}
+          BT_RATING: ${{ steps.feedback.outputs.rating }}
+          BT_COMMAND: ${{ steps.feedback.outputs.command }}
+          BT_COMMENT_ID: ${{ steps.feedback.outputs.comment_id }}
+          BT_COMMENT_URL: ${{ steps.feedback.outputs.comment_url }}
+          BT_COMMENT_AUTHOR: ${{ steps.feedback.outputs.comment_author }}
+          BT_PR_NUMBER: ${{ steps.feedback.outputs.pr_number }}
+          BT_PR_URL: ${{ steps.feedback.outputs.pr_url }}
+          BT_COMMENT_BODY: ${{ github.event.comment.body }}
+        run: NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs log-feedback
