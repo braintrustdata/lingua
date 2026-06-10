@@ -67,6 +67,7 @@ pub struct OpenAIChatParams {
     pub user: Option<String>,
     pub safety_identifier: Option<String>,
     pub prompt_cache_key: Option<String>,
+    pub moderation: Option<Value>,
 
     // === Prediction ===
     pub prediction: Option<Value>,
@@ -138,6 +139,7 @@ pub struct OpenAIResponsesParams {
     pub user: Option<String>,
     pub safety_identifier: Option<String>,
     pub prompt_cache_key: Option<String>,
+    pub moderation: Option<Value>,
 
     /// Unknown fields - automatically captured by serde flatten.
     #[serde(flatten)]
@@ -163,6 +165,7 @@ pub struct OpenAIChatExtrasView {
     pub max_tokens: Option<Value>,
     pub max_completion_tokens: Option<Value>,
     pub web_search_options: Option<Value>,
+    pub moderation: Option<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,6 +199,7 @@ pub struct OpenAIResponsesExtrasView {
     pub metadata: Option<Value>,
     pub store: Option<Value>,
     pub service_tier: Option<Value>,
+    pub moderation: Option<Value>,
 }
 
 /// Typed OpenAI reasoning effort view for request parameters.
@@ -266,6 +270,25 @@ mod tests {
     }
 
     #[test]
+    fn test_chat_params_moderation_is_typed_field() {
+        let json = json!({
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let params: OpenAIChatParams = serde_json::from_value(json).unwrap();
+
+        assert_eq!(
+            params.moderation,
+            Some(json!({ "model": "omni-moderation-latest" }))
+        );
+        assert!(!params.extras.contains_key("moderation"));
+    }
+
+    #[test]
     fn test_responses_params_known_fields() {
         let json = json!({
             "model": "gpt-5-nano",
@@ -280,6 +303,25 @@ mod tests {
         assert_eq!(params.instructions, Some("Be helpful".to_string()));
         assert_eq!(params.max_output_tokens, Some(500));
         assert!(params.extras.is_empty());
+    }
+
+    #[test]
+    fn test_responses_params_moderation_is_typed_field() {
+        let json = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let params: OpenAIResponsesParams = serde_json::from_value(json).unwrap();
+
+        assert_eq!(
+            params.moderation,
+            Some(json!({ "model": "omni-moderation-latest" }))
+        );
+        assert!(!params.extras.contains_key("moderation"));
     }
 
     #[test]

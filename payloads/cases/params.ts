@@ -409,6 +409,42 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesAdditionalToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Use any additional tools made available later.",
+        },
+        {
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+          ],
+        },
+      ],
+    } as unknown as OpenAI.Responses.ResponseCreateParams,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

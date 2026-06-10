@@ -975,6 +975,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     // UniversalParams::conversation_reference before message conversion.
                     continue;
                 }
+                Some(openai::InputItemType::AdditionalTools) => {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "InputItemType::AdditionalTools".to_string(),
+                        to: "universal Message",
+                    });
+                }
                 Some(openai::InputItemType::Reasoning) => {
                     let mut summaries = vec![];
                     let mut first = true;
@@ -2277,6 +2283,9 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             Some(openai::OutputItemType::McpApprovalRequest) => {
                 Some(openai::InputItemType::McpApprovalRequest)
             }
+            Some(openai::OutputItemType::AdditionalTools) => {
+                Some(openai::InputItemType::AdditionalTools)
+            }
             // For other types, we might need to map them or handle specially
             _ => None, // Will be handled based on content
         };
@@ -2330,13 +2339,21 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             None
         };
 
-        // Convert role from MessageRole to InputItemRole
+        // Convert role from RoleEnum to InputItemRole
         // If no role is provided, infer it from the output_item_type only for certain types
         let role = output_item
             .role
             .map(|mr| match mr {
-                openai::MessageRole::Assistant => openai::InputItemRole::Assistant,
+                openai::RoleEnum::Assistant => Ok(openai::InputItemRole::Assistant),
+                openai::RoleEnum::Developer => Ok(openai::InputItemRole::Developer),
+                openai::RoleEnum::System => Ok(openai::InputItemRole::System),
+                openai::RoleEnum::User => Ok(openai::InputItemRole::User),
+                other => Err(ConvertError::UnsupportedMapping {
+                    from: format!("RoleEnum::{:?}", other),
+                    to: "InputItemRole",
+                }),
             })
+            .transpose()?
             .or({
                 // Only infer role for regular messages, not for function calls or other items
                 // Function calls and other tool-related items should preserve their original role state
@@ -2431,6 +2448,9 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             Some(openai::InputItemType::McpApprovalRequest) => {
                 Some(openai::OutputItemType::McpApprovalRequest)
             }
+            Some(openai::InputItemType::AdditionalTools) => {
+                Some(openai::OutputItemType::AdditionalTools)
+            }
             _ => None,
         };
 
@@ -2460,10 +2480,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             None
         };
 
-        // Convert role from InputItemRole to MessageRole
-        let role = input_item.role.and_then(|ir| match ir {
-            openai::InputItemRole::Assistant => Some(openai::MessageRole::Assistant),
-            _ => None, // OutputItem only supports Assistant role
+        // Convert role from InputItemRole to RoleEnum
+        let role = input_item.role.map(|ir| match ir {
+            openai::InputItemRole::Assistant => openai::RoleEnum::Assistant,
+            openai::InputItemRole::Developer => openai::RoleEnum::Developer,
+            openai::InputItemRole::System => openai::RoleEnum::System,
+            openai::InputItemRole::User => openai::RoleEnum::User,
         });
 
         Ok(openai::OutputItem {
@@ -2740,6 +2762,12 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         provider_executed: Some(true),
                     }]
                 }
+                Some(openai::OutputItemType::AdditionalTools) => {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OutputItemType::AdditionalTools".to_string(),
+                        to: "universal Message",
+                    });
+                }
                 _ => {
                     // Skip unknown output item types
                     continue;
@@ -2775,7 +2803,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                     AssistantContent::String(text) => {
                         result.push(openai::OutputItem {
                             output_item_type: Some(openai::OutputItemType::Message),
-                            role: Some(openai::MessageRole::Assistant),
+                            role: Some(openai::RoleEnum::Assistant),
                             content: Some(vec![openai::OutputMessageContent {
                                 output_message_content_type: openai::ContentType::OutputText,
                                 text: Some(text),
@@ -2873,7 +2901,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         };
                                     result.push(openai::OutputItem {
                                         output_item_type: Some(openai::OutputItemType::Message),
-                                        role: Some(openai::MessageRole::Assistant),
+                                        role: Some(openai::RoleEnum::Assistant),
                                         content: Some(vec![openai::OutputMessageContent {
                                             output_message_content_type:
                                                 openai::ContentType::OutputText,
@@ -4622,5 +4650,141 @@ mod tests {
             }
             other => panic!("expected file content, got {:?}", other),
         }
+    }
+
+    // =========================================================================
+    // RoleEnum → InputItemRole unsupported variant tests
+    // =========================================================================
+
+    #[test]
+    fn output_item_with_critic_role_errors_on_input_conversion() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::RoleEnum::Critic),
+            content: Some(vec![openai::OutputMessageContent {
+                output_message_content_type: openai::ContentType::OutputText,
+                text: Some("review".to_string()),
+                annotations: Some(vec![]),
+                logprobs: None,
+                refusal: None,
+            }]),
+            ..Default::default()
+        };
+
+        let result = <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item);
+        assert!(
+            result.is_err(),
+            "Critic role should not silently coerce to User"
+        );
+        let err = result.unwrap_err().to_string();
+        assert!(
+            err.contains("RoleEnum::Critic") && err.contains("InputItemRole"),
+            "Error should mention the unsupported role variant, got: {err}"
+        );
+    }
+
+    #[test]
+    fn output_item_with_discriminator_role_errors_on_input_conversion() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::RoleEnum::Discriminator),
+            ..Default::default()
+        };
+
+        let result = <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item);
+        assert!(
+            result.is_err(),
+            "Discriminator role should not silently coerce"
+        );
+    }
+
+    #[test]
+    fn output_item_with_tool_role_errors_on_input_conversion() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::RoleEnum::Tool),
+            ..Default::default()
+        };
+
+        let result = <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item);
+        assert!(result.is_err(), "Tool role should not silently coerce");
+    }
+
+    #[test]
+    fn output_item_with_unknown_role_errors_on_input_conversion() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::Message),
+            role: Some(openai::RoleEnum::Unknown),
+            ..Default::default()
+        };
+
+        let result = <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item);
+        assert!(result.is_err(), "Unknown role should not silently coerce");
+    }
+
+    // =========================================================================
+    // AdditionalTools item type error tests
+    // =========================================================================
+
+    #[test]
+    fn additional_tools_input_item_errors_on_universal_conversion() {
+        let input_item = openai::InputItem {
+            input_item_type: Some(openai::InputItemType::AdditionalTools),
+            role: Some(openai::InputItemRole::Developer),
+            tools: Some(vec![]),
+            ..Default::default()
+        };
+
+        let result =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item]);
+        assert!(
+            result.is_err(),
+            "AdditionalTools should fail conversion to universal"
+        );
+        let err = result.unwrap_err().to_string();
+        assert!(
+            err.contains("AdditionalTools"),
+            "Error should mention AdditionalTools, got: {err}"
+        );
+    }
+
+    #[test]
+    fn additional_tools_output_item_errors_on_universal_conversion() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::AdditionalTools),
+            role: Some(openai::RoleEnum::Developer),
+            tools: Some(vec![]),
+            ..Default::default()
+        };
+
+        let result =
+            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![output_item]);
+        assert!(
+            result.is_err(),
+            "AdditionalTools should fail conversion to universal"
+        );
+        let err = result.unwrap_err().to_string();
+        assert!(
+            err.contains("AdditionalTools"),
+            "Error should mention AdditionalTools, got: {err}"
+        );
+    }
+
+    #[test]
+    fn additional_tools_maps_between_output_and_input_item_types() {
+        let output_item = openai::OutputItem {
+            output_item_type: Some(openai::OutputItemType::AdditionalTools),
+            role: Some(openai::RoleEnum::Developer),
+            tools: Some(vec![]),
+            ..Default::default()
+        };
+
+        let input_item =
+            <openai::InputItem as TryFromLLM<openai::OutputItem>>::try_from(output_item)
+                .expect("AdditionalTools should map between OutputItem and InputItem");
+        assert_eq!(
+            input_item.input_item_type,
+            Some(openai::InputItemType::AdditionalTools)
+        );
     }
 }
