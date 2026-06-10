@@ -100,7 +100,9 @@ impl std::str::FromStr for FinishReason {
             "stop" | "end_turn" | "stop_sequence" | "completed" => FinishReason::Stop,
             "length" | "max_tokens" | "max_output_tokens" | "incomplete" => FinishReason::Length,
             "tool_calls" | "tool_use" => FinishReason::ToolCalls,
-            "content_filter" | "content_filtered" | "safety" => FinishReason::ContentFilter,
+            "content_filter" | "content_filtered" | "safety" | "refusal" => {
+                FinishReason::ContentFilter
+            }
             _ => FinishReason::Other(s.to_string()),
         })
     }
@@ -154,6 +156,12 @@ impl FinishReason {
             ("tool_calls", _) => Self::ToolCalls,
 
             // ContentFilter variants
+            (
+                "refusal",
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic,
+            ) => Self::ContentFilter,
             ("content_filtered", ProviderFormat::Converse) => Self::ContentFilter,
             (
                 "SAFETY" | "RECITATION" | "OTHER" | "BLOCKLIST" | "PROHIBITED_CONTENT" | "SPII"
@@ -224,17 +232,18 @@ impl FinishReason {
             ) => "tool_calls",
 
             // ContentFilter variants
+            (
+                Self::ContentFilter,
+                ProviderFormat::Anthropic
+                | ProviderFormat::BedrockAnthropic
+                | ProviderFormat::VertexAnthropic,
+            ) => "refusal",
             (Self::ContentFilter, ProviderFormat::Converse) => "content_filtered",
             (Self::ContentFilter, ProviderFormat::Google) => "SAFETY",
             (Self::ContentFilter, ProviderFormat::Responses) => "incomplete",
             (
                 Self::ContentFilter,
-                ProviderFormat::ChatCompletions
-                | ProviderFormat::Anthropic
-                | ProviderFormat::BedrockAnthropic
-                | ProviderFormat::VertexAnthropic
-                | ProviderFormat::Mistral
-                | ProviderFormat::Unknown,
+                ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown,
             ) => "content_filter",
 
             // Other - pass through as-is
@@ -499,6 +508,48 @@ mod tests {
     #[test]
     fn test_google_escalation_string_maps_to_content_filter() {
         let result = FinishReason::from_provider_string("ESCALATION", ProviderFormat::Google);
+        assert_eq!(result, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_anthropic_refusal_maps_to_content_filter() {
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+        ] {
+            assert_eq!(
+                FinishReason::from_provider_string("refusal", provider),
+                FinishReason::ContentFilter,
+                "expected 'refusal' to map to ContentFilter for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_content_filter_roundtrips_as_refusal_for_anthropic() {
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+        ] {
+            let wire = FinishReason::ContentFilter.to_provider_string(provider);
+            assert_eq!(
+                wire, "refusal",
+                "ContentFilter should serialize as 'refusal' for {provider:?}"
+            );
+            let back = FinishReason::from_provider_string(wire, provider);
+            assert_eq!(
+                back,
+                FinishReason::ContentFilter,
+                "roundtrip failed for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_refusal_in_fromstr_maps_to_content_filter() {
+        let result: FinishReason = "refusal".parse().unwrap();
         assert_eq!(result, FinishReason::ContentFilter);
     }
 
