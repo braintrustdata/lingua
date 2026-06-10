@@ -176,6 +176,16 @@ pub struct ResolvedProviderRoute {
     pub wire_format: ProviderFormat,
 }
 
+#[cfg(test)]
+type ResolvedProviderForTest = (
+    String,
+    Arc<dyn Provider>,
+    AuthConfig,
+    Arc<ModelSpec>,
+    ProviderFormat,
+    RetryStrategy,
+);
+
 /// Request prepared by the router and ready for execution.
 pub struct PreparedRequest {
     inner: PreparedRequestInner,
@@ -528,16 +538,7 @@ impl Router {
         &self,
         model: &str,
         output_format: ProviderFormat,
-    ) -> Result<
-        Vec<(
-            String,
-            Arc<dyn Provider>,
-            AuthConfig,
-            Arc<ModelSpec>,
-            ProviderFormat,
-            RetryStrategy,
-        )>,
-    > {
+    ) -> Result<Vec<ResolvedProviderForTest>> {
         self.resolve_provider_routes(model, output_format)
             .map(|routes| {
                 routes
