@@ -9,6 +9,16 @@ use std::hash::{Hash, Hasher};
 #[cfg(test)]
 use crate::serde_json;
 
+/// Stable deduplication key for a message based on its role and normalized content.
+///
+/// Two messages that [`deduplicate_messages`] would treat as duplicates share the same
+/// key. Exposed so callers can implement source-aware deduplication (for example,
+/// preferring an LLM-derived copy of a message over a wrapper-span copy) while staying
+/// consistent with [`deduplicate_messages`].
+pub fn message_dedup_hash(msg: &Message) -> u64 {
+    hash_message(msg)
+}
+
 /// Computes a hash for a message based on its role and content.
 /// This is used for deduplication - messages with the same hash are considered duplicates.
 fn hash_message(msg: &Message) -> u64 {
