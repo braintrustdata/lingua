@@ -1349,21 +1349,6 @@ fn try_merge_adjacent_user_tool_result_message(
             !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
         }
     };
-    let current_is_pure_tool_result = match &current.content {
-        generated::MessageContent::String(_) => false,
-        generated::MessageContent::InputContentBlockArray(blocks) => {
-            !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
-        }
-    };
-    let previous_is_pure_non_tool_result = match &previous.content {
-        generated::MessageContent::String(_) => true,
-        generated::MessageContent::InputContentBlockArray(blocks) => {
-            !blocks.is_empty()
-                && blocks
-                    .iter()
-                    .all(|block| !input_content_block_is_tool_result(block))
-        }
-    };
     let current_is_pure_non_tool_result = match &current.content {
         generated::MessageContent::String(_) => true,
         generated::MessageContent::InputContentBlockArray(blocks) => {
@@ -1374,11 +1359,9 @@ fn try_merge_adjacent_user_tool_result_message(
         }
     };
 
-    // Only rejoin a pure tool-result segment with its adjacent pure user-content
-    // segment. Once merged, the mixed message must not absorb later user turns.
-    if !(previous_is_pure_tool_result && current_is_pure_non_tool_result
-        || current_is_pure_tool_result && previous_is_pure_non_tool_result)
-    {
+    // Anthropic requires tool_result blocks to come before text in a mixed user
+    // message, so only rejoin Tool -> User. User -> Tool must stay split.
+    if !(previous_is_pure_tool_result && current_is_pure_non_tool_result) {
         return Ok(Some(current));
     }
 
@@ -2273,6 +2256,42 @@ mod tests {
         match &input_messages[1].content {
             generated::MessageContent::String(text) => assert_eq!(text, "second"),
             other => panic!("expected second user turn to remain separate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_does_not_merge_user_before_tool_result() {
+        let messages = vec![
+            Message::User {
+                content: UserContent::String("before".to_string()),
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_repro_123".to_string(),
+                    tool_name: String::new(),
+                    output: json!("result"),
+                    provider_options: None,
+                })],
+            },
+        ];
+
+        let input_messages = universal_messages_to_anthropic_input_messages(messages)
+            .expect("conversion should succeed");
+
+        assert_eq!(input_messages.len(), 2);
+        match &input_messages[0].content {
+            generated::MessageContent::String(text) => assert_eq!(text, "before"),
+            other => panic!("expected first user turn to remain separate, got {other:?}"),
+        }
+        match &input_messages[1].content {
+            generated::MessageContent::InputContentBlockArray(blocks) => {
+                assert_eq!(blocks.len(), 1);
+                assert_eq!(
+                    blocks[0].input_content_block_type,
+                    generated::InputContentBlockType::ToolResult
+                );
+            }
+            other => panic!("expected pure tool result content, got {other:?}"),
         }
     }
 
