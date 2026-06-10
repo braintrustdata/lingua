@@ -94,6 +94,10 @@ impl ModelCatalog {
         self.models.get(name).cloned()
     }
 
+    pub fn get_mut(&mut self, name: &str) -> Option<&mut ModelSpec> {
+        self.models.get_mut(name).map(Arc::make_mut)
+    }
+
     pub fn resolve_format(&self, model: &str) -> Option<ProviderFormat> {
         self.models.get(model).map(|spec| spec.format)
     }
