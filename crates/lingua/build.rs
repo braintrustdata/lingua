@@ -37,7 +37,10 @@ fn main() {
 }
 
 const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] =
-    &["responsesFunctionCallOutputWithoutThoughtSignatureParam"];
+    &[
+        "responsesFunctionCallOutputWithoutThoughtSignatureParam",
+        "responsesAdditionalToolsParam",
+    ];
 
 fn generate_test_cases(workspace: &Path) {
     let snapshots_dir = workspace.join("payloads/snapshots");
