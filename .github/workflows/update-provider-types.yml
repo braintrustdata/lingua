@@ -110,12 +110,14 @@ jobs:
           log_path="$RUNNER_TEMP/provider-type-generation.log"
           : > "$log_path"
 
+          set +e
           {
             echo
             echo "## Updating ${{ matrix.provider }}"
             ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
           } 2>&1 | tee -a "$log_path"
           generate_status="${PIPESTATUS[0]}"
+          set -e
 
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
           exit "$generate_status"
