@@ -24,6 +24,41 @@ export type AnthropicMessageCreateParams =
     output_config?: Anthropic.Messages.OutputConfig;
   };
 
+export type ChatCompletionTextPartWithCacheControl =
+  OpenAI.Chat.Completions.ChatCompletionContentPartText & {
+    cache_control: { type: "ephemeral"; ttl?: "5m" | "1h" };
+  };
+
+export type ChatCompletionUserMessageWithCacheControl = Omit<
+  OpenAI.Chat.Completions.ChatCompletionUserMessageParam,
+  "content"
+> & {
+  content: Array<
+    | OpenAI.Chat.Completions.ChatCompletionContentPart
+    | ChatCompletionTextPartWithCacheControl
+  >;
+};
+
+export type ChatCompletionAssistantMessageWithCacheControl = Omit<
+  OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam,
+  "content"
+> & {
+  content:
+    | OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam["content"]
+    | Array<ChatCompletionTextPartWithCacheControl>;
+};
+
+export type ChatCompletionCreateParams = Omit<
+  OpenAI.Chat.Completions.ChatCompletionCreateParams,
+  "messages"
+> & {
+  messages: Array<
+    | OpenAI.Chat.Completions.ChatCompletionMessageParam
+    | ChatCompletionUserMessageWithCacheControl
+    | ChatCompletionAssistantMessageWithCacheControl
+  >;
+};
+
 // Expectation-based validation for proxy compatibility tests
 // When present, capture.ts skips the case and validate.ts checks expectations
 export interface TestExpectation {
@@ -40,7 +75,7 @@ export interface TestExpectation {
 
 // Well-defined types for test cases
 export interface TestCase {
-  "chat-completions": OpenAI.Chat.Completions.ChatCompletionCreateParams | null;
+  "chat-completions": ChatCompletionCreateParams | null;
   responses: OpenAI.Responses.ResponseCreateParams | null;
   anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;

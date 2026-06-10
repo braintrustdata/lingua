@@ -22,13 +22,15 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::WebSearch;
 use crate::providers::openai::params::{
-    OpenAIChatExtrasView, OpenAIChatParams, OpenAIReasoningEffort,
+    OpenAIChatExtrasView, OpenAIChatLegacyPromptParams, OpenAIChatParams, OpenAICompletionPrompt,
+    OpenAIReasoningEffort,
 };
+use crate::providers::openai::responses_adapter::parse_responses_extras;
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
-use crate::providers::openai::try_parse_openai;
+use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::Message;
+use crate::universal::message::{Message, UserContent};
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
@@ -38,6 +40,8 @@ use crate::universal::{
     parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
+use serde::{de::IgnoredAny, Deserialize};
+use std::collections::BTreeMap;
 use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
@@ -45,7 +49,7 @@ const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
 
-fn parse_openai_chat_extras(
+pub(crate) fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<OpenAIChatExtrasView, TransformError> {
     extras
@@ -55,6 +59,86 @@ fn parse_openai_chat_extras(
             TransformError::FromUniversalFailed(format!("invalid OpenAI chat extras shape: {}", e))
         })
         .map(|v: Option<OpenAIChatExtrasView>| v.unwrap_or_default())
+}
+
+fn legacy_prompt_to_user_content(
+    prompt: OpenAICompletionPrompt,
+) -> Result<UserContent, TransformError> {
+    match prompt {
+        OpenAICompletionPrompt::String(content) => Ok(UserContent::String(content)),
+        OpenAICompletionPrompt::StringArray(_)
+        | OpenAICompletionPrompt::TokenArray(_)
+        | OpenAICompletionPrompt::TokenArrayArray(_) => Err(TransformError::ToUniversalFailed(
+            "OpenAI legacy prompt compatibility only supports a single string prompt for Chat Completions".to_string(),
+        )),
+    }
+}
+
+fn deserialize_present<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    IgnoredAny::deserialize(deserializer)?;
+    Ok(true)
+}
+
+#[derive(Default, serde::Deserialize)]
+struct OpenAICompletionLegacyOnlyExtras {
+    #[serde(default, deserialize_with = "deserialize_present")]
+    suffix: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    best_of: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    echo: bool,
+}
+
+impl OpenAICompletionLegacyOnlyExtras {
+    fn unsupported_field(&self) -> Option<&'static str> {
+        if self.suffix {
+            return Some("suffix");
+        }
+        if self.best_of {
+            return Some("best_of");
+        }
+        if self.echo {
+            return Some("echo");
+        }
+        None
+    }
+}
+
+fn reject_legacy_prompt_only_extras(
+    extras: &BTreeMap<String, Value>,
+) -> Result<(), TransformError> {
+    let legacy_extras: OpenAICompletionLegacyOnlyExtras =
+        serde_json::from_value(Value::Object(extras.clone().into_iter().collect()))
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+    if let Some(field) = legacy_extras.unsupported_field() {
+        return Err(TransformError::ToUniversalFailed(format!(
+            "OpenAI legacy prompt compatibility does not support legacy completions-only parameter '{}'",
+            field
+        )));
+    }
+
+    Ok(())
+}
+
+fn reject_untyped_legacy_prompt_params(
+    params: &OpenAIChatLegacyPromptParams,
+) -> Result<(), TransformError> {
+    if params.logprobs.is_some() {
+        return Err(TransformError::ToUniversalFailed(
+            "OpenAI legacy prompt compatibility does not support legacy completions-only parameter 'logprobs'".to_string(),
+        ));
+    }
+
+    reject_legacy_prompt_only_extras(&params.extras)
+}
+
+#[derive(serde::Deserialize)]
+struct OpenAIChatMessagesView {
+    messages: Option<Vec<ChatCompletionRequestMessageExt>>,
 }
 
 impl ProviderAdapter for OpenAIAdapter {
@@ -71,35 +155,43 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
+        try_parse_openai(payload).is_ok() || try_parse_openai_legacy_prompt(payload).is_ok()
+    }
+
+    fn detect_passthrough_request(&self, payload: &Value) -> bool {
         try_parse_openai(payload).is_ok()
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         // Parse params (messages will be parsed separately to preserve reasoning field)
-        let typed_params: OpenAIChatParams = serde_json::from_value(payload.clone())
+        let typed_params: OpenAIChatParams = match serde_json::from_value(payload.clone()) {
+            Ok(params) => params,
+            Err(err) => {
+                let legacy_params: OpenAIChatLegacyPromptParams =
+                    serde_json::from_value(payload.clone())
+                        .map_err(|_| TransformError::ToUniversalFailed(err.to_string()))?;
+                if legacy_params.is_legacy_prompt_request() {
+                    reject_untyped_legacy_prompt_params(&legacy_params)?;
+                }
+                return Err(TransformError::ToUniversalFailed(err.to_string()));
+            }
+        };
+
+        let messages_view: OpenAIChatMessagesView = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-
-        // Extract and parse messages as extended type to capture reasoning field
-        let messages_val = payload
-            .get("messages")
-            .ok_or_else(|| {
-                TransformError::ToUniversalFailed("OpenAI: missing 'messages' field".to_string())
-            })?
-            .as_array()
-            .ok_or_else(|| {
-                TransformError::ToUniversalFailed("OpenAI: 'messages' must be an array".to_string())
-            })?;
-
-        let provider_messages: Vec<ChatCompletionRequestMessageExt> = messages_val
-            .iter()
-            .map(|msg_val| {
-                serde_json::from_value(msg_val.clone())
-                    .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
-            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let messages = if let Some(provider_messages) = messages_view.messages {
+            <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(provider_messages)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+        } else if let Some(prompt) = typed_params.prompt.clone() {
+            reject_legacy_prompt_only_extras(&typed_params.extras)?;
+            vec![Message::User {
+                content: legacy_prompt_to_user_content(prompt)?,
+            }]
+        } else {
+            return Err(TransformError::ToUniversalFailed(
+                "OpenAI: missing 'messages' field".to_string(),
+            ));
+        };
 
         // Extract max_tokens first - needed for reasoning budget computation
         let max_tokens = typed_params
@@ -208,6 +300,9 @@ impl ProviderAdapter for OpenAIAdapter {
         if let Some(safety_identifier) = typed_params.safety_identifier {
             extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
         }
+        if let Some(moderation) = typed_params.moderation {
+            extras_map.insert("moderation".into(), moderation);
+        }
         if !extras_map.is_empty() {
             params
                 .extras
@@ -246,6 +341,8 @@ impl ProviderAdapter for OpenAIAdapter {
 
         let openai_extras = req.params.extras.get(&ProviderFormat::ChatCompletions);
         let openai_extras_view = parse_openai_chat_extras(openai_extras)?;
+        let responses_extras_view =
+            parse_responses_extras(req.params.extras.get(&ProviderFormat::Responses))?;
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
@@ -341,6 +438,13 @@ impl ProviderAdapter for OpenAIAdapter {
                 "stream_options".into(),
                 serde_json::json!({"include_usage": true}),
             );
+        }
+        if let Some(raw_moderation) = openai_extras_view
+            .moderation
+            .as_ref()
+            .or(responses_extras_view.moderation.as_ref())
+        {
+            obj.insert("moderation".into(), raw_moderation.clone());
         }
 
         // Add parallel_tool_calls from canonical params
@@ -809,6 +913,29 @@ mod tests {
     }
 
     #[test]
+    fn test_chat_moderation_preserved_when_exporting_to_responses() {
+        let chat_adapter = OpenAIAdapter;
+        let responses_adapter = crate::providers::openai::responses_adapter::ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let universal = chat_adapter.request_to_universal(payload).unwrap();
+        let responses = responses_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+
+        assert_eq!(
+            responses["moderation"],
+            json!({ "model": "omni-moderation-latest" })
+        );
+    }
+
+    #[test]
     fn test_openai_preserves_extras() {
         let adapter = OpenAIAdapter;
         let payload = json!({
@@ -857,6 +984,7 @@ mod tests {
                         AssistantContentPart::Text(TextContentPart {
                             text: "OK".to_string(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }),
                     ]),

@@ -82,6 +82,7 @@ fn text_part(text: String) -> TextContentPart {
     TextContentPart {
         text,
         encrypted_content: None,
+        cache_control: None,
         provider_options: None,
     }
 }

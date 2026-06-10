@@ -5,11 +5,16 @@ on:
     - cron: "0 10 * * 1"
   workflow_dispatch:
     inputs:
-      providers:
-        description: 'Providers to update (comma-separated: openai,anthropic,google or "all")'
+      provider:
+        description: "Provider to update"
         required: false
         default: "all"
-        type: string
+        type: choice
+        options:
+          - all
+          - openai
+          - anthropic
+          - google
 
 concurrency:
   group: update-provider-types
@@ -20,8 +25,41 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-provider-types:
+  provider_matrix:
     runs-on: ubuntu-latest
+    outputs:
+      providers: ${{ steps.providers.outputs.providers }}
+
+    steps:
+      - name: Parse provider input
+        id: providers
+        env:
+          REQUESTED_PROVIDER: ${{ inputs.provider || 'all' }}
+        run: |
+          set -euo pipefail
+          case "$REQUESTED_PROVIDER" in
+            all)
+              providers='["openai","anthropic","google"]'
+              ;;
+            openai|anthropic|google)
+              providers="[\"$REQUESTED_PROVIDER\"]"
+              ;;
+            *)
+              echo "Unknown provider: $REQUESTED_PROVIDER" >&2
+              exit 1
+              ;;
+          esac
+
+          echo "providers=$providers" >> "$GITHUB_OUTPUT"
+          echo "Will update providers: $providers"
+
+  update-provider-types:
+    needs: provider_matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: ${{ fromJSON(needs.provider_matrix.outputs.providers) }}
 
     steps:
       - name: Checkout repository
@@ -61,64 +99,131 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
+          npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
           pnpm add -g quicktype
-
-      - name: Parse provider input
-        id: providers
-        env:
-          REQUESTED_PROVIDERS: ${{ inputs.providers || 'all' }}
-        run: |
-          set -euo pipefail
-          providers="$REQUESTED_PROVIDERS"
-          if [ "$providers" = "all" ]; then
-            providers="openai,anthropic,google"
-          fi
-          echo "providers=$providers" >> "$GITHUB_OUTPUT"
-          echo "Will update providers: $providers"
 
       - name: Update provider specifications and types
         id: generate
         continue-on-error: true
         run: |
-          set +e
+          set -o pipefail
           log_path="$RUNNER_TEMP/provider-type-generation.log"
           : > "$log_path"
 
-          providers="${{ steps.providers.outputs.providers }}"
-          status=0
-
-          IFS=',' read -ra provider_array <<< "$providers"
-          for provider in "${provider_array[@]}"; do
-            provider=$(echo "$provider" | xargs)
-            if [ -z "$provider" ]; then
-              continue
-            fi
-
-            {
-              echo
-              echo "## Updating $provider"
-              ./pipelines/generate-provider-types.sh "$provider"
-            } 2>&1 | tee -a "$log_path"
-
-            provider_status=${PIPESTATUS[0]}
-            if [ "$provider_status" -ne 0 ]; then
-              status="$provider_status"
-              break
-            fi
-          done
+          set +e
+          {
+            echo
+            echo "## Updating ${{ matrix.provider }}"
+            ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
+          } 2>&1 | tee -a "$log_path"
+          generate_status="${PIPESTATUS[0]}"
+          set -e
 
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
-          exit "$status"
+          exit "$generate_status"
+
+      - name: Create Braintrust parent trace for repair
+        id: repair_trace
+        if: steps.generate.outcome == 'failure'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_CC_PROJECT: lingua-provider-type-updates
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: repair failed generation
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node --input-type=module <<'JS'
+          import { execFileSync } from "node:child_process";
+          import { createRequire } from "node:module";
+          import { appendFileSync } from "node:fs";
+
+          const require = createRequire(import.meta.url);
+          const { flush, initLogger } = require("braintrust");
+
+          function gitOutput(...args) {
+            try {
+              return execFileSync("git", args, {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+              });
+            } catch (error) {
+              return `${error.stdout ?? ""}${error.stderr ?? ""}`;
+            }
+          }
+
+          const provider = process.env.PROVIDER;
+          const phase = process.env.TRACE_PHASE;
+          const project = process.env.BRAINTRUST_CC_PROJECT;
+          const head = gitOutput("rev-parse", "HEAD").trim();
+          const status = gitOutput("status", "--short");
+          const diffStat = gitOutput("diff", "--stat");
+          const diffNames = gitOutput("diff", "--name-only");
+          const diff = gitOutput("diff", "--no-color", "--no-ext-diff");
+
+          const logger = initLogger({ projectName: project });
+          const span = logger.startSpan({
+            name: `Claude ${phase}: update ${provider} provider types`,
+          });
+
+          span.log({
+            input: {
+              provider,
+              phase,
+              head,
+              github_run_id: process.env.GITHUB_RUN_ID,
+              github_run_attempt: process.env.GITHUB_RUN_ATTEMPT,
+              github_workflow: process.env.GITHUB_WORKFLOW,
+              github_job: process.env.GITHUB_JOB,
+            },
+            output: {
+              git_status: status,
+              git_diff_stat: diffStat,
+              git_diff_names: diffNames,
+              git_diff: diff,
+            },
+            metadata: {
+              provider,
+              phase,
+              head,
+              repository: process.env.GITHUB_REPOSITORY,
+              ref: process.env.GITHUB_REF,
+              sha: process.env.GITHUB_SHA,
+            },
+          });
+
+          appendFileSync(process.env.GITHUB_OUTPUT, `parent_span_id=${span.spanId}\n`);
+          appendFileSync(process.env.GITHUB_OUTPUT, `root_span_id=${span.rootSpanId ?? span.spanId}\n`);
+
+          span.end();
+          await flush();
+          JS
 
       - name: Repair failed generation
+        id: repair
         if: steps.generate.outcome == 'failure'
-        uses: anthropics/claude-code-action@df37d2f0760a4b5683a6e617c9325bc1a36443f6 # v1.0.75
+        continue-on-error: true
+        timeout-minutes: 20
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
-          show_full_output: "true"
           display_report: "true"
-          timeout_minutes: "20"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "TRACE_TO_BRAINTRUST": "true",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.repair_trace.outputs.parent_span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.repair_trace.outputs.root_span_id }}",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
           claude_args: |
             --model claude-opus-4-6
             --max-turns 80
@@ -131,7 +236,7 @@ jobs:
 
             # Inputs
 
-            - Providers requested: `${{ steps.providers.outputs.providers }}`
+            - Provider requested: `${{ matrix.provider }}`
             - Generation/build log: `${{ steps.generate.outputs.log_path }}`
 
             # Local files to read first
@@ -140,7 +245,7 @@ jobs:
             - `Makefile`
             - `pipelines/generate-provider-types.sh`
             - `crates/generate-types/src/main.rs`
-            - Provider modules under `crates/lingua/src/providers/` for the providers requested above
+            - Provider modules under `crates/lingua/src/providers/${{ matrix.provider }}/`
 
             # Process
 
@@ -149,36 +254,35 @@ jobs:
             3. If the failure is a local generation or compile issue, fix the smallest responsible source area.
             4. Prefer fixing generation logic in `crates/generate-types/` or typed provider adapters/converters. Do not manually edit files named `generated.rs`.
             5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
-            6. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
-            7. Do not create or update GitHub issues, comments, pull requests, or branches.
+            6. Do not silently coerce newly generated provider roles, actors, enum variants, or required payloads into an existing universal value just to make conversion compile. In particular, never rewrite unsupported provider roles to `user`, and never drop newly generated required payloads such as mid-conversation tool definitions.
+            7. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, prefer an explicit unsupported-mapping error or leave a concise note in `provider-type-update-notes.md`; do not hide the loss behind fallback behavior.
+            8. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
+            9. Do not create or update GitHub issues, comments, pull requests, or branches.
 
             # Output
 
             Leave code changes in the working tree only. The workflow will run TypeScript type generation, formatting, build validation, and PR creation after this step.
 
       - name: Re-run provider update after repair
+        id: retry
         if: steps.generate.outcome == 'failure'
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -o pipefail
           log_path="$RUNNER_TEMP/provider-type-generation.retry.log"
           : > "$log_path"
 
-          providers="${{ steps.providers.outputs.providers }}"
-          IFS=',' read -ra provider_array <<< "$providers"
-          for provider in "${provider_array[@]}"; do
-            provider=$(echo "$provider" | xargs)
-            if [ -z "$provider" ]; then
-              continue
-            fi
+          {
+            echo
+            echo "## Updating ${{ matrix.provider }}"
+            ./pipelines/generate-provider-types.sh "${{ matrix.provider }}"
+          } 2>&1 | tee -a "$log_path"
 
-            {
-              echo
-              echo "## Updating $provider"
-              ./pipelines/generate-provider-types.sh "$provider"
-            } 2>&1 | tee -a "$log_path"
-          done
+          exit "${PIPESTATUS[0]}"
 
       - name: Generate TypeScript types
+        id: ts_types
+        continue-on-error: true
         run: make generate-types
 
       - name: Build branch name
@@ -186,7 +290,7 @@ jobs:
         run: |
           set -euo pipefail
           short_sha=$(git rev-parse --short=8 HEAD)
-          echo "name=update-provider-types-${short_sha}-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
+          echo "name=update-${{ matrix.provider }}-provider-types-${short_sha}-${GITHUB_RUN_ID}" >> "$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: changes
@@ -202,19 +306,183 @@ jobs:
           echo "Changes detected:"
           git status --short
 
-      - name: Format code
+      - name: Create Braintrust parent trace for integration review
+        id: integration_review_trace
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_CC_PROJECT: lingua-provider-type-updates
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: review generated provider integration
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node --input-type=module <<'JS'
+          import { execFileSync } from "node:child_process";
+          import { createRequire } from "node:module";
+          import { appendFileSync } from "node:fs";
+
+          const require = createRequire(import.meta.url);
+          const { flush, initLogger } = require("braintrust");
+
+          function gitOutput(...args) {
+            try {
+              return execFileSync("git", args, {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+              });
+            } catch (error) {
+              return `${error.stdout ?? ""}${error.stderr ?? ""}`;
+            }
+          }
+
+          const provider = process.env.PROVIDER;
+          const phase = process.env.TRACE_PHASE;
+          const project = process.env.BRAINTRUST_CC_PROJECT;
+          const head = gitOutput("rev-parse", "HEAD").trim();
+          const status = gitOutput("status", "--short");
+          const diffStat = gitOutput("diff", "--stat");
+          const diffNames = gitOutput("diff", "--name-only");
+          const diff = gitOutput("diff", "--no-color", "--no-ext-diff");
+
+          const logger = initLogger({ projectName: project });
+          const span = logger.startSpan({
+            name: `Claude ${phase}: update ${provider} provider types`,
+          });
+
+          span.log({
+            input: {
+              provider,
+              phase,
+              head,
+              github_run_id: process.env.GITHUB_RUN_ID,
+              github_run_attempt: process.env.GITHUB_RUN_ATTEMPT,
+              github_workflow: process.env.GITHUB_WORKFLOW,
+              github_job: process.env.GITHUB_JOB,
+            },
+            output: {
+              git_status: status,
+              git_diff_stat: diffStat,
+              git_diff_names: diffNames,
+              git_diff: diff,
+            },
+            metadata: {
+              provider,
+              phase,
+              head,
+              repository: process.env.GITHUB_REPOSITORY,
+              ref: process.env.GITHUB_REF,
+              sha: process.env.GITHUB_SHA,
+            },
+          });
+
+          appendFileSync(process.env.GITHUB_OUTPUT, `parent_span_id=${span.spanId}\n`);
+          appendFileSync(process.env.GITHUB_OUTPUT, `root_span_id=${span.rootSpanId ?? span.spanId}\n`);
+
+          span.end();
+          await flush();
+          JS
+
+      - name: Review generated provider integration
+        id: integration_review
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        timeout-minutes: 30
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          display_report: "true"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "TRACE_TO_BRAINTRUST": "true",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.integration_review_trace.outputs.parent_span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.integration_review_trace.outputs.root_span_id }}",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
+          claude_args: |
+            --model claude-opus-4-6
+            --max-turns 100
+            --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
+            --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            # Goal
+
+            The automated Lingua provider type update produced changes for `${{ matrix.provider }}`. Review the generated provider type diff for semantic integration gaps, update the hand-written adapter/converter code when needed, and add focused tests for clear behavior.
+
+            This step should run even when generation, build, and clippy currently pass. A compiling generated enum or field can still require normalization code changes.
+
+            # Local files to read first
+
+            - `AGENTS.md`
+            - `Makefile`
+            - `crates/lingua/src/providers/${{ matrix.provider }}/`
+            - `crates/lingua/src/universal/`
+            - `crates/coverage-report/README.md`
+            - `payloads/README.md`
+
+            # Process
+
+            1. Inspect `git diff` for `${{ matrix.provider }}` provider type updates, especially new enum variants, renamed wire values, new required fields, and response/request shape changes.
+            2. Trace each changed generated provider type into hand-written adapter/converter code under `crates/lingua/src/providers/${{ matrix.provider }}/`.
+            3. If a new provider value clearly maps to an existing universal concept, update the typed converter/adapter and add a focused Rust test. For example, new safety/filtering finish reasons should normalize to the existing content-filter path rather than falling through to `Other`.
+            4. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, do not invent a workaround. Leave the generated changes intact and add a concise note in `provider-type-update-notes.md` explaining what needs human clarification.
+            5. Do not silently coerce newly generated provider roles or actors into existing universal roles. For example, if an OpenAI Responses item role such as `critic`, `discriminator`, `tool`, or `unknown` cannot be represented by `InputItemRole`, do not rewrite it to `user`; either model it explicitly, return an explicit unsupported-mapping error, or leave a note if the canonical representation needs human clarification.
+            6. Do not silently drop newly generated required request or response payloads. For example, if a Responses input contains `additional_tools` or a similar mid-conversation tool-definition payload and universal has no representation, fail explicitly or leave a note; do not emit a conversation that omits the required tools.
+            7. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
+            8. Do not manually edit files named `generated.rs`.
+            9. Run the most focused test or build command that validates any hand-written change you make. If the command cannot run because credentials or external services are missing, note that in `provider-type-update-notes.md`.
+            10. Do not create or update GitHub issues, comments, pull requests, or branches.
+
+            # Output
+
+            Leave code changes in the working tree only. The workflow will regenerate TypeScript bindings, format, validate, and open a PR after this step.
+
+      - name: Regenerate TypeScript types after integration review
+        id: post_review_ts_types
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make generate-types
+
+      - name: Format code
+        id: fmt
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: cargo fmt --all
 
       - name: Validate build
+        id: build
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: |
           set -euo pipefail
           cargo build --all-features
 
       - name: Run clippy
+        id: clippy
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
         run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check typed boundaries
+        id: typed_boundary
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make typed-boundary-check
+
+      - name: Run cross-provider transform guard
+        id: cross_provider
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
 
       - name: Build PR body
         if: steps.changes.outputs.has_changes == 'true'
@@ -223,19 +491,29 @@ jobs:
           {
             echo "Automated update of Lingua provider types."
             echo
-            echo "Providers: \`${{ steps.providers.outputs.providers }}\`"
+            echo "Provider: \`${{ matrix.provider }}\`"
             echo
             echo "**Validation**"
             echo
-            echo "- Ran \`./pipelines/generate-provider-types.sh\` for each requested provider"
+            echo "- \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.generate.outcome }}"
             if [ "${{ steps.generate.outcome }}" = "failure" ]; then
-              echo "- Ran one Claude repair pass after the initial generation/build failure"
-              echo "- Re-ran \`./pipelines/generate-provider-types.sh\` for each requested provider after repair"
+              echo "- Claude repair pass: ${{ steps.repair.outcome }}"
+              echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
             fi
-            echo "- Ran \`make generate-types\`"
-            echo "- Ran \`cargo fmt --all\`"
-            echo "- Ran \`cargo build --all-features\`"
-            echo "- Ran \`cargo clippy --all-targets --all-features -- -D warnings\`"
+            echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
+            if [ "${{ steps.generate.outcome }}" = "failure" ]; then
+              echo "- Braintrust repair parent trace: ${{ steps.repair_trace.outcome }}"
+            fi
+            echo "- Braintrust integration-review parent trace: ${{ steps.integration_review_trace.outcome }}"
+            echo "- Claude integration review: ${{ steps.integration_review.outcome }}"
+            echo "- Post-review \`make generate-types\`: ${{ steps.post_review_ts_types.outcome }}"
+            echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
+            echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
+            echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
+            echo "- \`make typed-boundary-check\`: ${{ steps.typed_boundary.outcome }}"
+            echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
+            echo
+            echo "This PR is created even when validation fails so the generated update and repair attempt are available for manual follow-up."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
       - name: Create PR
@@ -245,18 +523,40 @@ jobs:
           token: ${{ github.token }}
           base: main
           branch: ${{ steps.branch.outputs.name }}
-          commit-message: "Update ${{ steps.providers.outputs.providers }} provider types"
-          title: "Update ${{ steps.providers.outputs.providers }} provider types"
+          commit-message: "Update ${{ matrix.provider }} provider types"
+          title: "Update ${{ matrix.provider }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
           labels: auto-sync
           delete-branch: true
           signoff: false
+
+      - name: Fail workflow if validation failed
+        if: >-
+          (
+            (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
+            steps.repair_trace.outcome == 'failure' ||
+            steps.retry.outcome == 'failure' ||
+            (steps.ts_types.outcome == 'failure' && steps.post_review_ts_types.outcome != 'success') ||
+            steps.integration_review_trace.outcome == 'failure' ||
+            steps.integration_review.outcome == 'failure' ||
+            steps.post_review_ts_types.outcome == 'failure' ||
+            steps.fmt.outcome == 'failure' ||
+            steps.build.outcome == 'failure' ||
+            steps.clippy.outcome == 'failure' ||
+            steps.typed_boundary.outcome == 'failure' ||
+            steps.cross_provider.outcome == 'failure'
+          )
+        run: |
+          echo "Provider type update failed validation. If changes were produced, the PR creation step already ran." >&2
+          exit 1
 
       - name: Summary
         run: |
           set -euo pipefail
           if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
             echo "Provider types changed; PR creation step ran."
+          elif [ "${{ steps.generate.outcome }}" = "failure" ]; then
+            echo "Provider types are unchanged after a recovered generation failure."
           else
             echo "Provider types are already up to date."
           fi

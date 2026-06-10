@@ -254,6 +254,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }))
                     }
@@ -356,6 +357,7 @@ fn parse_assistant_content(
                             parts.push(AssistantContentPart::Text(TextContentPart {
                                 text,
                                 encrypted_content: None,
+                                cache_control: None,
                                 provider_options: None,
                             }));
                         }
@@ -390,6 +392,7 @@ fn parse_assistant_content(
                 parts.push(AssistantContentPart::Text(TextContentPart {
                     text,
                     encrypted_content: None,
+                    cache_control: None,
                     provider_options: None,
                 }));
             }
@@ -405,6 +408,7 @@ fn parse_assistant_content(
                         parts.push(AssistantContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }));
                     }
@@ -422,6 +426,7 @@ fn parse_assistant_content(
                     parts.push(AssistantContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
+                        cache_control: None,
                         provider_options: None,
                     }));
                 }

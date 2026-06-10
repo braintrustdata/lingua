@@ -152,6 +152,8 @@ pub struct CreateChatCompletionRequestClass {
     /// characteristics, and price points. Refer to the [model guide](/docs/models)
     /// to browse and compare available models.
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub moderation: Option<ModerationParam>,
     /// How many chat completion choices to generate for each input message. Note that you will
     /// be charged based on the number of generated tokens across all of the choices. Keep `n` as
     /// `1` to minimize costs.
@@ -654,6 +656,19 @@ pub enum ResponseModality {
     Text,
 }
 
+/// Configuration for running moderation on the request input and generated output.
+///
+///
+/// Configuration for running moderation on the input and output of this response.
+///
+/// Configuration for running moderation on the input and output of this response.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ModerationParam {
+    /// The moderation model to use for moderated completions, e.g. 'omni-moderation-latest'.
+    pub model: String,
+}
+
 /// Configuration for a [Predicted Output](/docs/guides/predicted-outputs),
 /// which can greatly improve response times when large parts of the model
 /// response are known ahead of time. This is most common when you are
@@ -730,6 +745,13 @@ pub enum PredictionType {
 /// The retention policy for the prompt cache. Set to `24h` to enable extended prompt
 /// caching, which keeps cached prefixes active for longer, up to a maximum of 24 hours.
 /// [Learn more](/docs/guides/prompt-caching#prompt-cache-retention).
+/// For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+///
+/// For older models that support both `in_memory` and `24h`, the default depends on your
+/// organization's data retention policy:
+/// - Organizations without ZDR enabled default to `24h`.
+/// - Organizations with ZDR enabled default to `in_memory` when `prompt_cache_retention` is
+/// not specified.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
@@ -1217,6 +1239,8 @@ pub struct CreateChatCompletionResponse {
     pub id: String,
     /// The model used for the chat completion.
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub moderation: Option<ChatCompletionModeration>,
     /// The object type, which is always `chat.completion`.
     pub object: ChatResponseObject,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1240,6 +1264,7 @@ pub struct ChatResponseChoice {
     /// `content_filter` if content was omitted due to a flag from our content filters,
     /// `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model
     /// called a function.
+    /// Read the [Model Spec](https://model-spec.openai.com/2025-12-18.html) for more.
     pub finish_reason: FinishReason,
     /// The index of the choice in the list of choices.
     pub index: i64,
@@ -1248,6 +1273,15 @@ pub struct ChatResponseChoice {
     pub message: ChatCompletionResponseMessage,
 }
 
+/// The reason the model stopped generating tokens. This will be `stop` if the model hit a
+/// natural stop point or a provided stop sequence,
+/// `length` if the maximum number of tokens specified in the request was reached,
+/// `content_filter` if content was omitted due to a flag from our content filters,
+/// `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model
+/// called a function.
+/// Read the [Model Spec](https://model-spec.openai.com/2025-12-18.html) for more.
+///
+///
 /// The reason the model stopped generating tokens. This will be `stop` if the model hit a
 /// natural stop point or a provided stop sequence,
 /// `length` if the maximum number of tokens specified in the request was reached,
@@ -1399,13 +1433,106 @@ pub struct MessageFunctionCall {
 }
 
 /// The role of the author of this message.
-///
-/// The role of the output message. Always `assistant`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum MessageRole {
     Assistant,
+}
+
+/// Moderation results for the request input and generated output, if moderated
+/// completions were requested.
+///
+///
+/// Moderation results or errors for the request input and generated output.
+///
+/// Moderation results for the request input and generated output. Present
+/// on the moderation chunk when moderated completions are requested.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ChatCompletionModeration {
+    /// Moderation for the request input.
+    pub input: InputClass,
+    /// Moderation for the generated output.
+    pub output: InputClass,
+}
+
+/// Moderation for the request input.
+///
+/// Moderation for the generated output.
+///
+/// Successful moderation results for the request input or generated output.
+///
+/// An error produced while attempting moderation.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct InputClass {
+    /// The moderation model used to generate the results.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    /// A list of moderation results.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub results: Option<Vec<ModerationResult>>,
+    /// The object type, which is always `moderation_results`.
+    ///
+    /// The object type, which is always `error`.
+    #[serde(rename = "type")]
+    pub chat_completion_moderation_type: StickyType,
+    /// The error code.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// The error message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+/// The object type, which is always `moderation_results`.
+///
+/// The object type, which is always `error`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum StickyType {
+    Error,
+    #[serde(rename = "moderation_results")]
+    ModerationResults,
+}
+
+/// A moderation result produced for the response input or output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ModerationResult {
+    /// A dictionary of moderation categories to booleans, True if the input is flagged under
+    /// this category.
+    pub categories: HashMap<String, bool>,
+    /// Which modalities of input are reflected by the score for each category.
+    pub category_applied_input_types: HashMap<String, Vec<TType>>,
+    /// A dictionary of moderation categories to scores.
+    pub category_scores: HashMap<String, f64>,
+    /// A boolean indicating whether the content was flagged by any category.
+    pub flagged: bool,
+    /// The moderation model that produced this result.
+    pub model: String,
+    /// The object type, which was always `moderation_result` for successful moderation results.
+    #[serde(rename = "type")]
+    pub moderation_result_type: ResultType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum TType {
+    Image,
+    Text,
+}
+
+/// The object type, which was always `moderation_result` for successful moderation results.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum ResultType {
+    #[serde(rename = "moderation_result")]
+    ModerationResult,
 }
 
 /// The object type, which is always `chat.completion`.
@@ -1495,6 +1622,8 @@ pub struct CreateChatCompletionStreamResponse {
     pub id: String,
     /// The model to generate the completion.
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub moderation: Option<ChatCompletionModeration>,
     /// The object type, which is always `chat.completion.chunk`.
     pub object: ChatStreamResponseObject,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1593,14 +1722,14 @@ pub struct ChatCompletionMessageToolCallChunk {
     /// The type of the tool. Currently, only `function` is supported.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_completion_message_tool_call_chunk_type: Option<StickyType>,
+    pub chat_completion_message_tool_call_chunk_type: Option<IndigoType>,
 }
 
 /// The type of the tool. Currently, only `function` is supported.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum StickyType {
+pub enum IndigoType {
     Function,
 }
 
@@ -1711,6 +1840,8 @@ pub struct CreateResponseClass {
     pub instructions: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_output_tokens: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub moderation: Option<ModerationParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parallel_tool_calls: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1930,6 +2061,9 @@ pub struct InputItem {
     ///
     ///
     /// The role of the output message. Always `assistant`.
+    ///
+    ///
+    /// The role that provided the additional tools. Only `developer` is supported.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<InputItemRole>,
     /// The type of the message input. Always `message`.
@@ -1959,6 +2093,8 @@ pub struct InputItem {
     /// The item type. Always `tool_search_call`.
     ///
     /// The item type. Always `tool_search_output`.
+    ///
+    /// The item type. Always `additional_tools`.
     ///
     /// The type of the object. Always `reasoning`.
     ///
@@ -2179,6 +2315,8 @@ pub struct InputItem {
     pub execution: Option<ToolSearchExecutionType>,
     /// The loaded tool definitions returned by the tool search output.
     ///
+    /// A list of additional tools made available at this item.
+    ///
     /// The tools available on the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<InputItemTool>>,
@@ -2364,7 +2502,7 @@ pub struct InputItemAction {
     /// The search queries.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queries: Option<Vec<String>>,
-    /// [DEPRECATED] The search query.
+    /// The search query.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
     /// The sources used in the search.
@@ -2474,7 +2612,7 @@ pub struct Coordinate {
 pub struct WebSearchSource {
     /// The type of source. Always `url`.
     #[serde(rename = "type")]
-    pub web_search_source_type: IndigoType,
+    pub web_search_source_type: IndecentType,
     /// The URL of the source.
     pub url: String,
 }
@@ -2483,7 +2621,7 @@ pub struct WebSearchSource {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum IndigoType {
+pub enum IndecentType {
     Url,
 }
 
@@ -2676,7 +2814,7 @@ pub struct ContentOutputContentList {
     ///
     /// The type of the reasoning text. Always `reasoning_text`.
     #[serde(rename = "type")]
-    pub input_content_type: IndecentType,
+    pub input_content_type: HilariousType,
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
     /// `original`. Defaults to `auto`.
     ///
@@ -2814,7 +2952,7 @@ pub enum DetailEnum {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum IndecentType {
+pub enum HilariousType {
     #[serde(rename = "input_file")]
     InputFile,
     #[serde(rename = "input_image")]
@@ -2931,6 +3069,8 @@ pub enum ToolSearchExecutionType {
 ///
 /// The item type. Always `tool_search_output`.
 ///
+/// The item type. Always `additional_tools`.
+///
 /// The type of the object. Always `reasoning`.
 ///
 ///
@@ -2981,6 +3121,8 @@ pub enum ToolSearchExecutionType {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum InputItemType {
+    #[serde(rename = "additional_tools")]
+    AdditionalTools,
     #[serde(rename = "apply_patch_call")]
     ApplyPatchCall,
     #[serde(rename = "apply_patch_call_output")]
@@ -3228,7 +3370,7 @@ pub struct ComputerScreenshotImage {
     /// Specifies the event type. For a computer screenshot, this property is
     /// always set to `computer_screenshot`.
     #[serde(rename = "type")]
-    pub computer_screenshot_image_type: HilariousType,
+    pub computer_screenshot_image_type: AmbitiousType,
 }
 
 /// Specifies the event type. For a computer screenshot, this property is
@@ -3236,7 +3378,7 @@ pub struct ComputerScreenshotImage {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum HilariousType {
+pub enum AmbitiousType {
     #[serde(rename = "computer_screenshot")]
     ComputerScreenshot,
 }
@@ -3258,7 +3400,7 @@ pub struct CodeInterpreterOutput {
     ///
     /// The type of the output. Always `image`.
     #[serde(rename = "type")]
-    pub code_interpreter_output_type: AmbitiousType,
+    pub code_interpreter_output_type: CunningType,
     /// The URL of the image output from the code interpreter.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
@@ -3270,7 +3412,7 @@ pub struct CodeInterpreterOutput {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum AmbitiousType {
+pub enum CunningType {
     Image,
     Logs,
 }
@@ -3327,6 +3469,9 @@ pub enum VectorStoreFileAttribute {
 ///
 ///
 /// The role of the output message. Always `assistant`.
+///
+///
+/// The role that provided the additional tools. Only `developer` is supported.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
@@ -3648,7 +3793,7 @@ pub struct InputItemTool {
     pub model: Option<String>,
     /// Moderation level for the generated image. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub moderation: Option<Moderation>,
+    pub moderation: Option<ModerationEnum>,
     /// Compression level for the output image. Default: 100.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_compression: Option<i64>,
@@ -3684,7 +3829,7 @@ pub struct InputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution: Option<ToolSearchExecutionType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_content_types: Option<Vec<SearchContentType>>,
+    pub search_content_types: Option<Vec<TType>>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<serde_json::Map<String, serde_json::Value>>,
@@ -3969,14 +4114,14 @@ pub struct InlineSkillSourceParam {
     pub media_type: MediaType,
     /// The type of the inline skill source. Must be `base64`.
     #[serde(rename = "type")]
-    pub inline_skill_source_param_type: CunningType,
+    pub inline_skill_source_param_type: MagentaType,
 }
 
 /// The type of the inline skill source. Must be `base64`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum CunningType {
+pub enum MagentaType {
     Base64,
 }
 
@@ -4136,7 +4281,7 @@ pub struct InputImageMask {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum Moderation {
+pub enum ModerationEnum {
     Auto,
     Low,
 }
@@ -4231,14 +4376,6 @@ pub struct McpToolApprovalFilter {
 pub enum McpToolApprovalSetting {
     Always,
     Never,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "openai/")]
-pub enum SearchContentType {
-    Image,
-    Text,
 }
 
 /// The type of the function tool. Always `function`.
@@ -5129,6 +5266,8 @@ pub struct TheResponseObject {
     pub instructions: Option<InputParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_output_tokens: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub moderation: Option<Moderation>,
     /// The object type of this resource - always set to `response`.
     pub object: TheResponseObjectObject,
     /// An array of content items generated by the model.
@@ -5231,6 +5370,71 @@ pub enum Reason {
     ContentFilter,
     #[serde(rename = "max_output_tokens")]
     MaxOutputTokens,
+}
+
+/// Moderation results for the response input and output, if moderated completions were
+/// requested.
+///
+///
+/// Moderation results or errors for the response input and output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct Moderation {
+    /// Moderation for the response input.
+    pub input: OutputClass,
+    /// Moderation for the response output.
+    pub output: OutputClass,
+}
+
+/// Moderation for the response input.
+///
+/// Moderation for the response output.
+///
+/// A moderation result produced for the response input or output.
+///
+/// An error produced while attempting moderation for the response input or output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct OutputClass {
+    /// A dictionary of moderation categories to booleans, True if the input is flagged under
+    /// this category.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub categories: Option<HashMap<String, bool>>,
+    /// Which modalities of input are reflected by the score for each category.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category_applied_input_types: Option<HashMap<String, Vec<TType>>>,
+    /// A dictionary of moderation categories to scores.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category_scores: Option<HashMap<String, f64>>,
+    /// A boolean indicating whether the content was flagged by any category.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flagged: Option<bool>,
+    /// The moderation model that produced this result.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    /// The object type, which was always `moderation_result` for successful moderation results.
+    ///
+    /// The object type, which was always `error` for moderation failures.
+    #[serde(rename = "type")]
+    pub moderation_type: FriskyType,
+    /// The error code.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// The error message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+/// The object type, which was always `moderation_result` for successful moderation results.
+///
+/// The object type, which was always `error` for moderation failures.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum FriskyType {
+    Error,
+    #[serde(rename = "moderation_result")]
+    ModerationResult,
 }
 
 /// The object type of this resource - always set to `response`.
@@ -5354,6 +5558,8 @@ pub struct OutputItem {
     ///
     /// The unique ID of the tool search output item.
     ///
+    /// The unique ID of the additional tools item.
+    ///
     /// The unique ID of the compaction item.
     ///
     /// The unique ID of the image generation call.
@@ -5402,8 +5608,11 @@ pub struct OutputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub phase: Option<MessagePhase>,
     /// The role of the output message. Always `assistant`.
+    ///
+    ///
+    /// The role that provided the additional tools.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<MessageRole>,
+    pub role: Option<RoleEnum>,
     /// The status of the message input. One of `in_progress`, `completed`, or
     /// `incomplete`. Populated when input items are returned via API.
     ///
@@ -5471,6 +5680,8 @@ pub struct OutputItem {
     /// The type of the item. Always `tool_search_call`.
     ///
     /// The type of the item. Always `tool_search_output`.
+    ///
+    /// The type of the item. Always `additional_tools`.
     ///
     /// The type of the item. Always `compaction`.
     ///
@@ -5621,6 +5832,8 @@ pub struct OutputItem {
     pub execution: Option<ToolSearchExecutionType>,
     /// The loaded tool definitions returned by tool search.
     ///
+    /// The additional tool definitions made available at this item.
+    ///
     /// The tools available on the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<OutputItemTool>>,
@@ -5713,7 +5926,7 @@ pub struct OutputItemAction {
     /// The search queries.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queries: Option<Vec<String>>,
-    /// [DEPRECATED] The search query.
+    /// The search query.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
     /// The sources used in the search.
@@ -6029,6 +6242,8 @@ pub struct FluffyShellCallOutcome {
 ///
 /// The type of the item. Always `tool_search_output`.
 ///
+/// The type of the item. Always `additional_tools`.
+///
 /// The type of the item. Always `compaction`.
 ///
 /// The type of the image generation call. Always `image_generation_call`.
@@ -6071,6 +6286,8 @@ pub struct FluffyShellCallOutcome {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum OutputItemType {
+    #[serde(rename = "additional_tools")]
+    AdditionalTools,
     #[serde(rename = "apply_patch_call")]
     ApplyPatchCall,
     #[serde(rename = "apply_patch_call_output")]
@@ -6118,6 +6335,24 @@ pub enum OutputItemType {
     ToolSearchOutput,
     #[serde(rename = "web_search_call")]
     WebSearchCall,
+}
+
+/// The role of the output message. Always `assistant`.
+///
+///
+/// The role that provided the additional tools.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum RoleEnum {
+    Assistant,
+    Critic,
+    Developer,
+    Discriminator,
+    System,
+    Tool,
+    Unknown,
+    User,
 }
 
 /// An array of tools the model may call while generating a response. You
@@ -6331,7 +6566,7 @@ pub struct OutputItemTool {
     pub model: Option<String>,
     /// Moderation level for the generated image. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub moderation: Option<Moderation>,
+    pub moderation: Option<ModerationEnum>,
     /// Compression level for the output image. Default: 100.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_compression: Option<i64>,
@@ -6367,7 +6602,7 @@ pub struct OutputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution: Option<ToolSearchExecutionType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_content_types: Option<Vec<SearchContentType>>,
+    pub search_content_types: Option<Vec<TType>>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub annotations: Option<serde_json::Map<String, serde_json::Value>>,
@@ -6440,5 +6675,5 @@ pub struct OutputTokensDetails {
 // Compatibility aliases for names used by Lingua's hand-written adapters.
 pub type Instructions = InputParam;
 pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = IndecentType;
+pub type InputItemContentListType = HilariousType;
 pub type FunctionCallItemStatus = Status;

@@ -37,4 +37,7 @@ pub enum ConvertError {
         tool_type: String,
         target_provider: ProviderFormat,
     },
+
+    #[error("Unsupported mapping: cannot convert {from} to {to}")]
+    UnsupportedMapping { from: String, to: &'static str },
 }

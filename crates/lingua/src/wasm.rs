@@ -3,6 +3,9 @@ use serde_wasm_bindgen;
 use wasm_bindgen::prelude::*;
 
 // Import our types and conversion traits
+use crate::providers::anthropic::convert::{
+    anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
+};
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
 use crate::providers::openai::generated as openai;
@@ -141,13 +144,21 @@ pub fn lingua_to_responses_messages(value: JsValue) -> Result<JsValue, JsValue> 
 /// Convert array of Anthropic messages to Lingua Messages
 #[wasm_bindgen]
 pub fn anthropic_messages_to_lingua(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_to_lingua::<Vec<anthropic::InputMessage>, Vec<Message>>(value)
+    let input_messages: Vec<anthropic::InputMessage> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
+    let messages = anthropic_input_messages_to_universal_messages(input_messages)
+        .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
+    serialize_to_js(&messages, "result")
 }
 
 /// Convert array of Lingua Messages to Anthropic messages
 #[wasm_bindgen]
 pub fn lingua_to_anthropic_messages(value: JsValue) -> Result<JsValue, JsValue> {
-    convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(value)
+    let messages: Vec<Message> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
+    let input_messages = universal_messages_to_anthropic_input_messages(messages)
+        .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
+    serialize_to_js(&input_messages, "result")
 }
 
 /// Convert array of Google Content items to Lingua Messages

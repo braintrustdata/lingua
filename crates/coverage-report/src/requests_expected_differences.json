@@ -60,7 +60,8 @@
       "target": "Responses",
       "fields": [
         { "pattern": "params.top_k", "reason": "Responses API doesn't support top_k (silently dropped)" },
-        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" }
+        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" },
+        { "pattern": "messages[*].content[*].cache_control", "reason": "Responses requests do not support Anthropic-style content-block cache_control metadata" }
       ],
       "errors": [
         { "pattern": "is not supported by OpenAI Responses API", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },
@@ -88,7 +89,7 @@
         { "pattern": "params.reasoning.budget_tokens", "reason": "OpenAI uses effort levels, budget_tokens gets quantized" },
         { "pattern": "params.tools", "reason": "Anthropic built-in tools are provider-specific; bash is not a lossless equivalent of OpenAI Responses code_interpreter" },
         { "pattern": "messages.length", "reason": "Responses API expands tool messages to separate function_call_output items" },
-        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic per-block cache_control metadata has no OpenAI request equivalent" }
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic provider-specific content metadata is not preserved by OpenAI Responses requests" }
       ]
     },
     {
@@ -137,6 +138,7 @@
         { "pattern": "params.reasoning.summary", "reason": "Google doesn't support reasoning summary" },
         { "pattern": "params.parallel_tool_calls", "reason": "Google doesn't support parallel_tool_calls parameter" },
         { "pattern": "params.store", "reason": "Google doesn't support store parameter" },
+        { "pattern": "messages[*].content[*].cache_control", "reason": "Google requests do not support Anthropic-style content-block cache_control metadata" },
         { "pattern": "params.frequency_penalty", "reason": "Google doesn't support frequency_penalty" },
         { "pattern": "params.presence_penalty", "reason": "Google doesn't support presence_penalty" },
         { "pattern": "params.seed", "reason": "Google doesn't support seed" },
@@ -1009,6 +1011,14 @@
       "target": "Google",
       "fields": [
         { "pattern": "params.tools[0].parameters.properties.max_tokens.exclusiveMinimum", "reason": "Gemini's Schema proto does not support JSON Schema Draft-07 keywords such as exclusiveMinimum; they are stripped during conversion to avoid a 400 INVALID_ARGUMENT error" }
+      ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
       ]
     }
   ]

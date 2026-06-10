@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DoxehIBFUt5o4ovDv2kbcfEBFannv",
+  "object": "chat.completion",
+  "created": 1781038087,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Here is the summary of the content you provided:\n\n- Core idea: A loop policy consisting of detection and containment rules for three repeat/ stall scenarios:\n  - Repeated user intent\n  - Repeated assistant output\n  - Stalled tool execution\n  - Recursive repair attempts\n\n- Required behavior when any of these are detected:\n  - Preserve user control\n  - Stop after a bounded number of retries (i.e., do not loop indefinitely)\n  - Provide a concise summary of the repeated state to the user\n  - Ask for one concrete next action from the user before continuing\n\n- Note: The policy appears 240 times in your list, but all sections convey the same rules and behavior. Functionally, it’s one policy framework being reiterated.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 11529,
+    "completion_tokens": 994,
+    "total_tokens": 12523,
+    "prompt_tokens_details": {
+      "cached_tokens": 11392,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 832,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

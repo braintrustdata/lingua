@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "\n\nThis is my unique response to your request about using the cached assistant prefill. I'm ready to help you with any questions or tasks you have in mind."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 23,
+    "outputTokens": 36,
+    "totalTokens": 59,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1023
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "5a220bc1-8dfd-4ee2-ac6f-2c17b5521d8f",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Look up the latest records."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "tool_use",
+          "id": "call_repro_123",
+          "name": "search_records",
+          "input": {
+            "collection": "example_collection"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "call_repro_123",
+          "content": "{\"records\":[{\"id\":\"record_1\",\"status\":\"ok\"}]}"
+        },
+        {
+          "type": "text",
+          "text": "What details are available?"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "search_records",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "collection"
+        ]
+      }
+    }
+  ]
+}

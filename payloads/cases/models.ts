@@ -7,6 +7,7 @@ export const OPENAI_MINI_REASONING_MODEL = "gpt-5.4-mini";
 // For parameters not supported by reasoning models (temperature, top_p, logprobs)
 export const OPENAI_NON_REASONING_MODEL = "gpt-4o-mini";
 export const ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929";
+export const ANTHROPIC_FABLE_MODEL = "claude-fable-5";
 // For Anthropic output_config.effort (requires Opus 4.5+)
 export const ANTHROPIC_OPUS_MODEL = "claude-opus-4-6";
 // For Anthropic mid-conversation system messages (requires Opus 4.8+)

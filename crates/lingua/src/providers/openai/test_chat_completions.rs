@@ -1,24 +1,29 @@
 use crate::providers::openai::convert::{
     ChatCompletionRequestMessageExt, ChatCompletionResponseMessageExt,
 };
-use crate::providers::openai::generated::{
-    CreateChatCompletionRequestClass, CreateChatCompletionResponse,
-};
+use crate::providers::openai::generated::CreateChatCompletionResponse;
 use crate::serde_json::Value;
 use crate::universal::{convert::TryFromLLM, Message};
 use crate::util::test_runner::run_roundtrip_test;
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
+use serde::Deserialize;
 
 pub type OpenAIChatCompletionsTestCase =
-    TestCase<CreateChatCompletionRequestClass, CreateChatCompletionResponse, Value>;
+    TestCase<OpenAIChatCompletionsRoundtripRequest, CreateChatCompletionResponse, Value>;
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct OpenAIChatCompletionsRoundtripRequest {
+    pub messages: Vec<ChatCompletionRequestMessageExt>,
+}
 
 pub fn discover_openai_chat_completions_test_cases(
     test_name_filter: Option<&str>,
 ) -> Result<Vec<OpenAIChatCompletionsTestCase>, crate::util::testutil::TestDiscoveryError> {
-    discover_test_cases_typed::<CreateChatCompletionRequestClass, CreateChatCompletionResponse, Value>(
-        Provider::ChatCompletions,
-        test_name_filter,
-    )
+    discover_test_cases_typed::<
+        OpenAIChatCompletionsRoundtripRequest,
+        CreateChatCompletionResponse,
+        Value,
+    >(Provider::ChatCompletions, test_name_filter)
 }
 
 #[cfg(test)]
@@ -37,20 +42,11 @@ mod tests {
         run_roundtrip_test(
             case,
             // Extract messages from request (convert to extended type)
-            |request: &CreateChatCompletionRequestClass| Ok(&request.messages),
+            |request: &OpenAIChatCompletionsRoundtripRequest| Ok(&request.messages),
             // Convert to universal (via extended type)
-            |messages: &Vec<crate::providers::openai::generated::ChatCompletionRequestMessage>| {
-                // Wrap base messages in extended type for conversion
-                let ext_messages: Vec<ChatCompletionRequestMessageExt> = messages
-                    .iter()
-                    .map(|m| ChatCompletionRequestMessageExt {
-                        base: m.clone(),
-                        reasoning: None,
-                        reasoning_signature: None,
-                    })
-                    .collect();
+            |messages: &Vec<ChatCompletionRequestMessageExt>| {
                 <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
-                    ext_messages,
+                    messages.clone(),
                 )
                 .map_err(|e| format!("Failed to convert to universal format: {}", e))
             },
@@ -60,8 +56,7 @@ mod tests {
                     Vec<Message>,
                 >>::try_from(messages)
                 .map_err(|e| format!("Failed to roundtrip conversion: {}", e))?;
-                // Extract base messages (reasoning would be in separate field)
-                Ok(ext_messages.into_iter().map(|m| m.base).collect())
+                Ok(ext_messages)
             },
             // Extract response content (collect response messages from choices)
             |response: &CreateChatCompletionResponse| {

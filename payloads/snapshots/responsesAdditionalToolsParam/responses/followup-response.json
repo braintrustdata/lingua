@@ -1,0 +1,106 @@
+{
+  "id": "resp_0318b8853aea2dbc006a28a6a86c9c8199b6970500359a29a4",
+  "object": "response",
+  "created_at": 1781049000,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1781049008,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0318b8853aea2dbc006a28a6a8ed00819985fdaffecba09904",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0318b8853aea2dbc006a28a6af739081999c4ccadc22e9955f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here’s a quick plan for what to do next:\n\n- Tell me what policy you need:\n  - If you have the slug (the exact identifier), just share it and I’ll fetch that policy text.\n  - If you’re not sure of the slug, describe the topic (e.g., data privacy, incident response, acceptable use) and whether you want a brief summary or the full policy. I can suggest likely slugs and fetch them.\n\n- If you’re unsure, I can run a few common candidates in parallel to locate the right one. Examples of plausible slugs to try (tell me which to fetch, or I’ll pick a few):\n  - data_privacy_policy\n  - incident_response_policy\n  - acceptable_use_policy\n  - information_security_policy\n  - remote_work_policy\n  - data_retention_policy\n\n- After we retrieve a policy, I can:\n  - provide a concise summary, or\n  - present the full text, and\n  - extract key actions, responsibilities, and points to note.\n\nWhat would you like to do? Share a slug, or describe the topic and desired output (summary or full text)."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "namespace",
+      "description": "Look up an internal policy by slug.",
+      "name": "lookup_policy",
+      "tools": [
+        {
+          "type": "function",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 235,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1453,
+    "output_tokens_details": {
+      "reasoning_tokens": 1152
+    },
+    "total_tokens": 1688
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Here’s a quick plan for what to do next:\n\n- Tell me what policy you need:\n  - If you have the slug (the exact identifier), just share it and I’ll fetch that policy text.\n  - If you’re not sure of the slug, describe the topic (e.g., data privacy, incident response, acceptable use) and whether you want a brief summary or the full policy. I can suggest likely slugs and fetch them.\n\n- If you’re unsure, I can run a few common candidates in parallel to locate the right one. Examples of plausible slugs to try (tell me which to fetch, or I’ll pick a few):\n  - data_privacy_policy\n  - incident_response_policy\n  - acceptable_use_policy\n  - information_security_policy\n  - remote_work_policy\n  - data_retention_policy\n\n- After we retrieve a policy, I can:\n  - provide a concise summary, or\n  - present the full text, and\n  - extract key actions, responsibilities, and points to note.\n\nWhat would you like to do? Share a slug, or describe the topic and desired output (summary or full text)."
+}
