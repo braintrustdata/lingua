@@ -25,6 +25,7 @@ use crate::providers::openai::params::{
     OpenAIChatExtrasView, OpenAIChatLegacyPromptParams, OpenAIChatParams, OpenAICompletionPrompt,
     OpenAIReasoningEffort,
 };
+use crate::providers::openai::responses_adapter::parse_responses_extras;
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
 use crate::serde_json::{self, Map, Value};
@@ -48,7 +49,7 @@ const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
 
-fn parse_openai_chat_extras(
+pub(crate) fn parse_openai_chat_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<OpenAIChatExtrasView, TransformError> {
     extras
@@ -299,6 +300,9 @@ impl ProviderAdapter for OpenAIAdapter {
         if let Some(safety_identifier) = typed_params.safety_identifier {
             extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
         }
+        if let Some(moderation) = typed_params.moderation {
+            extras_map.insert("moderation".into(), moderation);
+        }
         if !extras_map.is_empty() {
             params
                 .extras
@@ -337,6 +341,8 @@ impl ProviderAdapter for OpenAIAdapter {
 
         let openai_extras = req.params.extras.get(&ProviderFormat::ChatCompletions);
         let openai_extras_view = parse_openai_chat_extras(openai_extras)?;
+        let responses_extras_view =
+            parse_responses_extras(req.params.extras.get(&ProviderFormat::Responses))?;
 
         let mut obj = Map::new();
         obj.insert("model".into(), Value::String(model.clone()));
@@ -432,6 +438,13 @@ impl ProviderAdapter for OpenAIAdapter {
                 "stream_options".into(),
                 serde_json::json!({"include_usage": true}),
             );
+        }
+        if let Some(raw_moderation) = openai_extras_view
+            .moderation
+            .as_ref()
+            .or(responses_extras_view.moderation.as_ref())
+        {
+            obj.insert("moderation".into(), raw_moderation.clone());
         }
 
         // Add parallel_tool_calls from canonical params
@@ -897,6 +910,29 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[test]
+    fn test_chat_moderation_preserved_when_exporting_to_responses() {
+        let chat_adapter = OpenAIAdapter;
+        let responses_adapter = crate::providers::openai::responses_adapter::ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let universal = chat_adapter.request_to_universal(payload).unwrap();
+        let responses = responses_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+
+        assert_eq!(
+            responses["moderation"],
+            json!({ "model": "omni-moderation-latest" })
+        );
     }
 
     #[test]
