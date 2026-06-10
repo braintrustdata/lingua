@@ -42,15 +42,6 @@ where
     non_empty_messages(messages)
 }
 
-pub(crate) fn try_parse_and_convert<T>(data: &Value) -> Option<Vec<Message>>
-where
-    T: DeserializeOwned,
-    Vec<Message>: TryFromLLM<T>,
-{
-    let value = try_parse::<T>(data)?;
-    try_convert_non_empty(value)
-}
-
 pub(crate) fn try_parse_vec_or_single<T>(data: &Value) -> Option<Vec<T>>
 where
     T: DeserializeOwned,

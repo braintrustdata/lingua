@@ -3,8 +3,7 @@ use std::convert::TryFrom;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::import_parse::{
-    try_convert_non_empty, try_parse, try_parse_and_convert, try_parse_vec_or_single,
-    try_parsers_in_order, MessageParser,
+    try_convert_non_empty, try_parse, try_parse_vec_or_single, try_parsers_in_order, MessageParser,
 };
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
@@ -1252,6 +1251,79 @@ impl TryFromLLM<Message> for generated::InputMessage {
     }
 }
 
+fn input_content_block_is_tool_result(block: &generated::InputContentBlock) -> bool {
+    matches!(
+        block.input_content_block_type,
+        generated::InputContentBlockType::ToolResult
+    )
+}
+
+fn mixed_user_tool_result_groups(
+    input_msg: generated::InputMessage,
+) -> Option<Vec<generated::InputMessage>> {
+    if !matches!(input_msg.role, generated::MessageRole::User) {
+        return None;
+    }
+
+    let generated::MessageContent::InputContentBlockArray(blocks) = input_msg.content else {
+        return None;
+    };
+
+    let has_tool_results = blocks.iter().any(input_content_block_is_tool_result);
+    if !has_tool_results || blocks.iter().all(input_content_block_is_tool_result) {
+        return None;
+    }
+
+    let mut groups = Vec::new();
+    let mut current_blocks = Vec::new();
+    let mut current_is_tool_result = None;
+
+    for block in blocks {
+        let is_tool_result = input_content_block_is_tool_result(&block);
+        if current_is_tool_result.is_some_and(|current| current != is_tool_result) {
+            groups.push(generated::InputMessage {
+                role: generated::MessageRole::User,
+                content: generated::MessageContent::InputContentBlockArray(current_blocks),
+            });
+            current_blocks = Vec::new();
+        }
+
+        current_is_tool_result = Some(is_tool_result);
+        current_blocks.push(block);
+    }
+
+    if !current_blocks.is_empty() {
+        groups.push(generated::InputMessage {
+            role: generated::MessageRole::User,
+            content: generated::MessageContent::InputContentBlockArray(current_blocks),
+        });
+    }
+
+    Some(groups)
+}
+
+pub(crate) fn anthropic_input_messages_to_universal_messages(
+    input_messages: Vec<generated::InputMessage>,
+) -> Result<Vec<Message>, ConvertError> {
+    let mut messages = Vec::new();
+
+    for input_message in input_messages {
+        if let Some(groups) = mixed_user_tool_result_groups(input_message.clone()) {
+            for group in groups {
+                messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                    group,
+                )?);
+            }
+        } else {
+            messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                input_message,
+            )?);
+        }
+    }
+
+    Ok(messages)
+}
+
 pub(crate) fn try_parse_content_blocks_for_import(
     data: &serde_json::Value,
 ) -> Option<Vec<Message>> {
@@ -1271,8 +1343,7 @@ fn try_messages_from_anthropic_request(
     }
 
     let mut request_messages =
-        <Vec<Message> as TryFromLLM<Vec<generated::InputMessage>>>::try_from(request.messages)
-            .ok()?;
+        anthropic_input_messages_to_universal_messages(request.messages).ok()?;
     messages.append(&mut request_messages);
 
     if messages.is_empty() {
@@ -1287,7 +1358,8 @@ fn try_messages_from_anthropic_response(response: generated::Message) -> Option<
 }
 
 fn try_parse_input_messages_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
-    try_parse_and_convert::<Vec<generated::InputMessage>>(data)
+    let messages = try_parse::<Vec<generated::InputMessage>>(data)?;
+    anthropic_input_messages_to_universal_messages(messages).ok()
 }
 
 fn try_parse_anthropic_request_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
@@ -1893,6 +1965,37 @@ mod tests {
         properties: Option<HashMap<String, ToolSchemaPropertyView>>,
     }
 
+    fn input_message(value: Value) -> generated::InputMessage {
+        serde_json::from_value(value).expect("input message should deserialize")
+    }
+
+    fn text_from_user(message: &Message) -> &str {
+        match message {
+            Message::User {
+                content: UserContent::String(text),
+            } => text,
+            Message::User {
+                content: UserContent::Array(parts),
+            } => match &parts[..] {
+                [UserContentPart::Text(TextContentPart { text, .. })] => text,
+                _ => panic!("expected single text user content part, got {message:?}"),
+            },
+            _ => panic!("expected user message, got {message:?}"),
+        }
+    }
+
+    fn tool_call_id_from_tool(message: &Message) -> &str {
+        match message {
+            Message::Tool { content } => match &content[..] {
+                [ToolContentPart::ToolResult(ToolResultContentPart { tool_call_id, .. })] => {
+                    tool_call_id
+                }
+                _ => panic!("expected single tool result, got {message:?}"),
+            },
+            _ => panic!("expected tool message, got {message:?}"),
+        }
+    }
+
     #[test]
     fn test_json_object_response_format_is_not_converted_to_anthropic_format() {
         let config = ResponseFormatConfig {
@@ -1922,6 +2025,95 @@ mod tests {
             } => assert_eq!(text, "Follow the project style guide."),
             other => panic!("expected system message, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn anthropic_input_messages_to_universal_messages_preserves_pure_tool_results() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": "call_1",
+                    "content": "result one"
+                },
+                {
+                    "type": "tool_result",
+                    "tool_use_id": "call_2",
+                    "content": "result two"
+                }
+            ]
+        }));
+
+        let messages = anthropic_input_messages_to_universal_messages(vec![input])
+            .expect("conversion should succeed");
+
+        assert_eq!(messages.len(), 1);
+        match &messages[0] {
+            Message::Tool { content } => {
+                assert_eq!(content.len(), 2);
+                let ToolContentPart::ToolResult(first) = &content[0];
+                assert_eq!(first.tool_call_id, "call_1");
+                let ToolContentPart::ToolResult(second) = &content[1];
+                assert_eq!(second.tool_call_id, "call_2");
+            }
+            other => panic!("expected tool message, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_messages_to_universal_messages_splits_tool_result_then_text() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": "call_repro_123",
+                    "content": "{\"records\":[{\"id\":\"record_1\",\"status\":\"ok\"}]}"
+                },
+                {
+                    "type": "text",
+                    "text": "What details are available?"
+                }
+            ]
+        }));
+
+        let messages = anthropic_input_messages_to_universal_messages(vec![input])
+            .expect("conversion should succeed");
+
+        assert_eq!(messages.len(), 2);
+        assert_eq!(tool_call_id_from_tool(&messages[0]), "call_repro_123");
+        assert_eq!(text_from_user(&messages[1]), "What details are available?");
+    }
+
+    #[test]
+    fn anthropic_input_messages_to_universal_messages_preserves_interleaved_order() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Before"
+                },
+                {
+                    "type": "tool_result",
+                    "tool_use_id": "call_repro_123",
+                    "content": "tool output"
+                },
+                {
+                    "type": "text",
+                    "text": "After"
+                }
+            ]
+        }));
+
+        let messages = anthropic_input_messages_to_universal_messages(vec![input])
+            .expect("conversion should succeed");
+
+        assert_eq!(messages.len(), 3);
+        assert_eq!(text_from_user(&messages[0]), "Before");
+        assert_eq!(tool_call_id_from_tool(&messages[1]), "call_repro_123");
+        assert_eq!(text_from_user(&messages[2]), "After");
     }
 
     #[test]

@@ -15,7 +15,9 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
-use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::convert::{
+    anthropic_input_messages_to_universal_messages, system_to_user_content,
+};
 use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
@@ -215,7 +217,7 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = anthropic_input_messages_to_universal_messages(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(system) = typed_params.system.clone() {

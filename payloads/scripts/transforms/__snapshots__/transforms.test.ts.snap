@@ -137,6 +137,86 @@ exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage 
 }
 `;
 
+exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Look up the latest records.",
+      "role": "user",
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{"collection":"example_collection"}",
+            "name": "search_records",
+          },
+          "id": "call_repro_123",
+          "type": "function",
+        },
+      ],
+    },
+    {
+      "content": "{"records":[{"id":"record_1","status":"ok"}]}",
+      "role": "tool",
+      "tool_call_id": "call_repro_123",
+    },
+    {
+      "content": [
+        {
+          "text": "What details are available?",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "name": "search_records",
+        "parameters": {
+          "properties": {
+            "collection": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "collection",
+          ],
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > response 1`] = `
+{
+  "content": [
+    {
+      "text": "",
+      "type": "text",
+    },
+  ],
+  "id": "msg_Dp4R7lfsjXtmqofXb3WVvWPgtkoek",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 176,
+    "output_tokens": 1024,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -2273,6 +2353,110 @@ exports[`anthropic → google > anthropicMidConversationSystemMessage > response
   "usage": {
     "input_tokens": 40,
     "output_tokens": 13,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicMixedToolResultWithText > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Look up the latest records.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "collection": "example_collection",
+            },
+            "name": "search_records",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "search_records",
+            "response": {
+              "records": [
+                {
+                  "id": "record_1",
+                  "status": "ok",
+                },
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "What details are available?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "search_records",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "properties": {
+              "collection": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "collection",
+            ],
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] = `
+{
+  "content": [
+    {
+      "text": "The latest record retrieved contains the following details:
+
+* **Record ID:** \`record_1\`
+* **Status:** \`ok\`",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 88,
+    "output_tokens": 546,
   },
 }
 `;
@@ -5171,6 +5355,78 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > respo
     "cache_read_input_tokens": 0,
     "input_tokens": 51,
     "output_tokens": 0,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicMixedToolResultWithText > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Look up the latest records.",
+      "role": "user",
+    },
+    {
+      "arguments": "{"collection":"example_collection"}",
+      "call_id": "call_repro_123",
+      "name": "search_records",
+      "status": "completed",
+      "type": "function_call",
+    },
+    {
+      "call_id": "call_repro_123",
+      "output": "{"records":[{"id":"record_1","status":"ok"}]}",
+      "type": "function_call_output",
+    },
+    {
+      "content": [
+        {
+          "text": "What details are available?",
+          "type": "input_text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "name": "search_records",
+      "parameters": {
+        "properties": {
+          "collection": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "collection",
+        ],
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+  ],
+  "id": "msg_01ec58571640ba5b006a28e1d8d5048195aaa85e1dac9efcd9",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "max_tokens",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 92,
+    "output_tokens": 1024,
   },
 }
 `;

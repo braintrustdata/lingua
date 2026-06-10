@@ -864,6 +864,62 @@ export const advancedCases: TestCaseCollection = {
     "vertex-anthropic": null,
   },
 
+  anthropicMixedToolResultWithText: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "Look up the latest records.",
+        },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "call_repro_123",
+              name: "search_records",
+              input: { collection: "example_collection" },
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "call_repro_123",
+              content: JSON.stringify({
+                records: [{ id: "record_1", status: "ok" }],
+              }),
+            },
+            {
+              type: "text",
+              text: "What details are available?",
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          name: "search_records",
+          input_schema: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+            },
+            required: ["collection"],
+          },
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
   systemMessageArrayContent: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
