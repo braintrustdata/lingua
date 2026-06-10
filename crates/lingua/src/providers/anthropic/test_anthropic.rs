@@ -1,3 +1,6 @@
+use crate::providers::anthropic::convert::{
+    anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
+};
 use crate::providers::anthropic::generated::{
     ContentBlock, CreateMessageParams, InputMessage, Message as AnthropicMessage,
 };
@@ -36,12 +39,12 @@ mod tests {
             |request: &CreateMessageParams| Ok(&request.messages),
             // Convert to universal
             |messages: &Vec<InputMessage>| {
-                <Vec<Message> as TryFromLLM<Vec<InputMessage>>>::try_from(messages.clone())
+                anthropic_input_messages_to_universal_messages(messages.clone())
                     .map_err(|e| format!("Failed to convert to universal format: {}", e))
             },
             // Convert from universal
             |messages: Vec<Message>| {
-                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(messages)
+                universal_messages_to_anthropic_input_messages(messages)
                     .map_err(|e| format!("Failed to roundtrip conversion: {}", e))
             },
             // Extract response content

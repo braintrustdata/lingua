@@ -1302,9 +1302,95 @@ fn mixed_user_tool_result_groups(
     Some(groups)
 }
 
+fn input_message_content_contains_tool_result(content: &generated::MessageContent) -> bool {
+    match content {
+        generated::MessageContent::String(_) => false,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            blocks.iter().any(input_content_block_is_tool_result)
+        }
+    }
+}
+
+fn input_message_content_contains_non_tool_result(content: &generated::MessageContent) -> bool {
+    match content {
+        generated::MessageContent::String(_) => true,
+        generated::MessageContent::InputContentBlockArray(blocks) => blocks
+            .iter()
+            .any(|block| !input_content_block_is_tool_result(block)),
+    }
+}
+
+fn text_input_content_block(text: String) -> generated::InputContentBlock {
+    generated::InputContentBlock {
+        cache_control: None,
+        citations: None,
+        text: Some(text),
+        input_content_block_type: generated::InputContentBlockType::Text,
+        source: None,
+        context: None,
+        title: None,
+        content: None,
+        signature: None,
+        thinking: None,
+        data: None,
+        caller: None,
+        id: None,
+        input: None,
+        name: None,
+        is_error: None,
+        tool_use_id: None,
+        file_id: None,
+    }
+}
+
+fn input_message_content_blocks(
+    content: generated::MessageContent,
+) -> Vec<generated::InputContentBlock> {
+    match content {
+        generated::MessageContent::String(text) => vec![text_input_content_block(text)],
+        generated::MessageContent::InputContentBlockArray(blocks) => blocks,
+    }
+}
+
+fn try_merge_adjacent_user_tool_result_message(
+    previous: &mut generated::InputMessage,
+    current: generated::InputMessage,
+) -> Result<Option<generated::InputMessage>, ConvertError> {
+    if previous.role != generated::MessageRole::User || current.role != generated::MessageRole::User
+    {
+        return Ok(Some(current));
+    }
+
+    let previous_has_tool_result = input_message_content_contains_tool_result(&previous.content);
+    let current_has_tool_result = input_message_content_contains_tool_result(&current.content);
+    let previous_has_non_tool_result =
+        input_message_content_contains_non_tool_result(&previous.content);
+    let current_has_non_tool_result =
+        input_message_content_contains_non_tool_result(&current.content);
+
+    if !(previous_has_tool_result && current_has_non_tool_result
+        || current_has_tool_result && previous_has_non_tool_result)
+    {
+        return Ok(Some(current));
+    }
+
+    let previous_content = std::mem::replace(
+        &mut previous.content,
+        generated::MessageContent::String(String::new()),
+    );
+    let mut blocks = input_message_content_blocks(previous_content);
+    blocks.extend(input_message_content_blocks(current.content));
+    previous.content = generated::MessageContent::InputContentBlockArray(blocks);
+    Ok(None)
+}
+
 pub(crate) fn anthropic_input_messages_to_universal_messages(
     input_messages: Vec<generated::InputMessage>,
 ) -> Result<Vec<Message>, ConvertError> {
+    // The blanket Vec TryFromLLM conversion is one input message to one universal
+    // message. Anthropic user messages can mix text and tool_result blocks in a
+    // single content array, which needs to become ordered user/tool messages so
+    // OpenAI targets receive the required tool output after each tool call.
     let mut messages = Vec::new();
 
     for input_message in input_messages {
@@ -1322,6 +1408,27 @@ pub(crate) fn anthropic_input_messages_to_universal_messages(
     }
 
     Ok(messages)
+}
+
+pub(crate) fn universal_messages_to_anthropic_input_messages(
+    messages: Vec<Message>,
+) -> Result<Vec<generated::InputMessage>, ConvertError> {
+    let mut input_messages = Vec::new();
+
+    for message in messages {
+        let input_message = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)?;
+        if let Some(previous) = input_messages.last_mut() {
+            if let Some(unmerged) =
+                try_merge_adjacent_user_tool_result_message(previous, input_message)?
+            {
+                input_messages.push(unmerged);
+            }
+        } else {
+            input_messages.push(input_message);
+        }
+    }
+
+    Ok(input_messages)
 }
 
 pub(crate) fn try_parse_content_blocks_for_import(

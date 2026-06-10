@@ -14,6 +14,8 @@ fn workspace_root() -> PathBuf {
 
 fn main() {
     let workspace = workspace_root();
+    let target = env::var("TARGET").unwrap_or_default();
+    let generate_snapshot_tests = target != "wasm32-unknown-unknown";
 
     // Create TypeScript bindings directory structure
     let bindings_dir = workspace.join("bindings/typescript/src/generated");
@@ -30,23 +32,32 @@ fn main() {
     println!("cargo:rerun-if-changed=src/universal/");
 
     // Generate test cases from payloads directory
-    generate_test_cases(&workspace);
-    generate_chat_completions_test_cases(&workspace);
-    generate_anthropic_test_cases(&workspace);
-    generate_google_test_cases(&workspace);
+    generate_test_cases(&workspace, generate_snapshot_tests);
+    generate_chat_completions_test_cases(&workspace, generate_snapshot_tests);
+    generate_anthropic_test_cases(&workspace, generate_snapshot_tests);
+    generate_google_test_cases(&workspace, generate_snapshot_tests);
 }
 
 const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] =
     &["responsesFunctionCallOutputWithoutThoughtSignatureParam"];
 
-fn generate_test_cases(workspace: &Path) {
+fn generate_test_cases(workspace: &Path, generate_snapshot_tests: bool) {
     let snapshots_dir = workspace.join("payloads/snapshots");
-
-    // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_tests.rs");
+
+    if !generate_snapshot_tests {
+        fs::write(
+            &dest_path,
+            "// Snapshot-generated tests are disabled for this target",
+        )
+        .unwrap();
+        return;
+    }
+
+    // Tell cargo to re-run if the snapshots directory changes
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -122,14 +133,23 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
-fn generate_chat_completions_test_cases(workspace: &Path) {
+fn generate_chat_completions_test_cases(workspace: &Path, generate_snapshot_tests: bool) {
     let snapshots_dir = workspace.join("payloads/snapshots");
-
-    // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_chat_completions_tests.rs");
+
+    if !generate_snapshot_tests {
+        fs::write(
+            &dest_path,
+            "// Snapshot-generated tests are disabled for this target",
+        )
+        .unwrap();
+        return;
+    }
+
+    // Tell cargo to re-run if the snapshots directory changes
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -203,14 +223,23 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
-fn generate_anthropic_test_cases(workspace: &Path) {
+fn generate_anthropic_test_cases(workspace: &Path, generate_snapshot_tests: bool) {
     let snapshots_dir = workspace.join("payloads/snapshots");
-
-    // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_anthropic_tests.rs");
+
+    if !generate_snapshot_tests {
+        fs::write(
+            &dest_path,
+            "// Snapshot-generated tests are disabled for this target",
+        )
+        .unwrap();
+        return;
+    }
+
+    // Tell cargo to re-run if the snapshots directory changes
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
@@ -283,14 +312,23 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
-fn generate_google_test_cases(workspace: &Path) {
+fn generate_google_test_cases(workspace: &Path, generate_snapshot_tests: bool) {
     let snapshots_dir = workspace.join("payloads/snapshots");
-
-    // Tell cargo to re-run if the snapshots directory changes
-    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("generated_google_tests.rs");
+
+    if !generate_snapshot_tests {
+        fs::write(
+            &dest_path,
+            "// Snapshot-generated tests are disabled for this target",
+        )
+        .unwrap();
+        return;
+    }
+
+    // Tell cargo to re-run if the snapshots directory changes
+    println!("cargo:rerun-if-changed={}", snapshots_dir.display());
 
     if !snapshots_dir.exists() {
         // Create empty generated tests file if no snapshots directory
