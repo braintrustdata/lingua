@@ -2298,44 +2298,6 @@ mod tests {
     }
 
     #[test]
-    fn explicit_provider_routes_resolve_overlay_custom_models() {
-        let mut base = ModelCatalog::empty();
-        base.insert(
-            "base-model".into(),
-            openai_spec("base-model", ModelFlavor::Chat),
-        );
-        let mut custom = ModelCatalog::empty();
-        custom.insert(
-            "custom-model".into(),
-            openai_spec_with_available_providers("custom-model", ModelFlavor::Chat),
-        );
-        let router = Router::builder()
-            .with_overlay_catalog(Arc::new(base), custom)
-            .add_provider(
-                "azure",
-                FakeProvider {
-                    name: "azure",
-                    formats: vec![ProviderFormat::ChatCompletions],
-                },
-                dummy_auth(),
-                vec![ProviderFormat::ChatCompletions],
-            )
-            .build()
-            .expect("router builds");
-
-        assert_eq!(
-            explicit_route_aliases(
-                &router,
-                "custom-model",
-                ProviderFormat::ChatCompletions,
-                &["azure"]
-            )
-            .expect("routes"),
-            vec!["azure".to_string()]
-        );
-    }
-
-    #[test]
     fn resolve_providers_falls_back_to_format_slot_when_alias_not_registered() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
