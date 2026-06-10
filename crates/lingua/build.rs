@@ -36,11 +36,10 @@ fn main() {
     generate_google_test_cases(&workspace);
 }
 
-const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] =
-    &[
-        "responsesFunctionCallOutputWithoutThoughtSignatureParam",
-        "responsesAdditionalToolsParam",
-    ];
+const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] = &[
+    "responsesFunctionCallOutputWithoutThoughtSignatureParam",
+    "responsesAdditionalToolsParam",
+];
 
 fn generate_test_cases(workspace: &Path) {
     let snapshots_dir = workspace.join("payloads/snapshots");
