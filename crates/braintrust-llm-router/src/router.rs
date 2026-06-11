@@ -169,13 +169,6 @@ pub struct RouterMetadata {
     pub provider_format: ProviderFormat,
 }
 
-/// Provider route resolved for a caller-specified provider alias.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ResolvedProviderRoute {
-    pub provider_alias: String,
-    pub wire_format: ProviderFormat,
-}
-
 #[cfg(test)]
 type ResolvedProviderForTest = (
     String,
@@ -315,24 +308,6 @@ impl Router {
             .create_prepared_request_internal(body, output_format, route, false)
             .await?;
         Ok((PreparedRequest { inner }, metadata))
-    }
-
-    pub fn resolve_provider_route_metadata(
-        &self,
-        model: &str,
-        output_format: ProviderFormat,
-        aliases: &[String],
-    ) -> Result<Vec<ResolvedProviderRoute>> {
-        self.resolve_provider_routes_for_aliases(model, output_format, aliases)
-            .map(|routes| {
-                routes
-                    .into_iter()
-                    .map(|route| ResolvedProviderRoute {
-                        provider_alias: route.provider_alias,
-                        wire_format: route.format,
-                    })
-                    .collect()
-            })
     }
 
     /// Execute a prepared request and return transformed response bytes.
@@ -1053,7 +1028,7 @@ mod tests {
             .map(|alias| alias.to_string())
             .collect::<Vec<_>>();
         router
-            .resolve_provider_route_metadata(model, output_format, &aliases)
+            .resolve_provider_routes_for_aliases(model, output_format, &aliases)
             .map(|routes| {
                 routes
                     .into_iter()
