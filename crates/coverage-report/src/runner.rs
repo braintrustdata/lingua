@@ -104,12 +104,29 @@ pub fn test_request_transformation(
     let mut expected_universal = match source_adapter.request_to_universal(payload_value) {
         Ok(u) => u,
         Err(e) => {
+            let error_msg =
+                truncate_error(format!("Conversion to universal format failed: {}", e), 500);
+            let context = CompareContext::for_request(source_adapter, target_adapter, test_case);
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
+            });
+            if let Some(reason) = reason {
+                return TransformResult {
+                    level: ValidationLevel::Limitation,
+                    error: Some(error_msg),
+                    diff: None,
+                    limitation_reason: Some(reason),
+                };
+            }
             return TransformResult {
                 level: ValidationLevel::Fail,
-                error: Some(truncate_error(
-                    format!("Conversion to universal format failed: {}", e),
-                    500,
-                )),
+                error: Some(error_msg),
                 diff: None,
                 limitation_reason: None,
             };

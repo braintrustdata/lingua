@@ -1,0 +1,1116 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_08b76baa08c701f8006a28a6a3958081989b5536de85c6149f",
+      "object": "response",
+      "created_at": 1781048995,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Look up an internal policy by slug.",
+              "name": "lookup_policy",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "slug"
+                ],
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_08b76baa08c701f8006a28a6a3958081989b5536de85c6149f",
+      "object": "response",
+      "created_at": 1781048995,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Look up an internal policy by slug.",
+              "name": "lookup_policy",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "slug"
+                ],
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_08b76baa08c701f8006a28a6a41be081989f223841be63a8ad",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_08b76baa08c701f8006a28a6a41be081989f223841be63a8ad",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "I",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "iMMlTB13eADJYol",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " can",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "UC4jdNdXfINU",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " use",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "KALfeJZIhUu4",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "JVzkR85bNcA7",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " internal",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "Scg4TtU",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " policy",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "Q7WENnquf",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " lookup",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "ApHqCYRdG",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tool",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "rZMiBC9oDnF",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "vP5vWyrL7zwBeuC",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Please",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "NdoiF9e52",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " provide",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "IhPpWmht",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "3AxSJOcA0RFg",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " policy",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "t5I5Tmljt",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " slug",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "bJlzcKED8Ka",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "8yKGlQCMHyKS",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " want",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "VarZGLWgSlz",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "WbxdwVD759O1w",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " look",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "mdg6oJBprW3",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " up",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "23wxUzJvpFabn",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " (",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "xo3OvnvSThHSez",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "for",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "roQWgz4PyvUpj",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " example",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "bOS5ks1E",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "E9ccsMkfLJnZNzv",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " privacy",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "1GxWuTMb",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_policy",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "mRU0bT1Kr",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "onx3Y43n1X3MBoZ",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " data",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "x3aQpsiW0jd",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_ret",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "x8ApWdVwp4fF",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "ention",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "TWXUVJs7nd",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "k70gDEzwDDkEzNq",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " information",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "4WAX",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_security",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "4mt3If5",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ").",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "Fbmbpp198v0Kc1",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " \n\n",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "1yauPqUbrY1tz",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "If",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "GtO7ZTNYOcppcX",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "IA3ApolFdqhr",
+    "output_index": 1,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’re",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "g504BDfsDV50o",
+    "output_index": 1,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " not",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "vq9QCKSYeFfB",
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " sure",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "fR1FD6k6HGB",
+    "output_index": 1,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " of",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "1tSiwaeyppaE9",
+    "output_index": 1,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "dt58ta8zX4TF",
+    "output_index": 1,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " slug",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "cPAvWpeEL7g",
+    "output_index": 1,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "c8SWyqV9ZWeolW0",
+    "output_index": 1,
+    "sequence_number": 48
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tell",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "tCVg3Ki6qRy",
+    "output_index": 1,
+    "sequence_number": 49
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " me",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "9odDQzVZuK4gn",
+    "output_index": 1,
+    "sequence_number": 50
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "e7OBdG7Whxd3",
+    "output_index": 1,
+    "sequence_number": 51
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " topic",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "gJpVvzP1XM",
+    "output_index": 1,
+    "sequence_number": 52
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "2r3lTxW7AVx4",
+    "output_index": 1,
+    "sequence_number": 53
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " I",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "un0V6dquDhNQHn",
+    "output_index": 1,
+    "sequence_number": 54
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " can",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "mRaMyFE5LEIT",
+    "output_index": 1,
+    "sequence_number": 55
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " suggest",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "jAaFI170",
+    "output_index": 1,
+    "sequence_number": 56
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " likely",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "jqHMu8vNk",
+    "output_index": 1,
+    "sequence_number": 57
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " sl",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "meRxyAhXa7L0z",
+    "output_index": 1,
+    "sequence_number": 58
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "ugs",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "PSKUHZ0QGiwoD",
+    "output_index": 1,
+    "sequence_number": 59
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "qh5NHRhMNYtDrXg",
+    "output_index": 1,
+    "sequence_number": 60
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Once",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "IkJPktNtgPZ",
+    "output_index": 1,
+    "sequence_number": 61
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "nwojeoSEqAAu",
+    "output_index": 1,
+    "sequence_number": 62
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " provide",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "scKHqCia",
+    "output_index": 1,
+    "sequence_number": 63
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "TmU5OPrGSWO5",
+    "output_index": 1,
+    "sequence_number": 64
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " slug",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "u1PHld9rq2l",
+    "output_index": 1,
+    "sequence_number": 65
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "8V8d1OJBA3s6GxV",
+    "output_index": 1,
+    "sequence_number": 66
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " I",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "5dPmkxiYwlVVBW",
+    "output_index": 1,
+    "sequence_number": 67
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’ll",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "HxtEumkK2kTsD",
+    "output_index": 1,
+    "sequence_number": 68
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " fetch",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "H6cEC4CUh1",
+    "output_index": 1,
+    "sequence_number": 69
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "y3xkFGnBCUQE",
+    "output_index": 1,
+    "sequence_number": 70
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " policy",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "3clNuMSWI",
+    "output_index": 1,
+    "sequence_number": 71
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "BArDU1rThCtU",
+    "output_index": 1,
+    "sequence_number": 72
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " summarize",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "E6nRfD",
+    "output_index": 1,
+    "sequence_number": 73
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "Xc0PCf41S0Rgj",
+    "output_index": 1,
+    "sequence_number": 74
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " quote",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "X8rSeMjOtW",
+    "output_index": 1,
+    "sequence_number": 75
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "yQHWzcAB8omg",
+    "output_index": 1,
+    "sequence_number": 76
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " relevant",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "EhY0NN8",
+    "output_index": 1,
+    "sequence_number": 77
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " sections",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "CDmJQjm",
+    "output_index": 1,
+    "sequence_number": 78
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " as",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "bUXGSljj7K34z",
+    "output_index": 1,
+    "sequence_number": 79
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "1pEctTlmGrTW",
+    "output_index": 1,
+    "sequence_number": 80
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " prefer",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "xoS7lIDzH",
+    "output_index": 1,
+    "sequence_number": 81
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "obfuscation": "u2EP2QzX1MViFZm",
+    "output_index": 1,
+    "sequence_number": 82
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 83,
+    "text": "I can use the internal policy lookup tool. Please provide the policy slug you want to look up (for example: privacy_policy, data_retention, information_security). \n\nIf you’re not sure of the slug, tell me the topic and I can suggest likely slugs. Once you provide the slug, I’ll fetch the policy and summarize or quote the relevant sections as you prefer."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "I can use the internal policy lookup tool. Please provide the policy slug you want to look up (for example: privacy_policy, data_retention, information_security). \n\nIf you’re not sure of the slug, tell me the topic and I can suggest likely slugs. Once you provide the slug, I’ll fetch the policy and summarize or quote the relevant sections as you prefer."
+    },
+    "sequence_number": 84
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can use the internal policy lookup tool. Please provide the policy slug you want to look up (for example: privacy_policy, data_retention, information_security). \n\nIf you’re not sure of the slug, tell me the topic and I can suggest likely slugs. Once you provide the slug, I’ll fetch the policy and summarize or quote the relevant sections as you prefer."
+        }
+      ],
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 85
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_08b76baa08c701f8006a28a6a3958081989b5536de85c6149f",
+      "object": "response",
+      "created_at": 1781048995,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1781049000,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5-nano-2025-08-07",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_08b76baa08c701f8006a28a6a41be081989f223841be63a8ad",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "msg_08b76baa08c701f8006a28a6a7d9588198a886be0d9131206a",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "I can use the internal policy lookup tool. Please provide the policy slug you want to look up (for example: privacy_policy, data_retention, information_security). \n\nIf you’re not sure of the slug, tell me the topic and I can suggest likely slugs. Once you provide the slug, I’ll fetch the policy and summarize or quote the relevant sections as you prefer."
+            }
+          ],
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "in_memory",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Look up an internal policy by slug.",
+              "name": "lookup_policy",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "slug"
+                ],
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 135,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 789,
+        "output_tokens_details": {
+          "reasoning_tokens": 704
+        },
+        "total_tokens": 924
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 86
+  }
+]

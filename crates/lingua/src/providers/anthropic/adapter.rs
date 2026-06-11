@@ -15,13 +15,16 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
-use crate::providers::anthropic::convert::system_to_user_content;
+use crate::providers::anthropic::convert::{
+    anthropic_input_messages_to_universal_messages, system_to_user_content,
+    universal_messages_to_anthropic_input_messages,
+};
 use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, InputMessage, OutputConfig, Thinking, ThinkingType, Tool,
-    ToolChoice, ToolChoiceType,
+    ContentBlock, EffortLevel, OutputConfig, Thinking, ThinkingType, Tool, ToolChoice,
+    ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
@@ -215,7 +218,7 @@ impl ProviderAdapter for AnthropicAdapter {
             TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
         })?;
 
-        let mut messages = <Vec<Message> as TryFromLLM<Vec<_>>>::try_from(input_messages)
+        let mut messages = anthropic_input_messages_to_universal_messages(input_messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(system) = typed_params.system.clone() {
@@ -352,9 +355,8 @@ impl ProviderAdapter for AnthropicAdapter {
                     });
                 }
                 validate_no_non_leading_system_messages(&msgs)?;
-                let anthropic_messages: Vec<InputMessage> =
-                    <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
-                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                let anthropic_messages = universal_messages_to_anthropic_input_messages(msgs)
+                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
                 obj.insert(
                     "messages".into(),
                     serde_json::to_value(anthropic_messages)
@@ -375,9 +377,8 @@ impl ProviderAdapter for AnthropicAdapter {
             }
             validate_no_non_leading_system_messages(&msgs)?;
             // Convert remaining messages
-            let anthropic_messages: Vec<InputMessage> =
-                <Vec<InputMessage> as TryFromLLM<Vec<Message>>>::try_from(msgs)
-                    .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+            let anthropic_messages = universal_messages_to_anthropic_input_messages(msgs)
+                .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
             obj.insert(
                 "messages".into(),
                 serde_json::to_value(anthropic_messages)
@@ -1933,6 +1934,44 @@ mod tests {
             result.top_k.is_none(),
             "top_k should be stripped even when sourced from extras for Opus 4.7"
         );
+    }
+
+    #[test]
+    fn test_anthropic_strips_temperature_for_fable() {
+        use crate::capabilities::ProviderFormat;
+        use crate::universal::message::UserContent;
+        use std::collections::HashMap;
+
+        let adapter = AnthropicAdapter;
+        let mut extras_map: HashMap<ProviderFormat, Map<String, Value>> = HashMap::new();
+        let mut anthropic_extras = Map::new();
+        anthropic_extras.insert("temperature".into(), json!(0.3));
+        extras_map.insert(ProviderFormat::Anthropic, anthropic_extras);
+
+        let req = UniversalRequest {
+            model: Some("claude-fable-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                top_k: Some(40),
+                token_budget: Some(TokenBudget::OutputTokens(1024)),
+                extras: extras_map,
+                ..Default::default()
+            },
+        };
+
+        let result: AnthropicParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.temperature.is_none(),
+            "temperature should be stripped for Fable, including extras"
+        );
+        assert!(result.top_p.is_none(), "top_p should be stripped for Fable");
+        assert!(result.top_k.is_none(), "top_k should be stripped for Fable");
     }
 
     #[test]

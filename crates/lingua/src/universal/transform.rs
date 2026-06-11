@@ -183,6 +183,7 @@ fn user_content_to_parts(content: UserContent) -> Vec<UserContentPart> {
         UserContent::String(text) => vec![UserContentPart::Text(TextContentPart {
             text,
             encrypted_content: None,
+            cache_control: None,
             provider_options: None,
         })],
         UserContent::Array(parts) => parts,
@@ -195,6 +196,7 @@ fn assistant_content_to_parts(content: AssistantContent) -> Vec<AssistantContent
         AssistantContent::String(text) => vec![AssistantContentPart::Text(TextContentPart {
             text,
             encrypted_content: None,
+            cache_control: None,
             provider_options: None,
         })],
         AssistantContent::Array(parts) => parts,

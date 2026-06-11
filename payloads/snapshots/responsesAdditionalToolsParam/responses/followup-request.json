@@ -1,0 +1,57 @@
+{
+  "model": "gpt-5-nano",
+  "input": [
+    {
+      "role": "user",
+      "content": "Use any additional tools made available later."
+    },
+    {
+      "type": "additional_tools",
+      "role": "developer",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup_policy",
+          "description": "Look up an internal policy by slug.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    },
+    {
+      "id": "rs_0318b8853aea2dbc006a28a6a41c748199acf9827b874a583d",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0318b8853aea2dbc006a28a6a6db448199b4556d8e5581125b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can look up an internal policy by slug using the lookup_policy tool. Please provide the policy slug you want to fetch. \n\nIf you’re not sure of the slug, tell me the topic (e.g., data privacy, incident response, acceptable use) and I can suggest likely slugs or help you locate it. Also let me know if you’d like a brief summary or the full policy text once retrieved."
+        }
+      ],
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

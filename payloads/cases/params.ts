@@ -6,7 +6,13 @@ import {
   MediaResolution,
 } from "@google/genai";
 import OpenAI from "openai";
-import { TestCase, TestCaseCollection } from "./types";
+import {
+  ChatCompletionAssistantMessageWithCacheControl,
+  ChatCompletionTextPartWithCacheControl,
+  ChatCompletionUserMessageWithCacheControl,
+  TestCase,
+  TestCaseCollection,
+} from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
@@ -14,6 +20,7 @@ import {
   OPENAI_NON_REASONING_MODEL,
   OPENAI_MINI_REASONING_MODEL,
   ANTHROPIC_MODEL,
+  ANTHROPIC_FABLE_MODEL,
   ANTHROPIC_OPUS_MODEL,
   GOOGLE_MODEL,
   GOOGLE_GEMINI_3_MODEL,
@@ -26,6 +33,23 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
   OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
     reasoning_signature: string;
   };
+
+const chatCompletionCacheControlTextPart = {
+  type: "text",
+  text: "Use this stable reference text as cacheable context.",
+  cache_control: { type: "ephemeral", ttl: "1h" },
+} satisfies ChatCompletionTextPartWithCacheControl;
+
+const chatCompletionAssistantCacheControlTextPart = {
+  type: "text",
+  text: "This assistant prefill should remain cacheable.",
+  cache_control: { type: "ephemeral", ttl: "1h" },
+} satisfies ChatCompletionTextPartWithCacheControl;
+
+const chatCompletionAssistantCacheControlMessage = {
+  role: "assistant",
+  content: [chatCompletionAssistantCacheControlTextPart],
+} satisfies ChatCompletionAssistantMessageWithCacheControl;
 
 const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
   {
@@ -112,6 +136,77 @@ export const paramsCases: TestCaseCollection = {
       prompt_cache_key: "policy-cache-v1",
     },
     anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsAnthropicCacheControlParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            chatCompletionCacheControlTextPart,
+            {
+              type: "text",
+              text: "Now summarize it.",
+            },
+          ],
+        } satisfies ChatCompletionUserMessageWithCacheControl,
+      ],
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: chatCompletionCacheControlTextPart.text,
+              cache_control: { type: "ephemeral", ttl: "1h" },
+            },
+            {
+              type: "text",
+              text: "Now summarize it.",
+            },
+          ],
+        },
+      ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsAssistantCacheControlParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        { role: "user", content: "Use the cached assistant prefill." },
+        chatCompletionAssistantCacheControlMessage,
+      ],
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        { role: "user", content: "Use the cached assistant prefill." },
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: "This assistant prefill should remain cacheable.",
+              cache_control: { type: "ephemeral", ttl: "1h" },
+            },
+          ],
+        },
+      ],
+    },
     google: null,
     bedrock: null,
   },
@@ -314,6 +409,42 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesAdditionalToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Use any additional tools made available later.",
+        },
+        {
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+          ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -465,6 +596,62 @@ export const paramsCases: TestCaseCollection = {
         },
       },
     },
+    bedrock: null,
+  },
+
+  textFormatJsonSchemaMissingRequiredPropertyParam: {
+    "chat-completions": {
+      model: OPENAI_MINI_REASONING_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    responses: {
+      model: OPENAI_MINI_REASONING_MODEL,
+      input: [
+        {
+          role: "user",
+          content: "Return an answer and short reasoning.",
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "structured_response",
+          schema: {
+            type: "object",
+            properties: {
+              answer: { type: "string" },
+              reasoning: { type: "string" },
+            },
+            required: ["answer"],
+            additionalProperties: false,
+          },
+          strict: true,
+        },
+      },
+    },
+    anthropic: null,
+    google: null,
     bedrock: null,
   },
 
@@ -1592,6 +1779,22 @@ export const paramsCases: TestCaseCollection = {
         temperature: 0.7,
       },
     },
+    bedrock: null,
+  },
+
+  fableTemperatureParam: {
+    "chat-completions": {
+      model: OPENAI_NON_REASONING_MODEL,
+      messages: [{ role: "user", content: "Say hi." }],
+      temperature: 0.7,
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_FABLE_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "Say hi." }],
+    },
+    google: null,
     bedrock: null,
   },
 

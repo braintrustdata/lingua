@@ -868,6 +868,126 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_responses_string_input_to_chat_completions() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": "Write a haiku about the ocean.",
+            "max_output_tokens": 256,
+            "temperature": 0.7,
+            "stream": false
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Responses));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("input"), None);
+        assert_eq!(
+            output.get("messages"),
+            Some(&json!([
+                { "role": "user", "content": "Write a haiku about the ocean." }
+            ]))
+        );
+        assert_eq!(
+            output.get("max_completion_tokens").and_then(Value::as_i64),
+            Some(256)
+        );
+        assert_eq!(output.get("temperature"), None);
+        assert_eq!(output.get("stream").and_then(Value::as_bool), Some(false));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_legacy_prompt_chat_completions_to_messages() {
+        let payload = json!({
+            "model": "gpt-4o",
+            "prompt": "Write a haiku about the ocean.",
+            "max_tokens": 256,
+            "temperature": 0.7,
+            "stream": false
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(
+            result.source_format(),
+            Some(ProviderFormat::ChatCompletions)
+        );
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("prompt"), None);
+        assert_eq!(
+            output.get("messages"),
+            Some(&json!([
+                { "role": "user", "content": "Write a haiku about the ocean." }
+            ]))
+        );
+        assert_eq!(output.get("max_tokens").and_then(Value::as_i64), Some(256));
+        assert_eq!(output.get("temperature").and_then(Value::as_f64), Some(0.7));
+        assert_eq!(output.get("stream").and_then(Value::as_bool), Some(false));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_legacy_prompt_chat_completions_rejects_completion_only_params() {
+        let payload = json!({
+            "model": "gpt-4o",
+            "prompt": "Write a haiku about the ocean.",
+            "suffix": "End with a title.",
+            "max_tokens": 256
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+
+        assert!(
+            matches!(err, TransformError::ToUniversalFailed(reason) if reason.contains("suffix"))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_legacy_prompt_chat_completions_rejects_null_completion_only_params() {
+        let payload = json!({
+            "model": "gpt-4o",
+            "prompt": "Write a haiku about the ocean.",
+            "suffix": null,
+            "max_tokens": 256
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+
+        assert!(
+            matches!(err, TransformError::ToUniversalFailed(reason) if reason.contains("suffix"))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_legacy_prompt_chat_completions_rejects_numeric_logprobs() {
+        let payload = json!({
+            "model": "gpt-4o",
+            "prompt": "Write a haiku about the ocean.",
+            "logprobs": 5,
+            "max_tokens": 256
+        });
+        let input = to_bytes(&payload);
+
+        let err = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap_err();
+
+        assert!(
+            matches!(err, TransformError::ToUniversalFailed(reason) if reason.contains("logprobs"))
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_preserves_suffix_messages_in_chat_rewrite() {
         let payload = json!({
             "model": "brain-facet-1",

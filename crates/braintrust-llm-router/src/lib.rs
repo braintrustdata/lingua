@@ -33,7 +33,7 @@ pub use providers::{
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
     create_provider, extract_request_hints, CompleteResponseWithRaw, PreparedRequest,
-    PreparedStreamRequest, RequestHints, Router, RouterBuilder, RouterMetadata,
+    PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder, RouterMetadata,
 };
 pub use streaming::{RawResponseStream, RawStreamChunkCapture, ResponseStream, StreamChunk};
 

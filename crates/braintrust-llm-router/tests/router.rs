@@ -15,6 +15,22 @@ fn to_body(payload: Value) -> Bytes {
     Bytes::from(braintrust_llm_router::serde_json::to_vec(&payload).unwrap())
 }
 
+async fn create_request(
+    router: &Router,
+    body: Bytes,
+    model: &str,
+    output_format: ProviderFormat,
+) -> braintrust_llm_router::Result<(
+    braintrust_llm_router::PreparedRequest,
+    braintrust_llm_router::RouterMetadata,
+)> {
+    let routes = router.resolve_provider_routes(model, output_format, &[])?;
+    let route = routes
+        .first()
+        .ok_or_else(|| Error::NoProvider(output_format))?;
+    router.create_request(body, output_format, route).await
+}
+
 #[derive(Clone)]
 struct StubProvider;
 
@@ -134,10 +150,10 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
-    let (request, _metadata) = router
-        .create_request(body, model, ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) =
+        create_request(&router, body, model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
     let bytes: Bytes = router
         .complete(request, &ClientHeaders::default())
         .await
@@ -196,12 +212,75 @@ async fn router_resolves_provider_alias_in_metadata() {
         "model": "stub-model",
         "messages": [{"role": "user", "content": "Ping"}]
     }));
-    let (_request, metadata) = router
-        .create_request(body, "stub-model", ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (_request, metadata) =
+        create_request(&router, body, "stub-model", ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
 
     assert_eq!(metadata.provider_alias, "stub");
+}
+
+#[test]
+fn fallback_alias_resolution_skips_aliases_not_eligible_for_model() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "stub-model".into(),
+        ModelSpec {
+            model: "stub-model".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["eligible".to_string()],
+        },
+    );
+    let catalog = Arc::new(catalog);
+
+    let router = RouterBuilder::new()
+        .with_catalog(Arc::clone(&catalog))
+        .with_retry_policy(RetryPolicy::default())
+        .add_provider(
+            "eligible",
+            StubProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![ProviderFormat::ChatCompletions],
+        )
+        .add_provider(
+            "ineligible",
+            StubProvider,
+            AuthConfig::ApiKey {
+                key: "test".into(),
+                header: Some("authorization".into()),
+                prefix: Some("Bearer".into()),
+            },
+            vec![],
+        )
+        .build()
+        .expect("router builds");
+
+    let routes = router
+        .resolve_provider_routes(
+            "stub-model",
+            ProviderFormat::ChatCompletions,
+            &["ineligible".to_string(), "eligible".to_string()],
+        )
+        .expect("fallback aliases resolve");
+
+    let aliases: Vec<&str> = routes.iter().map(|route| route.provider_alias()).collect();
+    assert_eq!(aliases, vec!["eligible"]);
 }
 
 #[tokio::test]
@@ -250,10 +329,10 @@ async fn router_requires_auth_for_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let (request, _metadata) = router
-        .create_request(body, model, ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) =
+        create_request(&router, body, model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
     let bytes: Bytes = router
         .complete(request, &ClientHeaders::default())
         .await
@@ -301,10 +380,7 @@ async fn router_reports_missing_provider() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let err = match router
-        .create_request(body, model, ProviderFormat::ChatCompletions)
-        .await
-    {
+    let err = match create_request(&router, body, model, ProviderFormat::ChatCompletions).await {
         Ok(_) => panic!("missing provider"),
         Err(err) => err,
     };
@@ -336,9 +412,8 @@ async fn router_propagates_validation_errors() {
         "model": "",
         "messages": []
     }));
-    let err: braintrust_llm_router::Result<_> = router
-        .create_request(body, "", ProviderFormat::ChatCompletions)
-        .await;
+    let err: braintrust_llm_router::Result<_> =
+        create_request(&router, body, "", ProviderFormat::ChatCompletions).await;
     let err = match err {
         Ok(_) => panic!("validation"),
         Err(err) => err,
@@ -589,14 +664,14 @@ async fn anthropic_openai_catalog_format_resolves_to_chat_completions() {
             {"role": "user", "content": "What is 1+1?"}
         ]
     }));
-    let (request, _metadata) = router
-        .create_request(
-            body,
-            "my-openai-anthropic-model",
-            ProviderFormat::ChatCompletions,
-        )
-        .await
-        .expect("create request");
+    let (request, _metadata) = create_request(
+        &router,
+        body,
+        "my-openai-anthropic-model",
+        ProviderFormat::ChatCompletions,
+    )
+    .await
+    .expect("create request");
     router
         .complete(request, &ClientHeaders::default())
         .await
@@ -638,10 +713,14 @@ async fn anthropic_native_catalog_format_resolves_to_anthropic() {
         "model": "claude-haiku-4-5",
         "messages": [{"role": "user", "content": "What is 1+1?"}]
     }));
-    let (request, _metadata) = router
-        .create_request(body, "claude-haiku-4-5", ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) = create_request(
+        &router,
+        body,
+        "claude-haiku-4-5",
+        ProviderFormat::ChatCompletions,
+    )
+    .await
+    .expect("create request");
     router
         .complete(request, &ClientHeaders::default())
         .await
@@ -776,10 +855,14 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
         }]
     }));
 
-    let (request, metadata) = router
-        .create_request(body, "gpt-5.2-mini", ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, metadata) = create_request(
+        &router,
+        body,
+        "gpt-5.2-mini",
+        ProviderFormat::ChatCompletions,
+    )
+    .await
+    .expect("create request");
 
     assert_eq!(
         metadata.provider_format,
@@ -796,6 +879,58 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
         *recorded_format.lock().unwrap(),
         Some(ProviderFormat::Responses),
         "provider.complete() must be called with Responses so the request hits /v1/responses"
+    );
+}
+
+#[tokio::test]
+async fn responses_required_model_uses_responses_for_anthropic_messages_output() {
+    let mut catalog = ModelCatalog::empty();
+    catalog.insert(
+        "gpt-5.5".into(),
+        ModelSpec {
+            model: "gpt-5.5".into(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: Default::default(),
+        },
+    );
+    let (router, _recorded_format) = openai_router(Arc::new(catalog));
+
+    let body = to_body(json!({
+        "model": "gpt-5.5",
+        "max_tokens": 1024,
+        "messages": [{"role": "user", "content": "Ping"}]
+    }));
+
+    let routes = router
+        .resolve_provider_routes("gpt-5.5", ProviderFormat::Anthropic, &[])
+        .expect("resolve routes");
+    let route = routes.first().expect("route");
+    let (_request, metadata) = router
+        .create_request(body, ProviderFormat::Anthropic, route)
+        .await
+        .expect("create request");
+
+    assert_eq!(
+        metadata.detected_input_format,
+        ProviderFormat::Anthropic,
+        "request should be detected as Anthropic messages input"
+    );
+    assert_eq!(
+        metadata.provider_format,
+        ProviderFormat::Responses,
+        "gpt-5.5 should use Responses transport even when the caller uses /v1/messages"
     );
 }
 
@@ -859,10 +994,10 @@ async fn router_does_not_retry_timeout_errors() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let (request, _metadata) = router
-        .create_request(body, model, ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) =
+        create_request(&router, body, model, ProviderFormat::ChatCompletions)
+            .await
+            .expect("create request");
     let err: braintrust_llm_router::Result<Bytes> =
         router.complete(request, &ClientHeaders::default()).await;
     let err = err.expect_err("terminal error");
@@ -901,10 +1036,14 @@ async fn router_maps_terminal_http_errors_to_upstream_unavailable() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let (request, _metadata) = router
-        .create_request(body, "retry-model", ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) = create_request(
+        &router,
+        body,
+        "retry-model",
+        ProviderFormat::ChatCompletions,
+    )
+    .await
+    .expect("create request");
     let err = router
         .complete(request, &ClientHeaders::default())
         .await
@@ -949,10 +1088,14 @@ async fn router_maps_terminal_middleware_errors_to_upstream_unavailable() {
         "messages": [{"role": "user", "content": "Ping"}]
     }));
 
-    let (request, _metadata) = router
-        .create_request(body, "retry-model", ProviderFormat::ChatCompletions)
-        .await
-        .expect("create request");
+    let (request, _metadata) = create_request(
+        &router,
+        body,
+        "retry-model",
+        ProviderFormat::ChatCompletions,
+    )
+    .await
+    .expect("create request");
     let err = router
         .complete(request, &ClientHeaders::default())
         .await

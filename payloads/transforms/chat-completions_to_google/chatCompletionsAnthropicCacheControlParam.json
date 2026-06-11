@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Please provide or paste the stable reference text you would like me to use. Once you share it, I will be happy to summarize it for you!",
+            "thoughtSignature": "EpAGCo0GAQw51seLJVMzCXCoHg+VhLbglYlr987M9aNMEhMNi2FpZQmmmWvHu+NPgRZhxWDV7L2sj7hVlFZSsZEno4Ahix7+8Qkn5nHNu2StoYGTPMlMkNsoQMw0t8ZZjo/Nt2upiuCFF5m56YFe8N+lnZryIdS6BtfyPDNjMkXK/765QTtM1jHSsFSVzV61R2n2MbH7QAFj75JxK0I1sC4OcfS3CXYvtlzaOvdVWphOvZGUBlCly5NgcR9UBgozlrsavXwroqBaj3m3xd8RPh9SlKOI9hdTaVeJWHQT7Vd616vZvaypP+nSjLdBwdW8aRrP5y4YuXRLpLB2Epk06qYm67/FHW9peMYSZCBd4FoKbkw1gikjTm33Ht9FzL/naZoFobSCCUdAGE3g7XU7Xhy19lOw2kPhNZTe+CsokZao9KVa1uY8Z6rSPsbQ7aqsw5lQC+g/A6PbKOH1qbJ7ByCZXDzSQvR9aBviLP8IKeqLnCu6jI0o8FN/MjNFdj01sK0Dpc4kGW0gWFsbKYiXvFl7cw+BebzrYGctE3FpNBFoAyiLL9gKjTQVSfCh0mKCK83dPy+AT6hgQd4Fp01/km9Z5z1htfkVmbEqbjxpts48CAXo66cbtqkqA6IskvF/0dy0h4de90O18QaIkBjisGg4Krus2s3OV8SfHGmdPjuFh5Ky7sC1s17nr0C6puQwGXQgFUNCMwOGvnrEy9AwTLECd/K+4WbXhvkuAcjPg30Z3azafoe1/gcsgC+grbJMu59b/fE8VFlKZhHUV9eC3Lv1kW4XguK8pbOkhRqhZoMARVmWHTCKeywCtH/vyCpjFYD63T11VkQvU9X7NLtKz/yX91HO3mpH3yiilQIkt+wunY6dhDiMHf583+4SRXehtzZLrDOcCyUk0HCAU73iIxGJlbMawCPDYF65RrtxXaDqggqm4JVKXyUqvwcgUcjhlRug250yHCaNvoEmrjUyEtJOM96iYQzjT54dPJzI3ZzInmmAUgL5K3Td7ysKv2zMBtbhv6WTw/w4qcU3Jd8Pxa3qEg=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 15,
+    "candidatesTokenCount": 30,
+    "totalTokenCount": 222,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 15
+      }
+    ],
+    "thoughtsTokenCount": 177,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "BYYoas3sNYOw1MkP442E6Qs"
+}

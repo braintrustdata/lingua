@@ -206,32 +206,24 @@ describe("TypeScript Roundtrip Tests", () => {
             ) {
               const messages = (snapshot.request as { messages: unknown }).messages;
               if (Array.isArray(messages) && messages.length > 0) {
-              // Test each message in the request
-              for (const originalMessage of messages) {
                 try {
-                  // Perform the roundtrip: Anthropic -> Lingua -> Anthropic
-                  const result = testAnthropicRoundtrip(originalMessage);
+                  const lingua = anthropicMessagesToLingua(messages);
+                  const roundtripped = linguaToAnthropicMessages(lingua);
 
-                  // Verify the roundtrip preserved the data
-                  expect(result.lingua).toBeDefined();
-                  expect(result.lingua.role).toBeDefined();
+                  expect(lingua.length).toBeGreaterThan(0);
+                  expect(lingua[0].role).toBeDefined();
 
-                  // First check for type consistency (e.g., Map vs Object)
-                  const typeError = checkTypeConsistency(originalMessage, result.roundtripped);
+                  const typeError = checkTypeConsistency(messages, roundtripped);
                   if (typeError) {
                     throw new Error(`Type consistency check failed: ${typeError}`);
                   }
 
-                  // Then normalize both objects to remove null/undefined/empty arrays
-                  // This matches how Rust's serde skips None values
-                  const normalizedOriginal = normalizeForComparison(originalMessage);
-                  const normalizedRoundtripped = normalizeForComparison(result.roundtripped);
+                  const normalizedOriginal = normalizeForComparison(messages);
+                  const normalizedRoundtripped = normalizeForComparison(roundtripped);
 
-                  // The normalized objects should be equal
                   expect(normalizedRoundtripped).toEqual(normalizedOriginal);
                 } catch (error) {
                   if (error instanceof ConversionError) {
-                    // Skip unsupported message formats for now
                     console.log(
                       `Skipping unsupported format in ${testName}:`,
                       error.message,
@@ -240,7 +232,6 @@ describe("TypeScript Roundtrip Tests", () => {
                     throw error;
                   }
                 }
-              }
               }
             }
           });
@@ -419,24 +410,6 @@ function testChatCompletionsRoundtrip(chatCompletionsMessage: unknown): {
   };
 }
 
-/**
- * Test roundtrip conversion: Provider -> Lingua -> Provider
- * @throws {ConversionError} If any conversion step fails
- */
-function testAnthropicRoundtrip(anthropicMessage: unknown): {
-  original: unknown;
-  lingua: LinguaMessage;
-  roundtripped: unknown;
-} {
-  const lingua = anthropicMessagesToLingua([anthropicMessage])[0];
-  const roundtripped = linguaToAnthropicMessages([lingua])[0];
-
-  return {
-    original: anthropicMessage,
-    lingua,
-    roundtripped
-  };
-}
 
 describe("Generated Types", () => {
     test("Module exports are available", async () => {

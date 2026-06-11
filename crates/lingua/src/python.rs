@@ -2,6 +2,9 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
 // Import our types and conversion traits
+use crate::providers::anthropic::convert::{
+    anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
+};
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
 use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
@@ -122,7 +125,11 @@ fn anthropic_messages_to_lingua<'py>(
     py: Python<'py>,
     value: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    convert_to_lingua::<Vec<anthropic::InputMessage>, Vec<Message>>(py, value)
+    let input_messages: Vec<anthropic::InputMessage> = py_to_rust(py, value)?;
+    let messages = anthropic_input_messages_to_universal_messages(input_messages).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Conversion error: {:?}", e))
+    })?;
+    rust_to_py(py, &messages)
 }
 
 /// Convert array of Lingua Messages to Anthropic messages
@@ -131,7 +138,11 @@ fn lingua_to_anthropic_messages<'py>(
     py: Python<'py>,
     value: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    convert_from_lingua::<Vec<Message>, Vec<anthropic::InputMessage>>(py, value)
+    let messages: Vec<Message> = py_to_rust(py, value)?;
+    let input_messages = universal_messages_to_anthropic_input_messages(messages).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Conversion error: {:?}", e))
+    })?;
+    rust_to_py(py, &input_messages)
 }
 
 /// Convert array of Google Content items to Lingua Messages

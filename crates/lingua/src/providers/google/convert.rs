@@ -264,6 +264,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                                 text: t.clone(),
                                 encrypted_content: part.thought_signature.clone(),
+                                cache_control: None,
                                 provider_options: None,
                             }));
                         }
@@ -271,6 +272,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: String::new(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: provider_options_from_google_assistant_part(
                                 Some(executable_code.clone()),
                                 None,
@@ -280,6 +282,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         assistant_parts.push(AssistantContentPart::Text(TextContentPart {
                             text: String::new(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: provider_options_from_google_assistant_part(
                                 None,
                                 Some(code_execution_result.clone()),
@@ -347,6 +350,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
                             encrypted_content: None,
+                            cache_control: None,
                             provider_options: None,
                         }));
                     } else if let Some(blob) = &part.inline_data {
@@ -1213,7 +1217,8 @@ impl From<&GoogleFinishReason> for FinishReason {
             | GoogleFinishReason::Blocklist
             | GoogleFinishReason::ProhibitedContent
             | GoogleFinishReason::Spii
-            | GoogleFinishReason::ImageSafety => FinishReason::ContentFilter,
+            | GoogleFinishReason::ImageSafety
+            | GoogleFinishReason::Escalation => FinishReason::ContentFilter,
             other => {
                 let s = serde_json::to_value(other)
                     .ok()
@@ -2006,5 +2011,12 @@ mod tests {
         let score_type = &schema.properties["score"].schema_type;
         assert_eq!(gateway_type.as_deref(), Some("string"));
         assert_eq!(score_type.as_deref(), Some("integer"));
+    }
+
+    #[test]
+    fn test_escalation_finish_reason_maps_to_content_filter() {
+        let reason = GoogleFinishReason::Escalation;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(universal, FinishReason::ContentFilter);
     }
 }

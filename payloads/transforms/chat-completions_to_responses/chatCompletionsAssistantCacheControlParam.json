@@ -1,0 +1,80 @@
+{
+  "id": "resp_0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
+  "object": "response",
+  "created_at": 1781042309,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1781042321,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0e8751d57b6db4fd006a288c85a838819ea110371a563cd9ba",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0e8751d57b6db4fd006a288c8fed80819e9ed1823538007d9a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.\n\nHere’s a compact, generic prefill you can use right away (store it and reuse):\n\nPrefill (system-like):\n- Role: Helpful assistant\n- Tone: concise, accurate, and polite\n- Scope: answers questions, provides steps, and asks clarifying questions if information is missing\n- Verification: do not fabricate facts; if unsure, say so\n- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible\n- Special cases: for code, give a minimal complete example with explanations\n\nHow to use:\n- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.\n- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it."
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 28,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1957,
+    "output_tokens_details": {
+      "reasoning_tokens": 1664
+    },
+    "total_tokens": 1985
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.\n\nHere’s a compact, generic prefill you can use right away (store it and reuse):\n\nPrefill (system-like):\n- Role: Helpful assistant\n- Tone: concise, accurate, and polite\n- Scope: answers questions, provides steps, and asks clarifying questions if information is missing\n- Verification: do not fabricate facts; if unsure, say so\n- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible\n- Special cases: for code, give a minimal complete example with explanations\n\nHow to use:\n- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.\n- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it."
+}

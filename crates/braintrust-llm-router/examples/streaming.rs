@@ -60,8 +60,14 @@ async fn main() -> Result<()> {
     });
 
     let body = Bytes::from(serde_json::to_vec(&payload)?);
+    let routes = router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])?;
+    let route = routes
+        .first()
+        .ok_or(braintrust_llm_router::Error::NoProvider(
+            ProviderFormat::ChatCompletions,
+        ))?;
     let (request, _metadata) = router
-        .create_stream_request(body, model, ProviderFormat::ChatCompletions)
+        .create_stream_request(body, ProviderFormat::ChatCompletions, route)
         .await?;
     let mut stream = router
         .complete_stream(request, &ClientHeaders::default(), None)
@@ -137,8 +143,14 @@ async fn main() -> Result<()> {
             "stream": true
         });
         let body = Bytes::from(serde_json::to_vec(&payload)?);
+        let routes = router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])?;
+        let route = routes
+            .first()
+            .ok_or(braintrust_llm_router::Error::NoProvider(
+                ProviderFormat::ChatCompletions,
+            ))?;
         let (request, _metadata) = router
-            .create_stream_request(body, model, ProviderFormat::ChatCompletions)
+            .create_stream_request(body, ProviderFormat::ChatCompletions, route)
             .await?;
         let stream = router
             .complete_stream(request, &ClientHeaders::default(), None)

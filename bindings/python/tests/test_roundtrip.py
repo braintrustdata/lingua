@@ -283,31 +283,25 @@ class TestRoundtrip:
 
                 test_name = f"{test_case}/{snapshot.provider}/{snapshot.turn}"
 
-                for i, original_message in enumerate(messages):
-                    try:
-                        # Perform the roundtrip
-                        result = perform_anthropic_roundtrip(original_message)
+                try:
+                    lingua_messages = anthropic_messages_to_lingua(messages)
+                    roundtripped = lingua_to_anthropic_messages(lingua_messages)
 
-                        # Verify Lingua conversion worked
-                        assert result["lingua"] is not None
-                        assert "role" in result["lingua"]
+                    assert lingua_messages
+                    assert "role" in lingua_messages[0]
 
-                        # Normalize both objects
-                        normalized_original = normalize_for_comparison(original_message)
-                        normalized_roundtripped = normalize_for_comparison(
-                            result["roundtripped"]
-                        )
+                    normalized_original = normalize_for_comparison(messages)
+                    normalized_roundtripped = normalize_for_comparison(roundtripped)
 
-                        # The normalized objects should be equal
-                        assert normalized_roundtripped == normalized_original, (
-                            f"Roundtrip mismatch in {test_name} message {i}:\n"
-                            f"Original: {json.dumps(normalized_original, indent=2)}\n"
-                            f"Roundtripped: {json.dumps(normalized_roundtripped, indent=2)}"
-                        )
+                    assert normalized_roundtripped == normalized_original, (
+                        f"Roundtrip mismatch in {test_name}:\n"
+                        f"Original: {json.dumps(normalized_original, indent=2)}\n"
+                        f"Roundtripped: {json.dumps(normalized_roundtripped, indent=2)}"
+                    )
 
-                    except ConversionError as e:
-                        # Skip unsupported message formats for now
-                        print(f"Skipping unsupported format in {test_name}: {e}")
+                except ConversionError as e:
+                    # Skip unsupported message formats for now
+                    print(f"Skipping unsupported format in {test_name}: {e}")
 
     def test_coverage(self, test_cases):
         """Display test coverage information"""

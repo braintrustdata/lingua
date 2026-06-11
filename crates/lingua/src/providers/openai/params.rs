@@ -19,6 +19,7 @@ pub struct OpenAIChatParams {
     // === Core fields ===
     pub model: Option<String>,
     pub messages: Option<Vec<ChatCompletionRequestMessage>>,
+    pub prompt: Option<OpenAICompletionPrompt>,
 
     // === Sampling parameters ===
     pub temperature: Option<f64>,
@@ -66,6 +67,7 @@ pub struct OpenAIChatParams {
     pub user: Option<String>,
     pub safety_identifier: Option<String>,
     pub prompt_cache_key: Option<String>,
+    pub moderation: Option<Value>,
 
     // === Prediction ===
     pub prediction: Option<Value>,
@@ -74,6 +76,23 @@ pub struct OpenAIChatParams {
     /// These are provider-specific fields not in the canonical set.
     #[serde(flatten)]
     pub extras: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct OpenAIChatLegacyPromptParams {
+    pub model: Option<String>,
+    pub messages: Option<Value>,
+    pub prompt: Option<OpenAICompletionPrompt>,
+    pub logprobs: Option<Value>,
+
+    #[serde(flatten)]
+    pub extras: BTreeMap<String, Value>,
+}
+
+impl OpenAIChatLegacyPromptParams {
+    pub fn is_legacy_prompt_request(&self) -> bool {
+        self.model.is_some() && self.messages.is_none() && self.prompt.is_some()
+    }
 }
 
 /// OpenAI Responses API request parameters.
@@ -120,6 +139,7 @@ pub struct OpenAIResponsesParams {
     pub user: Option<String>,
     pub safety_identifier: Option<String>,
     pub prompt_cache_key: Option<String>,
+    pub moderation: Option<Value>,
 
     /// Unknown fields - automatically captured by serde flatten.
     #[serde(flatten)]
@@ -145,6 +165,16 @@ pub struct OpenAIChatExtrasView {
     pub max_tokens: Option<Value>,
     pub max_completion_tokens: Option<Value>,
     pub web_search_options: Option<Value>,
+    pub moderation: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OpenAICompletionPrompt {
+    String(String),
+    StringArray(Vec<String>),
+    TokenArray(Vec<i64>),
+    TokenArrayArray(Vec<Vec<i64>>),
 }
 
 /// Typed view over `UniversalParams.extras[Responses]` used during universal
@@ -169,6 +199,7 @@ pub struct OpenAIResponsesExtrasView {
     pub metadata: Option<Value>,
     pub store: Option<Value>,
     pub service_tier: Option<Value>,
+    pub moderation: Option<Value>,
 }
 
 /// Typed OpenAI reasoning effort view for request parameters.
@@ -239,6 +270,25 @@ mod tests {
     }
 
     #[test]
+    fn test_chat_params_moderation_is_typed_field() {
+        let json = json!({
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let params: OpenAIChatParams = serde_json::from_value(json).unwrap();
+
+        assert_eq!(
+            params.moderation,
+            Some(json!({ "model": "omni-moderation-latest" }))
+        );
+        assert!(!params.extras.contains_key("moderation"));
+    }
+
+    #[test]
     fn test_responses_params_known_fields() {
         let json = json!({
             "model": "gpt-5-nano",
@@ -253,6 +303,25 @@ mod tests {
         assert_eq!(params.instructions, Some("Be helpful".to_string()));
         assert_eq!(params.max_output_tokens, Some(500));
         assert!(params.extras.is_empty());
+    }
+
+    #[test]
+    fn test_responses_params_moderation_is_typed_field() {
+        let json = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Hello"}],
+            "moderation": {
+                "model": "omni-moderation-latest"
+            }
+        });
+
+        let params: OpenAIResponsesParams = serde_json::from_value(json).unwrap();
+
+        assert_eq!(
+            params.moderation,
+            Some(json!({ "model": "omni-moderation-latest" }))
+        );
+        assert!(!params.extras.contains_key("moderation"));
     }
 
     #[test]

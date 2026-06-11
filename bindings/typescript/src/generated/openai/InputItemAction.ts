@@ -133,7 +133,7 @@ text: string | null,
  */
 queries: Array<string> | null, 
 /**
- * [DEPRECATED] The search query.
+ * The search query.
  */
 query: string | null, 
 /**
