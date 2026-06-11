@@ -3,6 +3,8 @@ name: Provider type update feedback
 on:
   issue_comment:
     types: [created]
+  pull_request_review:
+    types: [submitted]
 
 permissions:
   contents: read
@@ -11,7 +13,7 @@ permissions:
 
 jobs:
   log-feedback:
-    if: github.event.issue.pull_request
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
     runs-on: ubuntu-latest
 
     steps:
@@ -45,3 +47,41 @@ jobs:
           BT_PR_URL: ${{ steps.feedback.outputs.pr_url }}
           BT_COMMENT_BODY: ${{ github.event.comment.body }}
         run: NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs log-feedback
+
+  log-codex-review:
+    if: github.event_name == 'pull_request_review'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Parse Codex review
+        id: codex_review
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/braintrust-provider-types.mjs extract-codex-review-event
+
+      - name: Install Braintrust SDK
+        if: steps.codex_review.outputs.should_log == 'true'
+        run: npm install -g braintrust
+
+      - name: Log Codex review to Braintrust
+        if: steps.codex_review.outputs.should_log == 'true'
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PR_METADATA: ${{ steps.codex_review.outputs.metadata }}
+          BT_REVIEW_ID: ${{ steps.codex_review.outputs.review_id }}
+          BT_REVIEW_URL: ${{ steps.codex_review.outputs.review_url }}
+          BT_REVIEW_AUTHOR: ${{ steps.codex_review.outputs.review_author }}
+          BT_REVIEW_STATE: ${{ steps.codex_review.outputs.review_state }}
+          BT_REVIEW_OUTPUT: ${{ steps.codex_review.outputs.review_output }}
+          BT_INLINE_COMMENT_COUNT: ${{ steps.codex_review.outputs.inline_comment_count }}
+          BT_PR_NUMBER: ${{ steps.codex_review.outputs.pr_number }}
+          BT_PR_URL: ${{ steps.codex_review.outputs.pr_url }}
+        run: NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs log-codex-review
