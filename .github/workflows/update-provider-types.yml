@@ -153,7 +153,7 @@ jobs:
                 "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
                 "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
@@ -260,7 +260,7 @@ jobs:
                 "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
                 "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
@@ -346,11 +346,12 @@ jobs:
         env:
           BRAINTRUST_PROJECT: lingua-provider-type-updates
           BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          BRAINTRUST_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
           PROVIDER: ${{ matrix.provider }}
         run: |
           set -euo pipefail
           {
-            if [ -n "$BRAINTRUST_ROOT_SPAN_ID" ]; then
+            if [ -n "$BRAINTRUST_ROOT_SPAN_ID" ] && [ -n "$BRAINTRUST_SPAN_ID" ]; then
               NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs emit-pr-metadata
               echo
             fi

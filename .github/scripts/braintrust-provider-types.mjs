@@ -116,6 +116,7 @@ function emitPrMetadata() {
     kind: "provider-type-update",
     project: requireEnv("BRAINTRUST_PROJECT"),
     root_span_id: requireEnv("BRAINTRUST_ROOT_SPAN_ID"),
+    span_id: requireEnv("BRAINTRUST_SPAN_ID"),
     provider: requireEnv("PROVIDER"),
     repository: requireEnv("GITHUB_REPOSITORY"),
     run_id: requireEnv("GITHUB_RUN_ID"),
@@ -171,7 +172,7 @@ function extractFeedbackEvent() {
   }
 
   const metadata = extractHiddenMetadata(event.issue?.body || "");
-  if (!metadata?.root_span_id || !metadata?.project) {
+  if (!metadata?.root_span_id || !metadata?.span_id || !metadata?.project) {
     writeGithubOutput({
       should_log: "false",
       reason: "Could not find Braintrust metadata in the PR body",
@@ -199,6 +200,7 @@ async function logFeedback() {
   const rating = requireEnv("BT_RATING");
   const score = rating === "good" ? 1 : 0;
   const projectName = metadata.project;
+  const parentSpanId = metadata.span_id || metadata.root_span_id;
   const logger = braintrust.initLogger({ projectName });
   const feedbackMetadata = workflowMetadata({
     provider: metadata.provider,
@@ -210,6 +212,7 @@ async function logFeedback() {
     feedback_author: optionalEnv("BT_COMMENT_AUTHOR"),
     pr_number: optionalEnv("BT_PR_NUMBER"),
     pr_url: optionalEnv("BT_PR_URL"),
+    target_span_id: parentSpanId,
     target_root_span_id: metadata.root_span_id,
     target_run_id: metadata.run_id,
     target_run_attempt: metadata.run_attempt,
@@ -228,7 +231,7 @@ async function logFeedback() {
       },
       {
         name: "github_pr_feedback",
-        parent: metadata.root_span_id,
+        parent: parentSpanId,
       },
     );
   } else {
@@ -240,6 +243,7 @@ async function logFeedback() {
       },
       output: {
         rating,
+        target_span_id: parentSpanId,
         target_root_span_id: metadata.root_span_id,
       },
       scores: {
