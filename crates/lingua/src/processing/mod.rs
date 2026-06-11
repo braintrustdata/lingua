@@ -9,7 +9,7 @@ pub use adapters::{
     adapter_for_format, adapters, collect_extras, insert_opt_bool, insert_opt_f64, insert_opt_i64,
     insert_opt_string, insert_opt_value, ProviderAdapter,
 };
-pub use dedup::deduplicate_messages;
+pub use dedup::{deduplicate_messages, message_dedup_hash};
 pub use import::{import_and_deduplicate_messages, import_messages_from_spans, Span};
 pub use json_repair::normalize_json_lone_surrogate_escapes;
 pub use stream::{
