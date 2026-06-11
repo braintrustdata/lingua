@@ -55,8 +55,17 @@ pub struct StreamTransformSession {
     allow_full_response_fallback: bool,
     buffered_delta: Option<StreamOutputChunk>,
     buffered_stop: Option<StreamOutputChunk>,
+    // Whether the target Anthropic stream has an open message. Some source
+    // providers emit repeated metadata chunks; only the first should become
+    // Anthropic `message_start`.
     anthropic_message_started: bool,
+    // Whether the open Anthropic message has emitted a `tool_use` block. OpenAI
+    // Responses may report a generic `stop`, but Anthropic clients need
+    // `stop_reason: "tool_use"` once a tool block appeared.
     anthropic_tool_use_started: bool,
+    // Anthropic streams require content blocks to be explicitly closed before a
+    // new block or the terminal message delta. Some source providers do not have
+    // an equivalent event, so the session synthesizes `content_block_stop`.
     anthropic_open_content_block_index: Option<u32>,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
@@ -234,6 +243,9 @@ impl StreamTransformSession {
     }
 
     fn process_anthropic_chunk(&mut self, chunk: StreamOutputChunk) -> Vec<StreamOutputChunk> {
+        // Enforce Anthropic event ordering after provider adapters have produced
+        // Anthropic-shaped chunks: one message_start, balanced content blocks,
+        // tool_use stop reasons, and merged finish/usage message_delta events.
         let is_delta = chunk.event_type.as_deref() == Some("message_delta");
         let is_stop = chunk.event_type.as_deref() == Some("message_stop");
         let is_start = chunk.event_type.as_deref() == Some("message_start");
@@ -599,10 +611,10 @@ fn expand_anthropic_session_chunks(
             .as_ref()
             .and_then(|d| d.content.as_deref())
             .filter(|s| !s.is_empty());
-        let is_full_anthropic_response =
-            source_format == ProviderFormat::Anthropic && !source_is_native_stream;
+        let needs_message_start = !anthropic_message_started
+            && (source_format != ProviderFormat::Anthropic || !source_is_native_stream);
 
-        if is_full_anthropic_response && !anthropic_message_started {
+        if needs_message_start {
             out.push(StreamOutputChunk::with_event(
                 anthropic_message_start_bytes(universal),
                 "message_start".to_string(),
@@ -630,7 +642,7 @@ fn expand_anthropic_session_chunks(
                 .unwrap_or_else(|_| Bytes::new()),
                 "content_block_delta".to_string(),
             ));
-            if is_full_anthropic_response && !anthropic_message_started {
+            if needs_message_start {
                 out.push(StreamOutputChunk::with_event(
                     serialize_stream_value(&crate::serde_json::json!({
                         "type": "content_block_stop",
@@ -824,7 +836,10 @@ mod tests {
             }
         }));
 
-        assert!(session.push(finish_delta).unwrap().is_empty());
+        let start = session.push(finish_delta).unwrap();
+        assert_eq!(start.len(), 1);
+        assert_eq!(start[0].event_type.as_deref(), Some("message_start"));
+
         let out = session.push(usage_delta).unwrap();
 
         assert_eq!(out.len(), 2);
@@ -852,7 +867,7 @@ mod tests {
     #[cfg(feature = "anthropic")]
     fn test_stream_session_flushes_buffered_anthropic_events_on_finish() {
         let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
-        assert!(session
+        let start = session
             .push(to_bytes(&json!({
                 "id": "chatcmpl-123",
                 "object": "chat.completion.chunk",
@@ -864,8 +879,9 @@ mod tests {
                     "finish_reason": "stop"
                 }]
             })))
-            .unwrap()
-            .is_empty());
+            .unwrap();
+        assert_eq!(start.len(), 1);
+        assert_eq!(start[0].event_type.as_deref(), Some("message_start"));
 
         let out = session.finish();
         assert_eq!(out.len(), 2);
@@ -1051,6 +1067,62 @@ mod tests {
                 .and_then(|delta| delta.get("stop_reason"))
                 .and_then(Value::as_str),
             Some("tool_use")
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_stream_session_google_final_text_chunk_opens_anthropic_message() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let final_text = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-3.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "There are 100 projects."
+                    }]
+                },
+                "finishReason": "STOP"
+            }],
+            "usageMetadata": {
+                "promptTokenCount": 10,
+                "candidatesTokenCount": 5,
+                "totalTokenCount": 15
+            }
+        }));
+
+        let out = session.push(final_text).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta"),
+                Some("content_block_stop")
+            ]
+        );
+
+        let final_chunks = session.finish();
+        assert_eq!(
+            final_chunks
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("message_delta"), Some("message_stop")]
+        );
+
+        let message_delta: Value = crate::serde_json::from_slice(&final_chunks[0].data).unwrap();
+        assert_eq!(
+            message_delta
+                .get("delta")
+                .and_then(|delta| delta.get("stop_reason"))
+                .and_then(Value::as_str),
+            Some("end_turn")
         );
     }
 
