@@ -84,7 +84,7 @@ async function createWorkflowTrace() {
   const span = logger.startSpan({
     name: `Update ${provider} provider types`,
   });
-  const spanId = span.id || span.spanId;
+  const spanId = span.spanId || span.id;
   const rootSpanId = span.rootSpanId || span.root_span_id || spanId;
 
   span.log({
