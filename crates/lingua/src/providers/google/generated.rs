@@ -667,6 +667,9 @@ pub struct GenerationConfig {
     /// sampling and doesn't allow setting `top_k` on requests.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
+    /// Optional. Config for translation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub translation_config: Option<TranslationConfig>,
 }
 
 /// Optional. Config for image generation. An error will be returned if this field is set for
@@ -1147,6 +1150,24 @@ pub enum ThinkingLevel {
     Minimal,
     #[serde(rename = "THINKING_LEVEL_UNSPECIFIED")]
     ThinkingLevelUnspecified,
+}
+
+/// Optional. Config for translation.
+///
+/// Config for translation features.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct TranslationConfig {
+    /// Optional. If true, the model will generate audio when the target language is spoken,
+    /// essentially it will parrot the input. If false, we will not produce audio for the target
+    /// language.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub echo_target_language: Option<bool>,
+    /// Required. The target language for translation. Supported values are BCP-47 language codes
+    /// (e.g. "en", "es", "fr").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_language_code: Option<String>,
 }
 
 /// Safety setting, affecting the safety-blocking behavior. Passing a safety setting for a

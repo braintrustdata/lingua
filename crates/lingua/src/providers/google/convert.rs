@@ -1218,6 +1218,8 @@ impl From<&GoogleFinishReason> for FinishReason {
             | GoogleFinishReason::ProhibitedContent
             | GoogleFinishReason::Spii
             | GoogleFinishReason::ImageSafety
+            | GoogleFinishReason::ImageProhibitedContent
+            | GoogleFinishReason::ImageRecitation
             | GoogleFinishReason::Escalation => FinishReason::ContentFilter,
             other => {
                 let s = serde_json::to_value(other)
@@ -2016,6 +2018,20 @@ mod tests {
     #[test]
     fn test_escalation_finish_reason_maps_to_content_filter() {
         let reason = GoogleFinishReason::Escalation;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_image_prohibited_content_finish_reason_maps_to_content_filter() {
+        let reason = GoogleFinishReason::ImageProhibitedContent;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_image_recitation_finish_reason_maps_to_content_filter() {
+        let reason = GoogleFinishReason::ImageRecitation;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
     }
