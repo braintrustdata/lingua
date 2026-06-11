@@ -8,6 +8,7 @@ import {
 } from "../../cases";
 import {
   ResponseInputItem,
+  ResponseOutputItem,
   ResponseStreamEvent,
 } from "openai/resources/responses/responses";
 
@@ -39,6 +40,39 @@ type ParallelResponseResult =
       stream: false;
       data: OpenAI.Responses.Response;
     };
+
+type ReplayableResponseOutputItem = Extract<
+  ResponseOutputItem,
+  ResponseInputItem
+>;
+
+function isReplayableResponseOutputItem(
+  item: ResponseOutputItem
+): item is ReplayableResponseOutputItem {
+  switch (item.type) {
+    case "message":
+    case "file_search_call":
+    case "computer_call":
+    case "web_search_call":
+    case "function_call":
+    case "reasoning":
+    case "code_interpreter_call":
+    case "local_shell_call":
+    case "local_shell_call_output":
+    case "shell_call":
+    case "shell_call_output":
+    case "apply_patch_call":
+    case "apply_patch_call_output":
+    case "mcp_list_tools":
+    case "mcp_approval_request":
+    case "mcp_approval_response":
+    case "mcp_call":
+    case "custom_tool_call":
+      return true;
+    default:
+      return false;
+  }
+}
 
 export async function executeOpenAIResponses(
   caseName: string,
@@ -138,6 +172,10 @@ export async function executeOpenAIResponses(
 
       console.log(`📝 Creating followup request for ${caseName}...`);
 
+      const replayableAssistantOutput = assistantOutput.filter(
+        isReplayableResponseOutputItem
+      );
+
       // Build follow-up input, handling tool calls
       const followUpInput: ResponseInputItem[] = [
         ...(Array.isArray(payload.input)
@@ -150,7 +188,7 @@ export async function executeOpenAIResponses(
                 },
               ]
             : []),
-        ...assistantOutput,
+        ...replayableAssistantOutput,
       ];
 
       // Check if the assistant output contains tool calls and add tool responses
