@@ -365,10 +365,15 @@ async function logFeedback() {
           rating,
           comment: optionalEnv("BT_COMMENT_BODY"),
         },
+        metadata: feedbackMetadata,
+      });
+      span.logFeedback({
         scores: {
           github_pr_feedback: score,
         },
+        comment: optionalEnv("BT_COMMENT_BODY"),
         metadata: feedbackMetadata,
+        source: "external",
       });
     },
     {
@@ -397,9 +402,6 @@ async function logCodexReview() {
         output: {
           review: requireEnv("BT_REVIEW_OUTPUT"),
         },
-        scores: {
-          github_codex_review: 0,
-        },
         metadata: workflowMetadata({
           provider: metadata.provider,
           feedback_source: "github_pull_request_review",
@@ -416,6 +418,29 @@ async function logCodexReview() {
           target_run_id: metadata.run_id,
           target_run_attempt: metadata.run_attempt,
         }),
+      });
+      span.logFeedback({
+        scores: {
+          github_codex_review: 0,
+        },
+        comment: requireEnv("BT_REVIEW_OUTPUT"),
+        metadata: workflowMetadata({
+          provider: metadata.provider,
+          feedback_source: "github_pull_request_review",
+          feedback_actor: "codex",
+          review_id: optionalEnv("BT_REVIEW_ID"),
+          review_url: optionalEnv("BT_REVIEW_URL"),
+          review_author: optionalEnv("BT_REVIEW_AUTHOR"),
+          review_state: optionalEnv("BT_REVIEW_STATE"),
+          inline_comment_count: optionalEnv("BT_INLINE_COMMENT_COUNT"),
+          pr_number: optionalEnv("BT_PR_NUMBER"),
+          pr_url: optionalEnv("BT_PR_URL"),
+          target_span_id: parentSpanIds.spanId,
+          target_root_span_id: metadata.root_span_id,
+          target_run_id: metadata.run_id,
+          target_run_attempt: metadata.run_attempt,
+        }),
+        source: "external",
       });
     },
     {
