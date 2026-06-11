@@ -223,7 +223,9 @@ async function githubApiPages(path) {
 
   while (true) {
     const separator = path.includes("?") ? "&" : "?";
-    const pageResults = await githubApi(`${path}${separator}per_page=100&page=${page}`);
+    const pageResults = await githubApi(
+      `${path}${separator}per_page=100&page=${page}`,
+    );
     results.push(...pageResults);
 
     if (pageResults.length < 100) {
@@ -313,6 +315,20 @@ async function extractCodexReviewEvent() {
   });
 }
 
+function targetParentSpanIds(metadata) {
+  const parentSpanId = metadata.span_id || metadata.root_span_id;
+  if (!parentSpanId || !metadata.root_span_id) {
+    throw new Error(
+      "Braintrust PR metadata must include root_span_id and span_id",
+    );
+  }
+
+  return {
+    spanId: parentSpanId,
+    rootSpanId: metadata.root_span_id,
+  };
+}
+
 async function logFeedback() {
   requireEnv("BRAINTRUST_API_KEY");
   const braintrust = loadBraintrust();
@@ -320,7 +336,7 @@ async function logFeedback() {
   const rating = requireEnv("BT_RATING");
   const score = rating === "good" ? 1 : 0;
   const projectName = metadata.project;
-  const parentSpanId = metadata.span_id || metadata.root_span_id;
+  const parentSpanIds = targetParentSpanIds(metadata);
   const logger = braintrust.initLogger({ projectName });
   const feedbackMetadata = workflowMetadata({
     provider: metadata.provider,
@@ -332,21 +348,34 @@ async function logFeedback() {
     feedback_author: optionalEnv("BT_COMMENT_AUTHOR"),
     pr_number: optionalEnv("BT_PR_NUMBER"),
     pr_url: optionalEnv("BT_PR_URL"),
-    target_span_id: parentSpanId,
+    target_span_id: parentSpanIds.spanId,
     target_root_span_id: metadata.root_span_id,
     target_run_id: metadata.run_id,
     target_run_attempt: metadata.run_attempt,
   });
 
-  logger.logFeedback({
-    id: parentSpanId,
-    scores: {
-      github_pr_feedback: score,
+  await logger.traced(
+    async (span) => {
+      span.log({
+        input: {
+          command: optionalEnv("BT_COMMAND"),
+          pr_number: optionalEnv("BT_PR_NUMBER"),
+        },
+        output: {
+          rating,
+          comment: optionalEnv("BT_COMMENT_BODY"),
+        },
+        scores: {
+          github_pr_feedback: score,
+        },
+        metadata: feedbackMetadata,
+      });
     },
-    comment: optionalEnv("BT_COMMENT_BODY"),
-    metadata: feedbackMetadata,
-    source: "external",
-  });
+    {
+      name: "github_pr_feedback",
+      parentSpanIds,
+    },
+  );
 
   await flushBraintrust(braintrust);
 }
@@ -355,33 +384,45 @@ async function logCodexReview() {
   requireEnv("BRAINTRUST_API_KEY");
   const braintrust = loadBraintrust();
   const metadata = JSON.parse(requireEnv("BRAINTRUST_PR_METADATA"));
-  const parentSpanId = metadata.span_id || metadata.root_span_id;
+  const parentSpanIds = targetParentSpanIds(metadata);
   const logger = braintrust.initLogger({ projectName: metadata.project });
 
-  logger.logFeedback({
-    id: parentSpanId,
-    scores: {
-      github_codex_review: 0,
+  await logger.traced(
+    async (span) => {
+      span.log({
+        input: {
+          review_id: optionalEnv("BT_REVIEW_ID"),
+          pr_number: optionalEnv("BT_PR_NUMBER"),
+        },
+        output: {
+          review: requireEnv("BT_REVIEW_OUTPUT"),
+        },
+        scores: {
+          github_codex_review: 0,
+        },
+        metadata: workflowMetadata({
+          provider: metadata.provider,
+          feedback_source: "github_pull_request_review",
+          feedback_actor: "codex",
+          review_id: optionalEnv("BT_REVIEW_ID"),
+          review_url: optionalEnv("BT_REVIEW_URL"),
+          review_author: optionalEnv("BT_REVIEW_AUTHOR"),
+          review_state: optionalEnv("BT_REVIEW_STATE"),
+          inline_comment_count: optionalEnv("BT_INLINE_COMMENT_COUNT"),
+          pr_number: optionalEnv("BT_PR_NUMBER"),
+          pr_url: optionalEnv("BT_PR_URL"),
+          target_span_id: parentSpanIds.spanId,
+          target_root_span_id: metadata.root_span_id,
+          target_run_id: metadata.run_id,
+          target_run_attempt: metadata.run_attempt,
+        }),
+      });
     },
-    comment: requireEnv("BT_REVIEW_OUTPUT"),
-    metadata: workflowMetadata({
-      provider: metadata.provider,
-      feedback_source: "github_pull_request_review",
-      feedback_actor: "codex",
-      review_id: optionalEnv("BT_REVIEW_ID"),
-      review_url: optionalEnv("BT_REVIEW_URL"),
-      review_author: optionalEnv("BT_REVIEW_AUTHOR"),
-      review_state: optionalEnv("BT_REVIEW_STATE"),
-      inline_comment_count: optionalEnv("BT_INLINE_COMMENT_COUNT"),
-      pr_number: optionalEnv("BT_PR_NUMBER"),
-      pr_url: optionalEnv("BT_PR_URL"),
-      target_span_id: parentSpanId,
-      target_root_span_id: metadata.root_span_id,
-      target_run_id: metadata.run_id,
-      target_run_attempt: metadata.run_attempt,
-    }),
-    source: "external",
-  });
+    {
+      name: "github_codex_review",
+      parentSpanIds,
+    },
+  );
 
   await flushBraintrust(braintrust);
 }
