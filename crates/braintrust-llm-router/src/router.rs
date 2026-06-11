@@ -1303,14 +1303,14 @@ mod tests {
             response: raw_response.clone(),
             stream_chunks: Vec::new(),
         });
-        let (prepared, _) = router
-            .create_request(
-                chat_request_body(),
-                "gpt-5-mini",
-                ProviderFormat::ChatCompletions,
-            )
-            .await
-            .expect("request prepares");
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
 
         let result = router
             .complete_with_raw_response(prepared, &ClientHeaders::default())
@@ -1328,14 +1328,14 @@ mod tests {
             response: raw_response.clone(),
             stream_chunks: Vec::new(),
         });
-        let (prepared, _) = router
-            .create_request(
-                chat_request_body(),
-                "gpt-5-mini",
-                ProviderFormat::ChatCompletions,
-            )
-            .await
-            .expect("request prepares");
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
 
         let err = router
             .complete_with_raw_response(prepared, &ClientHeaders::default())
@@ -1353,14 +1353,14 @@ mod tests {
             response: Bytes::new(),
             stream_chunks: vec![raw_chunk.clone()],
         });
-        let (prepared, _) = router
-            .create_stream_request(
-                chat_request_body(),
-                "gpt-5-mini",
-                ProviderFormat::ChatCompletions,
-            )
-            .await
-            .expect("stream request prepares");
+        let (prepared, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
         let captured = Arc::new(Mutex::new(Vec::new()));
         let capture: RawStreamChunkCapture = Arc::new({
             let captured = Arc::clone(&captured);
@@ -1397,28 +1397,28 @@ mod tests {
             response: raw_response.clone(),
             stream_chunks: vec![chat_stream_chunk_body()],
         });
-        let (prepared, _) = router
-            .create_request(
-                chat_request_body(),
-                "gpt-5-mini",
-                ProviderFormat::ChatCompletions,
-            )
-            .await
-            .expect("request prepares");
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
         let response = router
             .complete(prepared, &ClientHeaders::default())
             .await
             .expect("complete succeeds");
         assert_eq!(response, raw_response);
 
-        let (prepared_stream, _) = router
-            .create_stream_request(
-                chat_request_body(),
-                "gpt-5-mini",
-                ProviderFormat::ChatCompletions,
-            )
-            .await
-            .expect("stream request prepares");
+        let (prepared_stream, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
         let mut response_stream = router
             .complete_stream(
                 prepared_stream,
