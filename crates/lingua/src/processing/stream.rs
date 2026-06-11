@@ -8,6 +8,7 @@ use crate::processing::transform::{
 };
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
+use serde::Deserialize;
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -121,7 +122,7 @@ impl StreamTransformSession {
             step.source_is_native_stream,
             self.anthropic_message_started,
         )?;
-        Ok(self.process_chunks(chunks))
+        self.process_chunks(chunks)
     }
 
     fn normalize_bedrock_to_openai_stream_result(
@@ -226,23 +227,29 @@ impl StreamTransformSession {
         sse_done_marker(self.target_format)
     }
 
-    fn process_chunks(&mut self, chunks: Vec<StreamOutputChunk>) -> Vec<StreamOutputChunk> {
+    fn process_chunks(
+        &mut self,
+        chunks: Vec<StreamOutputChunk>,
+    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
         // Anthropic currently needs stateful post-processing after universal -> provider
         // conversion: some inputs expand into multiple SSE events, and finish/usage data
         // may arrive as adjacent chunks that must be merged before emission. The adapter
         // boundary is still single-chunk and stateless, so that sequencing lives here.
         if self.target_format != ProviderFormat::Anthropic {
-            return chunks;
+            return Ok(chunks);
         }
 
         let mut out = Vec::new();
         for chunk in chunks {
-            out.extend(self.process_anthropic_chunk(chunk));
+            out.extend(self.process_anthropic_chunk(chunk)?);
         }
-        out
+        Ok(out)
     }
 
-    fn process_anthropic_chunk(&mut self, chunk: StreamOutputChunk) -> Vec<StreamOutputChunk> {
+    fn process_anthropic_chunk(
+        &mut self,
+        chunk: StreamOutputChunk,
+    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
         // Enforce Anthropic event ordering after provider adapters have produced
         // Anthropic-shaped chunks: one message_start, balanced content blocks,
         // tool_use stop reasons, and merged finish/usage message_delta events.
@@ -251,8 +258,11 @@ impl StreamTransformSession {
         let is_start = chunk.event_type.as_deref() == Some("message_start");
         let is_content_block_start = chunk.event_type.as_deref() == Some("content_block_start");
         let is_content_block_stop = chunk.event_type.as_deref() == Some("content_block_stop");
-        let content_block_start_index = content_block_index(&chunk);
-        let is_tool_use_start = is_anthropic_tool_use_start(&chunk);
+        let content_block_start = parse_anthropic_content_block_start_event(&chunk)?;
+        let content_block_start_index = content_block_start.as_ref().map(|event| event.index);
+        let is_tool_use_start = content_block_start
+            .as_ref()
+            .is_some_and(AnthropicContentBlockStartEventView::is_tool_use_start);
         let chunk = if is_delta && self.anthropic_tool_use_started {
             with_anthropic_tool_use_stop_reason(chunk)
         } else {
@@ -297,17 +307,17 @@ impl StreamTransformSession {
                 self.anthropic_open_content_block_index = None;
                 out.push(stop);
             }
-            return out;
+            return Ok(out);
         }
 
         if is_delta {
             self.buffered_delta = Some(chunk);
-            return prefix;
+            return Ok(prefix);
         }
 
         if is_stop && self.buffered_delta.is_some() {
             self.buffered_stop = Some(chunk);
-            return prefix;
+            return Ok(prefix);
         }
 
         if is_stop {
@@ -319,7 +329,7 @@ impl StreamTransformSession {
         let mut out = prefix;
         out.extend(self.flush_buffered());
         out.push(chunk);
-        out
+        Ok(out)
     }
 
     fn flush_buffered(&mut self) -> Vec<StreamOutputChunk> {
@@ -337,11 +347,50 @@ impl StreamTransformSession {
     }
 }
 
-fn content_block_index(chunk: &StreamOutputChunk) -> Option<u32> {
-    let data = crate::serde_json::from_slice::<Value>(&chunk.data).ok()?;
-    data.get("index")
-        .and_then(Value::as_u64)
-        .and_then(|index| u32::try_from(index).ok())
+#[derive(Debug, Deserialize)]
+struct AnthropicContentBlockStartEventView {
+    #[serde(rename = "type")]
+    _event_type: AnthropicStreamEventTypeView,
+    index: u32,
+    content_block: Option<AnthropicContentBlockView>,
+}
+
+impl AnthropicContentBlockStartEventView {
+    fn is_tool_use_start(&self) -> bool {
+        self.content_block
+            .as_ref()
+            .and_then(|block| block.block_type.as_deref())
+            == Some("tool_use")
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum AnthropicStreamEventTypeView {
+    ContentBlockStart,
+}
+
+#[derive(Debug, Deserialize)]
+struct AnthropicContentBlockView {
+    #[serde(rename = "type")]
+    block_type: Option<String>,
+}
+
+fn parse_anthropic_content_block_start_event(
+    chunk: &StreamOutputChunk,
+) -> Result<Option<AnthropicContentBlockStartEventView>, TransformError> {
+    if chunk.event_type.as_deref() != Some("content_block_start") {
+        return Ok(None);
+    }
+
+    crate::serde_json::from_slice::<AnthropicContentBlockStartEventView>(&chunk.data)
+        .map(Some)
+        .map_err(|e| {
+            TransformError::DeserializationFailed(format!(
+                "Anthropic content_block_start event: {}",
+                e
+            ))
+        })
 }
 
 fn anthropic_content_block_stop_chunk(index: u32) -> StreamOutputChunk {
@@ -353,21 +402,6 @@ fn anthropic_content_block_stop_chunk(index: u32) -> StreamOutputChunk {
         .unwrap_or_else(|_| Bytes::new()),
         "content_block_stop".to_string(),
     )
-}
-
-fn is_anthropic_tool_use_start(chunk: &StreamOutputChunk) -> bool {
-    if chunk.event_type.as_deref() != Some("content_block_start") {
-        return false;
-    }
-
-    let Ok(data) = crate::serde_json::from_slice::<Value>(&chunk.data) else {
-        return false;
-    };
-
-    data.get("content_block")
-        .and_then(|block| block.get("type"))
-        .and_then(Value::as_str)
-        == Some("tool_use")
 }
 
 fn with_anthropic_tool_use_stop_reason(chunk: StreamOutputChunk) -> StreamOutputChunk {
@@ -805,6 +839,27 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_anthropic_content_block_start_requires_typed_index() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let malformed_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "content_block": {
+                    "type": "text",
+                    "text": ""
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+
+        let err = session.process_chunks(vec![malformed_start]).unwrap_err();
+        assert!(matches!(err, TransformError::DeserializationFailed(_)));
+        assert!(err.to_string().contains("Anthropic content_block_start"));
+        assert!(err.to_string().contains("missing field `index`"));
     }
 
     #[test]
