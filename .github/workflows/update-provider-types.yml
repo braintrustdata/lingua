@@ -102,6 +102,17 @@ jobs:
           npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
           pnpm add -g quicktype
 
+      - name: Create Braintrust workflow trace
+        id: braintrust_trace
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-workflow-trace
+
       - name: Update provider specifications and types
         id: generate
         continue-on-error: true
@@ -122,83 +133,6 @@ jobs:
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
           exit "$generate_status"
 
-      - name: Create Braintrust parent trace for repair
-        id: repair_trace
-        if: steps.generate.outcome == 'failure'
-        continue-on-error: true
-        env:
-          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-          BRAINTRUST_CC_PROJECT: lingua-provider-type-updates
-          PROVIDER: ${{ matrix.provider }}
-          TRACE_PHASE: repair failed generation
-        run: |
-          set -euo pipefail
-          NODE_PATH="$(npm root -g)" node --input-type=module <<'JS'
-          import { execFileSync } from "node:child_process";
-          import { createRequire } from "node:module";
-          import { appendFileSync } from "node:fs";
-
-          const require = createRequire(import.meta.url);
-          const { flush, initLogger } = require("braintrust");
-
-          function gitOutput(...args) {
-            try {
-              return execFileSync("git", args, {
-                encoding: "utf8",
-                stdio: ["ignore", "pipe", "pipe"],
-              });
-            } catch (error) {
-              return `${error.stdout ?? ""}${error.stderr ?? ""}`;
-            }
-          }
-
-          const provider = process.env.PROVIDER;
-          const phase = process.env.TRACE_PHASE;
-          const project = process.env.BRAINTRUST_CC_PROJECT;
-          const head = gitOutput("rev-parse", "HEAD").trim();
-          const status = gitOutput("status", "--short");
-          const diffStat = gitOutput("diff", "--stat");
-          const diffNames = gitOutput("diff", "--name-only");
-          const diff = gitOutput("diff", "--no-color", "--no-ext-diff");
-
-          const logger = initLogger({ projectName: project });
-          const span = logger.startSpan({
-            name: `Claude ${phase}: update ${provider} provider types`,
-          });
-
-          span.log({
-            input: {
-              provider,
-              phase,
-              head,
-              github_run_id: process.env.GITHUB_RUN_ID,
-              github_run_attempt: process.env.GITHUB_RUN_ATTEMPT,
-              github_workflow: process.env.GITHUB_WORKFLOW,
-              github_job: process.env.GITHUB_JOB,
-            },
-            output: {
-              git_status: status,
-              git_diff_stat: diffStat,
-              git_diff_names: diffNames,
-              git_diff: diff,
-            },
-            metadata: {
-              provider,
-              phase,
-              head,
-              repository: process.env.GITHUB_REPOSITORY,
-              ref: process.env.GITHUB_REF,
-              sha: process.env.GITHUB_SHA,
-            },
-          });
-
-          appendFileSync(process.env.GITHUB_OUTPUT, `parent_span_id=${span.spanId}\n`);
-          appendFileSync(process.env.GITHUB_OUTPUT, `root_span_id=${span.rootSpanId ?? span.spanId}\n`);
-
-          span.end();
-          await flush();
-          JS
-
       - name: Repair failed generation
         id: repair
         if: steps.generate.outcome == 'failure'
@@ -216,11 +150,11 @@ jobs:
           settings: |
             {
               "env": {
-                "TRACE_TO_BRAINTRUST": "true",
+                "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.repair_trace.outputs.parent_span_id }}",
-                "CC_ROOT_SPAN_ID": "${{ steps.repair_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
@@ -306,83 +240,6 @@ jobs:
           echo "Changes detected:"
           git status --short
 
-      - name: Create Braintrust parent trace for integration review
-        id: integration_review_trace
-        if: steps.changes.outputs.has_changes == 'true'
-        continue-on-error: true
-        env:
-          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-          BRAINTRUST_CC_PROJECT: lingua-provider-type-updates
-          PROVIDER: ${{ matrix.provider }}
-          TRACE_PHASE: review generated provider integration
-        run: |
-          set -euo pipefail
-          NODE_PATH="$(npm root -g)" node --input-type=module <<'JS'
-          import { execFileSync } from "node:child_process";
-          import { createRequire } from "node:module";
-          import { appendFileSync } from "node:fs";
-
-          const require = createRequire(import.meta.url);
-          const { flush, initLogger } = require("braintrust");
-
-          function gitOutput(...args) {
-            try {
-              return execFileSync("git", args, {
-                encoding: "utf8",
-                stdio: ["ignore", "pipe", "pipe"],
-              });
-            } catch (error) {
-              return `${error.stdout ?? ""}${error.stderr ?? ""}`;
-            }
-          }
-
-          const provider = process.env.PROVIDER;
-          const phase = process.env.TRACE_PHASE;
-          const project = process.env.BRAINTRUST_CC_PROJECT;
-          const head = gitOutput("rev-parse", "HEAD").trim();
-          const status = gitOutput("status", "--short");
-          const diffStat = gitOutput("diff", "--stat");
-          const diffNames = gitOutput("diff", "--name-only");
-          const diff = gitOutput("diff", "--no-color", "--no-ext-diff");
-
-          const logger = initLogger({ projectName: project });
-          const span = logger.startSpan({
-            name: `Claude ${phase}: update ${provider} provider types`,
-          });
-
-          span.log({
-            input: {
-              provider,
-              phase,
-              head,
-              github_run_id: process.env.GITHUB_RUN_ID,
-              github_run_attempt: process.env.GITHUB_RUN_ATTEMPT,
-              github_workflow: process.env.GITHUB_WORKFLOW,
-              github_job: process.env.GITHUB_JOB,
-            },
-            output: {
-              git_status: status,
-              git_diff_stat: diffStat,
-              git_diff_names: diffNames,
-              git_diff: diff,
-            },
-            metadata: {
-              provider,
-              phase,
-              head,
-              repository: process.env.GITHUB_REPOSITORY,
-              ref: process.env.GITHUB_REF,
-              sha: process.env.GITHUB_SHA,
-            },
-          });
-
-          appendFileSync(process.env.GITHUB_OUTPUT, `parent_span_id=${span.spanId}\n`);
-          appendFileSync(process.env.GITHUB_OUTPUT, `root_span_id=${span.rootSpanId ?? span.spanId}\n`);
-
-          span.end();
-          await flush();
-          JS
-
       - name: Review generated provider integration
         id: integration_review
         if: steps.changes.outputs.has_changes == 'true'
@@ -400,11 +257,11 @@ jobs:
           settings: |
             {
               "env": {
-                "TRACE_TO_BRAINTRUST": "true",
+                "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.integration_review_trace.outputs.parent_span_id }}",
-                "CC_ROOT_SPAN_ID": "${{ steps.integration_review_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
@@ -486,12 +343,23 @@ jobs:
 
       - name: Build PR body
         if: steps.changes.outputs.has_changes == 'true'
+        env:
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          BRAINTRUST_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          PROVIDER: ${{ matrix.provider }}
         run: |
           set -euo pipefail
           {
+            if [ -n "$BRAINTRUST_ROOT_SPAN_ID" ] && [ -n "$BRAINTRUST_SPAN_ID" ]; then
+              NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs emit-pr-metadata
+              echo
+            fi
             echo "Automated update of Lingua provider types."
             echo
             echo "Provider: \`${{ matrix.provider }}\`"
+            echo
+            echo "Feedback: comment \`/bt good\` or \`/bt bad\` to log review feedback to the Braintrust trace."
             echo
             echo "**Validation**"
             echo
@@ -501,10 +369,7 @@ jobs:
               echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
             fi
             echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
-            if [ "${{ steps.generate.outcome }}" = "failure" ]; then
-              echo "- Braintrust repair parent trace: ${{ steps.repair_trace.outcome }}"
-            fi
-            echo "- Braintrust integration-review parent trace: ${{ steps.integration_review_trace.outcome }}"
+            echo "- Braintrust workflow trace: ${{ steps.braintrust_trace.outcome }}"
             echo "- Claude integration review: ${{ steps.integration_review.outcome }}"
             echo "- Post-review \`make generate-types\`: ${{ steps.post_review_ts_types.outcome }}"
             echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
@@ -534,10 +399,8 @@ jobs:
         if: >-
           (
             (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
-            steps.repair_trace.outcome == 'failure' ||
             steps.retry.outcome == 'failure' ||
             (steps.ts_types.outcome == 'failure' && steps.post_review_ts_types.outcome != 'success') ||
-            steps.integration_review_trace.outcome == 'failure' ||
             steps.integration_review.outcome == 'failure' ||
             steps.post_review_ts_types.outcome == 'failure' ||
             steps.fmt.outcome == 'failure' ||
