@@ -137,7 +137,6 @@ pub struct ProviderRoute {
     auth: AuthConfig,
     spec: Arc<ModelSpec>,
     format: ProviderFormat,
-    strategy: RetryStrategy,
 }
 
 impl ProviderRoute {
@@ -176,7 +175,6 @@ type ResolvedProviderForTest = (
     AuthConfig,
     Arc<ModelSpec>,
     ProviderFormat,
-    RetryStrategy,
 );
 
 /// Request prepared by the router and ready for execution.
@@ -271,7 +269,7 @@ impl Router {
                 format: actual_format,
                 payload,
                 output_format,
-                strategy: route.strategy.clone(),
+                strategy: self.retry_policy.strategy(),
             },
             RouterMetadata {
                 detected_input_format: detected_format.unwrap_or(route.format),
@@ -483,7 +481,7 @@ impl Router {
             );
             successes = routes;
         }
-        if successes.is_empty() {
+        if successes.is_empty() && fallback_aliases.is_empty() {
             if is_gemini_api_model(model) && catalog_format != ProviderFormat::Google {
                 return Err(Error::NoProvider(ProviderFormat::Google));
             }
@@ -550,7 +548,6 @@ impl Router {
                             route.auth,
                             route.spec,
                             route.format,
-                            route.strategy,
                         )
                     })
                     .collect()
@@ -640,14 +637,12 @@ impl Router {
             .get(&alias)
             .cloned()
             .ok_or_else(|| Error::NoAuth(alias.clone()))?;
-        let strategy = self.retry_policy.strategy();
         Ok(ProviderRoute {
             provider_alias: alias,
             provider,
             auth,
             spec,
             format,
-            strategy,
         })
     }
 
@@ -1459,7 +1454,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::Google)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format, _) = &routes[0];
+        let (alias, provider, _, _, format) = &routes[0];
         assert_eq!(alias, "google");
         assert_eq!(provider.id(), "google");
         assert_eq!(*format, ProviderFormat::Google);
@@ -1497,7 +1492,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format, _) = &routes[0];
+        let (alias, provider, _, _, format) = &routes[0];
         assert_eq!(alias, "vertex");
         assert_eq!(provider.id(), "vertex");
         assert_eq!(*format, ProviderFormat::Google);
@@ -1535,7 +1530,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format, _) = &routes[0];
+        let (alias, provider, _, _, format) = &routes[0];
         assert_eq!(alias, "openai");
         assert_eq!(provider.id(), "openai");
         assert_eq!(*format, ProviderFormat::ChatCompletions);
@@ -1622,7 +1617,7 @@ mod tests {
             .expect("resolves via default Google provider");
 
         assert_eq!(routes.len(), 1);
-        let (alias, provider, _, _, format, _) = &routes[0];
+        let (alias, provider, _, _, format) = &routes[0];
         assert_eq!(alias, "google-prod");
         assert_eq!(provider.id(), "google");
         assert_eq!(*format, ProviderFormat::Google);
@@ -1721,7 +1716,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::Google);
     }
 
@@ -1752,7 +1747,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (alias, _, _, _, format, _) = &routes[0];
+        let (alias, _, _, _, format) = &routes[0];
         assert_eq!(alias, "custom-vertex");
         assert_eq!(*format, ProviderFormat::ChatCompletions);
     }
@@ -1883,7 +1878,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
     }
 
@@ -1927,7 +1922,7 @@ mod tests {
             .resolve_providers(model, ProviderFormat::ChatCompletions)
             .expect("resolves");
         assert_eq!(routes.len(), 1);
-        let (_, _, _, _, format, _) = routes[0];
+        let (_, _, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::Converse);
     }
 
@@ -2232,7 +2227,7 @@ mod tests {
     }
 
     #[test]
-    fn fallback_provider_routes_keep_source_route_for_empty_available_providers() {
+    fn fallback_provider_routes_do_not_use_format_default_for_ineligible_alias() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
@@ -2250,11 +2245,20 @@ mod tests {
             .build()
             .expect("router builds");
 
-        assert_eq!(
-            explicit_route_aliases(&router, model, ProviderFormat::ChatCompletions, &["custom"])
-                .expect("routes"),
-            vec!["custom".to_string()]
-        );
+        let err = match explicit_route_aliases(
+            &router,
+            model,
+            ProviderFormat::ChatCompletions,
+            &["custom"],
+        ) {
+            Ok(_) => panic!("ineligible fallback alias should not use format-default provider"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
     }
 
     #[test]
@@ -2315,20 +2319,19 @@ mod tests {
             .build()
             .expect("router builds");
 
-        let routes = router
-            .resolve_provider_routes(
-                model,
-                ProviderFormat::ChatCompletions,
-                &["missing".to_string()],
-            )
-            .expect("alias route resolution succeeds");
+        let err = match router.resolve_provider_routes(
+            model,
+            ProviderFormat::ChatCompletions,
+            &["missing".to_string()],
+        ) {
+            Ok(_) => panic!("missing fallback aliases should not use format-default provider"),
+            Err(err) => err,
+        };
 
-        assert!(
-            routes
-                .iter()
-                .all(|route| route.provider_alias() != "missing"),
-            "missing fallback alias should not add the format-default provider"
-        );
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
     }
 
     #[test]
