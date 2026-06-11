@@ -24,7 +24,7 @@ async fn create_request(
     braintrust_llm_router::PreparedRequest,
     braintrust_llm_router::RouterMetadata,
 )> {
-    let routes = router.resolve_provider_routes(model, output_format)?;
+    let routes = router.resolve_provider_routes(model, output_format, &[])?;
     let route = routes
         .first()
         .ok_or_else(|| Error::NoProvider(output_format))?;
@@ -272,7 +272,7 @@ fn fallback_alias_resolution_skips_aliases_not_eligible_for_model() {
         .expect("router builds");
 
     let routes = router
-        .resolve_provider_routes_for_aliases(
+        .resolve_provider_routes(
             "stub-model",
             ProviderFormat::ChatCompletions,
             &["ineligible".to_string(), "eligible".to_string()],
@@ -914,7 +914,7 @@ async fn responses_required_model_uses_responses_for_anthropic_messages_output()
     }));
 
     let routes = router
-        .resolve_provider_routes("gpt-5.5", ProviderFormat::Anthropic)
+        .resolve_provider_routes("gpt-5.5", ProviderFormat::Anthropic, &[])
         .expect("resolve routes");
     let route = routes.first().expect("route");
     let (_request, metadata) = router

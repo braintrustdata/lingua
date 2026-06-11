@@ -136,7 +136,7 @@ async fn main() -> Result<()> {
 
     println!("   Sending authenticated request to GPT-4...");
     let body = Bytes::from(serde_json::to_vec(&payload)?);
-    let routes = router.resolve_provider_routes(model, ProviderFormat::ChatCompletions)?;
+    let routes = router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])?;
     let route = routes
         .first()
         .ok_or(braintrust_llm_router::Error::NoProvider(

@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
         });
 
         let body = Bytes::from(serde_json::to_vec(&payload)?);
-        match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions) {
+        match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[]) {
             Ok(routes) => match routes.first() {
                 Some(route) => match router
                     .create_request(body, ProviderFormat::ChatCompletions, route)
@@ -119,7 +119,7 @@ async fn main() -> Result<()> {
         });
 
         let body = Bytes::from(serde_json::to_vec(&payload)?);
-        match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions) {
+        match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[]) {
             Ok(routes) => match routes.first() {
                 Some(route) => match router
                     .create_request(body, ProviderFormat::ChatCompletions, route)

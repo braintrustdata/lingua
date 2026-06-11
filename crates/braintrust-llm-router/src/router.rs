@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -432,6 +432,7 @@ impl Router {
         &self,
         model: &str,
         output_format: ProviderFormat,
+        fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
         let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
         let routes: Vec<Result<ProviderRoute>> = aliases
@@ -446,7 +447,7 @@ impl Router {
             })
             .collect();
         let mut first_error = None;
-        let successes: Vec<ProviderRoute> = routes
+        let mut successes: Vec<ProviderRoute> = routes
             .into_iter()
             .filter_map(|r| match r {
                 Ok(s) => Some(s),
@@ -458,19 +459,29 @@ impl Router {
                 }
             })
             .collect();
-        #[cfg(feature = "tracing")]
-        if let Some(error) = first_error.as_ref() {
-            if successes.is_empty() {
-                tracing::warn!(
-                    model = %model,
-                    output_format = ?output_format,
-                    all_aliases = ?aliases,
-                    spec = ?spec,
-                    catalog_format = ?catalog_format,
-                    error = %error,
-                    "failed to resolve any provider aliases",
-                );
-            }
+        if !fallback_aliases.is_empty() {
+            let mut seen: HashSet<String> = successes
+                .first()
+                .map(|route| route.provider_alias.clone())
+                .into_iter()
+                .collect();
+            let mut routes: Vec<ProviderRoute> = successes.into_iter().take(1).collect();
+            routes.extend(
+                fallback_aliases
+                    .iter()
+                    .filter(|alias| aliases.contains(alias))
+                    .filter(|alias| seen.insert((*alias).clone()))
+                    .filter_map(|alias| {
+                        self.resolve_provider(
+                            output_format,
+                            spec.clone(),
+                            catalog_format,
+                            alias.clone(),
+                        )
+                        .ok()
+                    }),
+            );
+            successes = routes;
         }
         if successes.is_empty() {
             if is_gemini_api_model(model) && catalog_format != ProviderFormat::Google {
@@ -479,11 +490,11 @@ impl Router {
             if let Some(fallback_alias) = self.formats.get(&catalog_format).cloned() {
                 match self.resolve_provider(
                     output_format,
-                    spec,
+                    spec.clone(),
                     catalog_format,
                     fallback_alias.clone(),
                 ) {
-                    Ok(route) => return Ok(vec![route]),
+                    Ok(route) => successes.push(route),
                     Err(fallback_error) => {
                         #[cfg(feature = "tracing")]
                         tracing::warn!(
@@ -496,6 +507,20 @@ impl Router {
                         return Err(fallback_error);
                     }
                 }
+            }
+        }
+        if successes.is_empty() {
+            #[cfg(feature = "tracing")]
+            if let Some(error) = first_error.as_ref() {
+                tracing::warn!(
+                    model = %model,
+                    output_format = ?output_format,
+                    all_aliases = ?aliases,
+                    spec = ?spec,
+                    catalog_format = ?catalog_format,
+                    error = %error,
+                    "failed to resolve any provider aliases",
+                );
             }
             #[cfg(feature = "tracing")]
             tracing::warn!(
@@ -514,7 +539,7 @@ impl Router {
         model: &str,
         output_format: ProviderFormat,
     ) -> Result<Vec<ResolvedProviderForTest>> {
-        self.resolve_provider_routes(model, output_format)
+        self.resolve_provider_routes(model, output_format, &[])
             .map(|routes| {
                 routes
                     .into_iter()
@@ -530,47 +555,6 @@ impl Router {
                     })
                     .collect()
             })
-    }
-
-    pub fn resolve_provider_routes_for_aliases(
-        &self,
-        model: &str,
-        output_format: ProviderFormat,
-        aliases: &[String],
-    ) -> Result<Vec<ProviderRoute>> {
-        let (spec, catalog_format, eligible_aliases) = self.resolver.resolve(model)?;
-        let routes = aliases.iter().filter_map(|alias| {
-            if !eligible_aliases.contains(alias) {
-                #[cfg(feature = "tracing")]
-                tracing::debug!(
-                    model = %model,
-                    fallback_alias = %alias,
-                    eligible_aliases = ?eligible_aliases,
-                    "skipping fallback provider alias that is not eligible for model",
-                );
-                return None;
-            }
-            match self.resolve_provider(
-                output_format,
-                spec.clone(),
-                catalog_format,
-                alias.to_string(),
-            ) {
-                Ok(route) => Some(route),
-                Err(_error) => {
-                    #[cfg(feature = "tracing")]
-                    tracing::debug!(
-                        model = %model,
-                        fallback_alias = %alias,
-                        output_format = ?output_format,
-                        error = %_error,
-                        "skipping unresolved fallback provider alias",
-                    );
-                    None
-                }
-            }
-        });
-        Ok(routes.collect())
     }
 
     fn resolve_provider(
@@ -1008,7 +992,7 @@ mod tests {
         output_format: ProviderFormat,
     ) -> Result<Vec<String>> {
         router
-            .resolve_provider_routes(model, output_format)
+            .resolve_provider_routes(model, output_format, &[])
             .map(|routes| {
                 routes
                     .into_iter()
@@ -1028,7 +1012,7 @@ mod tests {
             .map(|alias| alias.to_string())
             .collect::<Vec<_>>();
         router
-            .resolve_provider_routes_for_aliases(model, output_format, &aliases)
+            .resolve_provider_routes(model, output_format, &aliases)
             .map(|routes| {
                 routes
                     .into_iter()
@@ -1043,7 +1027,7 @@ mod tests {
         model: &str,
         output_format: ProviderFormat,
     ) -> Result<(PreparedRequest, RouterMetadata)> {
-        let routes = router.resolve_provider_routes(model, output_format)?;
+        let routes = router.resolve_provider_routes(model, output_format, &[])?;
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
@@ -1056,7 +1040,7 @@ mod tests {
         model: &str,
         output_format: ProviderFormat,
     ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
-        let routes = router.resolve_provider_routes(model, output_format)?;
+        let routes = router.resolve_provider_routes(model, output_format, &[])?;
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
@@ -1793,7 +1777,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
         assert_eq!(routes[0].format, ProviderFormat::Responses);
@@ -1819,7 +1803,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
         assert_eq!(routes[0].format, ProviderFormat::Responses);
@@ -1845,7 +1829,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
         assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
@@ -1967,7 +1951,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
         assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
@@ -1993,7 +1977,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert_eq!(routes.len(), 1);
         assert_eq!(routes[0].provider_alias(), "azure");
@@ -2127,10 +2111,10 @@ mod tests {
         assert!(router.catalog().get("base-model").is_some());
         assert!(router.catalog().get("custom-model").is_none());
         assert!(router
-            .resolve_provider_routes("base-model", ProviderFormat::ChatCompletions)
+            .resolve_provider_routes("base-model", ProviderFormat::ChatCompletions, &[])
             .is_ok());
         assert!(router
-            .resolve_provider_routes("custom-model", ProviderFormat::ChatCompletions)
+            .resolve_provider_routes("custom-model", ProviderFormat::ChatCompletions, &[])
             .is_ok());
     }
 
@@ -2171,7 +2155,7 @@ mod tests {
     }
 
     #[test]
-    fn explicit_provider_routes_preserve_requested_order() {
+    fn fallback_provider_routes_append_after_primary() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(
@@ -2209,12 +2193,12 @@ mod tests {
                 &["azure", "openai"]
             )
             .expect("routes"),
-            vec!["azure".to_string(), "openai".to_string()]
+            vec!["openai".to_string(), "azure".to_string()]
         );
     }
 
     #[test]
-    fn explicit_provider_routes_filter_unavailable_and_unregistered_aliases() {
+    fn fallback_provider_routes_filter_unavailable_and_unregistered_aliases() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(
@@ -2248,7 +2232,7 @@ mod tests {
     }
 
     #[test]
-    fn explicit_provider_routes_do_not_treat_empty_available_providers_as_unconstrained() {
+    fn fallback_provider_routes_keep_source_route_for_empty_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
         catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
@@ -2269,7 +2253,7 @@ mod tests {
         assert_eq!(
             explicit_route_aliases(&router, model, ProviderFormat::ChatCompletions, &["custom"])
                 .expect("routes"),
-            Vec::<String>::new()
+            vec!["custom".to_string()]
         );
     }
 
@@ -2296,7 +2280,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes(model, ProviderFormat::ChatCompletions)
+            .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
             .expect("resolves");
         assert!(
             !routes.is_empty(),
@@ -2332,7 +2316,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes_for_aliases(
+            .resolve_provider_routes(
                 model,
                 ProviderFormat::ChatCompletions,
                 &["missing".to_string()],
@@ -2340,8 +2324,10 @@ mod tests {
             .expect("alias route resolution succeeds");
 
         assert!(
-            routes.is_empty(),
-            "fallback alias resolution should not add the format-default provider"
+            routes
+                .iter()
+                .all(|route| route.provider_alias() != "missing"),
+            "missing fallback alias should not add the format-default provider"
         );
     }
 
@@ -2377,7 +2363,7 @@ mod tests {
             .expect("router builds");
 
         let routes = router
-            .resolve_provider_routes_for_aliases(
+            .resolve_provider_routes(
                 model,
                 ProviderFormat::ChatCompletions,
                 &[
@@ -2389,6 +2375,6 @@ mod tests {
             .expect("alias route resolution succeeds");
         let aliases: Vec<&str> = routes.iter().map(|route| route.provider_alias()).collect();
 
-        assert_eq!(aliases, vec!["azure", "openai"]);
+        assert_eq!(aliases, vec!["openai", "azure"]);
     }
 }
