@@ -2193,6 +2193,59 @@ mod tests {
     }
 
     #[test]
+    fn fallback_provider_routes_for_overlay_custom_model_use_available_providers() {
+        let model = "custom-model";
+        let base = ModelCatalog::empty();
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            model.into(),
+            openai_spec_with_available_providers(model, ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "azure",
+                FakeProvider {
+                    name: "azure",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "custom",
+                FakeProvider {
+                    name: "custom",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["custom", "azure", "cerebras"]
+            )
+            .expect("routes"),
+            vec!["openai".to_string(), "azure".to_string()]
+        );
+    }
+
+    #[test]
     fn fallback_provider_routes_filter_unavailable_and_unregistered_aliases() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
