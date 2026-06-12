@@ -368,6 +368,7 @@ where
     buffer: BytesMut,
     decoder: aws_smithy_eventstream::frame::MessageFrameDecoder,
     finished: bool,
+    decoded_frame: bool,
 }
 
 #[cfg(feature = "provider-bedrock")]
@@ -381,6 +382,7 @@ where
             buffer: BytesMut::new(),
             decoder: aws_smithy_eventstream::frame::MessageFrameDecoder::new(),
             finished: false,
+            decoded_frame: false,
         }
     }
 }
@@ -404,6 +406,8 @@ where
         loop {
             match this.decoder.decode_frame(&mut this.buffer) {
                 Ok(DecodedFrame::Complete(message)) => {
+                    this.decoded_frame = true;
+
                     // Extract event type from headers
                     let event_type = message
                         .headers()
@@ -457,6 +461,27 @@ where
                 Poll::Ready(Some(Err(err))) => return Poll::Ready(Some(Err(err.into()))),
                 Poll::Ready(None) => {
                     this.finished = true;
+                    if !this.buffer.is_empty() {
+                        return Poll::Ready(Some(Err(Error::Provider {
+                            provider: "bedrock".to_string(),
+                            source: anyhow::anyhow!(
+                                "Event stream ended with incomplete frame ({} buffered bytes)",
+                                this.buffer.len()
+                            ),
+                            retry_after: None,
+                            http: None,
+                        })));
+                    }
+                    if !this.decoded_frame {
+                        return Poll::Ready(Some(Err(Error::Provider {
+                            provider: "bedrock".to_string(),
+                            source: anyhow::anyhow!(
+                                "Event stream ended before any Bedrock events were decoded"
+                            ),
+                            retry_after: None,
+                            http: None,
+                        })));
+                    }
                     return Poll::Ready(None);
                 }
                 Poll::Pending => return Poll::Pending,
@@ -563,5 +588,30 @@ mod tests {
         assert_eq!(first.data, full_response);
         assert!(first.event_type.is_none());
         assert!(next.is_none());
+    }
+
+    #[cfg(feature = "provider-bedrock")]
+    #[test]
+    fn bedrock_event_stream_errors_on_empty_body() {
+        let inner = futures::stream::empty::<std::result::Result<Bytes, reqwest::Error>>();
+        let mut stream = RawBedrockEventStream::new(inner);
+
+        let first = futures::executor::block_on(stream.next())
+            .expect("empty Bedrock event stream should yield an error");
+
+        assert!(first.is_err());
+    }
+
+    #[cfg(feature = "provider-bedrock")]
+    #[test]
+    fn bedrock_event_stream_errors_on_incomplete_frame_at_eof() {
+        let inner =
+            futures::stream::iter(vec![Ok::<_, reqwest::Error>(Bytes::from_static(b"\0\0\0"))]);
+        let mut stream = RawBedrockEventStream::new(inner);
+
+        let first = futures::executor::block_on(stream.next())
+            .expect("incomplete Bedrock event stream should yield an error");
+
+        assert!(first.is_err());
     }
 }
