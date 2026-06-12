@@ -40,6 +40,24 @@ impl ModelResolver {
     }
 
     pub fn resolve(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
+        self.resolve_one(model)
+    }
+
+    pub fn resolve_for_failover(
+        &self,
+        model: &str,
+    ) -> Result<Vec<(Arc<ModelSpec>, ProviderFormat, Vec<String>)>> {
+        let mut resolved = Vec::new();
+        for model_name in self.catalog.equivalent_model_names(model) {
+            resolved.push(self.resolve_one(&model_name)?);
+        }
+        if resolved.is_empty() {
+            return Err(Error::UnknownModel(model.to_string()));
+        }
+        Ok(resolved)
+    }
+
+    fn resolve_one(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
         let spec = self
             .catalog
             .get(model)

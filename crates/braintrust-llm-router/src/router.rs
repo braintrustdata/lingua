@@ -519,6 +519,14 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
+        if !fallback_aliases.is_empty() {
+            return self.resolve_provider_routes_for_failover(
+                model,
+                output_format,
+                fallback_aliases,
+            );
+        }
+
         let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
         let routes: Vec<Result<ProviderRoute>> = aliases
             .iter()
@@ -616,6 +624,92 @@ impl Router {
             return Err(first_error.unwrap_or_else(|| Error::NoProvider(catalog_format)));
         }
         Ok(successes)
+    }
+
+    fn resolve_provider_routes_for_failover(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+        fallback_aliases: &[String],
+    ) -> Result<Vec<ProviderRoute>> {
+        let resolved_models = self.resolver.resolve_for_failover(model)?;
+        let (_, first_catalog_format, _) = resolved_models
+            .first()
+            .ok_or_else(|| Error::UnknownModel(model.to_string()))?;
+        let mut first_error = None;
+        let mut routes = Vec::new();
+        let mut seen = HashSet::new();
+
+        if let Some((spec, catalog_format, aliases)) = resolved_models.first() {
+            for alias in aliases {
+                match self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    *catalog_format,
+                    alias.to_string(),
+                ) {
+                    Ok(route) => {
+                        seen.insert(route.provider_alias.clone());
+                        routes.push(route);
+                        break;
+                    }
+                    Err(err) => {
+                        if first_error.is_none() {
+                            first_error = Some(err);
+                        }
+                    }
+                }
+            }
+        }
+
+        for fallback_alias in fallback_aliases {
+            if seen.contains(fallback_alias) {
+                continue;
+            }
+
+            for (spec, catalog_format, aliases) in &resolved_models {
+                if !aliases
+                    .iter()
+                    .any(|alias| self.alias_matches_provider(alias, fallback_alias))
+                {
+                    continue;
+                }
+
+                match self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    *catalog_format,
+                    fallback_alias.clone(),
+                ) {
+                    Ok(route) => {
+                        seen.insert(route.provider_alias.clone());
+                        routes.push(route);
+                        break;
+                    }
+                    Err(err) => {
+                        if first_error.is_none() {
+                            first_error = Some(err);
+                        }
+                    }
+                }
+            }
+        }
+
+        if routes.is_empty() {
+            return Err(first_error.unwrap_or_else(|| Error::NoProvider(*first_catalog_format)));
+        }
+
+        Ok(routes)
+    }
+
+    fn alias_matches_provider(&self, resolver_alias: &str, provider_alias: &str) -> bool {
+        if resolver_alias == provider_alias {
+            return true;
+        }
+
+        self.providers
+            .get(provider_alias)
+            .is_some_and(|provider| provider.id() == resolver_alias)
     }
 
     #[cfg(test)]
@@ -2688,5 +2782,86 @@ mod tests {
         let aliases: Vec<&str> = routes.iter().map(|route| route.provider_alias()).collect();
 
         assert_eq!(aliases, vec!["openai", "azure"]);
+    }
+
+    #[test]
+    fn failover_routes_use_equivalent_provider_native_vertex_model() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["anthropic"],
+    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let catalog = catalog.map_specs(|_, spec| {
+            let mut spec = spec.clone();
+            spec.available_providers = spec
+                .available_providers
+                .iter()
+                .map(|provider| {
+                    if provider == "anthropic" {
+                        "ANTHROPIC_API_KEY".to_string()
+                    } else {
+                        provider.clone()
+                    }
+                })
+                .collect();
+            spec
+        });
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "ANTHROPIC_API_KEY",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "GOOGLE_DEFAULT_CREDENTIALS",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &[
+                    "ANTHROPIC_API_KEY".to_string(),
+                    "GOOGLE_DEFAULT_CREDENTIALS".to_string(),
+                ],
+            )
+            .expect("failover routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![
+                ("ANTHROPIC_API_KEY", model),
+                ("GOOGLE_DEFAULT_CREDENTIALS", vertex_model),
+            ]
+        );
     }
 }
