@@ -707,22 +707,15 @@ impl Router {
             return true;
         }
 
-        if resolver_alias != "openai"
-            && self
+        if let Some(provider_id) = default_alias_provider_id(resolver_alias) {
+            return self
                 .providers
                 .get(provider_alias)
-                .is_some_and(|provider| provider.id() == resolver_alias)
-        {
-            return true;
+                .is_some_and(|provider| provider.id() == provider_id);
         }
 
-        matches!(
-            (resolver_alias, provider_alias),
-            ("bedrock", "AWS_DEFAULT_CREDENTIALS")
-                | ("databricks", "DATABRICKS_DEFAULT_CREDENTIALS")
-                | ("vertex", "GOOGLE_DEFAULT_CREDENTIALS")
-                | ("azure", "AZURE_DEFAULT_CREDENTIALS")
-        )
+        default_alias_provider_id(provider_alias)
+            .is_some_and(|provider_id| provider_id == resolver_alias)
     }
 
     #[cfg(test)]
@@ -913,6 +906,19 @@ impl Router {
                 }
             }
         }
+    }
+}
+
+fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
+    match alias {
+        "ANTHROPIC_API_KEY" => Some("anthropic"),
+        "GEMINI_API_KEY" => Some("google"),
+        "MISTRAL_API_KEY" => Some("mistral"),
+        "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
+        "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
+        "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
+        "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
+        _ => None,
     }
 }
 
@@ -2693,13 +2699,13 @@ mod tests {
   "claude-sonnet-4-6": {
     "format": "anthropic",
     "flavor": "chat",
-    "available_providers": ["ANTHROPIC_API_KEY", "anthropic"],
+    "available_providers": ["ANTHROPIC_API_KEY"],
     "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
   },
   "publishers/anthropic/models/claude-sonnet-4-6": {
     "format": "anthropic",
     "flavor": "chat",
-    "available_providers": ["GOOGLE_DEFAULT_CREDENTIALS", "vertex"]
+    "available_providers": ["GOOGLE_DEFAULT_CREDENTIALS"]
   }
 }"#,
         )
