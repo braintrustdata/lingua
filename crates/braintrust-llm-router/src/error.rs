@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use bytes::Bytes;
 use http::HeaderMap;
 use thiserror::Error;
 
@@ -97,6 +98,13 @@ pub enum Error {
     #[error("{0}")]
     Lingua(#[from] lingua::TransformError),
 
+    #[error("response transformation failed: {source}")]
+    ResponseTransform {
+        #[source]
+        source: lingua::TransformError,
+        raw_response: Bytes,
+    },
+
     #[error("authentication error: {0}")]
     Auth(String),
 
@@ -145,6 +153,13 @@ impl Error {
     /// status code, headers, and body from the provider.
     pub fn is_upstream_error(&self) -> bool {
         matches!(self, Error::Provider { http: Some(_), .. })
+    }
+
+    pub fn raw_response(&self) -> Option<&Bytes> {
+        match self {
+            Error::ResponseTransform { raw_response, .. } => Some(raw_response),
+            _ => None,
+        }
     }
 }
 
@@ -239,6 +254,11 @@ mod tests {
         assert!(
             Error::Lingua(lingua::TransformError::UnableToDetectRequestFormat).is_client_error()
         );
+        assert!(!Error::ResponseTransform {
+            source: lingua::TransformError::UnableToDetectResponseFormat,
+            raw_response: Bytes::from_static(b"{}"),
+        }
+        .is_client_error());
 
         // Auth errors
         assert!(Error::NoAuth("openai".into()).is_auth_error());

@@ -19,7 +19,9 @@ use crate::providers::{
     ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
-use crate::streaming::{transform_stream, ResponseStream};
+use crate::streaming::{
+    transform_stream, transform_stream_with_capture, RawStreamChunkCapture, ResponseStream,
+};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
 use lingua::{TransformError, TransformResult};
@@ -27,6 +29,12 @@ use lingua::{TransformError, TransformResult};
 // Re-export for convenience in dependent crates
 pub use lingua::{extract_request_hints, RequestHints};
 use reqwest::Url;
+
+#[derive(Debug, Clone)]
+pub struct CompleteResponseWithRaw {
+    pub response: Bytes,
+    pub raw_response: Bytes,
+}
 
 use crate::providers::{
     is_openai_compatible, AnthropicProvider, AzureProvider, BedrockProvider, DatabricksProvider,
@@ -322,6 +330,33 @@ impl Router {
         request: PreparedRequest,
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
+        Ok(self
+            .complete_internal(request, client_headers)
+            .await?
+            .response)
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_with_raw_response(
+        &self,
+        request: PreparedRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<CompleteResponseWithRaw> {
+        self.complete_internal(request, client_headers).await
+    }
+
+    async fn complete_internal(
+        &self,
+        request: PreparedRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<CompleteResponseWithRaw> {
         let PreparedRequestInner {
             provider,
             auth,
@@ -342,12 +377,20 @@ impl Router {
                 client_headers,
             )
             .await?;
-        let result = lingua::transform_response(response_bytes.clone(), output_format)?;
+        let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
+            |source| Error::ResponseTransform {
+                source,
+                raw_response: response_bytes.clone(),
+            },
+        )?;
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => bytes,
         };
-        Ok(response)
+        Ok(CompleteResponseWithRaw {
+            response,
+            raw_response: response_bytes,
+        })
     }
 
     /// Create a prepared streaming request from raw body bytes.
@@ -394,6 +437,41 @@ impl Router {
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
     ) -> Result<ResponseStream> {
+        self.complete_stream_internal(request, client_headers, gateway_request_id, None)
+            .await
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers, gateway_request_id, raw_chunk_capture),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_stream_with_raw_response_capture(
+        &self,
+        request: PreparedStreamRequest,
+        client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
+        raw_chunk_capture: RawStreamChunkCapture,
+    ) -> Result<ResponseStream> {
+        self.complete_stream_internal(
+            request,
+            client_headers,
+            gateway_request_id,
+            Some(raw_chunk_capture),
+        )
+        .await
+    }
+
+    async fn complete_stream_internal(
+        &self,
+        request: PreparedStreamRequest,
+        client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
+        raw_chunk_capture: Option<RawStreamChunkCapture>,
+    ) -> Result<ResponseStream> {
         let PreparedRequestInner {
             provider,
             auth,
@@ -408,12 +486,21 @@ impl Router {
             .clone()
             .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
             .await?;
-        Ok(transform_stream(
-            raw_stream,
-            output_format,
-            allow_full_response_fallback,
-            gateway_request_id,
-        ))
+        Ok(match raw_chunk_capture {
+            Some(capture) => transform_stream_with_capture(
+                raw_stream,
+                output_format,
+                allow_full_response_fallback,
+                gateway_request_id,
+                Some(capture),
+            ),
+            None => transform_stream(
+                raw_stream,
+                output_format,
+                allow_full_response_fallback,
+                gateway_request_id,
+            ),
+        })
     }
 
     /// Resolve all providers for a given model and output format.
@@ -885,9 +972,11 @@ mod tests {
     use super::*;
     use crate::catalog::{ModelCatalog, ModelFlavor, ModelSpec};
     use crate::error::Error;
-    use crate::streaming::RawResponseStream;
+    use crate::streaming::{RawResponseStream, StreamChunk};
     use async_trait::async_trait;
+    use futures::{stream, StreamExt};
     use reqwest::header::HeaderMap;
+    use std::sync::Mutex;
 
     struct FakeProvider {
         name: &'static str,
@@ -935,6 +1024,53 @@ mod tests {
         }
     }
 
+    struct StaticProvider {
+        response: Bytes,
+        stream_chunks: Vec<Bytes>,
+    }
+
+    #[async_trait]
+    impl Provider for StaticProvider {
+        fn id(&self) -> &'static str {
+            "static"
+        }
+
+        fn provider_formats(&self) -> Vec<ProviderFormat> {
+            vec![ProviderFormat::ChatCompletions]
+        }
+
+        async fn complete(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<Bytes> {
+            Ok(self.response.clone())
+        }
+
+        async fn complete_stream(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<RawResponseStream> {
+            Ok(Box::pin(stream::iter(
+                self.stream_chunks
+                    .clone()
+                    .into_iter()
+                    .map(|chunk| Ok(StreamChunk::data(chunk))),
+            )))
+        }
+
+        async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
+            Ok(())
+        }
+    }
+
     fn google_spec(model: &str) -> ModelSpec {
         ModelSpec {
             model: model.to_string(),
@@ -979,6 +1115,40 @@ mod tests {
         let mut spec = openai_spec(model, flavor);
         spec.available_providers = vec!["openai".into(), "azure".into(), "cerebras".into()];
         spec
+    }
+
+    fn router_with_static_provider(provider: StaticProvider) -> Router {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                provider,
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds")
+    }
+
+    fn chat_request_body() -> Bytes {
+        Bytes::from_static(
+            br#"{"model":"gpt-5-mini","messages":[{"role":"user","content":"hello"}]}"#,
+        )
+    }
+
+    fn chat_response_body() -> Bytes {
+        Bytes::from_static(
+            br#"{"id":"chatcmpl-test","object":"chat.completion","created":0,"model":"gpt-5-mini","choices":[{"index":0,"message":{"role":"assistant","content":"hello"},"finish_reason":"stop"}]}"#,
+        )
+    }
+
+    fn chat_stream_chunk_body() -> Bytes {
+        Bytes::from_static(
+            br#"{"id":"chatcmpl-test","object":"chat.completion.chunk","created":0,"model":"gpt-5-mini","choices":[{"index":0,"delta":{"content":"hello"},"finish_reason":null}]}"#,
+        )
     }
 
     fn resolved_aliases(
@@ -1124,6 +1294,145 @@ mod tests {
             header: Some("authorization".into()),
             prefix: Some("Bearer".into()),
         }
+    }
+
+    #[tokio::test]
+    async fn complete_with_raw_response_returns_response_and_raw_response() {
+        let raw_response = chat_response_body();
+        let router = router_with_static_provider(StaticProvider {
+            response: raw_response.clone(),
+            stream_chunks: Vec::new(),
+        });
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
+
+        let result = router
+            .complete_with_raw_response(prepared, &ClientHeaders::default())
+            .await
+            .expect("complete succeeds");
+
+        assert_eq!(result.response, raw_response);
+        assert_eq!(result.raw_response, raw_response);
+    }
+
+    #[tokio::test]
+    async fn complete_with_raw_response_preserves_raw_response_on_transform_error() {
+        let raw_response = Bytes::from_static(b"not-json");
+        let router = router_with_static_provider(StaticProvider {
+            response: raw_response.clone(),
+            stream_chunks: Vec::new(),
+        });
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
+
+        let err = router
+            .complete_with_raw_response(prepared, &ClientHeaders::default())
+            .await
+            .expect_err("transform fails");
+
+        assert!(matches!(err, Error::ResponseTransform { .. }));
+        assert_eq!(err.raw_response(), Some(&raw_response));
+    }
+
+    #[tokio::test]
+    async fn complete_stream_raw_chunk_capture_runs_before_transform_error() {
+        let raw_chunk = Bytes::from_static(b"not-json");
+        let router = router_with_static_provider(StaticProvider {
+            response: Bytes::new(),
+            stream_chunks: vec![raw_chunk.clone()],
+        });
+        let (prepared, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
+        let captured = Arc::new(Mutex::new(Vec::new()));
+        let capture: RawStreamChunkCapture = Arc::new({
+            let captured = Arc::clone(&captured);
+            move |chunk: &StreamChunk| {
+                captured
+                    .lock()
+                    .expect("capture lock poisoned")
+                    .push(chunk.data.clone());
+            }
+        });
+
+        let mut stream = router
+            .complete_stream_with_raw_response_capture(
+                prepared,
+                &ClientHeaders::default(),
+                Some("request-id".to_string()),
+                capture,
+            )
+            .await
+            .expect("stream starts");
+        let first = stream.next().await.expect("stream item");
+
+        assert!(first.is_err());
+        assert_eq!(
+            captured.lock().expect("capture lock poisoned").as_slice(),
+            &[raw_chunk]
+        );
+    }
+
+    #[tokio::test]
+    async fn complete_methods_work_without_raw_response_capture() {
+        let raw_response = chat_response_body();
+        let router = router_with_static_provider(StaticProvider {
+            response: raw_response.clone(),
+            stream_chunks: vec![chat_stream_chunk_body()],
+        });
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
+        let response = router
+            .complete(prepared, &ClientHeaders::default())
+            .await
+            .expect("complete succeeds");
+        assert_eq!(response, raw_response);
+
+        let (prepared_stream, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
+        let mut response_stream = router
+            .complete_stream(
+                prepared_stream,
+                &ClientHeaders::default(),
+                Some("request-id".to_string()),
+            )
+            .await
+            .expect("stream starts");
+        let first = response_stream
+            .next()
+            .await
+            .expect("stream item")
+            .expect("stream item succeeds");
+        assert!(!first.data.is_empty());
     }
 
     fn google_chat_router(model: &str) -> Router {
