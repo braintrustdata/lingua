@@ -5,6 +5,8 @@ use crate::catalog::{CatalogResolver, ModelCatalog, ModelSpec, OverlayModelCatal
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
+pub type ResolvedModel = (Arc<ModelSpec>, ProviderFormat, Vec<String>);
+
 #[derive(Debug, Clone)]
 pub struct ModelResolver {
     catalog: CatalogResolver,
@@ -25,7 +27,7 @@ impl ModelResolver {
     /// do not observe per-request custom models as global catalog entries.
     pub fn with_overlay(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
         Self {
-            catalog: CatalogResolver::Overlay(OverlayModelCatalog { base, custom }),
+            catalog: CatalogResolver::Overlay(Box::new(OverlayModelCatalog { base, custom })),
             aliases: HashMap::new(),
         }
     }
@@ -39,14 +41,11 @@ impl ModelResolver {
         self.catalog.base_catalog()
     }
 
-    pub fn resolve(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
+    pub fn resolve(&self, model: &str) -> Result<ResolvedModel> {
         self.resolve_one(model)
     }
 
-    pub fn resolve_for_failover(
-        &self,
-        model: &str,
-    ) -> Result<Vec<(Arc<ModelSpec>, ProviderFormat, Vec<String>)>> {
+    pub fn resolve_for_failover(&self, model: &str) -> Result<Vec<ResolvedModel>> {
         let mut resolved = Vec::new();
         for model_name in self.catalog.equivalent_model_names(model) {
             resolved.push(self.resolve_one(&model_name)?);
@@ -57,7 +56,7 @@ impl ModelResolver {
         Ok(resolved)
     }
 
-    fn resolve_one(&self, model: &str) -> Result<(Arc<ModelSpec>, ProviderFormat, Vec<String>)> {
+    fn resolve_one(&self, model: &str) -> Result<ResolvedModel> {
         let spec = self
             .catalog
             .get(model)

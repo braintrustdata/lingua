@@ -42,7 +42,7 @@ pub struct OverlayModelCatalog {
 #[derive(Debug, Clone)]
 pub enum CatalogResolver {
     Base(Arc<ModelCatalog>),
-    Overlay(OverlayModelCatalog),
+    Overlay(Box<OverlayModelCatalog>),
 }
 
 impl CatalogResolver {

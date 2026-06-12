@@ -707,9 +707,22 @@ impl Router {
             return true;
         }
 
-        self.providers
-            .get(provider_alias)
-            .is_some_and(|provider| provider.id() == resolver_alias)
+        if resolver_alias != "openai"
+            && self
+                .providers
+                .get(provider_alias)
+                .is_some_and(|provider| provider.id() == resolver_alias)
+        {
+            return true;
+        }
+
+        matches!(
+            (resolver_alias, provider_alias),
+            ("bedrock", "AWS_DEFAULT_CREDENTIALS")
+                | ("databricks", "DATABRICKS_DEFAULT_CREDENTIALS")
+                | ("vertex", "GOOGLE_DEFAULT_CREDENTIALS")
+                | ("azure", "AZURE_DEFAULT_CREDENTIALS")
+        )
     }
 
     #[cfg(test)]
@@ -2626,6 +2639,109 @@ mod tests {
             )
             .expect("routes"),
             vec!["openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_do_not_treat_openai_provider_id_as_allowlist_match() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["openai".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "cerebras",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["cerebras"]
+            )
+            .expect("routes"),
+            vec!["openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_secrets_by_concrete_provider_id() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["ANTHROPIC_API_KEY", "anthropic"],
+    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["GOOGLE_DEFAULT_CREDENTIALS", "vertex"]
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-anthropic",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-anthropic".to_string(), "my-vertex".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("my-anthropic", model), ("my-vertex", vertex_model),]
         );
     }
 
