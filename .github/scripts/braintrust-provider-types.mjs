@@ -378,6 +378,10 @@ async function logFeedback() {
     },
     {
       name: "github_pr_feedback",
+      type: "score",
+      spanAttributes: {
+        purpose: "scorer",
+      },
       parentSpanIds,
     },
   );
@@ -445,6 +449,10 @@ async function logCodexReview() {
     },
     {
       name: "github_codex_review",
+      type: "score",
+      spanAttributes: {
+        purpose: "scorer",
+      },
       parentSpanIds,
     },
   );
