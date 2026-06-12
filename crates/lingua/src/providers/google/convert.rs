@@ -1242,6 +1242,10 @@ impl From<&UsageMetadata> for UniversalUsage {
             completion_tokens: Some(candidates + thoughts),
             prompt_cached_tokens: usage.cached_content_token_count,
             prompt_cache_creation_tokens: None,
+            prompt_cache_creation_5m_tokens: None,
+            prompt_cache_creation_1h_tokens: None,
+            // Google's promptTokenCount includes cachedContentTokenCount
+            prompt_tokens_exclude_cache: false,
             completion_reasoning_tokens: usage.thoughts_token_count,
         }
     }
