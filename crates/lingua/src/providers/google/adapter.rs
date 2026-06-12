@@ -1371,9 +1371,7 @@ mod tests {
             Some(UniversalUsage {
                 prompt_tokens: Some(1),
                 completion_tokens: Some(2),
-                prompt_cached_tokens: None,
-                prompt_cache_creation_tokens: None,
-                completion_reasoning_tokens: None,
+                ..Default::default()
             }),
         );
 

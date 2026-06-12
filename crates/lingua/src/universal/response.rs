@@ -52,6 +52,20 @@ pub struct UniversalUsage {
     /// Tokens written to cache during this request
     pub prompt_cache_creation_tokens: Option<i64>,
 
+    /// Tokens written to the 5-minute-TTL cache (Anthropic split cache writes)
+    pub prompt_cache_creation_5m_tokens: Option<i64>,
+
+    /// Tokens written to the 1-hour-TTL cache (Anthropic split cache writes)
+    pub prompt_cache_creation_1h_tokens: Option<i64>,
+
+    /// True when `prompt_tokens` excludes the cache read/creation buckets.
+    /// Anthropic-style usage reports `input_tokens` exclusive of cache
+    /// tokens, while OpenAI-style usage reports `prompt_tokens` inclusive of
+    /// them. Consumers that want an OpenAI-style inclusive prompt total must
+    /// add the cache buckets back when this is set; see
+    /// [`UniversalUsage::inclusive_prompt_tokens`].
+    pub prompt_tokens_exclude_cache: bool,
+
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
     pub completion_reasoning_tokens: Option<i64>,
@@ -320,6 +334,10 @@ impl UniversalUsage {
                         .and_then(|d| d.get("cached_tokens"))
                         .and_then(Value::as_i64),
                     prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    prompt_cache_creation_5m_tokens: None,
+                    prompt_cache_creation_1h_tokens: None,
+                    // OpenAI's prompt_tokens already includes cached tokens
+                    prompt_tokens_exclude_cache: false,
                     // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                     completion_reasoning_tokens: usage
                         .get("completion_tokens_details")
@@ -336,6 +354,10 @@ impl UniversalUsage {
                     .and_then(|d| d.get("cached_tokens"))
                     .and_then(Value::as_i64),
                 prompt_cache_creation_tokens: None,
+                prompt_cache_creation_5m_tokens: None,
+                prompt_cache_creation_1h_tokens: None,
+                // OpenAI's input_tokens already includes cached tokens
+                prompt_tokens_exclude_cache: false,
                 // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                 completion_reasoning_tokens: usage
                     .get("output_tokens_details")
@@ -352,6 +374,16 @@ impl UniversalUsage {
                 prompt_cache_creation_tokens: usage
                     .get("cache_creation_input_tokens")
                     .and_then(Value::as_i64),
+                prompt_cache_creation_5m_tokens: usage
+                    .get("cache_creation")
+                    .and_then(|c| c.get("ephemeral_5m_input_tokens"))
+                    .and_then(Value::as_i64),
+                prompt_cache_creation_1h_tokens: usage
+                    .get("cache_creation")
+                    .and_then(|c| c.get("ephemeral_1h_input_tokens"))
+                    .and_then(Value::as_i64),
+                // Anthropic's input_tokens excludes cache read/creation tokens
+                prompt_tokens_exclude_cache: true,
                 completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
             },
             ProviderFormat::Converse => Self {
@@ -361,10 +393,36 @@ impl UniversalUsage {
                 prompt_cache_creation_tokens: usage
                     .get("cacheWriteInputTokens")
                     .and_then(Value::as_i64),
+                prompt_cache_creation_5m_tokens: None,
+                prompt_cache_creation_1h_tokens: None,
+                // Converse's inputTokens excludes cache read/write tokens
+                prompt_tokens_exclude_cache: true,
                 completion_reasoning_tokens: None, // Bedrock doesn't expose thinking tokens separately
             },
             ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
+    }
+
+    /// Prompt tokens following the OpenAI convention of including cache
+    /// read/creation tokens. For providers that report prompt tokens
+    /// exclusive of the cache buckets (Anthropic, Converse), the cache
+    /// tokens are added back. Returns `None` when no prompt-side counts are
+    /// present at all.
+    pub fn inclusive_prompt_tokens(&self) -> Option<i64> {
+        if !self.prompt_tokens_exclude_cache {
+            return self.prompt_tokens;
+        }
+        if self.prompt_tokens.is_none()
+            && self.prompt_cached_tokens.is_none()
+            && self.prompt_cache_creation_tokens.is_none()
+        {
+            return None;
+        }
+        Some(
+            self.prompt_tokens.unwrap_or(0)
+                + self.prompt_cached_tokens.unwrap_or(0)
+                + self.prompt_cache_creation_tokens.unwrap_or(0),
+        )
     }
 
     /// Extract usage from a response payload, handling provider-specific key names.
