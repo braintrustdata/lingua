@@ -294,7 +294,6 @@ impl ProviderAdapter for ResponsesAdapter {
             })
             .unwrap_or_default();
 
-        // Use existing conversion with 1:N Tool message expansion
         input_items.extend(
             universal_to_responses_input(&messages_for_input)
                 .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?,
@@ -1023,6 +1022,7 @@ mod tests {
     use crate::processing::adapters::ProviderAdapter;
     use crate::processing::transform::transform_response;
     use crate::serde_json::json;
+    use crate::universal::message::CacheControl;
     use bytes::Bytes;
 
     #[test]
@@ -1074,6 +1074,33 @@ mod tests {
         let value = adapter.request_from_universal(&req).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-1"));
+    }
+
+    #[test]
+    fn test_responses_message_cache_control_exports_from_universal_text_part() {
+        let adapter = ResponsesAdapter;
+        let req = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                    text: "cache me".to_string(),
+                    encrypted_content: None,
+                    cache_control: Some(CacheControl {
+                        cache_control_type: crate::universal::message::CacheControlType::Ephemeral,
+                        ttl: None,
+                    }),
+                    provider_options: None,
+                })]),
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let value = adapter.request_from_universal(&req).unwrap();
+
+        assert_eq!(
+            value.pointer("/input/0/content/0/cache_control/type"),
+            Some(&json!("ephemeral"))
+        );
     }
 
     #[test]

@@ -1141,7 +1141,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "text".to_string(),
                         })?,
                     encrypted_content: None,
-                    cache_control: None,
+                    cache_control: cache_control_from_value(value.cache_control),
                     provider_options: None,
                 })
             }
@@ -1217,7 +1217,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "text".to_string(),
                         })?,
                     encrypted_content: None,
-                    cache_control: None,
+                    cache_control: cache_control_from_value(value.cache_control),
                     provider_options: None,
                 })
             }
@@ -1226,7 +1226,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 UserContentPart::Text(TextContentPart {
                     text: value.text.unwrap_or_else(|| REFUSAL_TEXT.to_string()),
                     encrypted_content: None,
-                    cache_control: None,
+                    cache_control: cache_control_from_value(value.cache_control),
                     provider_options: None,
                 })
             }
@@ -1272,6 +1272,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
             UserContentPart::Text(text_part) => openai::InputContent {
                 input_content_type: openai::InputItemContentListType::InputText,
                 text: Some(text_part.text),
+                cache_control: cache_control_to_value(text_part.cache_control),
                 ..Default::default()
             },
             UserContentPart::Image {
@@ -1355,6 +1356,7 @@ impl Default for openai::InputContent {
             annotations: None,
             logprobs: None,
             refusal: None,
+            cache_control: None,
         }
     }
 }
@@ -1397,6 +1399,7 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 openai::InputContent {
                     input_content_type: openai::InputItemContentListType::OutputText,
                     text: Some(text_part.text),
+                    cache_control: cache_control_to_value(text_part.cache_control),
                     annotations: Some(annotations),
                     logprobs: Some(logprobs),
                     ..Default::default()

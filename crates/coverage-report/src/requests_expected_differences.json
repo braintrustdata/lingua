@@ -60,8 +60,7 @@
       "target": "Responses",
       "fields": [
         { "pattern": "params.top_k", "reason": "Responses API doesn't support top_k (silently dropped)" },
-        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" },
-        { "pattern": "messages[*].content[*].cache_control", "reason": "Responses requests do not support Anthropic-style content-block cache_control metadata" }
+        { "pattern": "params.stop", "reason": "Responses API doesn't support stop sequences (silently dropped)" }
       ],
       "errors": [
         { "pattern": "is not supported by OpenAI Responses API", "reason": "Provider-specific built-in tool has no OpenAI equivalent" },

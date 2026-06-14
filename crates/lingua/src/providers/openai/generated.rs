@@ -2802,6 +2802,9 @@ pub struct ContentOutputContentList {
     /// The reasoning text from the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<serde_json::Value>,
     /// The type of the input item. Always `input_text`.
     ///
     /// The type of the input item. Always `input_image`.

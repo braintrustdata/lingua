@@ -1095,6 +1095,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
+    processed = add_openai_responses_input_content_cache_control(&processed);
 
     // Dynamically find the enum that quicktype generated for content list types.
     // Quicktype assigns arbitrary names (IndecentType, HilariousType, etc.) that shift
@@ -1114,6 +1115,29 @@ pub type FunctionCallItemStatus = Status;
 "#,
     ));
 
+    processed
+}
+
+fn add_openai_responses_input_content_cache_control(content: &str) -> String {
+    let struct_start = content
+        .find("pub struct ContentOutputContentList {")
+        .expect("quicktype output did not contain ContentOutputContentList");
+    let text_field_marker = "    pub text: Option<String>,";
+    let text_field_start = content[struct_start..]
+        .find(text_field_marker)
+        .map(|index| struct_start + index)
+        .expect("ContentOutputContentList did not contain a text field");
+    let insert_at = text_field_start + text_field_marker.len();
+    let cache_control_field =
+        "\n    #[ts(type = \"unknown\")]\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub cache_control: Option<serde_json::Value>,";
+    if content[struct_start..insert_at].contains("pub cache_control:") {
+        return content.to_string();
+    }
+
+    let mut processed = String::with_capacity(content.len() + cache_control_field.len());
+    processed.push_str(&content[..insert_at]);
+    processed.push_str(cache_control_field);
+    processed.push_str(&content[insert_at..]);
     processed
 }
 
