@@ -7,7 +7,7 @@ pub use spec::{ModelFlavor, ModelSpec};
 
 use lingua::ProviderFormat;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -22,62 +22,6 @@ pub struct ModelCatalog {
     by_parent: HashMap<String, Vec<String>>,
     equivalent_models: HashMap<String, Vec<String>>,
     equivalence_index: HashMap<String, Vec<String>>,
-}
-
-/// A request-local catalog overlay.
-///
-/// Secret-defined custom models live in `custom` and shadow entries in the
-/// shared `base` catalog. This avoids cloning the base catalog when adding
-/// per-request model definitions.
-#[derive(Debug, Clone)]
-pub struct OverlayModelCatalog {
-    pub base: Arc<ModelCatalog>,
-    pub custom: ModelCatalog,
-}
-
-/// Catalog view used by the router resolver.
-///
-/// `Base` preserves the existing router behavior. `Overlay` checks custom
-/// models first and then falls back to the shared base catalog.
-#[derive(Debug, Clone)]
-pub enum CatalogResolver {
-    Base(Arc<ModelCatalog>),
-    Overlay(Box<OverlayModelCatalog>),
-}
-
-impl CatalogResolver {
-    pub fn base_catalog(&self) -> Arc<ModelCatalog> {
-        match self {
-            Self::Base(catalog) => Arc::clone(catalog),
-            Self::Overlay(overlay) => Arc::clone(&overlay.base),
-        }
-    }
-
-    pub fn get(&self, name: &str) -> Option<Arc<ModelSpec>> {
-        match self {
-            Self::Base(catalog) => catalog.get(name),
-            Self::Overlay(overlay) => overlay.custom.get(name).or_else(|| overlay.base.get(name)),
-        }
-    }
-
-    pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
-        match self {
-            Self::Base(catalog) => catalog.equivalent_model_names(name),
-            Self::Overlay(overlay) => {
-                if overlay.custom.get(name).is_some() {
-                    overlay.custom.equivalent_model_names(name)
-                } else {
-                    overlay.base.equivalent_model_names(name)
-                }
-            }
-        }
-    }
-}
-
-impl From<Arc<ModelCatalog>> for CatalogResolver {
-    fn from(catalog: Arc<ModelCatalog>) -> Self {
-        Self::Base(catalog)
-    }
 }
 
 fn parse_equivalent_models(content: &str) -> Result<HashMap<String, Vec<String>>> {
@@ -216,6 +160,37 @@ impl ModelCatalog {
         out
     }
 
+    /// Merge request-local custom models into this catalog.
+    ///
+    /// Custom model specs shadow base specs with the same name. Any base
+    /// equivalence edges involving shadowed names are removed so custom models
+    /// do not inherit equivalence relationships from the model they replace.
+    pub fn merge_custom_catalog(&self, custom: ModelCatalog) -> Self {
+        let mut merged = self.clone();
+        let ModelCatalog {
+            models,
+            equivalent_models,
+            ..
+        } = custom;
+        let custom_model_names: HashSet<String> = models.keys().cloned().collect();
+
+        for name in &custom_model_names {
+            merged.equivalent_models.remove(name);
+        }
+        for equivalents in merged.equivalent_models.values_mut() {
+            equivalents.retain(|name| !custom_model_names.contains(name));
+        }
+
+        for (name, spec) in models {
+            merged.insert(name, spec.as_ref().clone());
+        }
+        for (name, equivalents) in equivalent_models {
+            merged.equivalent_models.insert(name, equivalents);
+        }
+        merged.rebuild_equivalence_index();
+        merged
+    }
+
     pub fn len(&self) -> usize {
         self.models.len()
     }
@@ -225,6 +200,32 @@ impl ModelCatalog {
     }
 
     pub fn insert(&mut self, name: String, mut spec: ModelSpec) {
+        if let Some(existing) = self.models.get(&name).cloned() {
+            let format = existing.format;
+            let parent = existing.parent.clone();
+            if let Some(models) = self.by_format.get_mut(&format) {
+                models.retain(|model| model != &name);
+            }
+            if self
+                .by_format
+                .get(&format)
+                .is_some_and(|models| models.is_empty())
+            {
+                self.by_format.remove(&format);
+            }
+            if let Some(parent) = parent {
+                if let Some(models) = self.by_parent.get_mut(&parent) {
+                    models.retain(|model| model != &name);
+                }
+                if self
+                    .by_parent
+                    .get(&parent)
+                    .is_some_and(|models| models.is_empty())
+                {
+                    self.by_parent.remove(&parent);
+                }
+            }
+        }
         if spec.model.is_empty() {
             spec.model = name.clone();
         }
@@ -531,6 +532,60 @@ mod tests {
         assert_eq!(
             mapped.equivalent_model_names("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
+        );
+    }
+
+    #[test]
+    fn merge_custom_catalog_shadows_base_specs_and_equivalence() {
+        let base = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "equivalent_models": ["model-b"]
+  },
+  "model-b": {
+    "format": "anthropic",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("base catalog parses");
+        let custom = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "available_providers": ["custom-provider"]
+  }
+}"#,
+        )
+        .expect("custom catalog parses");
+
+        let merged = base.merge_custom_catalog(custom);
+
+        assert_eq!(
+            merged
+                .get("model-a")
+                .expect("custom model")
+                .available_providers,
+            vec!["custom-provider".to_string()]
+        );
+        assert_eq!(
+            merged.equivalent_model_names("model-a"),
+            vec!["model-a".to_string()]
+        );
+        assert_eq!(
+            merged.equivalent_model_names("model-b"),
+            vec!["model-b".to_string()]
+        );
+        assert_eq!(
+            merged.models_for_format(ProviderFormat::Anthropic),
+            Some(&["model-b".to_string()][..])
+        );
+        assert_eq!(
+            merged.models_for_format(ProviderFormat::ChatCompletions),
+            Some(&["model-a".to_string()][..])
         );
     }
 }

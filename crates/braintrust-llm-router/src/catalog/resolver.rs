@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::catalog::{CatalogResolver, ModelCatalog, ModelSpec, OverlayModelCatalog};
+use crate::catalog::{ModelCatalog, ModelSpec};
 use crate::error::{Error, Result};
 use lingua::ProviderFormat;
 
@@ -9,25 +9,14 @@ pub type ResolvedModel = (Arc<ModelSpec>, ProviderFormat, Vec<String>);
 
 #[derive(Debug, Clone)]
 pub struct ModelResolver {
-    catalog: CatalogResolver,
+    catalog: Arc<ModelCatalog>,
     aliases: HashMap<String, String>,
 }
 
 impl ModelResolver {
     pub fn new(catalog: Arc<ModelCatalog>) -> Self {
         Self {
-            catalog: catalog.into(),
-            aliases: HashMap::new(),
-        }
-    }
-
-    /// Resolve models against custom entries first, then the shared base catalog.
-    ///
-    /// The base catalog remains the public `catalog()` view so existing callers
-    /// do not observe per-request custom models as global catalog entries.
-    pub fn with_overlay(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
-        Self {
-            catalog: CatalogResolver::Overlay(Box::new(OverlayModelCatalog { base, custom })),
+            catalog,
             aliases: HashMap::new(),
         }
     }
@@ -38,7 +27,7 @@ impl ModelResolver {
     }
 
     pub fn catalog(&self) -> Arc<ModelCatalog> {
-        self.catalog.base_catalog()
+        Arc::clone(&self.catalog)
     }
 
     pub fn resolve(&self, model: &str) -> Result<ResolvedModel> {
@@ -182,7 +171,7 @@ mod tests {
     }
 
     #[test]
-    fn resolve_overlay_custom_model_before_base_catalog() {
+    fn resolve_merged_catalog_custom_model_before_base_catalog() {
         let mut base = ModelCatalog::empty();
         base.insert(
             "model".into(),
@@ -197,7 +186,8 @@ mod tests {
                 vec!["custom-provider".into()],
             ),
         );
-        let resolver = ModelResolver::with_overlay(Arc::new(base), custom);
+        let merged = base.merge_custom_catalog(custom);
+        let resolver = ModelResolver::new(Arc::new(merged));
 
         let (spec, format, aliases) = resolver.resolve("model").expect("resolves");
         assert_eq!(spec.model, "custom-model");
@@ -206,7 +196,7 @@ mod tests {
     }
 
     #[test]
-    fn resolve_overlay_falls_back_to_base_catalog() {
+    fn resolve_merged_catalog_keeps_base_catalog_models() {
         let mut base = ModelCatalog::empty();
         base.insert(
             "base-model".into(),
@@ -217,7 +207,8 @@ mod tests {
             "custom-model".into(),
             spec("custom-model", ProviderFormat::ChatCompletions),
         );
-        let resolver = ModelResolver::with_overlay(Arc::new(base), custom);
+        let merged = base.merge_custom_catalog(custom);
+        let resolver = ModelResolver::new(Arc::new(merged));
 
         let (spec, format, aliases) = resolver.resolve("base-model").expect("resolves");
         assert_eq!(spec.model, "base-model");
