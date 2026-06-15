@@ -1,4 +1,5 @@
 use bytes::Bytes;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 use crate::capabilities::ProviderFormat;
@@ -8,7 +9,6 @@ use crate::processing::transform::{
 };
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
-use serde::Deserialize;
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -69,6 +69,7 @@ pub struct StreamTransformSession {
     // an equivalent event, so the session synthesizes `content_block_stop`.
     anthropic_open_content_block_index: Option<u32>,
     anthropic_open_content_block_kind: Option<AnthropicContentBlockKind>,
+    anthropic_next_content_block_index: u32,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -91,6 +92,7 @@ impl StreamTransformSession {
             anthropic_tool_use_started: false,
             anthropic_open_content_block_index: None,
             anthropic_open_content_block_kind: None,
+            anthropic_next_content_block_index: 0,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -285,7 +287,9 @@ impl StreamTransformSession {
             self.anthropic_tool_use_started = false;
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
+            self.anthropic_next_content_block_index = 0;
         }
+        let mut chunk = chunk;
         if let (Some(open_index), Some(open_kind), Some(delta_index), Some(delta_kind)) = (
             self.anthropic_open_content_block_index,
             self.anthropic_open_content_block_kind,
@@ -293,10 +297,15 @@ impl StreamTransformSession {
             content_block_delta_kind,
         ) {
             if open_kind != delta_kind && delta_kind.can_synthesize_start() {
-                self.anthropic_open_content_block_index = Some(delta_index);
+                let new_index = self.anthropic_next_content_block_index.max(open_index + 1);
+                self.anthropic_next_content_block_index = new_index + 1;
+                chunk = with_anthropic_content_block_delta_index(chunk, new_index);
+                self.anthropic_open_content_block_index = Some(new_index);
                 self.anthropic_open_content_block_kind = Some(delta_kind);
                 prefix.push(anthropic_content_block_stop_chunk(open_index));
-                prefix.push(anthropic_content_block_start_chunk(delta_index, delta_kind));
+                prefix.push(anthropic_content_block_start_chunk(new_index, delta_kind));
+            } else if open_kind == delta_kind && delta_index != open_index {
+                chunk = with_anthropic_content_block_delta_index(chunk, open_index);
             }
         }
         if (is_content_block_start || is_delta || is_stop)
@@ -310,6 +319,10 @@ impl StreamTransformSession {
         if is_content_block_start {
             self.anthropic_open_content_block_index = content_block_start_index;
             self.anthropic_open_content_block_kind = content_block_start_kind;
+            if let Some(index) = content_block_start_index {
+                self.anthropic_next_content_block_index =
+                    self.anthropic_next_content_block_index.max(index + 1);
+            }
         }
         if is_content_block_stop {
             self.anthropic_open_content_block_index = None;
@@ -333,6 +346,7 @@ impl StreamTransformSession {
                 self.anthropic_tool_use_started = false;
                 self.anthropic_open_content_block_index = None;
                 self.anthropic_open_content_block_kind = None;
+                self.anthropic_next_content_block_index = 0;
                 out.push(stop);
             }
             return Ok(out);
@@ -353,6 +367,7 @@ impl StreamTransformSession {
             self.anthropic_tool_use_started = false;
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
+            self.anthropic_next_content_block_index = 0;
         }
 
         let mut out = prefix;
@@ -371,6 +386,7 @@ impl StreamTransformSession {
             self.anthropic_tool_use_started = false;
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
+            self.anthropic_next_content_block_index = 0;
             out.push(stop);
         }
         out
@@ -422,6 +438,14 @@ impl AnthropicContentBlockDeltaEventView {
 struct AnthropicContentBlockDeltaView {
     #[serde(rename = "type")]
     delta_type: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AnthropicContentBlockDeltaEvent {
+    #[serde(rename = "type")]
+    event_type: String,
+    index: u32,
+    delta: Value,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -537,6 +561,25 @@ fn anthropic_content_block_start_chunk(
         .unwrap_or_else(|_| Bytes::new()),
         "content_block_start".to_string(),
     )
+}
+
+fn with_anthropic_content_block_delta_index(
+    chunk: StreamOutputChunk,
+    index: u32,
+) -> StreamOutputChunk {
+    let Ok(mut event) =
+        crate::serde_json::from_slice::<AnthropicContentBlockDeltaEvent>(&chunk.data)
+    else {
+        return chunk;
+    };
+    event.index = index;
+    let Ok(data) = crate::serde_json::to_vec(&event).map(Bytes::from) else {
+        return chunk;
+    };
+    StreamOutputChunk {
+        data,
+        event_type: chunk.event_type,
+    }
 }
 
 fn with_anthropic_tool_use_stop_reason(chunk: StreamOutputChunk) -> StreamOutputChunk {
@@ -739,6 +782,10 @@ fn expand_anthropic_session_chunks(
     }
 
     if let Some(thinking) = reasoning_text {
+        let content = delta_view
+            .as_ref()
+            .and_then(|d| d.content.as_deref())
+            .filter(|s| !s.is_empty());
         if !anthropic_message_started {
             out.push(StreamOutputChunk::with_event(
                 anthropic_message_start_bytes(universal),
@@ -763,6 +810,27 @@ fn expand_anthropic_session_chunks(
             .unwrap_or_else(|_| Bytes::new()),
             "content_block_delta".to_string(),
         ));
+        if let Some(content) = content {
+            out.push(StreamOutputChunk::with_event(
+                serialize_stream_value(&crate::serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "delta": {
+                        "type": "text_delta",
+                        "text": content
+                    }
+                }))
+                .unwrap_or_else(|_| Bytes::new()),
+                "content_block_delta".to_string(),
+            ));
+        }
+        if has_finish {
+            out.append(&mut chunks);
+            out.push(StreamOutputChunk::with_event(
+                Bytes::from_static(br#"{"type":"message_stop"}"#),
+                "message_stop".to_string(),
+            ));
+        }
         return out;
     }
 
@@ -1334,6 +1402,17 @@ mod tests {
             thinking: String,
         }
 
+        #[derive(Deserialize)]
+        struct TextDeltaEvent {
+            index: u32,
+            delta: TextDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct TextDelta {
+            text: String,
+        }
+
         let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
         let first_thought = to_bytes(&json!({
             "responseId": "response_123",
@@ -1435,6 +1514,91 @@ mod tests {
         assert_eq!(
             text_start.block_kind(),
             Some(AnthropicContentBlockKind::Text)
+        );
+        assert_eq!(text_start.index, 1);
+
+        let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&third[2].data).unwrap();
+        assert_eq!(text_delta.index, 1);
+        assert_eq!(text_delta.delta.text, "The visible answer.");
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_stream_session_google_mixed_thought_and_text_chunk_preserves_both_blocks() {
+        #[derive(Deserialize)]
+        struct TextDeltaEvent {
+            index: u32,
+            delta: TextDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct TextDelta {
+            text: String,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let mixed_final = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "thinking in the same candidate",
+                            "thought": true
+                        },
+                        {
+                            "text": "{\"answer\":\"visible json\"}"
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }],
+            "usageMetadata": {
+                "promptTokenCount": 1,
+                "candidatesTokenCount": 4,
+                "thoughtsTokenCount": 2,
+                "totalTokenCount": 7
+            }
+        }));
+
+        let out = session.push(mixed_final).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta"),
+                Some("content_block_stop"),
+                Some("content_block_start"),
+                Some("content_block_delta"),
+                Some("content_block_stop")
+            ]
+        );
+
+        let text_start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&out[4].data).unwrap();
+        assert_eq!(text_start.index, 1);
+        assert_eq!(
+            text_start.block_kind(),
+            Some(AnthropicContentBlockKind::Text)
+        );
+
+        let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&out[5].data).unwrap();
+        assert_eq!(text_delta.index, 1);
+        assert_eq!(text_delta.delta.text, "{\"answer\":\"visible json\"}");
+
+        let final_chunks = session.finish();
+        assert_eq!(
+            final_chunks
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("message_delta"), Some("message_stop")]
         );
     }
 

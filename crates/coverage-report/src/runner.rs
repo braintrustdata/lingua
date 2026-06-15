@@ -7,7 +7,9 @@ use std::collections::HashMap;
 use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::ProviderAdapter;
 use lingua::serde_json::Value;
-use lingua::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
+use lingua::universal::{
+    UniversalRequest, UniversalResponse, UniversalStreamChunk, UniversalStreamDelta,
+};
 
 use crate::discovery::{discover_test_cases_filtered, load_payload};
 use crate::expected::TestCategory;
@@ -452,17 +454,26 @@ fn test_single_stream_event(
                 }
             };
 
-            match target_adapter.stream_to_universal(transformed) {
-                Ok(u) => u,
-                Err(e) => {
-                    return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Conversion from universal format failed: {}", e)),
-                        diff: None,
-                        limitation_reason: None,
-                    };
+            let transformed_events = transformed
+                .as_array()
+                .map(|events| events.to_vec())
+                .unwrap_or_else(|| vec![transformed]);
+            let mut target_chunks = Vec::new();
+            for transformed_event in transformed_events {
+                match target_adapter.stream_to_universal(transformed_event) {
+                    Ok(Some(chunk)) => target_chunks.push(chunk),
+                    Ok(None) => {}
+                    Err(e) => {
+                        return TransformResult {
+                            level: ValidationLevel::Fail,
+                            error: Some(format!("Conversion from universal format failed: {}", e)),
+                            diff: None,
+                            limitation_reason: None,
+                        };
+                    }
                 }
             }
+            merge_universal_stream_chunks(target_chunks)
         }
         None => {
             // Keep-alive event with no universal representation - pass through
@@ -503,6 +514,86 @@ fn test_single_stream_event(
             diff_to_transform_result(roundtrip_result)
         }
     }
+}
+
+fn merge_universal_stream_chunks(
+    chunks: Vec<UniversalStreamChunk>,
+) -> Option<UniversalStreamChunk> {
+    let mut merged: Option<UniversalStreamChunk> = None;
+
+    for chunk in chunks {
+        let target = merged.get_or_insert_with(|| {
+            UniversalStreamChunk::new(
+                chunk.id.clone(),
+                chunk.model.clone(),
+                Vec::new(),
+                chunk.created,
+                chunk.usage.clone(),
+            )
+        });
+
+        if target.id.is_none() {
+            target.id = chunk.id;
+        }
+        if target.model.is_none() {
+            target.model = chunk.model;
+        }
+        if target.created.is_none() {
+            target.created = chunk.created;
+        }
+        if target.usage.is_none() {
+            target.usage = chunk.usage;
+        }
+
+        for choice in chunk.choices {
+            if let Some(existing) = target
+                .choices
+                .iter_mut()
+                .find(|existing| existing.index == choice.index)
+            {
+                existing.delta = merge_stream_delta_values(existing.delta.take(), choice.delta);
+                if choice.finish_reason.is_some() {
+                    existing.finish_reason = choice.finish_reason;
+                }
+            } else {
+                target.choices.push(choice);
+            }
+        }
+    }
+
+    merged
+}
+
+fn merge_stream_delta_values(existing: Option<Value>, incoming: Option<Value>) -> Option<Value> {
+    let Some(incoming) = incoming else {
+        return existing;
+    };
+
+    let mut merged = existing
+        .and_then(|value| lingua::serde_json::from_value::<UniversalStreamDelta>(value).ok())
+        .unwrap_or_default();
+    let incoming = lingua::serde_json::from_value::<UniversalStreamDelta>(incoming).ok()?;
+
+    if incoming.role.is_some() {
+        merged.role = incoming.role;
+    }
+    if let Some(content) = incoming.content {
+        match &mut merged.content {
+            Some(existing_content) => existing_content.push_str(&content),
+            None => merged.content = Some(content),
+        }
+    }
+    if !incoming.tool_calls.is_empty() {
+        merged.tool_calls.extend(incoming.tool_calls);
+    }
+    if !incoming.reasoning.is_empty() {
+        merged.reasoning.extend(incoming.reasoning);
+    }
+    if incoming.reasoning_signature.is_some() {
+        merged.reasoning_signature = incoming.reasoning_signature;
+    }
+
+    lingua::serde_json::to_value(merged).ok()
 }
 
 /// Run all cross-transformation tests and collect results

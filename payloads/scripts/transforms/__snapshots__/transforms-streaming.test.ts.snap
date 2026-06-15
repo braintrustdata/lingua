@@ -10521,6 +10521,9 @@ data: {"content_index":0,"delta":" **0** and **1** are the most common, both app
 event: response.output_text.delta
 data: {"content_index":0,"delta":"1%**\\n\\n**Rarest Digit(s):**\\nDigits **6, 7, 8,** and **9** are the rarest, all appearing **264** times.\\nPercentage: (264","output_index":0,"type":"response.output_text.delta"}
 
+event: response.output_text.delta
+data: {"content_index":0,"delta":" / 5760) * 100% $\\\\approx$ **4.58%**","output_index":0,"type":"response.output_text.delta"}
+
 event: response.completed
 data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":5889,"output_tokens_details":{"reasoning_tokens":3662},"total_tokens":5964}},"type":"response.completed"}
 
@@ -10528,7 +10531,10 @@ data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > multimodalRequest > streaming 1`] = `
-"event: response.incomplete
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"In this image, I see a beautiful **","output_index":0,"type":"response.output_text.delta"}
+
+event: response.incomplete
 data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":267,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":287},"total_tokens":563}},"type":"response.incomplete"}
 
 "
@@ -10578,6 +10584,9 @@ data: {"content_index":0,"delta":"2 hours + 1 hour = 3 hours\\n\\n**6. Calculate
 event: response.output_text.delta
 data: {"content_index":0,"delta":" 66.666... mph\\n\\n**7. Round to a practical number:**\\n*   Average Speed ≈ 66.67 mph\\n\\n**Answer:** The average speed of the train is approximately **66.","output_index":0,"type":"response.output_text.delta"}
 
+event: response.output_text.delta
+data: {"content_index":0,"delta":"67 mph**.","output_index":0,"type":"response.output_text.delta"}
+
 event: response.completed
 data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":895,"output_tokens_details":{"reasoning_tokens":592},"total_tokens":932}},"type":"response.completed"}
 
@@ -10590,6 +10599,9 @@ data: {"delta":"**Calculating Average Speed**\\n\\nOkay, I'm working on calculat
 
 event: response.reasoning_summary_text.delta
 data: {"delta":"**Defining Problem Stages**\\n\\nI'm now focusing on how the train's journey can be broken into stages. I've realized the travel is in at least two parts. I'm recalling the formula for average speed: (Total Distance) / (Total Time). I believe this is critical to tackling the problem methodically.\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":"Let's break","output_index":0,"type":"response.output_text.delta"}
 
 event: response.incomplete
 data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":94,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":131}},"type":"response.incomplete"}
@@ -10625,6 +10637,9 @@ data: {"content_index":0,"delta":" blue light and leaving the longer-wavelength 
 event: response.output_text.delta
 data: {"content_index":0,"delta":" It appears **black** (with stars), as that side of Earth is facing away from the sun, and there's no sunlight to scatter in the atmosphere.\\n*   **Pollution or Dust:** Can give it a hazy,","output_index":0,"type":"response.output_text.delta"}
 
+event: response.output_text.delta
+data: {"content_index":0,"delta":" brownish, or yellowish tint.\\n\\nSo, while **blue** is the most common answer for a clear daytime sky, it's certainly not its only color!","output_index":0,"type":"response.output_text.delta"}
+
 event: response.completed
 data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":983,"output_tokens_details":{"reasoning_tokens":714},"total_tokens":990}},"type":"response.completed"}
 
@@ -10637,6 +10652,9 @@ data: {"delta":"**Answering the Query**\\n\\nOkay, I'm focusing on providing a d
 
 event: response.output_text.delta
 data: {"content_index":0,"delta":"The","output_index":0,"type":"response.output_text.delta"}
+
+event: response.output_text.delta
+data: {"content_index":0,"delta":" capital of France is **Paris**.","output_index":0,"type":"response.output_text.delta"}
 
 event: response.completed
 data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"completed","usage":{"input_tokens":8,"input_tokens_details":{"cached_tokens":0},"output_tokens":24,"output_tokens_details":{"reasoning_tokens":17},"total_tokens":32}},"type":"response.completed"}
@@ -10652,7 +10670,10 @@ data: {"response":{"id":"iG_VaZqcI_GW_uMPtubRiQE","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > systemMessageArrayContent > streaming 1`] = `
-"event: response.incomplete
+"event: response.output_text.delta
+data: {"content_index":0,"delta":"To find recent errors in the \`project_logs\` (","output_index":0,"type":"response.output_text.delta"}
+
+event: response.incomplete
 data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":29,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":284},"total_tokens":325}},"type":"response.incomplete"}
 
 "

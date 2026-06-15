@@ -976,10 +976,9 @@ impl ProviderAdapter for ResponsesAdapter {
             }));
         }
 
-        if has_finish {
+        let build_terminal_event = |chunk: &UniversalStreamChunk| {
             let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
             let status = match finish_reason.map(|r| r.as_str()) {
-                Some("stop") => "completed",
                 Some("length") => "incomplete",
                 _ => "completed",
             };
@@ -1002,10 +1001,53 @@ impl ProviderAdapter for ResponsesAdapter {
                 }
             }
 
-            return Ok(serde_json::json!({
+            serde_json::json!({
                 "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
                 "response": response
-            }));
+            })
+        };
+
+        if !has_tool_calls {
+            if let Some(choice) = chunk.choices.first() {
+                if let Some(delta) = choice.delta_view() {
+                    let mut events = Vec::new();
+                    let reasoning = delta
+                        .reasoning
+                        .iter()
+                        .filter_map(|r| r.content.as_deref())
+                        .collect::<String>();
+                    if !reasoning.is_empty() {
+                        events.push(serde_json::json!({
+                            "type": "response.reasoning_summary_text.delta",
+                            "output_index": choice.index,
+                            "summary_index": 0,
+                            "delta": reasoning
+                        }));
+                    }
+                    if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+                        events.push(serde_json::json!({
+                            "type": "response.output_text.delta",
+                            "output_index": choice.index,
+                            "content_index": 0,
+                            "delta": content
+                        }));
+                    }
+                    if !events.is_empty() {
+                        if has_finish {
+                            events.push(build_terminal_event(chunk));
+                        }
+                        return Ok(if events.len() == 1 {
+                            events.remove(0)
+                        } else {
+                            Value::Array(events)
+                        });
+                    }
+                }
+            }
+        }
+
+        if has_finish {
+            return Ok(build_terminal_event(chunk));
         }
 
         // Check for content delta
@@ -1043,22 +1085,6 @@ impl ProviderAdapter for ResponsesAdapter {
                             "type": "response.function_call_arguments.delta",
                             "output_index": output_index,
                             "delta": arguments
-                        }));
-                    }
-                }
-
-                if !delta.reasoning.is_empty() {
-                    let reasoning = delta
-                        .reasoning
-                        .iter()
-                        .filter_map(|r| r.content.as_deref())
-                        .collect::<String>();
-                    if !reasoning.is_empty() {
-                        return Ok(serde_json::json!({
-                            "type": "response.reasoning_summary_text.delta",
-                            "output_index": choice.index,
-                            "summary_index": 0,
-                            "delta": reasoning
                         }));
                     }
                 }
@@ -1921,5 +1947,57 @@ mod tests {
         let event: ReasoningDeltaEvent = serde_json::from_value(event).unwrap();
         assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
         assert_eq!(event.delta, "thinking before visible text");
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_mixed_reasoning_content_and_finish_emits_all_events() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: Option<String>,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking in the same candidate"
+                    }]
+                })),
+                finish_reason: Some("stop".to_string()),
+            }],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(1),
+                completion_tokens: Some(4),
+                completion_reasoning_tokens: Some(2),
+                ..Default::default()
+            }),
+        );
+
+        let events = adapter.stream_from_universal(&chunk).unwrap();
+        let events: Vec<StreamEvent> = serde_json::from_value(events).unwrap();
+        assert_eq!(events.len(), 3);
+        assert_eq!(
+            events[0].event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(
+            events[0].delta.as_deref(),
+            Some("thinking in the same candidate")
+        );
+        assert_eq!(events[1].event_type, "response.output_text.delta");
+        assert_eq!(
+            events[1].delta.as_deref(),
+            Some("{\"answer\":\"visible json\"}")
+        );
+        assert_eq!(events[2].event_type, "response.completed");
     }
 }
