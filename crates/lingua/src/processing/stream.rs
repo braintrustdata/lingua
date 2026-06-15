@@ -259,7 +259,7 @@ impl StreamTransformSession {
         // Enforce Anthropic event ordering after provider adapters have produced
         // Anthropic-shaped chunks: one message_start, balanced content blocks,
         // tool_use stop reasons, and merged finish/usage message_delta events.
-        let is_delta = chunk.event_type.as_deref() == Some("message_delta");
+        let is_message_delta = chunk.event_type.as_deref() == Some("message_delta");
         let is_stop = chunk.event_type.as_deref() == Some("message_stop");
         let is_start = chunk.event_type.as_deref() == Some("message_start");
         let is_content_block_start = chunk.event_type.as_deref() == Some("content_block_start");
@@ -277,7 +277,7 @@ impl StreamTransformSession {
         let is_tool_use_start = content_block_start
             .as_ref()
             .is_some_and(AnthropicContentBlockStartEventView::is_tool_use_start);
-        let chunk = if is_delta && self.anthropic_tool_use_started {
+        let chunk = if is_message_delta && self.anthropic_tool_use_started {
             with_anthropic_tool_use_stop_reason(chunk)
         } else {
             chunk
@@ -322,7 +322,10 @@ impl StreamTransformSession {
                 chunk = with_anthropic_content_block_delta_index(chunk, open_index);
             }
         }
-        if (is_content_block_start || is_delta || is_stop)
+        // This closes blocks before explicit block starts and terminal message
+        // deltas. Content-block deltas, including synthesized kind switches
+        // above, must stay inside their open block until the delta is emitted.
+        if (is_content_block_start || is_message_delta || is_stop)
             && self.anthropic_open_content_block_index.is_some()
         {
             if let Some(index) = self.anthropic_open_content_block_index.take() {
@@ -346,7 +349,7 @@ impl StreamTransformSession {
             self.anthropic_tool_use_started = true;
         }
 
-        if is_delta && self.buffered_delta.is_some() {
+        if is_message_delta && self.buffered_delta.is_some() {
             let merged = merge_delta_usage(
                 self.buffered_delta
                     .take()
@@ -366,7 +369,7 @@ impl StreamTransformSession {
             return Ok(out);
         }
 
-        if is_delta {
+        if is_message_delta {
             self.buffered_delta = Some(chunk);
             return Ok(prefix);
         }
@@ -1725,6 +1728,11 @@ mod tests {
     #[cfg(all(feature = "google", feature = "anthropic"))]
     fn test_stream_session_google_mixed_thought_and_text_chunk_preserves_both_blocks() {
         #[derive(Deserialize)]
+        struct ContentBlockStopEvent {
+            index: u32,
+        }
+
+        #[derive(Deserialize)]
         struct TextDeltaEvent {
             index: u32,
             delta: TextDelta,
@@ -1790,6 +1798,9 @@ mod tests {
         let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&out[5].data).unwrap();
         assert_eq!(text_delta.index, 1);
         assert_eq!(text_delta.delta.text, "{\"answer\":\"visible json\"}");
+
+        let text_stop: ContentBlockStopEvent = crate::serde_json::from_slice(&out[6].data).unwrap();
+        assert_eq!(text_stop.index, 1);
 
         let final_chunks = session.finish();
         assert_eq!(
