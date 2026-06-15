@@ -8,8 +8,8 @@ use lingua::capabilities::ProviderFormat;
 use lingua::processing::adapters::ProviderAdapter;
 use lingua::serde_json::Value;
 use lingua::universal::{
-    UniversalRequest, UniversalResponse, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta,
 };
 
 use crate::discovery::{discover_test_cases_filtered, load_payload};
@@ -546,7 +546,11 @@ fn merge_universal_stream_chunks(
             target.usage = chunk.usage;
         }
 
-        for choice in chunk.choices {
+        for mut choice in chunk.choices {
+            if let Some(target_index) = reasoning_split_target_index(&target.choices, &choice) {
+                remap_stream_choice_index(&mut choice, target_index);
+            }
+
             if let Some(existing) = target
                 .choices
                 .iter_mut()
@@ -563,6 +567,66 @@ fn merge_universal_stream_chunks(
     }
 
     merged
+}
+
+fn reasoning_split_target_index(
+    existing_choices: &[UniversalStreamChoice],
+    incoming: &UniversalStreamChoice,
+) -> Option<u32> {
+    if !stream_choice_has_visible_delta(incoming) {
+        return None;
+    }
+
+    existing_choices
+        .iter()
+        .find(|existing| {
+            existing.index + 1 == incoming.index && stream_choice_has_reasoning(existing)
+        })
+        .map(|existing| existing.index)
+}
+
+fn stream_choice_has_reasoning(choice: &UniversalStreamChoice) -> bool {
+    stream_choice_delta(choice).is_some_and(|delta| !delta.reasoning.is_empty())
+}
+
+fn stream_choice_has_visible_delta(choice: &UniversalStreamChoice) -> bool {
+    stream_choice_delta(choice).is_some_and(|delta| {
+        delta
+            .content
+            .as_deref()
+            .is_some_and(|content| !content.is_empty())
+            || !delta.tool_calls.is_empty()
+    })
+}
+
+fn stream_choice_delta(choice: &UniversalStreamChoice) -> Option<UniversalStreamDelta> {
+    choice
+        .delta
+        .clone()
+        .and_then(|value| lingua::serde_json::from_value(value).ok())
+}
+
+fn remap_stream_choice_index(choice: &mut UniversalStreamChoice, target_index: u32) {
+    let source_index = choice.index;
+    if source_index == target_index {
+        return;
+    }
+
+    choice.index = target_index;
+    if let Some(delta_value) = choice.delta.take() {
+        choice.delta =
+            match lingua::serde_json::from_value::<UniversalStreamDelta>(delta_value.clone()) {
+                Ok(mut delta) => {
+                    for tool_call in &mut delta.tool_calls {
+                        if tool_call.index == Some(source_index) {
+                            tool_call.index = Some(target_index);
+                        }
+                    }
+                    lingua::serde_json::to_value(delta).ok()
+                }
+                Err(_) => Some(delta_value),
+            };
+    }
 }
 
 fn merge_stream_delta_values(existing: Option<Value>, incoming: Option<Value>) -> Option<Value> {
@@ -1162,5 +1226,124 @@ fn compare_recursive(
                 diff.changed_fields.push((path.to_string(), before, after));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lingua::serde_json::json;
+
+    fn stream_chunk(
+        index: u32,
+        delta: Option<Value>,
+        finish_reason: Option<&str>,
+    ) -> UniversalStreamChunk {
+        UniversalStreamChunk::new(
+            Some("resp_test".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index,
+                delta,
+                finish_reason: finish_reason.map(ToString::to_string),
+            }],
+            None,
+            None,
+        )
+    }
+
+    #[test]
+    fn merge_stream_chunks_collapses_responses_reasoning_text_indexes() {
+        let merged = merge_universal_stream_chunks(vec![
+            stream_chunk(
+                0,
+                Some(json!({
+                    "reasoning": [{"content": "thinking"}]
+                })),
+                None,
+            ),
+            stream_chunk(
+                1,
+                Some(json!({
+                    "content": "visible answer"
+                })),
+                None,
+            ),
+            stream_chunk(0, None, Some("stop")),
+        ])
+        .expect("chunks should merge");
+
+        assert_eq!(merged.choices.len(), 1);
+        assert_eq!(merged.choices[0].index, 0);
+        assert_eq!(merged.choices[0].finish_reason.as_deref(), Some("stop"));
+
+        let delta: UniversalStreamDelta =
+            lingua::serde_json::from_value(merged.choices[0].delta.clone().unwrap()).unwrap();
+        assert_eq!(delta.reasoning.len(), 1);
+        assert_eq!(delta.reasoning[0].content.as_deref(), Some("thinking"));
+        assert_eq!(delta.content.as_deref(), Some("visible answer"));
+    }
+
+    #[test]
+    fn merge_stream_chunks_collapses_responses_reasoning_tool_indexes() {
+        let merged = merge_universal_stream_chunks(vec![
+            stream_chunk(
+                0,
+                Some(json!({
+                    "reasoning": [{"content": "thinking"}]
+                })),
+                None,
+            ),
+            stream_chunk(
+                1,
+                Some(json!({
+                    "tool_calls": [{
+                        "index": 1,
+                        "id": "call_1",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup"
+                        }
+                    }]
+                })),
+                None,
+            ),
+            stream_chunk(
+                1,
+                Some(json!({
+                    "tool_calls": [{
+                        "index": 1,
+                        "function": {
+                            "arguments": "{\"q\":\"camera\"}"
+                        }
+                    }]
+                })),
+                None,
+            ),
+        ])
+        .expect("chunks should merge");
+
+        assert_eq!(merged.choices.len(), 1);
+        assert_eq!(merged.choices[0].index, 0);
+
+        let delta: UniversalStreamDelta =
+            lingua::serde_json::from_value(merged.choices[0].delta.clone().unwrap()).unwrap();
+        assert_eq!(delta.reasoning.len(), 1);
+        assert_eq!(delta.tool_calls.len(), 1);
+        assert_eq!(delta.tool_calls[0].index, Some(0));
+        assert_eq!(
+            delta.tool_calls[0]
+                .function
+                .as_ref()
+                .and_then(|function| function.name.as_deref()),
+            Some("lookup")
+        );
+        assert_eq!(
+            delta.tool_calls[0]
+                .function
+                .as_ref()
+                .and_then(|function| function.arguments.as_deref()),
+            Some("{\"q\":\"camera\"}")
+        );
     }
 }
