@@ -164,8 +164,17 @@ impl FinishReason {
             ) => Self::ContentFilter,
             ("content_filtered", ProviderFormat::Converse) => Self::ContentFilter,
             (
-                "SAFETY" | "RECITATION" | "OTHER" | "BLOCKLIST" | "PROHIBITED_CONTENT" | "SPII"
-                | "IMAGE_SAFETY" | "ESCALATION",
+                "SAFETY"
+                | "RECITATION"
+                | "OTHER"
+                | "BLOCKLIST"
+                | "PROHIBITED_CONTENT"
+                | "SPII"
+                | "IMAGE_SAFETY"
+                | "IMAGE_RECITATION"
+                | "IMAGE_PROHIBITED_CONTENT"
+                | "LANGUAGE"
+                | "ESCALATION",
                 ProviderFormat::Google,
             ) => Self::ContentFilter,
             ("content_filter", _) => Self::ContentFilter,
@@ -563,6 +572,9 @@ mod tests {
             "PROHIBITED_CONTENT",
             "SPII",
             "IMAGE_SAFETY",
+            "IMAGE_RECITATION",
+            "IMAGE_PROHIBITED_CONTENT",
+            "LANGUAGE",
             "ESCALATION",
         ] {
             assert_eq!(

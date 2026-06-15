@@ -1218,6 +1218,9 @@ impl From<&GoogleFinishReason> for FinishReason {
             | GoogleFinishReason::ProhibitedContent
             | GoogleFinishReason::Spii
             | GoogleFinishReason::ImageSafety
+            | GoogleFinishReason::ImageRecitation
+            | GoogleFinishReason::ImageProhibitedContent
+            | GoogleFinishReason::Language
             | GoogleFinishReason::Escalation => FinishReason::ContentFilter,
             other => {
                 let s = serde_json::to_value(other)
@@ -2016,6 +2019,29 @@ mod tests {
     #[test]
     fn test_escalation_finish_reason_maps_to_content_filter() {
         let reason = GoogleFinishReason::Escalation;
+        let universal: FinishReason = FinishReason::from(&reason);
+        assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    #[test]
+    fn test_image_safety_finish_reasons_map_to_content_filter() {
+        for reason in [
+            GoogleFinishReason::ImageRecitation,
+            GoogleFinishReason::ImageProhibitedContent,
+            GoogleFinishReason::ImageSafety,
+        ] {
+            let universal: FinishReason = FinishReason::from(&reason);
+            assert_eq!(
+                universal,
+                FinishReason::ContentFilter,
+                "{reason:?} should map to ContentFilter"
+            );
+        }
+    }
+
+    #[test]
+    fn test_language_finish_reason_maps_to_content_filter() {
+        let reason = GoogleFinishReason::Language;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
     }
