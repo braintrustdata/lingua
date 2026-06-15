@@ -9,6 +9,7 @@ use lingua::processing::adapters::ProviderAdapter;
 use lingua::serde_json::Value;
 use lingua::universal::{
     UniversalRequest, UniversalResponse, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta,
 };
 
 use crate::discovery::{discover_test_cases_filtered, load_payload};
@@ -584,7 +585,7 @@ fn merge_stream_delta_values(existing: Option<Value>, incoming: Option<Value>) -
         }
     }
     if !incoming.tool_calls.is_empty() {
-        merged.tool_calls.extend(incoming.tool_calls);
+        merge_tool_call_deltas(&mut merged.tool_calls, incoming.tool_calls);
     }
     if !incoming.reasoning.is_empty() {
         merged.reasoning.extend(incoming.reasoning);
@@ -594,6 +595,52 @@ fn merge_stream_delta_values(existing: Option<Value>, incoming: Option<Value>) -
     }
 
     lingua::serde_json::to_value(merged).ok()
+}
+
+fn merge_tool_call_deltas(
+    existing: &mut Vec<UniversalToolCallDelta>,
+    incoming: Vec<UniversalToolCallDelta>,
+) {
+    for incoming_tool_call in incoming {
+        let Some(index) = incoming_tool_call.index else {
+            existing.push(incoming_tool_call);
+            continue;
+        };
+
+        if let Some(existing_tool_call) = existing
+            .iter_mut()
+            .find(|tool_call| tool_call.index == Some(index))
+        {
+            if incoming_tool_call.id.is_some() {
+                existing_tool_call.id = incoming_tool_call.id;
+            }
+            if incoming_tool_call.call_type.is_some() {
+                existing_tool_call.call_type = incoming_tool_call.call_type;
+            }
+            match (
+                &mut existing_tool_call.function,
+                incoming_tool_call.function,
+            ) {
+                (Some(existing_function), Some(incoming_function)) => {
+                    if incoming_function.name.is_some() {
+                        existing_function.name = incoming_function.name;
+                    }
+                    if let Some(arguments) = incoming_function.arguments {
+                        match &mut existing_function.arguments {
+                            Some(existing_arguments) => existing_arguments.push_str(&arguments),
+                            None => existing_function.arguments = Some(arguments),
+                        }
+                    }
+                }
+                (None, Some(incoming_function)) => {
+                    existing_tool_call.function = Some(incoming_function);
+                }
+                _ => {}
+            }
+        } else {
+            existing.push(incoming_tool_call);
+        }
+    }
 }
 
 /// Run all cross-transformation tests and collect results

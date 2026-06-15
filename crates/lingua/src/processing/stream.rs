@@ -853,6 +853,24 @@ fn expand_anthropic_session_chunks(
             .unwrap_or_else(|_| Bytes::new()),
             "content_block_delta".to_string(),
         ));
+        if let Some(signature) = delta_view
+            .as_ref()
+            .and_then(|d| d.reasoning_signature.as_deref())
+            .filter(|signature| !signature.is_empty())
+        {
+            out.push(StreamOutputChunk::with_event(
+                serialize_stream_value(&crate::serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "delta": {
+                        "type": "signature_delta",
+                        "signature": signature
+                    }
+                }))
+                .unwrap_or_else(|_| Bytes::new()),
+                "content_block_delta".to_string(),
+            ));
+        }
         if let Some(content) = content {
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
@@ -1690,6 +1708,17 @@ mod tests {
     #[test]
     #[cfg(all(feature = "google", feature = "anthropic"))]
     fn test_stream_session_google_mixed_thought_and_tool_call_preserves_tool_use() {
+        #[derive(Deserialize)]
+        struct SignatureDeltaEvent {
+            index: u32,
+            delta: SignatureDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct SignatureDelta {
+            signature: String,
+        }
+
         let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
         let mixed_tool = to_bytes(&json!({
             "responseId": "response_123",
@@ -1701,7 +1730,8 @@ mod tests {
                     "parts": [
                         {
                             "text": "thinking before the tool",
-                            "thought": true
+                            "thought": true,
+                            "thoughtSignature": "sig_abc123"
                         },
                         {
                             "functionCall": {
@@ -1725,14 +1755,20 @@ mod tests {
                 Some("message_start"),
                 Some("content_block_start"),
                 Some("content_block_delta"),
+                Some("content_block_delta"),
                 Some("content_block_stop"),
                 Some("content_block_start"),
                 Some("content_block_delta")
             ]
         );
 
+        let signature_delta: SignatureDeltaEvent =
+            crate::serde_json::from_slice(&out[3].data).unwrap();
+        assert_eq!(signature_delta.index, 0);
+        assert_eq!(signature_delta.delta.signature, "sig_abc123");
+
         let tool_start: AnthropicContentBlockStartEventView =
-            crate::serde_json::from_slice(&out[4].data).unwrap();
+            crate::serde_json::from_slice(&out[5].data).unwrap();
         assert_eq!(tool_start.index, 1);
         assert_eq!(
             tool_start.block_kind(),
@@ -1740,7 +1776,7 @@ mod tests {
         );
 
         let tool_delta: AnthropicContentBlockDeltaEventView =
-            crate::serde_json::from_slice(&out[5].data).unwrap();
+            crate::serde_json::from_slice(&out[6].data).unwrap();
         assert_eq!(tool_delta.index, 1);
         assert_eq!(
             tool_delta.block_kind(),
