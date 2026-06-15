@@ -267,6 +267,50 @@ mod tests {
     // =========================================================================
 
     #[test]
+    fn anthropic_ttl_fields_are_not_expected_losses_for_anthropic_response_roundtrip() {
+        assert_eq!(
+            is_expected_field(
+                TestCategory::Responses,
+                "Anthropic",
+                "Anthropic",
+                Some("simpleRequest"),
+                "usage.prompt_cache_creation_5m_tokens",
+            ),
+            None
+        );
+        assert_eq!(
+            is_expected_field(
+                TestCategory::Responses,
+                "Anthropic",
+                "Anthropic",
+                Some("simpleRequest"),
+                "usage.prompt_tokens_exclude_cache",
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn anthropic_ttl_fields_are_expected_losses_for_openai_style_response_targets() {
+        assert!(is_expected_field(
+            TestCategory::Responses,
+            "Anthropic",
+            "ChatCompletions",
+            Some("simpleRequest"),
+            "usage.prompt_cache_creation_5m_tokens",
+        )
+        .is_some());
+        assert!(is_expected_field(
+            TestCategory::Responses,
+            "Anthropic",
+            "Responses",
+            Some("simpleRequest"),
+            "usage.prompt_tokens_exclude_cache",
+        )
+        .is_some());
+    }
+
+    #[test]
     fn test_test_case_exact_match() {
         assert!(is_expected_test_case(
             TestCategory::Requests,

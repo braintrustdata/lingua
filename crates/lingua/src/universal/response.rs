@@ -474,16 +474,27 @@ impl UniversalUsage {
         if !self.prompt_tokens_exclude_cache {
             return self.prompt_tokens;
         }
+        let prompt_cache_creation_tokens = self.prompt_cache_creation_tokens.or_else(|| {
+            if self.prompt_cache_creation_5m_tokens.is_none()
+                && self.prompt_cache_creation_1h_tokens.is_none()
+            {
+                return None;
+            }
+            Some(
+                self.prompt_cache_creation_5m_tokens.unwrap_or(0)
+                    + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
+            )
+        });
         if self.prompt_tokens.is_none()
             && self.prompt_cached_tokens.is_none()
-            && self.prompt_cache_creation_tokens.is_none()
+            && prompt_cache_creation_tokens.is_none()
         {
             return None;
         }
         Some(
             self.prompt_tokens.unwrap_or(0)
                 + self.prompt_cached_tokens.unwrap_or(0)
-                + self.prompt_cache_creation_tokens.unwrap_or(0),
+                + prompt_cache_creation_tokens.unwrap_or(0),
         )
     }
 
@@ -730,6 +741,20 @@ mod tests {
         assert_eq!(responses["input_tokens"], 60);
         assert_eq!(responses["output_tokens"], 5);
         assert_eq!(responses["total_tokens"], 65);
+    }
+
+    #[test]
+    fn test_inclusive_prompt_tokens_uses_split_ttl_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_5m_tokens: Some(30),
+            prompt_cache_creation_1h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
     }
 
     #[test]
