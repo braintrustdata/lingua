@@ -238,6 +238,39 @@ impl ModelCatalog {
         }
     }
 
+    pub fn add_equivalent_models<I>(&mut self, name: String, equivalents: I) -> Result<()>
+    where
+        I: IntoIterator<Item = String>,
+    {
+        if !self.models.contains_key(&name) {
+            return Err(Error::InvalidRequest(format!(
+                "model '{name}' references equivalent_models but is missing from catalog"
+            )));
+        }
+
+        let equivalents: Vec<String> = equivalents
+            .into_iter()
+            .filter(|equivalent_model| !equivalent_model.is_empty())
+            .collect();
+        for equivalent_model in &equivalents {
+            if !self.models.contains_key(equivalent_model) {
+                return Err(Error::InvalidRequest(format!(
+                    "model '{name}' references missing equivalent model '{equivalent_model}'"
+                )));
+            }
+        }
+
+        let entry = self.equivalent_models.entry(name).or_default();
+        for equivalent_model in equivalents {
+            if entry.contains(&equivalent_model) {
+                continue;
+            }
+            entry.push(equivalent_model);
+        }
+        self.rebuild_equivalence_index();
+        Ok(())
+    }
+
     fn validate_equivalent_models(&self) -> Result<()> {
         for (name, equivalents) in &self.equivalent_models {
             for equivalent_model in equivalents {
@@ -417,6 +450,59 @@ mod tests {
         .expect_err("missing equivalent model should fail");
 
         assert!(matches!(error, Error::InvalidRequest(_)));
+    }
+
+    #[test]
+    fn add_equivalent_models_rebuilds_index() {
+        let mut catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat"
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        catalog
+            .add_equivalent_models("model-a".to_string(), vec!["model-b".to_string()])
+            .expect("equivalence is valid");
+
+        assert_eq!(
+            catalog.equivalent_model_names("model-a"),
+            vec!["model-a".to_string(), "model-b".to_string()]
+        );
+        assert_eq!(
+            catalog.equivalent_model_names("model-b"),
+            vec!["model-b".to_string(), "model-a".to_string()]
+        );
+    }
+
+    #[test]
+    fn add_equivalent_models_rejects_missing_reference() {
+        let mut catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        let error = catalog
+            .add_equivalent_models("model-a".to_string(), vec!["missing".to_string()])
+            .expect_err("missing equivalent model should fail");
+
+        assert!(matches!(error, Error::InvalidRequest(_)));
+        assert_eq!(
+            catalog.equivalent_model_names("model-a"),
+            vec!["model-a".to_string()]
+        );
     }
 
     #[test]
