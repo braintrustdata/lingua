@@ -526,20 +526,17 @@ impl UniversalUsage {
                 if self.prompt_cache_creation_5m_tokens.is_some()
                     || self.prompt_cache_creation_1h_tokens.is_some()
                 {
-                    let mut cache_creation = serde_json::Map::new();
-                    if let Some(cache_creation_5m) = self.prompt_cache_creation_5m_tokens {
-                        cache_creation.insert(
-                            "ephemeral_5m_input_tokens".into(),
-                            serde_json::json!(cache_creation_5m),
-                        );
-                    }
-                    if let Some(cache_creation_1h) = self.prompt_cache_creation_1h_tokens {
-                        cache_creation.insert(
-                            "ephemeral_1h_input_tokens".into(),
-                            serde_json::json!(cache_creation_1h),
-                        );
-                    }
-                    map.insert("cache_creation".into(), Value::Object(cache_creation));
+                    map.insert(
+                        "cache_creation".into(),
+                        serde_json::json!({
+                            "ephemeral_5m_input_tokens": self
+                                .prompt_cache_creation_5m_tokens
+                                .unwrap_or(0),
+                            "ephemeral_1h_input_tokens": self
+                                .prompt_cache_creation_1h_tokens
+                                .unwrap_or(0),
+                        }),
+                    );
                 }
 
                 if let Some(cache_read) = self.prompt_cached_tokens {
