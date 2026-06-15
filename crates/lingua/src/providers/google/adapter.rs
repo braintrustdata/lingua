@@ -27,9 +27,9 @@ use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, TokenBudget,
-    UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
-    UniversalUsage, UserContent,
+    UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage, UserContent,
 };
 
 /// Adapter for Google AI GenerateContent API.
@@ -532,11 +532,21 @@ impl ProviderAdapter for GoogleAdapter {
                 .and_then(|content| content.parts)
                 .unwrap_or_default();
 
-            let text = parts
-                .iter()
-                .filter_map(|part| part.text.as_deref())
-                .collect::<Vec<_>>()
-                .join("");
+            let mut text_segments = Vec::new();
+            let mut reasoning = Vec::new();
+            for part in &parts {
+                let Some(text) = part.text.as_deref() else {
+                    continue;
+                };
+                if part.thought == Some(true) {
+                    reasoning.push(UniversalReasoningDelta {
+                        content: Some(text.to_string()),
+                    });
+                } else {
+                    text_segments.push(text);
+                }
+            }
+            let text = text_segments.join("");
             let reasoning_signature = parts.iter().find_map(|part| part.thought_signature.clone());
 
             let response_id = typed_payload.response_id.as_deref();
@@ -590,7 +600,7 @@ impl ProviderAdapter for GoogleAdapter {
                 role: Some("assistant".to_string()),
                 content: Some(text),
                 tool_calls,
-                reasoning: vec![],
+                reasoning,
                 reasoning_signature,
             };
 
@@ -1282,6 +1292,52 @@ mod tests {
         assert_eq!(
             delta.tool_calls[1].id.as_deref(),
             Some("call_response_456_1")
+        );
+    }
+
+    #[test]
+    fn test_google_stream_keeps_thought_text_out_of_content() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_json_thinking",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "**Analyzing caption**\nI should summarize the microphone comparison.",
+                            "thought": true
+                        },
+                        {
+                            "text": "{\"topic\":\"microphones\",\"confidence\":0.95}",
+                            "thoughtSignature": "thought_signature_123"
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let choice = chunk.choices.first().expect("choice should be present");
+        let delta = choice.delta_view().expect("delta should be present");
+
+        assert_eq!(
+            delta.content.as_deref(),
+            Some("{\"topic\":\"microphones\",\"confidence\":0.95}")
+        );
+        assert_eq!(delta.reasoning.len(), 1);
+        assert_eq!(
+            delta.reasoning[0].content.as_deref(),
+            Some("**Analyzing caption**\nI should summarize the microphone comparison.")
+        );
+        assert_eq!(
+            delta.reasoning_signature.as_deref(),
+            Some("thought_signature_123")
         );
     }
 

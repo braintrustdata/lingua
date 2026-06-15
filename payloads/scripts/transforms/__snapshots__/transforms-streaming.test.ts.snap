@@ -7189,7 +7189,7 @@ data: [DONE]
 `;
 
 exports[`streaming: chat-completions → google > simpleRequest > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"**Answering the Query**\\n\\nI'm focused on providing a clear and factual answer. The user has posed a direct question, and I'm ensuring the response is concise and accurate, meeting their information needs precisely. I'm prioritizing clarity and directness in my approach to best address their inquiry.\\n\\n\\n","role":"assistant"},"finish_reason":null,"index":0}],"id":"8Tr6afj2BdWk1MkPpP-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":18,"completion_tokens_details":{"reasoning_tokens":18},"prompt_tokens":8,"total_tokens":26}}
+"data: {"choices":[{"delta":{"content":"","reasoning":[{"content":"**Answering the Query**\\n\\nI'm focused on providing a clear and factual answer. The user has posed a direct question, and I'm ensuring the response is concise and accurate, meeting their information needs precisely. I'm prioritizing clarity and directness in my approach to best address their inquiry.\\n\\n\\n"}],"role":"assistant"},"finish_reason":null,"index":0}],"id":"8Tr6afj2BdWk1MkPpP-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":18,"completion_tokens_details":{"reasoning_tokens":18},"prompt_tokens":8,"total_tokens":26}}
 
 data: {"choices":[{"delta":{"content":"The capital of France is **Paris**.","role":"assistant"},"finish_reason":"stop","index":0}],"id":"8Tr6afj2BdWk1MkPpP-rgQM","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":25,"completion_tokens_details":{"reasoning_tokens":18},"prompt_tokens":8,"total_tokens":33}}
 
@@ -10353,35 +10353,35 @@ data: {"response":{"id":"resp_transformed","model":"transformed","object":"respo
 `;
 
 exports[`streaming: responses → google > complexReasoningRequest > streaming 1`] = `
-"event: response.output_text.delta
-data: {"content_index":0,"delta":"**Defining the Objective**\\n\\nOkay, I'm working on the problem of identifying the most and least frequent digits on a digital clock over a 24-hour period. I've begun to analyze the parameters, and I'm focusing on breaking down the time range (00:00 to 23:59) to count the digit appearances methodically. This approach is key to an effective solution.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+"event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":65,"output_tokens_details":{"reasoning_tokens":65},"total_tokens":140}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Analyzing Digit Frequencies**\\n\\nI'm now diving deep into the specifics of digit counting, broken down by position. I'm focusing on the units digit of the minutes (M2). The total number of digits displayed is 5760 (1440 * 4). I've got to determine which numbers appear most and least. I'm breaking down how often each digit (0-9) appears in each position to find the solution. I am trying to determine a method to make this problem more efficient.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":462,"output_tokens_details":{"reasoning_tokens":462},"total_tokens":537}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Calculating Digit Frequencies**\\n\\nI'm now determining the frequency of each digit in the minutes' tens place (M1). I have calculated that for M2, each digit (0-9) appears 144 times. I'm focusing on the position analysis to determine the occurrences of each digit. M1 cycles from 0-5 for every 10 minutes. I am analyzing the implications across the entire 24-hour period (00:00 to 23:59). My current focus is to efficiently determine the patterns.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":953,"output_tokens_details":{"reasoning_tokens":953},"total_tokens":1028}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Calculating Frequency Analysis**\\n\\nI've completed the initial frequency calculations for each digit position. Specifically, for M2, each digit appears 144 times, and for M1, digits 0-5 each occur 240 times, and 6-9 appear 0 times. My next step is to finalize the H1 and H2 digit occurrences, addressing the complexity of the hour constraints. I'll summarize these totals into the final tally.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":1341,"output_tokens_details":{"reasoning_tokens":1341},"total_tokens":1416}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Finalizing Calculations**\\n\\nI'm now finalizing the calculations for the tens (H1) and units (H2) of the hours. I've corrected an error in H2 calculations and now have a firm grasp on the frequency distribution. I'm focusing on consolidating all of the totals across the H1, H2, M1, and M2 positions for a complete, accurate count. The final step is determining the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":1731,"output_tokens_details":{"reasoning_tokens":1731},"total_tokens":1806}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Calculating Total Counts**\\n\\nI'm now consolidating the frequency counts for all digit positions. Specifically, I've totaled each digit's occurrences in H1, H2, M1, and M2, accounting for all time constraints. From this analysis, I will determine the most and least frequent digits displayed over the entire 24-hour cycle. The final step is to verify the results.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":2223,"output_tokens_details":{"reasoning_tokens":2223},"total_tokens":2298}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Refining Calculation Accuracy**\\n\\nI'm now implementing the calculation refinements based on the detailed analysis. I've re-examined the H2 position, accounting for the varying hour constraints, and updated the frequency totals for digits 0-9. I'm focusing on validating these counts to ensure an accurate base for finding the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":2662,"output_tokens_details":{"reasoning_tokens":2662},"total_tokens":2737}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Refining Calculation Accuracy**\\n\\nI'm now implementing calculation refinements based on the updated analysis of each digit position. I have re-evaluated the H2 position, accounting for the unique hour constraints, and have updated the frequency totals for digits 0-9. I'm focusing on validation of these counts.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":3251,"output_tokens_details":{"reasoning_tokens":3251},"total_tokens":3326}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Refining Calculations**\\n\\nI'm now refining the accuracy of the counts, re-evaluating each digit's occurrences in the hours and minutes. I am now double-checking the H1 and H2 hour calculations, particularly the impact of the hour constraints (0-23). I've found a more reliable and efficient approach.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":3591,"output_tokens_details":{"reasoning_tokens":3591},"total_tokens":3666}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Refining Hour Calculation**\\n\\nI'm now implementing calculation refinements based on the detailed analysis. I've re-evaluated the H2 position, accounting for the unique hour constraints, and have updated the frequency totals for digits 0-9. I'm focusing on validating these counts to ensure an accurate base for finding the most and least frequent digits.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":3662,"output_tokens_details":{"reasoning_tokens":3662},"total_tokens":3737}},"type":"response.created"}
 
 event: response.output_text.delta
 data: {"content_index":0,"delta":"Let's break down the problem by counting the occurrences of each digit (0-9) across all possible times from 0","output_index":0,"type":"response.output_text.delta"}
@@ -10548,14 +10548,14 @@ data: {"response":{"id":"US8oarqkA-zQ_uMPs83E8A4","model":"gemini-3.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningRequest > streaming 1`] = `
-"event: response.output_text.delta
-data: {"content_index":0,"delta":"**Defining the Goal**\\n\\nI've zeroed in on the core of the problem: determining the train's average speed. The formula is key: Total Distance divided by Total Time. I'm building my approach around this foundational understanding.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+"event: response.created
+data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":67,"output_tokens_details":{"reasoning_tokens":67},"total_tokens":104}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Calculating the Distance**\\n\\nI'm now calculating the distances for each leg of the journey. I'm using the Distance = Speed x Time formula, breaking down the trip into stage one and stage two. I've worked out the distance for each stage and summed those up, and the total distance traveled is 200 miles! Next, I am calculating the total time of the journey.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":412,"output_tokens_details":{"reasoning_tokens":412},"total_tokens":449}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Finalizing the Calculation**\\n\\nI've completed all calculations. The process went smoothly, step-by-step. I've calculated the total distance at 200 miles and the total time at 3 hours. Dividing to get the average speed, I get 66.67 mph (or exactly 66 and 2/3 mph). Now I'm structuring the answer for presentation, following all of the steps I used.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":592,"output_tokens_details":{"reasoning_tokens":592},"total_tokens":629}},"type":"response.created"}
 
 event: response.output_text.delta
 data: {"content_index":0,"delta":"Here's how to calculate the average speed step-by-step","output_index":0,"type":"response.output_text.delta"}
@@ -10585,11 +10585,11 @@ data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningRequestTruncated > streaming 1`] = `
-"event: response.output_text.delta
-data: {"content_index":0,"delta":"**Calculating Average Speed**\\n\\nOkay, I'm working on calculating the average speed. I've broken down the problem to use the average speed formula: (Total Distance) / (Total Time). My next step is figuring out how to determine the total distance and total time, given the information in the problem. I need to make sure I don't miss any steps!\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+"event: response.created
+data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":68,"output_tokens_details":{"reasoning_tokens":68},"total_tokens":105}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Defining Problem Stages**\\n\\nI'm now focusing on how the train's journey can be broken into stages. I've realized the travel is in at least two parts. I'm recalling the formula for average speed: (Total Distance) / (Total Time). I believe this is critical to tackling the problem methodically.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":92,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":129}},"type":"response.created"}
 
 event: response.incomplete
 data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":94,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":131}},"type":"response.incomplete"}
@@ -10598,17 +10598,17 @@ data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningWithOutput > streaming 1`] = `
-"event: response.output_text.delta
-data: {"content_index":0,"delta":"**Reviewing Basic Principles**\\n\\nI've started by breaking down the user's question. Now I'm recalling relevant background knowledge, specifically focusing on how light scattering affects sky color. I'm focusing on the contrast between daytime and sunrise/sunset.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+"event: response.created
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":65,"output_tokens_details":{"reasoning_tokens":65},"total_tokens":72}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Defining the Standard Answer**\\n\\nNow I'm focusing on the core answer: \\"The sky is blue.\\" I'm also ensuring that I can explain *why* it's blue, using Rayleigh scattering as the key. I'm building out a list of other possible sky colors, so I can add them for completeness. I'm focusing on the importance of clarity.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":359,"output_tokens_details":{"reasoning_tokens":359},"total_tokens":366}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Refining My Explanation**\\n\\nI'm now zeroing in on a polished response. I'm focusing on crafting a succinct explanation that balances clarity with completeness, accounting for Rayleigh scattering as the key. I'm prioritizing the inclusion of varied sky colors in different situations to provide a more nuanced answer.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":607,"output_tokens_details":{"reasoning_tokens":607},"total_tokens":614}},"type":"response.created"}
 
-event: response.output_text.delta
-data: {"content_index":0,"delta":"**Crafting the Final Response**\\n\\nI'm now satisfied with the explanation and focusing on polishing the response. I've re-read it, to clarify that the user receives an easy to understand answer, which is also correct. I'm prioritizing accuracy and conciseness, ready to finalize the statement.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+event: response.created
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":714,"output_tokens_details":{"reasoning_tokens":714},"total_tokens":721}},"type":"response.created"}
 
 event: response.output_text.delta
 data: {"content_index":0,"delta":"The sky is most commonly **blue** during the day.\\n\\nThis is due to a phenomenon called **Rayleigh scattering**. Shorter wavelengths of light (like blue and violet) are scattered","output_index":0,"type":"response.output_text.delta"}
@@ -10632,8 +10632,8 @@ data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > simpleRequest > streaming 1`] = `
-"event: response.output_text.delta
-data: {"content_index":0,"delta":"**Answering the Query**\\n\\nOkay, I'm focusing on providing a direct and accurate response to the user's question. My primary concern is delivering the correct information clearly. I'm aiming for a concise and factual answer that meets the user's needs.\\n\\n\\n","output_index":0,"type":"response.output_text.delta"}
+"event: response.created
+data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":8,"input_tokens_details":{"cached_tokens":0},"output_tokens":17,"output_tokens_details":{"reasoning_tokens":17},"total_tokens":25}},"type":"response.created"}
 
 event: response.output_text.delta
 data: {"content_index":0,"delta":"The","output_index":0,"type":"response.output_text.delta"}

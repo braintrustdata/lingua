@@ -20918,6 +20918,91 @@ exports[`google → anthropic > googleResponseSchemaPropertyOrderingParam > resp
 }
 `;
 
+exports[`google → anthropic > googleThinkingJsonSchemaParam > request 1`] = `
+{
+  "max_tokens": 2048,
+  "messages": [
+    {
+      "content": "Analyze the caption and return a compact JSON summary.
+Caption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.
+Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "output_config": {
+    "format": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "type": "number",
+          },
+          "recommendation": {
+            "type": "string",
+          },
+          "topic": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "topic",
+          "recommendation",
+          "confidence",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`google → anthropic > googleThinkingJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Let me analyze this caption:
+
+The caption is about a creator comparing two microphone setups, specifically noting that a cheaper lavalier microphone performs better outdoors. They're asking viewers to share their setup.
+
+Topic: This is clearly about audio equipment/microphones, specifically for content creation.
+
+Recommendation: The creator is recommending or highlighting that the cheaper lavalier microphone performs better outdoors compared to another setup.
+
+Confidence: This is straightforward - the topic is clearly about microphones/audio equipment, and there's a clear comparison being made with a conclusion about outdoor performance. I'd say confidence is high, around 0.9 or 0.95.
+
+Let me format this as the required JSON:",
+            "thought": true,
+            "thoughtSignature": "ErAHCm4IDhgCKkDpggyvjNahOhXmo7j9sVZCH0ts6UIRQPhRaackCyvJxX6jzLRpWrMqdHTkE5Is28iUHIlV5G+Ava6Bh6EBvls1MhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAQgh0aGlua2luZxIM+YTvdpV2VMJ/e+fMGgx2ooZOBZgDpUAJ9f8iMGJtNpmLX5NE1ktsLvHIMYXNJ9bW4GLwD9l6YJQ31nI0fkR8lpKb0/96uOB1/d2adirvBcmW0twxopu8xWPeiTkK2A1NRavZOCQOp3G5cc5ZjXbT85POp+KrmwhEDUe4K2ajCpHJNQcpUSiazlrxK9ctcU+kYxUMBD4RhquDhYcpbtzv9aSpT3l2FnnO66jmvgpZrI3oPjWT7F0JVfkckwLIFRpR2RGBu5orjQN9UK3jeeN8YCAOEWkYDEkhioIGIK3xvxt+tkTF87bnd6Fjcbna4yfcHROevH1rFyYppZkyvCy3dbTcMji2aj5mWVatGjKuSDnLagkF5VSNnDi5e5wg1gHEK8lZZ8yeKtbYbeeQKdg+AHrG6uxvaeUxdfQ2631AqO/2cLGmoST/BAgwQB0ZRbCVob+jDWf+Ua6cHVOusjn44pUE68/2rPixnZ3khC7NwOgLkkoMaf43aAe01CFVrmIg1k4gS8yqORVJESWDs8vWWQ8mxV3QqWe83kGU0on1dw2iE9stW1R5bxZjEzknYJnrc375f1HsIR7Tdnjp7Y9+lEz54HyOMZPRUoLvaNpZSDREIrK1ulUT/06U6R6PmgPULa4tPhPO/01gOfTus5XWlrSWlBqu/62Z/re1K7tPzeHQQFphi5W1RhODhV3EN1w2zcosGSV/2TM2+O9aHPF3ghvzfaUzAH+0UEgaZBXbq+P4kLlv//RAnqpqwTuabcC4DNGLazTElFMgzj5PT4qbz0QKm/K9GuVyOqcAc6xaSr6hl9MM5J0btUjE1FYB5b89FJ1FchnR3qWkmtuG+Jj9mz436VIu/TDByQcjdfIgNo2hL7Mepfk40pbykqGny5wPSawrgLvoDAZHrW3Vpp8BXRG+/4pS91487Rp/NehZb/vz2hjb/Do0zgMTt7MDAqhgSxhpOi81IjrkOyq7oqPVPMtFAVlNJxuYwHSeKPaKH0rckFCuXHOerJDNp9EeduwVZ1GIH4as2dVKwNA1+30lThUvUOjr/AP8b9uu/OEbC+e22wJsmQUtSDjlo3Hb/ywhnEzHYyjATz6g+d2GsDYYAQ==",
+          },
+          {
+            "text": "{"confidence":0.95,"recommendation":"Use a cheaper lavalier microphone for better outdoor audio performance","topic":"Microphone setup comparison for content creation"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 199,
+    "promptTokenCount": 290,
+    "totalTokenCount": 489,
+  },
+}
+`;
+
 exports[`google → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -23527,6 +23612,75 @@ exports[`google → chat-completions > googleResponseSchemaPropertyOrderingParam
 }
 `;
 
+exports[`google → chat-completions > googleThinkingJsonSchemaParam > request 1`] = `
+{
+  "max_completion_tokens": 2048,
+  "messages": [
+    {
+      "content": "Analyze the caption and return a compact JSON summary.
+Caption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.
+Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "medium",
+  "response_format": {
+    "json_schema": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "type": "number",
+          },
+          "recommendation": {
+            "type": "string",
+          },
+          "topic": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "topic",
+          "recommendation",
+          "confidence",
+        ],
+        "type": "object",
+      },
+    },
+    "type": "json_schema",
+  },
+}
+`;
+
+exports[`google → chat-completions > googleThinkingJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"topic":"Outdoor lavalier microphone comparison","recommendation":"Highlight practical test results showing budget lavalier can outperform in outdoor conditions and invite audience to share their own setups.","confidence":0.0}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 54,
+    "promptTokenCount": 106,
+    "thoughtsTokenCount": 960,
+    "totalTokenCount": 1120,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleToolCallThoughtSignatureReplayParam > request 1`] = `
 {
   "messages": [
@@ -25979,6 +26133,90 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > resp
     "promptTokenCount": 42,
     "thoughtsTokenCount": 128,
     "totalTokenCount": 170,
+  },
+}
+`;
+
+exports[`google → responses > googleThinkingJsonSchemaParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Analyze the caption and return a compact JSON summary.
+Caption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.
+Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
+      "role": "user",
+    },
+  ],
+  "max_output_tokens": 2048,
+  "model": "gpt-5-nano",
+  "reasoning": {
+    "effort": "medium",
+  },
+  "text": {
+    "format": {
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "type": "number",
+          },
+          "recommendation": {
+            "type": "string",
+          },
+          "topic": {
+            "type": "string",
+          },
+        },
+        "required": [
+          "topic",
+          "recommendation",
+          "confidence",
+        ],
+        "type": "object",
+      },
+      "type": "json_schema",
+    },
+  },
+}
+`;
+
+exports[`google → responses > googleThinkingJsonSchemaParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{"confidence":0.0,"recommendation":"Highlight price‑performance tradeoffs between the mics and invite viewers to share their own outdoor setups to boost engagement.","topic":"Mic setup comparison and outdoor performance with audience engagement"}",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 1,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 110,
+    "promptTokenCount": 102,
+    "thoughtsTokenCount": 704,
+    "totalTokenCount": 916,
   },
 }
 `;
