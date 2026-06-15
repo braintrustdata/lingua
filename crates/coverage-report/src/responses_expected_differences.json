@@ -41,14 +41,43 @@
       "source": "Anthropic",
       "target": "*",
       "fields": [
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic reports cache creation tokens" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic reports cache creation tokens" },
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic reports split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic reports split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic usage reports prompt tokens exclusive of cache buckets; other providers do not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Bedrock Anthropic",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Bedrock Anthropic usage follows Anthropic-style exclusive prompt-token semantics; other providers do not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Vertex Anthropic",
+      "target": "*",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Vertex Anthropic usage follows Anthropic-style exclusive prompt-token semantics; other providers do not expose this semantic flag" }
       ]
     },
     {
       "source": "*",
       "target": "Anthropic",
       "fields": [
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic usage follows exclusive prompt-token semantics; other providers do not expose this semantic flag" },
         { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic doesn't expose reasoning tokens separately (included in output_tokens)" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Vertex Anthropic usage follows exclusive prompt-token semantics; other providers do not expose this semantic flag" }
       ]
     },
     {

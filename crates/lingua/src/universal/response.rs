@@ -313,6 +313,25 @@ impl UniversalResponse {
     }
 }
 
+#[derive(Default, Deserialize)]
+struct AnthropicUsageView {
+    input_tokens: Option<i64>,
+    output_tokens: Option<i64>,
+    cache_read_input_tokens: Option<i64>,
+    cache_creation_input_tokens: Option<i64>,
+    cache_creation: Option<AnthropicCacheCreationView>,
+}
+
+#[derive(Default, Deserialize)]
+struct AnthropicCacheCreationView {
+    ephemeral_5m_input_tokens: Option<i64>,
+    ephemeral_1h_input_tokens: Option<i64>,
+}
+
+fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
+    serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
+}
+
 impl UniversalUsage {
     /// Parse usage from provider-specific JSON value.
     ///
@@ -367,25 +386,21 @@ impl UniversalUsage {
             },
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
-            | ProviderFormat::VertexAnthropic => Self {
-                prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage.get("cache_read_input_tokens").and_then(Value::as_i64),
-                prompt_cache_creation_tokens: usage
-                    .get("cache_creation_input_tokens")
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_5m_tokens: usage
-                    .get("cache_creation")
-                    .and_then(|c| c.get("ephemeral_5m_input_tokens"))
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_1h_tokens: usage
-                    .get("cache_creation")
-                    .and_then(|c| c.get("ephemeral_1h_input_tokens"))
-                    .and_then(Value::as_i64),
-                // Anthropic's input_tokens excludes cache read/creation tokens
-                prompt_tokens_exclude_cache: true,
-                completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
-            },
+            | ProviderFormat::VertexAnthropic => {
+                let usage = anthropic_usage_view(usage);
+                let cache_creation = usage.cache_creation.unwrap_or_default();
+                Self {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    prompt_cached_tokens: usage.cache_read_input_tokens,
+                    prompt_cache_creation_tokens: usage.cache_creation_input_tokens,
+                    prompt_cache_creation_5m_tokens: cache_creation.ephemeral_5m_input_tokens,
+                    prompt_cache_creation_1h_tokens: cache_creation.ephemeral_1h_input_tokens,
+                    // Anthropic's input_tokens excludes cache read/creation tokens
+                    prompt_tokens_exclude_cache: true,
+                    completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
+                }
+            }
             ProviderFormat::Converse => Self {
                 prompt_tokens: usage.get("inputTokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("outputTokens").and_then(Value::as_i64),
@@ -507,6 +522,24 @@ impl UniversalUsage {
                         "cache_creation_input_tokens".into(),
                         serde_json::json!(cache_creation),
                     );
+                }
+                if self.prompt_cache_creation_5m_tokens.is_some()
+                    || self.prompt_cache_creation_1h_tokens.is_some()
+                {
+                    let mut cache_creation = serde_json::Map::new();
+                    if let Some(cache_creation_5m) = self.prompt_cache_creation_5m_tokens {
+                        cache_creation.insert(
+                            "ephemeral_5m_input_tokens".into(),
+                            serde_json::json!(cache_creation_5m),
+                        );
+                    }
+                    if let Some(cache_creation_1h) = self.prompt_cache_creation_1h_tokens {
+                        cache_creation.insert(
+                            "ephemeral_1h_input_tokens".into(),
+                            serde_json::json!(cache_creation_1h),
+                        );
+                    }
+                    map.insert("cache_creation".into(), Value::Object(cache_creation));
                 }
 
                 if let Some(cache_read) = self.prompt_cached_tokens {
