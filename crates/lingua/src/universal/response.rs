@@ -376,10 +376,7 @@ where
 }
 
 fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
-    match serde_json::from_value::<AnthropicUsageView>(usage.clone()) {
-        Ok(view) => view,
-        Err(_) => AnthropicUsageView::default(),
-    }
+    serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
 }
 
 impl UniversalUsage {
