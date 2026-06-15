@@ -7,6 +7,8 @@ use crate::processing::adapters::adapter_for_format;
 use crate::processing::transform::{
     serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
 };
+#[cfg(feature = "openai")]
+use crate::providers::openai::responses_adapter::responses_stream_events_from_universal;
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
 
@@ -290,10 +292,9 @@ impl StreamTransformSession {
             self.anthropic_next_content_block_index = 0;
         }
         let mut chunk = chunk;
-        if let (Some(open_index), Some(open_kind), Some(start_index), Some(start_kind)) = (
+        if let (Some(open_index), Some(open_kind), Some(start_kind)) = (
             self.anthropic_open_content_block_index,
             self.anthropic_open_content_block_kind,
-            content_block_start_index,
             content_block_start_kind,
         ) {
             if open_kind != start_kind {
@@ -301,9 +302,6 @@ impl StreamTransformSession {
                 self.anthropic_next_content_block_index = new_index + 1;
                 chunk = with_anthropic_content_block_start_index(chunk, new_index);
                 content_block_start_index = Some(new_index);
-            } else if start_index != open_index {
-                chunk = with_anthropic_content_block_start_index(chunk, open_index);
-                content_block_start_index = Some(open_index);
             }
         }
         if let (Some(open_index), Some(open_kind), Some(delta_index), Some(delta_kind)) = (
@@ -759,7 +757,39 @@ fn build_session_chunks(
             anthropic_message_started,
         ));
     }
+    if target_format == ProviderFormat::Responses {
+        #[cfg(feature = "openai")]
+        return expand_responses_session_chunks(chunks, universal);
+        #[cfg(not(feature = "openai"))]
+        return Ok(std::mem::take(&mut chunks));
+    }
     Ok(std::mem::take(&mut chunks))
+}
+
+fn expand_responses_session_chunks(
+    chunks: Vec<StreamOutputChunk>,
+    universal: Option<&UniversalStreamChunk>,
+) -> Result<Vec<StreamOutputChunk>, TransformError> {
+    let Some(universal) = universal else {
+        return Ok(chunks);
+    };
+
+    let out = responses_stream_events_from_universal(universal)
+        .into_iter()
+        .map(|event| {
+            let event_type = extract_event_type(&event);
+            Ok(StreamOutputChunk {
+                data: serialize_stream_value(&event)?,
+                event_type,
+            })
+        })
+        .collect::<Result<Vec<_>, TransformError>>()?;
+
+    if out.is_empty() {
+        Ok(chunks)
+    } else {
+        Ok(out)
+    }
 }
 
 fn expand_anthropic_session_chunks(
@@ -1171,6 +1201,72 @@ mod tests {
         assert!(matches!(err, TransformError::DeserializationFailed(_)));
         assert!(err.to_string().contains("Anthropic content_block_start"));
         assert!(err.to_string().contains("missing field `index`"));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_stream_session_preserves_new_same_kind_anthropic_block_index() {
+        #[derive(Deserialize)]
+        struct ContentBlockStopEvent {
+            index: u32,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let first_tool_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": "toolu_1",
+                    "name": "lookup",
+                    "input": {}
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+        let second_tool_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "index": 1,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": "toolu_2",
+                    "name": "lookup",
+                    "input": {}
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+
+        let first = session.process_chunks(vec![first_tool_start]).unwrap();
+        assert_eq!(
+            first
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_start")]
+        );
+
+        let second = session.process_chunks(vec![second_tool_start]).unwrap();
+        assert_eq!(
+            second
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_stop"), Some("content_block_start")]
+        );
+
+        let stop: ContentBlockStopEvent = crate::serde_json::from_slice(&second[0].data)
+            .expect("content_block_stop should parse");
+        assert_eq!(stop.index, 0);
+
+        let start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&second[1].data)
+                .expect("content_block_start should parse");
+        assert_eq!(start.index, 1);
+        assert_eq!(start.block_kind(), Some(AnthropicContentBlockKind::ToolUse));
     }
 
     #[test]
@@ -1781,6 +1877,92 @@ mod tests {
         assert_eq!(
             tool_delta.block_kind(),
             Some(AnthropicContentBlockKind::ToolUse)
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_stream_session_google_mixed_thought_and_text_expands_to_responses_events() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let mixed_final = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "thinking in the same candidate",
+                            "thought": true
+                        },
+                        {
+                            "text": "{\"answer\":\"visible json\"}"
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }],
+            "usageMetadata": {
+                "promptTokenCount": 1,
+                "candidatesTokenCount": 4,
+                "thoughtsTokenCount": 2,
+                "totalTokenCount": 7
+            }
+        }));
+
+        let out = session.push(mixed_final).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.reasoning_summary_text.delta"),
+                Some("response.output_text.delta"),
+                Some("response.completed")
+            ]
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_stream_session_google_mixed_thought_and_tool_expands_to_responses_events() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let mixed_tool = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "thinking before the tool",
+                            "thought": true
+                        },
+                        {
+                            "functionCall": {
+                                "name": "lookup_creator",
+                                "args": {
+                                    "query": "microphone comparison"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }]
+        }));
+
+        let out = session.push(mixed_tool).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.reasoning_summary_text.delta"),
+                Some("response.output_item.added"),
+                Some("response.function_call_arguments.delta")
+            ]
         );
     }
 

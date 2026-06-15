@@ -59,6 +59,115 @@ fn system_text(message: &Message) -> Option<&str> {
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
 
+pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
+    let Some(choice) = chunk.choices.first() else {
+        return Vec::new();
+    };
+
+    let mut events = Vec::new();
+    if let Some(delta) = choice.delta_view() {
+        let reasoning = delta
+            .reasoning
+            .iter()
+            .filter_map(|r| r.content.as_deref())
+            .collect::<String>();
+        if !reasoning.is_empty() {
+            events.push(serde_json::json!({
+                "type": "response.reasoning_summary_text.delta",
+                "output_index": choice.index,
+                "summary_index": 0,
+                "delta": reasoning
+            }));
+        }
+
+        if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+            events.push(serde_json::json!({
+                "type": "response.output_text.delta",
+                "output_index": choice.index,
+                "content_index": 0,
+                "delta": content
+            }));
+        }
+
+        for tool_call in &delta.tool_calls {
+            let output_index = tool_call.index.unwrap_or(0);
+            let call_id = tool_call.id.as_deref();
+            let name = tool_call
+                .function
+                .as_ref()
+                .and_then(|f| f.name.as_deref())
+                .unwrap_or("");
+            if let Some(call_id) = call_id {
+                events.push(serde_json::json!({
+                    "type": "response.output_item.added",
+                    "output_index": output_index,
+                    "item": {
+                        "type": "function_call",
+                        "status": "in_progress",
+                        "call_id": call_id,
+                        "name": name,
+                        "arguments": ""
+                    }
+                }));
+            }
+
+            if let Some(arguments) = tool_call
+                .function
+                .as_ref()
+                .and_then(|f| f.arguments.as_deref())
+                .filter(|arguments| !arguments.is_empty())
+            {
+                events.push(serde_json::json!({
+                    "type": "response.function_call_arguments.delta",
+                    "output_index": output_index,
+                    "delta": arguments
+                }));
+            }
+        }
+    }
+
+    if choice.finish_reason.is_some() {
+        events.push(responses_terminal_stream_event(chunk));
+    }
+
+    events
+}
+
+fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
+    let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
+    let status = match finish_reason {
+        Some(reason) if reason == "length" => "incomplete",
+        _ => "completed",
+    };
+
+    let id = chunk
+        .id
+        .clone()
+        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
+    let response = match &chunk.usage {
+        Some(usage) => serde_json::json!({
+            "id": id,
+            "object": "response",
+            "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+            "status": status,
+            "output": [],
+            "usage": usage.to_provider_value(ProviderFormat::Responses)
+        }),
+        None => serde_json::json!({
+            "id": id,
+            "object": "response",
+            "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+            "status": status,
+            "output": []
+        }),
+    };
+
+    serde_json::json!({
+        "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
+        "response": response
+    })
+}
+
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
     item: Option<Value>,
@@ -976,110 +1085,17 @@ impl ProviderAdapter for ResponsesAdapter {
             }));
         }
 
-        let build_terminal_event = |chunk: &UniversalStreamChunk| {
-            let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
-            let status = match finish_reason.map(|r| r.as_str()) {
-                Some("length") => "incomplete",
-                _ => "completed",
-            };
-
-            let id = chunk
-                .id
-                .clone()
-                .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-            let mut response = serde_json::json!({
-                "id": id,
-                "object": "response",
-                "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-                "status": status,
-                "output": []
-            });
-
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj) = response.as_object_mut() {
-                    obj.insert("usage".into(), usage.to_provider_value(self.format()));
-                }
-            }
-
-            serde_json::json!({
-                "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-                "response": response
-            })
-        };
-
-        if let Some(choice) = chunk.choices.first() {
-            if let Some(delta) = choice.delta_view() {
-                let mut events = Vec::new();
-                let reasoning = delta
-                    .reasoning
-                    .iter()
-                    .filter_map(|r| r.content.as_deref())
-                    .collect::<String>();
-                if !reasoning.is_empty() {
-                    events.push(serde_json::json!({
-                        "type": "response.reasoning_summary_text.delta",
-                        "output_index": choice.index,
-                        "summary_index": 0,
-                        "delta": reasoning
-                    }));
-                }
-                if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
-                    events.push(serde_json::json!({
-                        "type": "response.output_text.delta",
-                        "output_index": choice.index,
-                        "content_index": 0,
-                        "delta": content
-                    }));
-                }
-                for tool_call in &delta.tool_calls {
-                    let output_index = tool_call.index.unwrap_or(0);
-                    let call_id = tool_call.id.as_deref();
-                    let name = tool_call
-                        .function
-                        .as_ref()
-                        .and_then(|f| f.name.as_deref())
-                        .unwrap_or("");
-                    if let Some(call_id) = call_id {
-                        events.push(serde_json::json!({
-                            "type": "response.output_item.added",
-                            "output_index": output_index,
-                            "item": {
-                                "type": "function_call",
-                                "status": "in_progress",
-                                "call_id": call_id,
-                                "name": name,
-                                "arguments": ""
-                            }
-                        }));
-                    }
-                    if let Some(arguments) = tool_call
-                        .function
-                        .as_ref()
-                        .and_then(|f| f.arguments.as_deref())
-                        .filter(|arguments| !arguments.is_empty())
-                    {
-                        events.push(serde_json::json!({
-                            "type": "response.function_call_arguments.delta",
-                            "output_index": output_index,
-                            "delta": arguments
-                        }));
-                    }
-                }
-                if !events.is_empty() {
-                    if has_finish {
-                        events.push(build_terminal_event(chunk));
-                    }
-                    return Ok(if events.len() == 1 {
-                        events.remove(0)
-                    } else {
-                        Value::Array(events)
-                    });
-                }
+        let stream_events = responses_stream_events_from_universal(chunk);
+        if has_reasoning {
+            if let Some(event) = stream_events.first() {
+                return Ok(event.clone());
             }
         }
-
         if has_finish {
-            return Ok(build_terminal_event(chunk));
+            return Ok(responses_terminal_stream_event(chunk));
+        }
+        if let Some(event) = stream_events.into_iter().next() {
+            return Ok(event);
         }
 
         // Check for content delta
@@ -1982,12 +1998,12 @@ mod tests {
     }
 
     #[test]
-    fn test_responses_stream_from_universal_mixed_reasoning_content_and_finish_emits_all_events() {
+    fn test_responses_stream_from_universal_mixed_reasoning_content_returns_single_event() {
         #[derive(Deserialize)]
         struct StreamEvent {
             #[serde(rename = "type")]
             event_type: String,
-            delta: Option<String>,
+            delta: String,
         }
 
         let adapter = ResponsesAdapter;
@@ -2014,32 +2030,19 @@ mod tests {
             }),
         );
 
-        let events = adapter.stream_from_universal(&chunk).unwrap();
-        let events: Vec<StreamEvent> = serde_json::from_value(events).unwrap();
-        assert_eq!(events.len(), 3);
-        assert_eq!(
-            events[0].event_type,
-            "response.reasoning_summary_text.delta"
-        );
-        assert_eq!(
-            events[0].delta.as_deref(),
-            Some("thinking in the same candidate")
-        );
-        assert_eq!(events[1].event_type, "response.output_text.delta");
-        assert_eq!(
-            events[1].delta.as_deref(),
-            Some("{\"answer\":\"visible json\"}")
-        );
-        assert_eq!(events[2].event_type, "response.completed");
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: StreamEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking in the same candidate");
     }
 
     #[test]
-    fn test_responses_stream_from_universal_mixed_reasoning_and_tool_call_emits_all_events() {
+    fn test_responses_stream_from_universal_mixed_reasoning_and_tool_call_returns_single_event() {
         #[derive(Deserialize)]
         struct StreamEvent {
             #[serde(rename = "type")]
             event_type: String,
-            delta: Option<String>,
+            delta: String,
         }
 
         let adapter = ResponsesAdapter;
@@ -2070,22 +2073,9 @@ mod tests {
             None,
         );
 
-        let events = adapter.stream_from_universal(&chunk).unwrap();
-        let events: Vec<StreamEvent> = serde_json::from_value(events).unwrap();
-        assert_eq!(events.len(), 3);
-        assert_eq!(
-            events[0].event_type,
-            "response.reasoning_summary_text.delta"
-        );
-        assert_eq!(events[0].delta.as_deref(), Some("thinking before the tool"));
-        assert_eq!(events[1].event_type, "response.output_item.added");
-        assert_eq!(
-            events[2].event_type,
-            "response.function_call_arguments.delta"
-        );
-        assert_eq!(
-            events[2].delta.as_deref(),
-            Some("{\"query\":\"microphone comparison\"}")
-        );
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: StreamEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking before the tool");
     }
 }
