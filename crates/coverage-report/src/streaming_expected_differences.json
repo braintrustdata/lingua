@@ -36,6 +36,27 @@
       ]
     },
     {
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Responses streaming usage reports OpenAI-style inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "ChatCompletions streaming usage reports OpenAI-style inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Google promptTokenCount uses inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
+      ]
+    },
+    {
       "source": "Responses",
       "target": "*",
       "fields": [

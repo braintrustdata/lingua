@@ -335,12 +335,30 @@ struct AnthropicCacheCreationView {
     ephemeral_1h_input_tokens: Option<i64>,
 }
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum OptionalI64View {
+    Integer(i64),
+    Other(serde::de::IgnoredAny),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum OptionalCacheCreationView {
+    CacheCreation(AnthropicCacheCreationView),
+    Other(serde::de::IgnoredAny),
+}
+
 fn deserialize_optional_i64<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    let value = Option::<Value>::deserialize(deserializer)?;
-    Ok(value.and_then(|value| value.as_i64()))
+    Ok(
+        match Option::<OptionalI64View>::deserialize(deserializer)? {
+            Some(OptionalI64View::Integer(value)) => Some(value),
+            Some(OptionalI64View::Other(_)) | None => None,
+        },
+    )
 }
 
 fn deserialize_optional_cache_creation<'de, D>(
@@ -349,8 +367,12 @@ fn deserialize_optional_cache_creation<'de, D>(
 where
     D: serde::Deserializer<'de>,
 {
-    let value = Option::<Value>::deserialize(deserializer)?;
-    Ok(value.and_then(|value| serde_json::from_value(value).ok()))
+    Ok(
+        match Option::<OptionalCacheCreationView>::deserialize(deserializer)? {
+            Some(OptionalCacheCreationView::CacheCreation(value)) => Some(value),
+            Some(OptionalCacheCreationView::Other(_)) | None => None,
+        },
+    )
 }
 
 fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
@@ -481,7 +503,9 @@ impl UniversalUsage {
     ///
     /// Returns a JSON object with provider-specific field names.
     pub fn to_provider_value(&self, provider: ProviderFormat) -> Value {
-        let prompt = self.prompt_tokens.unwrap_or(0);
+        let inclusive_prompt = self.inclusive_prompt_tokens();
+        let prompt = inclusive_prompt.unwrap_or(0);
+        let provider_prompt = self.prompt_tokens.unwrap_or(0);
         let completion = self.completion_tokens.unwrap_or(0);
 
         match provider {
@@ -577,20 +601,20 @@ impl UniversalUsage {
                 Value::Object(map)
             }
             ProviderFormat::Converse => serde_json::json!({
-                "inputTokens": prompt,
+                "inputTokens": provider_prompt,
                 "outputTokens": completion
             }),
             ProviderFormat::Google => {
                 let mut map = serde_json::Map::new();
 
-                if let Some(p) = self.prompt_tokens {
+                if let Some(p) = inclusive_prompt {
                     map.insert("promptTokenCount".into(), serde_json::json!(p));
                 }
                 if let Some(c) = self.completion_tokens {
                     map.insert("candidatesTokenCount".into(), serde_json::json!(c));
                 }
 
-                if self.prompt_tokens.is_some() || self.completion_tokens.is_some() {
+                if inclusive_prompt.is_some() || self.completion_tokens.is_some() {
                     map.insert(
                         "totalTokenCount".into(),
                         serde_json::json!(prompt + completion),
@@ -687,5 +711,78 @@ mod tests {
                 "expected {reason} to map to ContentFilter"
             );
         }
+    }
+
+    #[test]
+    fn test_exclusive_usage_serializes_inclusive_prompt_tokens_for_openai_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(30),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let chat = usage.to_provider_value(ProviderFormat::ChatCompletions);
+        assert_eq!(chat["prompt_tokens"], 60);
+        assert_eq!(chat["completion_tokens"], 5);
+        assert_eq!(chat["total_tokens"], 65);
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens"], 60);
+        assert_eq!(responses["output_tokens"], 5);
+        assert_eq!(responses["total_tokens"], 65);
+    }
+
+    #[test]
+    fn test_exclusive_usage_stays_exclusive_for_anthropic_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(30),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["input_tokens"], 10);
+        assert_eq!(anthropic["output_tokens"], 5);
+        assert_eq!(anthropic["cache_read_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation_input_tokens"], 30);
+    }
+
+    #[test]
+    fn test_anthropic_cache_creation_serializes_both_ttl_buckets() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cache_creation_5m_tokens: Some(20),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["cache_creation"]["ephemeral_5m_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation"]["ephemeral_1h_input_tokens"], 0);
+    }
+
+    #[test]
+    fn test_malformed_anthropic_cache_creation_preserves_token_counts() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "cache_read_input_tokens": 20,
+            "cache_creation_input_tokens": 30,
+            "cache_creation": "invalid",
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Anthropic);
+        assert_eq!(usage.prompt_tokens, Some(10));
+        assert_eq!(usage.completion_tokens, Some(5));
+        assert_eq!(usage.prompt_cached_tokens, Some(20));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(30));
+        assert_eq!(usage.prompt_cache_creation_5m_tokens, None);
+        assert_eq!(usage.prompt_cache_creation_1h_tokens, None);
     }
 }
