@@ -27,7 +27,7 @@ impl ModelResolver {
     /// do not observe per-request custom models as global catalog entries.
     pub fn with_overlay(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
         Self {
-            catalog: CatalogResolver::Overlay(Box::new(OverlayModelCatalog { base, custom })),
+            catalog: CatalogResolver::Overlay(Box::new(OverlayModelCatalog::new(base, custom))),
             aliases: HashMap::new(),
         }
     }

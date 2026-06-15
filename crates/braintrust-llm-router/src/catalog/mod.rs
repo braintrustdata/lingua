@@ -7,7 +7,7 @@ pub use spec::{ModelFlavor, ModelSpec};
 
 use lingua::ProviderFormat;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -33,6 +33,62 @@ pub struct ModelCatalog {
 pub struct OverlayModelCatalog {
     pub base: Arc<ModelCatalog>,
     pub custom: ModelCatalog,
+    equivalence_index: HashMap<String, Vec<String>>,
+}
+
+impl OverlayModelCatalog {
+    pub fn new(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
+        let custom_model_names: HashSet<String> = custom.models.keys().cloned().collect();
+        let visible_models = base
+            .models
+            .keys()
+            .filter(|name| !custom_model_names.contains(*name))
+            .chain(custom.models.keys())
+            .cloned()
+            .collect();
+        let mut equivalence_edges: HashMap<String, Vec<String>> = base
+            .equivalent_models
+            .iter()
+            .filter(|(name, _)| !custom_model_names.contains(*name))
+            .map(|(name, equivalents)| {
+                (
+                    name.clone(),
+                    equivalents
+                        .iter()
+                        .filter(|equivalent| !custom_model_names.contains(*equivalent))
+                        .cloned()
+                        .collect(),
+                )
+            })
+            .collect();
+        equivalence_edges.extend(custom.equivalent_models.clone());
+        let equivalence_index = build_equivalence_index(visible_models, &equivalence_edges);
+        Self {
+            base,
+            custom,
+            equivalence_index,
+        }
+    }
+
+    pub fn base_catalog(&self) -> Arc<ModelCatalog> {
+        Arc::clone(&self.base)
+    }
+
+    pub fn get(&self, name: &str) -> Option<Arc<ModelSpec>> {
+        self.custom.get(name).or_else(|| self.base.get(name))
+    }
+
+    pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
+        let Some(_) = self.get(name) else {
+            return Vec::new();
+        };
+
+        let mut names = vec![name.to_string()];
+        if let Some(equivalent_names) = self.equivalence_index.get(name) {
+            names.extend(equivalent_names.iter().cloned());
+        }
+        names
+    }
 }
 
 /// Catalog view used by the router resolver.
@@ -49,27 +105,21 @@ impl CatalogResolver {
     pub fn base_catalog(&self) -> Arc<ModelCatalog> {
         match self {
             Self::Base(catalog) => Arc::clone(catalog),
-            Self::Overlay(overlay) => Arc::clone(&overlay.base),
+            Self::Overlay(overlay) => overlay.base_catalog(),
         }
     }
 
     pub fn get(&self, name: &str) -> Option<Arc<ModelSpec>> {
         match self {
             Self::Base(catalog) => catalog.get(name),
-            Self::Overlay(overlay) => overlay.custom.get(name).or_else(|| overlay.base.get(name)),
+            Self::Overlay(overlay) => overlay.get(name),
         }
     }
 
     pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
         match self {
             Self::Base(catalog) => catalog.equivalent_model_names(name),
-            Self::Overlay(overlay) => {
-                if overlay.custom.get(name).is_some() {
-                    overlay.custom.equivalent_model_names(name)
-                } else {
-                    overlay.base.equivalent_model_names(name)
-                }
-            }
+            Self::Overlay(overlay) => overlay.equivalent_model_names(name),
         }
     }
 }
@@ -106,6 +156,72 @@ fn parse_equivalent_models(content: &str) -> Result<HashMap<String, Vec<String>>
         }
     }
     Ok(equivalent_models)
+}
+
+fn build_equivalence_index(
+    model_names: HashSet<String>,
+    equivalent_models: &HashMap<String, Vec<String>>,
+) -> HashMap<String, Vec<String>> {
+    let mut adjacency: HashMap<String, Vec<String>> = HashMap::new();
+    for name in &model_names {
+        adjacency.entry(name.clone()).or_default();
+    }
+
+    for (name, equivalents) in equivalent_models {
+        if !model_names.contains(name) {
+            continue;
+        }
+        for equivalent_model in equivalents {
+            if !model_names.contains(equivalent_model) {
+                continue;
+            }
+            adjacency
+                .entry(name.clone())
+                .or_default()
+                .push(equivalent_model.clone());
+            adjacency
+                .entry(equivalent_model.clone())
+                .or_default()
+                .push(name.clone());
+        }
+    }
+
+    let mut visited = HashSet::new();
+    let mut index = HashMap::new();
+    for name in model_names {
+        if visited.contains(&name) {
+            continue;
+        }
+
+        let mut stack = vec![name.clone()];
+        let mut component = Vec::new();
+        while let Some(current) = stack.pop() {
+            if !visited.insert(current.clone()) {
+                continue;
+            }
+            component.push(current.clone());
+            if let Some(neighbors) = adjacency.get(&current) {
+                stack.extend(neighbors.iter().cloned());
+            }
+        }
+
+        if component.len() <= 1 {
+            continue;
+        }
+        component.sort();
+        for member in &component {
+            index.insert(
+                member.clone(),
+                component
+                    .iter()
+                    .filter(|other| *other != member)
+                    .cloned()
+                    .collect(),
+            );
+        }
+    }
+
+    index
 }
 
 impl ModelCatalog {
@@ -271,6 +387,27 @@ impl ModelCatalog {
         Ok(())
     }
 
+    pub fn add_external_equivalent_models<I>(&mut self, name: String, equivalents: I) -> Result<()>
+    where
+        I: IntoIterator<Item = String>,
+    {
+        if !self.models.contains_key(&name) {
+            return Err(Error::InvalidRequest(format!(
+                "model '{name}' references equivalent_models but is missing from catalog"
+            )));
+        }
+
+        let entry = self.equivalent_models.entry(name).or_default();
+        for equivalent_model in equivalents {
+            if equivalent_model.is_empty() || entry.contains(&equivalent_model) {
+                continue;
+            }
+            entry.push(equivalent_model);
+        }
+        self.rebuild_equivalence_index();
+        Ok(())
+    }
+
     fn validate_equivalent_models(&self) -> Result<()> {
         for (name, equivalents) in &self.equivalent_models {
             for equivalent_model in equivalents {
@@ -285,66 +422,10 @@ impl ModelCatalog {
     }
 
     fn rebuild_equivalence_index(&mut self) {
-        let mut adjacency: HashMap<String, Vec<String>> = HashMap::new();
-        for name in self.models.keys() {
-            adjacency.entry(name.clone()).or_default();
-        }
-
-        for (name, equivalents) in &self.equivalent_models {
-            if !self.models.contains_key(name) {
-                continue;
-            }
-            for equivalent_model in equivalents {
-                if !self.models.contains_key(equivalent_model) {
-                    continue;
-                }
-                adjacency
-                    .entry(name.clone())
-                    .or_default()
-                    .push(equivalent_model.clone());
-                adjacency
-                    .entry(equivalent_model.clone())
-                    .or_default()
-                    .push(name.clone());
-            }
-        }
-
-        let mut visited = std::collections::HashSet::new();
-        let mut index = HashMap::new();
-        for name in self.models.keys() {
-            if visited.contains(name) {
-                continue;
-            }
-
-            let mut stack = vec![name.clone()];
-            let mut component = Vec::new();
-            while let Some(current) = stack.pop() {
-                if !visited.insert(current.clone()) {
-                    continue;
-                }
-                component.push(current.clone());
-                if let Some(neighbors) = adjacency.get(&current) {
-                    stack.extend(neighbors.iter().cloned());
-                }
-            }
-
-            if component.len() <= 1 {
-                continue;
-            }
-            component.sort();
-            for member in &component {
-                index.insert(
-                    member.clone(),
-                    component
-                        .iter()
-                        .filter(|other| *other != member)
-                        .cloned()
-                        .collect(),
-                );
-            }
-        }
-
-        self.equivalence_index = index;
+        self.equivalence_index = build_equivalence_index(
+            self.models.keys().cloned().collect(),
+            &self.equivalent_models,
+        );
     }
 }
 
@@ -531,6 +612,58 @@ mod tests {
         assert_eq!(
             mapped.equivalent_model_names("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
+        );
+    }
+
+    #[test]
+    fn overlay_equivalence_index_does_not_inherit_shadowed_base_edges() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "equivalent_models": ["model-b"]
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "model-b".to_string(),
+            ModelSpec {
+                model: "custom-model-b".to_string(),
+                format: ProviderFormat::Anthropic,
+                flavor: ModelFlavor::Chat,
+                display_name: None,
+                parent: None,
+                input_cost_per_mil_tokens: None,
+                output_cost_per_mil_tokens: None,
+                input_cache_read_cost_per_mil_tokens: None,
+                multimodal: None,
+                reasoning: None,
+                max_input_tokens: None,
+                max_output_tokens: None,
+                supports_streaming: true,
+                extra: Default::default(),
+                available_providers: vec!["custom-provider".to_string()],
+            },
+        );
+
+        let overlay = OverlayModelCatalog::new(base, custom);
+
+        assert_eq!(
+            overlay.equivalent_model_names("model-a"),
+            vec!["model-a".to_string()]
+        );
+        assert_eq!(
+            overlay.equivalent_model_names("model-b"),
+            vec!["model-b".to_string()]
         );
     }
 }

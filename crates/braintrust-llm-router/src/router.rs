@@ -2660,6 +2660,70 @@ mod tests {
     }
 
     #[test]
+    fn overlay_catalog_failover_routes_use_equivalent_base_model() {
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            "base-fallback".into(),
+            openai_spec_with_available_providers("base-fallback", ModelFlavor::Chat),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec("custom-primary", ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert("custom-primary".into(), primary);
+        custom
+            .add_external_equivalent_models(
+                "custom-primary".to_string(),
+                vec!["base-fallback".to_string()],
+            )
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                "custom-primary",
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "openai".to_string()],
+            )
+            .expect("failover routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![
+                ("provider-a", "custom-primary"),
+                ("openai", "base-fallback"),
+            ]
+        );
+        assert!(router.catalog().get("base-fallback").is_some());
+        assert!(router.catalog().get("custom-primary").is_none());
+    }
+
+    #[test]
     fn resolved_aliases_returns_only_registered_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
