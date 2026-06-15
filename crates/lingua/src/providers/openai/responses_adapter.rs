@@ -79,18 +79,19 @@ pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChun
                 "delta": reasoning
             }));
         }
+        let output_index_offset = if reasoning.is_empty() { 0 } else { 1 };
 
         if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
             events.push(serde_json::json!({
                 "type": "response.output_text.delta",
-                "output_index": choice.index,
+                "output_index": choice.index + output_index_offset,
                 "content_index": 0,
                 "delta": content
             }));
         }
 
         for tool_call in &delta.tool_calls {
-            let output_index = tool_call.index.unwrap_or(0);
+            let output_index = tool_call.index.unwrap_or(0) + output_index_offset;
             let call_id = tool_call.id.as_deref();
             let name = tool_call
                 .function
@@ -2037,6 +2038,51 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_stream_events_from_universal_mixed_reasoning_content_offsets_text_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking in the same candidate"
+                    }]
+                })),
+                finish_reason: Some("stop".to_string()),
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(
+            reasoning.delta.as_deref(),
+            Some("thinking in the same candidate")
+        );
+        assert_eq!(text.event_type, "response.output_text.delta");
+        assert_eq!(text.output_index, 1);
+        assert_eq!(text.delta.as_deref(), Some("{\"answer\":\"visible json\"}"));
+    }
+
+    #[test]
     fn test_responses_stream_from_universal_mixed_reasoning_and_tool_call_returns_single_event() {
         #[derive(Deserialize)]
         struct StreamEvent {
@@ -2077,5 +2123,64 @@ mod tests {
         let event: StreamEvent = serde_json::from_value(event).unwrap();
         assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
         assert_eq!(event.delta, "thinking before the tool");
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_mixed_reasoning_tool_offsets_tool_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning": [{
+                        "content": "thinking before the tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let tool_start: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 1);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 1);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"microphone comparison\"}")
+        );
     }
 }
