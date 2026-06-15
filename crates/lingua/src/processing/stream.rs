@@ -72,6 +72,7 @@ pub struct StreamTransformSession {
     anthropic_open_content_block_index: Option<u32>,
     anthropic_open_content_block_kind: Option<AnthropicContentBlockKind>,
     anthropic_next_content_block_index: u32,
+    anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -95,6 +96,7 @@ impl StreamTransformSession {
             anthropic_open_content_block_index: None,
             anthropic_open_content_block_kind: None,
             anthropic_next_content_block_index: 0,
+            anthropic_content_block_index_map: BTreeMap::new(),
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -290,8 +292,10 @@ impl StreamTransformSession {
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
             self.anthropic_next_content_block_index = 0;
+            self.anthropic_content_block_index_map.clear();
         }
         let mut chunk = chunk;
+        let source_content_block_start_index = content_block_start_index;
         if let (Some(open_index), Some(open_kind), Some(start_kind)) = (
             self.anthropic_open_content_block_index,
             self.anthropic_open_content_block_kind,
@@ -316,10 +320,19 @@ impl StreamTransformSession {
                 chunk = with_anthropic_content_block_delta_index(chunk, new_index);
                 self.anthropic_open_content_block_index = Some(new_index);
                 self.anthropic_open_content_block_kind = Some(delta_kind);
+                self.anthropic_content_block_index_map
+                    .insert((delta_kind, delta_index), new_index);
                 prefix.push(anthropic_content_block_stop_chunk(open_index));
                 prefix.push(anthropic_content_block_start_chunk(new_index, delta_kind));
-            } else if open_kind == delta_kind && delta_index != open_index {
-                chunk = with_anthropic_content_block_delta_index(chunk, open_index);
+            } else if open_kind == delta_kind {
+                if let Some(mapped_index) = self
+                    .anthropic_content_block_index_map
+                    .get(&(delta_kind, delta_index))
+                    .copied()
+                    .filter(|mapped_index| *mapped_index != delta_index)
+                {
+                    chunk = with_anthropic_content_block_delta_index(chunk, mapped_index);
+                }
             }
         }
         // This closes blocks before explicit block starts and terminal message
@@ -336,6 +349,14 @@ impl StreamTransformSession {
         if is_content_block_start {
             self.anthropic_open_content_block_index = content_block_start_index;
             self.anthropic_open_content_block_kind = content_block_start_kind;
+            if let (Some(source_index), Some(target_index), Some(kind)) = (
+                source_content_block_start_index,
+                content_block_start_index,
+                content_block_start_kind,
+            ) {
+                self.anthropic_content_block_index_map
+                    .insert((kind, source_index), target_index);
+            }
             if let Some(index) = content_block_start_index {
                 self.anthropic_next_content_block_index =
                     self.anthropic_next_content_block_index.max(index + 1);
@@ -364,6 +385,7 @@ impl StreamTransformSession {
                 self.anthropic_open_content_block_index = None;
                 self.anthropic_open_content_block_kind = None;
                 self.anthropic_next_content_block_index = 0;
+                self.anthropic_content_block_index_map.clear();
                 out.push(stop);
             }
             return Ok(out);
@@ -385,6 +407,7 @@ impl StreamTransformSession {
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
             self.anthropic_next_content_block_index = 0;
+            self.anthropic_content_block_index_map.clear();
         }
 
         let mut out = prefix;
@@ -404,6 +427,7 @@ impl StreamTransformSession {
             self.anthropic_open_content_block_index = None;
             self.anthropic_open_content_block_kind = None;
             self.anthropic_next_content_block_index = 0;
+            self.anthropic_content_block_index_map.clear();
             out.push(stop);
         }
         out
@@ -473,7 +497,7 @@ struct AnthropicContentBlockDeltaEvent {
     delta: Value,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum AnthropicContentBlockKind {
     Text,
     Thinking,
@@ -1242,6 +1266,17 @@ mod tests {
             })),
             "content_block_start".to_string(),
         );
+        let first_tool_arguments = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": "{\"first\":true}"
+                }
+            })),
+            "content_block_delta".to_string(),
+        );
 
         let first = session.process_chunks(vec![first_tool_start]).unwrap();
         assert_eq!(
@@ -1270,6 +1305,23 @@ mod tests {
                 .expect("content_block_start should parse");
         assert_eq!(start.index, 1);
         assert_eq!(start.block_kind(), Some(AnthropicContentBlockKind::ToolUse));
+
+        let arguments = session.process_chunks(vec![first_tool_arguments]).unwrap();
+        assert_eq!(
+            arguments
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_delta")]
+        );
+        let arguments_delta: AnthropicContentBlockDeltaEventView =
+            crate::serde_json::from_slice(&arguments[0].data)
+                .expect("content_block_delta should parse");
+        assert_eq!(arguments_delta.index, 0);
+        assert_eq!(
+            arguments_delta.block_kind(),
+            Some(AnthropicContentBlockKind::ToolUse)
+        );
     }
 
     #[test]
