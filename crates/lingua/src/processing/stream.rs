@@ -854,7 +854,11 @@ fn expand_anthropic_session_chunks(
             .collect::<String>();
         (!text.is_empty()).then_some(text)
     });
-    let has_reasoning = reasoning_text.is_some();
+    let reasoning_signature = delta_view
+        .as_ref()
+        .and_then(|d| d.reasoning_signature.as_deref())
+        .filter(|signature| !signature.is_empty());
+    let has_reasoning = reasoning_text.is_some() || reasoning_signature.is_some();
     let is_initial_tool_call = delta_view
         .as_ref()
         .and_then(|d| d.tool_calls.first())
@@ -881,7 +885,7 @@ fn expand_anthropic_session_chunks(
         return out;
     }
 
-    if let Some(thinking) = reasoning_text {
+    if has_reasoning {
         let content = delta_view
             .as_ref()
             .and_then(|d| d.content.as_deref())
@@ -898,23 +902,21 @@ fn expand_anthropic_session_chunks(
                 "content_block_start".to_string(),
             ));
         }
-        out.push(StreamOutputChunk::with_event(
-            serialize_stream_value(&crate::serde_json::json!({
-                "type": "content_block_delta",
-                "index": choice.map(|c| c.index).unwrap_or(0),
-                "delta": {
-                    "type": "thinking_delta",
-                    "thinking": thinking
-                }
-            }))
-            .unwrap_or_else(|_| Bytes::new()),
-            "content_block_delta".to_string(),
-        ));
-        if let Some(signature) = delta_view
-            .as_ref()
-            .and_then(|d| d.reasoning_signature.as_deref())
-            .filter(|signature| !signature.is_empty())
-        {
+        if let Some(thinking) = reasoning_text {
+            out.push(StreamOutputChunk::with_event(
+                serialize_stream_value(&crate::serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "delta": {
+                        "type": "thinking_delta",
+                        "thinking": thinking
+                    }
+                }))
+                .unwrap_or_else(|_| Bytes::new()),
+                "content_block_delta".to_string(),
+            ));
+        }
+        if let Some(signature) = reasoning_signature {
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",
@@ -1657,6 +1659,17 @@ mod tests {
         }
 
         #[derive(Deserialize)]
+        struct SignatureDeltaEvent {
+            index: u32,
+            delta: SignatureDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct SignatureDelta {
+            signature: String,
+        }
+
+        #[derive(Deserialize)]
         struct TextDeltaEvent {
             index: u32,
             delta: TextDelta,
@@ -1714,7 +1727,8 @@ mod tests {
                 "content": {
                     "role": "model",
                     "parts": [{
-                        "text": "The visible answer."
+                        "text": "The visible answer.",
+                        "thoughtSignature": "sig_on_text_part"
                     }]
                 }
             }]
@@ -1757,21 +1771,27 @@ mod tests {
                 .map(|chunk| chunk.event_type.as_deref())
                 .collect::<Vec<_>>(),
             vec![
+                Some("content_block_delta"),
                 Some("content_block_stop"),
                 Some("content_block_start"),
                 Some("content_block_delta")
             ]
         );
 
+        let signature_delta: SignatureDeltaEvent =
+            crate::serde_json::from_slice(&third[0].data).unwrap();
+        assert_eq!(signature_delta.index, 0);
+        assert_eq!(signature_delta.delta.signature, "sig_on_text_part");
+
         let text_start: AnthropicContentBlockStartEventView =
-            crate::serde_json::from_slice(&third[1].data).unwrap();
+            crate::serde_json::from_slice(&third[2].data).unwrap();
         assert_eq!(
             text_start.block_kind(),
             Some(AnthropicContentBlockKind::Text)
         );
         assert_eq!(text_start.index, 1);
 
-        let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&third[2].data).unwrap();
+        let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&third[3].data).unwrap();
         assert_eq!(text_delta.index, 1);
         assert_eq!(text_delta.delta.text, "The visible answer.");
     }
