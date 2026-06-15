@@ -315,21 +315,49 @@ impl UniversalResponse {
 
 #[derive(Default, Deserialize)]
 struct AnthropicUsageView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     output_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     cache_read_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     cache_creation_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_cache_creation")]
     cache_creation: Option<AnthropicCacheCreationView>,
 }
 
 #[derive(Default, Deserialize)]
 struct AnthropicCacheCreationView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     ephemeral_5m_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     ephemeral_1h_input_tokens: Option<i64>,
 }
 
+fn deserialize_optional_i64<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = Option::<Value>::deserialize(deserializer)?;
+    Ok(value.and_then(|value| value.as_i64()))
+}
+
+fn deserialize_optional_cache_creation<'de, D>(
+    deserializer: D,
+) -> Result<Option<AnthropicCacheCreationView>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = Option::<Value>::deserialize(deserializer)?;
+    Ok(value.and_then(|value| serde_json::from_value(value).ok()))
+}
+
 fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
-    serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
+    match serde_json::from_value::<AnthropicUsageView>(usage.clone()) {
+        Ok(view) => view,
+        Err(_) => AnthropicUsageView::default(),
+    }
 }
 
 impl UniversalUsage {
