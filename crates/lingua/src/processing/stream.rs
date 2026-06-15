@@ -296,16 +296,33 @@ impl StreamTransformSession {
         }
         let mut chunk = chunk;
         let source_content_block_start_index = content_block_start_index;
-        if let (Some(open_index), Some(open_kind), Some(start_kind)) = (
-            self.anthropic_open_content_block_index,
-            self.anthropic_open_content_block_kind,
-            content_block_start_kind,
-        ) {
-            if open_kind != start_kind {
-                let new_index = self.anthropic_next_content_block_index.max(open_index + 1);
-                self.anthropic_next_content_block_index = new_index + 1;
-                chunk = with_anthropic_content_block_start_index(chunk, new_index);
-                content_block_start_index = Some(new_index);
+        if let (Some(source_index), Some(start_kind)) =
+            (source_content_block_start_index, content_block_start_kind)
+        {
+            if let Some(mapped_index) = self
+                .anthropic_content_block_index_map
+                .get(&(start_kind, source_index))
+                .copied()
+            {
+                if mapped_index != source_index {
+                    chunk = with_anthropic_content_block_start_index(chunk, mapped_index);
+                    content_block_start_index = Some(mapped_index);
+                }
+            } else {
+                let open_index = self.anthropic_open_content_block_index;
+                let needs_fresh_index = source_index < self.anthropic_next_content_block_index
+                    || open_index == Some(source_index)
+                    || self
+                        .anthropic_open_content_block_kind
+                        .is_some_and(|open_kind| open_kind != start_kind);
+                if needs_fresh_index {
+                    let new_index = self
+                        .anthropic_next_content_block_index
+                        .max(open_index.map(|index| index + 1).unwrap_or(0));
+                    self.anthropic_next_content_block_index = new_index + 1;
+                    chunk = with_anthropic_content_block_start_index(chunk, new_index);
+                    content_block_start_index = Some(new_index);
+                }
             }
         }
         if let (Some(open_index), Some(open_kind), Some(delta_index), Some(delta_kind)) = (
@@ -1324,6 +1341,134 @@ mod tests {
             arguments_delta.block_kind(),
             Some(AnthropicContentBlockKind::ToolUse)
         );
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_stream_session_allocates_unique_same_kind_tool_start_after_remap() {
+        #[derive(Deserialize)]
+        struct ContentBlockStopEvent {
+            index: u32,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let thinking_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                    "type": "thinking",
+                    "thinking": ""
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+        let first_tool_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": "toolu_1",
+                    "name": "lookup",
+                    "input": {}
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+        let second_tool_start = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_start",
+                "index": 1,
+                "content_block": {
+                    "type": "tool_use",
+                    "id": "toolu_2",
+                    "name": "lookup",
+                    "input": {}
+                }
+            })),
+            "content_block_start".to_string(),
+        );
+        let first_tool_arguments = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": "{\"first\":true}"
+                }
+            })),
+            "content_block_delta".to_string(),
+        );
+        let second_tool_arguments = StreamOutputChunk::with_event(
+            to_bytes(&json!({
+                "type": "content_block_delta",
+                "index": 1,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": "{\"second\":true}"
+                }
+            })),
+            "content_block_delta".to_string(),
+        );
+
+        let thinking = session.process_chunks(vec![thinking_start]).unwrap();
+        assert_eq!(
+            thinking
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_start")]
+        );
+
+        let first_tool = session.process_chunks(vec![first_tool_start]).unwrap();
+        assert_eq!(
+            first_tool
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_stop"), Some("content_block_start")]
+        );
+        let thinking_stop: ContentBlockStopEvent =
+            crate::serde_json::from_slice(&first_tool[0].data).unwrap();
+        assert_eq!(thinking_stop.index, 0);
+        let first_start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&first_tool[1].data).unwrap();
+        assert_eq!(first_start.index, 1);
+        assert_eq!(
+            first_start.block_kind(),
+            Some(AnthropicContentBlockKind::ToolUse)
+        );
+
+        let second_tool = session.process_chunks(vec![second_tool_start]).unwrap();
+        assert_eq!(
+            second_tool
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_stop"), Some("content_block_start")]
+        );
+        let first_tool_stop: ContentBlockStopEvent =
+            crate::serde_json::from_slice(&second_tool[0].data).unwrap();
+        assert_eq!(first_tool_stop.index, 1);
+        let second_start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&second_tool[1].data).unwrap();
+        assert_eq!(second_start.index, 2);
+        assert_eq!(
+            second_start.block_kind(),
+            Some(AnthropicContentBlockKind::ToolUse)
+        );
+
+        let first_arguments = session.process_chunks(vec![first_tool_arguments]).unwrap();
+        let first_delta: AnthropicContentBlockDeltaEventView =
+            crate::serde_json::from_slice(&first_arguments[0].data).unwrap();
+        assert_eq!(first_delta.index, 1);
+
+        let second_arguments = session.process_chunks(vec![second_tool_arguments]).unwrap();
+        let second_delta: AnthropicContentBlockDeltaEventView =
+            crate::serde_json::from_slice(&second_arguments[0].data).unwrap();
+        assert_eq!(second_delta.index, 2);
     }
 
     #[test]
