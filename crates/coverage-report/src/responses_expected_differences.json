@@ -81,6 +81,7 @@
       "source": "Responses",
       "target": "Anthropic",
       "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Anthropic-style usage reports input_tokens exclusive of cache buckets, while Responses usage reports inclusive prompt totals" },
         { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Responses does not expose this semantic flag" },
         { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
       ]
@@ -89,6 +90,7 @@
       "source": "ChatCompletions",
       "target": "Anthropic",
       "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Anthropic-style usage reports input_tokens exclusive of cache buckets, while ChatCompletions usage reports inclusive prompt totals" },
         { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; ChatCompletions does not expose this semantic flag" },
         { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
       ]

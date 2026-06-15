@@ -63,7 +63,9 @@ pub struct UniversalUsage {
     /// tokens, while OpenAI-style usage reports `prompt_tokens` inclusive of
     /// them. Consumers that want an OpenAI-style inclusive prompt total must
     /// add the cache buckets back when this is set; see
-    /// [`UniversalUsage::inclusive_prompt_tokens`].
+    /// [`UniversalUsage::inclusive_prompt_tokens`]. Consumers that want an
+    /// Anthropic-style exclusive input count must subtract the cache buckets
+    /// when this is not set; see [`UniversalUsage::exclusive_prompt_tokens`].
     pub prompt_tokens_exclude_cache: bool,
 
     /// Reasoning/thinking tokens used in the completion.
@@ -474,17 +476,7 @@ impl UniversalUsage {
         if !self.prompt_tokens_exclude_cache {
             return self.prompt_tokens;
         }
-        let prompt_cache_creation_tokens = self.prompt_cache_creation_tokens.or_else(|| {
-            if self.prompt_cache_creation_5m_tokens.is_none()
-                && self.prompt_cache_creation_1h_tokens.is_none()
-            {
-                return None;
-            }
-            Some(
-                self.prompt_cache_creation_5m_tokens.unwrap_or(0)
-                    + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
-            )
-        });
+        let prompt_cache_creation_tokens = self.prompt_cache_creation_tokens_for_prompt_math();
         if self.prompt_tokens.is_none()
             && self.prompt_cached_tokens.is_none()
             && prompt_cache_creation_tokens.is_none()
@@ -495,6 +487,35 @@ impl UniversalUsage {
             self.prompt_tokens.unwrap_or(0)
                 + self.prompt_cached_tokens.unwrap_or(0)
                 + prompt_cache_creation_tokens.unwrap_or(0),
+        )
+    }
+
+    fn prompt_cache_creation_tokens_for_prompt_math(&self) -> Option<i64> {
+        self.prompt_cache_creation_tokens.or_else(|| {
+            if self.prompt_cache_creation_5m_tokens.is_none()
+                && self.prompt_cache_creation_1h_tokens.is_none()
+            {
+                return None;
+            }
+            Some(
+                self.prompt_cache_creation_5m_tokens.unwrap_or(0)
+                    + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
+            )
+        })
+    }
+
+    pub fn exclusive_prompt_tokens(&self) -> Option<i64> {
+        if self.prompt_tokens_exclude_cache {
+            return self.prompt_tokens;
+        }
+        let prompt_tokens = self.prompt_tokens?;
+        Some(
+            (prompt_tokens
+                - self.prompt_cached_tokens.unwrap_or(0)
+                - self
+                    .prompt_cache_creation_tokens_for_prompt_math()
+                    .unwrap_or(0))
+            .max(0),
         )
     }
 
@@ -570,7 +591,7 @@ impl UniversalUsage {
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {
                 let mut map = serde_json::Map::new();
-                if let Some(p) = self.prompt_tokens {
+                if let Some(p) = self.exclusive_prompt_tokens() {
                     map.insert("input_tokens".into(), serde_json::json!(p));
                 }
                 if let Some(c) = self.completion_tokens {
@@ -773,6 +794,24 @@ mod tests {
         assert_eq!(anthropic["output_tokens"], 5);
         assert_eq!(anthropic["cache_read_input_tokens"], 20);
         assert_eq!(anthropic["cache_creation_input_tokens"], 30);
+    }
+
+    #[test]
+    fn test_inclusive_usage_serializes_exclusive_prompt_tokens_for_anthropic_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(60),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(10),
+            prompt_tokens_exclude_cache: false,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["input_tokens"], 30);
+        assert_eq!(anthropic["output_tokens"], 5);
+        assert_eq!(anthropic["cache_read_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation_input_tokens"], 10);
     }
 
     #[test]
