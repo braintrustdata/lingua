@@ -224,6 +224,11 @@ pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").
     fn id(&self) -> &'static str;
 
+    /// Whether this provider registration satisfies a catalog provider alias.
+    fn matches_provider_alias(&self, alias: &str) -> bool {
+        self.id() == alias
+    }
+
     /// All formats this provider can handle.
     fn provider_formats(&self) -> Vec<ProviderFormat>;
 

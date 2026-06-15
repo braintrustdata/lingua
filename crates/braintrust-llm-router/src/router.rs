@@ -124,13 +124,16 @@ pub fn create_provider(
             timeout,
             client_settings,
         )?)),
-        kind if is_openai_compatible(kind) => Ok(Arc::new(OpenAIProvider::from_config(
-            endpoint,
-            endpoint_template,
-            timeout,
-            metadata,
-            client_settings,
-        )?)),
+        kind if is_openai_compatible(kind) => Ok(Arc::new(
+            OpenAIProvider::from_config(
+                endpoint,
+                endpoint_template,
+                timeout,
+                metadata,
+                client_settings,
+            )?
+            .with_provider_alias(kind),
+        )),
         other => Err(Error::InvalidRequest(format!(
             "unsupported provider kind: {other}"
         ))),
@@ -711,7 +714,14 @@ impl Router {
             return self
                 .providers
                 .get(provider_alias)
-                .is_some_and(|provider| provider.id() == provider_id);
+                .is_some_and(|provider| provider.matches_provider_alias(provider_id));
+        }
+
+        if concrete_provider_id_alias(resolver_alias) {
+            return self
+                .providers
+                .get(provider_alias)
+                .is_some_and(|provider| provider.matches_provider_alias(resolver_alias));
         }
 
         default_alias_provider_id(provider_alias)
@@ -911,6 +921,7 @@ impl Router {
 
 fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
     match alias {
+        "OPENAI_API_KEY" => Some("openai"),
         "ANTHROPIC_API_KEY" => Some("anthropic"),
         "GEMINI_API_KEY" => Some("google"),
         "MISTRAL_API_KEY" => Some("mistral"),
@@ -920,6 +931,13 @@ fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
         "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
         _ => None,
     }
+}
+
+fn concrete_provider_id_alias(alias: &str) -> bool {
+    matches!(
+        alias,
+        "anthropic" | "google" | "mistral" | "bedrock" | "vertex" | "azure" | "databricks"
+    )
 }
 
 /// One provider registration: alias, provider, auth, and default formats.
@@ -1160,6 +1178,51 @@ mod tests {
                     .into_iter()
                     .map(|chunk| Ok(StreamChunk::data(chunk))),
             )))
+        }
+
+        async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    struct FakeOpenAICompatibleProvider {
+        alias: &'static str,
+    }
+
+    #[async_trait]
+    impl Provider for FakeOpenAICompatibleProvider {
+        fn id(&self) -> &'static str {
+            "openai"
+        }
+
+        fn matches_provider_alias(&self, alias: &str) -> bool {
+            self.alias == alias
+        }
+
+        fn provider_formats(&self) -> Vec<ProviderFormat> {
+            vec![ProviderFormat::ChatCompletions]
+        }
+
+        async fn complete(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<Bytes> {
+            Ok(Bytes::from("{}"))
+        }
+
+        async fn complete_stream(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<RawResponseStream> {
+            unimplemented!()
         }
 
         async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
@@ -2737,6 +2800,82 @@ mod tests {
     }
 
     #[test]
+    fn fallback_provider_routes_match_named_openai_secret_for_default_alias() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENAI_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-openai"]
+            )
+            .expect("routes"),
+            vec!["my-openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_do_not_match_openai_default_alias_to_compatible_provider() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENAI_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "cerebras",
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match explicit_route_aliases(
+            &router,
+            model,
+            ProviderFormat::ChatCompletions,
+            &["cerebras"],
+        ) {
+            Ok(_) => panic!("OpenAI-compatible provider should not satisfy OpenAI default alias"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
+    }
+
+    #[test]
     fn failover_routes_match_named_secrets_by_concrete_provider_id() {
         let model = "claude-sonnet-4-6";
         let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
@@ -2752,6 +2891,65 @@ mod tests {
     "format": "anthropic",
     "flavor": "chat",
     "available_providers": ["GOOGLE_DEFAULT_CREDENTIALS"]
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-anthropic",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-anthropic".to_string(), "my-vertex".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("my-anthropic", model), ("my-vertex", vertex_model),]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_secrets_when_equivalents_omit_available_providers() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
   }
 }"#,
         )
