@@ -950,6 +950,7 @@ struct ProviderEntry {
 
 pub struct RouterBuilder {
     catalog: Option<Arc<ModelCatalog>>,
+    custom_catalog: Option<ModelCatalog>,
     provider_entries: Vec<ProviderEntry>,
     retry_policy: RetryPolicy,
 }
@@ -964,6 +965,7 @@ impl RouterBuilder {
     pub fn new() -> Self {
         Self {
             catalog: None,
+            custom_catalog: None,
             provider_entries: Vec::new(),
             retry_policy: RetryPolicy::default(),
         }
@@ -972,11 +974,23 @@ impl RouterBuilder {
     pub fn load_models(mut self, path: impl AsRef<std::path::Path>) -> Result<Self> {
         let catalog = load_catalog_from_disk(path)?;
         self.catalog = Some(catalog);
+        self.custom_catalog = None;
         Ok(self)
     }
 
     pub fn with_catalog(mut self, catalog: Arc<ModelCatalog>) -> Self {
         self.catalog = Some(catalog);
+        self.custom_catalog = None;
+        self
+    }
+
+    /// Configure the router with custom models overlaid on a shared base catalog.
+    ///
+    /// Custom entries shadow base entries for resolution, while `Router::catalog()`
+    /// continues to expose the base catalog for compatibility.
+    pub fn with_overlay_catalog(mut self, base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
+        self.catalog = Some(base);
+        self.custom_catalog = Some(custom);
         self
     }
 
@@ -1025,7 +1039,10 @@ impl RouterBuilder {
         let catalog = self
             .catalog
             .ok_or_else(|| Error::InvalidRequest("model catalog not configured".into()))?;
-        let resolver = ModelResolver::new(Arc::clone(&catalog));
+        let resolver = match self.custom_catalog {
+            Some(custom) => ModelResolver::with_overlay(Arc::clone(&catalog), custom),
+            None => ModelResolver::new(Arc::clone(&catalog)),
+        };
 
         let mut providers = HashMap::new();
         let mut auth_configs = HashMap::new();
@@ -2545,7 +2562,7 @@ mod tests {
     }
 
     #[test]
-    fn merged_catalog_resolves_custom_and_base_models() {
+    fn overlay_catalog_resolves_custom_and_base_models() {
         let mut base = ModelCatalog::empty();
         base.insert(
             "base-model".into(),
@@ -2556,10 +2573,9 @@ mod tests {
             "custom-model".into(),
             openai_spec_with_available_providers("custom-model", ModelFlavor::Chat),
         );
-        let catalog = base.merge_custom_catalog(custom);
 
         let router = Router::builder()
-            .with_catalog(Arc::new(catalog))
+            .with_overlay_catalog(Arc::new(base), custom)
             .add_provider(
                 "openai",
                 FakeProvider {
@@ -2573,7 +2589,7 @@ mod tests {
             .expect("router builds");
 
         assert!(router.catalog().get("base-model").is_some());
-        assert!(router.catalog().get("custom-model").is_some());
+        assert!(router.catalog().get("custom-model").is_none());
         assert!(router
             .resolve_provider_routes("base-model", ProviderFormat::ChatCompletions, &[])
             .is_ok());
@@ -2583,7 +2599,7 @@ mod tests {
     }
 
     #[test]
-    fn merged_catalog_failover_routes_use_equivalent_custom_model() {
+    fn overlay_catalog_failover_routes_use_equivalent_custom_model() {
         let base = ModelCatalog::empty();
         let mut custom = ModelCatalog::empty();
         let mut primary = openai_spec("custom-primary", ModelFlavor::Chat);
@@ -2598,10 +2614,9 @@ mod tests {
                 vec!["custom-fallback".to_string()],
             )
             .expect("equivalence is valid");
-        let catalog = base.merge_custom_catalog(custom);
 
         let router = Router::builder()
-            .with_catalog(Arc::new(catalog))
+            .with_overlay_catalog(Arc::new(base), custom)
             .add_provider(
                 "provider-a",
                 FakeProvider {
