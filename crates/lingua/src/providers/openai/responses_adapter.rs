@@ -71,6 +71,23 @@ struct ResponsesFunctionCallArgumentsDeltaEvent {
     output_index: Option<u32>,
 }
 
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesReasoningTextDeltaEvent {
+    delta: Option<String>,
+    output_index: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesAlternateReasoningDeltaEvent {
+    delta: Option<ResponsesAlternateReasoningDelta>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesAlternateReasoningDelta {
+    text: Option<String>,
+    index: Option<u32>,
+}
+
 pub(crate) fn parse_responses_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<OpenAIResponsesExtrasView, TransformError> {
@@ -679,6 +696,46 @@ impl ProviderAdapter for ResponsesAdapter {
                 )))
             }
 
+            "response.reasoning_summary_text.delta" | "response.reasoning_text.delta" => {
+                let (text, output_index) = if is_alternate_format {
+                    let parsed: ResponsesAlternateReasoningDeltaEvent =
+                        serde_json::from_value(payload.clone()).map_err(|e| {
+                            TransformError::DeserializationFailed(format!(
+                                "Responses alternate reasoning delta event: {}",
+                                e
+                            ))
+                        })?;
+                    let delta = parsed.delta.unwrap_or_default();
+                    (delta.text, delta.index.unwrap_or(0))
+                } else {
+                    let parsed: ResponsesReasoningTextDeltaEvent =
+                        serde_json::from_value(payload.clone()).map_err(|e| {
+                            TransformError::DeserializationFailed(format!(
+                                "Responses reasoning delta event: {}",
+                                e
+                            ))
+                        })?;
+                    (parsed.delta, parsed.output_index.unwrap_or(0))
+                };
+
+                Ok(Some(UniversalStreamChunk::new(
+                    None,
+                    None,
+                    vec![UniversalStreamChoice {
+                        index: output_index,
+                        delta: Some(serde_json::json!({
+                            "role": "assistant",
+                            "reasoning": [{
+                                "content": text.unwrap_or_default()
+                            }]
+                        })),
+                        finish_reason: None,
+                    }],
+                    None,
+                    None,
+                )))
+            }
+
             "response.completed" => {
                 // Final event with usage
                 let response = payload.get("response");
@@ -874,6 +931,11 @@ impl ProviderAdapter for ResponsesAdapter {
             .first()
             .and_then(|c| c.delta_view())
             .is_some_and(|d| !d.tool_calls.is_empty());
+        let has_reasoning = chunk
+            .choices
+            .first()
+            .and_then(|c| c.delta_view())
+            .is_some_and(|d| !d.reasoning.is_empty());
 
         // Check if this is an initial metadata chunk (has model/id/usage but no content)
         // Exclude chunks with tool_calls - those must be handled by the tool call path
@@ -881,6 +943,7 @@ impl ProviderAdapter for ResponsesAdapter {
             (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
                 && !has_finish
                 && !has_tool_calls
+                && !has_reasoning
                 && chunk
                     .choices
                     .first()
@@ -980,6 +1043,22 @@ impl ProviderAdapter for ResponsesAdapter {
                             "type": "response.function_call_arguments.delta",
                             "output_index": output_index,
                             "delta": arguments
+                        }));
+                    }
+                }
+
+                if !delta.reasoning.is_empty() {
+                    let reasoning = delta
+                        .reasoning
+                        .iter()
+                        .filter_map(|r| r.content.as_deref())
+                        .collect::<String>();
+                    if !reasoning.is_empty() {
+                        return Ok(serde_json::json!({
+                            "type": "response.reasoning_summary_text.delta",
+                            "output_index": choice.index,
+                            "summary_index": 0,
+                            "delta": reasoning
                         }));
                     }
                 }
@@ -1803,5 +1882,44 @@ mod tests {
             .expect("keepalive should emit a chunk");
 
         assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_reasoning_only_is_not_metadata() {
+        #[derive(Deserialize)]
+        struct ReasoningDeltaEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: String,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": null,
+                    "reasoning": [{
+                        "content": "thinking before visible text"
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(1),
+                completion_tokens: Some(2),
+                completion_reasoning_tokens: Some(2),
+                ..Default::default()
+            }),
+        );
+
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: ReasoningDeltaEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking before visible text");
     }
 }

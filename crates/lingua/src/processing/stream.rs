@@ -568,6 +568,15 @@ fn expand_anthropic_session_chunks(
     let has_tool_calls = delta_view
         .as_ref()
         .is_some_and(|d| !d.tool_calls.is_empty());
+    let reasoning_text = delta_view.as_ref().and_then(|d| {
+        let text = d
+            .reasoning
+            .iter()
+            .filter_map(|r| r.content.as_deref())
+            .collect::<String>();
+        (!text.is_empty()).then_some(text)
+    });
+    let has_reasoning = reasoning_text.is_some();
     let is_initial_tool_call = delta_view
         .as_ref()
         .and_then(|d| d.tool_calls.first())
@@ -582,6 +591,7 @@ fn expand_anthropic_session_chunks(
     let is_initial_metadata = has_metadata
         && !has_finish
         && !has_tool_calls
+        && !has_reasoning
         && !universal.choices.is_empty()
         && delta_view
             .as_ref()
@@ -593,42 +603,37 @@ fn expand_anthropic_session_chunks(
         return out;
     }
 
+    if let Some(thinking) = reasoning_text {
+        if !anthropic_message_started {
+            out.push(StreamOutputChunk::with_event(
+                anthropic_message_start_bytes(universal),
+                "message_start".to_string(),
+            ));
+            out.push(StreamOutputChunk::with_event(
+                Bytes::from_static(
+                    br#"{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}"#,
+                ),
+                "content_block_start".to_string(),
+            ));
+        }
+        out.push(StreamOutputChunk::with_event(
+            serialize_stream_value(&crate::serde_json::json!({
+                "type": "content_block_delta",
+                "index": choice.map(|c| c.index).unwrap_or(0),
+                "delta": {
+                    "type": "thinking_delta",
+                    "thinking": thinking
+                }
+            }))
+            .unwrap_or_else(|_| Bytes::new()),
+            "content_block_delta".to_string(),
+        ));
+        return out;
+    }
+
     if is_initial_metadata && !anthropic_message_started {
         if let Some(message_start) = chunks.first() {
             out.push(message_start.clone());
-        }
-
-        if let Some(choice) = choice {
-            if let Some(delta_view) = delta_view.as_ref() {
-                if !delta_view.reasoning.is_empty() {
-                    let thinking = delta_view
-                        .reasoning
-                        .iter()
-                        .filter_map(|r| r.content.as_deref())
-                        .collect::<String>();
-                    if !thinking.is_empty() {
-                        out.push(StreamOutputChunk::with_event(
-                            Bytes::from_static(
-                                br#"{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}"#,
-                            ),
-                            "content_block_start".to_string(),
-                        ));
-                        out.push(StreamOutputChunk::with_event(
-                            serialize_stream_value(&crate::serde_json::json!({
-                                "type": "content_block_delta",
-                                "index": choice.index,
-                                "delta": {
-                                    "type": "thinking_delta",
-                                    "thinking": thinking
-                                }
-                            }))
-                            .unwrap_or_else(|_| Bytes::new()),
-                            "content_block_delta".to_string(),
-                        ));
-                        return out;
-                    }
-                }
-            }
         }
 
         out.push(StreamOutputChunk::with_event(
@@ -1179,6 +1184,90 @@ mod tests {
                 .and_then(Value::as_str),
             Some("end_turn")
         );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_stream_session_google_thought_only_chunks_are_anthropic_thinking_deltas() {
+        #[derive(Deserialize)]
+        struct ThinkingDeltaEvent {
+            delta: ThinkingDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct ThinkingDelta {
+            thinking: String,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let first_thought = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "thinking before visible text",
+                        "thought": true
+                    }]
+                }
+            }],
+            "usageMetadata": {
+                "promptTokenCount": 1,
+                "thoughtsTokenCount": 2,
+                "totalTokenCount": 3
+            }
+        }));
+        let later_thought = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "later thinking",
+                        "thought": true
+                    }]
+                }
+            }],
+            "usageMetadata": {
+                "promptTokenCount": 1,
+                "thoughtsTokenCount": 4,
+                "totalTokenCount": 5
+            }
+        }));
+
+        let first = session.push(first_thought).unwrap();
+        assert_eq!(
+            first
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta")
+            ]
+        );
+
+        let first_delta: ThinkingDeltaEvent =
+            crate::serde_json::from_slice(&first[2].data).unwrap();
+        assert_eq!(first_delta.delta.thinking, "thinking before visible text");
+
+        let second = session.push(later_thought).unwrap();
+        assert_eq!(
+            second
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("content_block_delta")]
+        );
+
+        let second_delta: ThinkingDeltaEvent =
+            crate::serde_json::from_slice(&second[0].data).unwrap();
+        assert_eq!(second_delta.delta.thinking, "later thinking");
     }
 
     #[test]
