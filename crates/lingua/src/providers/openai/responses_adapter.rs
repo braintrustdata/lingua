@@ -1007,41 +1007,73 @@ impl ProviderAdapter for ResponsesAdapter {
             })
         };
 
-        if !has_tool_calls {
-            if let Some(choice) = chunk.choices.first() {
-                if let Some(delta) = choice.delta_view() {
-                    let mut events = Vec::new();
-                    let reasoning = delta
-                        .reasoning
-                        .iter()
-                        .filter_map(|r| r.content.as_deref())
-                        .collect::<String>();
-                    if !reasoning.is_empty() {
+        if let Some(choice) = chunk.choices.first() {
+            if let Some(delta) = choice.delta_view() {
+                let mut events = Vec::new();
+                let reasoning = delta
+                    .reasoning
+                    .iter()
+                    .filter_map(|r| r.content.as_deref())
+                    .collect::<String>();
+                if !reasoning.is_empty() {
+                    events.push(serde_json::json!({
+                        "type": "response.reasoning_summary_text.delta",
+                        "output_index": choice.index,
+                        "summary_index": 0,
+                        "delta": reasoning
+                    }));
+                }
+                if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+                    events.push(serde_json::json!({
+                        "type": "response.output_text.delta",
+                        "output_index": choice.index,
+                        "content_index": 0,
+                        "delta": content
+                    }));
+                }
+                for tool_call in &delta.tool_calls {
+                    let output_index = tool_call.index.unwrap_or(0);
+                    let call_id = tool_call.id.as_deref();
+                    let name = tool_call
+                        .function
+                        .as_ref()
+                        .and_then(|f| f.name.as_deref())
+                        .unwrap_or("");
+                    if let Some(call_id) = call_id {
                         events.push(serde_json::json!({
-                            "type": "response.reasoning_summary_text.delta",
-                            "output_index": choice.index,
-                            "summary_index": 0,
-                            "delta": reasoning
+                            "type": "response.output_item.added",
+                            "output_index": output_index,
+                            "item": {
+                                "type": "function_call",
+                                "status": "in_progress",
+                                "call_id": call_id,
+                                "name": name,
+                                "arguments": ""
+                            }
                         }));
                     }
-                    if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+                    if let Some(arguments) = tool_call
+                        .function
+                        .as_ref()
+                        .and_then(|f| f.arguments.as_deref())
+                        .filter(|arguments| !arguments.is_empty())
+                    {
                         events.push(serde_json::json!({
-                            "type": "response.output_text.delta",
-                            "output_index": choice.index,
-                            "content_index": 0,
-                            "delta": content
+                            "type": "response.function_call_arguments.delta",
+                            "output_index": output_index,
+                            "delta": arguments
                         }));
                     }
-                    if !events.is_empty() {
-                        if has_finish {
-                            events.push(build_terminal_event(chunk));
-                        }
-                        return Ok(if events.len() == 1 {
-                            events.remove(0)
-                        } else {
-                            Value::Array(events)
-                        });
+                }
+                if !events.is_empty() {
+                    if has_finish {
+                        events.push(build_terminal_event(chunk));
                     }
+                    return Ok(if events.len() == 1 {
+                        events.remove(0)
+                    } else {
+                        Value::Array(events)
+                    });
                 }
             }
         }
@@ -1999,5 +2031,61 @@ mod tests {
             Some("{\"answer\":\"visible json\"}")
         );
         assert_eq!(events[2].event_type, "response.completed");
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_mixed_reasoning_and_tool_call_emits_all_events() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: Option<String>,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning": [{
+                        "content": "thinking before the tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = adapter.stream_from_universal(&chunk).unwrap();
+        let events: Vec<StreamEvent> = serde_json::from_value(events).unwrap();
+        assert_eq!(events.len(), 3);
+        assert_eq!(
+            events[0].event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(events[0].delta.as_deref(), Some("thinking before the tool"));
+        assert_eq!(events[1].event_type, "response.output_item.added");
+        assert_eq!(
+            events[2].event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(
+            events[2].delta.as_deref(),
+            Some("{\"query\":\"microphone comparison\"}")
+        );
     }
 }

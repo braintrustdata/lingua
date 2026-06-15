@@ -10683,6 +10683,9 @@ exports[`streaming: responses → google > toolCallRequest > streaming 1`] = `
 "event: response.output_item.added
 data: {"item":{"arguments":"","call_id":"etjq4utn","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":0,"type":"response.output_item.added"}
 
+event: response.function_call_arguments.delta
+data: {"delta":"{\\"location\\":\\"San Francisco, CA\\"}","output_index":0,"type":"response.function_call_arguments.delta"}
+
 event: response.completed
 data: {"response":{"id":"YVv7aeCnCK30jMcPgsyniAw","model":"gemini-3-flash-preview","object":"response","output":[],"status":"completed","usage":{"input_tokens":73,"input_tokens_details":{"cached_tokens":0},"output_tokens":19,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":92}},"type":"response.completed"}
 

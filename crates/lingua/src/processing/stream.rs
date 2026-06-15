@@ -263,7 +263,7 @@ impl StreamTransformSession {
         let is_content_block_start = chunk.event_type.as_deref() == Some("content_block_start");
         let is_content_block_stop = chunk.event_type.as_deref() == Some("content_block_stop");
         let content_block_start = parse_anthropic_content_block_start_event(&chunk)?;
-        let content_block_start_index = content_block_start.as_ref().map(|event| event.index);
+        let mut content_block_start_index = content_block_start.as_ref().map(|event| event.index);
         let content_block_start_kind = content_block_start
             .as_ref()
             .and_then(AnthropicContentBlockStartEventView::block_kind);
@@ -290,6 +290,22 @@ impl StreamTransformSession {
             self.anthropic_next_content_block_index = 0;
         }
         let mut chunk = chunk;
+        if let (Some(open_index), Some(open_kind), Some(start_index), Some(start_kind)) = (
+            self.anthropic_open_content_block_index,
+            self.anthropic_open_content_block_kind,
+            content_block_start_index,
+            content_block_start_kind,
+        ) {
+            if open_kind != start_kind {
+                let new_index = self.anthropic_next_content_block_index.max(open_index + 1);
+                self.anthropic_next_content_block_index = new_index + 1;
+                chunk = with_anthropic_content_block_start_index(chunk, new_index);
+                content_block_start_index = Some(new_index);
+            } else if start_index != open_index {
+                chunk = with_anthropic_content_block_start_index(chunk, open_index);
+                content_block_start_index = Some(open_index);
+            }
+        }
         if let (Some(open_index), Some(open_kind), Some(delta_index), Some(delta_kind)) = (
             self.anthropic_open_content_block_index,
             self.anthropic_open_content_block_kind,
@@ -399,6 +415,14 @@ struct AnthropicContentBlockStartEventView {
     _event_type: AnthropicStreamEventTypeView,
     index: u32,
     content_block: Option<AnthropicContentBlockView>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct AnthropicContentBlockStartEvent {
+    #[serde(rename = "type")]
+    event_type: String,
+    index: u32,
+    content_block: Value,
 }
 
 impl AnthropicContentBlockStartEventView {
@@ -569,6 +593,25 @@ fn with_anthropic_content_block_delta_index(
 ) -> StreamOutputChunk {
     let Ok(mut event) =
         crate::serde_json::from_slice::<AnthropicContentBlockDeltaEvent>(&chunk.data)
+    else {
+        return chunk;
+    };
+    event.index = index;
+    let Ok(data) = crate::serde_json::to_vec(&event).map(Bytes::from) else {
+        return chunk;
+    };
+    StreamOutputChunk {
+        data,
+        event_type: chunk.event_type,
+    }
+}
+
+fn with_anthropic_content_block_start_index(
+    chunk: StreamOutputChunk,
+    index: u32,
+) -> StreamOutputChunk {
+    let Ok(mut event) =
+        crate::serde_json::from_slice::<AnthropicContentBlockStartEvent>(&chunk.data)
     else {
         return chunk;
     };
@@ -823,6 +866,48 @@ fn expand_anthropic_session_chunks(
                 .unwrap_or_else(|_| Bytes::new()),
                 "content_block_delta".to_string(),
             ));
+        }
+        if let Some(delta_view) = delta_view.as_ref() {
+            for tool_call in &delta_view.tool_calls {
+                let tool_index = tool_call
+                    .index
+                    .unwrap_or(choice.map(|c| c.index).unwrap_or(0));
+                let function = tool_call.function.clone().unwrap_or_default();
+                let tool_name = function.name.unwrap_or_default();
+                let tool_id = tool_call.id.clone().unwrap_or_default();
+                if !tool_name.is_empty() || !tool_id.is_empty() {
+                    out.push(StreamOutputChunk::with_event(
+                        serialize_stream_value(&crate::serde_json::json!({
+                            "type": "content_block_start",
+                            "index": tool_index,
+                            "content_block": {
+                                "type": "tool_use",
+                                "id": tool_id,
+                                "name": tool_name,
+                                "input": {}
+                            }
+                        }))
+                        .unwrap_or_else(|_| Bytes::new()),
+                        "content_block_start".to_string(),
+                    ));
+                }
+                if let Some(arguments) =
+                    function.arguments.filter(|arguments| !arguments.is_empty())
+                {
+                    out.push(StreamOutputChunk::with_event(
+                        serialize_stream_value(&crate::serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": tool_index,
+                            "delta": {
+                                "type": "input_json_delta",
+                                "partial_json": arguments
+                            }
+                        }))
+                        .unwrap_or_else(|_| Bytes::new()),
+                        "content_block_delta".to_string(),
+                    ));
+                }
+            }
         }
         if has_finish {
             out.append(&mut chunks);
@@ -1599,6 +1684,67 @@ mod tests {
                 .map(|chunk| chunk.event_type.as_deref())
                 .collect::<Vec<_>>(),
             vec![Some("message_delta"), Some("message_stop")]
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_stream_session_google_mixed_thought_and_tool_call_preserves_tool_use() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let mixed_tool = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "thinking before the tool",
+                            "thought": true
+                        },
+                        {
+                            "functionCall": {
+                                "name": "lookup_creator",
+                                "args": {
+                                    "query": "microphone comparison"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }]
+        }));
+
+        let out = session.push(mixed_tool).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta"),
+                Some("content_block_stop"),
+                Some("content_block_start"),
+                Some("content_block_delta")
+            ]
+        );
+
+        let tool_start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&out[4].data).unwrap();
+        assert_eq!(tool_start.index, 1);
+        assert_eq!(
+            tool_start.block_kind(),
+            Some(AnthropicContentBlockKind::ToolUse)
+        );
+
+        let tool_delta: AnthropicContentBlockDeltaEventView =
+            crate::serde_json::from_slice(&out[5].data).unwrap();
+        assert_eq!(tool_delta.index, 1);
+        assert_eq!(
+            tool_delta.block_kind(),
+            Some(AnthropicContentBlockKind::ToolUse)
         );
     }
 
