@@ -96,7 +96,7 @@ impl OverlayModelCatalog {
             if !self.custom_model_names.contains(&current) {
                 stack.extend(
                     self.base
-                        .find_fallback_models(&current)
+                        .fallback_models(&current)
                         .into_iter()
                         .filter(|model_name| !self.custom_model_names.contains(model_name)),
                 );
@@ -142,7 +142,7 @@ impl CatalogResolver {
 
     pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
         match self {
-            Self::Base(catalog) => catalog.find_fallback_models(name),
+            Self::Base(catalog) => catalog.fallback_models(name),
             Self::Overlay(overlay) => overlay.find_fallback_models(name),
         }
     }
@@ -189,7 +189,7 @@ impl ModelCatalog {
         self.models.get(name).cloned()
     }
 
-    pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
+    pub fn fallback_models(&self, name: &str) -> Vec<String> {
         let Some(_) = self.models.get(name) else {
             return Vec::new();
         };
@@ -424,7 +424,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn find_fallback_models_are_available_from_any_member() {
+    fn fallback_models_are_available_from_any_member() {
         let catalog = ModelCatalog::from_json_str(
             r#"{
   "claude-sonnet-4-6": {
@@ -448,7 +448,7 @@ mod tests {
         .expect("catalog parses");
 
         assert_eq!(
-            catalog.find_fallback_models("claude-sonnet-4-6"),
+            catalog.fallback_models("claude-sonnet-4-6"),
             vec![
                 "claude-sonnet-4-6".to_string(),
                 "anthropic.claude-sonnet-4-6".to_string(),
@@ -456,7 +456,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            catalog.find_fallback_models("publishers/anthropic/models/claude-sonnet-4-6"),
+            catalog.fallback_models("publishers/anthropic/models/claude-sonnet-4-6"),
             vec![
                 "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
                 "anthropic.claude-sonnet-4-6".to_string(),
@@ -488,7 +488,7 @@ mod tests {
         .expect("catalog parses");
 
         assert_eq!(
-            catalog.find_fallback_models("model-a"),
+            catalog.fallback_models("model-a"),
             vec![
                 "model-a".to_string(),
                 "model-b".to_string(),
@@ -534,11 +534,11 @@ mod tests {
             .expect("equivalence is valid");
 
         assert_eq!(
-            catalog.find_fallback_models("model-a"),
+            catalog.fallback_models("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
         );
         assert_eq!(
-            catalog.find_fallback_models("model-b"),
+            catalog.fallback_models("model-b"),
             vec!["model-b".to_string(), "model-a".to_string()]
         );
     }
@@ -561,7 +561,7 @@ mod tests {
 
         assert!(matches!(error, Error::InvalidRequest(_)));
         assert_eq!(
-            catalog.find_fallback_models("model-a"),
+            catalog.fallback_models("model-a"),
             vec!["model-a".to_string()]
         );
     }
@@ -590,7 +590,7 @@ mod tests {
         });
 
         assert_eq!(
-            mapped.find_fallback_models("model-a"),
+            mapped.fallback_models("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
         );
     }
