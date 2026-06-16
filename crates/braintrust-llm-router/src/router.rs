@@ -16,7 +16,7 @@ use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
-    rewrite_body_model, ClientHeaders, Provider,
+    rewrite_body_model_if_required, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
@@ -219,19 +219,23 @@ async fn prepare_provider_request(
         return Ok((bytes, Some(format), format));
     }
 
-    let (transformed, detected_format, actual_format) =
+    let (transformed, detected_format, actual_format, maybe_rewrite_model) =
         match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format),
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true),
             Ok(TransformResult::Transformed {
                 bytes,
                 source_format,
                 actual_target_format,
-            }) => (bytes, Some(source_format), actual_target_format),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
+            }) => (bytes, Some(source_format), actual_target_format, false),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true),
             Err(err) => return Err(err.into()),
         };
 
-    let transformed = rewrite_body_model(transformed, actual_format, &spec.model);
+    let transformed = if maybe_rewrite_model {
+        rewrite_body_model_if_required(transformed, actual_format, &spec.model)
+    } else {
+        transformed
+    };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we

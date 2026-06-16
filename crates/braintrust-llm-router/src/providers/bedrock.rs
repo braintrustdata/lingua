@@ -23,7 +23,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{rewrite_body_model, ClientHeaders};
+use crate::providers::{rewrite_body_model_if_required, ClientHeaders};
 use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
@@ -91,7 +91,7 @@ where
     };
 
     if source_adapter.format() == format {
-        return Ok(rewrite_body_model(body, format, &spec.model));
+        return Ok(rewrite_body_model_if_required(body, format, &spec.model));
     }
 
     let mut request = match source_adapter.request_to_universal(payload) {
