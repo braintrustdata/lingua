@@ -739,11 +739,12 @@ impl Router {
                 .is_some_and(|provider| provider.matches_provider_alias(provider_id));
         }
 
-        if concrete_provider_id_alias(resolver_alias) {
-            return self
-                .providers
-                .get(provider_alias)
-                .is_some_and(|provider| provider.matches_provider_alias(resolver_alias));
+        if self
+            .providers
+            .get(provider_alias)
+            .is_some_and(|provider| provider.matches_provider_alias(resolver_alias))
+        {
+            return true;
         }
 
         default_alias_provider_id(provider_alias)
@@ -953,20 +954,6 @@ fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
         "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
         _ => None,
     }
-}
-
-fn concrete_provider_id_alias(alias: &str) -> bool {
-    matches!(
-        alias,
-        "openai"
-            | "anthropic"
-            | "google"
-            | "mistral"
-            | "bedrock"
-            | "vertex"
-            | "azure"
-            | "databricks"
-    )
 }
 
 /// One provider registration: alias, provider, auth, and default formats.
@@ -3024,6 +3011,60 @@ mod tests {
         assert_eq!(
             route_info,
             vec![("provider-a", model), ("my-openai", fallback_model)]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_openai_compatible_provider_id() {
+        let model = "custom-primary";
+        let fallback_model = "llama-4-scout";
+        let mut base = ModelCatalog::empty();
+        let mut fallback = openai_spec(fallback_model, ModelFlavor::Chat);
+        fallback.available_providers = vec!["cerebras".to_string()];
+        base.insert(fallback_model.into(), fallback);
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec(model, ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert(model.into(), primary);
+        custom
+            .add_external_equivalent_models(model.to_string(), vec![fallback_model.to_string()])
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-cerebras",
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-cerebras".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("provider-a", model), ("my-cerebras", fallback_model)]
         );
     }
 
