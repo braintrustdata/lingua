@@ -21,10 +21,6 @@ impl ModelResolver {
         }
     }
 
-    /// Resolve models against custom entries first, then the shared base catalog.
-    ///
-    /// The base catalog remains the public `catalog()` view so existing callers
-    /// do not observe per-request custom models as global catalog entries.
     pub fn with_overlay(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
         Self {
             catalog: CatalogResolver::Overlay(Box::new(OverlayModelCatalog::new(base, custom))),

@@ -31,8 +31,8 @@ pub struct ModelCatalog {
 /// per-request model definitions.
 #[derive(Debug, Clone)]
 pub struct OverlayModelCatalog {
-    pub base: Arc<ModelCatalog>,
-    pub custom: ModelCatalog,
+    base: Arc<ModelCatalog>,
+    custom: ModelCatalog,
     equivalence_index: HashMap<String, Vec<String>>,
 }
 

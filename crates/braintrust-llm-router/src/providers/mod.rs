@@ -176,6 +176,16 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     }
 }
 
+pub(crate) fn format_carries_model_in_body(format: ProviderFormat) -> bool {
+    matches!(
+        format,
+        ProviderFormat::ChatCompletions
+            | ProviderFormat::Responses
+            | ProviderFormat::Anthropic
+            | ProviderFormat::Mistral
+    )
+}
+
 pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -> Bytes {
     let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
         return payload;

@@ -15,8 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
-    ClientHeaders, Provider,
+    enable_streaming_payload, format_carries_model_in_body, prepare_bedrock_request,
+    requires_bedrock_request_preparation, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
@@ -208,7 +208,10 @@ struct PreparedRequestInner {
     strategy: RetryStrategy,
 }
 
-fn override_payload_model(payload: Bytes, model: &str) -> Bytes {
+fn override_payload_model(payload: Bytes, format: ProviderFormat, model: &str) -> Bytes {
+    if !format_carries_model_in_body(format) {
+        return payload;
+    }
     let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
         return payload;
     };
@@ -248,7 +251,7 @@ async fn prepare_provider_request(
             Err(err) => return Err(err.into()),
         };
 
-    let transformed = override_payload_model(transformed, &spec.model);
+    let transformed = override_payload_model(transformed, actual_format, &spec.model);
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -1449,6 +1452,41 @@ mod tests {
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);
         assert_eq!(parsed.get("stream_options"), None);
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_does_not_readd_model_for_vertex_anthropic() {
+        let body = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-6","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let spec = ModelSpec {
+            model: "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
+            format: ProviderFormat::Anthropic,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["vertex".to_string()],
+        };
+
+        let (payload, _, actual_format) =
+            prepare_provider_request(body, &spec, ProviderFormat::VertexAnthropic, false)
+                .await
+                .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::VertexAnthropic);
+        assert_eq!(parsed.get("model"), None);
+        assert!(parsed.get("anthropic_version").is_some());
+        assert!(parsed.get("messages").is_some());
     }
 
     #[tokio::test]
