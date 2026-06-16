@@ -807,6 +807,48 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  googleThinkingJsonSchemaParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      model: GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: [
+                "Analyze the caption and return a compact JSON summary.",
+                "Caption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.",
+                'Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.',
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 2048,
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            recommendation: { type: "string" },
+            confidence: { type: "number" },
+          },
+          required: ["topic", "recommendation", "confidence"],
+        },
+        thinkingConfig: {
+          thinkingBudget: 1024,
+          includeThoughts: true,
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   jsonSchemaPrefixItemsParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

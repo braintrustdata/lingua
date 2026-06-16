@@ -427,12 +427,17 @@ pub fn from_google(config: &Value) -> ReasoningConfig {
 
     let budget_tokens = config.get("thinkingBudget").and_then(Value::as_i64);
     let effort = budget_tokens.map(|b| budget_to_effort(b, None));
+    let canonical = if budget_tokens.is_some() {
+        ReasoningCanonical::GoogleThinkingBudget
+    } else {
+        ReasoningCanonical::GoogleIncludeThoughts
+    };
 
     ReasoningConfig {
         enabled,
         effort,
         budget_tokens,
-        canonical: Some(ReasoningCanonical::BudgetTokens),
+        canonical: Some(canonical),
         ..Default::default()
     }
 }

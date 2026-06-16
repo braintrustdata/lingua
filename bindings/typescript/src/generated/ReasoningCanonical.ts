@@ -6,4 +6,4 @@
  * When converting between providers, both `effort` and `budget_tokens` are always populated
  * (one derived from the other). This field indicates which was the original source.
  */
-export type ReasoningCanonical = "effort" | "budget_tokens";
+export type ReasoningCanonical = "effort" | "budget_tokens" | "google_thinking_budget" | "google_include_thoughts";

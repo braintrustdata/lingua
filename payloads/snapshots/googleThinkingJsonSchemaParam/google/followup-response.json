@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"topic\": \"Microphone setup comparison\", \"recommendation\": \"Use the cheaper lavalier microphone for outdoor recording\", \"confidence\": 0.95}",
+            "thoughtSignature": "EjQKMgEMOdbHmJ5s6Z+KfgnqubqSvHnf/qq4X9hEy3B1C6QMpisnVj7/WcQyStAuiw8Ds9IX"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 537,
+    "candidatesTokenCount": 34,
+    "totalTokenCount": 571,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 537
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "xj0waqWfNayDz7IPxdfoqQc"
+}

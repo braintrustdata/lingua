@@ -1,0 +1,103 @@
+{
+  "id": "resp_0f34f6e2425442f3006a303dc8c3b88198917e4e6f9760b2c7",
+  "object": "response",
+  "created_at": 1781546440,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1781546447,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 2048,
+  "max_tool_calls": null,
+  "model": "gpt-5-nano-2025-08-07",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0f34f6e2425442f3006a303dc91d188198a777728e7276f95a",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0f34f6e2425442f3006a303dcf08f08198b1743e406f162609",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\"confidence\":0.0,\"recommendation\":\"Highlight price‑performance tradeoffs between the mics and invite viewers to share their own outdoor setups to boost engagement.\",\"topic\":\"Mic setup comparison and outdoor performance with audience engagement\"}"
+        }
+      ],
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "in_memory",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": null,
+      "name": "response",
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "type": "number"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "recommendation",
+          "confidence"
+        ],
+        "type": "object"
+      },
+      "strict": true
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 102,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 814,
+    "output_tokens_details": {
+      "reasoning_tokens": 704
+    },
+    "total_tokens": 916
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "{\"confidence\":0.0,\"recommendation\":\"Highlight price‑performance tradeoffs between the mics and invite viewers to share their own outdoor setups to boost engagement.\",\"topic\":\"Mic setup comparison and outdoor performance with audience engagement\"}"
+}

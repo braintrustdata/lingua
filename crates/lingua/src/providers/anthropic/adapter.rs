@@ -1056,6 +1056,11 @@ impl ProviderAdapter for AnthropicAdapter {
             .first()
             .and_then(|c| c.delta_view())
             .is_some_and(|d| !d.tool_calls.is_empty());
+        let has_reasoning = chunk
+            .choices
+            .first()
+            .and_then(|c| c.delta_view())
+            .is_some_and(|d| !d.reasoning.is_empty());
 
         // Detect initial metadata (model/id/usage present, no content yet).
         // Exclude chunks with tool_calls — those are handled separately.
@@ -1064,6 +1069,7 @@ impl ProviderAdapter for AnthropicAdapter {
         let is_initial_metadata = has_metadata
             && !has_finish
             && !has_tool_calls
+            && !has_reasoning
             && !chunk.choices.is_empty()
             && chunk
                 .choices

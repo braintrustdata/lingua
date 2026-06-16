@@ -160,6 +160,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "googleThinkingJsonSchemaParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google thought parts become separate Responses reasoning output items" }
+      ]
+    },
+    {
       "testCase": "nMultipleCompletionsParam",
       "source": "ChatCompletions",
       "target": "Anthropic",
