@@ -60,12 +60,13 @@ fn system_text(message: &Message) -> Option<&str> {
 pub struct ResponsesAdapter;
 
 pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
-    responses_stream_events_from_universal_with_output_index_offset(chunk, 0)
+    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0)
 }
 
 pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     chunk: &UniversalStreamChunk,
-    output_index_offset: u32,
+    text_output_index: Option<u32>,
+    tool_output_index_offset: u32,
 ) -> Vec<Value> {
     let Some(choice) = chunk.choices.first() else {
         return Vec::new();
@@ -74,7 +75,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     let mut events = Vec::new();
     if let Some(delta) = choice.delta_view() {
         let reasoning_output_index = choice.index;
-        let base_output_index = choice.index + output_index_offset;
+        let base_output_index = choice.index.max(tool_output_index_offset);
         let reasoning = delta
             .reasoning
             .iter()
@@ -94,8 +95,8 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
         }
 
         if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
-            let output_index = next_output_index;
-            next_output_index += 1;
+            let output_index = text_output_index.unwrap_or(next_output_index);
+            next_output_index = next_output_index.max(output_index + 1);
             events.push(serde_json::json!({
                 "type": "response.output_text.delta",
                 "output_index": output_index,
@@ -107,7 +108,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
         for tool_call in &delta.tool_calls {
             let tool_index = tool_call.index.unwrap_or(0);
             let output_index = if next_output_index == base_output_index {
-                tool_index + output_index_offset
+                tool_index + tool_output_index_offset
             } else {
                 next_output_index + tool_index
             };

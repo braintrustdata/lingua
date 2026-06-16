@@ -51,6 +51,18 @@ impl StreamOutputChunk {
     }
 }
 
+struct SessionChunkState<'a> {
+    anthropic_message_started: bool,
+    responses_message_started: bool,
+    responses_output_index_states: &'a mut BTreeMap<u32, ResponsesOutputIndexState>,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct ResponsesOutputIndexState {
+    text_output_index: Option<u32>,
+    tool_output_index_offset: u32,
+}
+
 /// Stateful stream transformation session.
 ///
 /// This wraps the stateless `transform_stream_chunk` API with target-provider
@@ -77,7 +89,7 @@ pub struct StreamTransformSession {
     anthropic_next_content_block_index: u32,
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     responses_message_started: bool,
-    responses_output_index_offsets: BTreeMap<u32, u32>,
+    responses_output_index_states: BTreeMap<u32, ResponsesOutputIndexState>,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
@@ -105,7 +117,7 @@ impl StreamTransformSession {
             anthropic_next_content_block_index: 0,
             anthropic_content_block_index_map: BTreeMap::new(),
             responses_message_started: false,
-            responses_output_index_offsets: BTreeMap::new(),
+            responses_output_index_states: BTreeMap::new(),
             responses_tool_call_indexes: BTreeMap::new(),
             next_responses_tool_call_index: 0,
             bedrock_tool_call_indexes: BTreeMap::new(),
@@ -139,9 +151,11 @@ impl StreamTransformSession {
             self.target_format,
             step.universal.as_ref(),
             step.source_is_native_stream,
-            self.anthropic_message_started,
-            self.responses_message_started,
-            &mut self.responses_output_index_offsets,
+            SessionChunkState {
+                anthropic_message_started: self.anthropic_message_started,
+                responses_message_started: self.responses_message_started,
+                responses_output_index_states: &mut self.responses_output_index_states,
+            },
         )?;
         self.process_chunks(chunks)
     }
@@ -914,9 +928,7 @@ fn build_session_chunks(
     target_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
     source_is_native_stream: bool,
-    anthropic_message_started: bool,
-    responses_message_started: bool,
-    responses_output_index_offsets: &mut BTreeMap<u32, u32>,
+    state: SessionChunkState<'_>,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let mut chunks = expand_transform_result(result)?;
     if target_format == ProviderFormat::Anthropic {
@@ -925,7 +937,7 @@ fn build_session_chunks(
             source_format,
             universal,
             source_is_native_stream,
-            anthropic_message_started,
+            state.anthropic_message_started,
         );
     }
     if target_format == ProviderFormat::Responses {
@@ -933,8 +945,8 @@ fn build_session_chunks(
         return expand_responses_session_chunks(
             chunks,
             universal,
-            responses_message_started,
-            responses_output_index_offsets,
+            state.responses_message_started,
+            state.responses_output_index_states,
         );
         #[cfg(not(feature = "openai"))]
         return Ok(std::mem::take(&mut chunks));
@@ -946,43 +958,71 @@ fn expand_responses_session_chunks(
     chunks: Vec<StreamOutputChunk>,
     universal: Option<&UniversalStreamChunk>,
     responses_message_started: bool,
-    responses_output_index_offsets: &mut BTreeMap<u32, u32>,
+    responses_output_index_states: &mut BTreeMap<u32, ResponsesOutputIndexState>,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
         return Ok(chunks);
     };
 
-    let (choice_index, has_reasoning, has_finish) = universal
+    let (choice_index, has_reasoning, has_content, has_finish) = universal
         .choices
         .first()
         .map(|choice| {
-            let has_reasoning = choice.delta_view().is_some_and(|delta| {
-                delta.reasoning.iter().any(|r| {
-                    r.content
+            let (has_reasoning, has_content) = choice
+                .delta_view()
+                .map(|delta| {
+                    let has_reasoning = delta.reasoning.iter().any(|r| {
+                        r.content
+                            .as_deref()
+                            .is_some_and(|content| !content.is_empty())
+                    });
+                    let has_content = delta
+                        .content
                         .as_deref()
-                        .is_some_and(|content| !content.is_empty())
+                        .is_some_and(|content| !content.is_empty());
+                    (has_reasoning, has_content)
                 })
-            });
-            (choice.index, has_reasoning, choice.finish_reason.is_some())
+                .unwrap_or((false, false));
+            (
+                choice.index,
+                has_reasoning,
+                has_content,
+                choice.finish_reason.is_some(),
+            )
         })
-        .unwrap_or((0, false, false));
-    let output_index_offset = responses_output_index_offsets
+        .unwrap_or((0, false, false, false));
+    let output_index_state = responses_output_index_states
         .get(&choice_index)
         .copied()
-        .unwrap_or(0);
+        .unwrap_or_default();
 
     let mut events = responses_stream_events_from_universal_with_output_index_offset(
         universal,
-        output_index_offset,
+        output_index_state.text_output_index,
+        output_index_state.tool_output_index_offset,
     );
+    let mut next_output_index_state = output_index_state;
     if has_reasoning {
-        responses_output_index_offsets
-            .entry(choice_index)
-            .and_modify(|offset| *offset = (*offset).max(1))
-            .or_insert(1);
+        next_output_index_state.tool_output_index_offset = next_output_index_state
+            .tool_output_index_offset
+            .max(choice_index + 1);
+    }
+    if has_content {
+        let text_output_index = *next_output_index_state
+            .text_output_index
+            .get_or_insert_with(|| {
+                choice_index.max(next_output_index_state.tool_output_index_offset)
+            });
+        next_output_index_state.tool_output_index_offset = next_output_index_state
+            .tool_output_index_offset
+            .max(text_output_index + 1);
     }
     if has_finish {
-        responses_output_index_offsets.remove(&choice_index);
+        responses_output_index_states.remove(&choice_index);
+    } else if next_output_index_state.text_output_index.is_some()
+        || next_output_index_state.tool_output_index_offset > 0
+    {
+        responses_output_index_states.insert(choice_index, next_output_index_state);
     }
     let has_metadata =
         universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
@@ -2697,6 +2737,87 @@ mod tests {
         let text_delta: OutputTextDelta = crate::serde_json::from_slice(&second[0].data).unwrap();
         assert_eq!(text_delta.output_index, 1);
         assert_eq!(text_delta.delta, "{\"answer\":\"visible json\"}");
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_stream_session_google_text_then_tool_uses_next_responses_output_index() {
+        #[derive(Deserialize)]
+        struct OutputEvent {
+            output_index: u32,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let thought_and_text = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "thinking first",
+                            "thought": true
+                        },
+                        {
+                            "text": "{\"answer\":\"visible json\"}"
+                        }
+                    ]
+                }
+            }]
+        }));
+        let tool_call = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "functionCall": {
+                            "name": "lookup_creator",
+                            "args": {
+                                "query": "microphone comparison"
+                            }
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        }));
+
+        let first = session.push(thought_and_text).unwrap();
+        assert_eq!(
+            first
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.created"),
+                Some("response.reasoning_summary_text.delta"),
+                Some("response.output_text.delta")
+            ]
+        );
+        let text_delta: OutputEvent = crate::serde_json::from_slice(&first[2].data).unwrap();
+        assert_eq!(text_delta.output_index, 1);
+
+        let second = session.push(tool_call).unwrap();
+        assert_eq!(
+            second
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.output_item.added"),
+                Some("response.function_call_arguments.delta"),
+                Some("response.completed")
+            ]
+        );
+        let tool_start: OutputEvent = crate::serde_json::from_slice(&second[0].data).unwrap();
+        let tool_args: OutputEvent = crate::serde_json::from_slice(&second[1].data).unwrap();
+        assert_eq!(tool_start.output_index, 2);
+        assert_eq!(tool_args.output_index, 2);
     }
 
     #[test]
