@@ -9,7 +9,8 @@ import type { SummaryMode } from "./SummaryMode";
  * Both `effort` and `budget_tokens` are always populated when reasoning is enabled.
  * The `canonical` field indicates which was the original source of truth:
  * - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
- * - `BudgetTokens`: From Anthropic/Google (budget_tokens is canonical, effort derived)
+ * - `BudgetTokens`: From Anthropic/Bedrock budget-based thinking (budget_tokens is canonical, effort derived)
+ * - `GoogleThinkingBudget`: From Google `thinkingConfig.thinkingBudget` (preserve Google-native shape on same-provider roundtrip)
  */
 export type ReasoningConfig = { 
 /**

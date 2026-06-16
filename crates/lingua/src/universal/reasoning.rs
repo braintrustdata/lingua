@@ -432,7 +432,7 @@ pub fn from_google(config: &Value) -> ReasoningConfig {
         enabled,
         effort,
         budget_tokens,
-        canonical: Some(ReasoningCanonical::BudgetTokens),
+        canonical: Some(ReasoningCanonical::GoogleThinkingBudget),
         ..Default::default()
     }
 }

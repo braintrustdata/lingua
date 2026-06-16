@@ -99,7 +99,7 @@ impl ProviderAdapter for GoogleAdapter {
                         enabled: Some(!is_disabled),
                         effort,
                         budget_tokens,
-                        canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
+                        canonical: Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget),
                         ..Default::default()
                     }
                 }
@@ -291,7 +291,9 @@ impl ProviderAdapter for GoogleAdapter {
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
-                        if r.canonical == Some(crate::universal::ReasoningCanonical::BudgetTokens) {
+                        if r.canonical
+                            == Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
+                        {
                             let budget = r
                                 .budget_tokens
                                 .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
@@ -303,7 +305,7 @@ impl ProviderAdapter for GoogleAdapter {
                         }
 
                         // Gemini 3: use thinkingLevel (effort-based) unless the source was
-                        // explicitly budget-based and must roundtrip through Google unchanged.
+                        // Google's native thinkingBudget and must roundtrip unchanged.
                         let level = r
                             .effort
                             .map(effort_to_thinking_level)
@@ -957,7 +959,7 @@ mod tests {
         let reasoning = universal.params.reasoning.as_ref().unwrap();
         assert_eq!(
             reasoning.canonical,
-            Some(crate::universal::ReasoningCanonical::BudgetTokens)
+            Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
         );
         assert_eq!(reasoning.budget_tokens, Some(1024));
 
@@ -972,6 +974,40 @@ mod tests {
         assert_eq!(thinking_config.thinking_budget, Some(1024));
         assert_eq!(thinking_config.include_thoughts, Some(true));
         assert_eq!(thinking_config.thinking_level, None);
+    }
+
+    #[test]
+    fn test_google_gemini_3_uses_thinking_level_for_generic_budget_canonical_reasoning() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Return JSON.".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(crate::universal::ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(crate::universal::ReasoningEffort::Medium),
+                    budget_tokens: Some(1024),
+                    canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
+                    ..Default::default()
+                }),
+                token_budget: Some(TokenBudget::OutputTokens(2048)),
+                ..Default::default()
+            },
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let thinking_config = typed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present");
+
+        assert_eq!(thinking_config.thinking_budget, None);
+        assert_eq!(thinking_config.include_thoughts, Some(true));
+        assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Medium));
     }
 
     #[test]
