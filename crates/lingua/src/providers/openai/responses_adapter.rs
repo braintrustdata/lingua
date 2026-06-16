@@ -144,6 +144,34 @@ pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChun
     events
 }
 
+pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStreamChunk) -> Value {
+    let id = chunk
+        .id
+        .clone()
+        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
+    let mut response = crate::serde_json::json!({
+        "id": id,
+        "object": "response",
+        "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+        "status": "in_progress",
+        "output": []
+    });
+
+    if let Some(usage) = &chunk.usage {
+        if let Some(obj) = response.as_object_mut() {
+            obj.insert(
+                "usage".into(),
+                usage.to_provider_value(ProviderFormat::Responses),
+            );
+        }
+    }
+
+    crate::serde_json::json!({
+        "type": "response.created",
+        "response": response
+    })
+}
+
 fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {

@@ -8,9 +8,11 @@ use crate::processing::transform::{
     serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
 };
 #[cfg(feature = "openai")]
-use crate::providers::openai::responses_adapter::responses_stream_events_from_universal;
+use crate::providers::openai::responses_adapter::{
+    responses_created_stream_event_from_universal, responses_stream_events_from_universal,
+};
 use crate::serde_json::Value;
-use crate::universal::{UniversalStreamChunk, PLACEHOLDER_ID, PLACEHOLDER_MODEL};
+use crate::universal::UniversalStreamChunk;
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -355,7 +357,7 @@ impl StreamTransformSession {
                 self.anthropic_open_content_block_kind = Some(delta_kind);
                 self.anthropic_content_block_index_map
                     .insert((delta_kind, delta_index), new_index);
-                prefix.push(anthropic_content_block_stop_chunk(open_index));
+                prefix.push(anthropic_content_block_stop_chunk(open_index)?);
                 prefix.push(anthropic_content_block_start_chunk(new_index, delta_kind));
             } else if open_kind == delta_kind {
                 if let Some(mapped_index) = self
@@ -406,7 +408,7 @@ impl StreamTransformSession {
             && self.anthropic_open_content_block_index.is_some()
         {
             if let Some(index) = self.anthropic_open_content_block_index.take() {
-                prefix.push(anthropic_content_block_stop_chunk(index));
+                prefix.push(anthropic_content_block_stop_chunk(index)?);
                 self.anthropic_open_content_block_kind = None;
             }
         }
@@ -639,15 +641,14 @@ fn parse_anthropic_content_block_delta_event(
         })
 }
 
-fn anthropic_content_block_stop_chunk(index: u32) -> StreamOutputChunk {
-    StreamOutputChunk::with_event(
+fn anthropic_content_block_stop_chunk(index: u32) -> Result<StreamOutputChunk, TransformError> {
+    Ok(StreamOutputChunk::with_event(
         serialize_stream_value(&crate::serde_json::json!({
             "type": "content_block_stop",
             "index": index
-        }))
-        .unwrap_or_else(|_| Bytes::new()),
+        }))?,
         "content_block_stop".to_string(),
-    )
+    ))
 }
 
 fn anthropic_content_block_start_chunk(
@@ -831,13 +832,13 @@ fn build_session_chunks(
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let mut chunks = expand_transform_result(result)?;
     if target_format == ProviderFormat::Anthropic {
-        return Ok(expand_anthropic_session_chunks(
+        return expand_anthropic_session_chunks(
             chunks,
             source_format,
             universal,
             source_is_native_stream,
             anthropic_message_started,
-        ));
+        );
     }
     if target_format == ProviderFormat::Responses {
         #[cfg(feature = "openai")]
@@ -869,7 +870,7 @@ fn expand_responses_session_chunks(
             .and_then(Value::as_str)
             != Some("response.created")
     {
-        events.insert(0, responses_created_stream_event(universal));
+        events.insert(0, responses_created_stream_event_from_universal(universal));
     }
 
     let out = events
@@ -890,47 +891,19 @@ fn expand_responses_session_chunks(
     }
 }
 
-fn responses_created_stream_event(chunk: &UniversalStreamChunk) -> Value {
-    let id = chunk
-        .id
-        .clone()
-        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-    let mut response = crate::serde_json::json!({
-        "id": id,
-        "object": "response",
-        "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-        "status": "in_progress",
-        "output": []
-    });
-
-    if let Some(usage) = &chunk.usage {
-        if let Some(obj) = response.as_object_mut() {
-            obj.insert(
-                "usage".into(),
-                usage.to_provider_value(ProviderFormat::Responses),
-            );
-        }
-    }
-
-    crate::serde_json::json!({
-        "type": "response.created",
-        "response": response
-    })
-}
-
 fn expand_anthropic_session_chunks(
     mut chunks: Vec<StreamOutputChunk>,
     source_format: ProviderFormat,
     universal: Option<&UniversalStreamChunk>,
     source_is_native_stream: bool,
     anthropic_message_started: bool,
-) -> Vec<StreamOutputChunk> {
+) -> Result<Vec<StreamOutputChunk>, TransformError> {
     if source_format == ProviderFormat::Anthropic && source_is_native_stream {
-        return chunks;
+        return Ok(chunks);
     }
 
     let Some(universal) = universal else {
-        return chunks;
+        return Ok(chunks);
     };
 
     let has_finish = universal
@@ -981,7 +954,7 @@ fn expand_anthropic_session_chunks(
     let mut out = Vec::new();
 
     if is_initial_metadata && anthropic_message_started {
-        return out;
+        return Ok(out);
     }
 
     if has_reasoning {
@@ -992,7 +965,7 @@ fn expand_anthropic_session_chunks(
             .filter(|s| !s.is_empty());
         if !anthropic_message_started {
             out.push(StreamOutputChunk::with_event(
-                anthropic_message_start_bytes(universal),
+                anthropic_message_start_bytes(universal)?,
                 "message_start".to_string(),
             ));
             out.push(StreamOutputChunk::with_event(
@@ -1011,8 +984,7 @@ fn expand_anthropic_session_chunks(
                         "type": "thinking_delta",
                         "thinking": thinking
                     }
-                }))
-                .unwrap_or_else(|_| Bytes::new()),
+                }))?,
                 "content_block_delta".to_string(),
             ));
         }
@@ -1025,8 +997,7 @@ fn expand_anthropic_session_chunks(
                         "type": "signature_delta",
                         "signature": signature
                     }
-                }))
-                .unwrap_or_else(|_| Bytes::new()),
+                }))?,
                 "content_block_delta".to_string(),
             ));
         }
@@ -1039,8 +1010,7 @@ fn expand_anthropic_session_chunks(
                         "type": "text_delta",
                         "text": content
                     }
-                }))
-                .unwrap_or_else(|_| Bytes::new()),
+                }))?,
                 "content_block_delta".to_string(),
             ));
         }
@@ -1061,8 +1031,7 @@ fn expand_anthropic_session_chunks(
                                 "name": tool_name,
                                 "input": {}
                             }
-                        }))
-                        .unwrap_or_else(|_| Bytes::new()),
+                        }))?,
                         "content_block_start".to_string(),
                     ));
                 }
@@ -1077,8 +1046,7 @@ fn expand_anthropic_session_chunks(
                                 "type": "input_json_delta",
                                 "partial_json": arguments
                             }
-                        }))
-                        .unwrap_or_else(|_| Bytes::new()),
+                        }))?,
                         "content_block_delta".to_string(),
                     ));
                 }
@@ -1091,14 +1059,14 @@ fn expand_anthropic_session_chunks(
                 "message_stop".to_string(),
             ));
         }
-        return out;
+        return Ok(out);
     }
 
     if is_initial_metadata && !anthropic_message_started {
         if let Some(message_start) = chunks.first() {
             out.push(message_start.clone());
         }
-        return out;
+        return Ok(out);
     }
 
     if has_finish {
@@ -1111,7 +1079,7 @@ fn expand_anthropic_session_chunks(
 
         if needs_message_start {
             out.push(StreamOutputChunk::with_event(
-                anthropic_message_start_bytes(universal),
+                anthropic_message_start_bytes(universal)?,
                 "message_start".to_string(),
             ));
             if content.is_some() {
@@ -1133,8 +1101,7 @@ fn expand_anthropic_session_chunks(
                         "type": "text_delta",
                         "text": content
                     }
-                }))
-                .unwrap_or_else(|_| Bytes::new()),
+                }))?,
                 "content_block_delta".to_string(),
             ));
             if needs_message_start {
@@ -1142,8 +1109,7 @@ fn expand_anthropic_session_chunks(
                     serialize_stream_value(&crate::serde_json::json!({
                         "type": "content_block_stop",
                         "index": choice.map(|c| c.index).unwrap_or(0),
-                    }))
-                    .unwrap_or_else(|_| Bytes::new()),
+                    }))?,
                     "content_block_stop".to_string(),
                 ));
             }
@@ -1153,22 +1119,22 @@ fn expand_anthropic_session_chunks(
             Bytes::from_static(br#"{"type":"message_stop"}"#),
             "message_stop".to_string(),
         ));
-        return out;
+        return Ok(out);
     }
 
     if has_metadata && has_tool_calls && is_initial_tool_call && !anthropic_message_started {
         out.push(StreamOutputChunk::with_event(
-            anthropic_message_start_bytes(universal),
+            anthropic_message_start_bytes(universal)?,
             "message_start".to_string(),
         ));
         out.append(&mut chunks);
-        return out;
+        return Ok(out);
     }
 
-    chunks
+    Ok(chunks)
 }
 
-fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Bytes {
+fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Result<Bytes, TransformError> {
     serialize_stream_value(&crate::serde_json::json!({
         "type": "message_start",
         "message": {
@@ -1191,7 +1157,6 @@ fn anthropic_message_start_bytes(chunk: &UniversalStreamChunk) -> Bytes {
             }
         }
     }))
-    .unwrap_or_else(|_| Bytes::new())
 }
 
 fn merge_delta_usage(
