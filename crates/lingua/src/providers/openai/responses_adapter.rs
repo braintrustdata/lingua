@@ -79,19 +79,29 @@ pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChun
                 "delta": reasoning
             }));
         }
-        let output_index_offset = if reasoning.is_empty() { 0 } else { 1 };
+        let mut next_output_index = choice.index;
+        if !reasoning.is_empty() {
+            next_output_index += 1;
+        }
 
         if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+            let output_index = next_output_index;
+            next_output_index += 1;
             events.push(serde_json::json!({
                 "type": "response.output_text.delta",
-                "output_index": choice.index + output_index_offset,
+                "output_index": output_index,
                 "content_index": 0,
                 "delta": content
             }));
         }
 
         for tool_call in &delta.tool_calls {
-            let output_index = tool_call.index.unwrap_or(0) + output_index_offset;
+            let tool_index = tool_call.index.unwrap_or(0);
+            let output_index = if next_output_index == choice.index {
+                tool_index
+            } else {
+                next_output_index + tool_index
+            };
             let call_id = tool_call.id.as_deref();
             let name = tool_call
                 .function
@@ -2181,6 +2191,118 @@ mod tests {
         assert_eq!(
             tool_args.delta.as_deref(),
             Some("{\"query\":\"microphone comparison\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_reasoning_text_and_tool_use_distinct_indexes() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking before text and tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        let tool_start: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[3].clone()).unwrap();
+
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(text.event_type, "response.output_text.delta");
+        assert_eq!(text.output_index, 1);
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 2);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 2);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"microphone comparison\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_tool_only_preserves_output_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 2,
+                delta: Some(json!({
+                    "tool_calls": [{
+                        "index": 2,
+                        "id": "call_response_456_2",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"studio lights\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let tool_start: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 2);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 2);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"studio lights\"}")
         );
     }
 }

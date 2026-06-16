@@ -637,19 +637,48 @@ impl ProviderAdapter for GoogleAdapter {
                     .as_ref()
                     .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
+                let has_function_call_part = delta.as_ref().is_some_and(|d| {
+                    d.tool_calls
+                        .iter()
+                        .any(|tool_call| tool_call.function.is_some())
+                });
                 let text_reasoning_signature = delta
                     .as_ref()
                     .and_then(|d| d.reasoning_signature.as_deref())
-                    .filter(|_| delta.as_ref().is_none_or(|d| d.tool_calls.is_empty()));
+                    .filter(|_| {
+                        delta.as_ref().is_none_or(|d| {
+                            !has_function_call_part && (!text.is_empty() || d.reasoning.is_empty())
+                        })
+                    });
 
                 if let Some(ref d) = delta {
-                    for reasoning in &d.reasoning {
-                        if let Some(text) = reasoning.content.as_deref().filter(|s| !s.is_empty()) {
-                            parts.push(serde_json::json!({
-                                "text": text,
-                                "thought": true
-                            }));
+                    let reasoning_texts: Vec<&str> = d
+                        .reasoning
+                        .iter()
+                        .filter_map(|reasoning| {
+                            reasoning.content.as_deref().filter(|s| !s.is_empty())
+                        })
+                        .collect();
+                    let thought_reasoning_signature =
+                        d.reasoning_signature.as_deref().filter(|_| {
+                            !reasoning_texts.is_empty()
+                                && text.is_empty()
+                                && !has_function_call_part
+                        });
+
+                    for (index, text) in reasoning_texts.iter().enumerate() {
+                        let mut thought_part = serde_json::Map::new();
+                        thought_part.insert("text".into(), Value::String((*text).to_string()));
+                        thought_part.insert("thought".into(), Value::Bool(true));
+                        if index == reasoning_texts.len() - 1 {
+                            if let Some(signature) = thought_reasoning_signature {
+                                thought_part.insert(
+                                    "thoughtSignature".into(),
+                                    Value::String(signature.to_string()),
+                                );
+                            }
                         }
+                        parts.push(Value::Object(thought_part));
                     }
                 }
 
@@ -1407,6 +1436,71 @@ mod tests {
         assert_eq!(
             delta.reasoning[0].content.as_deref(),
             Some("thinking before visible text")
+        );
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_attaches_signature_to_reasoning_only_thought_part() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("response_json_thinking".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    role: Some("assistant".to_string()),
+                    content: None,
+                    tool_calls: vec![],
+                    reasoning: vec![UniversalReasoningDelta {
+                        content: Some("signed thinking without visible text".to_string()),
+                    }],
+                    reasoning_signature: Some("thought_signature_456".to_string()),
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let payload = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse =
+            serde_json::from_value(payload).expect("stream chunk should deserialize");
+        let candidates = typed
+            .candidates
+            .as_ref()
+            .expect("candidate should be present");
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("parts should be present");
+
+        assert_eq!(parts.len(), 1);
+        assert_eq!(
+            parts[0].text.as_deref(),
+            Some("signed thinking without visible text")
+        );
+        assert_eq!(parts[0].thought, Some(true));
+        assert_eq!(
+            parts[0].thought_signature.as_deref(),
+            Some("thought_signature_456")
+        );
+
+        let roundtripped = adapter
+            .stream_to_universal(serde_json::to_value(&typed).unwrap())
+            .unwrap()
+            .expect("stream chunk should be present");
+        let delta = roundtripped.choices[0]
+            .delta_view()
+            .expect("delta should be present");
+        assert_eq!(delta.reasoning.len(), 1);
+        assert_eq!(
+            delta.reasoning[0].content.as_deref(),
+            Some("signed thinking without visible text")
+        );
+        assert_eq!(
+            delta.reasoning_signature.as_deref(),
+            Some("thought_signature_456")
         );
     }
 
