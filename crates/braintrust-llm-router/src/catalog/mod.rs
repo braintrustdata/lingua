@@ -20,7 +20,7 @@ pub struct ModelCatalog {
     models: HashMap<String, Arc<ModelSpec>>,
     by_format: HashMap<ProviderFormat, Vec<String>>,
     by_parent: HashMap<String, Vec<String>>,
-    equivalent_models: HashMap<String, Vec<String>>,
+    fallback_models: HashMap<String, Vec<String>>,
     equivalence_index: HashMap<String, Vec<String>>,
 }
 
@@ -46,23 +46,23 @@ impl OverlayModelCatalog {
             .chain(custom.models.keys())
             .cloned()
             .collect();
-        let mut equivalence_edges: HashMap<String, Vec<String>> = base
-            .equivalent_models
+        let mut fallback_edges: HashMap<String, Vec<String>> = base
+            .fallback_models
             .iter()
-            .filter(|(name, _)| !custom_model_names.contains(*name))
-            .map(|(name, equivalents)| {
+            .filter(|(name, _fallbacks)| !custom_model_names.contains(*name))
+            .map(|(name, fallbacks)| {
                 (
                     name.clone(),
-                    equivalents
+                    fallbacks
                         .iter()
-                        .filter(|equivalent| !custom_model_names.contains(*equivalent))
+                        .filter(|fallback_model| !custom_model_names.contains(*fallback_model))
                         .cloned()
                         .collect(),
                 )
             })
             .collect();
-        equivalence_edges.extend(custom.equivalent_models.clone());
-        let equivalence_index = build_equivalence_index(visible_models, &equivalence_edges);
+        fallback_edges.extend(custom.fallback_models.clone());
+        let equivalence_index = build_equivalence_index(visible_models, &fallback_edges);
         Self {
             base,
             custom,
@@ -130,57 +130,57 @@ impl From<Arc<ModelCatalog>> for CatalogResolver {
     }
 }
 
-fn parse_equivalent_models(content: &str) -> Result<HashMap<String, Vec<String>>> {
+fn parse_fallback_models(content: &str) -> Result<HashMap<String, Vec<String>>> {
     let raw: HashMap<String, serde_json::Value> = serde_json::from_str(content)?;
-    let mut equivalent_models = HashMap::new();
+    let mut fallback_models = HashMap::new();
     for (name, value) in raw {
-        let Some(equivalents) = value.get("equivalent_models") else {
+        let Some(fallbacks) = value.get("fallback_models") else {
             continue;
         };
-        let Some(equivalents) = equivalents.as_array() else {
+        let Some(fallbacks) = fallbacks.as_array() else {
             return Err(Error::InvalidRequest(format!(
-                "model '{name}' has invalid equivalent_models"
+                "model '{name}' has invalid fallback_models"
             )));
         };
-        let mut parsed = Vec::with_capacity(equivalents.len());
-        for equivalent in equivalents {
-            let Some(equivalent) = equivalent.as_str() else {
+        let mut parsed = Vec::with_capacity(fallbacks.len());
+        for fallback_model in fallbacks {
+            let Some(fallback_model) = fallback_model.as_str() else {
                 return Err(Error::InvalidRequest(format!(
-                    "model '{name}' has invalid equivalent_models"
+                    "model '{name}' has invalid fallback_models"
                 )));
             };
-            parsed.push(equivalent.to_string());
+            parsed.push(fallback_model.to_string());
         }
         if !parsed.is_empty() {
-            equivalent_models.insert(name, parsed);
+            fallback_models.insert(name, parsed);
         }
     }
-    Ok(equivalent_models)
+    Ok(fallback_models)
 }
 
 fn build_equivalence_index(
     model_names: HashSet<String>,
-    equivalent_models: &HashMap<String, Vec<String>>,
+    fallback_models: &HashMap<String, Vec<String>>,
 ) -> HashMap<String, Vec<String>> {
     let mut adjacency: HashMap<String, Vec<String>> = HashMap::new();
     for name in &model_names {
         adjacency.entry(name.clone()).or_default();
     }
 
-    for (name, equivalents) in equivalent_models {
+    for (name, fallbacks) in fallback_models {
         if !model_names.contains(name) {
             continue;
         }
-        for equivalent_model in equivalents {
-            if !model_names.contains(equivalent_model) {
+        for fallback_model in fallbacks {
+            if !model_names.contains(fallback_model) {
                 continue;
             }
             adjacency
                 .entry(name.clone())
                 .or_default()
-                .push(equivalent_model.clone());
+                .push(fallback_model.clone());
             adjacency
-                .entry(equivalent_model.clone())
+                .entry(fallback_model.clone())
                 .or_default()
                 .push(name.clone());
         }
@@ -231,13 +231,13 @@ impl ModelCatalog {
 
     pub fn from_json_str(content: &str) -> Result<Self> {
         let raw: HashMap<String, ModelSpec> = serde_json::from_str(content)?;
-        let equivalent_models = parse_equivalent_models(content)?;
+        let fallback_models = parse_fallback_models(content)?;
         let mut catalog = Self::empty();
         for (name, spec) in raw {
             catalog.insert(name, spec);
         }
-        catalog.equivalent_models = equivalent_models;
-        catalog.validate_equivalent_models()?;
+        catalog.fallback_models = fallback_models;
+        catalog.validate_fallback_models()?;
         catalog.rebuild_equivalence_index();
         Ok(catalog)
     }
@@ -322,7 +322,7 @@ impl ModelCatalog {
         F: FnMut(&str, &ModelSpec) -> ModelSpec,
     {
         let mut out = Self {
-            equivalent_models: self.equivalent_models.clone(),
+            fallback_models: self.fallback_models.clone(),
             ..Self::empty()
         };
         for (name, spec) in &self.models {
@@ -354,66 +354,70 @@ impl ModelCatalog {
         }
     }
 
-    pub fn add_equivalent_models<I>(&mut self, name: String, equivalents: I) -> Result<()>
+    pub fn add_fallback_models<I>(&mut self, name: String, fallback_models: I) -> Result<()>
     where
         I: IntoIterator<Item = String>,
     {
         if !self.models.contains_key(&name) {
             return Err(Error::InvalidRequest(format!(
-                "model '{name}' references equivalent_models but is missing from catalog"
+                "model '{name}' references fallback_models but is missing from catalog"
             )));
         }
 
-        let equivalents: Vec<String> = equivalents
+        let fallback_models: Vec<String> = fallback_models
             .into_iter()
-            .filter(|equivalent_model| !equivalent_model.is_empty())
+            .filter(|fallback_model| !fallback_model.is_empty())
             .collect();
-        for equivalent_model in &equivalents {
-            if !self.models.contains_key(equivalent_model) {
+        for fallback_model in &fallback_models {
+            if !self.models.contains_key(fallback_model) {
                 return Err(Error::InvalidRequest(format!(
-                    "model '{name}' references missing equivalent model '{equivalent_model}'"
+                    "model '{name}' references missing fallback model '{fallback_model}'"
                 )));
             }
         }
 
-        let entry = self.equivalent_models.entry(name).or_default();
-        for equivalent_model in equivalents {
-            if entry.contains(&equivalent_model) {
+        let entry = self.fallback_models.entry(name).or_default();
+        for fallback_model in fallback_models {
+            if entry.contains(&fallback_model) {
                 continue;
             }
-            entry.push(equivalent_model);
+            entry.push(fallback_model);
         }
         self.rebuild_equivalence_index();
         Ok(())
     }
 
-    pub fn add_external_equivalent_models<I>(&mut self, name: String, equivalents: I) -> Result<()>
+    pub fn add_external_fallback_models<I>(
+        &mut self,
+        name: String,
+        fallback_models: I,
+    ) -> Result<()>
     where
         I: IntoIterator<Item = String>,
     {
         if !self.models.contains_key(&name) {
             return Err(Error::InvalidRequest(format!(
-                "model '{name}' references equivalent_models but is missing from catalog"
+                "model '{name}' references fallback_models but is missing from catalog"
             )));
         }
 
-        let entry = self.equivalent_models.entry(name).or_default();
-        for equivalent_model in equivalents {
-            if equivalent_model.is_empty() || entry.contains(&equivalent_model) {
+        let entry = self.fallback_models.entry(name).or_default();
+        for fallback_model in fallback_models {
+            if fallback_model.is_empty() || entry.contains(&fallback_model) {
                 continue;
             }
-            entry.push(equivalent_model);
+            entry.push(fallback_model);
         }
         self.rebuild_equivalence_index();
         Ok(())
     }
 
-    fn validate_equivalent_models(&self) -> Result<()> {
-        for (name, equivalents) in &self.equivalent_models {
-            for equivalent_model in equivalents {
-                if !self.models.contains_key(equivalent_model) {
+    fn validate_fallback_models(&self) -> Result<()> {
+        for (name, fallback_models) in &self.fallback_models {
+            for fallback_model in fallback_models {
+                if !self.models.contains_key(fallback_model) {
                     return Err(Error::InvalidRequest(format!(
-                        "model '{name}' references missing equivalent model '{equivalent_model}'"
+                        "model '{name}' references missing fallback model '{fallback_model}'"
                     )));
                 }
             }
@@ -422,10 +426,8 @@ impl ModelCatalog {
     }
 
     fn rebuild_equivalence_index(&mut self) {
-        self.equivalence_index = build_equivalence_index(
-            self.models.keys().cloned().collect(),
-            &self.equivalent_models,
-        );
+        self.equivalence_index =
+            build_equivalence_index(self.models.keys().cloned().collect(), &self.fallback_models);
     }
 }
 
@@ -450,7 +452,7 @@ mod tests {
   "claude-sonnet-4-6": {
     "format": "anthropic",
     "flavor": "chat",
-    "equivalent_models": [
+    "fallback_models": [
       "publishers/anthropic/models/claude-sonnet-4-6",
       "anthropic.claude-sonnet-4-6"
     ]
@@ -492,12 +494,12 @@ mod tests {
   "model-a": {
     "format": "openai",
     "flavor": "chat",
-    "equivalent_models": ["model-b"]
+    "fallback_models": ["model-b"]
   },
   "model-b": {
     "format": "openai",
     "flavor": "chat",
-    "equivalent_models": ["model-c"]
+    "fallback_models": ["model-c"]
   },
   "model-c": {
     "format": "openai",
@@ -518,23 +520,23 @@ mod tests {
     }
 
     #[test]
-    fn missing_equivalent_model_reference_is_invalid() {
+    fn missing_fallback_model_reference_is_invalid() {
         let error = ModelCatalog::from_json_str(
             r#"{
   "model-a": {
     "format": "openai",
     "flavor": "chat",
-    "equivalent_models": ["missing-model"]
+    "fallback_models": ["missing-model"]
   }
 }"#,
         )
-        .expect_err("missing equivalent model should fail");
+        .expect_err("missing fallback model should fail");
 
         assert!(matches!(error, Error::InvalidRequest(_)));
     }
 
     #[test]
-    fn add_equivalent_models_rebuilds_index() {
+    fn add_fallback_models_rebuilds_index() {
         let mut catalog = ModelCatalog::from_json_str(
             r#"{
   "model-a": {
@@ -550,7 +552,7 @@ mod tests {
         .expect("catalog parses");
 
         catalog
-            .add_equivalent_models("model-a".to_string(), vec!["model-b".to_string()])
+            .add_fallback_models("model-a".to_string(), vec!["model-b".to_string()])
             .expect("equivalence is valid");
 
         assert_eq!(
@@ -564,7 +566,7 @@ mod tests {
     }
 
     #[test]
-    fn add_equivalent_models_rejects_missing_reference() {
+    fn add_fallback_models_rejects_missing_reference() {
         let mut catalog = ModelCatalog::from_json_str(
             r#"{
   "model-a": {
@@ -576,8 +578,8 @@ mod tests {
         .expect("catalog parses");
 
         let error = catalog
-            .add_equivalent_models("model-a".to_string(), vec!["missing".to_string()])
-            .expect_err("missing equivalent model should fail");
+            .add_fallback_models("model-a".to_string(), vec!["missing".to_string()])
+            .expect_err("missing fallback model should fail");
 
         assert!(matches!(error, Error::InvalidRequest(_)));
         assert_eq!(
@@ -593,7 +595,7 @@ mod tests {
   "model-a": {
     "format": "openai",
     "flavor": "chat",
-    "equivalent_models": ["model-b"]
+    "fallback_models": ["model-b"]
   },
   "model-b": {
     "format": "openai",
@@ -623,7 +625,7 @@ mod tests {
   "model-a": {
     "format": "openai",
     "flavor": "chat",
-    "equivalent_models": ["model-b"]
+    "fallback_models": ["model-b"]
   },
   "model-b": {
     "format": "openai",

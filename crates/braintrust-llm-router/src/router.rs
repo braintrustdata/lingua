@@ -2660,7 +2660,7 @@ mod tests {
         custom.insert("custom-primary".into(), primary);
         custom.insert("custom-fallback".into(), fallback);
         custom
-            .add_equivalent_models(
+            .add_fallback_models(
                 "custom-primary".to_string(),
                 vec!["custom-fallback".to_string()],
             )
@@ -2722,7 +2722,7 @@ mod tests {
         primary.available_providers = vec!["provider-a".to_string()];
         custom.insert("custom-primary".into(), primary);
         custom
-            .add_external_equivalent_models(
+            .add_external_fallback_models(
                 "custom-primary".to_string(),
                 vec!["base-fallback".to_string()],
             )
@@ -2973,7 +2973,7 @@ mod tests {
         primary.available_providers = vec!["provider-a".to_string()];
         custom.insert(model.into(), primary);
         custom
-            .add_external_equivalent_models(model.to_string(), vec![fallback_model.to_string()])
+            .add_external_fallback_models(model.to_string(), vec![fallback_model.to_string()])
             .expect("equivalence is valid");
 
         let router = Router::builder()
@@ -3027,7 +3027,7 @@ mod tests {
         primary.available_providers = vec!["provider-a".to_string()];
         custom.insert(model.into(), primary);
         custom
-            .add_external_equivalent_models(model.to_string(), vec![fallback_model.to_string()])
+            .add_external_fallback_models(model.to_string(), vec![fallback_model.to_string()])
             .expect("equivalence is valid");
 
         let router = Router::builder()
@@ -3078,7 +3078,7 @@ mod tests {
     "format": "openai",
     "flavor": "chat",
     "available_providers": ["provider-a"],
-    "equivalent_models": ["other-provider/gpt-4o"]
+    "fallback_models": ["other-provider/gpt-4o"]
   },
   "other-provider/gpt-4o": {
     "format": "openai",
@@ -3188,7 +3188,7 @@ mod tests {
     "format": "anthropic",
     "flavor": "chat",
     "available_providers": ["ANTHROPIC_API_KEY"],
-    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
   },
   "publishers/anthropic/models/claude-sonnet-4-6": {
     "format": "anthropic",
@@ -3248,7 +3248,7 @@ mod tests {
   "claude-sonnet-4-6": {
     "format": "anthropic",
     "flavor": "chat",
-    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
   },
   "publishers/anthropic/models/claude-sonnet-4-6": {
     "format": "anthropic",
@@ -3463,7 +3463,7 @@ mod tests {
     "format": "anthropic",
     "flavor": "chat",
     "available_providers": ["anthropic"],
-    "equivalent_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
   },
   "publishers/anthropic/models/claude-sonnet-4-6": {
     "format": "anthropic",
