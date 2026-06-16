@@ -11,6 +11,9 @@ Google's API has some unique characteristics:
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
+use crate::providers::google::capabilities::{
+    effort_to_thinking_level, thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
+};
 use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
@@ -18,22 +21,36 @@ use crate::providers::google::generated::{
     ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
-use crate::providers::google::GoogleCapabilities;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
+use crate::universal::reasoning::{budget_to_effort, effort_to_budget, MIN_THINKING_BUDGET};
 use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
-    extract_system_messages, flatten_consecutive_messages, FinishReason, TokenBudget,
-    UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UniversalUsage, UserContent,
+    extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
+    ReasoningConfig, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
 };
+use serde::Serialize;
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GoogleStreamPart {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    thought: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    thought_signature: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    function_call: Option<Map<String, Value>>,
+}
 
 impl ProviderAdapter for GoogleAdapter {
     fn format(&self) -> ProviderFormat {
@@ -68,59 +85,55 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         // Extract params from generationConfig (now typed in params struct)
-        let (temperature, top_p, top_k, max_tokens, stop, reasoning) = if let Some(config) =
-            &typed_params.generation_config
-        {
-            let max_tokens = config.max_output_tokens;
-            // Convert Google's thinkingConfig to ReasoningConfig
-            // thinkingLevel: Gemini 3 (effort-based)
-            // thinkingBudget: Gemini 2.5 (budget-based), 0 means disabled
-            let reasoning = config.thinking_config.as_ref().map(|tc| {
-                use crate::providers::google::capabilities::thinking_level_to_effort;
-
-                if let Some(ref level) = tc.thinking_level {
-                    // Gemini 3 style: thinkingLevel is canonical (effort-based)
-                    let effort = thinking_level_to_effort(level);
-                    let budget = crate::universal::reasoning::effort_to_budget(effort, max_tokens);
-                    crate::universal::ReasoningConfig {
-                        enabled: Some(true),
-                        effort: Some(effort),
-                        budget_tokens: Some(budget),
-                        canonical: Some(crate::universal::ReasoningCanonical::Effort),
-                        ..Default::default()
-                    }
-                } else {
-                    // Gemini 2.5 style: thinkingBudget is canonical (budget-based)
-                    let is_disabled = tc.thinking_budget == Some(0);
-                    let budget_tokens = tc.thinking_budget;
-                    let effort = budget_tokens
-                        .map(|b| crate::universal::reasoning::budget_to_effort(b, max_tokens));
-                    let canonical = if tc.thinking_budget.is_some() {
-                        Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
+        let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
+            if let Some(config) = &typed_params.generation_config {
+                let max_tokens = config.max_output_tokens;
+                // Convert Google's thinkingConfig to ReasoningConfig
+                // thinkingLevel: Gemini 3 (effort-based)
+                // thinkingBudget: Gemini 2.5 (budget-based), 0 means disabled
+                let reasoning = config.thinking_config.as_ref().map(|tc| {
+                    if let Some(ref level) = tc.thinking_level {
+                        // Gemini 3 style: thinkingLevel is canonical (effort-based)
+                        let effort = thinking_level_to_effort(level);
+                        let budget = effort_to_budget(effort, max_tokens);
+                        ReasoningConfig {
+                            enabled: Some(true),
+                            effort: Some(effort),
+                            budget_tokens: Some(budget),
+                            canonical: Some(ReasoningCanonical::Effort),
+                            ..Default::default()
+                        }
                     } else {
-                        Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
-                    };
-                    crate::universal::ReasoningConfig {
-                        enabled: Some(!is_disabled),
-                        effort,
-                        budget_tokens,
-                        canonical,
-                        ..Default::default()
+                        // Gemini 2.5 style: thinkingBudget is canonical (budget-based)
+                        let is_disabled = tc.thinking_budget == Some(0);
+                        let budget_tokens = tc.thinking_budget;
+                        let effort = budget_tokens.map(|b| budget_to_effort(b, max_tokens));
+                        let canonical = if tc.thinking_budget.is_some() {
+                            Some(ReasoningCanonical::GoogleThinkingBudget)
+                        } else {
+                            Some(ReasoningCanonical::GoogleIncludeThoughts)
+                        };
+                        ReasoningConfig {
+                            enabled: Some(!is_disabled),
+                            effort,
+                            budget_tokens,
+                            canonical,
+                            ..Default::default()
+                        }
                     }
-                }
-            });
-            let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
-            (
-                config.temperature,
-                config.top_p,
-                config.top_k,
-                max_tokens,
-                stop,
-                reasoning,
-            )
-        } else {
-            (None, None, None, None, None, None)
-        };
+                });
+                let stop = config.stop_sequences.clone().filter(|s| !s.is_empty());
+                (
+                    config.temperature,
+                    config.top_p,
+                    config.top_k,
+                    max_tokens,
+                    stop,
+                    reasoning,
+                )
+            } else {
+                (None, None, None, None, None, None)
+            };
 
         // Convert tools using typed conversions
         let tools = typed_params
@@ -284,10 +297,6 @@ impl ProviderAdapter for GoogleAdapter {
             // Convert ReasoningConfig to Google's thinkingConfig
             // Use capabilities to determine whether to use thinkingLevel (Gemini 3) or thinkingBudget (Gemini 2.5)
             let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
-                use crate::providers::google::capabilities::{
-                    effort_to_thinking_level, GoogleCapabilities, GoogleThinkingStyle,
-                };
-
                 if r.is_effectively_disabled() {
                     return None;
                 }
@@ -296,9 +305,7 @@ impl ProviderAdapter for GoogleAdapter {
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
-                        if r.canonical
-                            == Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
-                        {
+                        if r.canonical == Some(ReasoningCanonical::GoogleThinkingBudget) {
                             if let Some(budget) = r.budget_tokens {
                                 return Some(ThinkingConfig {
                                     include_thoughts: Some(true),
@@ -308,9 +315,7 @@ impl ProviderAdapter for GoogleAdapter {
                             }
                         }
 
-                        if r.canonical
-                            == Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
-                        {
+                        if r.canonical == Some(ReasoningCanonical::GoogleIncludeThoughts) {
                             return Some(ThinkingConfig {
                                 include_thoughts: Some(true),
                                 thinking_budget: None,
@@ -331,9 +336,7 @@ impl ProviderAdapter for GoogleAdapter {
                         })
                     }
                     GoogleThinkingStyle::ThinkingBudget | GoogleThinkingStyle::None => {
-                        if r.canonical
-                            == Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
-                        {
+                        if r.canonical == Some(ReasoningCanonical::GoogleIncludeThoughts) {
                             return Some(ThinkingConfig {
                                 include_thoughts: Some(true),
                                 thinking_budget: None,
@@ -342,9 +345,7 @@ impl ProviderAdapter for GoogleAdapter {
                         }
 
                         // Gemini 2.5: use thinkingBudget (budget-based)
-                        let budget = r
-                            .budget_tokens
-                            .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
+                        let budget = r.budget_tokens.unwrap_or(MIN_THINKING_BUDGET);
                         Some(ThinkingConfig {
                             include_thoughts: Some(true),
                             thinking_budget: Some(budget),
@@ -669,7 +670,7 @@ impl ProviderAdapter for GoogleAdapter {
                 let delta = c.delta_view();
 
                 // Build parts array from text and tool_calls
-                let mut parts: Vec<Value> = Vec::new();
+                let mut parts: Vec<GoogleStreamPart> = Vec::new();
 
                 let text = delta
                     .as_ref()
@@ -705,68 +706,68 @@ impl ProviderAdapter for GoogleAdapter {
                         });
 
                     for (index, text) in reasoning_texts.iter().enumerate() {
-                        let mut thought_part = serde_json::Map::new();
-                        thought_part.insert("text".into(), Value::String((*text).to_string()));
-                        thought_part.insert("thought".into(), Value::Bool(true));
+                        let mut thought_part = GoogleStreamPart {
+                            text: Some((*text).to_string()),
+                            thought: Some(true),
+                            ..Default::default()
+                        };
                         if index == reasoning_texts.len() - 1 {
                             if let Some(signature) = thought_reasoning_signature {
-                                thought_part.insert(
-                                    "thoughtSignature".into(),
-                                    Value::String(signature.to_string()),
-                                );
+                                thought_part.thought_signature = Some(signature.to_string());
                             }
                         }
-                        parts.push(Value::Object(thought_part));
+                        parts.push(thought_part);
                     }
                 }
 
                 // Add text part if present, carrying thoughtSignature when there are no tool calls
                 if !text.is_empty() || text_reasoning_signature.is_some() {
-                    let mut text_part = serde_json::Map::new();
-                    text_part.insert("text".into(), Value::String(text.to_string()));
+                    let mut text_part = GoogleStreamPart {
+                        text: Some(text.to_string()),
+                        ..Default::default()
+                    };
                     if let Some(signature) = text_reasoning_signature {
-                        text_part.insert(
-                            "thoughtSignature".into(),
-                            Value::String(signature.to_string()),
-                        );
+                        text_part.thought_signature = Some(signature.to_string());
                     }
-                    parts.push(Value::Object(text_part));
+                    parts.push(text_part);
                 }
 
                 // Add functionCall parts from tool_calls
                 if let Some(ref d) = delta {
                     for tc in &d.tool_calls {
                         if let Some(ref func) = tc.function {
-                            let mut fc_map = serde_json::Map::new();
+                            let mut function_call = Map::new();
                             if let Some(ref name) = func.name {
-                                fc_map.insert("name".into(), Value::String(name.clone()));
+                                function_call.insert("name".into(), Value::String(name.clone()));
                             }
                             if let Some(ref id) = tc.id {
-                                fc_map.insert("id".into(), Value::String(id.clone()));
+                                function_call.insert("id".into(), Value::String(id.clone()));
                             }
                             if let Some(ref args) = func.arguments {
                                 if args.is_empty() {
-                                    fc_map.insert("args".into(), serde_json::json!({}));
+                                    function_call.insert("args".into(), serde_json::json!({}));
                                 } else if let Ok(args_val) = serde_json::from_str::<Value>(args) {
-                                    fc_map.insert("args".into(), args_val);
+                                    function_call.insert("args".into(), args_val);
                                 }
                             }
-                            let mut part_map = serde_json::Map::new();
-                            part_map.insert("functionCall".into(), Value::Object(fc_map));
+                            let mut part = GoogleStreamPart {
+                                function_call: Some(function_call),
+                                ..Default::default()
+                            };
                             if let Some(ref signature) = d.reasoning_signature {
-                                part_map.insert(
-                                    "thoughtSignature".into(),
-                                    Value::String(signature.clone()),
-                                );
+                                part.thought_signature = Some(signature.clone());
                             }
-                            parts.push(Value::Object(part_map));
+                            parts.push(part);
                         }
                     }
                 }
 
                 // Ensure at least one empty text part if no parts
                 if parts.is_empty() {
-                    parts.push(serde_json::json!({"text": ""}));
+                    parts.push(GoogleStreamPart {
+                        text: Some(String::new()),
+                        ..Default::default()
+                    });
                 }
 
                 let finish_reason = c.finish_reason.as_ref().map(|r| {
@@ -788,9 +789,9 @@ impl ProviderAdapter for GoogleAdapter {
                     candidate_map.insert("finishReason".into(), Value::String(reason.to_string()));
                 }
 
-                Value::Object(candidate_map)
+                Ok(Value::Object(candidate_map))
             })
-            .collect();
+            .collect::<Result<Vec<_>, TransformError>>()?;
 
         if chunk.is_keep_alive() || candidates.is_empty() {
             candidates.push(serde_json::json!({
@@ -919,6 +920,7 @@ mod tests {
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
+    use crate::universal::ReasoningEffort;
 
     #[test]
     fn test_google_detect_request() {
@@ -983,7 +985,7 @@ mod tests {
         let reasoning = universal.params.reasoning.as_ref().unwrap();
         assert_eq!(
             reasoning.canonical,
-            Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
+            Some(ReasoningCanonical::GoogleThinkingBudget)
         );
         assert_eq!(reasoning.budget_tokens, Some(1024));
 
@@ -1021,7 +1023,7 @@ mod tests {
         let reasoning = universal.params.reasoning.as_ref().unwrap();
         assert_eq!(
             reasoning.canonical,
-            Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
+            Some(ReasoningCanonical::GoogleIncludeThoughts)
         );
         assert_eq!(reasoning.budget_tokens, None);
 
@@ -1047,11 +1049,11 @@ mod tests {
                 content: UserContent::String("Return JSON.".to_string()),
             }],
             params: UniversalParams {
-                reasoning: Some(crate::universal::ReasoningConfig {
+                reasoning: Some(ReasoningConfig {
                     enabled: Some(true),
-                    effort: Some(crate::universal::ReasoningEffort::Medium),
+                    effort: Some(ReasoningEffort::Medium),
                     budget_tokens: Some(1024),
-                    canonical: Some(crate::universal::ReasoningCanonical::BudgetTokens),
+                    canonical: Some(ReasoningCanonical::BudgetTokens),
                     ..Default::default()
                 }),
                 token_budget: Some(TokenBudget::OutputTokens(2048)),
