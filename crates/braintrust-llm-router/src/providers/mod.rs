@@ -176,15 +176,38 @@ pub(crate) fn disable_streaming_payload(payload: Bytes) -> Bytes {
     }
 }
 
-pub(crate) fn format_carries_model_in_body(format: ProviderFormat) -> bool {
-    matches!(
-        format,
+pub(crate) fn body_model_field(format: ProviderFormat) -> Option<&'static str> {
+    match format {
         ProviderFormat::ChatCompletions
-            | ProviderFormat::Responses
-            | ProviderFormat::Anthropic
-            | ProviderFormat::Google
-            | ProviderFormat::Mistral
-    )
+        | ProviderFormat::Responses
+        | ProviderFormat::Anthropic
+        | ProviderFormat::Google
+        | ProviderFormat::Mistral => Some("model"),
+        ProviderFormat::Converse => Some("modelId"),
+        ProviderFormat::BedrockAnthropic
+        | ProviderFormat::VertexAnthropic
+        | ProviderFormat::Unknown => None,
+    }
+}
+
+pub(crate) fn rewrite_body_model(payload: Bytes, format: ProviderFormat, model: &str) -> Bytes {
+    let Some(model_field) = body_model_field(format) else {
+        return payload;
+    };
+    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
+        return payload;
+    };
+    let Some(object) = value.as_object_mut() else {
+        return payload;
+    };
+    if object.get(model_field).and_then(Value::as_str) == Some(model) {
+        return payload;
+    }
+    object.insert(model_field.to_string(), Value::String(model.to_string()));
+    match serde_json::to_vec(&value) {
+        Ok(serialized) => Bytes::from(serialized),
+        Err(_) => payload,
+    }
 }
 
 pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -> Bytes {

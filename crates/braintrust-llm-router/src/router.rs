@@ -15,8 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, format_carries_model_in_body, prepare_bedrock_request,
-    requires_bedrock_request_preparation, ClientHeaders, Provider,
+    enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
+    rewrite_body_model, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
@@ -208,26 +208,6 @@ struct PreparedRequestInner {
     strategy: RetryStrategy,
 }
 
-fn override_payload_model(payload: Bytes, format: ProviderFormat, model: &str) -> Bytes {
-    if !format_carries_model_in_body(format) {
-        return payload;
-    }
-    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
-        return payload;
-    };
-    let Some(object) = value.as_object_mut() else {
-        return payload;
-    };
-    if object.get("model").and_then(Value::as_str) == Some(model) {
-        return payload;
-    }
-    object.insert("model".to_string(), Value::String(model.to_string()));
-    match serde_json::to_vec(&value) {
-        Ok(serialized) => Bytes::from(serialized),
-        Err(_) => payload,
-    }
-}
-
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
@@ -251,7 +231,7 @@ async fn prepare_provider_request(
             Err(err) => return Err(err.into()),
         };
 
-    let transformed = override_payload_model(transformed, actual_format, &spec.model);
+    let transformed = rewrite_body_model(transformed, actual_format, &spec.model);
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -1511,6 +1491,28 @@ mod tests {
             Some("models/gemini-2.5-pro")
         );
         assert!(parsed.get("contents").is_some());
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_rewrites_same_format_chat_model_without_losing_native_fields()
+    {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","name":"example_user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, _, actual_format) =
+            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
+                .await
+                .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(parsed.get("model").and_then(Value::as_str), Some("gpt-4o"));
+        assert_eq!(
+            parsed.pointer("/messages/0/name").and_then(Value::as_str),
+            Some("example_user")
+        );
     }
 
     #[tokio::test]

@@ -22,9 +22,9 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta,
+    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -130,15 +130,6 @@ pub enum TransformResult {
         /// `Responses` when `reasoning_effort` + `tools` are present).
         actual_target_format: ProviderFormat,
     },
-}
-
-/// A request converted into Lingua's universal representation and ready for
-/// caller-specific mutation before final target serialization.
-#[derive(Debug, Clone)]
-pub struct PreparedRequestTransform {
-    pub request: UniversalRequest,
-    pub source_format: ProviderFormat,
-    pub actual_target_format: ProviderFormat,
 }
 
 impl TransformResult {
@@ -312,26 +303,6 @@ pub fn transform_request(
     target_format: ProviderFormat,
     model: Option<&str>,
 ) -> Result<TransformResult, TransformError> {
-    match prepare_request_transform(input, target_format, model)? {
-        RequestTransformPreparation::PassThrough(bytes) => Ok(TransformResult::PassThrough(bytes)),
-        RequestTransformPreparation::Prepared(prepared) => finish_request_transform(*prepared),
-    }
-}
-
-/// Result of preparing a request transform before final target serialization.
-pub enum RequestTransformPreparation {
-    /// Payload was already valid for target format and no target model override
-    /// forced a universal conversion.
-    PassThrough(Bytes),
-    /// Payload has been converted to universal form with the target model applied.
-    Prepared(Box<PreparedRequestTransform>),
-}
-
-pub fn prepare_request_transform(
-    input: Bytes,
-    target_format: ProviderFormat,
-    model: Option<&str>,
-) -> Result<RequestTransformPreparation, TransformError> {
     let parsed = parse_json_body(input)?;
     let payload = parsed.value;
     let request_bytes = parsed.bytes;
@@ -368,10 +339,9 @@ pub fn prepare_request_transform(
 
     if source_format == target_format
         && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
-        && !request_model_override_changes_model(request_model.as_deref(), model)
         && target_adapter.detect_passthrough_request(&payload)
     {
-        return Ok(RequestTransformPreparation::PassThrough(request_bytes));
+        return Ok(TransformResult::PassThrough(request_bytes));
     }
 
     let mut universal = source_adapter.request_to_universal(payload)?;
@@ -380,45 +350,19 @@ pub fn prepare_request_transform(
         universal.model = Some(model.to_string());
     }
 
-    Ok(RequestTransformPreparation::Prepared(Box::new(
-        PreparedRequestTransform {
-            request: universal,
-            source_format,
-            actual_target_format: target_format,
-        },
-    )))
-}
-
-fn request_model_override_changes_model(
-    request_model: Option<&str>,
-    override_model: Option<&str>,
-) -> bool {
-    match override_model {
-        Some(override_model) => request_model != Some(override_model),
-        None => false,
-    }
-}
-
-pub fn finish_request_transform(
-    mut prepared: PreparedRequestTransform,
-) -> Result<TransformResult, TransformError> {
-    let target_adapter = adapter_for_format(prepared.actual_target_format).ok_or(
-        TransformError::UnsupportedTargetFormat(prepared.actual_target_format),
-    )?;
-
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
-    target_adapter.apply_defaults(&mut prepared.request);
+    target_adapter.apply_defaults(&mut universal);
 
     // Convert to target format (validation happens in adapter)
-    let transformed = target_adapter.request_from_universal(&prepared.request)?;
+    let transformed = target_adapter.request_from_universal(&universal)?;
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
     Ok(TransformResult::Transformed {
         bytes: Bytes::from(bytes),
-        source_format: prepared.source_format,
-        actual_target_format: prepared.actual_target_format,
+        source_format,
+        actual_target_format: target_format,
     })
 }
 
@@ -2250,9 +2194,13 @@ mod tests {
 
     #[test]
     #[cfg(feature = "bedrock")]
-    fn test_converse_model_override_forces_universal_translation() {
+    fn test_transform_request_preserves_same_format_converse_passthrough_with_model_override() {
         let payload = json!({
             "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+            "guardrailConfig": {
+                "guardrailIdentifier": "test",
+                "guardrailVersion": "1"
+            },
             "messages": [{
                 "role": "user",
                 "content": [{"text": "Hello"}]
@@ -2267,13 +2215,13 @@ mod tests {
         )
         .unwrap();
 
-        assert!(!result.is_passthrough());
-        assert_eq!(result.source_format(), Some(ProviderFormat::Converse));
+        assert!(result.is_passthrough());
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
         assert_eq!(
             output.get("modelId").and_then(Value::as_str),
-            Some("anthropic.claude-3-5-sonnet-20241022-v2:0")
+            Some("anthropic.claude-3-haiku-20240307-v1:0")
         );
+        assert!(output.get("guardrailConfig").is_some());
     }
 }
