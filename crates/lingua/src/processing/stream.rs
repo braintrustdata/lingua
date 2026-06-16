@@ -10,7 +10,7 @@ use crate::processing::transform::{
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::responses_stream_events_from_universal;
 use crate::serde_json::Value;
-use crate::universal::UniversalStreamChunk;
+use crate::universal::{UniversalStreamChunk, PLACEHOLDER_ID, PLACEHOLDER_MODEL};
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -73,6 +73,7 @@ pub struct StreamTransformSession {
     anthropic_open_content_block_kind: Option<AnthropicContentBlockKind>,
     anthropic_next_content_block_index: u32,
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
+    responses_message_started: bool,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -97,6 +98,7 @@ impl StreamTransformSession {
             anthropic_open_content_block_kind: None,
             anthropic_next_content_block_index: 0,
             anthropic_content_block_index_map: BTreeMap::new(),
+            responses_message_started: false,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -129,6 +131,7 @@ impl StreamTransformSession {
             step.universal.as_ref(),
             step.source_is_native_stream,
             self.anthropic_message_started,
+            self.responses_message_started,
         )?;
         self.process_chunks(chunks)
     }
@@ -239,6 +242,19 @@ impl StreamTransformSession {
         &mut self,
         chunks: Vec<StreamOutputChunk>,
     ) -> Result<Vec<StreamOutputChunk>, TransformError> {
+        if self.target_format == ProviderFormat::Responses {
+            for chunk in &chunks {
+                match chunk.event_type.as_deref() {
+                    Some("response.created") => self.responses_message_started = true,
+                    Some("response.completed") | Some("response.incomplete") => {
+                        self.responses_message_started = false;
+                    }
+                    _ => {}
+                }
+            }
+            return Ok(chunks);
+        }
+
         // Anthropic currently needs stateful post-processing after universal -> provider
         // conversion: some inputs expand into multiple SSE events, and finish/usage data
         // may arrive as adjacent chunks that must be merged before emission. The adapter
@@ -811,6 +827,7 @@ fn build_session_chunks(
     universal: Option<&UniversalStreamChunk>,
     source_is_native_stream: bool,
     anthropic_message_started: bool,
+    responses_message_started: bool,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let mut chunks = expand_transform_result(result)?;
     if target_format == ProviderFormat::Anthropic {
@@ -824,7 +841,7 @@ fn build_session_chunks(
     }
     if target_format == ProviderFormat::Responses {
         #[cfg(feature = "openai")]
-        return expand_responses_session_chunks(chunks, universal);
+        return expand_responses_session_chunks(chunks, universal, responses_message_started);
         #[cfg(not(feature = "openai"))]
         return Ok(std::mem::take(&mut chunks));
     }
@@ -834,12 +851,28 @@ fn build_session_chunks(
 fn expand_responses_session_chunks(
     chunks: Vec<StreamOutputChunk>,
     universal: Option<&UniversalStreamChunk>,
+    responses_message_started: bool,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
         return Ok(chunks);
     };
 
-    let out = responses_stream_events_from_universal(universal)
+    let mut events = responses_stream_events_from_universal(universal);
+    let has_metadata =
+        universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
+    if has_metadata
+        && !responses_message_started
+        && !events.is_empty()
+        && events
+            .first()
+            .and_then(|event| event.get("type"))
+            .and_then(Value::as_str)
+            != Some("response.created")
+    {
+        events.insert(0, responses_created_stream_event(universal));
+    }
+
+    let out = events
         .into_iter()
         .map(|event| {
             let event_type = extract_event_type(&event);
@@ -855,6 +888,34 @@ fn expand_responses_session_chunks(
     } else {
         Ok(out)
     }
+}
+
+fn responses_created_stream_event(chunk: &UniversalStreamChunk) -> Value {
+    let id = chunk
+        .id
+        .clone()
+        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
+    let mut response = crate::serde_json::json!({
+        "id": id,
+        "object": "response",
+        "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+        "status": "in_progress",
+        "output": []
+    });
+
+    if let Some(usage) = &chunk.usage {
+        if let Some(obj) = response.as_object_mut() {
+            obj.insert(
+                "usage".into(),
+                usage.to_provider_value(ProviderFormat::Responses),
+            );
+        }
+    }
+
+    crate::serde_json::json!({
+        "type": "response.created",
+        "response": response
+    })
 }
 
 fn expand_anthropic_session_chunks(
@@ -2302,10 +2363,20 @@ mod tests {
                 .map(|chunk| chunk.event_type.as_deref())
                 .collect::<Vec<_>>(),
             vec![
+                Some("response.created"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_text.delta"),
                 Some("response.completed")
             ]
+        );
+
+        let created: Value = crate::serde_json::from_slice(&out[0].data).unwrap();
+        assert_eq!(
+            created
+                .get("response")
+                .and_then(|response| response.get("id"))
+                .and_then(Value::as_str),
+            Some("response_123")
         );
     }
 
@@ -2344,10 +2415,66 @@ mod tests {
                 .map(|chunk| chunk.event_type.as_deref())
                 .collect::<Vec<_>>(),
             vec![
+                Some("response.created"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta")
             ]
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_stream_session_google_response_metadata_created_once_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let first_thought = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "first thought",
+                        "thought": true
+                    }]
+                }
+            }]
+        }));
+        let second_thought = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "second thought",
+                        "thought": true
+                    }]
+                }
+            }]
+        }));
+
+        let first = session.push(first_thought).unwrap();
+        assert_eq!(
+            first
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.created"),
+                Some("response.reasoning_summary_text.delta")
+            ]
+        );
+
+        let second = session.push(second_thought).unwrap();
+        assert_eq!(
+            second
+                .iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![Some("response.reasoning_summary_text.delta")]
         );
     }
 

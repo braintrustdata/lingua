@@ -10317,7 +10317,10 @@ data: {"response":{"id":"resp_transformed","model":"transformed","object":"respo
 `;
 
 exports[`streaming: responses → google > complexReasoningRequest > streaming 1`] = `
-"event: response.reasoning_summary_text.delta
+"event: response.created
+data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":75,"input_tokens_details":{"cached_tokens":0},"output_tokens":65,"output_tokens_details":{"reasoning_tokens":65},"total_tokens":140}},"type":"response.created"}
+
+event: response.reasoning_summary_text.delta
 data: {"delta":"**Defining the Objective**\\n\\nOkay, I'm working on the problem of identifying the most and least frequent digits on a digital clock over a 24-hour period. I've begun to analyze the parameters, and I'm focusing on breaking down the time range (00:00 to 23:59) to count the digit appearances methodically. This approach is key to an effective solution.\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
 
 event: response.reasoning_summary_text.delta
@@ -10495,7 +10498,10 @@ data: {"response":{"id":"iW_VaY_sJ4OV_uMPkvTv-Aw","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > multimodalRequest > streaming 1`] = `
-"event: response.output_text.delta
+"event: response.created
+data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":267,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":287},"total_tokens":563}},"type":"response.created"}
+
+event: response.output_text.delta
 data: {"content_index":0,"delta":"In this image, I see a beautiful **","output_index":0,"type":"response.output_text.delta"}
 
 event: response.incomplete
@@ -10505,7 +10511,10 @@ data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > parallelToolCallsRequest > streaming 1`] = `
-"event: response.output_text.delta
+"event: response.created
+data: {"response":{"id":"US8oarqkA-zQ_uMPs83E8A4","model":"gemini-3.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":151,"input_tokens_details":{"cached_tokens":0},"output_tokens":117,"output_tokens_details":{"reasoning_tokens":93},"total_tokens":268}},"type":"response.created"}
+
+event: response.output_text.delta
 data: {"content_index":0,"delta":"In San Francisco, it is currently 65°F and sunny. In New York, it is 45","output_index":0,"type":"response.output_text.delta"}
 
 event: response.output_text.delta
@@ -10518,7 +10527,10 @@ data: {"response":{"id":"US8oarqkA-zQ_uMPs83E8A4","model":"gemini-3.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningRequest > streaming 1`] = `
-"event: response.reasoning_summary_text.delta
+"event: response.created
+data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":67,"output_tokens_details":{"reasoning_tokens":67},"total_tokens":104}},"type":"response.created"}
+
+event: response.reasoning_summary_text.delta
 data: {"delta":"**Defining the Goal**\\n\\nI've zeroed in on the core of the problem: determining the train's average speed. The formula is key: Total Distance divided by Total Time. I'm building my approach around this foundational understanding.\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
 
 event: response.reasoning_summary_text.delta
@@ -10558,7 +10570,10 @@ data: {"response":{"id":"iG_VaeWWI6uM_PUPpP7C2Qw","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningRequestTruncated > streaming 1`] = `
-"event: response.reasoning_summary_text.delta
+"event: response.created
+data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":68,"output_tokens_details":{"reasoning_tokens":68},"total_tokens":105}},"type":"response.created"}
+
+event: response.reasoning_summary_text.delta
 data: {"delta":"**Calculating Average Speed**\\n\\nOkay, I'm working on calculating the average speed. I've broken down the problem to use the average speed formula: (Total Distance) / (Total Time). My next step is figuring out how to determine the total distance and total time, given the information in the problem. I need to make sure I don't miss any steps!\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
 
 event: response.reasoning_summary_text.delta
@@ -10574,7 +10589,10 @@ data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > reasoningWithOutput > streaming 1`] = `
-"event: response.reasoning_summary_text.delta
+"event: response.created
+data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":7,"input_tokens_details":{"cached_tokens":0},"output_tokens":65,"output_tokens_details":{"reasoning_tokens":65},"total_tokens":72}},"type":"response.created"}
+
+event: response.reasoning_summary_text.delta
 data: {"delta":"**Reviewing Basic Principles**\\n\\nI've started by breaking down the user's question. Now I'm recalling relevant background knowledge, specifically focusing on how light scattering affects sky color. I'm focusing on the contrast between daytime and sunrise/sunset.\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
 
 event: response.reasoning_summary_text.delta
@@ -10611,7 +10629,10 @@ data: {"response":{"id":"iW_VaZfANa-b_uMPhLD1kQo","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > simpleRequest > streaming 1`] = `
-"event: response.reasoning_summary_text.delta
+"event: response.created
+data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":8,"input_tokens_details":{"cached_tokens":0},"output_tokens":17,"output_tokens_details":{"reasoning_tokens":17},"total_tokens":25}},"type":"response.created"}
+
+event: response.reasoning_summary_text.delta
 data: {"delta":"**Answering the Query**\\n\\nOkay, I'm focusing on providing a direct and accurate response to the user's question. My primary concern is delivering the correct information clearly. I'm aiming for a concise and factual answer that meets the user's needs.\\n\\n\\n","output_index":0,"summary_index":0,"type":"response.reasoning_summary_text.delta"}
 
 event: response.output_text.delta
@@ -10627,14 +10648,20 @@ data: {"response":{"id":"iG_VacqLI7aX_uMP96rw0Q8","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > simpleRequestTruncated > streaming 1`] = `
-"event: response.incomplete
+"event: response.created
+data: {"response":{"id":"iG_VaZqcI_GW_uMPtubRiQE","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":10,"input_tokens_details":{"cached_tokens":0},"output_tokens":0,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":10}},"type":"response.created"}
+
+event: response.incomplete
 data: {"response":{"id":"iG_VaZqcI_GW_uMPtubRiQE","model":"gemini-2.5-flash","object":"response","output":[],"status":"incomplete","usage":{"input_tokens":10,"input_tokens_details":{"cached_tokens":0},"output_tokens":0,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":10}},"type":"response.incomplete"}
 
 "
 `;
 
 exports[`streaming: responses → google > systemMessageArrayContent > streaming 1`] = `
-"event: response.output_text.delta
+"event: response.created
+data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":29,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":284},"total_tokens":325}},"type":"response.created"}
+
+event: response.output_text.delta
 data: {"content_index":0,"delta":"To find recent errors in the \`project_logs\` (","output_index":0,"type":"response.output_text.delta"}
 
 event: response.incomplete
@@ -10644,7 +10671,10 @@ data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","ob
 `;
 
 exports[`streaming: responses → google > toolCallRequest > streaming 1`] = `
-"event: response.output_item.added
+"event: response.created
+data: {"response":{"id":"YVv7aeCnCK30jMcPgsyniAw","model":"gemini-3-flash-preview","object":"response","output":[],"status":"in_progress","usage":{"input_tokens":73,"input_tokens_details":{"cached_tokens":0},"output_tokens":19,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":92}},"type":"response.created"}
+
+event: response.output_item.added
 data: {"item":{"arguments":"","call_id":"etjq4utn","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":0,"type":"response.output_item.added"}
 
 event: response.function_call_arguments.delta
