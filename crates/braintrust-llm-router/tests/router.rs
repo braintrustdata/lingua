@@ -6,13 +6,27 @@ use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
-    ProviderFormat, RawResponseStream, RetryPolicy, Router, RouterBuilder,
+    ProviderFormat, ProviderResponse, ProviderStreamResponse, RetryPolicy, Router, RouterBuilder,
 };
 use bytes::Bytes;
 
 /// Helper to create request body bytes from a Value
 fn to_body(payload: Value) -> Bytes {
     Bytes::from(braintrust_llm_router::serde_json::to_vec(&payload).unwrap())
+}
+
+fn provider_response(body: Bytes) -> ProviderResponse {
+    ProviderResponse {
+        body,
+        headers: Default::default(),
+    }
+}
+
+fn empty_stream_response() -> ProviderStreamResponse {
+    ProviderStreamResponse {
+        stream: Box::pin(tokio_stream::empty()),
+        headers: Default::default(),
+    }
 }
 
 async fn create_request(
@@ -51,7 +65,7 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         // Parse the incoming payload to extract model name
         let value: Value =
             braintrust_llm_router::serde_json::from_slice(&payload).unwrap_or_default();
@@ -81,7 +95,7 @@ impl Provider for StubProvider {
         });
         let bytes = braintrust_llm_router::serde_json::to_vec(&response)
             .map_err(|e| Error::InvalidRequest(e.to_string()))?;
-        Ok(Bytes::from(bytes))
+        Ok(provider_response(Bytes::from(bytes)))
     }
 
     async fn complete_stream(
@@ -91,8 +105,8 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
-        Ok(Box::pin(tokio_stream::empty()))
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+        Ok(empty_stream_response())
     }
 
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
@@ -444,7 +458,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         self.attempts.fetch_add(1, Ordering::SeqCst);
         Err(Error::Timeout)
     }
@@ -456,7 +470,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
         Err(Error::Timeout)
     }
 
@@ -485,7 +499,7 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         let err = reqwest::Client::new()
             .get("http://127.0.0.1:1")
             .send()
@@ -501,8 +515,8 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
-        Ok(Box::pin(tokio_stream::empty()))
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+        Ok(empty_stream_response())
     }
 
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
@@ -530,7 +544,7 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         let client = reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build();
         let err = client
             .get("http://127.0.0.1:1")
@@ -547,8 +561,8 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
-        Ok(Box::pin(tokio_stream::empty()))
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+        Ok(empty_stream_response())
     }
 
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
@@ -580,7 +594,7 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
             "id": "stub",
@@ -589,9 +603,9 @@ impl Provider for CapturingAnthropicStub {
             "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
         });
-        Ok(Bytes::from(
+        Ok(provider_response(Bytes::from(
             braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
-        ))
+        )))
     }
 
     async fn complete_stream(
@@ -601,8 +615,8 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
-        Ok(Box::pin(tokio_stream::empty()))
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+        Ok(empty_stream_response())
     }
 
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {
@@ -757,7 +771,7 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<Bytes> {
+    ) -> braintrust_llm_router::Result<ProviderResponse> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
             "id": "stub",
@@ -766,9 +780,9 @@ impl Provider for CapturingOpenAIStub {
             "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
         });
-        Ok(Bytes::from(
+        Ok(provider_response(Bytes::from(
             braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
-        ))
+        )))
     }
 
     async fn complete_stream(
@@ -778,8 +792,8 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<RawResponseStream> {
-        Ok(Box::pin(tokio_stream::empty()))
+    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+        Ok(empty_stream_response())
     }
 
     async fn health_check(&self, _auth: &AuthConfig) -> braintrust_llm_router::Result<()> {

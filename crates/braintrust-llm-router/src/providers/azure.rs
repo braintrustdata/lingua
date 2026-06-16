@@ -11,8 +11,11 @@ use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::anthropic::{ANTHROPIC_VERSION, DEFAULT_ANTHROPIC_VERSION_VALUE};
-use crate::providers::{ClientHeaders, Provider};
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::providers::{
+    provider_response_with_headers, ClientHeaders, Provider, ProviderResponse,
+    ProviderStreamResponse,
+};
+use crate::streaming::sse_stream;
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -241,7 +244,7 @@ impl crate::providers::Provider for AzureProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<ProviderResponse> {
         let payload = self.prepare_payload(payload, &spec.model, format)?;
         let url = self.url_for_format(&spec.model, format)?;
 
@@ -278,7 +281,7 @@ impl crate::providers::Provider for AzureProvider {
             });
         }
 
-        Ok(response.bytes().await?)
+        Ok(provider_response_with_headers(response).await?)
     }
 
     async fn complete_stream(
@@ -288,7 +291,7 @@ impl crate::providers::Provider for AzureProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -332,7 +335,11 @@ impl crate::providers::Provider for AzureProvider {
             });
         }
 
-        Ok(sse_stream(response))
+        let headers = response.headers().clone();
+        Ok(ProviderStreamResponse {
+            stream: sse_stream(response),
+            headers,
+        })
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {

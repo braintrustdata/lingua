@@ -71,7 +71,8 @@ async fn main() -> Result<()> {
         .await?;
     let mut stream = router
         .complete_stream(request, &ClientHeaders::default(), None)
-        .await?;
+        .await?
+        .stream;
 
     // Process the stream
     let mut full_response = String::new();
@@ -154,7 +155,8 @@ async fn main() -> Result<()> {
             .await?;
         let stream = router
             .complete_stream(request, &ClientHeaders::default(), None)
-            .await?;
+            .await?
+            .stream;
         streams.push((model.to_string(), stream));
     }
 

@@ -59,6 +59,25 @@ pub const BLOCKED_HEADERS: &[&str] = &[
     "x-real-ip",
 ];
 
+#[derive(Debug, Clone)]
+pub struct ProviderResponse {
+    pub body: Bytes,
+    pub headers: HeaderMap,
+}
+
+pub struct ProviderStreamResponse {
+    pub stream: RawResponseStream,
+    pub headers: HeaderMap,
+}
+
+pub(crate) async fn provider_response_with_headers(
+    response: reqwest::Response,
+) -> reqwest::Result<ProviderResponse> {
+    let headers = response.headers().clone();
+    let body = response.bytes().await?;
+    Ok(ProviderResponse { body, headers })
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct ClientHeaders {
     inner: HashMap<String, String>,
@@ -245,7 +264,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes>;
+    ) -> Result<ProviderResponse>;
 
     /// Execute a streaming completion request.
     ///
@@ -265,7 +284,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream>;
+    ) -> Result<ProviderStreamResponse>;
 
     async fn complete_stream_via_complete(
         &self,
@@ -274,12 +293,15 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         let payload = disable_streaming_payload(payload);
         let response = self
             .complete(payload, auth, spec, format, client_headers)
             .await?;
-        Ok(crate::streaming::single_bytes_stream(response))
+        Ok(ProviderStreamResponse {
+            stream: crate::streaming::single_bytes_stream(response.body),
+            headers: response.headers,
+        })
     }
 
     /// Check if the provider is reachable.

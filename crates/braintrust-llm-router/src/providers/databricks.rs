@@ -4,8 +4,10 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::providers::{
+    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
+};
+use crate::streaming::sse_stream;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
@@ -89,7 +91,7 @@ impl crate::providers::Provider for DatabricksProvider {
         spec: &ModelSpec,
         _format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<ProviderResponse> {
         let url = self.serving_url(&spec.model)?;
 
         let mut headers = client_headers.to_json_headers();
@@ -126,7 +128,7 @@ impl crate::providers::Provider for DatabricksProvider {
             });
         }
 
-        Ok(response.bytes().await?)
+        Ok(provider_response_with_headers(response).await?)
     }
 
     async fn complete_stream(
@@ -136,7 +138,7 @@ impl crate::providers::Provider for DatabricksProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -179,7 +181,11 @@ impl crate::providers::Provider for DatabricksProvider {
             });
         }
 
-        Ok(sse_stream(response))
+        let headers = response.headers().clone();
+        Ok(ProviderStreamResponse {
+            stream: sse_stream(response),
+            headers,
+        })
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {

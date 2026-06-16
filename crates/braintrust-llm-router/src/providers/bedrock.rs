@@ -23,8 +23,10 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
-use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
+use crate::providers::{
+    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
+};
+use crate::streaming::{bedrock_event_stream, sse_stream};
 use lingua::{ProviderFormat, TransformError};
 
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
@@ -435,14 +437,14 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<ProviderResponse> {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url()?,
             _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        Ok(response.bytes().await?)
+        Ok(provider_response_with_headers(response).await?)
     }
 
     async fn complete_stream(
@@ -452,7 +454,7 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -466,10 +468,17 @@ impl crate::providers::Provider for BedrockProvider {
         };
 
         let response = self.send_signed(url, payload, auth, client_headers).await?;
+        let headers = response.headers().clone();
         if matches!(format, ProviderFormat::ChatCompletions) {
-            Ok(sse_stream(response))
+            Ok(ProviderStreamResponse {
+                stream: sse_stream(response),
+                headers,
+            })
         } else {
-            Ok(bedrock_event_stream(response))
+            Ok(ProviderStreamResponse {
+                stream: bedrock_event_stream(response),
+                headers,
+            })
         }
     }
 

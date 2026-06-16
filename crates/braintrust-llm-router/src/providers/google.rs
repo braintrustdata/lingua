@@ -4,8 +4,10 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::providers::{
+    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
+};
+use crate::streaming::sse_stream;
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
@@ -155,7 +157,7 @@ impl crate::providers::Provider for GoogleProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<ProviderResponse> {
         let url = self.url_for_format(&spec.model, false, format)?;
 
         let mut headers = self.build_headers(client_headers);
@@ -192,7 +194,7 @@ impl crate::providers::Provider for GoogleProvider {
             });
         }
 
-        Ok(response.bytes().await?)
+        Ok(provider_response_with_headers(response).await?)
     }
 
     async fn complete_stream(
@@ -202,7 +204,7 @@ impl crate::providers::Provider for GoogleProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -245,7 +247,11 @@ impl crate::providers::Provider for GoogleProvider {
             });
         }
 
-        Ok(sse_stream(response))
+        let headers = response.headers().clone();
+        Ok(ProviderStreamResponse {
+            stream: sse_stream(response),
+            headers,
+        })
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
@@ -433,7 +439,7 @@ mod tests {
             )
             .await
             .expect("complete");
-        let parsed: serde_json::Value = serde_json::from_slice(&response).expect("json");
+        let parsed: serde_json::Value = serde_json::from_slice(&response.body).expect("json");
 
         assert_eq!(
             parsed.get("id").and_then(serde_json::Value::as_str),

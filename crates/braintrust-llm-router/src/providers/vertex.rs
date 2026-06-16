@@ -11,8 +11,10 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
-use crate::streaming::{sse_stream, RawResponseStream};
+use crate::providers::{
+    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
+};
+use crate::streaming::sse_stream;
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -249,7 +251,7 @@ impl crate::providers::Provider for VertexProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<Bytes> {
+    ) -> Result<ProviderResponse> {
         let mode = self.determine_mode_for_format(&spec.model, format);
         let location = self.resolve_location(spec);
         let base_url = self.base_url(&location)?;
@@ -289,7 +291,7 @@ impl crate::providers::Provider for VertexProvider {
             });
         }
 
-        Ok(response.bytes().await?)
+        Ok(provider_response_with_headers(response).await?)
     }
 
     async fn complete_stream(
@@ -299,7 +301,7 @@ impl crate::providers::Provider for VertexProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<RawResponseStream> {
+    ) -> Result<ProviderStreamResponse> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -345,7 +347,11 @@ impl crate::providers::Provider for VertexProvider {
             });
         }
 
-        Ok(sse_stream(response))
+        let headers = response.headers().clone();
+        Ok(ProviderStreamResponse {
+            stream: sse_stream(response),
+            headers,
+        })
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
