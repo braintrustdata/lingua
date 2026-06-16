@@ -222,7 +222,6 @@ struct ResponsesFunctionCallArgumentsDeltaEvent {
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesReasoningTextDeltaEvent {
     delta: Option<String>,
-    output_index: Option<u32>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -233,7 +232,6 @@ struct ResponsesAlternateReasoningDeltaEvent {
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesAlternateReasoningDelta {
     text: Option<String>,
-    index: Option<u32>,
 }
 
 pub(crate) fn parse_responses_extras(
@@ -822,17 +820,11 @@ impl ProviderAdapter for ResponsesAdapter {
                     _ => Value::Null, // Empty or missing text becomes null
                 };
 
-                let output_index = payload
-                    .get("output_index")
-                    .or_else(|| delta_obj.and_then(|d| d.get("index")))
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0) as u32;
-
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: output_index,
+                        index: 0,
                         delta: Some(serde_json::json!({
                             "role": "assistant",
                             "content": content_value
@@ -845,7 +837,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
 
             "response.reasoning_summary_text.delta" | "response.reasoning_text.delta" => {
-                let (text, output_index) = if is_alternate_format {
+                let text = if is_alternate_format {
                     let parsed: ResponsesAlternateReasoningDeltaEvent =
                         serde_json::from_value(payload.clone()).map_err(|e| {
                             TransformError::DeserializationFailed(format!(
@@ -854,7 +846,7 @@ impl ProviderAdapter for ResponsesAdapter {
                             ))
                         })?;
                     let delta = parsed.delta.unwrap_or_default();
-                    (delta.text, delta.index.unwrap_or(0))
+                    delta.text
                 } else {
                     let parsed: ResponsesReasoningTextDeltaEvent =
                         serde_json::from_value(payload.clone()).map_err(|e| {
@@ -863,14 +855,14 @@ impl ProviderAdapter for ResponsesAdapter {
                                 e
                             ))
                         })?;
-                    (parsed.delta, parsed.output_index.unwrap_or(0))
+                    parsed.delta
                 };
 
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: output_index,
+                        index: 0,
                         delta: Some(serde_json::json!({
                             "role": "assistant",
                             "reasoning": [{
@@ -1000,7 +992,7 @@ impl ProviderAdapter for ResponsesAdapter {
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: output_index,
+                            index: 0,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
                                 "content": Value::Null,
@@ -1036,7 +1028,7 @@ impl ProviderAdapter for ResponsesAdapter {
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: output_index,
+                        index: 0,
                         delta: Some(serde_json::json!({
                             "tool_calls": [{
                                 "index": output_index,
@@ -1995,6 +1987,47 @@ mod tests {
             .expect("keepalive should emit a chunk");
 
         assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_responses_stream_to_universal_output_indexes_are_output_items_not_choices() {
+        let adapter = ResponsesAdapter;
+
+        let reasoning = adapter
+            .stream_to_universal(json!({
+                "type": "response.reasoning_summary_text.delta",
+                "output_index": 0,
+                "summary_index": 0,
+                "delta": "thinking before visible text"
+            }))
+            .expect("reasoning event should parse")
+            .expect("reasoning event should emit a chunk");
+        let reasoning_choice = reasoning.choices.first().expect("reasoning choice");
+        let reasoning_delta = reasoning_choice
+            .delta_view()
+            .expect("reasoning delta should parse");
+        assert_eq!(reasoning_choice.index, 0);
+        assert_eq!(
+            reasoning_delta.reasoning[0].content.as_deref(),
+            Some("thinking before visible text")
+        );
+
+        let text = adapter
+            .stream_to_universal(json!({
+                "type": "response.output_text.delta",
+                "output_index": 1,
+                "content_index": 0,
+                "delta": "{\"answer\":\"visible json\"}"
+            }))
+            .expect("text event should parse")
+            .expect("text event should emit a chunk");
+        let text_choice = text.choices.first().expect("text choice");
+        let text_delta = text_choice.delta_view().expect("text delta should parse");
+        assert_eq!(text_choice.index, 0);
+        assert_eq!(
+            text_delta.content.as_deref(),
+            Some("{\"answer\":\"visible json\"}")
+        );
     }
 
     #[test]
