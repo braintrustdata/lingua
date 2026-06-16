@@ -208,11 +208,25 @@ struct PreparedRequestInner {
     strategy: RetryStrategy,
 }
 
+#[derive(Clone, Copy)]
+struct RequestPreparationOptions {
+    rewrite_body_model: bool,
+}
+
+impl Default for RequestPreparationOptions {
+    fn default() -> Self {
+        Self {
+            rewrite_body_model: true,
+        }
+    }
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
+    options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
@@ -231,7 +245,7 @@ async fn prepare_provider_request(
             Err(err) => return Err(err.into()),
         };
 
-    let transformed = if maybe_rewrite_model {
+    let transformed = if options.rewrite_body_model && maybe_rewrite_model {
         rewrite_body_model_if_required(transformed, actual_format, &spec.model)
     } else {
         transformed
@@ -275,9 +289,11 @@ impl Router {
         output_format: ProviderFormat,
         route: &ProviderRoute,
         stream: bool,
+        options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
         let (payload, detected_format, actual_format) =
-            prepare_provider_request(body, route.spec.as_ref(), route.format, stream).await?;
+            prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
+                .await?;
         Ok((
             PreparedRequestInner {
                 provider: route.provider.clone(),
@@ -320,7 +336,33 @@ impl Router {
         route: &ProviderRoute,
     ) -> Result<(PreparedRequest, RouterMetadata)> {
         let (inner, metadata) = self
-            .create_prepared_request_internal(body, output_format, route, false)
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                false,
+                RequestPreparationOptions::default(),
+            )
+            .await?;
+        Ok((PreparedRequest { inner }, metadata))
+    }
+
+    pub async fn create_request_preserving_body_model(
+        &self,
+        body: Bytes,
+        output_format: ProviderFormat,
+        route: &ProviderRoute,
+    ) -> Result<(PreparedRequest, RouterMetadata)> {
+        let (inner, metadata) = self
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                false,
+                RequestPreparationOptions {
+                    rewrite_body_model: false,
+                },
+            )
             .await?;
         Ok((PreparedRequest { inner }, metadata))
     }
@@ -426,7 +468,33 @@ impl Router {
         route: &ProviderRoute,
     ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
         let (inner, metadata) = self
-            .create_prepared_request_internal(body, output_format, route, true)
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                true,
+                RequestPreparationOptions::default(),
+            )
+            .await?;
+        Ok((PreparedStreamRequest { inner }, metadata))
+    }
+
+    pub async fn create_stream_request_preserving_body_model(
+        &self,
+        body: Bytes,
+        output_format: ProviderFormat,
+        route: &ProviderRoute,
+    ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
+        let (inner, metadata) = self
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                true,
+                RequestPreparationOptions {
+                    rewrite_body_model: false,
+                },
+            )
             .await?;
         Ok((PreparedStreamRequest { inner }, metadata))
     }
@@ -1397,10 +1465,15 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
-                .await
-                .expect("request prepares");
+        let (payload, _, _) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            true,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
@@ -1415,10 +1488,15 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-                .await
-                .expect("request prepares");
+        let (payload, _, _) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);
@@ -1448,10 +1526,15 @@ mod tests {
             available_providers: vec!["vertex".to_string()],
         };
 
-        let (payload, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::VertexAnthropic, false)
-                .await
-                .expect("request prepares");
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::VertexAnthropic,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
 
         assert_eq!(actual_format, ProviderFormat::VertexAnthropic);
@@ -1483,10 +1566,15 @@ mod tests {
             available_providers: vec!["google".to_string()],
         };
 
-        let (payload, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::Google, false)
-                .await
-                .expect("request prepares");
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::Google,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
 
         assert_eq!(actual_format, ProviderFormat::Google);
@@ -1505,14 +1593,47 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-                .await
-                .expect("request prepares");
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
 
         assert_eq!(actual_format, ProviderFormat::ChatCompletions);
         assert_eq!(parsed.get("model").and_then(Value::as_str), Some("gpt-4o"));
+        assert_eq!(
+            parsed.pointer("/messages/0/name").and_then(Value::as_str),
+            Some("example_user")
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_can_preserve_same_format_body_model() {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","name":"example_user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions {
+                rewrite_body_model: false,
+            },
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(parsed.get("model").and_then(Value::as_str), Some("gpt-4"));
         assert_eq!(
             parsed.pointer("/messages/0/name").and_then(Value::as_str),
             Some("example_user")
@@ -1546,10 +1667,15 @@ mod tests {
         );
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
-        let (_, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-                .await
-                .expect("request prepares");
+        let (_, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         assert_eq!(
             actual_format,
