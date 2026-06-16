@@ -11,10 +11,10 @@ use aws_sigv4::sign::v4;
 use aws_smithy_runtime_api::client::identity::Identity;
 use bytes::Bytes;
 use http::Request as HttpRequest;
-use lingua::processing::{adapter_for_format, adapters};
 use lingua::serde_json::Value;
 use lingua::universal::message::{Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
+use lingua::{finish_request_transform, prepare_request_transform, RequestTransformPreparation};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
@@ -25,7 +25,7 @@ use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
 use crate::providers::ClientHeaders;
 use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
-use lingua::{ProviderFormat, TransformError};
+use lingua::ProviderFormat;
 
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
 
@@ -77,42 +77,15 @@ where
         return Ok(body);
     }
 
-    let parsed = lingua::parse_json_body(body)?;
-    let payload = parsed.value;
-    let body = parsed.bytes;
-
-    let source_adapter = match adapters()
-        .iter()
-        .map(|adapter| adapter.as_ref())
-        .find(|adapter| adapter.detect_request(&payload))
-    {
-        Some(adapter) => adapter,
-        None => return Err(TransformError::UnableToDetectRequestFormat.into()),
-    };
-
-    if source_adapter.format() == format {
-        return Ok(body);
+    match prepare_request_transform(body, format, Some(&spec.model))? {
+        RequestTransformPreparation::PassThrough(bytes) => Ok(bytes),
+        RequestTransformPreparation::Prepared(mut prepared) => {
+            inline_remote_image_urls_with_fetch(&mut prepared.request, fetch).await?;
+            finish_request_transform(*prepared)
+                .map(|result| result.into_bytes())
+                .map_err(Error::from)
+        }
     }
-
-    let mut request = match source_adapter.request_to_universal(payload) {
-        Ok(request) => request,
-        Err(err) => return Err(err.into()),
-    };
-
-    inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
-
-    if request.model.is_none() {
-        request.model = Some(spec.model.clone());
-    }
-
-    let target_adapter =
-        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
-    target_adapter.apply_defaults(&mut request);
-    let prepared = target_adapter.request_from_universal(&request)?;
-
-    lingua::serde_json::to_vec(&prepared)
-        .map(Bytes::from)
-        .map_err(Error::LinguaJson)
 }
 
 async fn inline_remote_image_urls_with_fetch<F>(
