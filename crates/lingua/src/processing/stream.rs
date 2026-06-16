@@ -985,6 +985,7 @@ fn expand_anthropic_session_chunks(
     }
 
     if has_reasoning {
+        let reasoning_index = choice.map(|c| c.index).unwrap_or(0);
         let content = delta_view
             .as_ref()
             .and_then(|d| d.content.as_deref())
@@ -995,9 +996,9 @@ fn expand_anthropic_session_chunks(
                 "message_start".to_string(),
             ));
             out.push(StreamOutputChunk::with_event(
-                Bytes::from_static(
-                    br#"{"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}"#,
-                ),
+                Bytes::from(format!(
+                    r#"{{"type":"content_block_start","index":{reasoning_index},"content_block":{{"type":"thinking","thinking":""}}}}"#
+                )),
                 "content_block_start".to_string(),
             ));
         }
@@ -1005,7 +1006,7 @@ fn expand_anthropic_session_chunks(
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",
-                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "index": reasoning_index,
                     "delta": {
                         "type": "thinking_delta",
                         "thinking": thinking
@@ -1019,7 +1020,7 @@ fn expand_anthropic_session_chunks(
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",
-                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "index": reasoning_index,
                     "delta": {
                         "type": "signature_delta",
                         "signature": signature
@@ -1033,7 +1034,7 @@ fn expand_anthropic_session_chunks(
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",
-                    "index": choice.map(|c| c.index).unwrap_or(0),
+                    "index": reasoning_index,
                     "delta": {
                         "type": "text_delta",
                         "text": content
@@ -1045,9 +1046,7 @@ fn expand_anthropic_session_chunks(
         }
         if let Some(delta_view) = delta_view.as_ref() {
             for tool_call in &delta_view.tool_calls {
-                let tool_index = tool_call
-                    .index
-                    .unwrap_or(choice.map(|c| c.index).unwrap_or(0));
+                let tool_index = tool_call.index.unwrap_or(reasoning_index);
                 let function = tool_call.function.clone().unwrap_or_default();
                 let tool_name = function.name.unwrap_or_default();
                 let tool_id = tool_call.id.clone().unwrap_or_default();
@@ -2157,6 +2156,62 @@ mod tests {
         let text_delta: TextDeltaEvent = crate::serde_json::from_slice(&third[3].data).unwrap();
         assert_eq!(text_delta.index, 1);
         assert_eq!(text_delta.delta.text, "The visible answer.");
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "anthropic"))]
+    fn test_stream_session_google_nonzero_candidate_thinking_starts_matching_block() {
+        #[derive(Deserialize)]
+        struct ThinkingDeltaEvent {
+            index: u32,
+            delta: ThinkingDelta,
+        }
+
+        #[derive(Deserialize)]
+        struct ThinkingDelta {
+            thinking: String,
+        }
+
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let thought = to_bytes(&json!({
+            "responseId": "response_123",
+            "modelVersion": "gemini-2.5-flash",
+            "candidates": [{
+                "index": 1,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "text": "candidate one thinking",
+                        "thought": true
+                    }]
+                }
+            }]
+        }));
+
+        let out = session.push(thought).unwrap();
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("message_start"),
+                Some("content_block_start"),
+                Some("content_block_delta")
+            ]
+        );
+
+        let thinking_start: AnthropicContentBlockStartEventView =
+            crate::serde_json::from_slice(&out[1].data).unwrap();
+        assert_eq!(
+            thinking_start.block_kind(),
+            Some(AnthropicContentBlockKind::Thinking)
+        );
+        assert_eq!(thinking_start.index, 1);
+
+        let thinking_delta: ThinkingDeltaEvent =
+            crate::serde_json::from_slice(&out[2].data).unwrap();
+        assert_eq!(thinking_delta.index, 1);
+        assert_eq!(thinking_delta.delta.thinking, "candidate one thinking");
     }
 
     #[test]
