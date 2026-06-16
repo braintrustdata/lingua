@@ -988,6 +988,9 @@ impl ProviderAdapter for ResponsesAdapter {
                         .unwrap_or("");
                     let output_index = parsed.output_index.unwrap_or(0);
 
+                    // Preserve Responses output_index as a correlation key. Stateful
+                    // stream transforms remap it to a tool-relative index before
+                    // serializing to non-Responses targets.
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
@@ -1024,6 +1027,9 @@ impl ProviderAdapter for ResponsesAdapter {
                 let arguments = parsed.delta.unwrap_or_default();
                 let output_index = parsed.output_index.unwrap_or(0);
 
+                // Preserve Responses output_index as a correlation key. Stateful
+                // stream transforms remap it to the same tool-relative index as
+                // the corresponding response.output_item.added event.
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,

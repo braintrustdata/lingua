@@ -76,6 +76,8 @@ pub struct StreamTransformSession {
     anthropic_next_content_block_index: u32,
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     responses_message_started: bool,
+    responses_tool_call_indexes: BTreeMap<u32, u32>,
+    next_responses_tool_call_index: u32,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
     next_bedrock_tool_call_index: u32,
 }
@@ -101,6 +103,8 @@ impl StreamTransformSession {
             anthropic_next_content_block_index: 0,
             anthropic_content_block_index_map: BTreeMap::new(),
             responses_message_started: false,
+            responses_tool_call_indexes: BTreeMap::new(),
+            next_responses_tool_call_index: 0,
             bedrock_tool_call_indexes: BTreeMap::new(),
             next_bedrock_tool_call_index: 0,
         }
@@ -124,7 +128,7 @@ impl StreamTransformSession {
             }]);
         }
 
-        let result = self.normalize_bedrock_to_openai_stream_result(&step)?;
+        let result = self.normalize_source_stream_result(&step)?;
 
         let chunks = build_session_chunks(
             result,
@@ -138,17 +142,31 @@ impl StreamTransformSession {
         self.process_chunks(chunks)
     }
 
+    fn normalize_source_stream_result(
+        &mut self,
+        step: &crate::processing::transform::StreamTransformStep,
+    ) -> Result<TransformResult, TransformError> {
+        if step.source_format == ProviderFormat::Converse
+            && self.target_format == ProviderFormat::ChatCompletions
+            && step.source_is_native_stream
+        {
+            return self.normalize_bedrock_to_openai_stream_result(step);
+        }
+
+        if step.source_format == ProviderFormat::Responses
+            && self.target_format != ProviderFormat::Responses
+            && step.source_is_native_stream
+        {
+            return self.normalize_responses_tool_call_indexes_stream_result(step);
+        }
+
+        Ok(step.result.clone())
+    }
+
     fn normalize_bedrock_to_openai_stream_result(
         &mut self,
         step: &crate::processing::transform::StreamTransformStep,
     ) -> Result<TransformResult, TransformError> {
-        if step.source_format != ProviderFormat::Converse
-            || self.target_format != ProviderFormat::ChatCompletions
-            || !step.source_is_native_stream
-        {
-            return Ok(step.result.clone());
-        }
-
         let Some(mut universal) = step.universal.clone() else {
             return Ok(step.result.clone());
         };
@@ -174,6 +192,71 @@ impl StreamTransformSession {
             source_format: step.source_format,
             actual_target_format: self.target_format,
         })
+    }
+
+    fn normalize_responses_tool_call_indexes_stream_result(
+        &mut self,
+        step: &crate::processing::transform::StreamTransformStep,
+    ) -> Result<TransformResult, TransformError> {
+        let Some(mut universal) = step.universal.clone() else {
+            return Ok(step.result.clone());
+        };
+
+        self.remap_responses_tool_call_indexes(&mut universal);
+
+        let should_reset = universal
+            .choices
+            .iter()
+            .any(|choice| choice.finish_reason.is_some());
+
+        let target_adapter = adapter_for_format(self.target_format)
+            .ok_or(TransformError::UnsupportedTargetFormat(self.target_format))?;
+        let bytes = serialize_stream_value(&target_adapter.stream_from_universal(&universal)?)?;
+
+        if should_reset {
+            self.responses_tool_call_indexes.clear();
+            self.next_responses_tool_call_index = 0;
+        }
+
+        Ok(TransformResult::Transformed {
+            bytes,
+            source_format: step.source_format,
+            actual_target_format: self.target_format,
+        })
+    }
+
+    fn remap_responses_tool_call_indexes(&mut self, universal: &mut UniversalStreamChunk) {
+        for choice in &mut universal.choices {
+            let Some(mut delta) = choice.delta_view() else {
+                continue;
+            };
+
+            if delta.tool_calls.is_empty() {
+                continue;
+            }
+
+            for tool_call in &mut delta.tool_calls {
+                let Some(responses_output_index) = tool_call.index else {
+                    continue;
+                };
+                let tool_index = match self
+                    .responses_tool_call_indexes
+                    .get(&responses_output_index)
+                {
+                    Some(index) => *index,
+                    None => {
+                        let index = self.next_responses_tool_call_index;
+                        self.next_responses_tool_call_index += 1;
+                        self.responses_tool_call_indexes
+                            .insert(responses_output_index, index);
+                        index
+                    }
+                };
+                tool_call.index = Some(tool_index);
+            }
+
+            choice.delta = Some(Value::from(delta));
+        }
     }
 
     fn remap_bedrock_tool_call_indexes(&mut self, universal: &mut UniversalStreamChunk) {
@@ -2583,6 +2666,61 @@ mod tests {
         let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
         let out = session.finish_sse();
         assert_eq!(out, vec![Bytes::from_static(b"data: [DONE]\n\n")]);
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_maps_responses_output_item_indexes_to_tool_call_indexes() {
+        let mut session = StreamTransformSession::new(ProviderFormat::ChatCompletions);
+
+        let reasoning = to_bytes(&json!({
+            "type": "response.reasoning_summary_text.delta",
+            "output_index": 0,
+            "summary_index": 0,
+            "delta": "thinking before tool"
+        }));
+        let reasoning_out = session.push(reasoning).unwrap();
+        assert_eq!(reasoning_out.len(), 1);
+        let reasoning_chunk: Value = crate::serde_json::from_slice(&reasoning_out[0].data).unwrap();
+        assert_eq!(
+            reasoning_chunk["choices"][0]["index"],
+            json!(0),
+            "reasoning output item should remain one assistant choice"
+        );
+
+        let tool_start = to_bytes(&json!({
+            "type": "response.output_item.added",
+            "output_index": 1,
+            "item": {
+                "type": "function_call",
+                "status": "in_progress",
+                "call_id": "call_lookup",
+                "name": "lookup_creator",
+                "arguments": ""
+            }
+        }));
+        let start_out = session.push(tool_start).unwrap();
+        assert_eq!(start_out.len(), 1);
+        let start_chunk: Value = crate::serde_json::from_slice(&start_out[0].data).unwrap();
+        assert_eq!(start_chunk["choices"][0]["index"], json!(0));
+        assert_eq!(
+            start_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
+
+        let tool_args = to_bytes(&json!({
+            "type": "response.function_call_arguments.delta",
+            "output_index": 1,
+            "delta": "{\"query\":\"microphone comparison\"}"
+        }));
+        let args_out = session.push(tool_args).unwrap();
+        assert_eq!(args_out.len(), 1);
+        let args_chunk: Value = crate::serde_json::from_slice(&args_out[0].data).unwrap();
+        assert_eq!(args_chunk["choices"][0]["index"], json!(0));
+        assert_eq!(
+            args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
+            json!(0)
+        );
     }
 
     #[test]
