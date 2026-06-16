@@ -60,12 +60,21 @@ fn system_text(message: &Message) -> Option<&str> {
 pub struct ResponsesAdapter;
 
 pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
+    responses_stream_events_from_universal_with_output_index_offset(chunk, 0)
+}
+
+pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
+    chunk: &UniversalStreamChunk,
+    output_index_offset: u32,
+) -> Vec<Value> {
     let Some(choice) = chunk.choices.first() else {
         return Vec::new();
     };
 
     let mut events = Vec::new();
     if let Some(delta) = choice.delta_view() {
+        let reasoning_output_index = choice.index;
+        let base_output_index = choice.index + output_index_offset;
         let reasoning = delta
             .reasoning
             .iter()
@@ -74,14 +83,14 @@ pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChun
         if !reasoning.is_empty() {
             events.push(serde_json::json!({
                 "type": "response.reasoning_summary_text.delta",
-                "output_index": choice.index,
+                "output_index": reasoning_output_index,
                 "summary_index": 0,
                 "delta": reasoning
             }));
         }
-        let mut next_output_index = choice.index;
+        let mut next_output_index = base_output_index;
         if !reasoning.is_empty() {
-            next_output_index += 1;
+            next_output_index = next_output_index.max(reasoning_output_index + 1);
         }
 
         if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
@@ -97,8 +106,8 @@ pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChun
 
         for tool_call in &delta.tool_calls {
             let tool_index = tool_call.index.unwrap_or(0);
-            let output_index = if next_output_index == choice.index {
-                tool_index
+            let output_index = if next_output_index == base_output_index {
+                tool_index + output_index_offset
             } else {
                 next_output_index + tool_index
             };
