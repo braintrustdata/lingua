@@ -182,6 +182,7 @@ pub(crate) fn format_carries_model_in_body(format: ProviderFormat) -> bool {
         ProviderFormat::ChatCompletions
             | ProviderFormat::Responses
             | ProviderFormat::Anthropic
+            | ProviderFormat::Google
             | ProviderFormat::Mistral
     )
 }

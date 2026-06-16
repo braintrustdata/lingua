@@ -1477,6 +1477,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn prepare_provider_request_rewrites_model_for_google_pass_through() {
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","contents":[{"role":"user","parts":[{"text":"Ping"}]}]}"#,
+        );
+        let spec = ModelSpec {
+            model: "models/gemini-2.5-pro".to_string(),
+            format: ProviderFormat::Google,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["google".to_string()],
+        };
+
+        let (payload, _, actual_format) =
+            prepare_provider_request(body, &spec, ProviderFormat::Google, false)
+                .await
+                .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::Google);
+        assert_eq!(
+            parsed.get("model").and_then(Value::as_str),
+            Some("models/gemini-2.5-pro")
+        );
+        assert!(parsed.get("contents").is_some());
+    }
+
+    #[tokio::test]
     async fn prepare_provider_request_upgrades_actual_format_to_responses_for_reasoning_plus_tools()
     {
         // A chat-completions request with reasoning_effort + tools should have its actual_format
