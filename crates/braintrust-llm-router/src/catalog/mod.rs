@@ -140,7 +140,7 @@ impl CatalogResolver {
         }
     }
 
-    pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
+    pub fn fallback_models(&self, name: &str) -> Vec<String> {
         match self {
             Self::Base(catalog) => catalog.fallback_models(name),
             Self::Overlay(overlay) => overlay.find_fallback_models(name),

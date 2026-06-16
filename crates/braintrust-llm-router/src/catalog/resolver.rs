@@ -43,7 +43,7 @@ impl ModelResolver {
 
     pub fn resolve_all_equivalent_model_routes(&self, model: &str) -> Result<Vec<ResolvedModel>> {
         let mut resolved = Vec::new();
-        for model_name in self.catalog.find_fallback_models(model) {
+        for model_name in self.catalog.fallback_models(model) {
             resolved.push(self.resolve_one(&model_name)?);
         }
         if resolved.is_empty() {
