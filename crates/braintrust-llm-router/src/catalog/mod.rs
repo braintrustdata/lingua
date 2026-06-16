@@ -81,7 +81,7 @@ impl OverlayModelCatalog {
         self.custom.get(name).or_else(|| self.base.get(name))
     }
 
-    pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
+    pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
         let Some(_) = self.get(name) else {
             return Vec::new();
         };
@@ -96,7 +96,7 @@ impl OverlayModelCatalog {
             if !self.custom_model_names.contains(&current) {
                 stack.extend(
                     self.base
-                        .equivalent_model_names(&current)
+                        .find_fallback_models(&current)
                         .into_iter()
                         .filter(|model_name| !self.custom_model_names.contains(model_name)),
                 );
@@ -140,10 +140,10 @@ impl CatalogResolver {
         }
     }
 
-    pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
+    pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
         match self {
-            Self::Base(catalog) => catalog.equivalent_model_names(name),
-            Self::Overlay(overlay) => overlay.equivalent_model_names(name),
+            Self::Base(catalog) => catalog.find_fallback_models(name),
+            Self::Overlay(overlay) => overlay.find_fallback_models(name),
         }
     }
 }
@@ -189,7 +189,7 @@ impl ModelCatalog {
         self.models.get(name).cloned()
     }
 
-    pub fn equivalent_model_names(&self, name: &str) -> Vec<String> {
+    pub fn find_fallback_models(&self, name: &str) -> Vec<String> {
         let Some(_) = self.models.get(name) else {
             return Vec::new();
         };
@@ -424,7 +424,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn equivalent_model_names_are_available_from_any_member() {
+    fn find_fallback_models_are_available_from_any_member() {
         let catalog = ModelCatalog::from_json_str(
             r#"{
   "claude-sonnet-4-6": {
@@ -448,7 +448,7 @@ mod tests {
         .expect("catalog parses");
 
         assert_eq!(
-            catalog.equivalent_model_names("claude-sonnet-4-6"),
+            catalog.find_fallback_models("claude-sonnet-4-6"),
             vec![
                 "claude-sonnet-4-6".to_string(),
                 "anthropic.claude-sonnet-4-6".to_string(),
@@ -456,7 +456,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            catalog.equivalent_model_names("publishers/anthropic/models/claude-sonnet-4-6"),
+            catalog.find_fallback_models("publishers/anthropic/models/claude-sonnet-4-6"),
             vec![
                 "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
                 "anthropic.claude-sonnet-4-6".to_string(),
@@ -488,7 +488,7 @@ mod tests {
         .expect("catalog parses");
 
         assert_eq!(
-            catalog.equivalent_model_names("model-a"),
+            catalog.find_fallback_models("model-a"),
             vec![
                 "model-a".to_string(),
                 "model-b".to_string(),
@@ -534,11 +534,11 @@ mod tests {
             .expect("equivalence is valid");
 
         assert_eq!(
-            catalog.equivalent_model_names("model-a"),
+            catalog.find_fallback_models("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
         );
         assert_eq!(
-            catalog.equivalent_model_names("model-b"),
+            catalog.find_fallback_models("model-b"),
             vec!["model-b".to_string(), "model-a".to_string()]
         );
     }
@@ -561,7 +561,7 @@ mod tests {
 
         assert!(matches!(error, Error::InvalidRequest(_)));
         assert_eq!(
-            catalog.equivalent_model_names("model-a"),
+            catalog.find_fallback_models("model-a"),
             vec!["model-a".to_string()]
         );
     }
@@ -590,7 +590,7 @@ mod tests {
         });
 
         assert_eq!(
-            mapped.equivalent_model_names("model-a"),
+            mapped.find_fallback_models("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
         );
     }
@@ -641,7 +641,7 @@ mod tests {
         let overlay = OverlayModelCatalog::new(base, custom);
 
         assert_eq!(
-            overlay.equivalent_model_names("custom-a"),
+            overlay.find_fallback_models("custom-a"),
             vec![
                 "custom-a".to_string(),
                 "base-a".to_string(),
@@ -649,7 +649,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            overlay.equivalent_model_names("base-a"),
+            overlay.find_fallback_models("base-a"),
             vec![
                 "base-a".to_string(),
                 "base-b".to_string(),
@@ -657,7 +657,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            overlay.equivalent_model_names("base-b"),
+            overlay.find_fallback_models("base-b"),
             vec![
                 "base-b".to_string(),
                 "base-a".to_string(),
@@ -709,11 +709,11 @@ mod tests {
         let overlay = OverlayModelCatalog::new(base, custom);
 
         assert_eq!(
-            overlay.equivalent_model_names("model-a"),
+            overlay.find_fallback_models("model-a"),
             vec!["model-a".to_string()]
         );
         assert_eq!(
-            overlay.equivalent_model_names("model-b"),
+            overlay.find_fallback_models("model-b"),
             vec!["model-b".to_string()]
         );
     }
