@@ -132,7 +132,7 @@ pub fn create_provider(
                 metadata,
                 client_settings,
             )?
-            .with_provider_alias(kind),
+            .with_provider_alias(kind.to_ascii_lowercase()),
         )),
         other => Err(Error::InvalidRequest(format!(
             "unsupported provider kind: {other}"
