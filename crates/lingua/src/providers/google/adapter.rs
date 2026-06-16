@@ -291,7 +291,19 @@ impl ProviderAdapter for GoogleAdapter {
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
-                        // Gemini 3: use thinkingLevel (effort-based)
+                        if r.canonical == Some(crate::universal::ReasoningCanonical::BudgetTokens) {
+                            let budget = r
+                                .budget_tokens
+                                .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
+                            return Some(ThinkingConfig {
+                                include_thoughts: Some(true),
+                                thinking_budget: Some(budget),
+                                thinking_level: None,
+                            });
+                        }
+
+                        // Gemini 3: use thinkingLevel (effort-based) unless the source was
+                        // explicitly budget-based and must roundtrip through Google unchanged.
                         let level = r
                             .effort
                             .map(effort_to_thinking_level)
@@ -921,6 +933,45 @@ mod tests {
             serde_json::from_value(reconstructed).expect("request should deserialize");
         assert!(reconstructed.contents.is_some());
         assert!(reconstructed.generation_config.is_some());
+    }
+
+    #[test]
+    fn test_google_same_provider_preserves_budget_based_thinking_config_for_gemini_3() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "model": "gemini-3.5-flash",
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Return JSON."}]
+            }],
+            "generationConfig": {
+                "maxOutputTokens": 2048,
+                "thinkingConfig": {
+                    "thinkingBudget": 1024,
+                    "includeThoughts": true
+                }
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reasoning = universal.params.reasoning.as_ref().unwrap();
+        assert_eq!(
+            reasoning.canonical,
+            Some(crate::universal::ReasoningCanonical::BudgetTokens)
+        );
+        assert_eq!(reasoning.budget_tokens, Some(1024));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present");
+
+        assert_eq!(thinking_config.thinking_budget, Some(1024));
+        assert_eq!(thinking_config.include_thoughts, Some(true));
+        assert_eq!(thinking_config.thinking_level, None);
     }
 
     #[test]
