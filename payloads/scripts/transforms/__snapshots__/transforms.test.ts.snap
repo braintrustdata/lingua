@@ -7615,7 +7615,7 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 4224,
-    "input_tokens": 9258,
+    "input_tokens": 5034,
     "output_tokens": 958,
   },
 }

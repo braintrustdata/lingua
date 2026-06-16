@@ -52,6 +52,22 @@ pub struct UniversalUsage {
     /// Tokens written to cache during this request
     pub prompt_cache_creation_tokens: Option<i64>,
 
+    /// Tokens written to the 5-minute-TTL cache (Anthropic split cache writes)
+    pub prompt_cache_creation_5m_tokens: Option<i64>,
+
+    /// Tokens written to the 1-hour-TTL cache (Anthropic split cache writes)
+    pub prompt_cache_creation_1h_tokens: Option<i64>,
+
+    /// True when `prompt_tokens` excludes the cache read/creation buckets.
+    /// Anthropic-style usage reports `input_tokens` exclusive of cache
+    /// tokens, while OpenAI-style usage reports `prompt_tokens` inclusive of
+    /// them. Consumers that want an OpenAI-style inclusive prompt total must
+    /// add the cache buckets back when this is set; see
+    /// [`UniversalUsage::inclusive_prompt_tokens`]. Consumers that want an
+    /// Anthropic-style exclusive input count must subtract the cache buckets
+    /// when this is not set; see [`UniversalUsage::exclusive_prompt_tokens`].
+    pub prompt_tokens_exclude_cache: bool,
+
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
     pub completion_reasoning_tokens: Option<i64>,
@@ -299,6 +315,72 @@ impl UniversalResponse {
     }
 }
 
+#[derive(Default, Deserialize)]
+struct AnthropicUsageView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    output_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    cache_read_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    cache_creation_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_cache_creation")]
+    cache_creation: Option<AnthropicCacheCreationView>,
+}
+
+#[derive(Default, Deserialize)]
+struct AnthropicCacheCreationView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    ephemeral_5m_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    ephemeral_1h_input_tokens: Option<i64>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum OptionalI64View {
+    Integer(i64),
+    Other(serde::de::IgnoredAny),
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum OptionalCacheCreationView {
+    CacheCreation(AnthropicCacheCreationView),
+    Other(serde::de::IgnoredAny),
+}
+
+fn deserialize_optional_i64<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(
+        match Option::<OptionalI64View>::deserialize(deserializer)? {
+            Some(OptionalI64View::Integer(value)) => Some(value),
+            Some(OptionalI64View::Other(_)) | None => None,
+        },
+    )
+}
+
+fn deserialize_optional_cache_creation<'de, D>(
+    deserializer: D,
+) -> Result<Option<AnthropicCacheCreationView>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(
+        match Option::<OptionalCacheCreationView>::deserialize(deserializer)? {
+            Some(OptionalCacheCreationView::CacheCreation(value)) => Some(value),
+            Some(OptionalCacheCreationView::Other(_)) | None => None,
+        },
+    )
+}
+
+fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
+    serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
+}
+
 impl UniversalUsage {
     /// Parse usage from provider-specific JSON value.
     ///
@@ -320,6 +402,10 @@ impl UniversalUsage {
                         .and_then(|d| d.get("cached_tokens"))
                         .and_then(Value::as_i64),
                     prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    prompt_cache_creation_5m_tokens: None,
+                    prompt_cache_creation_1h_tokens: None,
+                    // OpenAI's prompt_tokens already includes cached tokens
+                    prompt_tokens_exclude_cache: false,
                     // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                     completion_reasoning_tokens: usage
                         .get("completion_tokens_details")
@@ -336,6 +422,10 @@ impl UniversalUsage {
                     .and_then(|d| d.get("cached_tokens"))
                     .and_then(Value::as_i64),
                 prompt_cache_creation_tokens: None,
+                prompt_cache_creation_5m_tokens: None,
+                prompt_cache_creation_1h_tokens: None,
+                // OpenAI's input_tokens already includes cached tokens
+                prompt_tokens_exclude_cache: false,
                 // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
                 completion_reasoning_tokens: usage
                     .get("output_tokens_details")
@@ -345,15 +435,21 @@ impl UniversalUsage {
             },
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
-            | ProviderFormat::VertexAnthropic => Self {
-                prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage.get("cache_read_input_tokens").and_then(Value::as_i64),
-                prompt_cache_creation_tokens: usage
-                    .get("cache_creation_input_tokens")
-                    .and_then(Value::as_i64),
-                completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
-            },
+            | ProviderFormat::VertexAnthropic => {
+                let usage = anthropic_usage_view(usage);
+                let cache_creation = usage.cache_creation.unwrap_or_default();
+                Self {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    prompt_cached_tokens: usage.cache_read_input_tokens,
+                    prompt_cache_creation_tokens: usage.cache_creation_input_tokens,
+                    prompt_cache_creation_5m_tokens: cache_creation.ephemeral_5m_input_tokens,
+                    prompt_cache_creation_1h_tokens: cache_creation.ephemeral_1h_input_tokens,
+                    // Anthropic's input_tokens excludes cache read/creation tokens
+                    prompt_tokens_exclude_cache: true,
+                    completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
+                }
+            }
             ProviderFormat::Converse => Self {
                 prompt_tokens: usage.get("inputTokens").and_then(Value::as_i64),
                 completion_tokens: usage.get("outputTokens").and_then(Value::as_i64),
@@ -361,10 +457,66 @@ impl UniversalUsage {
                 prompt_cache_creation_tokens: usage
                     .get("cacheWriteInputTokens")
                     .and_then(Value::as_i64),
+                prompt_cache_creation_5m_tokens: None,
+                prompt_cache_creation_1h_tokens: None,
+                // Converse's inputTokens excludes cache read/write tokens
+                prompt_tokens_exclude_cache: true,
                 completion_reasoning_tokens: None, // Bedrock doesn't expose thinking tokens separately
             },
             ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
+    }
+
+    /// Prompt tokens following the OpenAI convention of including cache
+    /// read/creation tokens. For providers that report prompt tokens
+    /// exclusive of the cache buckets (Anthropic, Converse), the cache
+    /// tokens are added back. Returns `None` when no prompt-side counts are
+    /// present at all.
+    pub fn inclusive_prompt_tokens(&self) -> Option<i64> {
+        if !self.prompt_tokens_exclude_cache {
+            return self.prompt_tokens;
+        }
+        let prompt_cache_creation_tokens = self.prompt_cache_creation_tokens_for_prompt_math();
+        if self.prompt_tokens.is_none()
+            && self.prompt_cached_tokens.is_none()
+            && prompt_cache_creation_tokens.is_none()
+        {
+            return None;
+        }
+        Some(
+            self.prompt_tokens.unwrap_or(0)
+                + self.prompt_cached_tokens.unwrap_or(0)
+                + prompt_cache_creation_tokens.unwrap_or(0),
+        )
+    }
+
+    fn prompt_cache_creation_tokens_for_prompt_math(&self) -> Option<i64> {
+        self.prompt_cache_creation_tokens.or_else(|| {
+            if self.prompt_cache_creation_5m_tokens.is_none()
+                && self.prompt_cache_creation_1h_tokens.is_none()
+            {
+                return None;
+            }
+            Some(
+                self.prompt_cache_creation_5m_tokens.unwrap_or(0)
+                    + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
+            )
+        })
+    }
+
+    pub fn exclusive_prompt_tokens(&self) -> Option<i64> {
+        if self.prompt_tokens_exclude_cache {
+            return self.prompt_tokens;
+        }
+        let prompt_tokens = self.prompt_tokens?;
+        Some(
+            (prompt_tokens
+                - self.prompt_cached_tokens.unwrap_or(0)
+                - self
+                    .prompt_cache_creation_tokens_for_prompt_math()
+                    .unwrap_or(0))
+            .max(0),
+        )
     }
 
     /// Extract usage from a response payload, handling provider-specific key names.
@@ -380,7 +532,9 @@ impl UniversalUsage {
     ///
     /// Returns a JSON object with provider-specific field names.
     pub fn to_provider_value(&self, provider: ProviderFormat) -> Value {
-        let prompt = self.prompt_tokens.unwrap_or(0);
+        let inclusive_prompt = self.inclusive_prompt_tokens();
+        let prompt = inclusive_prompt.unwrap_or(0);
+        let provider_prompt = self.prompt_tokens.unwrap_or(0);
         let completion = self.completion_tokens.unwrap_or(0);
 
         match provider {
@@ -437,7 +591,7 @@ impl UniversalUsage {
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {
                 let mut map = serde_json::Map::new();
-                if let Some(p) = self.prompt_tokens {
+                if let Some(p) = self.exclusive_prompt_tokens() {
                     map.insert("input_tokens".into(), serde_json::json!(p));
                 }
                 if let Some(c) = self.completion_tokens {
@@ -448,6 +602,21 @@ impl UniversalUsage {
                     map.insert(
                         "cache_creation_input_tokens".into(),
                         serde_json::json!(cache_creation),
+                    );
+                }
+                if self.prompt_cache_creation_5m_tokens.is_some()
+                    || self.prompt_cache_creation_1h_tokens.is_some()
+                {
+                    map.insert(
+                        "cache_creation".into(),
+                        serde_json::json!({
+                            "ephemeral_5m_input_tokens": self
+                                .prompt_cache_creation_5m_tokens
+                                .unwrap_or(0),
+                            "ephemeral_1h_input_tokens": self
+                                .prompt_cache_creation_1h_tokens
+                                .unwrap_or(0),
+                        }),
                     );
                 }
 
@@ -461,20 +630,20 @@ impl UniversalUsage {
                 Value::Object(map)
             }
             ProviderFormat::Converse => serde_json::json!({
-                "inputTokens": prompt,
+                "inputTokens": provider_prompt,
                 "outputTokens": completion
             }),
             ProviderFormat::Google => {
                 let mut map = serde_json::Map::new();
 
-                if let Some(p) = self.prompt_tokens {
+                if let Some(p) = inclusive_prompt {
                     map.insert("promptTokenCount".into(), serde_json::json!(p));
                 }
                 if let Some(c) = self.completion_tokens {
                     map.insert("candidatesTokenCount".into(), serde_json::json!(c));
                 }
 
-                if self.prompt_tokens.is_some() || self.completion_tokens.is_some() {
+                if inclusive_prompt.is_some() || self.completion_tokens.is_some() {
                     map.insert(
                         "totalTokenCount".into(),
                         serde_json::json!(prompt + completion),
@@ -571,5 +740,110 @@ mod tests {
                 "expected {reason} to map to ContentFilter"
             );
         }
+    }
+
+    #[test]
+    fn test_exclusive_usage_serializes_inclusive_prompt_tokens_for_openai_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(30),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let chat = usage.to_provider_value(ProviderFormat::ChatCompletions);
+        assert_eq!(chat["prompt_tokens"], 60);
+        assert_eq!(chat["completion_tokens"], 5);
+        assert_eq!(chat["total_tokens"], 65);
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens"], 60);
+        assert_eq!(responses["output_tokens"], 5);
+        assert_eq!(responses["total_tokens"], 65);
+    }
+
+    #[test]
+    fn test_inclusive_prompt_tokens_uses_split_ttl_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_5m_tokens: Some(30),
+            prompt_cache_creation_1h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
+    }
+
+    #[test]
+    fn test_exclusive_usage_stays_exclusive_for_anthropic_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(30),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["input_tokens"], 10);
+        assert_eq!(anthropic["output_tokens"], 5);
+        assert_eq!(anthropic["cache_read_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation_input_tokens"], 30);
+    }
+
+    #[test]
+    fn test_inclusive_usage_serializes_exclusive_prompt_tokens_for_anthropic_formats() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(60),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(10),
+            prompt_tokens_exclude_cache: false,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["input_tokens"], 30);
+        assert_eq!(anthropic["output_tokens"], 5);
+        assert_eq!(anthropic["cache_read_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation_input_tokens"], 10);
+    }
+
+    #[test]
+    fn test_anthropic_cache_creation_serializes_both_ttl_buckets() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cache_creation_5m_tokens: Some(20),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let anthropic = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(anthropic["cache_creation"]["ephemeral_5m_input_tokens"], 20);
+        assert_eq!(anthropic["cache_creation"]["ephemeral_1h_input_tokens"], 0);
+    }
+
+    #[test]
+    fn test_malformed_anthropic_cache_creation_preserves_token_counts() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "cache_read_input_tokens": 20,
+            "cache_creation_input_tokens": 30,
+            "cache_creation": "invalid",
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Anthropic);
+        assert_eq!(usage.prompt_tokens, Some(10));
+        assert_eq!(usage.completion_tokens, Some(5));
+        assert_eq!(usage.prompt_cached_tokens, Some(20));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(30));
+        assert_eq!(usage.prompt_cache_creation_5m_tokens, None);
+        assert_eq!(usage.prompt_cache_creation_1h_tokens, None);
     }
 }
