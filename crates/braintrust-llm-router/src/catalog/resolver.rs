@@ -45,7 +45,7 @@ impl ModelResolver {
         self.resolve_one(model)
     }
 
-    pub fn resolve_for_failover(&self, model: &str) -> Result<Vec<ResolvedModel>> {
+    pub fn resolve_all_equivalent_model_routes(&self, model: &str) -> Result<Vec<ResolvedModel>> {
         let mut resolved = Vec::new();
         for model_name in self.catalog.equivalent_model_names(model) {
             resolved.push(self.resolve_one(&model_name)?);

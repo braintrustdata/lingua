@@ -208,6 +208,23 @@ struct PreparedRequestInner {
     strategy: RetryStrategy,
 }
 
+fn override_payload_model(payload: Bytes, model: &str) -> Bytes {
+    let Ok(mut value) = serde_json::from_slice::<Value>(&payload) else {
+        return payload;
+    };
+    let Some(object) = value.as_object_mut() else {
+        return payload;
+    };
+    if object.get("model").and_then(Value::as_str) == Some(model) {
+        return payload;
+    }
+    object.insert("model".to_string(), Value::String(model.to_string()));
+    match serde_json::to_vec(&value) {
+        Ok(serialized) => Bytes::from(serialized),
+        Err(_) => payload,
+    }
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
@@ -230,6 +247,8 @@ async fn prepare_provider_request(
             Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
             Err(err) => return Err(err.into()),
         };
+
+    let transformed = override_payload_model(transformed, &spec.model);
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -635,7 +654,7 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
-        let resolved_models = self.resolver.resolve_for_failover(model)?;
+        let resolved_models = self.resolver.resolve_all_equivalent_model_routes(model)?;
         let (_, first_catalog_format, _) = resolved_models
             .first()
             .ok_or_else(|| Error::UnknownModel(model.to_string()))?;
@@ -936,7 +955,14 @@ fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
 fn concrete_provider_id_alias(alias: &str) -> bool {
     matches!(
         alias,
-        "anthropic" | "google" | "mistral" | "bedrock" | "vertex" | "azure" | "databricks"
+        "openai"
+            | "anthropic"
+            | "google"
+            | "mistral"
+            | "bedrock"
+            | "vertex"
+            | "azure"
+            | "databricks"
     )
 }
 
@@ -2856,10 +2882,7 @@ mod tests {
             )
             .add_provider(
                 "cerebras",
-                FakeProvider {
-                    name: "openai",
-                    formats: vec![ProviderFormat::ChatCompletions],
-                },
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
                 dummy_auth(),
                 vec![],
             )
@@ -2908,6 +2931,128 @@ mod tests {
             )
             .expect("routes"),
             vec!["my-openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_openai_when_equivalents_omit_available_providers() {
+        let model = "custom-primary";
+        let fallback_model = "gpt-4o";
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            fallback_model.into(),
+            openai_spec(fallback_model, ModelFlavor::Chat),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec(model, ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert(model.into(), primary);
+        custom
+            .add_external_equivalent_models(model.to_string(), vec![fallback_model.to_string()])
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-openai",
+                FakeOpenAICompatibleProvider { alias: "openai" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-openai".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("provider-a", model), ("my-openai", fallback_model)]
+        );
+    }
+
+    #[tokio::test]
+    async fn failover_request_payload_uses_equivalent_route_model_for_same_format() {
+        let model = "gpt-4o";
+        let fallback_model = "other-provider/gpt-4o";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "gpt-4o": {
+    "format": "openai",
+    "flavor": "chat",
+    "available_providers": ["provider-a"],
+    "equivalent_models": ["other-provider/gpt-4o"]
+  },
+  "other-provider/gpt-4o": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-openai",
+                FakeOpenAICompatibleProvider { alias: "openai" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-openai".to_string()],
+            )
+            .expect("routes resolve");
+        let fallback_route = routes
+            .iter()
+            .find(|route| route.provider_alias() == "my-openai")
+            .expect("fallback route exists");
+        assert_eq!(fallback_route.model(), fallback_model);
+
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4o","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let (request, _) = router
+            .create_request(body, ProviderFormat::ChatCompletions, fallback_route)
+            .await
+            .expect("request prepares");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(
+            payload.get("model").and_then(Value::as_str),
+            Some(fallback_model)
         );
     }
 
