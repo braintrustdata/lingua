@@ -304,6 +304,7 @@ impl UniversalParams {
 /// - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
 /// - `BudgetTokens`: From Anthropic/Bedrock budget-based thinking (budget_tokens is canonical, effort derived)
 /// - `GoogleThinkingBudget`: From Google `thinkingConfig.thinkingBudget` (preserve Google-native shape on same-provider roundtrip)
+/// - `GoogleIncludeThoughts`: From Google `thinkingConfig.includeThoughts` without budget/level (preserve provider default budget)
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ReasoningConfig {
@@ -429,6 +430,8 @@ pub enum ReasoningCanonical {
     BudgetTokens,
     /// Google `thinkingConfig.thinkingBudget` is the source of truth.
     GoogleThinkingBudget,
+    /// Google `thinkingConfig.includeThoughts` was provided without budget/level.
+    GoogleIncludeThoughts,
 }
 
 /// Summary mode for reasoning output.

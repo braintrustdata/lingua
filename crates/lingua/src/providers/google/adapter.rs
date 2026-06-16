@@ -95,11 +95,16 @@ impl ProviderAdapter for GoogleAdapter {
                     let budget_tokens = tc.thinking_budget;
                     let effort = budget_tokens
                         .map(|b| crate::universal::reasoning::budget_to_effort(b, max_tokens));
+                    let canonical = if tc.thinking_budget.is_some() {
+                        Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
+                    } else {
+                        Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
+                    };
                     crate::universal::ReasoningConfig {
                         enabled: Some(!is_disabled),
                         effort,
                         budget_tokens,
-                        canonical: Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget),
+                        canonical,
                         ..Default::default()
                     }
                 }
@@ -294,12 +299,21 @@ impl ProviderAdapter for GoogleAdapter {
                         if r.canonical
                             == Some(crate::universal::ReasoningCanonical::GoogleThinkingBudget)
                         {
-                            let budget = r
-                                .budget_tokens
-                                .unwrap_or(crate::universal::reasoning::MIN_THINKING_BUDGET);
+                            if let Some(budget) = r.budget_tokens {
+                                return Some(ThinkingConfig {
+                                    include_thoughts: Some(true),
+                                    thinking_budget: Some(budget),
+                                    thinking_level: None,
+                                });
+                            }
+                        }
+
+                        if r.canonical
+                            == Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
+                        {
                             return Some(ThinkingConfig {
                                 include_thoughts: Some(true),
-                                thinking_budget: Some(budget),
+                                thinking_budget: None,
                                 thinking_level: None,
                             });
                         }
@@ -317,6 +331,16 @@ impl ProviderAdapter for GoogleAdapter {
                         })
                     }
                     GoogleThinkingStyle::ThinkingBudget | GoogleThinkingStyle::None => {
+                        if r.canonical
+                            == Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
+                        {
+                            return Some(ThinkingConfig {
+                                include_thoughts: Some(true),
+                                thinking_budget: None,
+                                thinking_level: None,
+                            });
+                        }
+
                         // Gemini 2.5: use thinkingBudget (budget-based)
                         let budget = r
                             .budget_tokens
@@ -973,6 +997,44 @@ mod tests {
 
         assert_eq!(thinking_config.thinking_budget, Some(1024));
         assert_eq!(thinking_config.include_thoughts, Some(true));
+        assert_eq!(thinking_config.thinking_level, None);
+    }
+
+    #[test]
+    fn test_google_same_provider_preserves_include_thoughts_without_budget_for_gemini_3() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "model": "gemini-3.5-flash",
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Return JSON."}]
+            }],
+            "generationConfig": {
+                "maxOutputTokens": 2048,
+                "thinkingConfig": {
+                    "includeThoughts": true
+                }
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reasoning = universal.params.reasoning.as_ref().unwrap();
+        assert_eq!(
+            reasoning.canonical,
+            Some(crate::universal::ReasoningCanonical::GoogleIncludeThoughts)
+        );
+        assert_eq!(reasoning.budget_tokens, None);
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present");
+
+        assert_eq!(thinking_config.include_thoughts, Some(true));
+        assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.thinking_level, None);
     }
 

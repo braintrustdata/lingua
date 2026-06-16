@@ -11,6 +11,7 @@ import type { SummaryMode } from "./SummaryMode";
  * - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
  * - `BudgetTokens`: From Anthropic/Bedrock budget-based thinking (budget_tokens is canonical, effort derived)
  * - `GoogleThinkingBudget`: From Google `thinkingConfig.thinkingBudget` (preserve Google-native shape on same-provider roundtrip)
+ * - `GoogleIncludeThoughts`: From Google `thinkingConfig.includeThoughts` without budget/level (preserve provider default budget)
  */
 export type ReasoningConfig = { 
 /**
