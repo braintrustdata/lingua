@@ -1,5 +1,8 @@
+mod fallback;
 mod resolver;
 pub mod spec;
+
+use fallback::build_equivalence_index;
 
 pub(crate) use resolver::is_gemini_api_model;
 pub use resolver::ModelResolver;
@@ -33,40 +36,40 @@ pub struct ModelCatalog {
 pub struct OverlayModelCatalog {
     base: Arc<ModelCatalog>,
     custom: ModelCatalog,
-    equivalence_index: HashMap<String, Vec<String>>,
+    custom_model_names: HashSet<String>,
+    overlay_edges: HashMap<String, Vec<String>>,
 }
 
 impl OverlayModelCatalog {
     pub fn new(base: Arc<ModelCatalog>, custom: ModelCatalog) -> Self {
         let custom_model_names: HashSet<String> = custom.models.keys().cloned().collect();
-        let visible_models = base
-            .models
-            .keys()
-            .filter(|name| !custom_model_names.contains(*name))
-            .chain(custom.models.keys())
-            .cloned()
-            .collect();
-        let mut fallback_edges: HashMap<String, Vec<String>> = base
-            .fallback_models
-            .iter()
-            .filter(|(name, _fallbacks)| !custom_model_names.contains(*name))
-            .map(|(name, fallbacks)| {
-                (
-                    name.clone(),
-                    fallbacks
-                        .iter()
-                        .filter(|fallback_model| !custom_model_names.contains(*fallback_model))
-                        .cloned()
-                        .collect(),
-                )
-            })
-            .collect();
-        fallback_edges.extend(custom.fallback_models.clone());
-        let equivalence_index = build_equivalence_index(visible_models, &fallback_edges);
+        let mut overlay_edges: HashMap<String, Vec<String>> = HashMap::new();
+        for (name, fallbacks) in &custom.fallback_models {
+            if !custom.models.contains_key(name) {
+                continue;
+            }
+            for fallback_model in fallbacks {
+                let fallback_is_visible = custom.models.contains_key(fallback_model)
+                    || (base.models.contains_key(fallback_model)
+                        && !custom_model_names.contains(fallback_model));
+                if !fallback_is_visible {
+                    continue;
+                }
+                overlay_edges
+                    .entry(name.clone())
+                    .or_default()
+                    .push(fallback_model.clone());
+                overlay_edges
+                    .entry(fallback_model.clone())
+                    .or_default()
+                    .push(name.clone());
+            }
+        }
         Self {
             base,
             custom,
-            equivalence_index,
+            custom_model_names,
+            overlay_edges,
         }
     }
 
@@ -83,10 +86,31 @@ impl OverlayModelCatalog {
             return Vec::new();
         };
 
-        let mut names = vec![name.to_string()];
-        if let Some(equivalent_names) = self.equivalence_index.get(name) {
-            names.extend(equivalent_names.iter().cloned());
+        let mut visited = HashSet::new();
+        let mut stack = vec![name.to_string()];
+        while let Some(current) = stack.pop() {
+            if !visited.insert(current.clone()) {
+                continue;
+            }
+
+            if !self.custom_model_names.contains(&current) {
+                stack.extend(
+                    self.base
+                        .equivalent_model_names(&current)
+                        .into_iter()
+                        .filter(|model_name| !self.custom_model_names.contains(model_name)),
+                );
+            }
+            if let Some(neighbors) = self.overlay_edges.get(&current) {
+                stack.extend(neighbors.iter().cloned());
+            }
         }
+
+        let mut names = vec![name.to_string()];
+        visited.remove(name);
+        let mut equivalent_names: Vec<String> = visited.into_iter().collect();
+        equivalent_names.sort();
+        names.extend(equivalent_names);
         names
     }
 }
@@ -130,98 +154,9 @@ impl From<Arc<ModelCatalog>> for CatalogResolver {
     }
 }
 
-fn parse_fallback_models(content: &str) -> Result<HashMap<String, Vec<String>>> {
-    let raw: HashMap<String, serde_json::Value> = serde_json::from_str(content)?;
-    let mut fallback_models = HashMap::new();
-    for (name, value) in raw {
-        let Some(fallbacks) = value.get("fallback_models") else {
-            continue;
-        };
-        let Some(fallbacks) = fallbacks.as_array() else {
-            return Err(Error::InvalidRequest(format!(
-                "model '{name}' has invalid fallback_models"
-            )));
-        };
-        let mut parsed = Vec::with_capacity(fallbacks.len());
-        for fallback_model in fallbacks {
-            let Some(fallback_model) = fallback_model.as_str() else {
-                return Err(Error::InvalidRequest(format!(
-                    "model '{name}' has invalid fallback_models"
-                )));
-            };
-            parsed.push(fallback_model.to_string());
-        }
-        if !parsed.is_empty() {
-            fallback_models.insert(name, parsed);
-        }
-    }
-    Ok(fallback_models)
-}
-
-fn build_equivalence_index(
-    model_names: HashSet<String>,
-    fallback_models: &HashMap<String, Vec<String>>,
-) -> HashMap<String, Vec<String>> {
-    let mut adjacency: HashMap<String, Vec<String>> = HashMap::new();
-    for name in &model_names {
-        adjacency.entry(name.clone()).or_default();
-    }
-
-    for (name, fallbacks) in fallback_models {
-        if !model_names.contains(name) {
-            continue;
-        }
-        for fallback_model in fallbacks {
-            if !model_names.contains(fallback_model) {
-                continue;
-            }
-            adjacency
-                .entry(name.clone())
-                .or_default()
-                .push(fallback_model.clone());
-            adjacency
-                .entry(fallback_model.clone())
-                .or_default()
-                .push(name.clone());
-        }
-    }
-
-    let mut visited = HashSet::new();
-    let mut index = HashMap::new();
-    for name in model_names {
-        if visited.contains(&name) {
-            continue;
-        }
-
-        let mut stack = vec![name.clone()];
-        let mut component = Vec::new();
-        while let Some(current) = stack.pop() {
-            if !visited.insert(current.clone()) {
-                continue;
-            }
-            component.push(current.clone());
-            if let Some(neighbors) = adjacency.get(&current) {
-                stack.extend(neighbors.iter().cloned());
-            }
-        }
-
-        if component.len() <= 1 {
-            continue;
-        }
-        component.sort();
-        for member in &component {
-            index.insert(
-                member.clone(),
-                component
-                    .iter()
-                    .filter(|other| *other != member)
-                    .cloned()
-                    .collect(),
-            );
-        }
-    }
-
-    index
+enum FallbackModelSource<'a> {
+    Json(&'a str),
+    Parsed(HashMap<String, Vec<String>>),
 }
 
 impl ModelCatalog {
@@ -231,14 +166,11 @@ impl ModelCatalog {
 
     pub fn from_json_str(content: &str) -> Result<Self> {
         let raw: HashMap<String, ModelSpec> = serde_json::from_str(content)?;
-        let fallback_models = parse_fallback_models(content)?;
         let mut catalog = Self::empty();
         for (name, spec) in raw {
             catalog.insert(name, spec);
         }
-        catalog.fallback_models = fallback_models;
-        catalog.validate_fallback_models()?;
-        catalog.rebuild_equivalence_index();
+        catalog.set_fallback_models(FallbackModelSource::Json(content), true)?;
         Ok(catalog)
     }
 
@@ -321,14 +253,15 @@ impl ModelCatalog {
     where
         F: FnMut(&str, &ModelSpec) -> ModelSpec,
     {
-        let mut out = Self {
-            fallback_models: self.fallback_models.clone(),
-            ..Self::empty()
-        };
+        let mut out = Self::empty();
         for (name, spec) in &self.models {
             out.insert(name.clone(), f(name, spec.as_ref()));
         }
-        out.rebuild_equivalence_index();
+        out.set_fallback_models(
+            FallbackModelSource::Parsed(self.fallback_models.clone()),
+            false,
+        )
+        .expect("existing catalog fallback_models remain valid after mapping specs");
         out
     }
 
@@ -376,14 +309,15 @@ impl ModelCatalog {
             }
         }
 
-        let entry = self.fallback_models.entry(name).or_default();
+        let mut next_fallback_models = self.fallback_models.clone();
+        let entry = next_fallback_models.entry(name).or_default();
         for fallback_model in fallback_models {
             if entry.contains(&fallback_model) {
                 continue;
             }
             entry.push(fallback_model);
         }
-        self.rebuild_equivalence_index();
+        self.set_fallback_models(FallbackModelSource::Parsed(next_fallback_models), false)?;
         Ok(())
     }
 
@@ -401,21 +335,70 @@ impl ModelCatalog {
             )));
         }
 
-        let entry = self.fallback_models.entry(name).or_default();
+        let mut next_fallback_models = self.fallback_models.clone();
+        let entry = next_fallback_models.entry(name).or_default();
         for fallback_model in fallback_models {
             if fallback_model.is_empty() || entry.contains(&fallback_model) {
                 continue;
             }
             entry.push(fallback_model);
         }
-        self.rebuild_equivalence_index();
+        self.set_fallback_models(FallbackModelSource::Parsed(next_fallback_models), false)?;
         Ok(())
     }
 
-    fn validate_fallback_models(&self) -> Result<()> {
-        for (name, fallback_models) in &self.fallback_models {
+    fn set_fallback_models(
+        &mut self,
+        source: FallbackModelSource<'_>,
+        validate_targets: bool,
+    ) -> Result<()> {
+        let fallback_models = match source {
+            FallbackModelSource::Json(content) => {
+                let raw: HashMap<String, serde_json::Value> = serde_json::from_str(content)?;
+                let mut fallback_models = HashMap::new();
+                for (name, value) in raw {
+                    let Some(fallbacks) = value.get("fallback_models") else {
+                        continue;
+                    };
+                    let Some(fallbacks) = fallbacks.as_array() else {
+                        return Err(Error::InvalidRequest(format!(
+                            "model '{name}' has invalid fallback_models"
+                        )));
+                    };
+                    let mut parsed = Vec::with_capacity(fallbacks.len());
+                    for fallback_model in fallbacks {
+                        let Some(fallback_model) = fallback_model.as_str() else {
+                            return Err(Error::InvalidRequest(format!(
+                                "model '{name}' has invalid fallback_models"
+                            )));
+                        };
+                        parsed.push(fallback_model.to_string());
+                    }
+                    if !parsed.is_empty() {
+                        fallback_models.insert(name, parsed);
+                    }
+                }
+                fallback_models
+            }
+            FallbackModelSource::Parsed(fallback_models) => fallback_models,
+        };
+
+        if validate_targets {
+            Self::validate_fallback_models(&self.models, &fallback_models)?;
+        }
+        self.equivalence_index =
+            build_equivalence_index(self.models.keys().cloned().collect(), &fallback_models);
+        self.fallback_models = fallback_models;
+        Ok(())
+    }
+
+    fn validate_fallback_models(
+        models: &HashMap<String, Arc<ModelSpec>>,
+        fallback_models: &HashMap<String, Vec<String>>,
+    ) -> Result<()> {
+        for (name, fallback_models) in fallback_models {
             for fallback_model in fallback_models {
-                if !self.models.contains_key(fallback_model) {
+                if !models.contains_key(fallback_model) {
                     return Err(Error::InvalidRequest(format!(
                         "model '{name}' references missing fallback model '{fallback_model}'"
                     )));
@@ -423,11 +406,6 @@ impl ModelCatalog {
             }
         }
         Ok(())
-    }
-
-    fn rebuild_equivalence_index(&mut self) {
-        self.equivalence_index =
-            build_equivalence_index(self.models.keys().cloned().collect(), &self.fallback_models);
     }
 }
 
@@ -614,6 +592,77 @@ mod tests {
         assert_eq!(
             mapped.equivalent_model_names("model-a"),
             vec!["model-a".to_string(), "model-b".to_string()]
+        );
+    }
+
+    #[test]
+    fn overlay_equivalence_reaches_custom_and_touched_base_models() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "base-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["base-b"]
+  },
+  "base-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "custom-a".to_string(),
+            ModelSpec {
+                model: "custom-a".to_string(),
+                format: ProviderFormat::Anthropic,
+                flavor: ModelFlavor::Chat,
+                display_name: None,
+                parent: None,
+                input_cost_per_mil_tokens: None,
+                output_cost_per_mil_tokens: None,
+                input_cache_read_cost_per_mil_tokens: None,
+                multimodal: None,
+                reasoning: None,
+                max_input_tokens: None,
+                max_output_tokens: None,
+                supports_streaming: true,
+                extra: Default::default(),
+                available_providers: vec!["custom-provider".to_string()],
+            },
+        );
+        custom
+            .add_external_fallback_models("custom-a".to_string(), vec!["base-a".to_string()])
+            .expect("fallback is valid");
+
+        let overlay = OverlayModelCatalog::new(base, custom);
+
+        assert_eq!(
+            overlay.equivalent_model_names("custom-a"),
+            vec![
+                "custom-a".to_string(),
+                "base-a".to_string(),
+                "base-b".to_string()
+            ]
+        );
+        assert_eq!(
+            overlay.equivalent_model_names("base-a"),
+            vec![
+                "base-a".to_string(),
+                "base-b".to_string(),
+                "custom-a".to_string()
+            ]
+        );
+        assert_eq!(
+            overlay.equivalent_model_names("base-b"),
+            vec![
+                "base-b".to_string(),
+                "base-a".to_string(),
+                "custom-a".to_string()
+            ]
         );
     }
 
