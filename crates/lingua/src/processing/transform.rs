@@ -368,7 +368,7 @@ pub fn prepare_request_transform(
 
     if source_format == target_format
         && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
-        && model.is_none()
+        && !request_model_override_changes_model(request_model.as_deref(), model)
         && target_adapter.detect_passthrough_request(&payload)
     {
         return Ok(RequestTransformPreparation::PassThrough(request_bytes));
@@ -387,6 +387,16 @@ pub fn prepare_request_transform(
             actual_target_format: target_format,
         },
     )))
+}
+
+fn request_model_override_changes_model(
+    request_model: Option<&str>,
+    override_model: Option<&str>,
+) -> bool {
+    match override_model {
+        Some(override_model) => request_model != Some(override_model),
+        None => false,
+    }
 }
 
 pub fn finish_request_transform(
@@ -892,6 +902,30 @@ mod tests {
         // Should return the exact same bytes (pointer equality)
         let output = result.into_bytes();
         assert_eq!(output.as_ptr(), input_ptr);
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_request_passthrough_with_identical_model_override() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "name": "example_user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+        let input_ptr = input.as_ptr();
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-4")).unwrap();
+
+        assert!(result.is_passthrough());
+        let output = result.into_bytes();
+        assert_eq!(output.as_ptr(), input_ptr);
+
+        let parsed: Value = crate::serde_json::from_slice(&output).unwrap();
+        assert_eq!(
+            parsed["messages"][0].get("name").and_then(Value::as_str),
+            Some("example_user")
+        );
     }
 
     #[test]
