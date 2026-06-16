@@ -1461,7 +1461,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_provider_request_rewrites_model_for_google_pass_through() {
+    async fn prepare_provider_request_does_not_rewrite_model_for_google_pass_through() {
         let body = Bytes::from_static(
             br#"{"model":"models/gemini-2.5-flash","contents":[{"role":"user","parts":[{"text":"Ping"}]}]}"#,
         );
@@ -1492,7 +1492,7 @@ mod tests {
         assert_eq!(actual_format, ProviderFormat::Google);
         assert_eq!(
             parsed.get("model").and_then(Value::as_str),
-            Some("models/gemini-2.5-pro")
+            Some("models/gemini-2.5-flash")
         );
         assert!(parsed.get("contents").is_some());
     }

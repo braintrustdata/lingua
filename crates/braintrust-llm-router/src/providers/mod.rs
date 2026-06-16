@@ -181,10 +181,10 @@ pub(crate) fn body_model_field(format: ProviderFormat) -> Option<&'static str> {
         ProviderFormat::ChatCompletions
         | ProviderFormat::Responses
         | ProviderFormat::Anthropic
-        | ProviderFormat::Google
         | ProviderFormat::Mistral => Some("model"),
-        ProviderFormat::Converse => Some("modelId"),
-        ProviderFormat::BedrockAnthropic
+        ProviderFormat::Google
+        | ProviderFormat::Converse
+        | ProviderFormat::BedrockAnthropic
         | ProviderFormat::VertexAnthropic
         | ProviderFormat::Unknown => None,
     }
@@ -201,12 +201,6 @@ struct BodyModel {
     model: Option<String>,
 }
 
-#[derive(serde::Deserialize)]
-struct BodyModelId {
-    #[serde(rename = "modelId")]
-    model_id: Option<String>,
-}
-
 fn body_model_rewrite_status(
     payload: &[u8],
     format: ProviderFormat,
@@ -216,16 +210,6 @@ fn body_model_rewrite_status(
         Some("model") => match serde_json::from_slice::<BodyModel>(payload) {
             Ok(parsed) => {
                 if parsed.model.as_deref() == Some(model) {
-                    BodyModelRewrite::NotRequired
-                } else {
-                    BodyModelRewrite::Required
-                }
-            }
-            Err(_) => BodyModelRewrite::Unknown,
-        },
-        Some("modelId") => match serde_json::from_slice::<BodyModelId>(payload) {
-            Ok(parsed) => {
-                if parsed.model_id.as_deref() == Some(model) {
                     BodyModelRewrite::NotRequired
                 } else {
                     BodyModelRewrite::Required
@@ -422,18 +406,31 @@ mod tests {
     }
 
     #[test]
-    fn rewrite_body_model_if_required_rewrites_mismatched_model_id_field() {
+    fn rewrite_body_model_if_required_leaves_converse_payload_unchanged() {
         let payload = Bytes::from_static(
             br#"{"modelId":"model-a","messages":[{"role":"user","content":[]}]}"#,
         );
+        let original_ptr = payload.as_ptr();
 
         let updated = rewrite_body_model_if_required(payload, ProviderFormat::Converse, "model-b");
-        let value: Value = serde_json::from_slice(&updated).unwrap();
 
-        assert_eq!(
-            value.get("modelId").and_then(Value::as_str),
-            Some("model-b")
+        assert_eq!(updated.as_ptr(), original_ptr);
+    }
+
+    #[test]
+    fn rewrite_body_model_if_required_leaves_google_payload_unchanged() {
+        let payload = Bytes::from_static(
+            br#"{"model":"gemini-2.5-flash","contents":[{"role":"user","parts":[{"text":"hi"}]}]}"#,
         );
+        let original_ptr = payload.as_ptr();
+
+        let updated = rewrite_body_model_if_required(
+            payload,
+            ProviderFormat::Google,
+            "models/gemini-2.5-pro",
+        );
+
+        assert_eq!(updated.as_ptr(), original_ptr);
     }
 
     #[test]

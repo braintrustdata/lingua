@@ -654,7 +654,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_request_rewrites_same_format_converse_model_without_losing_native_fields() {
+    async fn prepare_request_preserves_same_format_converse_model_and_native_fields() {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&lingua::serde_json::json!({
                 "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
@@ -690,7 +690,7 @@ mod tests {
         let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
         assert_eq!(
             value.get("modelId").and_then(|v| v.as_str()),
-            Some("anthropic.claude-3-5-sonnet-20241022-v2:0")
+            Some("anthropic.claude-3-haiku-20240307-v1:0")
         );
         assert_eq!(
             value.pointer("/system/0/text").and_then(|v| v.as_str()),
