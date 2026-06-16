@@ -239,7 +239,7 @@ impl Serialize for UniversalUsage {
         S: serde::Serializer,
     {
         use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("UniversalUsage", 5)?;
+        let mut state = serializer.serialize_struct("UniversalUsage", 8)?;
         if let Some(prompt) = self.prompt_tokens {
             state.serialize_field("prompt_tokens", &prompt)?;
         }
@@ -251,6 +251,18 @@ impl Serialize for UniversalUsage {
         }
         if let Some(cache_creation) = self.prompt_cache_creation_tokens {
             state.serialize_field("prompt_cache_creation_tokens", &cache_creation)?;
+        }
+        if let Some(cache_creation_5m) = self.prompt_cache_creation_5m_tokens {
+            state.serialize_field("prompt_cache_creation_5m_tokens", &cache_creation_5m)?;
+        }
+        if let Some(cache_creation_1h) = self.prompt_cache_creation_1h_tokens {
+            state.serialize_field("prompt_cache_creation_1h_tokens", &cache_creation_1h)?;
+        }
+        if self.prompt_tokens_exclude_cache {
+            state.serialize_field(
+                "prompt_tokens_exclude_cache",
+                &self.prompt_tokens_exclude_cache,
+            )?;
         }
         if let Some(reasoning) = self.completion_reasoning_tokens {
             state.serialize_field("completion_reasoning_tokens", &reasoning)?;
@@ -270,6 +282,10 @@ impl<'de> Deserialize<'de> for UniversalUsage {
             completion_tokens: Option<i64>,
             prompt_cached_tokens: Option<i64>,
             prompt_cache_creation_tokens: Option<i64>,
+            prompt_cache_creation_5m_tokens: Option<i64>,
+            prompt_cache_creation_1h_tokens: Option<i64>,
+            #[serde(default)]
+            prompt_tokens_exclude_cache: bool,
             completion_reasoning_tokens: Option<i64>,
         }
         let helper = Helper::deserialize(deserializer)?;
@@ -278,6 +294,9 @@ impl<'de> Deserialize<'de> for UniversalUsage {
             completion_tokens: helper.completion_tokens,
             prompt_cached_tokens: helper.prompt_cached_tokens,
             prompt_cache_creation_tokens: helper.prompt_cache_creation_tokens,
+            prompt_cache_creation_5m_tokens: helper.prompt_cache_creation_5m_tokens,
+            prompt_cache_creation_1h_tokens: helper.prompt_cache_creation_1h_tokens,
+            prompt_tokens_exclude_cache: helper.prompt_tokens_exclude_cache,
             completion_reasoning_tokens: helper.completion_reasoning_tokens,
         })
     }

@@ -197,6 +197,23 @@
   ],
   "perTestCase": [
     {
+      "testCase": "googleThinkingJsonSchemaParam",
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "Responses-compatible JSON schema normalization adds additionalProperties when converting Google responseJsonSchema" },
+        { "pattern": "messages.length", "reason": "Responses request format expands Google followup content into separate input items" }
+      ]
+    },
+    {
+      "testCase": "googleThinkingJsonSchemaParam",
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "params.response_format.json_schema.schema.additionalProperties", "reason": "ChatCompletions-compatible JSON schema normalization adds additionalProperties when converting Google responseJsonSchema" }
+      ]
+    },
+    {
       "testCase": "imageContentParam",
       "source": "*",
       "target": "Anthropic",

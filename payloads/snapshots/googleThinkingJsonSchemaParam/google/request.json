@@ -1,0 +1,41 @@
+{
+  "model": "gemini-3.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Analyze the caption and return a compact JSON summary.\nCaption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.\nReturn exactly {\"topic\": \"...\", \"recommendation\": \"...\", \"confidence\": 0.0}."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0,
+    "maxOutputTokens": 2048,
+    "responseMimeType": "application/json",
+    "responseJsonSchema": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "topic",
+        "recommendation",
+        "confidence"
+      ]
+    },
+    "thinkingConfig": {
+      "thinkingBudget": 1024,
+      "includeThoughts": true
+    }
+  }
+}

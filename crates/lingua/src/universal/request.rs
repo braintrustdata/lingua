@@ -302,7 +302,9 @@ impl UniversalParams {
 /// Both `effort` and `budget_tokens` are always populated when reasoning is enabled.
 /// The `canonical` field indicates which was the original source of truth:
 /// - `Effort`: From OpenAI (effort is canonical, budget_tokens derived)
-/// - `BudgetTokens`: From Anthropic/Google (budget_tokens is canonical, effort derived)
+/// - `BudgetTokens`: From Anthropic/Bedrock budget-based thinking (budget_tokens is canonical, effort derived)
+/// - `GoogleThinkingBudget`: From Google `thinkingConfig.thinkingBudget` (preserve Google-native shape on same-provider roundtrip)
+/// - `GoogleIncludeThoughts`: From Google `thinkingConfig.includeThoughts` without budget/level (preserve provider default budget)
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ReasoningConfig {
@@ -424,8 +426,12 @@ impl AsRef<str> for ReasoningEffort {
 pub enum ReasoningCanonical {
     /// `effort` is the source of truth (from OpenAI Chat/Responses API)
     Effort,
-    /// `budget_tokens` is the source of truth (from Anthropic/Google)
+    /// `budget_tokens` is the source of truth (from Anthropic/Bedrock)
     BudgetTokens,
+    /// Google `thinkingConfig.thinkingBudget` is the source of truth.
+    GoogleThinkingBudget,
+    /// Google `thinkingConfig.includeThoughts` was provided without budget/level.
+    GoogleIncludeThoughts,
 }
 
 /// Summary mode for reasoning output.

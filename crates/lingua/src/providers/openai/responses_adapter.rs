@@ -59,6 +59,164 @@ fn system_text(message: &Message) -> Option<&str> {
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
 
+pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
+    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0)
+}
+
+pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
+    chunk: &UniversalStreamChunk,
+    text_output_index: Option<u32>,
+    tool_output_index_offset: u32,
+) -> Vec<Value> {
+    let Some(choice) = chunk.choices.first() else {
+        return Vec::new();
+    };
+
+    let mut events = Vec::new();
+    if let Some(delta) = choice.delta_view() {
+        let reasoning_output_index = choice.index;
+        let base_output_index = choice.index.max(tool_output_index_offset);
+        let reasoning = delta
+            .reasoning
+            .iter()
+            .filter_map(|r| r.content.as_deref())
+            .collect::<String>();
+        if !reasoning.is_empty() {
+            events.push(serde_json::json!({
+                "type": "response.reasoning_summary_text.delta",
+                "output_index": reasoning_output_index,
+                "summary_index": 0,
+                "delta": reasoning
+            }));
+        }
+        let mut next_output_index = base_output_index;
+        if !reasoning.is_empty() {
+            next_output_index = next_output_index.max(reasoning_output_index + 1);
+        }
+
+        if let Some(content) = delta.content.as_deref().filter(|s| !s.is_empty()) {
+            let output_index = text_output_index.unwrap_or(next_output_index);
+            next_output_index = next_output_index.max(output_index + 1);
+            events.push(serde_json::json!({
+                "type": "response.output_text.delta",
+                "output_index": output_index,
+                "content_index": 0,
+                "delta": content
+            }));
+        }
+
+        for tool_call in &delta.tool_calls {
+            let tool_index = tool_call.index.unwrap_or(0);
+            let output_index = if next_output_index == base_output_index {
+                tool_index + tool_output_index_offset
+            } else {
+                next_output_index + tool_index
+            };
+            let call_id = tool_call.id.as_deref();
+            let name = tool_call
+                .function
+                .as_ref()
+                .and_then(|f| f.name.as_deref())
+                .unwrap_or("");
+            if let Some(call_id) = call_id {
+                events.push(serde_json::json!({
+                    "type": "response.output_item.added",
+                    "output_index": output_index,
+                    "item": {
+                        "type": "function_call",
+                        "status": "in_progress",
+                        "call_id": call_id,
+                        "name": name,
+                        "arguments": ""
+                    }
+                }));
+            }
+
+            if let Some(arguments) = tool_call
+                .function
+                .as_ref()
+                .and_then(|f| f.arguments.as_deref())
+                .filter(|arguments| !arguments.is_empty())
+            {
+                events.push(serde_json::json!({
+                    "type": "response.function_call_arguments.delta",
+                    "output_index": output_index,
+                    "delta": arguments
+                }));
+            }
+        }
+    }
+
+    if choice.finish_reason.is_some() {
+        events.push(responses_terminal_stream_event(chunk));
+    }
+
+    events
+}
+
+pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStreamChunk) -> Value {
+    let id = chunk
+        .id
+        .clone()
+        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
+    let mut response = crate::serde_json::json!({
+        "id": id,
+        "object": "response",
+        "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+        "status": "in_progress",
+        "output": []
+    });
+
+    if let Some(usage) = &chunk.usage {
+        if let Some(obj) = response.as_object_mut() {
+            obj.insert(
+                "usage".into(),
+                usage.to_provider_value(ProviderFormat::Responses),
+            );
+        }
+    }
+
+    crate::serde_json::json!({
+        "type": "response.created",
+        "response": response
+    })
+}
+
+fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
+    let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
+    let status = match finish_reason {
+        Some(reason) if reason == "length" => "incomplete",
+        _ => "completed",
+    };
+
+    let id = chunk
+        .id
+        .clone()
+        .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
+    let response = match &chunk.usage {
+        Some(usage) => serde_json::json!({
+            "id": id,
+            "object": "response",
+            "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+            "status": status,
+            "output": [],
+            "usage": usage.to_provider_value(ProviderFormat::Responses)
+        }),
+        None => serde_json::json!({
+            "id": id,
+            "object": "response",
+            "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
+            "status": status,
+            "output": []
+        }),
+    };
+
+    serde_json::json!({
+        "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
+        "response": response
+    })
+}
+
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
     item: Option<Value>,
@@ -69,6 +227,21 @@ struct ResponsesOutputItemAddedEvent {
 struct ResponsesFunctionCallArgumentsDeltaEvent {
     delta: Option<String>,
     output_index: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesReasoningTextDeltaEvent {
+    delta: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesAlternateReasoningDeltaEvent {
+    delta: Option<ResponsesAlternateReasoningDelta>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ResponsesAlternateReasoningDelta {
+    text: Option<String>,
 }
 
 pub(crate) fn parse_responses_extras(
@@ -657,20 +830,54 @@ impl ProviderAdapter for ResponsesAdapter {
                     _ => Value::Null, // Empty or missing text becomes null
                 };
 
-                let output_index = payload
-                    .get("output_index")
-                    .or_else(|| delta_obj.and_then(|d| d.get("index")))
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0) as u32;
+                Ok(Some(UniversalStreamChunk::new(
+                    None,
+                    None,
+                    vec![UniversalStreamChoice {
+                        index: 0,
+                        delta: Some(serde_json::json!({
+                            "role": "assistant",
+                            "content": content_value
+                        })),
+                        finish_reason: None,
+                    }],
+                    None,
+                    None,
+                )))
+            }
+
+            "response.reasoning_summary_text.delta" | "response.reasoning_text.delta" => {
+                let text = if is_alternate_format {
+                    let parsed: ResponsesAlternateReasoningDeltaEvent =
+                        serde_json::from_value(payload.clone()).map_err(|e| {
+                            TransformError::DeserializationFailed(format!(
+                                "Responses alternate reasoning delta event: {}",
+                                e
+                            ))
+                        })?;
+                    let delta = parsed.delta.unwrap_or_default();
+                    delta.text
+                } else {
+                    let parsed: ResponsesReasoningTextDeltaEvent =
+                        serde_json::from_value(payload.clone()).map_err(|e| {
+                            TransformError::DeserializationFailed(format!(
+                                "Responses reasoning delta event: {}",
+                                e
+                            ))
+                        })?;
+                    parsed.delta
+                };
 
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: output_index,
+                        index: 0,
                         delta: Some(serde_json::json!({
                             "role": "assistant",
-                            "content": content_value
+                            "reasoning": [{
+                                "content": text.unwrap_or_default()
+                            }]
                         })),
                         finish_reason: None,
                     }],
@@ -791,11 +998,14 @@ impl ProviderAdapter for ResponsesAdapter {
                         .unwrap_or("");
                     let output_index = parsed.output_index.unwrap_or(0);
 
+                    // Preserve Responses output_index as a correlation key. Stateful
+                    // stream transforms remap it to a tool-relative index before
+                    // serializing to non-Responses targets.
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
-                            index: output_index,
+                            index: 0,
                             delta: Some(serde_json::json!({
                                 "role": "assistant",
                                 "content": Value::Null,
@@ -827,11 +1037,14 @@ impl ProviderAdapter for ResponsesAdapter {
                 let arguments = parsed.delta.unwrap_or_default();
                 let output_index = parsed.output_index.unwrap_or(0);
 
+                // Preserve Responses output_index as a correlation key. Stateful
+                // stream transforms remap it to the same tool-relative index as
+                // the corresponding response.output_item.added event.
                 Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
                     vec![UniversalStreamChoice {
-                        index: output_index,
+                        index: 0,
                         delta: Some(serde_json::json!({
                             "tool_calls": [{
                                 "index": output_index,
@@ -874,6 +1087,11 @@ impl ProviderAdapter for ResponsesAdapter {
             .first()
             .and_then(|c| c.delta_view())
             .is_some_and(|d| !d.tool_calls.is_empty());
+        let has_reasoning = chunk
+            .choices
+            .first()
+            .and_then(|c| c.delta_view())
+            .is_some_and(|d| !d.reasoning.is_empty());
 
         // Check if this is an initial metadata chunk (has model/id/usage but no content)
         // Exclude chunks with tool_calls - those must be handled by the tool call path
@@ -881,6 +1099,7 @@ impl ProviderAdapter for ResponsesAdapter {
             (chunk.model.is_some() || chunk.id.is_some() || chunk.usage.is_some())
                 && !has_finish
                 && !has_tool_calls
+                && !has_reasoning
                 && chunk
                     .choices
                     .first()
@@ -913,36 +1132,17 @@ impl ProviderAdapter for ResponsesAdapter {
             }));
         }
 
-        if has_finish {
-            let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
-            let status = match finish_reason.map(|r| r.as_str()) {
-                Some("stop") => "completed",
-                Some("length") => "incomplete",
-                _ => "completed",
-            };
-
-            let id = chunk
-                .id
-                .clone()
-                .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-            let mut response = serde_json::json!({
-                "id": id,
-                "object": "response",
-                "model": chunk.model.as_deref().unwrap_or(PLACEHOLDER_MODEL),
-                "status": status,
-                "output": []
-            });
-
-            if let Some(usage) = &chunk.usage {
-                if let Some(obj) = response.as_object_mut() {
-                    obj.insert("usage".into(), usage.to_provider_value(self.format()));
-                }
+        let stream_events = responses_stream_events_from_universal(chunk);
+        if has_reasoning {
+            if let Some(event) = stream_events.first() {
+                return Ok(event.clone());
             }
-
-            return Ok(serde_json::json!({
-                "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-                "response": response
-            }));
+        }
+        if has_finish {
+            return Ok(responses_terminal_stream_event(chunk));
+        }
+        if let Some(event) = stream_events.into_iter().next() {
+            return Ok(event);
         }
 
         // Check for content delta
@@ -1803,5 +2003,383 @@ mod tests {
             .expect("keepalive should emit a chunk");
 
         assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_responses_stream_to_universal_output_indexes_are_output_items_not_choices() {
+        let adapter = ResponsesAdapter;
+
+        let reasoning = adapter
+            .stream_to_universal(json!({
+                "type": "response.reasoning_summary_text.delta",
+                "output_index": 0,
+                "summary_index": 0,
+                "delta": "thinking before visible text"
+            }))
+            .expect("reasoning event should parse")
+            .expect("reasoning event should emit a chunk");
+        let reasoning_choice = reasoning.choices.first().expect("reasoning choice");
+        let reasoning_delta = reasoning_choice
+            .delta_view()
+            .expect("reasoning delta should parse");
+        assert_eq!(reasoning_choice.index, 0);
+        assert_eq!(
+            reasoning_delta.reasoning[0].content.as_deref(),
+            Some("thinking before visible text")
+        );
+
+        let text = adapter
+            .stream_to_universal(json!({
+                "type": "response.output_text.delta",
+                "output_index": 1,
+                "content_index": 0,
+                "delta": "{\"answer\":\"visible json\"}"
+            }))
+            .expect("text event should parse")
+            .expect("text event should emit a chunk");
+        let text_choice = text.choices.first().expect("text choice");
+        let text_delta = text_choice.delta_view().expect("text delta should parse");
+        assert_eq!(text_choice.index, 0);
+        assert_eq!(
+            text_delta.content.as_deref(),
+            Some("{\"answer\":\"visible json\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_reasoning_only_is_not_metadata() {
+        #[derive(Deserialize)]
+        struct ReasoningDeltaEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: String,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": null,
+                    "reasoning": [{
+                        "content": "thinking before visible text"
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(1),
+                completion_tokens: Some(2),
+                completion_reasoning_tokens: Some(2),
+                ..Default::default()
+            }),
+        );
+
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: ReasoningDeltaEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking before visible text");
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_mixed_reasoning_content_returns_single_event() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: String,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking in the same candidate"
+                    }]
+                })),
+                finish_reason: Some("stop".to_string()),
+            }],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(1),
+                completion_tokens: Some(4),
+                completion_reasoning_tokens: Some(2),
+                ..Default::default()
+            }),
+        );
+
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: StreamEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking in the same candidate");
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_mixed_reasoning_content_offsets_text_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking in the same candidate"
+                    }]
+                })),
+                finish_reason: Some("stop".to_string()),
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(
+            reasoning.delta.as_deref(),
+            Some("thinking in the same candidate")
+        );
+        assert_eq!(text.event_type, "response.output_text.delta");
+        assert_eq!(text.output_index, 1);
+        assert_eq!(text.delta.as_deref(), Some("{\"answer\":\"visible json\"}"));
+    }
+
+    #[test]
+    fn test_responses_stream_from_universal_mixed_reasoning_and_tool_call_returns_single_event() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            delta: String,
+        }
+
+        let adapter = ResponsesAdapter;
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning": [{
+                        "content": "thinking before the tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let event = adapter.stream_from_universal(&chunk).unwrap();
+        let event: StreamEvent = serde_json::from_value(event).unwrap();
+        assert_eq!(event.event_type, "response.reasoning_summary_text.delta");
+        assert_eq!(event.delta, "thinking before the tool");
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_mixed_reasoning_tool_offsets_tool_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning": [{
+                        "content": "thinking before the tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let tool_start: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 1);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 1);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"microphone comparison\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_reasoning_text_and_tool_use_distinct_indexes() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            Some("resp_google".to_string()),
+            Some("gemini-2.5-flash".to_string()),
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": "{\"answer\":\"visible json\"}",
+                    "reasoning": [{
+                        "content": "thinking before text and tool"
+                    }],
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_response_123_0",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"microphone comparison\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+        let tool_start: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[3].clone()).unwrap();
+
+        assert_eq!(
+            reasoning.event_type,
+            "response.reasoning_summary_text.delta"
+        );
+        assert_eq!(reasoning.output_index, 0);
+        assert_eq!(text.event_type, "response.output_text.delta");
+        assert_eq!(text.output_index, 1);
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 2);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 2);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"microphone comparison\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_events_from_universal_tool_only_preserves_output_index() {
+        #[derive(Deserialize)]
+        struct StreamEvent {
+            #[serde(rename = "type")]
+            event_type: String,
+            output_index: u32,
+            delta: Option<String>,
+        }
+
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 2,
+                delta: Some(json!({
+                    "tool_calls": [{
+                        "index": 2,
+                        "id": "call_response_456_2",
+                        "type": "function",
+                        "function": {
+                            "name": "lookup_creator",
+                            "arguments": "{\"query\":\"studio lights\"}"
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let events = responses_stream_events_from_universal(&chunk);
+        let tool_start: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
+        let tool_args: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
+
+        assert_eq!(tool_start.event_type, "response.output_item.added");
+        assert_eq!(tool_start.output_index, 2);
+        assert_eq!(
+            tool_args.event_type,
+            "response.function_call_arguments.delta"
+        );
+        assert_eq!(tool_args.output_index, 2);
+        assert_eq!(
+            tool_args.delta.as_deref(),
+            Some("{\"query\":\"studio lights\"}")
+        );
     }
 }

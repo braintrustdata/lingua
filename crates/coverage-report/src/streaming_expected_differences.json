@@ -27,9 +27,63 @@
     },
     {
       "source": "Anthropic",
-      "target": "*",
+      "target": "Responses",
       "fields": [
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic reports cache creation tokens" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; Responses does not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; ChatCompletions does not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; Google does not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
+        { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; Bedrock Converse does not expose this semantic flag" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Responses streaming usage reports OpenAI-style inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "ChatCompletions streaming usage reports OpenAI-style inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
+      ]
+    },
+    {
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage.prompt_tokens", "reason": "Google promptTokenCount uses inclusive prompt totals, while Anthropic reports input_tokens exclusive of cache buckets" }
       ]
     },
     {
@@ -73,7 +127,8 @@
       "source": "Bedrock Anthropic",
       "target": "*",
       "fields": [
-        { "pattern": "usage.prompt_tokens", "reason": "Bedrock Anthropic message_delta only has output_tokens; prompt_tokens=0 added during roundtrip" }
+        { "pattern": "usage.prompt_tokens", "reason": "Bedrock Anthropic message_delta only has output_tokens; prompt_tokens=0 added during roundtrip" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Bedrock Anthropic usage follows Anthropic-style exclusive prompt-token semantics; other providers do not expose this semantic flag" }
       ]
     },
     {

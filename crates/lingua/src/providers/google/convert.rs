@@ -1242,6 +1242,10 @@ impl From<&UsageMetadata> for UniversalUsage {
             completion_tokens: Some(candidates + thoughts),
             prompt_cached_tokens: usage.cached_content_token_count,
             prompt_cache_creation_tokens: None,
+            prompt_cache_creation_5m_tokens: None,
+            prompt_cache_creation_1h_tokens: None,
+            // Google's promptTokenCount includes cachedContentTokenCount
+            prompt_tokens_exclude_cache: false,
             completion_reasoning_tokens: usage.thoughts_token_count,
         }
     }
@@ -1249,16 +1253,17 @@ impl From<&UsageMetadata> for UniversalUsage {
 
 impl From<&UniversalUsage> for UsageMetadata {
     fn from(usage: &UniversalUsage) -> Self {
+        let prompt = usage.inclusive_prompt_tokens();
         let completion = usage.completion_tokens.unwrap_or(0);
         let reasoning = usage.completion_reasoning_tokens.unwrap_or(0);
 
         Self {
-            prompt_token_count: usage.prompt_tokens,
+            prompt_token_count: prompt,
             // Google's candidatesTokenCount excludes thoughts, so subtract reasoning
             candidates_token_count: Some((completion - reasoning).max(0)),
             cached_content_token_count: usage.prompt_cached_tokens,
             thoughts_token_count: usage.completion_reasoning_tokens,
-            total_token_count: Some(usage.prompt_tokens.unwrap_or(0) + completion),
+            total_token_count: Some(prompt.unwrap_or(0) + completion),
             ..Default::default()
         }
     }
@@ -1290,6 +1295,24 @@ mod tests {
         property_ordering: Option<Vec<String>>,
         #[serde(default)]
         properties: std::collections::HashMap<String, JsonSchemaPropertyView>,
+    }
+
+    #[test]
+    fn test_google_usage_metadata_uses_inclusive_prompt_tokens() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            completion_tokens: Some(5),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_tokens: Some(30),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let metadata = UsageMetadata::from(&usage);
+        assert_eq!(metadata.prompt_token_count, Some(60));
+        assert_eq!(metadata.candidates_token_count, Some(5));
+        assert_eq!(metadata.cached_content_token_count, Some(20));
+        assert_eq!(metadata.total_token_count, Some(65));
     }
 
     #[test]

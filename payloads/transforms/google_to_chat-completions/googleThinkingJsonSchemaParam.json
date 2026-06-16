@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-Dr5txekuHtMdQTzlbe12SreHWJRQx",
+  "object": "chat.completion",
+  "created": 1781546441,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"topic\":\"Outdoor lavalier microphone comparison\",\"recommendation\":\"Highlight practical test results showing budget lavalier can outperform in outdoor conditions and invite audience to share their own setups.\",\"confidence\":0.0}",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 106,
+    "completion_tokens": 1014,
+    "total_tokens": 1120,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 960,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}
