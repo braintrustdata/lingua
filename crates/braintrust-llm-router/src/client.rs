@@ -33,6 +33,8 @@ pub struct ClientSettings {
     pub request_timeout: Duration,
     pub pool_idle_timeout: Duration,
     pub pool_max_idle_per_host: usize,
+    // Force HTTP/1.1 for providers whose high-concurrency path performs better without HTTP/2 multiplexing.
+    pub http1_only: bool,
     pub user_agent: String,
     pub dns_overrides: Vec<DnsOverride>,
     pub follow_redirects: bool,
@@ -45,6 +47,7 @@ impl Default for ClientSettings {
             request_timeout: Duration::from_secs(600),
             pool_idle_timeout: Duration::from_secs(90),
             pool_max_idle_per_host: 16,
+            http1_only: false,
             user_agent: format!("braintrust-llm-router/{}", env!("CARGO_PKG_VERSION")),
             dns_overrides: Vec::new(),
             follow_redirects: true,
@@ -59,6 +62,10 @@ pub fn build_client(settings: &ClientSettings) -> Result<Client> {
         .pool_idle_timeout(settings.pool_idle_timeout)
         .pool_max_idle_per_host(settings.pool_max_idle_per_host)
         .user_agent(&settings.user_agent);
+
+    if settings.http1_only {
+        builder = builder.http1_only();
+    }
 
     if !settings.follow_redirects {
         builder = builder.redirect(Policy::none());
@@ -84,6 +91,7 @@ pub fn build_middleware_client(settings: &ClientSettings) -> Result<ClientWithMi
         client.connect_timeout_ms = settings.connect_timeout.as_millis() as u64,
         client.pool_idle_timeout_ms = settings.pool_idle_timeout.as_millis() as u64,
         client.pool_max_idle_per_host = settings.pool_max_idle_per_host as u64,
+        client.http1_only = settings.http1_only,
     );
 
     #[cfg(feature = "tracing")]
@@ -119,6 +127,7 @@ fn build_middleware_client_inner(settings: &ClientSettings) -> Result<ClientWith
         client.connect_timeout_ms = settings.connect_timeout.as_millis() as u64,
         client.pool_idle_timeout_ms = settings.pool_idle_timeout.as_millis() as u64,
         client.pool_max_idle_per_host = settings.pool_max_idle_per_host as u64,
+        client.http1_only = settings.http1_only,
     )
     .in_scope(|| {
         let client = build_client(settings)?;
