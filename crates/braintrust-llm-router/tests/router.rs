@@ -15,7 +15,7 @@ fn to_body(payload: Value) -> Bytes {
     Bytes::from(braintrust_llm_router::serde_json::to_vec(&payload).unwrap())
 }
 
-fn provider_response(body: Bytes) -> Bytes {
+fn raw_provider_bytes(body: Bytes) -> Bytes {
     body
 }
 
@@ -89,7 +89,7 @@ impl Provider for StubProvider {
         });
         let bytes = braintrust_llm_router::serde_json::to_vec(&response)
             .map_err(|e| Error::InvalidRequest(e.to_string()))?;
-        Ok(provider_response(Bytes::from(bytes)))
+        Ok(raw_provider_bytes(Bytes::from(bytes)))
     }
 
     async fn complete_stream(
@@ -597,7 +597,7 @@ impl Provider for CapturingAnthropicStub {
             "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
         });
-        Ok(provider_response(Bytes::from(
+        Ok(raw_provider_bytes(Bytes::from(
             braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
         )))
     }
@@ -774,7 +774,7 @@ impl Provider for CapturingOpenAIStub {
             "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
         });
-        Ok(provider_response(Bytes::from(
+        Ok(raw_provider_bytes(Bytes::from(
             braintrust_llm_router::serde_json::to_vec(&response).unwrap(),
         )))
     }
