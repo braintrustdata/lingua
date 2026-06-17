@@ -4,10 +4,11 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use dashmap::DashMap;
+use http::Extensions;
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Client, ClientBuilder};
-use reqwest_middleware::ClientWithMiddleware;
+use reqwest::{redirect::Policy, Client, ClientBuilder, Request, Response};
+use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
     RetryableStrategy,
@@ -155,8 +156,43 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
     );
 
     reqwest_middleware::ClientBuilder::new(client)
+        .with(ResponseMetadataMiddleware)
         .with(retry_middleware)
         .build()
+}
+
+struct ResponseMetadataMiddleware;
+
+#[async_trait::async_trait]
+impl Middleware for ResponseMetadataMiddleware {
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &mut Extensions,
+        next: Next<'_>,
+    ) -> reqwest_middleware::Result<Response> {
+        let response = next.run(req, extensions).await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::Span::current().record(
+            "http.response.version",
+            http_version_label(response.version()),
+        );
+
+        Ok(response)
+    }
+}
+
+#[cfg(feature = "tracing")]
+fn http_version_label(version: reqwest::Version) -> &'static str {
+    match version {
+        reqwest::Version::HTTP_09 => "HTTP/0.9",
+        reqwest::Version::HTTP_10 => "HTTP/1.0",
+        reqwest::Version::HTTP_11 => "HTTP/1.1",
+        reqwest::Version::HTTP_2 => "HTTP/2",
+        reqwest::Version::HTTP_3 => "HTTP/3",
+        _ => "unknown",
+    }
 }
 
 fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retryable> {
