@@ -761,13 +761,14 @@ impl Router {
                     attempt = attempt,
                     http.url = tracing::field::Empty,
                     http.status_code = tracing::field::Empty,
+                    http.response.version = tracing::field::Empty,
                 );
                 async {
                     provider
                         .complete(payload.clone(), auth, &spec, format, client_headers)
                         .await
                 }
-                .instrument(span)
+                .instrument(span.clone())
                 .await
             };
 

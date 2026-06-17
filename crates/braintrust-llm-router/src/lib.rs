@@ -1,7 +1,10 @@
 mod auth;
 mod catalog;
 mod client;
-pub use client::{clear_override_client, set_override_client, ClientSettings, DnsOverride};
+pub use client::{
+    build_middleware_client, clear_override_client, set_override_client, ClientSettings,
+    DnsOverride,
+};
 pub use reqwest_middleware::ClientWithMiddleware;
 mod error;
 mod providers;
