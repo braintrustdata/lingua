@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use braintrust_llm_router::{
     serde_json::{json, Value},
     AuthConfig, ClientHeaders, Error, ModelCatalog, ModelFlavor, ModelSpec, Provider,
-    ProviderFormat, ProviderResponse, ProviderStreamResponse, RetryPolicy, Router, RouterBuilder,
+    ProviderFormat, RawResponseStream, RetryPolicy, Router, RouterBuilder,
 };
 use bytes::Bytes;
 
@@ -15,18 +15,12 @@ fn to_body(payload: Value) -> Bytes {
     Bytes::from(braintrust_llm_router::serde_json::to_vec(&payload).unwrap())
 }
 
-fn provider_response(body: Bytes) -> ProviderResponse {
-    ProviderResponse {
-        body,
-        headers: Default::default(),
-    }
+fn provider_response(body: Bytes) -> Bytes {
+    body
 }
 
-fn empty_stream_response() -> ProviderStreamResponse {
-    ProviderStreamResponse {
-        stream: Box::pin(tokio_stream::empty()),
-        headers: Default::default(),
-    }
+fn empty_stream_response() -> RawResponseStream {
+    Box::pin(tokio_stream::empty())
 }
 
 async fn create_request(
@@ -65,7 +59,7 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         // Parse the incoming payload to extract model name
         let value: Value =
             braintrust_llm_router::serde_json::from_slice(&payload).unwrap_or_default();
@@ -105,7 +99,7 @@ impl Provider for StubProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(empty_stream_response())
     }
 
@@ -458,7 +452,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         self.attempts.fetch_add(1, Ordering::SeqCst);
         Err(Error::Timeout)
     }
@@ -470,7 +464,7 @@ impl Provider for FailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Err(Error::Timeout)
     }
 
@@ -499,7 +493,7 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         let err = reqwest::Client::new()
             .get("http://127.0.0.1:1")
             .send()
@@ -515,7 +509,7 @@ impl Provider for HttpFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(empty_stream_response())
     }
 
@@ -544,7 +538,7 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         let client = reqwest_middleware::ClientBuilder::new(reqwest::Client::new()).build();
         let err = client
             .get("http://127.0.0.1:1")
@@ -561,7 +555,7 @@ impl Provider for MiddlewareFailingProvider {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(empty_stream_response())
     }
 
@@ -594,7 +588,7 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
             "id": "stub",
@@ -615,7 +609,7 @@ impl Provider for CapturingAnthropicStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(empty_stream_response())
     }
 
@@ -771,7 +765,7 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderResponse> {
+    ) -> braintrust_llm_router::Result<Bytes> {
         *self.recorded_format.lock().unwrap() = Some(format);
         let response = braintrust_llm_router::serde_json::json!({
             "id": "stub",
@@ -792,7 +786,7 @@ impl Provider for CapturingOpenAIStub {
         _spec: &ModelSpec,
         _format: ProviderFormat,
         _client_headers: &ClientHeaders,
-    ) -> braintrust_llm_router::Result<ProviderStreamResponse> {
+    ) -> braintrust_llm_router::Result<RawResponseStream> {
         Ok(empty_stream_response())
     }
 

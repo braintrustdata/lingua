@@ -23,10 +23,8 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{
-    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
-};
-use crate::streaming::{bedrock_event_stream, sse_stream};
+use crate::providers::{send_with_response_header_capture, ClientHeaders};
+use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
 const BEDROCK_REMOTE_MEDIA_MAX_BYTES: usize = 5 * 1024 * 1024;
@@ -389,13 +387,11 @@ impl BedrockProvider {
         client_headers: &ClientHeaders,
     ) -> Result<reqwest::Response> {
         let headers = self.build_headers(&url, payload.as_ref(), auth, client_headers)?;
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_with_response_header_capture(
+            self.client.post(url.clone()).headers(headers).body(payload),
+            client_headers,
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -437,14 +433,14 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderResponse> {
+    ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url()?,
             _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        Ok(provider_response_with_headers(response).await?)
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(
@@ -454,7 +450,7 @@ impl crate::providers::Provider for BedrockProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderStreamResponse> {
+    ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -468,17 +464,10 @@ impl crate::providers::Provider for BedrockProvider {
         };
 
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        let headers = response.headers().clone();
         if matches!(format, ProviderFormat::ChatCompletions) {
-            Ok(ProviderStreamResponse {
-                stream: sse_stream(response),
-                headers,
-            })
+            Ok(sse_stream(response))
         } else {
-            Ok(ProviderStreamResponse {
-                stream: bedrock_event_stream(response),
-                headers,
-            })
+            Ok(bedrock_event_stream(response))
         }
     }
 

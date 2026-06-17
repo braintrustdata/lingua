@@ -4,10 +4,8 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{
-    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
-};
-use crate::streaming::sse_stream;
+use crate::providers::{send_with_response_header_capture, ClientHeaders};
+use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
 use lingua::ProviderFormat;
@@ -137,7 +135,7 @@ impl crate::providers::Provider for AnthropicProvider {
         _spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderResponse> {
+    ) -> Result<Bytes> {
         let (url, headers) = if format == ProviderFormat::ChatCompletions {
             let mut h = client_headers.to_json_headers();
             let key = auth.api_key().ok_or_else(|| {
@@ -155,13 +153,11 @@ impl crate::providers::Provider for AnthropicProvider {
             (self.messages_url(), h)
         };
 
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_with_response_header_capture(
+            self.client.post(url.clone()).headers(headers).body(payload),
+            client_headers,
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -186,7 +182,7 @@ impl crate::providers::Provider for AnthropicProvider {
             });
         }
 
-        Ok(provider_response_with_headers(response).await?)
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(
@@ -196,7 +192,7 @@ impl crate::providers::Provider for AnthropicProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderStreamResponse> {
+    ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -221,13 +217,11 @@ impl crate::providers::Provider for AnthropicProvider {
             (self.messages_url(), h)
         };
 
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_with_response_header_capture(
+            self.client.post(url.clone()).headers(headers).body(payload),
+            client_headers,
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -251,12 +245,7 @@ impl crate::providers::Provider for AnthropicProvider {
                 )),
             });
         }
-
-        let headers = response.headers().clone();
-        Ok(ProviderStreamResponse {
-            stream: sse_stream(response),
-            headers,
-        })
+        Ok(sse_stream(response))
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {

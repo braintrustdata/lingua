@@ -12,7 +12,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::{
     is_gemini_api_model, load_catalog_from_disk, ModelCatalog, ModelResolver, ModelSpec,
 };
-use crate::client::ClientSettings;
+use crate::client::{ClientSettings, ResponseHeaderCapture};
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
@@ -35,10 +35,21 @@ use reqwest::Url;
 pub struct CompleteResponseWithRaw {
     pub response: Bytes,
     pub raw_response: Bytes,
+}
+
+#[derive(Debug, Clone)]
+pub struct CompleteResponseWithRawAndHeaders {
+    pub response: Bytes,
+    pub raw_response: Bytes,
     pub headers: HeaderMap,
 }
 
-pub struct CompleteStreamResponse {
+struct CompleteResponseInternal {
+    response: CompleteResponseWithRaw,
+    headers: HeaderMap,
+}
+
+pub struct CompleteStreamResponseWithHeaders {
     pub stream: ResponseStream,
     pub headers: HeaderMap,
 }
@@ -338,8 +349,9 @@ impl Router {
         client_headers: &ClientHeaders,
     ) -> Result<Bytes> {
         Ok(self
-            .complete_internal(request, client_headers)
+            .complete_internal(request, client_headers, false)
             .await?
+            .response
             .response)
     }
 
@@ -356,14 +368,41 @@ impl Router {
         request: PreparedRequest,
         client_headers: &ClientHeaders,
     ) -> Result<CompleteResponseWithRaw> {
-        self.complete_internal(request, client_headers).await
+        Ok(self
+            .complete_internal(request, client_headers, false)
+            .await?
+            .response)
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete",
+            skip(self, request, client_headers),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_with_raw_response_and_headers(
+        &self,
+        request: PreparedRequest,
+        client_headers: &ClientHeaders,
+    ) -> Result<CompleteResponseWithRawAndHeaders> {
+        let result = self
+            .complete_internal(request, client_headers, true)
+            .await?;
+        Ok(CompleteResponseWithRawAndHeaders {
+            response: result.response.response,
+            raw_response: result.response.raw_response,
+            headers: result.headers,
+        })
     }
 
     async fn complete_internal(
         &self,
         request: PreparedRequest,
         client_headers: &ClientHeaders,
-    ) -> Result<CompleteResponseWithRaw> {
+        capture_headers: bool,
+    ) -> Result<CompleteResponseInternal> {
         let PreparedRequestInner {
             provider,
             auth,
@@ -373,7 +412,13 @@ impl Router {
             output_format,
             strategy,
         } = request.inner;
-        let provider_response = self
+        let response_header_capture = ResponseHeaderCapture::new();
+        let client_headers = if capture_headers {
+            client_headers.with_response_header_capture(response_header_capture.clone())
+        } else {
+            client_headers.clone()
+        };
+        let response_bytes = self
             .execute_with_retry(
                 provider,
                 &auth,
@@ -381,10 +426,9 @@ impl Router {
                 format,
                 payload,
                 strategy,
-                client_headers,
+                &client_headers,
             )
             .await?;
-        let response_bytes = provider_response.body;
         let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
             |source| Error::ResponseTransform {
                 source,
@@ -395,10 +439,12 @@ impl Router {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => bytes,
         };
-        Ok(CompleteResponseWithRaw {
-            response,
-            raw_response: response_bytes,
-            headers: provider_response.headers,
+        Ok(CompleteResponseInternal {
+            response: CompleteResponseWithRaw {
+                response,
+                raw_response: response_bytes,
+            },
+            headers: response_header_capture.headers().unwrap_or_default(),
         })
     }
 
@@ -445,9 +491,11 @@ impl Router {
         request: PreparedStreamRequest,
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
-    ) -> Result<CompleteStreamResponse> {
-        self.complete_stream_internal(request, client_headers, gateway_request_id, None)
-            .await
+    ) -> Result<ResponseStream> {
+        Ok(self
+            .complete_stream_internal(request, client_headers, gateway_request_id, None, false)
+            .await?
+            .stream)
     }
 
     #[cfg_attr(
@@ -464,12 +512,58 @@ impl Router {
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
         raw_chunk_capture: RawStreamChunkCapture,
-    ) -> Result<CompleteStreamResponse> {
+    ) -> Result<ResponseStream> {
+        Ok(self
+            .complete_stream_internal(
+                request,
+                client_headers,
+                gateway_request_id,
+                Some(raw_chunk_capture),
+                false,
+            )
+            .await?
+            .stream)
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers, gateway_request_id),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_stream_with_response_headers(
+        &self,
+        request: PreparedStreamRequest,
+        client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
+    ) -> Result<CompleteStreamResponseWithHeaders> {
+        self.complete_stream_internal(request, client_headers, gateway_request_id, None, true)
+            .await
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            name = "bt.router.complete_stream",
+            skip(self, request, client_headers, gateway_request_id, raw_chunk_capture),
+            fields(llm.model = %request.inner.spec.model)
+        )
+    )]
+    pub async fn complete_stream_with_raw_response_capture_and_headers(
+        &self,
+        request: PreparedStreamRequest,
+        client_headers: &ClientHeaders,
+        gateway_request_id: Option<String>,
+        raw_chunk_capture: RawStreamChunkCapture,
+    ) -> Result<CompleteStreamResponseWithHeaders> {
         self.complete_stream_internal(
             request,
             client_headers,
             gateway_request_id,
             Some(raw_chunk_capture),
+            true,
         )
         .await
     }
@@ -480,7 +574,8 @@ impl Router {
         client_headers: &ClientHeaders,
         gateway_request_id: Option<String>,
         raw_chunk_capture: Option<RawStreamChunkCapture>,
-    ) -> Result<CompleteStreamResponse> {
+        capture_headers: bool,
+    ) -> Result<CompleteStreamResponseWithHeaders> {
         let PreparedRequestInner {
             provider,
             auth,
@@ -491,28 +586,34 @@ impl Router {
             strategy: _,
         } = request.inner;
         let allow_full_response_fallback = spec.supports_streaming;
+        let response_header_capture = ResponseHeaderCapture::new();
+        let client_headers = if capture_headers {
+            client_headers.with_response_header_capture(response_header_capture.clone())
+        } else {
+            client_headers.clone()
+        };
         let response = provider
             .clone()
-            .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
+            .complete_stream(payload, &auth, spec.as_ref(), format, &client_headers)
             .await?;
         let stream = match raw_chunk_capture {
             Some(capture) => transform_stream_with_capture(
-                response.stream,
+                response,
                 output_format,
                 allow_full_response_fallback,
                 gateway_request_id,
                 Some(capture),
             ),
             None => transform_stream(
-                response.stream,
+                response,
                 output_format,
                 allow_full_response_fallback,
                 gateway_request_id,
             ),
         };
-        Ok(CompleteStreamResponse {
+        Ok(CompleteStreamResponseWithHeaders {
             stream,
-            headers: response.headers,
+            headers: response_header_capture.headers().unwrap_or_default(),
         })
     }
 
@@ -756,7 +857,7 @@ impl Router {
         payload: Bytes,
         mut strategy: RetryStrategy,
         client_headers: &ClientHeaders,
-    ) -> Result<crate::providers::ProviderResponse> {
+    ) -> Result<Bytes> {
         #[cfg(feature = "tracing")]
         let mut attempt = 0u32;
 
@@ -985,8 +1086,7 @@ mod tests {
     use super::*;
     use crate::catalog::{ModelCatalog, ModelFlavor, ModelSpec};
     use crate::error::Error;
-    use crate::providers::{ProviderResponse, ProviderStreamResponse};
-    use crate::streaming::StreamChunk;
+    use crate::streaming::{RawResponseStream, StreamChunk};
     use async_trait::async_trait;
     use futures::{stream, StreamExt};
     use reqwest::header::HeaderMap;
@@ -1014,11 +1114,8 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
-        ) -> Result<ProviderResponse> {
-            Ok(ProviderResponse {
-                body: Bytes::from("{}"),
-                headers: Default::default(),
-            })
+        ) -> Result<Bytes> {
+            Ok(Bytes::from("{}"))
         }
 
         async fn complete_stream(
@@ -1028,7 +1125,7 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
-        ) -> Result<ProviderStreamResponse> {
+        ) -> Result<RawResponseStream> {
             unimplemented!()
         }
 
@@ -1063,11 +1160,8 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
-        ) -> Result<ProviderResponse> {
-            Ok(ProviderResponse {
-                body: self.response.clone(),
-                headers: Default::default(),
-            })
+        ) -> Result<Bytes> {
+            Ok(self.response.clone())
         }
 
         async fn complete_stream(
@@ -1077,16 +1171,13 @@ mod tests {
             _spec: &ModelSpec,
             _format: ProviderFormat,
             _client_headers: &ClientHeaders,
-        ) -> Result<ProviderStreamResponse> {
-            Ok(ProviderStreamResponse {
-                stream: Box::pin(stream::iter(
-                    self.stream_chunks
-                        .clone()
-                        .into_iter()
-                        .map(|chunk| Ok(StreamChunk::data(chunk))),
-                )),
-                headers: Default::default(),
-            })
+        ) -> Result<RawResponseStream> {
+            Ok(Box::pin(stream::iter(
+                self.stream_chunks
+                    .clone()
+                    .into_iter()
+                    .map(|chunk| Ok(StreamChunk::data(chunk))),
+            )))
         }
 
         async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
@@ -1403,8 +1494,7 @@ mod tests {
                 capture,
             )
             .await
-            .expect("stream starts")
-            .stream;
+            .expect("stream starts");
         let first = stream.next().await.expect("stream item");
 
         assert!(first.is_err());
@@ -1450,8 +1540,7 @@ mod tests {
                 Some("request-id".to_string()),
             )
             .await
-            .expect("stream starts")
-            .stream;
+            .expect("stream starts");
         let first = response_stream
             .next()
             .await

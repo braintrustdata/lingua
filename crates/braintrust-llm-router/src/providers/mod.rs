@@ -29,6 +29,7 @@ use std::sync::Arc;
 
 use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
+use crate::client::ResponseHeaderCapture;
 use crate::error::{Error, Result};
 use crate::streaming::RawResponseStream;
 use lingua::ProviderFormat;
@@ -59,29 +60,11 @@ pub const BLOCKED_HEADERS: &[&str] = &[
     "x-real-ip",
 ];
 
-#[derive(Debug, Clone)]
-pub struct ProviderResponse {
-    pub body: Bytes,
-    pub headers: HeaderMap,
-}
-
-pub struct ProviderStreamResponse {
-    pub stream: RawResponseStream,
-    pub headers: HeaderMap,
-}
-
-pub(crate) async fn provider_response_with_headers(
-    response: reqwest::Response,
-) -> reqwest::Result<ProviderResponse> {
-    let headers = response.headers().clone();
-    let body = response.bytes().await?;
-    Ok(ProviderResponse { body, headers })
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct ClientHeaders {
     inner: HashMap<String, String>,
     user_configured: HashMap<String, String>,
+    response_header_capture: Option<ResponseHeaderCapture>,
 }
 
 impl ClientHeaders {
@@ -160,6 +143,26 @@ impl ClientHeaders {
         self.apply_user_configured(&mut headers);
         headers
     }
+
+    pub(crate) fn with_response_header_capture(&self, capture: ResponseHeaderCapture) -> Self {
+        let mut cloned = self.clone();
+        cloned.response_header_capture = Some(capture);
+        cloned
+    }
+
+    fn response_header_capture(&self) -> Option<ResponseHeaderCapture> {
+        self.response_header_capture.clone()
+    }
+}
+
+pub(crate) async fn send_with_response_header_capture(
+    mut request: reqwest_middleware::RequestBuilder,
+    client_headers: &ClientHeaders,
+) -> Result<reqwest::Response> {
+    if let Some(capture) = client_headers.response_header_capture() {
+        request = request.with_extension(capture);
+    }
+    request.send().await.map_err(Error::from)
 }
 
 // NOTE: This FromIterator impl exists to support collecting forwarded client
@@ -264,7 +267,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderResponse>;
+    ) -> Result<Bytes>;
 
     /// Execute a streaming completion request.
     ///
@@ -284,7 +287,7 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderStreamResponse>;
+    ) -> Result<RawResponseStream>;
 
     async fn complete_stream_via_complete(
         &self,
@@ -293,15 +296,12 @@ pub trait Provider: Send + Sync {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderStreamResponse> {
+    ) -> Result<RawResponseStream> {
         let payload = disable_streaming_payload(payload);
         let response = self
             .complete(payload, auth, spec, format, client_headers)
             .await?;
-        Ok(ProviderStreamResponse {
-            stream: crate::streaming::single_bytes_stream(response.body),
-            headers: response.headers,
-        })
+        Ok(crate::streaming::single_bytes_stream(response))
     }
 
     /// Check if the provider is reachable.

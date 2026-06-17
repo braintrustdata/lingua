@@ -28,14 +28,13 @@ pub use providers::{
     is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,
     AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, DatabricksConfig,
     DatabricksProvider, GoogleConfig, GoogleProvider, MistralConfig, MistralProvider,
-    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, ProviderResponse,
-    ProviderStreamResponse, VertexConfig, VertexProvider,
+    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{
-    create_provider, extract_request_hints, CompleteResponseWithRaw, CompleteStreamResponse,
-    PreparedRequest, PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder,
-    RouterMetadata,
+    create_provider, extract_request_hints, CompleteResponseWithRaw,
+    CompleteResponseWithRawAndHeaders, CompleteStreamResponseWithHeaders, PreparedRequest,
+    PreparedStreamRequest, ProviderRoute, RequestHints, Router, RouterBuilder, RouterMetadata,
 };
 pub use streaming::{RawResponseStream, RawStreamChunkCapture, ResponseStream, StreamChunk};
 

@@ -1,13 +1,14 @@
 use std::error::Error as StdError;
 use std::io::ErrorKind;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
-use parking_lot::RwLock;
-use reqwest::{redirect::Policy, Client, ClientBuilder};
-use reqwest_middleware::ClientWithMiddleware;
+use parking_lot::{Mutex, RwLock};
+use reqwest::{header::HeaderMap, redirect::Policy, Client, ClientBuilder};
+use reqwest_middleware::{ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
     RetryableStrategy,
@@ -17,6 +18,25 @@ use crate::error::{Error, Result};
 
 // The default number of retries for transient transport failures.
 const DEFAULT_MAX_RETRIES: u32 = 2;
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct ResponseHeaderCapture {
+    headers: Arc<Mutex<Option<HeaderMap>>>,
+}
+
+impl ResponseHeaderCapture {
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    pub(crate) fn headers(&self) -> Option<HeaderMap> {
+        self.headers.lock().clone()
+    }
+
+    fn set_headers(&self, headers: HeaderMap) {
+        *self.headers.lock() = Some(headers);
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct DnsOverride {
@@ -146,8 +166,28 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
     );
 
     reqwest_middleware::ClientBuilder::new(client)
+        .with(ResponseHeaderCaptureMiddleware)
         .with(retry_middleware)
         .build()
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ResponseHeaderCaptureMiddleware;
+
+#[async_trait::async_trait]
+impl Middleware for ResponseHeaderCaptureMiddleware {
+    async fn handle(
+        &self,
+        req: reqwest::Request,
+        extensions: &mut http::Extensions,
+        next: Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        let response = next.run(req, extensions).await?;
+        if let Some(capture) = extensions.get::<ResponseHeaderCapture>() {
+            capture.set_headers(response.headers().clone());
+        }
+        Ok(response)
+    }
 }
 
 fn retryable_transport_failure(err: &reqwest_middleware::Error) -> Option<Retryable> {

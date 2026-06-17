@@ -10,10 +10,8 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::{
-    provider_response_with_headers, ClientHeaders, ProviderResponse, ProviderStreamResponse,
-};
-use crate::streaming::sse_stream;
+use crate::providers::{send_with_response_header_capture, ClientHeaders};
+use crate::streaming::{sse_stream, RawResponseStream};
 use lingua::ProviderFormat;
 use reqwest_middleware::ClientWithMiddleware;
 
@@ -195,7 +193,7 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderResponse> {
+    ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::Responses => self.responses_url(Some(&spec.model))?,
             _ => self.chat_url(Some(&spec.model))?,
@@ -204,13 +202,11 @@ impl crate::providers::Provider for OpenAIProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_with_response_header_capture(
+            self.client.post(url.clone()).headers(headers).body(payload),
+            client_headers,
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -235,7 +231,7 @@ impl crate::providers::Provider for OpenAIProvider {
             });
         }
 
-        Ok(provider_response_with_headers(response).await?)
+        Ok(response.bytes().await?)
     }
 
     async fn complete_stream(
@@ -245,7 +241,7 @@ impl crate::providers::Provider for OpenAIProvider {
         spec: &ModelSpec,
         format: ProviderFormat,
         client_headers: &ClientHeaders,
-    ) -> Result<ProviderStreamResponse> {
+    ) -> Result<RawResponseStream> {
         if !spec.supports_streaming {
             return self
                 .complete_stream_via_complete(payload, auth, spec, format, client_headers)
@@ -261,13 +257,11 @@ impl crate::providers::Provider for OpenAIProvider {
         let mut headers = self.build_headers(client_headers);
         auth.apply_headers(&mut headers)?;
 
-        let response = self
-            .client
-            .post(url.clone())
-            .headers(headers)
-            .body(payload)
-            .send()
-            .await?;
+        let response = send_with_response_header_capture(
+            self.client.post(url.clone()).headers(headers).body(payload),
+            client_headers,
+        )
+        .await?;
 
         #[cfg(feature = "tracing")]
         {
@@ -291,12 +285,7 @@ impl crate::providers::Provider for OpenAIProvider {
                 )),
             });
         }
-
-        let headers = response.headers().clone();
-        Ok(ProviderStreamResponse {
-            stream: sse_stream(response),
-            headers,
-        })
+        Ok(sse_stream(response))
     }
 
     async fn health_check(&self, auth: &AuthConfig) -> Result<()> {
