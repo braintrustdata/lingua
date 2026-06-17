@@ -1,4 +1,6 @@
-.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit unused-deps fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
+CARGO_MACHETE_VERSION ?= 0.9.2
+
+.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit ensure-cargo-machete unused-deps fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
 
 all: typescript python ## Build all bindings
 
@@ -151,13 +153,19 @@ install-dependencies: ## Install dependencies
 
 setup: install-dependencies install-hooks ## Setup the project
 
-precommit: ## Run formatting, linting, and tests for Rust code
+precommit: ensure-cargo-machete ## Run formatting, linting, and tests for Rust code
 	cargo fmt --all -- --check
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo machete
 	cargo test
 
-unused-deps: ## Check for unused Rust dependencies
+ensure-cargo-machete: ## Install cargo-machete if it is missing
+	@if ! cargo machete --version >/dev/null 2>&1; then \
+		echo "Installing cargo-machete $(CARGO_MACHETE_VERSION)..."; \
+		cargo install cargo-machete --version $(CARGO_MACHETE_VERSION) --locked; \
+	fi
+
+unused-deps: ensure-cargo-machete ## Check for unused Rust dependencies
 	cargo machete
 
 .DEFAULT_GOAL := all
