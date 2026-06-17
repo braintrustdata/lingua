@@ -44,6 +44,9 @@ echo "📝 Running cargo fmt..."
 cargo fmt --all
 restage_staged_files
 
+echo "🔍 Checking for unused Rust dependencies..."
+cargo machete
+
 # Check for TypeScript files and run linting/formatting
 if [ -f "payloads/package.json" ]; then
     echo "📝 Running TypeScript checks..."

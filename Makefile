@@ -1,4 +1,4 @@
-.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
+.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit unused-deps fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
 
 all: typescript python ## Build all bindings
 
@@ -154,6 +154,10 @@ setup: install-dependencies install-hooks ## Setup the project
 precommit: ## Run formatting, linting, and tests for Rust code
 	cargo fmt --all -- --check
 	cargo clippy --all-targets --all-features -- -D warnings
+	cargo machete
 	cargo test
+
+unused-deps: ## Check for unused Rust dependencies
+	cargo machete
 
 .DEFAULT_GOAL := all
