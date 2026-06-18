@@ -1,7 +1,10 @@
 mod auth;
 mod catalog;
 mod client;
-pub use client::{clear_override_client, set_override_client, ClientSettings, DnsOverride};
+pub use client::{
+    clear_override_client, set_override_client, ClientSettings, DnsOverride,
+    ResponseHeaderCaptureMiddleware,
+};
 pub use reqwest_middleware::ClientWithMiddleware;
 mod error;
 mod providers;
@@ -25,10 +28,11 @@ pub use error::{Error, Result, UpstreamHttpError};
 pub use lingua::ProviderFormat;
 pub use lingua::{FinishReason, UniversalStreamChoice, UniversalStreamChunk};
 pub use providers::{
-    is_openai_compatible, openai_compatible_endpoint, AnthropicConfig, AnthropicProvider,
-    AzureConfig, AzureProvider, BedrockConfig, BedrockProvider, ClientHeaders, DatabricksConfig,
-    DatabricksProvider, GoogleConfig, GoogleProvider, MistralConfig, MistralProvider,
-    OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider, Provider, VertexConfig, VertexProvider,
+    is_openai_compatible, openai_compatible_endpoint, send_with_response_header_capture,
+    AnthropicConfig, AnthropicProvider, AzureConfig, AzureProvider, BedrockConfig, BedrockProvider,
+    ClientHeaders, DatabricksConfig, DatabricksProvider, GoogleConfig, GoogleProvider,
+    MistralConfig, MistralProvider, OpenAICompatibleEndpoint, OpenAIConfig, OpenAIProvider,
+    Provider, VertexConfig, VertexProvider,
 };
 pub use retry::{RetryPolicy, RetryStrategy};
 pub use router::{

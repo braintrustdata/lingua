@@ -33,7 +33,7 @@ impl ResponseHeaderCapture {
         self.headers.lock().clone()
     }
 
-    fn set_headers(&self, headers: HeaderMap) {
+    pub(crate) fn set_headers(&self, headers: HeaderMap) {
         *self.headers.lock() = Some(headers);
     }
 }
@@ -172,7 +172,7 @@ fn build_retrying_middleware_client(client: Client) -> ClientWithMiddleware {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct ResponseHeaderCaptureMiddleware;
+pub struct ResponseHeaderCaptureMiddleware;
 
 #[async_trait::async_trait]
 impl Middleware for ResponseHeaderCaptureMiddleware {

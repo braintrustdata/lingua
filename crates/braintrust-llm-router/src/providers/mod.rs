@@ -150,19 +150,27 @@ impl ClientHeaders {
         cloned
     }
 
+    pub fn record_response_headers(&self, headers: HeaderMap) {
+        if let Some(capture) = self.response_header_capture() {
+            capture.set_headers(headers);
+        }
+    }
+
     fn response_header_capture(&self) -> Option<ResponseHeaderCapture> {
         self.response_header_capture.clone()
     }
 }
 
-pub(crate) async fn send_with_response_header_capture(
+pub async fn send_with_response_header_capture(
     mut request: reqwest_middleware::RequestBuilder,
     client_headers: &ClientHeaders,
 ) -> Result<reqwest::Response> {
     if let Some(capture) = client_headers.response_header_capture() {
         request = request.with_extension(capture);
     }
-    request.send().await.map_err(Error::from)
+    let response = request.send().await.map_err(Error::from)?;
+    client_headers.record_response_headers(response.headers().clone());
+    Ok(response)
 }
 
 // NOTE: This FromIterator impl exists to support collecting forwarded client

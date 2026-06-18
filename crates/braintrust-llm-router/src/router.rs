@@ -41,17 +41,17 @@ pub struct CompleteResponseWithRaw {
 pub struct CompleteResponseWithRawAndHeaders {
     pub response: Bytes,
     pub raw_response: Bytes,
-    pub headers: HeaderMap,
+    pub headers: Option<HeaderMap>,
 }
 
 struct CompleteResponseInternal {
     response: CompleteResponseWithRaw,
-    headers: HeaderMap,
+    headers: Option<HeaderMap>,
 }
 
 pub struct CompleteStreamResponseWithHeaders {
     pub stream: ResponseStream,
-    pub headers: HeaderMap,
+    pub headers: Option<HeaderMap>,
 }
 
 use crate::providers::{
@@ -444,7 +444,7 @@ impl Router {
                 response,
                 raw_response: response_bytes,
             },
-            headers: response_header_capture.headers().unwrap_or_default(),
+            headers: response_header_capture.headers(),
         })
     }
 
@@ -613,7 +613,7 @@ impl Router {
         };
         Ok(CompleteStreamResponseWithHeaders {
             stream,
-            headers: response_header_capture.headers().unwrap_or_default(),
+            headers: response_header_capture.headers(),
         })
     }
 
@@ -1547,6 +1547,45 @@ mod tests {
             .expect("stream item")
             .expect("stream item succeeds");
         assert!(!first.data.is_empty());
+    }
+
+    #[tokio::test]
+    async fn header_aware_methods_report_unavailable_headers_for_non_participating_provider() {
+        let router = router_with_static_provider(StaticProvider {
+            response: chat_response_body(),
+            stream_chunks: vec![chat_stream_chunk_body()],
+        });
+        let (prepared, _) = create_test_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("request prepares");
+        let response = router
+            .complete_with_raw_response_and_headers(prepared, &ClientHeaders::default())
+            .await
+            .expect("complete succeeds");
+        assert!(response.headers.is_none());
+
+        let (prepared_stream, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
+        let response_stream = router
+            .complete_stream_with_response_headers(
+                prepared_stream,
+                &ClientHeaders::default(),
+                Some("request-id".to_string()),
+            )
+            .await
+            .expect("stream starts");
+        assert!(response_stream.headers.is_none());
     }
 
     fn google_chat_router(model: &str) -> Router {
