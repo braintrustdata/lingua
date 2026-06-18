@@ -233,8 +233,9 @@ async fn prepare_provider_request(
         return Ok((bytes, Some(format), format));
     }
 
+    let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
     let (transformed, detected_format, actual_format, maybe_rewrite_model) =
-        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
+        match lingua::transform_request(body.clone(), format, model_override) {
             Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true),
             Ok(TransformResult::Transformed {
                 bytes,
@@ -1608,6 +1609,34 @@ mod tests {
         assert_eq!(
             parsed.pointer("/messages/0/name").and_then(Value::as_str),
             Some("example_user")
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_can_preserve_body_model_across_format_transform() {
+        let body = Bytes::from_static(
+            br#"{"model":"claude-3-5-haiku-20241022","max_tokens":128,"messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, detected_format, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions {
+                rewrite_body_model: false,
+            },
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(detected_format, Some(ProviderFormat::Anthropic));
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(
+            parsed.get("model").and_then(Value::as_str),
+            Some("claude-3-5-haiku-20241022")
         );
     }
 
