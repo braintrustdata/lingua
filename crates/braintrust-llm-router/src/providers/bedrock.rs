@@ -23,7 +23,7 @@ use crate::auth::AuthConfig;
 use crate::catalog::ModelSpec;
 use crate::client::{build_middleware_client, ClientSettings};
 use crate::error::{Error, Result, UpstreamHttpError};
-use crate::providers::ClientHeaders;
+use crate::providers::{rewrite_body_model_if_required, ClientHeaders};
 use crate::streaming::{bedrock_event_stream, sse_stream, RawResponseStream};
 use lingua::{ProviderFormat, TransformError};
 
@@ -91,7 +91,7 @@ where
     };
 
     if source_adapter.format() == format {
-        return Ok(body);
+        return Ok(rewrite_body_model_if_required(body, format, &spec.model));
     }
 
     let mut request = match source_adapter.request_to_universal(payload) {
@@ -100,10 +100,7 @@ where
     };
 
     inline_remote_image_urls_with_fetch(&mut request, fetch).await?;
-
-    if request.model.is_none() {
-        request.model = Some(spec.model.clone());
-    }
+    request.model = Some(spec.model.clone());
 
     let target_adapter =
         adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
@@ -624,6 +621,11 @@ mod tests {
         let body = Bytes::from(
             lingua::serde_json::to_vec(&lingua::serde_json::json!({
                 "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+                "system": [{"text": "You are helpful."}],
+                "guardrailConfig": {
+                    "guardrailIdentifier": "test",
+                    "guardrailVersion": "1"
+                },
                 "messages": [{
                     "role": "user",
                     "content": [{"text": "Hello"}]
@@ -649,6 +651,57 @@ mod tests {
         .unwrap();
 
         assert_eq!(prepared, body);
+    }
+
+    #[tokio::test]
+    async fn prepare_request_preserves_same_format_converse_model_and_native_fields() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+                "system": [{"text": "You are helpful."}],
+                "guardrailConfig": {
+                    "guardrailIdentifier": "test",
+                    "guardrailVersion": "1"
+                },
+                "messages": [{
+                    "role": "user",
+                    "content": [{"text": "Hello"}]
+                }]
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for same-format converse requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        assert_eq!(
+            value.get("modelId").and_then(|v| v.as_str()),
+            Some("anthropic.claude-3-haiku-20240307-v1:0")
+        );
+        assert_eq!(
+            value.pointer("/system/0/text").and_then(|v| v.as_str()),
+            Some("You are helpful.")
+        );
+        assert_eq!(
+            value
+                .pointer("/guardrailConfig/guardrailIdentifier")
+                .and_then(|v| v.as_str()),
+            Some("test")
+        );
     }
 
     #[tokio::test]

@@ -85,7 +85,7 @@ async fn main() -> Result<()> {
         match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[]) {
             Ok(routes) => match routes.first() {
                 Some(route) => match router
-                    .create_request(body, ProviderFormat::ChatCompletions, route)
+                    .create_request(body, ProviderFormat::ChatCompletions, route, false)
                     .await
                 {
                     Ok((request, _metadata)) => {
@@ -122,7 +122,7 @@ async fn main() -> Result<()> {
         match router.resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[]) {
             Ok(routes) => match routes.first() {
                 Some(route) => match router
-                    .create_request(body, ProviderFormat::ChatCompletions, route)
+                    .create_request(body, ProviderFormat::ChatCompletions, route, false)
                     .await
                 {
                     Ok((request, _metadata)) => {

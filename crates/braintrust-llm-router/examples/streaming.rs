@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
             ProviderFormat::ChatCompletions,
         ))?;
     let (request, _metadata) = router
-        .create_stream_request(body, ProviderFormat::ChatCompletions, route)
+        .create_stream_request(body, ProviderFormat::ChatCompletions, route, false)
         .await?;
     let mut stream = router
         .complete_stream(request, &ClientHeaders::default(), None)
@@ -150,7 +150,7 @@ async fn main() -> Result<()> {
                 ProviderFormat::ChatCompletions,
             ))?;
         let (request, _metadata) = router
-            .create_stream_request(body, ProviderFormat::ChatCompletions, route)
+            .create_stream_request(body, ProviderFormat::ChatCompletions, route, false)
             .await?;
         let stream = router
             .complete_stream(request, &ClientHeaders::default(), None)

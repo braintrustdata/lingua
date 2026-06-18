@@ -68,7 +68,7 @@ async fn main() -> Result<()> {
             ProviderFormat::ChatCompletions,
         ))?;
     let (request, _metadata) = router
-        .create_request(body, ProviderFormat::ChatCompletions, route)
+        .create_request(body, ProviderFormat::ChatCompletions, route, false)
         .await?;
     let bytes = router.complete(request, &ClientHeaders::default()).await?;
     let response: Value = serde_json::from_slice(&bytes)?;

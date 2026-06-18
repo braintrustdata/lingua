@@ -16,7 +16,7 @@ use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
     enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
-    ClientHeaders, Provider,
+    rewrite_body_model_if_required, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{
@@ -124,13 +124,16 @@ pub fn create_provider(
             timeout,
             client_settings,
         )?)),
-        kind if is_openai_compatible(kind) => Ok(Arc::new(OpenAIProvider::from_config(
-            endpoint,
-            endpoint_template,
-            timeout,
-            metadata,
-            client_settings,
-        )?)),
+        kind if is_openai_compatible(kind) => Ok(Arc::new(
+            OpenAIProvider::from_config(
+                endpoint,
+                endpoint_template,
+                timeout,
+                metadata,
+                client_settings,
+            )?
+            .with_provider_alias(kind.to_ascii_lowercase()),
+        )),
         other => Err(Error::InvalidRequest(format!(
             "unsupported provider kind: {other}"
         ))),
@@ -205,28 +208,49 @@ struct PreparedRequestInner {
     strategy: RetryStrategy,
 }
 
+#[derive(Clone, Copy)]
+struct RequestPreparationOptions {
+    rewrite_body_model: bool,
+}
+
+impl Default for RequestPreparationOptions {
+    fn default() -> Self {
+        Self {
+            rewrite_body_model: true,
+        }
+    }
+}
+
 async fn prepare_provider_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
     stream: bool,
+    options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
         return Ok((bytes, Some(format), format));
     }
 
-    let (transformed, detected_format, actual_format) =
-        match lingua::transform_request(body.clone(), format, Some(&spec.model)) {
-            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format),
+    let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
+    let (transformed, detected_format, actual_format, maybe_rewrite_model) =
+        match lingua::transform_request(body.clone(), format, model_override) {
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true),
             Ok(TransformResult::Transformed {
                 bytes,
                 source_format,
                 actual_target_format,
-            }) => (bytes, Some(source_format), actual_target_format),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format),
+            }) => (bytes, Some(source_format), actual_target_format, false),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true),
             Err(err) => return Err(err.into()),
         };
+
+    let transformed = if options.rewrite_body_model && maybe_rewrite_model {
+        rewrite_body_model_if_required(transformed, actual_format, &spec.model)
+    } else {
+        transformed
+    };
 
     if stream {
         // TODO: Fold streaming intent into `lingua::transform_request` once we
@@ -266,9 +290,11 @@ impl Router {
         output_format: ProviderFormat,
         route: &ProviderRoute,
         stream: bool,
+        options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
         let (payload, detected_format, actual_format) =
-            prepare_provider_request(body, route.spec.as_ref(), route.format, stream).await?;
+            prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
+                .await?;
         Ok((
             PreparedRequestInner {
                 provider: route.provider.clone(),
@@ -294,6 +320,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `output_format` - The output format, or None to auto-detect from body
     /// * `route` - The already-resolved provider route to prepare for
+    /// * `preserve_body_model` - Keep the request body's model instead of rewriting it to the route model
     ///
     /// The body will be automatically transformed to the selected provider format if needed.
     #[cfg_attr(
@@ -309,9 +336,18 @@ impl Router {
         body: Bytes,
         output_format: ProviderFormat,
         route: &ProviderRoute,
+        preserve_body_model: bool,
     ) -> Result<(PreparedRequest, RouterMetadata)> {
         let (inner, metadata) = self
-            .create_prepared_request_internal(body, output_format, route, false)
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                false,
+                RequestPreparationOptions {
+                    rewrite_body_model: !preserve_body_model,
+                },
+            )
             .await?;
         Ok((PreparedRequest { inner }, metadata))
     }
@@ -400,6 +436,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `output_format` - The output format, or None to auto-detect from body
     /// * `route` - The already-resolved provider route to prepare for
+    /// * `preserve_body_model` - Keep the request body's model instead of rewriting it to the route model
     ///
     /// The body will be automatically transformed to the selected provider format if needed.
     #[cfg_attr(
@@ -415,9 +452,18 @@ impl Router {
         body: Bytes,
         output_format: ProviderFormat,
         route: &ProviderRoute,
+        preserve_body_model: bool,
     ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
         let (inner, metadata) = self
-            .create_prepared_request_internal(body, output_format, route, true)
+            .create_prepared_request_internal(
+                body,
+                output_format,
+                route,
+                true,
+                RequestPreparationOptions {
+                    rewrite_body_model: !preserve_body_model,
+                },
+            )
             .await?;
         Ok((PreparedStreamRequest { inner }, metadata))
     }
@@ -519,6 +565,14 @@ impl Router {
         output_format: ProviderFormat,
         fallback_aliases: &[String],
     ) -> Result<Vec<ProviderRoute>> {
+        if !fallback_aliases.is_empty() {
+            return self.resolve_provider_routes_for_failover(
+                model,
+                output_format,
+                fallback_aliases,
+            );
+        }
+
         let (spec, catalog_format, aliases) = self.resolver.resolve(model)?;
         let routes: Vec<Result<ProviderRoute>> = aliases
             .iter()
@@ -616,6 +670,106 @@ impl Router {
             return Err(first_error.unwrap_or_else(|| Error::NoProvider(catalog_format)));
         }
         Ok(successes)
+    }
+
+    fn resolve_provider_routes_for_failover(
+        &self,
+        model: &str,
+        output_format: ProviderFormat,
+        fallback_aliases: &[String],
+    ) -> Result<Vec<ProviderRoute>> {
+        let resolved_models = self.resolver.resolve_all_equivalent_model_routes(model)?;
+        let (_, first_catalog_format, _) = resolved_models
+            .first()
+            .ok_or_else(|| Error::UnknownModel(model.to_string()))?;
+        let mut first_error = None;
+        let mut routes = Vec::new();
+        let mut seen = HashSet::new();
+
+        if let Some((spec, catalog_format, aliases)) = resolved_models.first() {
+            for alias in aliases {
+                match self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    *catalog_format,
+                    alias.to_string(),
+                ) {
+                    Ok(route) => {
+                        seen.insert(route.provider_alias.clone());
+                        routes.push(route);
+                        break;
+                    }
+                    Err(err) => {
+                        if first_error.is_none() {
+                            first_error = Some(err);
+                        }
+                    }
+                }
+            }
+        }
+
+        for fallback_alias in fallback_aliases {
+            if seen.contains(fallback_alias) {
+                continue;
+            }
+
+            for (spec, catalog_format, aliases) in &resolved_models {
+                if !aliases
+                    .iter()
+                    .any(|alias| self.alias_matches_provider(alias, fallback_alias))
+                {
+                    continue;
+                }
+
+                match self.resolve_provider(
+                    output_format,
+                    spec.clone(),
+                    *catalog_format,
+                    fallback_alias.clone(),
+                ) {
+                    Ok(route) => {
+                        seen.insert(route.provider_alias.clone());
+                        routes.push(route);
+                        break;
+                    }
+                    Err(err) => {
+                        if first_error.is_none() {
+                            first_error = Some(err);
+                        }
+                    }
+                }
+            }
+        }
+
+        if routes.is_empty() {
+            return Err(first_error.unwrap_or_else(|| Error::NoProvider(*first_catalog_format)));
+        }
+
+        Ok(routes)
+    }
+
+    fn alias_matches_provider(&self, resolver_alias: &str, provider_alias: &str) -> bool {
+        if resolver_alias == provider_alias {
+            return true;
+        }
+
+        if let Some(provider_id) = default_alias_provider_id(resolver_alias) {
+            return self
+                .providers
+                .get(provider_alias)
+                .is_some_and(|provider| provider.matches_provider_alias(provider_id));
+        }
+
+        if self
+            .providers
+            .get(provider_alias)
+            .is_some_and(|provider| provider.matches_provider_alias(resolver_alias))
+        {
+            return true;
+        }
+
+        default_alias_provider_id(provider_alias)
+            .is_some_and(|provider_id| provider_id == resolver_alias)
     }
 
     #[cfg(test)]
@@ -807,6 +961,20 @@ impl Router {
                 }
             }
         }
+    }
+}
+
+fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
+    match alias {
+        "OPENAI_API_KEY" => Some("openai"),
+        "ANTHROPIC_API_KEY" => Some("anthropic"),
+        "GEMINI_API_KEY" => Some("google"),
+        "MISTRAL_API_KEY" => Some("mistral"),
+        "AWS_DEFAULT_CREDENTIALS" => Some("bedrock"),
+        "GOOGLE_DEFAULT_CREDENTIALS" => Some("vertex"),
+        "AZURE_DEFAULT_CREDENTIALS" => Some("azure"),
+        "DATABRICKS_DEFAULT_CREDENTIALS" => Some("databricks"),
+        _ => None,
     }
 }
 
@@ -1072,6 +1240,51 @@ mod tests {
         }
     }
 
+    struct FakeOpenAICompatibleProvider {
+        alias: &'static str,
+    }
+
+    #[async_trait]
+    impl Provider for FakeOpenAICompatibleProvider {
+        fn id(&self) -> &'static str {
+            "openai"
+        }
+
+        fn matches_provider_alias(&self, alias: &str) -> bool {
+            self.alias == alias
+        }
+
+        fn provider_formats(&self) -> Vec<ProviderFormat> {
+            vec![ProviderFormat::ChatCompletions]
+        }
+
+        async fn complete(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<Bytes> {
+            Ok(Bytes::from("{}"))
+        }
+
+        async fn complete_stream(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<RawResponseStream> {
+            unimplemented!()
+        }
+
+        async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
+            Ok(())
+        }
+    }
+
     fn google_spec(model: &str) -> ModelSpec {
         ModelSpec {
             model: model.to_string(),
@@ -1197,7 +1410,9 @@ mod tests {
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
-        router.create_request(body, output_format, route).await
+        router
+            .create_request(body, output_format, route, false)
+            .await
     }
 
     async fn create_test_stream_request(
@@ -1211,7 +1426,7 @@ mod tests {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         router
-            .create_stream_request(body, output_format, route)
+            .create_stream_request(body, output_format, route, false)
             .await
     }
 
@@ -1222,10 +1437,15 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, true)
-                .await
-                .expect("request prepares");
+        let (payload, _, _) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            true,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), Some(&Value::Bool(true)));
@@ -1240,14 +1460,184 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-                .await
-                .expect("request prepares");
+        let (payload, _, _) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
         assert_eq!(parsed.get("stream"), None);
         assert_eq!(parsed.get("stream_options"), None);
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_does_not_read_model_for_vertex_anthropic() {
+        let body = Bytes::from_static(
+            br#"{"model":"claude-sonnet-4-6","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let spec = ModelSpec {
+            model: "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
+            format: ProviderFormat::Anthropic,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["vertex".to_string()],
+        };
+
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::VertexAnthropic,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::VertexAnthropic);
+        assert_eq!(parsed.get("model"), None);
+        assert!(parsed.get("anthropic_version").is_some());
+        assert!(parsed.get("messages").is_some());
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_does_not_rewrite_model_for_google_pass_through() {
+        let body = Bytes::from_static(
+            br#"{"model":"models/gemini-2.5-flash","contents":[{"role":"user","parts":[{"text":"Ping"}]}]}"#,
+        );
+        let spec = ModelSpec {
+            model: "models/gemini-2.5-pro".to_string(),
+            format: ProviderFormat::Google,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["google".to_string()],
+        };
+
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::Google,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::Google);
+        assert_eq!(
+            parsed.get("model").and_then(Value::as_str),
+            Some("models/gemini-2.5-flash")
+        );
+        assert!(parsed.get("contents").is_some());
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_rewrites_same_format_chat_model_without_losing_native_fields()
+    {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","name":"example_user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(parsed.get("model").and_then(Value::as_str), Some("gpt-4o"));
+        assert_eq!(
+            parsed.pointer("/messages/0/name").and_then(Value::as_str),
+            Some("example_user")
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_can_preserve_same_format_body_model() {
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4","messages":[{"role":"user","name":"example_user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions {
+                rewrite_body_model: false,
+            },
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(parsed.get("model").and_then(Value::as_str), Some("gpt-4"));
+        assert_eq!(
+            parsed.pointer("/messages/0/name").and_then(Value::as_str),
+            Some("example_user")
+        );
+    }
+
+    #[tokio::test]
+    async fn prepare_provider_request_can_preserve_body_model_across_format_transform() {
+        let body = Bytes::from_static(
+            br#"{"model":"claude-3-5-haiku-20241022","max_tokens":128,"messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
+
+        let (payload, detected_format, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions {
+                rewrite_body_model: false,
+            },
+        )
+        .await
+        .expect("request prepares");
+        let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
+
+        assert_eq!(detected_format, Some(ProviderFormat::Anthropic));
+        assert_eq!(actual_format, ProviderFormat::ChatCompletions);
+        assert_eq!(
+            parsed.get("model").and_then(Value::as_str),
+            Some("claude-3-5-haiku-20241022")
+        );
     }
 
     #[tokio::test]
@@ -1277,10 +1667,15 @@ mod tests {
         );
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
-        let (_, _, actual_format) =
-            prepare_provider_request(body, &spec, ProviderFormat::ChatCompletions, false)
-                .await
-                .expect("request prepares");
+        let (_, _, actual_format) = prepare_provider_request(
+            body,
+            &spec,
+            ProviderFormat::ChatCompletions,
+            false,
+            RequestPreparationOptions::default(),
+        )
+        .await
+        .expect("request prepares");
 
         assert_eq!(
             actual_format,
@@ -2424,6 +2819,131 @@ mod tests {
     }
 
     #[test]
+    fn overlay_catalog_failover_routes_use_equivalent_custom_model() {
+        let base = ModelCatalog::empty();
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec("custom-primary", ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        let mut fallback = openai_spec("custom-fallback", ModelFlavor::Chat);
+        fallback.available_providers = vec!["provider-b".to_string()];
+        custom.insert("custom-primary".into(), primary);
+        custom.insert("custom-fallback".into(), fallback);
+        custom
+            .add_fallback_models(
+                "custom-primary".to_string(),
+                vec!["custom-fallback".to_string()],
+            )
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "provider-b",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                "custom-primary",
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "provider-b".to_string()],
+            )
+            .expect("failover routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![
+                ("provider-a", "custom-primary"),
+                ("provider-b", "custom-fallback"),
+            ]
+        );
+    }
+
+    #[test]
+    fn overlay_catalog_failover_routes_use_equivalent_base_model() {
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            "base-fallback".into(),
+            openai_spec_with_available_providers("base-fallback", ModelFlavor::Chat),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec("custom-primary", ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert("custom-primary".into(), primary);
+        custom
+            .add_external_fallback_models(
+                "custom-primary".to_string(),
+                vec!["base-fallback".to_string()],
+            )
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                "custom-primary",
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "openai".to_string()],
+            )
+            .expect("failover routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![
+                ("provider-a", "custom-primary"),
+                ("openai", "base-fallback"),
+            ]
+        );
+        assert!(router.catalog().get("base-fallback").is_some());
+        assert!(router.catalog().get("custom-primary").is_none());
+    }
+
+    #[test]
     fn resolved_aliases_returns_only_registered_available_providers() {
         let model = "gpt-4o";
         let mut catalog = ModelCatalog::empty();
@@ -2533,6 +3053,417 @@ mod tests {
             )
             .expect("routes"),
             vec!["openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_do_not_treat_openai_provider_id_as_allowlist_match() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["openai".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "cerebras",
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["cerebras"]
+            )
+            .expect("routes"),
+            vec!["openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_match_named_openai_secret_for_default_alias() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENAI_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        assert_eq!(
+            explicit_route_aliases(
+                &router,
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-openai"]
+            )
+            .expect("routes"),
+            vec!["my-openai".to_string()]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_openai_when_equivalents_omit_available_providers() {
+        let model = "custom-primary";
+        let fallback_model = "gpt-4o";
+        let mut base = ModelCatalog::empty();
+        base.insert(
+            fallback_model.into(),
+            openai_spec(fallback_model, ModelFlavor::Chat),
+        );
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec(model, ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert(model.into(), primary);
+        custom
+            .add_external_fallback_models(model.to_string(), vec![fallback_model.to_string()])
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-openai",
+                FakeOpenAICompatibleProvider { alias: "openai" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-openai".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("provider-a", model), ("my-openai", fallback_model)]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_openai_compatible_provider_id() {
+        let model = "custom-primary";
+        let fallback_model = "llama-4-scout";
+        let mut base = ModelCatalog::empty();
+        let mut fallback = openai_spec(fallback_model, ModelFlavor::Chat);
+        fallback.available_providers = vec!["cerebras".to_string()];
+        base.insert(fallback_model.into(), fallback);
+        let mut custom = ModelCatalog::empty();
+        let mut primary = openai_spec(model, ModelFlavor::Chat);
+        primary.available_providers = vec!["provider-a".to_string()];
+        custom.insert(model.into(), primary);
+        custom
+            .add_external_fallback_models(model.to_string(), vec![fallback_model.to_string()])
+            .expect("equivalence is valid");
+
+        let router = Router::builder()
+            .with_overlay_catalog(Arc::new(base), custom)
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-cerebras",
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-cerebras".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("provider-a", model), ("my-cerebras", fallback_model)]
+        );
+    }
+
+    #[tokio::test]
+    async fn failover_request_payload_uses_equivalent_route_model_for_same_format() {
+        let model = "gpt-4o";
+        let fallback_model = "other-provider/gpt-4o";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "gpt-4o": {
+    "format": "openai",
+    "flavor": "chat",
+    "available_providers": ["provider-a"],
+    "fallback_models": ["other-provider/gpt-4o"]
+  },
+  "other-provider/gpt-4o": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "provider-a",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-openai",
+                FakeOpenAICompatibleProvider { alias: "openai" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["provider-a".to_string(), "my-openai".to_string()],
+            )
+            .expect("routes resolve");
+        let fallback_route = routes
+            .iter()
+            .find(|route| route.provider_alias() == "my-openai")
+            .expect("fallback route exists");
+        assert_eq!(fallback_route.model(), fallback_model);
+
+        let body = Bytes::from_static(
+            br#"{"model":"gpt-4o","messages":[{"role":"user","content":"Ping"}]}"#,
+        );
+        let (request, _) = router
+            .create_request(body, ProviderFormat::ChatCompletions, fallback_route, false)
+            .await
+            .expect("request prepares");
+        let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
+
+        assert_eq!(
+            payload.get("model").and_then(Value::as_str),
+            Some(fallback_model)
+        );
+    }
+
+    #[test]
+    fn fallback_provider_routes_do_not_match_openai_default_alias_to_compatible_provider() {
+        let model = "gpt-4o";
+        let mut catalog = ModelCatalog::empty();
+        let mut spec = openai_spec(model, ModelFlavor::Chat);
+        spec.available_providers = vec!["OPENAI_API_KEY".into()];
+        catalog.insert(model.into(), spec);
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "openai",
+                FakeProvider {
+                    name: "openai",
+                    formats: vec![ProviderFormat::ChatCompletions],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .add_provider(
+                "cerebras",
+                FakeOpenAICompatibleProvider { alias: "cerebras" },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let err = match explicit_route_aliases(
+            &router,
+            model,
+            ProviderFormat::ChatCompletions,
+            &["cerebras"],
+        ) {
+            Ok(_) => panic!("OpenAI-compatible provider should not satisfy OpenAI default alias"),
+            Err(err) => err,
+        };
+
+        assert!(matches!(
+            err,
+            Error::NoProvider(ProviderFormat::ChatCompletions)
+        ));
+    }
+
+    #[test]
+    fn failover_routes_match_named_secrets_by_concrete_provider_id() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["ANTHROPIC_API_KEY"],
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["GOOGLE_DEFAULT_CREDENTIALS"]
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-anthropic",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-anthropic".to_string(), "my-vertex".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("my-anthropic", model), ("my-vertex", vertex_model),]
+        );
+    }
+
+    #[test]
+    fn failover_routes_match_named_secrets_when_equivalents_omit_available_providers() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "my-anthropic",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "my-vertex",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &["my-anthropic".to_string(), "my-vertex".to_string()],
+            )
+            .expect("routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![("my-anthropic", model), ("my-vertex", vertex_model),]
         );
     }
 
@@ -2689,5 +3620,86 @@ mod tests {
         let aliases: Vec<&str> = routes.iter().map(|route| route.provider_alias()).collect();
 
         assert_eq!(aliases, vec!["openai", "azure"]);
+    }
+
+    #[test]
+    fn failover_routes_use_equivalent_provider_native_vertex_model() {
+        let model = "claude-sonnet-4-6";
+        let vertex_model = "publishers/anthropic/models/claude-sonnet-4-6";
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "available_providers": ["anthropic"],
+    "fallback_models": ["publishers/anthropic/models/claude-sonnet-4-6"]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+        let catalog = catalog.map_specs(|_, spec| {
+            let mut spec = spec.clone();
+            spec.available_providers = spec
+                .available_providers
+                .iter()
+                .map(|provider| {
+                    if provider == "anthropic" {
+                        "ANTHROPIC_API_KEY".to_string()
+                    } else {
+                        provider.clone()
+                    }
+                })
+                .collect();
+            spec
+        });
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "ANTHROPIC_API_KEY",
+                FakeProvider {
+                    name: "anthropic",
+                    formats: vec![ProviderFormat::Anthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .add_provider(
+                "GOOGLE_DEFAULT_CREDENTIALS",
+                FakeProvider {
+                    name: "vertex",
+                    formats: vec![ProviderFormat::VertexAnthropic],
+                },
+                dummy_auth(),
+                vec![],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(
+                model,
+                ProviderFormat::ChatCompletions,
+                &[
+                    "ANTHROPIC_API_KEY".to_string(),
+                    "GOOGLE_DEFAULT_CREDENTIALS".to_string(),
+                ],
+            )
+            .expect("failover routes resolve");
+        let route_info: Vec<(&str, &str)> = routes
+            .iter()
+            .map(|route| (route.provider_alias(), route.model()))
+            .collect();
+
+        assert_eq!(
+            route_info,
+            vec![
+                ("ANTHROPIC_API_KEY", model),
+                ("GOOGLE_DEFAULT_CREDENTIALS", vertex_model),
+            ]
+        );
     }
 }

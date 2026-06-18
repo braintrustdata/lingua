@@ -850,6 +850,30 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_transform_request_passthrough_with_identical_model_override() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "name": "example_user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+        let input_ptr = input.as_ptr();
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-4")).unwrap();
+
+        assert!(result.is_passthrough());
+        let output = result.into_bytes();
+        assert_eq!(output.as_ptr(), input_ptr);
+
+        let parsed: Value = crate::serde_json::from_slice(&output).unwrap();
+        assert_eq!(
+            parsed["messages"][0].get("name").and_then(Value::as_str),
+            Some("example_user")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_request_passthrough_repairs_lone_surrogate() {
         let input = Bytes::from_static(
             br#"{"model":"gpt-4","messages":[{"role":"user","content":"bad \uD83D text"}]}"#,
@@ -2158,9 +2182,46 @@ mod tests {
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("modelId").and_then(Value::as_str),
+            Some("amazon.nova-pro-v1:0")
+        );
         assert!(
             output.get("anthropic_version").is_none(),
             "Non-anthropic models should not have anthropic_version"
         );
+    }
+
+    #[test]
+    #[cfg(feature = "bedrock")]
+    fn test_transform_request_preserves_same_format_converse_passthrough_with_model_override() {
+        let payload = json!({
+            "modelId": "anthropic.claude-3-haiku-20240307-v1:0",
+            "guardrailConfig": {
+                "guardrailIdentifier": "test",
+                "guardrailVersion": "1"
+            },
+            "messages": [{
+                "role": "user",
+                "content": [{"text": "Hello"}]
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(
+            input,
+            ProviderFormat::Converse,
+            Some("anthropic.claude-3-5-sonnet-20241022-v2:0"),
+        )
+        .unwrap();
+
+        assert!(result.is_passthrough());
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("modelId").and_then(Value::as_str),
+            Some("anthropic.claude-3-haiku-20240307-v1:0")
+        );
+        assert!(output.get("guardrailConfig").is_some());
     }
 }

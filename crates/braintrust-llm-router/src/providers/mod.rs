@@ -1,6 +1,7 @@
 pub(crate) mod anthropic;
 mod azure;
 mod bedrock;
+mod body_model;
 mod databricks;
 mod google;
 mod mistral;
@@ -11,6 +12,7 @@ pub use anthropic::{AnthropicConfig, AnthropicProvider};
 pub use azure::{AzureConfig, AzureProvider};
 pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
+pub(crate) use body_model::rewrite_body_model_if_required;
 pub use databricks::{DatabricksConfig, DatabricksProvider};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
@@ -223,6 +225,11 @@ pub(crate) fn enable_streaming_payload(payload: Bytes, format: ProviderFormat) -
 pub trait Provider: Send + Sync {
     /// Provider identifier (e.g., "openai", "anthropic").
     fn id(&self) -> &'static str;
+
+    /// Whether this provider registration satisfies a catalog provider alias.
+    fn matches_provider_alias(&self, alias: &str) -> bool {
+        self.id() == alias
+    }
 
     /// All formats this provider can handle.
     fn provider_formats(&self) -> Vec<ProviderFormat>;
