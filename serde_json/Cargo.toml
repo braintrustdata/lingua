@@ -14,4 +14,3 @@ description = "Wrapper for serde_json with arbitrary_precision feature"
 # from the normal serde_json package while the Rust library crate remains named
 # serde_json.
 serde_json = { package = "braintrust_serde_json", git = "https://github.com/braintrustdata/serde-json.git", rev = "905b790b50e8922370f3e73ef93d7d5fb7010edc", features = ["arbitrary_precision"] }
-ts-rs = { version = "11.0", features = ["serde-compat"] }

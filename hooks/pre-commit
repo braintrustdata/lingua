@@ -10,6 +10,8 @@ echo "🔍 Running pre-commit checks..."
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+CARGO_MACHETE_VERSION="${CARGO_MACHETE_VERSION:-0.9.2}"
+
 declare -a STAGED_FILES=()
 while IFS= read -r -d '' file; do
     STAGED_FILES+=("$file")
@@ -33,6 +35,15 @@ restage_staged_files() {
     fi
 }
 
+ensure_cargo_machete() {
+    if cargo machete --version > /dev/null 2>&1; then
+        return
+    fi
+
+    echo "📦 Installing cargo-machete ${CARGO_MACHETE_VERSION}..."
+    cargo install cargo-machete --version "$CARGO_MACHETE_VERSION" --locked
+}
+
 # Check if we're in a Rust project
 if [ ! -f "Cargo.toml" ]; then
     echo "❌ No Cargo.toml found, skipping Rust checks"
@@ -43,6 +54,10 @@ fi
 echo "📝 Running cargo fmt..."
 cargo fmt --all
 restage_staged_files
+
+echo "🔍 Checking for unused Rust dependencies..."
+ensure_cargo_machete
+cargo machete
 
 # Check for TypeScript files and run linting/formatting
 if [ -f "payloads/package.json" ]; then
