@@ -319,6 +319,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `output_format` - The output format, or None to auto-detect from body
     /// * `route` - The already-resolved provider route to prepare for
+    /// * `preserve_body_model` - Keep the request body's model instead of rewriting it to the route model
     ///
     /// The body will be automatically transformed to the selected provider format if needed.
     #[cfg_attr(
@@ -334,24 +335,7 @@ impl Router {
         body: Bytes,
         output_format: ProviderFormat,
         route: &ProviderRoute,
-    ) -> Result<(PreparedRequest, RouterMetadata)> {
-        let (inner, metadata) = self
-            .create_prepared_request_internal(
-                body,
-                output_format,
-                route,
-                false,
-                RequestPreparationOptions::default(),
-            )
-            .await?;
-        Ok((PreparedRequest { inner }, metadata))
-    }
-
-    pub async fn create_request_preserving_body_model(
-        &self,
-        body: Bytes,
-        output_format: ProviderFormat,
-        route: &ProviderRoute,
+        preserve_body_model: bool,
     ) -> Result<(PreparedRequest, RouterMetadata)> {
         let (inner, metadata) = self
             .create_prepared_request_internal(
@@ -360,7 +344,7 @@ impl Router {
                 route,
                 false,
                 RequestPreparationOptions {
-                    rewrite_body_model: false,
+                    rewrite_body_model: !preserve_body_model,
                 },
             )
             .await?;
@@ -451,6 +435,7 @@ impl Router {
     /// * `body` - Raw request body bytes in any supported format (OpenAI, Anthropic, Google, etc.)
     /// * `output_format` - The output format, or None to auto-detect from body
     /// * `route` - The already-resolved provider route to prepare for
+    /// * `preserve_body_model` - Keep the request body's model instead of rewriting it to the route model
     ///
     /// The body will be automatically transformed to the selected provider format if needed.
     #[cfg_attr(
@@ -466,24 +451,7 @@ impl Router {
         body: Bytes,
         output_format: ProviderFormat,
         route: &ProviderRoute,
-    ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
-        let (inner, metadata) = self
-            .create_prepared_request_internal(
-                body,
-                output_format,
-                route,
-                true,
-                RequestPreparationOptions::default(),
-            )
-            .await?;
-        Ok((PreparedStreamRequest { inner }, metadata))
-    }
-
-    pub async fn create_stream_request_preserving_body_model(
-        &self,
-        body: Bytes,
-        output_format: ProviderFormat,
-        route: &ProviderRoute,
+        preserve_body_model: bool,
     ) -> Result<(PreparedStreamRequest, RouterMetadata)> {
         let (inner, metadata) = self
             .create_prepared_request_internal(
@@ -492,7 +460,7 @@ impl Router {
                 route,
                 true,
                 RequestPreparationOptions {
-                    rewrite_body_model: false,
+                    rewrite_body_model: !preserve_body_model,
                 },
             )
             .await?;
@@ -1441,7 +1409,9 @@ mod tests {
         let route = routes
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
-        router.create_request(body, output_format, route).await
+        router
+            .create_request(body, output_format, route, false)
+            .await
     }
 
     async fn create_test_stream_request(
@@ -1455,7 +1425,7 @@ mod tests {
             .first()
             .ok_or_else(|| Error::NoProvider(output_format))?;
         router
-            .create_stream_request(body, output_format, route)
+            .create_stream_request(body, output_format, route, false)
             .await
     }
 
@@ -3294,7 +3264,7 @@ mod tests {
             br#"{"model":"gpt-4o","messages":[{"role":"user","content":"Ping"}]}"#,
         );
         let (request, _) = router
-            .create_request(body, ProviderFormat::ChatCompletions, fallback_route)
+            .create_request(body, ProviderFormat::ChatCompletions, fallback_route, false)
             .await
             .expect("request prepares");
         let payload: Value = serde_json::from_slice(&request.inner.payload).expect("json");
