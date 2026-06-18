@@ -1504,7 +1504,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn prepare_provider_request_does_not_readd_model_for_vertex_anthropic() {
+    async fn prepare_provider_request_does_not_read_model_for_vertex_anthropic() {
         let body = Bytes::from_static(
             br#"{"model":"claude-sonnet-4-6","messages":[{"role":"user","content":"Ping"}]}"#,
         );
