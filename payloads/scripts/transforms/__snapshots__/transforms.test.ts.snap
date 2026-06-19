@@ -31403,6 +31403,89 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Find the available tools.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "id": "call_tool_search_123",
+          "input": {
+            "arguments": {},
+            "execution": "client",
+            "status": "completed",
+          },
+          "name": "tool_search",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "{"execution":"client","status":"completed","tools":[{"description":"Search code.","name":"search_code","parameters":{"additionalProperties":false,"properties":{},"type":"object"},"strict":true,"type":"function"}]}",
+          "tool_use_id": "call_tool_search_123",
+          "type": "tool_result",
+        },
+        {
+          "text": "Use the discovered tool list.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_01XqkNmvYyDAucYecUDNM7x1",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'll use the discovered tool to search the code.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'll use the discovered tool to search the code.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 175,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 20,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 195,
+  },
+}
+`;
+
 exports[`responses → anthropic > safetyIdentifierParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -34980,6 +35063,108 @@ Here are the key points:
       "reasoning_tokens": 2733,
     },
     "total_tokens": 3973,
+  },
+}
+`;
+
+exports[`responses → google > responsesToolSearchInputParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Find the available tools.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "arguments": {},
+              "execution": "client",
+              "status": "completed",
+            },
+            "name": "tool_search",
+          },
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "tool_search",
+            "response": {
+              "execution": "client",
+              "status": "completed",
+              "tools": [
+                {
+                  "description": "Search code.",
+                  "name": "search_code",
+                  "parameters": {
+                    "additionalProperties": false,
+                    "properties": {},
+                    "type": "object",
+                  },
+                  "strict": true,
+                  "type": "function",
+                },
+              ],
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "Use the discovered tool list.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesToolSearchInputParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{}",
+      "call_id": "5e9q0ave",
+      "id": "msg_transformed_item_0",
+      "name": "search_code",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 103,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 97,
+    "output_tokens_details": {
+      "reasoning_tokens": 87,
+    },
+    "total_tokens": 200,
   },
 }
 `;

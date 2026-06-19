@@ -1,0 +1,297 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_01ef7718f54d687b006a34cb986794819f8133bb7b7cc7ba1b",
+      "object": "response",
+      "created_at": 1781844888,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_01ef7718f54d687b006a34cb986794819f8133bb7b7cc7ba1b",
+      "object": "response",
+      "created_at": 1781844888,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_01ef7718f54d687b006a34cb9917e0819f91338ad90ac8818f",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_01ef7718f54d687b006a34cb9917e0819f91338ad90ac8818f",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_01ef7718f54d687b006a34cb99a8a0819faf2682de57bdad60",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_KxhmxhHOb3HJ2NGIeY2xzK6H",
+      "name": "search_code",
+      "namespace": "search_code"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{}",
+    "item_id": "fc_01ef7718f54d687b006a34cb99a8a0819faf2682de57bdad60",
+    "obfuscation": "uKLY0a0YSaPQRw",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{}",
+    "item_id": "fc_01ef7718f54d687b006a34cb99a8a0819faf2682de57bdad60",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_01ef7718f54d687b006a34cb99a8a0819faf2682de57bdad60",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{}",
+      "call_id": "call_KxhmxhHOb3HJ2NGIeY2xzK6H",
+      "name": "search_code",
+      "namespace": "search_code"
+    },
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_01ef7718f54d687b006a34cb986794819f8133bb7b7cc7ba1b",
+      "object": "response",
+      "created_at": 1781844888,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1781844889,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_01ef7718f54d687b006a34cb9917e0819f91338ad90ac8818f",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "fc_01ef7718f54d687b006a34cb99a8a0819faf2682de57bdad60",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{}",
+          "call_id": "call_KxhmxhHOb3HJ2NGIeY2xzK6H",
+          "name": "search_code",
+          "namespace": "search_code"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 172,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 52,
+        "output_tokens_details": {
+          "reasoning_tokens": 35
+        },
+        "total_tokens": 224
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 8
+  }
+]

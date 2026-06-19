@@ -140,6 +140,54 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesToolSearchInputParam: {
+    "chat-completions": null,
+    responses: {
+      model: "gpt-5.5",
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: "Find the available tools.",
+        },
+        {
+          type: "tool_search_call",
+          call_id: "call_tool_search_123",
+          status: "completed",
+          execution: "client",
+          arguments: {},
+        },
+        {
+          type: "tool_search_output",
+          call_id: "call_tool_search_123",
+          status: "completed",
+          execution: "client",
+          tools: [
+            {
+              type: "function",
+              name: "search_code",
+              description: "Search code.",
+              strict: true,
+              parameters: {
+                type: "object",
+                properties: {},
+                additionalProperties: false,
+              },
+            },
+          ],
+        },
+        {
+          type: "message",
+          role: "user",
+          content: "Use the discovered tool list.",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   chatCompletionsAnthropicCacheControlParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

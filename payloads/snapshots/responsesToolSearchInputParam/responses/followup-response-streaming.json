@@ -1,0 +1,490 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "object": "response",
+      "created_at": 1781844890,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "object": "response",
+      "created_at": 1781844890,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "The",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "QuAwj0N8S1HEX",
+    "output_index": 0,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " discovered",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "Skg86",
+    "output_index": 0,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " tool",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "fxzOM4eMMxO",
+    "output_index": 0,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " was",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "C5tZMOTprgwJ",
+    "output_index": 0,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "S2Iod1ad8VWLZe",
+    "output_index": 0,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "search",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "3Os3cx1SxH",
+    "output_index": 0,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_code",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "rNdMeo0fKdd",
+    "output_index": 0,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".search",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "moyEylJQ1",
+    "output_index": 0,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_code",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "kw65LqRVPg9",
+    "output_index": 0,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`.\n\n",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "xYSNJBIxuAU8",
+    "output_index": 0,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Result",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "o9ZSMgrd0I",
+    "output_index": 0,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " from",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "DApUjhHuQJ4",
+    "output_index": 0,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " using",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "zcGmTHikH9",
+    "output_index": 0,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " it",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "0uXcJGImZNcbd",
+    "output_index": 0,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ":",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "0rg95Cf3EGu5ibi",
+    "output_index": 0,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "ukuaUNIwYpoKKm",
+    "output_index": 0,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "71",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "vPqTMsyWRscEle",
+    "output_index": 0,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " degrees",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "vqMNvREf",
+    "output_index": 0,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "obfuscation": "qTPJTNts5iMfUBf",
+    "output_index": 0,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "logprobs": [],
+    "output_index": 0,
+    "sequence_number": 23,
+    "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "output_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+    },
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 0,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "object": "response",
+      "created_at": 1781844890,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1781844891,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [
+        {
+          "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "namespace",
+          "description": "Search code.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 254,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 23,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 277
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 26
+  }
+]

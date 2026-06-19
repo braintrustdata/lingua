@@ -1223,6 +1223,7 @@ mod tests {
     use crate::processing::adapters::ProviderAdapter;
     use crate::processing::transform::transform_response;
     use crate::serde_json::json;
+    use crate::universal::{AssistantContentPart, ToolContentPart};
     use bytes::Bytes;
 
     #[test]
@@ -1291,6 +1292,75 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[test]
+    fn responses_tool_search_input_items_convert_to_universal() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": "Find the available tools."
+                },
+                {
+                    "type": "tool_search_call",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "arguments": {}
+                },
+                {
+                    "type": "tool_search_output",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "tools": [{
+                        "type": "function",
+                        "name": "search_code",
+                        "description": "Search code.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {},
+                            "additionalProperties": false
+                        }
+                    }]
+                }
+            ]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        assert_eq!(universal.messages.len(), 3);
+        let Message::Assistant { content, .. } = &universal.messages[1] else {
+            panic!("tool_search_call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("tool_search_call should convert to assistant tool call array");
+        };
+        let AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            provider_executed,
+            ..
+        } = &parts[0]
+        else {
+            panic!("tool_search_call should convert to tool call");
+        };
+        assert_eq!(tool_call_id, "call_tool_search_123");
+        assert_eq!(tool_name, "tool_search");
+        assert_eq!(*provider_executed, None);
+
+        let Message::Tool { content } = &universal.messages[2] else {
+            panic!("tool_search_output should convert to tool message");
+        };
+        let ToolContentPart::ToolResult(result) = &content[0];
+        assert_eq!(result.tool_call_id, "call_tool_search_123");
+        assert_eq!(result.tool_name, "tool_search");
+        assert_eq!(result.output["execution"], json!("client"));
+        assert_eq!(result.output["tools"][0]["name"], json!("search_code"));
     }
 
     #[test]

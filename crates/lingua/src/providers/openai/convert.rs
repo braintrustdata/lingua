@@ -24,6 +24,13 @@ fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
     }
 }
 
+fn openai_arguments_to_value(arguments: openai::Arguments) -> serde_json::Value {
+    match arguments {
+        openai::Arguments::String(value) => serde_json::Value::String(value),
+        openai::Arguments::AnythingMap(value) => serde_json::Value::Object(value),
+    }
+}
+
 fn openai_arguments_from_string(arguments: String) -> openai::Arguments {
     openai::Arguments::String(arguments)
 }
@@ -968,6 +975,60 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     result.push(Message::Assistant {
                         content: AssistantContent::Array(vec![tool_call]),
                         id: input.id,
+                    });
+                }
+                Some(openai::InputItemType::ToolSearchCall) => {
+                    let tool_call_id =
+                        input
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "tool search call_id".to_string(),
+                            })?;
+                    let provider_executed = if matches!(
+                        input.execution.as_ref(),
+                        Some(openai::ToolSearchExecutionType::Server)
+                    ) {
+                        Some(true)
+                    } else {
+                        None
+                    };
+                    let tool_call = AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name: "tool_search".to_string(),
+                        arguments: build_tool_arguments(&serde_json::json!({
+                            "arguments": input.arguments.map(openai_arguments_to_value),
+                            "execution": input.execution,
+                            "status": input.status,
+                        })),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed,
+                    };
+                    result.push(Message::Assistant {
+                        content: AssistantContent::Array(vec![tool_call]),
+                        id: input.id,
+                    });
+                }
+                Some(openai::InputItemType::ToolSearchOutput) => {
+                    let tool_call_id =
+                        input
+                            .call_id
+                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                                field: "tool search output call_id".to_string(),
+                            })?;
+                    let tool_result = ToolResultContentPart {
+                        tool_call_id,
+                        tool_name: "tool_search".to_string(),
+                        output: serde_json::json!({
+                            "execution": input.execution,
+                            "status": input.status,
+                            "tools": input.tools,
+                        }),
+                        provider_options: None,
+                    };
+
+                    result.push(Message::Tool {
+                        content: vec![ToolContentPart::ToolResult(tool_result)],
                     });
                 }
                 Some(openai::InputItemType::ItemReference) => {
