@@ -40,6 +40,9 @@ jobs:
       with:
         components: rustfmt, clippy
 
+    - name: Install cargo-machete
+      run: cargo install cargo-machete --version 0.9.2 --locked
+
     - name: Cache cargo registry
       uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3.5.0
       with:
@@ -58,6 +61,9 @@ jobs:
 
     - name: Check formatting
       run: cargo fmt --all -- --check
+
+    - name: Check unused dependencies
+      run: cargo machete
 
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings

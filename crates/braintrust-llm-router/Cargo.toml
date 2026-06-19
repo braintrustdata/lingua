@@ -27,13 +27,11 @@ lingua = { workspace = true, features = ["openai", "anthropic", "google", "bedro
 reqwest = { workspace = true, features = ["json", "stream", "gzip"] }
 reqwest-middleware = { workspace = true }
 reqwest-retry = { workspace = true }
-hyper = { workspace = true, optional = true }
 http = { workspace = true }
 
 # Serialization
 serde = { workspace = true }
 serde_json = { workspace = true }
-big_serde_json = { workspace = true }
 
 # Error handling
 thiserror = { workspace = true }
@@ -42,30 +40,18 @@ anyhow = { workspace = true }
 # Utilities
 once_cell = { workspace = true }
 parking_lot = { workspace = true }
-arc-swap = { workspace = true }
 bytes = { workspace = true }
-pin-project = { workspace = true }
 dashmap = { workspace = true }
-log = { workspace = true }
 
 # Provider-specific dependencies
 aws-sigv4 = { workspace = true, optional = true }
 aws-credential-types = { workspace = true, optional = true }
 aws-smithy-runtime-api = { workspace = true, optional = true }
 aws-smithy-eventstream = { workspace = true, optional = true }
-aws-smithy-types = { workspace = true, optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 
 # Logging & tracing
 tracing = { workspace = true, optional = true }
-tracing-subscriber = { workspace = true, optional = true }
-
-# Performance
-lru = { workspace = true }
-smallvec = { workspace = true }
-
-# Time handling
-chrono = { workspace = true }
 
 # URL handling
 url = { workspace = true }
@@ -75,9 +61,6 @@ base64 = { workspace = true }
 
 # SHA hashing (for cache keys)
 sha2 = { workspace = true }
-
-# Ordered float for cache keys
-ordered-float = { workspace = true }
 
 [dev-dependencies]
 # Testing
@@ -100,15 +83,15 @@ all-providers = ["provider-openai", "provider-anthropic", "provider-google", "pr
 provider-openai = []
 provider-anthropic = []
 provider-google = ["jsonwebtoken"]
-provider-bedrock = ["aws-sigv4", "aws-credential-types", "aws-smithy-runtime-api", "aws-smithy-eventstream", "aws-smithy-types"]
-tracing = ["dep:tracing", "dep:tracing-subscriber"]
+provider-bedrock = ["aws-sigv4", "aws-credential-types", "aws-smithy-runtime-api", "aws-smithy-eventstream"]
+tracing = ["dep:tracing"]
 
 # TLS backends
 rustls = ["reqwest/rustls-tls"]
 native-tls = ["reqwest/native-tls"]
 
 # Advanced features
-hyper-client = ["hyper"]
+hyper-client = []
 simd-json = []  # Would require simd-json crate when implemented
 
 [[bench]]

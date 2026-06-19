@@ -28,7 +28,9 @@ async fn create_request(
     let route = routes
         .first()
         .ok_or_else(|| Error::NoProvider(output_format))?;
-    router.create_request(body, output_format, route).await
+    router
+        .create_request(body, output_format, route, false)
+        .await
 }
 
 #[derive(Clone)]
@@ -918,7 +920,7 @@ async fn responses_required_model_uses_responses_for_anthropic_messages_output()
         .expect("resolve routes");
     let route = routes.first().expect("route");
     let (_request, metadata) = router
-        .create_request(body, ProviderFormat::Anthropic, route)
+        .create_request(body, ProviderFormat::Anthropic, route, false)
         .await
         .expect("create request");
 

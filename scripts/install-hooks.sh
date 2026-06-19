@@ -69,6 +69,7 @@ echo "  • pre-commit: Runs formatters, re-stages staged files, and runs checks
 echo ""
 echo "📋 How the pre-commit hook works:"
 echo "  • Automatically runs 'cargo fmt' to format Rust files"
+echo "  • Runs 'cargo machete' to catch unused Rust dependencies"
 echo "  • Runs payloads formatting and type checks with pnpm"
 echo "  • Re-stages files that were already staged before the hook ran"
 echo ""

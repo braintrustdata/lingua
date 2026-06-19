@@ -1,6 +1,8 @@
+mod fallback;
 mod resolver;
 pub mod spec;
 
+pub use fallback::OverlayModelCatalog;
 pub(crate) use resolver::is_gemini_api_model;
 pub use resolver::ModelResolver;
 pub use spec::{ModelFlavor, ModelSpec};
@@ -20,17 +22,8 @@ pub struct ModelCatalog {
     models: HashMap<String, Arc<ModelSpec>>,
     by_format: HashMap<ProviderFormat, Vec<String>>,
     by_parent: HashMap<String, Vec<String>>,
-}
-
-/// A request-local catalog overlay.
-///
-/// Secret-defined custom models live in `custom` and shadow entries in the
-/// shared `base` catalog. This avoids cloning the base catalog when adding
-/// per-request model definitions.
-#[derive(Debug, Clone)]
-pub struct OverlayModelCatalog {
-    pub base: Arc<ModelCatalog>,
-    pub custom: ModelCatalog,
+    fallback_models: HashMap<String, Vec<String>>,
+    equivalence_index: HashMap<String, Vec<String>>,
 }
 
 /// Catalog view used by the router resolver.
@@ -40,21 +33,28 @@ pub struct OverlayModelCatalog {
 #[derive(Debug, Clone)]
 pub enum CatalogResolver {
     Base(Arc<ModelCatalog>),
-    Overlay(OverlayModelCatalog),
+    Overlay(Box<OverlayModelCatalog>),
 }
 
 impl CatalogResolver {
     pub fn base_catalog(&self) -> Arc<ModelCatalog> {
         match self {
             Self::Base(catalog) => Arc::clone(catalog),
-            Self::Overlay(overlay) => Arc::clone(&overlay.base),
+            Self::Overlay(overlay) => overlay.base_catalog(),
         }
     }
 
     pub fn get(&self, name: &str) -> Option<Arc<ModelSpec>> {
         match self {
             Self::Base(catalog) => catalog.get(name),
-            Self::Overlay(overlay) => overlay.custom.get(name).or_else(|| overlay.base.get(name)),
+            Self::Overlay(overlay) => overlay.get(name),
+        }
+    }
+
+    pub fn fallback_models(&self, name: &str) -> Vec<String> {
+        match self {
+            Self::Base(catalog) => catalog.fallback_models(name),
+            Self::Overlay(overlay) => overlay.find_fallback_models(name),
         }
     }
 }
@@ -76,6 +76,7 @@ impl ModelCatalog {
         for (name, spec) in raw {
             catalog.insert(name, spec);
         }
+        catalog.set_fallback_models_from_json(content, true)?;
         Ok(catalog)
     }
 
@@ -142,6 +143,19 @@ impl ModelCatalog {
         self.models.iter()
     }
 
+    pub fn map_specs<F>(&self, mut f: F) -> Self
+    where
+        F: FnMut(&str, &ModelSpec) -> ModelSpec,
+    {
+        let mut out = Self::empty();
+        for (name, spec) in &self.models {
+            out.insert(name.clone(), f(name, spec.as_ref()));
+        }
+        out.set_fallback_models_from_parsed(self.fallback_models.clone(), false)
+            .expect("existing catalog fallback_models remain valid after mapping specs");
+        out
+    }
+
     pub fn len(&self) -> usize {
         self.models.len()
     }
@@ -174,3 +188,304 @@ pub fn load_catalog_from_disk<P: AsRef<Path>>(path: P) -> Result<Arc<ModelCatalo
 //
 // Consumers must load it explicitly via ModelCatalog::from_file() or
 // ModelCatalog::from_json_str(). There is no bundled/default catalog.
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::Error;
+
+    #[test]
+    fn fallback_models_are_available_from_any_member() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat",
+    "fallback_models": [
+      "publishers/anthropic/models/claude-sonnet-4-6",
+      "anthropic.claude-sonnet-4-6"
+    ]
+  },
+  "publishers/anthropic/models/claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
+  },
+  "anthropic.claude-sonnet-4-6": {
+    "format": "anthropic",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        assert_eq!(
+            catalog.fallback_models("claude-sonnet-4-6"),
+            vec![
+                "claude-sonnet-4-6".to_string(),
+                "anthropic.claude-sonnet-4-6".to_string(),
+                "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
+            ]
+        );
+        assert_eq!(
+            catalog.fallback_models("publishers/anthropic/models/claude-sonnet-4-6"),
+            vec![
+                "publishers/anthropic/models/claude-sonnet-4-6".to_string(),
+                "anthropic.claude-sonnet-4-6".to_string(),
+                "claude-sonnet-4-6".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn equivalent_model_groups_are_connected_components() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["model-b"]
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["model-c"]
+  },
+  "model-c": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        assert_eq!(
+            catalog.fallback_models("model-a"),
+            vec![
+                "model-a".to_string(),
+                "model-b".to_string(),
+                "model-c".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn missing_fallback_model_reference_is_invalid() {
+        let error = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["missing-model"]
+  }
+}"#,
+        )
+        .expect_err("missing fallback model should fail");
+
+        assert!(matches!(error, Error::InvalidRequest(_)));
+    }
+
+    #[test]
+    fn add_fallback_models_rebuilds_index() {
+        let mut catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat"
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        catalog
+            .add_fallback_models("model-a".to_string(), vec!["model-b".to_string()])
+            .expect("equivalence is valid");
+
+        assert_eq!(
+            catalog.fallback_models("model-a"),
+            vec!["model-a".to_string(), "model-b".to_string()]
+        );
+        assert_eq!(
+            catalog.fallback_models("model-b"),
+            vec!["model-b".to_string(), "model-a".to_string()]
+        );
+    }
+
+    #[test]
+    fn add_fallback_models_rejects_missing_reference() {
+        let mut catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        let error = catalog
+            .add_fallback_models("model-a".to_string(), vec!["missing".to_string()])
+            .expect_err("missing fallback model should fail");
+
+        assert!(matches!(error, Error::InvalidRequest(_)));
+        assert_eq!(
+            catalog.fallback_models("model-a"),
+            vec!["model-a".to_string()]
+        );
+    }
+
+    #[test]
+    fn map_specs_preserves_equivalent_model_index() {
+        let catalog = ModelCatalog::from_json_str(
+            r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["model-b"]
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+        )
+        .expect("catalog parses");
+
+        let mapped = catalog.map_specs(|_, spec| {
+            let mut spec = spec.clone();
+            spec.available_providers = vec!["OPENAI_API_KEY".to_string()];
+            spec
+        });
+
+        assert_eq!(
+            mapped.fallback_models("model-a"),
+            vec!["model-a".to_string(), "model-b".to_string()]
+        );
+    }
+
+    #[test]
+    fn overlay_equivalence_reaches_custom_and_touched_base_models() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "base-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["base-b"]
+  },
+  "base-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "custom-a".to_string(),
+            ModelSpec {
+                model: "custom-a".to_string(),
+                format: ProviderFormat::Anthropic,
+                flavor: ModelFlavor::Chat,
+                display_name: None,
+                parent: None,
+                input_cost_per_mil_tokens: None,
+                output_cost_per_mil_tokens: None,
+                input_cache_read_cost_per_mil_tokens: None,
+                multimodal: None,
+                reasoning: None,
+                max_input_tokens: None,
+                max_output_tokens: None,
+                supports_streaming: true,
+                extra: Default::default(),
+                available_providers: vec!["custom-provider".to_string()],
+            },
+        );
+        custom
+            .add_external_fallback_models("custom-a".to_string(), vec!["base-a".to_string()])
+            .expect("fallback is valid");
+
+        let overlay = OverlayModelCatalog::new(base, custom);
+
+        assert_eq!(
+            overlay.find_fallback_models("custom-a"),
+            vec![
+                "custom-a".to_string(),
+                "base-a".to_string(),
+                "base-b".to_string()
+            ]
+        );
+        assert_eq!(
+            overlay.find_fallback_models("base-a"),
+            vec![
+                "base-a".to_string(),
+                "base-b".to_string(),
+                "custom-a".to_string()
+            ]
+        );
+        assert_eq!(
+            overlay.find_fallback_models("base-b"),
+            vec![
+                "base-b".to_string(),
+                "base-a".to_string(),
+                "custom-a".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn overlay_equivalence_index_does_not_inherit_shadowed_base_edges() {
+        let base = Arc::new(
+            ModelCatalog::from_json_str(
+                r#"{
+  "model-a": {
+    "format": "openai",
+    "flavor": "chat",
+    "fallback_models": ["model-b"]
+  },
+  "model-b": {
+    "format": "openai",
+    "flavor": "chat"
+  }
+}"#,
+            )
+            .expect("base catalog parses"),
+        );
+        let mut custom = ModelCatalog::empty();
+        custom.insert(
+            "model-b".to_string(),
+            ModelSpec {
+                model: "custom-model-b".to_string(),
+                format: ProviderFormat::Anthropic,
+                flavor: ModelFlavor::Chat,
+                display_name: None,
+                parent: None,
+                input_cost_per_mil_tokens: None,
+                output_cost_per_mil_tokens: None,
+                input_cache_read_cost_per_mil_tokens: None,
+                multimodal: None,
+                reasoning: None,
+                max_input_tokens: None,
+                max_output_tokens: None,
+                supports_streaming: true,
+                extra: Default::default(),
+                available_providers: vec!["custom-provider".to_string()],
+            },
+        );
+
+        let overlay = OverlayModelCatalog::new(base, custom);
+
+        assert_eq!(
+            overlay.find_fallback_models("model-a"),
+            vec!["model-a".to_string()]
+        );
+        assert_eq!(
+            overlay.find_fallback_models("model-b"),
+            vec!["model-b".to_string()]
+        );
+    }
+}

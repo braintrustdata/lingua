@@ -14,7 +14,3 @@ path = "src/main.rs"
 serde.workspace = true
 big_serde_json.workspace = true
 serde_yaml.workspace = true
-anyhow.workspace = true
-typify.workspace = true
-schemars.workspace = true
-schemafy.workspace = true

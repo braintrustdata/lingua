@@ -43,6 +43,7 @@ pub struct OpenAIProvider {
     client: ClientWithMiddleware,
     config: OpenAIConfig,
     endpoint_template: Option<String>,
+    provider_alias: String,
 }
 
 impl OpenAIProvider {
@@ -63,7 +64,13 @@ impl OpenAIProvider {
             client,
             endpoint_template,
             config,
+            provider_alias: "openai".to_string(),
         })
+    }
+
+    pub fn with_provider_alias(mut self, provider_alias: impl Into<String>) -> Self {
+        self.provider_alias = provider_alias.into();
+        self
     }
 
     /// Create an OpenAI provider from configuration parameters.
@@ -180,6 +187,10 @@ impl OpenAIProvider {
 impl crate::providers::Provider for OpenAIProvider {
     fn id(&self) -> &'static str {
         "openai"
+    }
+
+    fn matches_provider_alias(&self, alias: &str) -> bool {
+        self.provider_alias == alias
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
