@@ -9,6 +9,7 @@ use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
     CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice, ToolChoiceType,
 };
+use crate::providers::anthropic::params::{AnthropicParams, AnthropicTool};
 use crate::providers::google::generated::GoogleSearch;
 use crate::serde_json;
 use crate::serde_json::{json, Value};
@@ -16,11 +17,14 @@ use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
 use crate::universal::response_format::normalize_response_schema_for_strict_target;
-use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
+use crate::universal::tools::{
+    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolType,
+};
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
     CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -71,6 +75,239 @@ fn anthropic_tool_use_caller_from_provider_options(
             .ok()
         })
         .and_then(|view| view.caller)
+}
+
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicToolDiscoveryInputView {
+    query: Option<String>,
+}
+
+fn is_anthropic_tool_search_tool_name(name: &str) -> bool {
+    matches!(
+        name,
+        "tool_search_tool_regex" | "tool_search_tool_bm25" | "tool_search"
+    )
+}
+
+fn anthropic_tool_search_tool_name(name: &str) -> String {
+    match name {
+        "tool_search" => "tool_search_tool_regex".to_string(),
+        _ => name.to_string(),
+    }
+}
+
+fn anthropic_tool_search_tool_call_id(tool_call_id: &str) -> String {
+    if tool_call_id.starts_with("srvtoolu_") {
+        tool_call_id.to_string()
+    } else {
+        format!("srvtoolu_{tool_call_id}")
+    }
+}
+
+fn anthropic_tool_discovery_input_map(
+    arguments: Option<Value>,
+    query: Option<String>,
+) -> Option<serde_json::Map<String, Value>> {
+    match arguments {
+        Some(Value::Object(map)) => Some(map),
+        _ => query.map(|query| {
+            let mut map = serde_json::Map::new();
+            map.insert("query".to_string(), Value::String(query));
+            map
+        }),
+    }
+}
+
+fn anthropic_tool_discovery_query(
+    input: &Option<serde_json::Map<String, Value>>,
+) -> Result<Option<String>, ConvertError> {
+    let Some(input) = input else {
+        return Ok(None);
+    };
+    let view: AnthropicToolDiscoveryInputView =
+        serde_json::from_value(Value::Object(input.clone())).map_err(|e| {
+            ConvertError::JsonSerializationFailed {
+                field: "tool_search.input".to_string(),
+                error: e.to_string(),
+            }
+        })?;
+    Ok(view.query)
+}
+
+fn anthropic_tool_discovery_arguments(
+    input: Option<serde_json::Map<String, Value>>,
+) -> Option<Value> {
+    input.map(Value::Object)
+}
+
+fn anthropic_tool_discovery_result_from_content(
+    tool_call_id: String,
+    discovery_tool_name: String,
+    content: Option<generated::InputContentBlockContent>,
+) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
+    let tools = match content {
+        Some(generated::InputContentBlockContent::RequestWebSearchToolResultError(result)) => {
+            result
+                .tool_references
+                .unwrap_or_default()
+                .into_iter()
+                .map(|tool_reference| ToolDiscoveryResultItem {
+                    tool_name: tool_reference.tool_name,
+                    tool: None,
+                    provider_options: None,
+                })
+                .collect()
+        }
+        Some(other) => {
+            let value =
+                serde_json::to_value(other).map_err(|e| ConvertError::JsonSerializationFailed {
+                    field: "tool_search_tool_result.content".to_string(),
+                    error: e.to_string(),
+                })?;
+            let mut options = serde_json::Map::new();
+            options.insert("content".to_string(), value);
+            vec![ToolDiscoveryResultItem {
+                tool_name: "unknown".to_string(),
+                tool: None,
+                provider_options: Some(ProviderOptions { options }),
+            }]
+        }
+        None => Vec::new(),
+    };
+
+    Ok(ToolDiscoveryResultContentPart {
+        tool_call_id,
+        discovery_tool_name,
+        tools,
+        status: None,
+        execution: None,
+        provider_options: None,
+    })
+}
+
+fn anthropic_tool_discovery_result_content(
+    tools: Vec<ToolDiscoveryResultItem>,
+) -> generated::InputContentBlockContent {
+    generated::InputContentBlockContent::RequestWebSearchToolResultError(
+        generated::RequestWebSearchToolResultError {
+            error_code: None,
+            request_web_search_tool_result_error_type:
+                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+            content: None,
+            retrieved_at: None,
+            url: None,
+            return_code: None,
+            stderr: None,
+            stdout: None,
+            encrypted_stdout: None,
+            error_message: None,
+            file_type: None,
+            num_lines: None,
+            start_line: None,
+            total_lines: None,
+            is_file_update: None,
+            lines: None,
+            new_lines: None,
+            new_start: None,
+            old_lines: None,
+            old_start: None,
+            tool_references: Some(
+                tools
+                    .into_iter()
+                    .map(|item| generated::RequestToolReferenceBlock {
+                        cache_control: None,
+                        tool_name: item.tool_name,
+                        request_tool_reference_block_type:
+                            generated::ToolReferenceType::ToolReference,
+                    })
+                    .collect(),
+            ),
+        },
+    )
+}
+
+fn anthropic_response_tool_discovery_result_from_content(
+    tool_call_id: String,
+    discovery_tool_name: String,
+    content: Option<generated::ContentBlockContent>,
+) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
+    let tools = match content {
+        Some(generated::ContentBlockContent::ResponseWebSearchToolResultError(result)) => result
+            .tool_references
+            .unwrap_or_default()
+            .into_iter()
+            .map(|tool_reference| ToolDiscoveryResultItem {
+                tool_name: tool_reference.tool_name,
+                tool: None,
+                provider_options: None,
+            })
+            .collect(),
+        Some(other) => {
+            let value =
+                serde_json::to_value(other).map_err(|e| ConvertError::JsonSerializationFailed {
+                    field: "tool_search_tool_result.content".to_string(),
+                    error: e.to_string(),
+                })?;
+            let mut options = serde_json::Map::new();
+            options.insert("content".to_string(), value);
+            vec![ToolDiscoveryResultItem {
+                tool_name: "unknown".to_string(),
+                tool: None,
+                provider_options: Some(ProviderOptions { options }),
+            }]
+        }
+        None => Vec::new(),
+    };
+
+    Ok(ToolDiscoveryResultContentPart {
+        tool_call_id,
+        discovery_tool_name,
+        tools,
+        status: None,
+        execution: None,
+        provider_options: None,
+    })
+}
+
+fn anthropic_response_tool_discovery_result_content(
+    tools: Vec<ToolDiscoveryResultItem>,
+) -> generated::ContentBlockContent {
+    generated::ContentBlockContent::ResponseWebSearchToolResultError(
+        generated::ResponseWebSearchToolResultError {
+            error_code: None,
+            response_web_search_tool_result_error_type:
+                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+            content: None,
+            retrieved_at: None,
+            url: None,
+            return_code: None,
+            stderr: None,
+            stdout: None,
+            encrypted_stdout: None,
+            error_message: None,
+            file_type: None,
+            num_lines: None,
+            start_line: None,
+            total_lines: None,
+            is_file_update: None,
+            lines: None,
+            new_lines: None,
+            new_start: None,
+            old_lines: None,
+            old_start: None,
+            tool_references: Some(
+                tools
+                    .into_iter()
+                    .map(|item| generated::ResponseToolReferenceBlock {
+                        tool_name: item.tool_name,
+                        response_tool_reference_block_type:
+                            generated::ToolReferenceType::ToolReference,
+                    })
+                    .collect(),
+            ),
+        },
+    )
 }
 
 fn universal_cache_control_from_anthropic(
@@ -395,19 +632,9 @@ impl TryFromLLM<generated::InputMessage> for Message {
         if let generated::MessageRole::User = input_msg.role {
             if let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content {
                 // Check if all blocks are tool results
-                let all_tool_results = blocks.iter().all(|block| {
-                    matches!(
-                        block.input_content_block_type,
-                        generated::InputContentBlockType::ToolResult
-                    )
-                });
+                let all_tool_results = blocks.iter().all(input_content_block_is_tool_result);
 
-                let has_tool_results = blocks.iter().any(|block| {
-                    matches!(
-                        block.input_content_block_type,
-                        generated::InputContentBlockType::ToolResult
-                    )
-                });
+                let has_tool_results = blocks.iter().any(input_content_block_is_tool_result);
 
                 // If we have tool results and no other content, convert to Tool message
                 if has_tool_results && all_tool_results {
@@ -418,44 +645,57 @@ impl TryFromLLM<generated::InputMessage> for Message {
                         let mut tool_content_parts = Vec::new();
 
                         for block in owned_blocks {
-                            if matches!(
-                                block.input_content_block_type,
-                                generated::InputContentBlockType::ToolResult
-                            ) {
-                                if let (Some(tool_use_id), Some(content)) =
-                                    (block.tool_use_id, block.content)
-                                {
-                                    let output = match content {
-                                        generated::InputContentBlockContent::String(s) => {
-                                            serde_json::from_str(&s)
-                                                .unwrap_or(serde_json::Value::String(s))
-                                        }
-                                        generated::InputContentBlockContent::BlockArray(blocks) => {
-                                            serde_json::to_value(blocks).map_err(|e| {
+                            match block.input_content_block_type {
+                                generated::InputContentBlockType::ToolResult => {
+                                    if let (Some(tool_use_id), Some(content)) =
+                                        (block.tool_use_id, block.content)
+                                    {
+                                        let output = match content {
+                                            generated::InputContentBlockContent::String(s) => {
+                                                serde_json::from_str(&s)
+                                                    .unwrap_or(serde_json::Value::String(s))
+                                            }
+                                            generated::InputContentBlockContent::BlockArray(
+                                                blocks,
+                                            ) => serde_json::to_value(blocks).map_err(|e| {
                                                 ConvertError::JsonSerializationFailed {
                                                     field: "BlockArray".to_string(),
                                                     error: e.to_string(),
                                                 }
-                                            })?
-                                        }
-                                        generated::InputContentBlockContent::RequestWebSearchToolResultError(err) => serde_json::to_value(err).map_err(|e| {
-                                            ConvertError::JsonSerializationFailed {
-                                                field: "RequestWebSearchToolResultError"
-                                                    .to_string(),
-                                                error: e.to_string(),
-                                            }
-                                        })?,
-                                    };
+                                            })?,
+                                            generated::InputContentBlockContent::RequestWebSearchToolResultError(err) => serde_json::to_value(err).map_err(|e| {
+                                                ConvertError::JsonSerializationFailed {
+                                                    field: "RequestWebSearchToolResultError"
+                                                        .to_string(),
+                                                    error: e.to_string(),
+                                                }
+                                            })?,
+                                        };
 
-                                    tool_content_parts.push(ToolContentPart::ToolResult(
-                                        ToolResultContentPart {
-                                            tool_call_id: tool_use_id,
-                                            tool_name: String::new(), // Anthropic doesn't provide tool name in results
-                                            output,
-                                            provider_options: None,
-                                        },
-                                    ));
+                                        tool_content_parts.push(ToolContentPart::ToolResult(
+                                            ToolResultContentPart {
+                                                tool_call_id: tool_use_id,
+                                                tool_name: String::new(), // Anthropic doesn't provide tool name in results
+                                                output,
+                                                provider_options: None,
+                                            },
+                                        ));
+                                    }
                                 }
+                                generated::InputContentBlockType::ToolSearchToolResult => {
+                                    if let Some(tool_use_id) = block.tool_use_id {
+                                        tool_content_parts.push(
+                                            ToolContentPart::ToolDiscoveryResult(
+                                                anthropic_tool_discovery_result_from_content(
+                                                    tool_use_id,
+                                                    "tool_search".to_string(),
+                                                    block.content,
+                                                )?,
+                                            ),
+                                        );
+                                    }
+                                }
+                                _ => {}
                             }
                         }
 
@@ -688,28 +928,46 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 generated::InputContentBlockType::ServerToolUse => {
                                     // Server-executed tool use (web search, etc.)
                                     if let (Some(id), Some(name)) = (&block.id, &block.name) {
-                                        let input = if let Some(input_map) = &block.input {
-                                            serde_json::to_value(input_map)
-                                                .unwrap_or(serde_json::Value::Null)
-                                        } else {
-                                            serde_json::Value::Null
-                                        };
-
-                                        let provider_options =
-                                            anthropic_tool_use_provider_options_from_caller(
-                                                block.caller.clone(),
+                                        if is_anthropic_tool_search_tool_name(name) {
+                                            content_parts.push(
+                                                AssistantContentPart::ToolDiscoveryCall {
+                                                    tool_call_id: id.clone(),
+                                                    discovery_tool_name: name.clone(),
+                                                    query: anthropic_tool_discovery_query(
+                                                        &block.input,
+                                                    )?,
+                                                    arguments: anthropic_tool_discovery_arguments(
+                                                        block.input.clone(),
+                                                    ),
+                                                    status: None,
+                                                    execution: None,
+                                                    provider_options: None,
+                                                },
                                             );
+                                        } else {
+                                            let input = if let Some(input_map) = &block.input {
+                                                serde_json::to_value(input_map)
+                                                    .unwrap_or(serde_json::Value::Null)
+                                            } else {
+                                                serde_json::Value::Null
+                                            };
 
-                                        content_parts.push(AssistantContentPart::ToolCall {
-                                            tool_call_id: id.clone(),
-                                            tool_name: name.clone(),
-                                            arguments: serde_json::to_string(&input)
-                                                .unwrap_or_else(|_| "{}".to_string())
-                                                .into(),
-                                            encrypted_content: None,
-                                            provider_options,
-                                            provider_executed: Some(true), // Mark as server-executed
-                                        });
+                                            let provider_options =
+                                                anthropic_tool_use_provider_options_from_caller(
+                                                    block.caller.clone(),
+                                                );
+
+                                            content_parts.push(AssistantContentPart::ToolCall {
+                                                tool_call_id: id.clone(),
+                                                tool_name: name.clone(),
+                                                arguments: serde_json::to_string(&input)
+                                                    .unwrap_or_else(|_| "{}".to_string())
+                                                    .into(),
+                                                encrypted_content: None,
+                                                provider_options,
+                                                provider_executed: Some(true), // Mark as server-executed
+                                            });
+                                        }
                                     }
                                 }
                                 generated::InputContentBlockType::WebSearchToolResult => {
@@ -1139,6 +1397,36 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     file_id: None,
                                 })
                             }
+                            AssistantContentPart::ToolDiscoveryCall {
+                                tool_call_id,
+                                discovery_tool_name,
+                                query,
+                                arguments,
+                                ..
+                            } => Some(generated::InputContentBlock {
+                                cache_control: None,
+                                citations: None,
+                                text: None,
+                                input_content_block_type:
+                                    generated::InputContentBlockType::ServerToolUse,
+                                source: None,
+                                context: None,
+                                title: None,
+                                content: None,
+                                signature: None,
+                                thinking: None,
+                                data: None,
+                                caller: None,
+                                id: Some(anthropic_tool_search_tool_call_id(&tool_call_id)),
+                                input: anthropic_tool_discovery_input_map(
+                                    arguments.clone(),
+                                    query.clone(),
+                                ),
+                                name: Some(anthropic_tool_search_tool_name(&discovery_tool_name)),
+                                is_error: None,
+                                tool_use_id: None,
+                                file_id: None,
+                            }),
                             AssistantContentPart::ToolResult {
                                 tool_call_id,
                                 output,
@@ -1234,6 +1522,33 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 file_id: None,
                             });
                         }
+                        ToolContentPart::ToolDiscoveryResult(discovery_result) => {
+                            blocks.push(generated::InputContentBlock {
+                                cache_control: None,
+                                citations: None,
+                                text: None,
+                                input_content_block_type:
+                                    generated::InputContentBlockType::ToolSearchToolResult,
+                                source: None,
+                                context: None,
+                                title: None,
+                                content: Some(anthropic_tool_discovery_result_content(
+                                    discovery_result.tools,
+                                )),
+                                signature: None,
+                                thinking: None,
+                                data: None,
+                                caller: None,
+                                id: None,
+                                input: None,
+                                name: None,
+                                is_error: None,
+                                tool_use_id: Some(anthropic_tool_search_tool_call_id(
+                                    &discovery_result.tool_call_id,
+                                )),
+                                file_id: None,
+                            });
+                        }
                     }
                 }
 
@@ -1255,6 +1570,7 @@ fn input_content_block_is_tool_result(block: &generated::InputContentBlock) -> b
     matches!(
         block.input_content_block_type,
         generated::InputContentBlockType::ToolResult
+            | generated::InputContentBlockType::ToolSearchToolResult
     )
 }
 
@@ -1375,6 +1691,116 @@ fn try_merge_adjacent_user_tool_result_message(
     Ok(None)
 }
 
+fn input_message_has_tool_search_result(message: &generated::InputMessage) -> bool {
+    match &message.content {
+        generated::MessageContent::String(_) => false,
+        generated::MessageContent::InputContentBlockArray(blocks) => blocks.iter().any(|block| {
+            block.input_content_block_type == generated::InputContentBlockType::ToolSearchToolResult
+        }),
+    }
+}
+
+fn input_message_is_pure_tool_search_result(message: &generated::InputMessage) -> bool {
+    match &message.content {
+        generated::MessageContent::String(_) => false,
+        generated::MessageContent::InputContentBlockArray(blocks) => {
+            !blocks.is_empty()
+                && blocks.iter().all(|block| {
+                    block.input_content_block_type
+                        == generated::InputContentBlockType::ToolSearchToolResult
+                })
+        }
+    }
+}
+
+fn try_merge_adjacent_assistant_tool_discovery_message(
+    previous: &mut generated::InputMessage,
+    current: generated::InputMessage,
+) -> Result<Option<generated::InputMessage>, ConvertError> {
+    if previous.role != generated::MessageRole::Assistant {
+        return Ok(Some(current));
+    }
+
+    let should_merge_tool_result = current.role == generated::MessageRole::User
+        && input_message_is_pure_tool_search_result(&current);
+    let should_merge_assistant_continuation = current.role == generated::MessageRole::Assistant
+        && input_message_has_tool_search_result(previous);
+
+    if !(should_merge_tool_result || should_merge_assistant_continuation) {
+        return Ok(Some(current));
+    }
+
+    let previous_content = std::mem::replace(
+        &mut previous.content,
+        generated::MessageContent::String(String::new()),
+    );
+    let mut blocks = input_message_content_blocks(previous_content);
+    blocks.extend(input_message_content_blocks(current.content));
+    previous.content = generated::MessageContent::InputContentBlockArray(blocks);
+    Ok(None)
+}
+
+fn split_assistant_tool_discovery_result_message(
+    input_message: generated::InputMessage,
+) -> Result<Option<Vec<Message>>, ConvertError> {
+    if input_message.role != generated::MessageRole::Assistant {
+        return Ok(None);
+    }
+
+    let generated::MessageContent::InputContentBlockArray(blocks) = input_message.content else {
+        return Ok(None);
+    };
+
+    if !blocks.iter().any(|block| {
+        block.input_content_block_type == generated::InputContentBlockType::ToolSearchToolResult
+    }) {
+        return Ok(None);
+    }
+
+    let mut messages = Vec::new();
+    let mut assistant_blocks = Vec::new();
+
+    for block in blocks {
+        if block.input_content_block_type == generated::InputContentBlockType::ToolSearchToolResult
+        {
+            if !assistant_blocks.is_empty() {
+                messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+                    generated::InputMessage {
+                        role: generated::MessageRole::Assistant,
+                        content: generated::MessageContent::InputContentBlockArray(std::mem::take(
+                            &mut assistant_blocks,
+                        )),
+                    },
+                )?);
+            }
+
+            if let Some(tool_use_id) = block.tool_use_id {
+                let discovery_result = anthropic_tool_discovery_result_from_content(
+                    tool_use_id,
+                    "tool_search".to_string(),
+                    block.content,
+                )?;
+                messages.push(Message::Tool {
+                    content: vec![ToolContentPart::ToolDiscoveryResult(discovery_result)],
+                });
+            }
+        } else {
+            assistant_blocks.push(block);
+        }
+    }
+
+    if !assistant_blocks.is_empty() {
+        messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
+            generated::InputMessage {
+                role: generated::MessageRole::Assistant,
+                content: generated::MessageContent::InputContentBlockArray(assistant_blocks),
+            },
+        )?);
+    }
+
+    Ok(Some(messages))
+}
+
 pub(crate) fn anthropic_input_messages_to_universal_messages(
     input_messages: Vec<generated::InputMessage>,
 ) -> Result<Vec<Message>, ConvertError> {
@@ -1385,7 +1811,10 @@ pub(crate) fn anthropic_input_messages_to_universal_messages(
     let mut messages = Vec::new();
 
     for input_message in input_messages {
-        if let Some(groups) = mixed_user_tool_result_groups(input_message.clone()) {
+        if let Some(groups) = split_assistant_tool_discovery_result_message(input_message.clone())?
+        {
+            messages.extend(groups);
+        } else if let Some(groups) = mixed_user_tool_result_groups(input_message.clone()) {
             for group in groups {
                 messages.push(<Message as TryFromLLM<generated::InputMessage>>::try_from(
                     group,
@@ -1407,8 +1836,17 @@ pub(crate) fn universal_messages_to_anthropic_input_messages(
     let mut input_messages = Vec::new();
 
     for message in messages {
-        let input_message = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)?;
+        let mut input_message =
+            <generated::InputMessage as TryFromLLM<Message>>::try_from(message)?;
         if let Some(previous) = input_messages.last_mut() {
+            if let Some(unmerged) =
+                try_merge_adjacent_assistant_tool_discovery_message(previous, input_message)?
+            {
+                input_message = unmerged;
+            } else {
+                continue;
+            }
+
             if let Some(unmerged) =
                 try_merge_adjacent_user_tool_result_message(previous, input_message)?
             {
@@ -1429,9 +1867,7 @@ pub(crate) fn try_parse_content_blocks_for_import(
     try_convert_non_empty(blocks)
 }
 
-fn try_messages_from_anthropic_request(
-    request: generated::CreateMessageParams,
-) -> Option<Vec<Message>> {
+fn try_messages_from_anthropic_request(request: AnthropicParams) -> Option<Vec<Message>> {
     let mut messages = Vec::new();
 
     if let Some(system) = request.system {
@@ -1441,7 +1877,7 @@ fn try_messages_from_anthropic_request(
     }
 
     let mut request_messages =
-        anthropic_input_messages_to_universal_messages(request.messages).ok()?;
+        anthropic_input_messages_to_universal_messages(request.messages?).ok()?;
     messages.append(&mut request_messages);
 
     if messages.is_empty() {
@@ -1461,7 +1897,7 @@ fn try_parse_input_messages_for_import(data: &serde_json::Value) -> Option<Vec<M
 }
 
 fn try_parse_anthropic_request_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
-    let request = try_parse::<generated::CreateMessageParams>(data)?;
+    let request = try_parse::<AnthropicParams>(data)?;
     try_messages_from_anthropic_request(request)
 }
 
@@ -1485,6 +1921,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
     type Error = ConvertError;
 
     fn try_from(content_blocks: Vec<generated::ContentBlock>) -> Result<Self, Self::Error> {
+        let mut messages = Vec::new();
         let mut content_parts = Vec::new();
 
         for block in content_blocks {
@@ -1543,25 +1980,39 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                 generated::ContentBlockType::ServerToolUse => {
                     // Server-executed tool (similar to ToolUse but provider_executed=true)
                     if let (Some(id), Some(name)) = (block.id, block.name) {
-                        let input = if let Some(input_map) = block.input {
-                            serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
+                        if is_anthropic_tool_search_tool_name(&name) {
+                            let query = anthropic_tool_discovery_query(&block.input)?;
+                            let arguments = anthropic_tool_discovery_arguments(block.input);
+                            content_parts.push(AssistantContentPart::ToolDiscoveryCall {
+                                tool_call_id: id,
+                                discovery_tool_name: name,
+                                query,
+                                arguments,
+                                status: None,
+                                execution: None,
+                                provider_options: None,
+                            });
                         } else {
-                            serde_json::Value::Null
-                        };
+                            let input = if let Some(input_map) = block.input {
+                                serde_json::to_value(input_map).unwrap_or(serde_json::Value::Null)
+                            } else {
+                                serde_json::Value::Null
+                            };
 
-                        let provider_options =
-                            anthropic_tool_use_provider_options_from_caller(block.caller);
+                            let provider_options =
+                                anthropic_tool_use_provider_options_from_caller(block.caller);
 
-                        content_parts.push(AssistantContentPart::ToolCall {
-                            tool_call_id: id,
-                            tool_name: name,
-                            arguments: serde_json::to_string(&input)
-                                .unwrap_or_else(|_| "{}".to_string())
-                                .into(),
-                            encrypted_content: None,
-                            provider_options,
-                            provider_executed: Some(true), // Mark as server-executed
-                        });
+                            content_parts.push(AssistantContentPart::ToolCall {
+                                tool_call_id: id,
+                                tool_name: name,
+                                arguments: serde_json::to_string(&input)
+                                    .unwrap_or_else(|_| "{}".to_string())
+                                    .into(),
+                                encrypted_content: None,
+                                provider_options,
+                                provider_executed: Some(true), // Mark as server-executed
+                            });
+                        }
                     }
                 }
                 generated::ContentBlockType::WebSearchToolResult => {
@@ -1587,6 +2038,28 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                         });
                     }
                 }
+                generated::ContentBlockType::ToolSearchToolResult => {
+                    if let Some(id) = block.tool_use_id {
+                        if !content_parts.is_empty() {
+                            messages.push(Message::Assistant {
+                                content: AssistantContent::Array(std::mem::take(
+                                    &mut content_parts,
+                                )),
+                                id: None,
+                            });
+                        }
+
+                        let discovery_result =
+                            anthropic_response_tool_discovery_result_from_content(
+                                id,
+                                "tool_search".to_string(),
+                                block.content,
+                            )?;
+                        messages.push(Message::Tool {
+                            content: vec![ToolContentPart::ToolDiscoveryResult(discovery_result)],
+                        });
+                    }
+                }
                 _ => {
                     // Skip other types (RedactedThinking, etc.)
                     continue;
@@ -1594,19 +2067,27 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
             }
         }
 
-        if content_parts.is_empty() {
+        if !content_parts.is_empty() {
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(std::mem::take(&mut content_parts)),
+                id: None,
+            });
+        }
+
+        if messages.is_empty() {
             content_parts.push(AssistantContentPart::Text(TextContentPart {
                 text: String::new(),
                 encrypted_content: None,
                 cache_control: None,
                 provider_options: None,
             }));
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(content_parts),
+                id: None,
+            });
         }
 
-        Ok(vec![Message::Assistant {
-            content: AssistantContent::Array(content_parts),
-            id: None,
-        }])
+        Ok(messages)
     }
 }
 
@@ -1730,6 +2211,35 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         file_id: None,
                                     });
                                 }
+                                AssistantContentPart::ToolDiscoveryCall {
+                                    tool_call_id,
+                                    discovery_tool_name,
+                                    query,
+                                    arguments,
+                                    ..
+                                } => {
+                                    content_blocks.push(generated::ContentBlock {
+                                        citations: None,
+                                        text: None,
+                                        content_block_type:
+                                            generated::ContentBlockType::ServerToolUse,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        caller: None,
+                                        id: Some(anthropic_tool_search_tool_call_id(&tool_call_id)),
+                                        input: anthropic_tool_discovery_input_map(
+                                            arguments.clone(),
+                                            query.clone(),
+                                        ),
+                                        name: Some(anthropic_tool_search_tool_name(
+                                            &discovery_tool_name,
+                                        )),
+                                        content: None,
+                                        tool_use_id: None,
+                                        file_id: None,
+                                    });
+                                }
                                 AssistantContentPart::ToolResult {
                                     tool_call_id,
                                     output,
@@ -1778,6 +2288,32 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                         }
                     }
                 },
+                Message::Tool { content } => {
+                    for part in content {
+                        if let ToolContentPart::ToolDiscoveryResult(discovery_result) = part {
+                            content_blocks.push(generated::ContentBlock {
+                                citations: None,
+                                text: None,
+                                content_block_type:
+                                    generated::ContentBlockType::ToolSearchToolResult,
+                                signature: None,
+                                thinking: None,
+                                data: None,
+                                caller: None,
+                                id: None,
+                                input: None,
+                                name: None,
+                                content: Some(anthropic_response_tool_discovery_result_content(
+                                    discovery_result.tools,
+                                )),
+                                tool_use_id: Some(anthropic_tool_search_tool_call_id(
+                                    &discovery_result.tool_call_id,
+                                )),
+                                file_id: None,
+                            });
+                        }
+                    }
+                }
                 _ => {
                     // Skip non-assistant messages
                     continue;
@@ -1912,7 +2448,7 @@ impl TryFrom<&UniversalTool> for CustomTool {
                 allowed_callers: None,
                 name: tool.name.clone(),
                 description: tool.description.clone(),
-                defer_loading: None,
+                defer_loading: (tool.availability == ToolAvailability::Deferred).then_some(true),
                 input_examples: None,
                 input_schema: normalize_anthropic_tool_schema(&tool.name, tool.parameters.clone())?,
                 strict: tool.strict,
@@ -1938,12 +2474,18 @@ impl TryFrom<&UniversalTool> for CustomTool {
 impl From<&Tool> for UniversalTool {
     fn from(tool: &Tool) -> Self {
         match tool {
-            Tool::Custom(ct) => Self::function(
-                &ct.name,
-                ct.description.clone(),
-                Some(ct.input_schema.clone()),
-                ct.strict,
-            ),
+            Tool::Custom(ct) => {
+                let mut tool = Self::function(
+                    &ct.name,
+                    ct.description.clone(),
+                    Some(ct.input_schema.clone()),
+                    ct.strict,
+                );
+                if ct.defer_loading == Some(true) {
+                    tool.availability = ToolAvailability::Deferred;
+                }
+                tool
+            }
             other => {
                 let config = serde_json::to_value(other).ok();
                 let type_str = config
@@ -1959,6 +2501,27 @@ impl From<&Tool> for UniversalTool {
                     .unwrap_or(&type_str)
                     .to_string();
                 Self::builtin(name, BuiltinToolProvider::Anthropic, type_str, config)
+            }
+        }
+    }
+}
+
+impl From<&AnthropicTool> for UniversalTool {
+    fn from(tool: &AnthropicTool) -> Self {
+        match tool {
+            AnthropicTool::Generated(tool) => UniversalTool::from(tool),
+            AnthropicTool::ToolSearch(tool_search) => {
+                let tool_type: generated::ToolType = tool_search.tool_type.clone().into();
+                let builtin_type = serde_json::to_value(tool_type)
+                    .ok()
+                    .and_then(|value| serde_json::from_value(value).ok())
+                    .unwrap_or_else(|| tool_search.name.clone());
+                UniversalTool::builtin(
+                    tool_search.name.clone(),
+                    BuiltinToolProvider::Anthropic,
+                    builtin_type,
+                    serde_json::to_value(tool_search).ok(),
+                )
             }
         }
     }
@@ -2036,6 +2599,14 @@ impl TryFromLLM<Vec<Tool>> for Vec<UniversalTool> {
     type Error = ConvertError;
 
     fn try_from(tools: Vec<Tool>) -> Result<Self, Self::Error> {
+        Ok(tools.iter().map(UniversalTool::from).collect())
+    }
+}
+
+impl TryFromLLM<Vec<AnthropicTool>> for Vec<UniversalTool> {
+    type Error = ConvertError;
+
+    fn try_from(tools: Vec<AnthropicTool>) -> Result<Self, Self::Error> {
         Ok(tools.iter().map(UniversalTool::from).collect())
     }
 }
@@ -2150,9 +2721,13 @@ mod tests {
         match &messages[0] {
             Message::Tool { content } => {
                 assert_eq!(content.len(), 2);
-                let ToolContentPart::ToolResult(first) = &content[0];
+                let ToolContentPart::ToolResult(first) = &content[0] else {
+                    panic!("expected first normal tool result");
+                };
                 assert_eq!(first.tool_call_id, "call_1");
-                let ToolContentPart::ToolResult(second) = &content[1];
+                let ToolContentPart::ToolResult(second) = &content[1] else {
+                    panic!("expected second normal tool result");
+                };
                 assert_eq!(second.tool_call_id, "call_2");
             }
             other => panic!("expected tool message, got {other:?}"),

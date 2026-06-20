@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "id": "resp_0335b41e1e0b7a2f006a35ee8f582c819da608c608e2e5b07a",
       "object": "response",
-      "created_at": 1781844890,
+      "created_at": 1781919375,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -70,9 +70,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "id": "resp_0335b41e1e0b7a2f006a35ee8f582c819da608c608e2e5b07a",
       "object": "response",
-      "created_at": 1781844890,
+      "created_at": 1781919375,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -138,7 +138,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+      "id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
       "type": "message",
       "status": "in_progress",
       "content": [],
@@ -151,7 +151,7 @@
   {
     "type": "response.content_part.added",
     "content_index": 0,
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "output_index": 0,
     "part": {
       "type": "output_text",
@@ -165,9 +165,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "The",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "QuAwj0N8S1HEX",
+    "obfuscation": "NwdYTgRe5qy1g",
     "output_index": 0,
     "sequence_number": 4
   },
@@ -175,9 +175,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " discovered",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "Skg86",
+    "obfuscation": "QTlcg",
     "output_index": 0,
     "sequence_number": 5
   },
@@ -185,9 +185,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " tool",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "fxzOM4eMMxO",
+    "obfuscation": "wQMiMCVz2oe",
     "output_index": 0,
     "sequence_number": 6
   },
@@ -195,188 +195,128 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " was",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "C5tZMOTprgwJ",
+    "obfuscation": "NZwJKxza4rBD",
     "output_index": 0,
     "sequence_number": 7
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": " `",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": " used",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "S2Iod1ad8VWLZe",
+    "obfuscation": "u83iyhz5jK5",
     "output_index": 0,
     "sequence_number": 8
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": "search",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": ".",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "3Os3cx1SxH",
+    "obfuscation": "U6X43NExAHGOxQB",
     "output_index": 0,
     "sequence_number": 9
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": "_code",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": " Result",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "rNdMeo0fKdd",
+    "obfuscation": "JEPoznb6A",
     "output_index": 0,
     "sequence_number": 10
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": ".search",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": ":",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "moyEylJQ1",
+    "obfuscation": "Gja618MKhEZ2Uhq",
     "output_index": 0,
     "sequence_number": 11
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": "_code",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": " **",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "kw65LqRVPg9",
+    "obfuscation": "n2Y5o5nnzK5hG",
     "output_index": 0,
     "sequence_number": 12
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": "`.\n\n",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": "71",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "xYSNJBIxuAU8",
+    "obfuscation": "qtKSXZIXlwVI7n",
     "output_index": 0,
     "sequence_number": 13
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": "Result",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": " degrees",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "o9ZSMgrd0I",
+    "obfuscation": "iDdUrukq",
     "output_index": 0,
     "sequence_number": 14
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": " from",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": "**",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "DApUjhHuQJ4",
+    "obfuscation": "tJtgoprFDIcNUJ",
     "output_index": 0,
     "sequence_number": 15
   },
   {
     "type": "response.output_text.delta",
     "content_index": 0,
-    "delta": " using",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "delta": ".",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
-    "obfuscation": "zcGmTHikH9",
+    "obfuscation": "Gcmu44JmwxOeyai",
     "output_index": 0,
     "sequence_number": 16
   },
   {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": " it",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "0uXcJGImZNcbd",
-    "output_index": 0,
-    "sequence_number": 17
-  },
-  {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": ":",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "0rg95Cf3EGu5ibi",
-    "output_index": 0,
-    "sequence_number": 18
-  },
-  {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": " `",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "ukuaUNIwYpoKKm",
-    "output_index": 0,
-    "sequence_number": 19
-  },
-  {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": "71",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "vPqTMsyWRscEle",
-    "output_index": 0,
-    "sequence_number": 20
-  },
-  {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": " degrees",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "vqMNvREf",
-    "output_index": 0,
-    "sequence_number": 21
-  },
-  {
-    "type": "response.output_text.delta",
-    "content_index": 0,
-    "delta": "`",
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
-    "logprobs": [],
-    "obfuscation": "qTPJTNts5iMfUBf",
-    "output_index": 0,
-    "sequence_number": 22
-  },
-  {
     "type": "response.output_text.done",
     "content_index": 0,
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "logprobs": [],
     "output_index": 0,
-    "sequence_number": 23,
-    "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+    "sequence_number": 17,
+    "text": "The discovered tool was used. Result: **71 degrees**."
   },
   {
     "type": "response.content_part.done",
     "content_index": 0,
-    "item_id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+    "item_id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
     "output_index": 0,
     "part": {
       "type": "output_text",
       "annotations": [],
       "logprobs": [],
-      "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+      "text": "The discovered tool was used. Result: **71 degrees**."
     },
-    "sequence_number": 24
+    "sequence_number": 18
   },
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+      "id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
       "type": "message",
       "status": "completed",
       "content": [
@@ -384,24 +324,24 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+          "text": "The discovered tool was used. Result: **71 degrees**."
         }
       ],
       "phase": "final_answer",
       "role": "assistant"
     },
     "output_index": 0,
-    "sequence_number": 25
+    "sequence_number": 19
   },
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_0c7aaf7f3c0f080f006a34cb9a55a481a0b01ec880c7384005",
+      "id": "resp_0335b41e1e0b7a2f006a35ee8f582c819da608c608e2e5b07a",
       "object": "response",
-      "created_at": 1781844890,
+      "created_at": 1781919375,
       "status": "completed",
       "background": false,
-      "completed_at": 1781844891,
+      "completed_at": 1781919376,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -412,7 +352,7 @@
       "moderation": null,
       "output": [
         {
-          "id": "msg_0c7aaf7f3c0f080f006a34cb9afcd881a088c28805cf3e289f",
+          "id": "msg_0335b41e1e0b7a2f006a35ee900388819d964cdf1dfc315336",
           "type": "message",
           "status": "completed",
           "content": [
@@ -420,7 +360,7 @@
               "type": "output_text",
               "annotations": [],
               "logprobs": [],
-              "text": "The discovered tool was `search_code.search_code`.\n\nResult from using it: `71 degrees`"
+              "text": "The discovered tool was used. Result: **71 degrees**."
             }
           ],
           "phase": "final_answer",
@@ -472,19 +412,19 @@
       "top_p": 0.98,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 254,
+        "input_tokens": 245,
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 23,
+        "output_tokens": 17,
         "output_tokens_details": {
           "reasoning_tokens": 0
         },
-        "total_tokens": 277
+        "total_tokens": 262
       },
       "user": null,
       "metadata": {}
     },
-    "sequence_number": 26
+    "sequence_number": 20
   }
 ]

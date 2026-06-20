@@ -1340,27 +1340,29 @@ mod tests {
         let AssistantContent::Array(parts) = content else {
             panic!("tool_search_call should convert to assistant tool call array");
         };
-        let AssistantContentPart::ToolCall {
+        let AssistantContentPart::ToolDiscoveryCall {
             tool_call_id,
-            tool_name,
-            provider_executed,
+            discovery_tool_name,
+            status,
             ..
         } = &parts[0]
         else {
-            panic!("tool_search_call should convert to tool call");
+            panic!("tool_search_call should convert to tool discovery call");
         };
         assert_eq!(tool_call_id, "call_tool_search_123");
-        assert_eq!(tool_name, "tool_search");
-        assert_eq!(*provider_executed, None);
+        assert_eq!(discovery_tool_name, "tool_search");
+        assert_eq!(status.as_deref(), Some("completed"));
 
         let Message::Tool { content } = &universal.messages[2] else {
             panic!("tool_search_output should convert to tool message");
         };
-        let ToolContentPart::ToolResult(result) = &content[0];
+        let ToolContentPart::ToolDiscoveryResult(result) = &content[0] else {
+            panic!("tool_search_output should convert to tool discovery result");
+        };
         assert_eq!(result.tool_call_id, "call_tool_search_123");
-        assert_eq!(result.tool_name, "tool_search");
-        assert_eq!(result.output["execution"], json!("client"));
-        assert_eq!(result.output["tools"][0]["name"], json!("search_code"));
+        assert_eq!(result.discovery_tool_name, "tool_search");
+        assert_eq!(result.status.as_deref(), Some("completed"));
+        assert_eq!(result.tools[0].tool_name, "search_code");
     }
 
     #[test]

@@ -1,0 +1,61 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_01QQpV1eFNbANYCN43f5bbgd",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I'll search for all available tools by using a broad pattern."
+    },
+    {
+      "type": "server_tool_use",
+      "id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+      "name": "tool_search_tool_regex",
+      "input": {
+        "pattern": ".*",
+        "limit": 100
+      }
+    },
+    {
+      "type": "tool_search_tool_result",
+      "tool_use_id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+      "content": {
+        "type": "tool_search_tool_search_result",
+        "tool_references": [
+          {
+            "type": "tool_reference",
+            "tool_name": "tool_search_tool_regex"
+          },
+          {
+            "type": "tool_reference",
+            "tool_name": "search_code"
+          }
+        ]
+      }
+    },
+    {
+      "type": "text",
+      "text": "Based on my search, here are the available tools:\n\n1. **tool_search_tool_regex** - Searches for functions using regex patterns\n   - Parameters:\n     - `pattern` (required): Python regex pattern to match against tool names, descriptions, and parameters (max 200 characters)\n     - `limit` (optional): Maximum number of matching tools to return (default: 5, max: 10000)\n\n2. **search_code** - Search code\n   - Parameters: None (empty object)\n\nThese are the two tools currently available in this environment."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 1807,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 217,
+    "service_tier": "standard",
+    "inference_geo": "not_available",
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    }
+  }
+}

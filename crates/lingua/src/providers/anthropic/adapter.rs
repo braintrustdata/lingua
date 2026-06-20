@@ -30,13 +30,17 @@ use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent, UserContentPart};
+use crate::universal::message::{
+    AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent, UserContentPart,
+};
 use crate::universal::reasoning::budget_to_effort;
 use crate::universal::request::{
     ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
     UniversalMetadataUserView,
 };
-use crate::universal::tools::UniversalTool;
+use crate::universal::tools::{
+    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolType,
+};
 use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
@@ -49,6 +53,95 @@ use serde::Deserialize;
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
+
+fn is_anthropic_tool_search_builtin(tool: &UniversalTool) -> bool {
+    matches!(
+        &tool.tool_type,
+        UniversalToolType::Builtin {
+            provider: BuiltinToolProvider::Anthropic,
+            builtin_type,
+            ..
+        } if matches!(
+            &**builtin_type,
+            "tool_search_tool_regex"
+                | "tool_search_tool_regex_20251119"
+                | "tool_search_tool_bm25"
+                | "tool_search_tool_bm25_20251119"
+        )
+    )
+}
+
+fn has_tool_discovery(messages: &[Message]) -> bool {
+    messages.iter().any(|message| match message {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => parts
+            .iter()
+            .any(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. })),
+        Message::Tool { content } => content
+            .iter()
+            .any(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_))),
+        _ => false,
+    })
+}
+
+fn discovered_tools_from_messages(messages: &[Message]) -> Vec<UniversalTool> {
+    messages
+        .iter()
+        .flat_map(|message| match message {
+            Message::Tool { content } => content
+                .iter()
+                .filter_map(|part| match part {
+                    ToolContentPart::ToolDiscoveryResult(result) => Some(
+                        result
+                            .tools
+                            .iter()
+                            .filter_map(|item| {
+                                item.tool.clone().map(|mut tool| {
+                                    tool.availability = ToolAvailability::Deferred;
+                                    tool
+                                })
+                            })
+                            .collect::<Vec<_>>(),
+                    ),
+                    _ => None,
+                })
+                .flatten()
+                .collect::<Vec<_>>(),
+            _ => Vec::new(),
+        })
+        .collect()
+}
+
+fn anthropic_tool_search_tool() -> UniversalTool {
+    UniversalTool::builtin(
+        "tool_search_tool_regex",
+        BuiltinToolProvider::Anthropic,
+        "tool_search_tool_regex_20251119",
+        Some(serde_json::json!({
+            "name": "tool_search_tool_regex",
+            "type": "tool_search_tool_regex_20251119"
+        })),
+    )
+}
+
+fn anthropic_tool_value(tool: &UniversalTool) -> Result<Value, TransformError> {
+    if is_anthropic_tool_search_builtin(tool) {
+        let builtin_type = match &tool.tool_type {
+            UniversalToolType::Builtin { builtin_type, .. } => builtin_type,
+            _ => unreachable!("checked by is_anthropic_tool_search_builtin"),
+        };
+        return Ok(serde_json::json!({
+            "name": tool.name.clone(),
+            "type": builtin_type.clone()
+        }));
+    }
+
+    let anthropic_tool = Tool::try_from(tool)?;
+    serde_json::to_value(&anthropic_tool)
+        .map_err(|e| TransformError::SerializationFailed(e.to_string()))
+}
 
 fn parse_anthropic_extras(
     extras: Option<&Map<String, Value>>,
@@ -472,6 +565,23 @@ impl ProviderAdapter for AnthropicAdapter {
                 && anthropic_extras_view.tools.is_none()
                 && anthropic_extras_view.tool_choice.is_none();
 
+        let mut tools_for_anthropic = req.params.tools.clone().unwrap_or_default();
+        for discovered_tool in discovered_tools_from_messages(&req.messages) {
+            if !tools_for_anthropic
+                .iter()
+                .any(|tool| tool.name == discovered_tool.name)
+            {
+                tools_for_anthropic.push(discovered_tool);
+            }
+        }
+        if has_tool_discovery(&req.messages)
+            && !tools_for_anthropic
+                .iter()
+                .any(is_anthropic_tool_search_builtin)
+        {
+            tools_for_anthropic.push(anthropic_tool_search_tool());
+        }
+
         // Convert tools to Anthropic format
         if let Some(raw_tools) = anthropic_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
@@ -484,18 +594,12 @@ impl ProviderAdapter for AnthropicAdapter {
                     "input_schema": { "type": "object" }
                 }]),
             );
-        } else if let Some(tools) = &req.params.tools {
-            if !tools.is_empty() {
-                let anthropic_tools: Vec<Tool> = tools
-                    .iter()
-                    .map(Tool::try_from)
-                    .collect::<Result<Vec<_>, _>>()?;
-                obj.insert(
-                    "tools".into(),
-                    serde_json::to_value(&anthropic_tools)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-                );
-            }
+        } else if !tools_for_anthropic.is_empty() {
+            let anthropic_tools = tools_for_anthropic
+                .iter()
+                .map(anthropic_tool_value)
+                .collect::<Result<Vec<_>, _>>()?;
+            obj.insert("tools".into(), Value::Array(anthropic_tools));
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)

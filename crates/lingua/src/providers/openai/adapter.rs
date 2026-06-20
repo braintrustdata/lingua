@@ -30,7 +30,7 @@ use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent};
+use crate::universal::message::{Message, ToolContentPart, UserContent};
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
@@ -589,6 +589,15 @@ impl ProviderAdapter for OpenAIAdapter {
         let choices: Vec<Value> = resp
             .messages
             .iter()
+            .filter(|msg| {
+                !matches!(
+                    msg,
+                    Message::Tool { content }
+                        if content
+                            .iter()
+                            .all(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_)))
+                )
+            })
             .enumerate()
             .map(|(i, msg)| {
                 // Use extended type to include reasoning field in output

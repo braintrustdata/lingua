@@ -4,34 +4,29 @@
       "content": {
         "parts": [
           {
-            "functionCall": {
-              "name": "search_code",
-              "args": {},
-              "id": "5e9q0ave"
-            },
-            "thoughtSignature": "EqgDCqUDAQw51sedKpnK49KFKim0giWQyfxr2zoQRtLahjo0KIBAWlt8/Nma14s+8XMQMFrOaFXZPFHqUsvQCsmI8/RfoJmNsKYRV/pQoH6SMCFecT/PcJAMNcNIveJm937GJYFJ4UJdeGCoXpLttse0pGsjqH6VgkfFn3Kg4CJxb4ps8gSOWMKBx3juD19y5RoYVqgF/F+KkLpfG9XeONcrtJYW2rVpsll5NZthf4sIljk5uptFF4Umg4eWEg8wptBSHtbAA6S3tNhgmo8KUmL2dbkztLTknlFGiik29mswPwrb+fk/Qa1LB7HJnq4uSdOqZGjEGUcMmvGTMlA2gPecp4VG4ydkx++B8rSVoltWzIAOl3hA6VrE81OII2FG+DxPKZCnG+g99vw7pU8kbIHxxIUlPqPKbGJnqpXZz/ITBhPhRiZjq7dZV8eTc12xdnKxPuYFjotdK0JtmhoMKkw1F09DoklrxXoxmgzlf3t415j6Xwn1o3A3RUqR03RBWIhp4XkSeMKDEpbImFq0/cVfE9gAQrfVTTmKn2S/8qyLMH+JsxNurVxshg=="
+            "text": "It appears that there are no external tools (such as web search, calculators, or database connectors) currently configured or available in this session.\n\nHowever, I have a wide range of **built-in capabilities** that I can use to help you right now. These include:\n\n1. **Coding & Software Development:** Writing, debugging, explaining, and refactoring code in languages like Python, JavaScript, C++, HTML/CSS, SQL, and more.\n2. **Data Analysis & Mathematics:** Solving mathematical problems, explaining algorithms, and analyzing text-based data.\n3. **Writing & Editing:** Drafting essays, emails, reports, creative stories, or summarizing complex documents.\n4. **Learning & Explanation:** Explaining complex concepts (scientific, historical, technical) in simple terms.\n5. **Brainstorming & Planning:** Helping you plan projects, brainstorm ideas, or design workflows.\n\nIf you have a specific task in mind, please let me know, and I will use my native capabilities to assist you!",
+            "thoughtSignature": "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"
           }
         ],
         "role": "model"
       },
       "finishReason": "STOP",
-      "index": 0,
-      "finishMessage": "Model generated function call(s)."
+      "index": 0
     }
   ],
   "usageMetadata": {
-    "promptTokenCount": 103,
-    "candidatesTokenCount": 10,
-    "totalTokenCount": 200,
+    "promptTokenCount": 15,
+    "candidatesTokenCount": 211,
+    "totalTokenCount": 710,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
-        "tokenCount": 103
+        "tokenCount": 15
       }
     ],
-    "thoughtsTokenCount": 87,
+    "thoughtsTokenCount": 484,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "nMs0apfdJ5GZ_uMPy73UkAo"
+  "responseId": "m-41avbHCoaX1MkPgsWU2QM"
 }

@@ -160,6 +160,22 @@
   ],
   "perTestCase": [
     {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery result response block, so discovery-only messages are dropped" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google has no dynamic tool discovery result response block, so discovery-only messages are dropped" }
+      ]
+    },
+    {
       "testCase": "googleThinkingJsonSchemaParam",
       "source": "Google",
       "target": "Responses",

@@ -1,4 +1,5 @@
 use crate::serde_json;
+use crate::universal::tools::UniversalTool;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
@@ -104,6 +105,21 @@ pub enum AssistantContentPart {
         #[ts(optional)]
         provider_executed: Option<bool>,
     },
+    ToolDiscoveryCall {
+        tool_call_id: String,
+        discovery_tool_name: String,
+        #[ts(optional)]
+        query: Option<String>,
+        #[ts(type = "unknown")]
+        #[ts(optional)]
+        arguments: Option<serde_json::Value>,
+        #[ts(optional)]
+        status: Option<String>,
+        #[ts(optional)]
+        execution: Option<String>,
+        #[ts(optional)]
+        provider_options: Option<ProviderOptions>,
+    },
     ToolResult {
         tool_call_id: String,
         tool_name: String,
@@ -203,6 +219,30 @@ pub enum CacheControlTtl {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolContentPart {
     ToolResult(ToolResultContentPart),
+    ToolDiscoveryResult(ToolDiscoveryResultContentPart),
+}
+
+/// Reusable tool discovery result content part for tagged unions.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
+pub struct ToolDiscoveryResultContentPart {
+    pub tool_call_id: String,
+    pub discovery_tool_name: String,
+    pub tools: Vec<ToolDiscoveryResultItem>,
+    pub status: Option<String>,
+    pub execution: Option<String>,
+    pub provider_options: Option<ProviderOptions>,
+}
+
+/// A tool reference returned by dynamic tool discovery.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
+pub struct ToolDiscoveryResultItem {
+    pub tool_name: String,
+    pub tool: Option<UniversalTool>,
+    pub provider_options: Option<ProviderOptions>,
 }
 
 /// Source type enum - matches AI SDK Source sourceType

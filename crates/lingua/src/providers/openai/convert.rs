@@ -5,12 +5,14 @@ use crate::import_parse::{
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::params::OpenAIResponsesExtrasView;
 use crate::serde_json;
+use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
     AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
-    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
-    UserContentPart,
+    TextContentPart, ToolCallArguments, ToolContentPart, ToolDiscoveryResultContentPart,
+    ToolDiscoveryResultItem, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 use base64::Engine;
@@ -504,6 +506,294 @@ fn openai_filename_for_file(
     })
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAIToolCallProviderOptionsView {
+    namespace: Option<String>,
+}
+
+fn openai_tool_call_provider_options_view(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<OpenAIToolCallProviderOptionsView> {
+    provider_options.as_ref().and_then(|opts| {
+        serde_json::from_value::<OpenAIToolCallProviderOptionsView>(serde_json::Value::Object(
+            opts.options.clone(),
+        ))
+        .ok()
+    })
+}
+
+fn provider_options_from_openai_namespace(namespace: Option<String>) -> Option<ProviderOptions> {
+    let namespace = namespace?;
+    let mut options = serde_json::Map::new();
+    options.insert(
+        "namespace".to_string(),
+        serde_json::Value::String(namespace),
+    );
+    Some(ProviderOptions { options })
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAIToolSearchCallArgumentsView {
+    arguments: Option<serde_json::Value>,
+    execution: Option<openai::ToolSearchExecutionType>,
+    status: Option<openai::Status>,
+}
+
+fn tool_call_arguments_to_value(arguments: &ToolCallArguments) -> serde_json::Value {
+    match arguments {
+        ToolCallArguments::Valid(map) => serde_json::Value::Object(map.clone()),
+        ToolCallArguments::Invalid(s) => serde_json::Value::String(s.clone()),
+    }
+}
+
+fn parse_tool_search_call_arguments(
+    arguments: &ToolCallArguments,
+) -> Result<OpenAIToolSearchCallArgumentsView, ConvertError> {
+    serde_json::from_value(tool_call_arguments_to_value(arguments)).map_err(|e| {
+        ConvertError::JsonSerializationFailed {
+            field: "tool_search.arguments".to_string(),
+            error: e.to_string(),
+        }
+    })
+}
+
+fn openai_arguments_from_value(value: Option<serde_json::Value>) -> Option<openai::Arguments> {
+    value.map(|value| match value {
+        serde_json::Value::Object(map) => openai::Arguments::AnythingMap(map),
+        serde_json::Value::String(text) => openai::Arguments::String(text),
+        other => openai::Arguments::String(other.to_string()),
+    })
+}
+
+fn openai_status_to_string(status: Option<openai::Status>) -> Option<String> {
+    status
+        .and_then(|status| serde_json::to_value(status).ok())
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+fn openai_status_from_string(status: Option<String>) -> Option<openai::Status> {
+    status.and_then(|status| serde_json::from_value(serde_json::Value::String(status)).ok())
+}
+
+fn openai_tool_search_execution_to_string(
+    execution: Option<openai::ToolSearchExecutionType>,
+) -> Option<String> {
+    execution
+        .and_then(|execution| serde_json::to_value(execution).ok())
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+fn openai_tool_search_execution_from_string(
+    execution: Option<String>,
+) -> Option<openai::ToolSearchExecutionType> {
+    execution.and_then(|execution| serde_json::from_value(Value::String(execution)).ok())
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct ToolDiscoveryQueryView {
+    query: Option<String>,
+}
+
+fn tool_discovery_query_from_arguments(
+    arguments: &Option<openai::Arguments>,
+) -> Result<Option<String>, ConvertError> {
+    let Some(arguments) = arguments.clone() else {
+        return Ok(None);
+    };
+    let view: ToolDiscoveryQueryView = serde_json::from_value(openai_arguments_to_value(arguments))
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "tool_discovery.arguments".to_string(),
+            error: e.to_string(),
+        })?;
+    Ok(view.query)
+}
+
+fn openai_tool_type_name(tool_type: &openai::ToolType) -> Option<String> {
+    serde_json::to_value(tool_type)
+        .ok()
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+fn universal_tool_from_openai_input_item_tool(tool: &openai::InputItemTool) -> UniversalTool {
+    let type_name = tool
+        .tool_type
+        .as_ref()
+        .and_then(openai_tool_type_name)
+        .unwrap_or_else(|| "unknown".to_string());
+    let name = tool.name.clone().unwrap_or_else(|| type_name.clone());
+
+    let mut universal_tool = match tool.tool_type {
+        Some(openai::ToolType::Function) => UniversalTool::function(
+            name,
+            tool.description.clone(),
+            tool.parameters.clone().map(serde_json::Value::Object),
+            tool.strict,
+        ),
+        Some(openai::ToolType::Custom) => UniversalTool::custom(
+            name,
+            tool.description.clone(),
+            tool.format
+                .as_ref()
+                .and_then(|format| serde_json::to_value(format).ok()),
+        ),
+        _ => UniversalTool::builtin(
+            name,
+            BuiltinToolProvider::Responses,
+            type_name,
+            serde_json::to_value(tool).ok(),
+        ),
+    };
+    if tool.defer_loading == Some(true) {
+        universal_tool.availability = crate::universal::tools::ToolAvailability::Deferred;
+    }
+    universal_tool
+}
+
+fn openai_input_item_tool_from_universal_tool(
+    tool: &UniversalTool,
+) -> Result<openai::InputItemTool, ConvertError> {
+    match &tool.tool_type {
+        UniversalToolType::Function => {
+            let mut value = serde_json::json!({
+                "type": "function",
+                "name": tool.name,
+            });
+            let Value::Object(ref mut obj) = value else {
+                unreachable!("object literal");
+            };
+            if let Some(description) = &tool.description {
+                obj.insert(
+                    "description".to_string(),
+                    Value::String(description.clone()),
+                );
+            }
+            if let Some(parameters) = &tool.parameters {
+                obj.insert("parameters".to_string(), parameters.clone());
+            }
+            if let Some(strict) = tool.strict {
+                obj.insert("strict".to_string(), Value::Bool(strict));
+            }
+            if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
+                obj.insert("defer_loading".to_string(), Value::Bool(true));
+            }
+            serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: format!("Responses discovery function tool '{}'", tool.name),
+                error: e.to_string(),
+            })
+        }
+        UniversalToolType::Custom { format } => {
+            let mut value = serde_json::json!({
+                "type": "custom",
+                "name": tool.name,
+            });
+            let Value::Object(ref mut obj) = value else {
+                unreachable!("object literal");
+            };
+            if let Some(description) = &tool.description {
+                obj.insert(
+                    "description".to_string(),
+                    Value::String(description.clone()),
+                );
+            }
+            if let Some(format) = format {
+                obj.insert("format".to_string(), format.clone());
+            }
+            if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
+                obj.insert("defer_loading".to_string(), Value::Bool(true));
+            }
+            serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: format!("Responses discovery custom tool '{}'", tool.name),
+                error: e.to_string(),
+            })
+        }
+        UniversalToolType::Builtin {
+            provider: BuiltinToolProvider::Responses,
+            config: Some(config),
+            ..
+        } => serde_json::from_value::<openai::InputItemTool>(config.clone()).map_err(|e| {
+            ConvertError::JsonSerializationFailed {
+                field: format!("Responses discovery tool '{}'", tool.name),
+                error: e.to_string(),
+            }
+        }),
+        UniversalToolType::Builtin { builtin_type, .. } => Err(ConvertError::UnsupportedToolType {
+            tool_name: tool.name.clone(),
+            tool_type: builtin_type.clone(),
+            target_provider: crate::capabilities::ProviderFormat::Responses,
+        }),
+    }
+}
+
+fn discovery_items_from_openai_tools(
+    tools: Option<Vec<openai::InputItemTool>>,
+) -> Vec<ToolDiscoveryResultItem> {
+    tools
+        .unwrap_or_default()
+        .into_iter()
+        .map(|tool| {
+            let universal_tool = universal_tool_from_openai_input_item_tool(&tool);
+            ToolDiscoveryResultItem {
+                tool_name: universal_tool.name.clone(),
+                tool: Some(universal_tool),
+                provider_options: None,
+            }
+        })
+        .collect()
+}
+
+fn discovery_items_from_openai_output_tools(
+    tools: Option<Vec<openai::OutputItemTool>>,
+) -> Result<Vec<ToolDiscoveryResultItem>, ConvertError> {
+    let Some(tools) = tools else {
+        return Ok(Vec::new());
+    };
+    let input_tools = serde_json::to_value(tools)
+        .and_then(serde_json::from_value::<Vec<openai::InputItemTool>>)
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "Responses discovery output tools".to_string(),
+            error: e.to_string(),
+        })?;
+    Ok(discovery_items_from_openai_tools(Some(input_tools)))
+}
+
+fn openai_tools_from_discovery_items(
+    tools: Vec<ToolDiscoveryResultItem>,
+) -> Result<Vec<openai::InputItemTool>, ConvertError> {
+    tools
+        .into_iter()
+        .map(|item| {
+            if let Some(tool) = item.tool {
+                openai_input_item_tool_from_universal_tool(&tool)
+            } else {
+                serde_json::from_value(serde_json::json!({
+                    "type": "function",
+                    "name": item.tool_name,
+                    "parameters": {"type": "object"}
+                }))
+                .map_err(|e| ConvertError::JsonSerializationFailed {
+                    field: "Responses discovery tool reference".to_string(),
+                    error: e.to_string(),
+                })
+            }
+        })
+        .collect()
+}
+
+fn openai_output_tools_from_discovery_items(
+    tools: Vec<ToolDiscoveryResultItem>,
+) -> Result<Vec<openai::OutputItemTool>, ConvertError> {
+    let input_tools = openai_tools_from_discovery_items(tools)?;
+    serde_json::to_value(input_tools)
+        .and_then(serde_json::from_value)
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "Responses discovery output tools".to_string(),
+            error: e.to_string(),
+        })
+}
+
 fn openai_media_type_from_reference(filename: Option<&str>, file_url: Option<&str>) -> String {
     let extension = filename
         .and_then(|name| name.rsplit('.').next().map(str::to_string))
@@ -979,30 +1269,19 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                 }
                 Some(openai::InputItemType::ToolSearchCall) => {
                     let tool_call_id =
-                        input
-                            .call_id
-                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                        input.call_id.or_else(|| input.id.clone()).ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
                                 field: "tool search call_id".to_string(),
-                            })?;
-                    let provider_executed = if matches!(
-                        input.execution.as_ref(),
-                        Some(openai::ToolSearchExecutionType::Server)
-                    ) {
-                        Some(true)
-                    } else {
-                        None
-                    };
-                    let tool_call = AssistantContentPart::ToolCall {
+                            }
+                        })?;
+                    let tool_call = AssistantContentPart::ToolDiscoveryCall {
                         tool_call_id,
-                        tool_name: "tool_search".to_string(),
-                        arguments: build_tool_arguments(&serde_json::json!({
-                            "arguments": input.arguments.map(openai_arguments_to_value),
-                            "execution": input.execution,
-                            "status": input.status,
-                        })),
-                        encrypted_content: None,
+                        discovery_tool_name: "tool_search".to_string(),
+                        query: tool_discovery_query_from_arguments(&input.arguments)?,
+                        arguments: input.arguments.map(openai_arguments_to_value),
+                        status: openai_status_to_string(input.status),
+                        execution: openai_tool_search_execution_to_string(input.execution),
                         provider_options: None,
-                        provider_executed,
                     };
                     result.push(Message::Assistant {
                         content: AssistantContent::Array(vec![tool_call]),
@@ -1011,24 +1290,22 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                 }
                 Some(openai::InputItemType::ToolSearchOutput) => {
                     let tool_call_id =
-                        input
-                            .call_id
-                            .ok_or_else(|| ConvertError::MissingRequiredField {
+                        input.call_id.or_else(|| input.id.clone()).ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
                                 field: "tool search output call_id".to_string(),
-                            })?;
-                    let tool_result = ToolResultContentPart {
+                            }
+                        })?;
+                    let tool_result = ToolDiscoveryResultContentPart {
                         tool_call_id,
-                        tool_name: "tool_search".to_string(),
-                        output: serde_json::json!({
-                            "execution": input.execution,
-                            "status": input.status,
-                            "tools": input.tools,
-                        }),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: discovery_items_from_openai_tools(input.tools),
+                        status: openai_status_to_string(input.status),
+                        execution: openai_tool_search_execution_to_string(input.execution),
                         provider_options: None,
                     };
 
                     result.push(Message::Tool {
-                        content: vec![ToolContentPart::ToolResult(tool_result)],
+                        content: vec![ToolContentPart::ToolDiscoveryResult(tool_result)],
                     });
                 }
                 Some(openai::InputItemType::ItemReference) => {
@@ -1100,7 +1377,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         tool_name,
                         arguments: arguments_str.into(),
                         encrypted_content: None,
-                        provider_options: None,
+                        provider_options: provider_options_from_openai_namespace(input.namespace),
                         provider_executed: None,
                     };
 
@@ -1475,6 +1752,11 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 logprobs: Some(vec![]),
                 ..Default::default()
             },
+            AssistantContentPart::ToolDiscoveryCall { .. } => {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "AssistantContentPart::ToolDiscoveryCall must be converted as a Responses input item".to_string(),
+                })
+            }
             AssistantContentPart::Reasoning {
                 text,
                 encrypted_content: _,
@@ -1650,16 +1932,19 @@ impl TryFromLLM<Message> for openai::InputItem {
             Message::System { content } => Ok(openai::InputItem {
                 role: Some(openai::InputItemRole::System),
                 content: Some(TryFromLLM::try_from(content)?),
+                input_item_type: Some(openai::InputItemType::Message),
                 ..Default::default()
             }),
             Message::Developer { content } => Ok(openai::InputItem {
                 role: Some(openai::InputItemRole::Developer),
                 content: Some(TryFromLLM::try_from(content)?),
+                input_item_type: Some(openai::InputItemType::Message),
                 ..Default::default()
             }),
             Message::User { content } => Ok(openai::InputItem {
                 role: Some(openai::InputItemRole::User),
                 content: Some(TryFromLLM::try_from(content)?),
+                input_item_type: Some(openai::InputItemType::Message),
                 ..Default::default()
             }),
             Message::Assistant { content, id } => {
@@ -1681,8 +1966,17 @@ impl TryFromLLM<Message> for openai::InputItem {
                             String,
                             String,
                             ToolCallArguments,
+                            Option<String>,
                             Option<bool>,
-                        )> = None; // (tool_call_id, name, arguments, provider_executed)
+                        )> = None; // (tool_call_id, name, arguments, namespace, provider_executed)
+                        let mut discovery_call_info: Option<(
+                            String,
+                            String,
+                            Option<String>,
+                            Option<serde_json::Value>,
+                            Option<String>,
+                            Option<String>,
+                        )> = None; // (tool_call_id, discovery_tool_name, query, arguments, status, execution)
 
                         for part in parts {
                             match part {
@@ -1704,14 +1998,34 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_name,
                                     arguments,
                                     encrypted_content: _,
-                                    provider_options: _,
+                                    provider_options,
                                     provider_executed,
                                 } => {
                                     tool_call_info = Some((
                                         tool_call_id,
                                         tool_name,
                                         arguments.clone(),
+                                        openai_tool_call_provider_options_view(&provider_options)
+                                            .and_then(|opts| opts.namespace),
                                         provider_executed,
+                                    ));
+                                }
+                                AssistantContentPart::ToolDiscoveryCall {
+                                    tool_call_id,
+                                    discovery_tool_name,
+                                    query,
+                                    arguments,
+                                    status,
+                                    execution,
+                                    ..
+                                } => {
+                                    discovery_call_info = Some((
+                                        tool_call_id,
+                                        discovery_tool_name,
+                                        query,
+                                        arguments,
+                                        status,
+                                        execution,
                                     ));
                                 }
                                 _ => {
@@ -1721,7 +2035,10 @@ impl TryFromLLM<Message> for openai::InputItem {
                         }
 
                         if has_reasoning {
-                            if tool_call_info.is_some() || !normal_parts.is_empty() {
+                            if tool_call_info.is_some()
+                                || discovery_call_info.is_some()
+                                || !normal_parts.is_empty()
+                            {
                                 return Err(ConvertError::ContentConversionFailed {
                                     reason: "Mixed reasoning and other content parts are not supported in OpenAI format".to_string(),
                                 });
@@ -1730,7 +2047,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             // Pure reasoning message - convert to reasoning InputItem
                             let reasoning_item = openai::InputItem {
                                 role: None, // Don't set role for reasoning items - let the original data determine this
-                                content: None,
+                                content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
                                 summary: Some(reasoning_parts),
@@ -1738,8 +2055,34 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 ..Default::default()
                             };
                             Ok(reasoning_item)
-                        } else if let Some((call_id, name, arguments, provider_executed)) =
-                            tool_call_info
+                        } else if let Some((call_id, _name, query, arguments, status, execution)) =
+                            discovery_call_info
+                        {
+                            if tool_call_info.is_some() || !normal_parts.is_empty() {
+                                return Err(ConvertError::ContentConversionFailed {
+                                    reason: "Mixed tool discovery and other content parts are not supported in OpenAI format".to_string(),
+                                });
+                            }
+                            Ok(openai::InputItem {
+                                role: None,
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::ToolSearchCall),
+                                id: id.clone(),
+                                call_id: Some(call_id),
+                                arguments: openai_arguments_from_value(arguments.or_else(|| {
+                                    query.map(|query| serde_json::json!({ "query": query }))
+                                })),
+                                status: openai_status_from_string(status),
+                                execution: openai_tool_search_execution_from_string(execution),
+                                ..Default::default()
+                            })
+                        } else if let Some((
+                            call_id,
+                            name,
+                            arguments,
+                            namespace,
+                            provider_executed,
+                        )) = tool_call_info
                         {
                             if !normal_parts.is_empty() {
                                 return Err(ConvertError::ContentConversionFailed {
@@ -1885,6 +2228,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             id: id.clone(),
                                             call_id: Some(call_id),
                                             name: Some(name),
+                                            namespace,
                                             arguments: Some(openai_arguments_from_string(
                                                 arguments.to_string(),
                                             )),
@@ -1911,6 +2255,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     id: id.clone(),
                                     call_id: Some(call_id),
                                     name: Some(name),
+                                    namespace,
                                     arguments: Some(openai_arguments_from_string(
                                         arguments.to_string(),
                                     )),
@@ -1968,6 +2313,22 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 ..Default::default()
                             });
                         }
+                        ToolContentPart::ToolDiscoveryResult(discovery_result) => {
+                            result_items.push(openai::InputItem {
+                                role: None,
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::ToolSearchOutput),
+                                call_id: Some(discovery_result.tool_call_id.clone()),
+                                status: openai_status_from_string(discovery_result.status.clone()),
+                                execution: openai_tool_search_execution_from_string(
+                                    discovery_result.execution.clone(),
+                                ),
+                                tools: Some(openai_tools_from_discovery_items(
+                                    discovery_result.tools.clone(),
+                                )?),
+                                ..Default::default()
+                            });
+                        }
                     }
                 }
 
@@ -1990,11 +2351,25 @@ fn create_function_call_input_item(
     call_id: &str,
     name: &str,
     arguments: &ToolCallArguments,
+    namespace: Option<String>,
     provider_executed: Option<bool>,
     id: Option<String>,
 ) -> Result<openai::InputItem, ConvertError> {
     // Check if this is a provider-executed built-in tool
-    if provider_executed == Some(true) {
+    if name == "tool_search" {
+        let view = parse_tool_search_call_arguments(arguments)?;
+        Ok(openai::InputItem {
+            role: None,
+            content: None,
+            input_item_type: Some(openai::InputItemType::ToolSearchCall),
+            id,
+            call_id: Some(call_id.to_string()),
+            arguments: openai_arguments_from_value(view.arguments),
+            execution: view.execution,
+            status: view.status,
+            ..Default::default()
+        })
+    } else if provider_executed == Some(true) {
         // Convert back to the appropriate built-in tool type based on tool_name
         let args_value = match &arguments {
             ToolCallArguments::Valid(map) => serde_json::Value::Object(map.clone()),
@@ -2109,6 +2484,7 @@ fn create_function_call_input_item(
                     id,
                     call_id: Some(call_id.to_string()),
                     name: Some(name.to_string()),
+                    namespace,
                     arguments: Some(openai_arguments_from_string(arguments.to_string())),
                     status: Some(openai::FunctionCallItemStatus::Completed),
                     ..Default::default()
@@ -2133,6 +2509,7 @@ fn create_function_call_input_item(
             id,
             call_id: Some(call_id.to_string()),
             name: Some(name.to_string()),
+            namespace,
             arguments: Some(openai_arguments_from_string(arguments.to_string())),
             status: Some(openai::FunctionCallItemStatus::Completed),
             ..Default::default()
@@ -2190,6 +2567,22 @@ pub fn universal_to_responses_input(
                                 ..Default::default()
                             });
                         }
+                        ToolContentPart::ToolDiscoveryResult(discovery_result) => {
+                            result.push(openai::InputItem {
+                                role: None,
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::ToolSearchOutput),
+                                call_id: Some(discovery_result.tool_call_id.clone()),
+                                status: openai_status_from_string(discovery_result.status.clone()),
+                                execution: openai_tool_search_execution_from_string(
+                                    discovery_result.execution.clone(),
+                                ),
+                                tools: Some(openai_tools_from_discovery_items(
+                                    discovery_result.tools.clone(),
+                                )?),
+                                ..Default::default()
+                            });
+                        }
                     }
                 }
             }
@@ -2213,8 +2606,21 @@ pub fn universal_to_responses_input(
                         let mut has_reasoning = false;
                         let mut encrypted_content = None;
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
-                        let mut tool_calls: Vec<(String, String, ToolCallArguments, Option<bool>)> =
-                            vec![];
+                        let mut tool_calls: Vec<(
+                            String,
+                            String,
+                            ToolCallArguments,
+                            Option<String>,
+                            Option<bool>,
+                        )> = vec![];
+                        let mut discovery_calls: Vec<(
+                            String,
+                            String,
+                            Option<String>,
+                            Option<serde_json::Value>,
+                            Option<String>,
+                            Option<String>,
+                        )> = vec![];
 
                         for part in parts {
                             match part {
@@ -2236,14 +2642,34 @@ pub fn universal_to_responses_input(
                                     tool_name,
                                     arguments,
                                     encrypted_content: _,
-                                    provider_options: _,
+                                    provider_options,
                                     provider_executed,
                                 } => {
                                     tool_calls.push((
                                         tool_call_id.clone(),
                                         tool_name.clone(),
                                         arguments.clone(),
+                                        openai_tool_call_provider_options_view(provider_options)
+                                            .and_then(|opts| opts.namespace),
                                         *provider_executed,
+                                    ));
+                                }
+                                AssistantContentPart::ToolDiscoveryCall {
+                                    tool_call_id,
+                                    discovery_tool_name,
+                                    query,
+                                    arguments,
+                                    status,
+                                    execution,
+                                    ..
+                                } => {
+                                    discovery_calls.push((
+                                        tool_call_id.clone(),
+                                        discovery_tool_name.clone(),
+                                        query.clone(),
+                                        arguments.clone(),
+                                        status.clone(),
+                                        execution.clone(),
                                     ));
                                 }
                                 other_part => {
@@ -2256,7 +2682,7 @@ pub fn universal_to_responses_input(
                         if has_reasoning {
                             result.push(openai::InputItem {
                                 role: None,
-                                content: None,
+                                content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
                                 summary: Some(reasoning_parts),
@@ -2281,14 +2707,32 @@ pub fn universal_to_responses_input(
                         }
 
                         // 3. Emit function call items (one per tool call)
-                        for (call_id, name, arguments, provider_executed) in tool_calls {
+                        for (call_id, name, arguments, namespace, provider_executed) in tool_calls {
                             result.push(create_function_call_input_item(
                                 &call_id,
                                 &name,
                                 &arguments,
+                                namespace,
                                 provider_executed,
                                 id.clone(),
                             )?);
+                        }
+
+                        for (call_id, _name, query, arguments, status, execution) in discovery_calls
+                        {
+                            result.push(openai::InputItem {
+                                role: None,
+                                content: None,
+                                input_item_type: Some(openai::InputItemType::ToolSearchCall),
+                                id: id.clone(),
+                                call_id: Some(call_id),
+                                arguments: openai_arguments_from_value(arguments.or_else(|| {
+                                    query.map(|query| serde_json::json!({ "query": query }))
+                                })),
+                                status: openai_status_from_string(status),
+                                execution: openai_tool_search_execution_from_string(execution),
+                                ..Default::default()
+                            });
                         }
                     }
                 }
@@ -2343,6 +2787,12 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             Some(openai::OutputItemType::McpListTools) => Some(openai::InputItemType::McpListTools),
             Some(openai::OutputItemType::McpApprovalRequest) => {
                 Some(openai::InputItemType::McpApprovalRequest)
+            }
+            Some(openai::OutputItemType::ToolSearchCall) => {
+                Some(openai::InputItemType::ToolSearchCall)
+            }
+            Some(openai::OutputItemType::ToolSearchOutput) => {
+                Some(openai::InputItemType::ToolSearchOutput)
             }
             Some(openai::OutputItemType::AdditionalTools) => {
                 Some(openai::InputItemType::AdditionalTools)
@@ -2440,6 +2890,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             // Preserve structured function call fields
             arguments: output_item_arguments_to_input(output_item.arguments),
             name: output_item.name,
+            namespace: output_item.namespace,
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
             call_id: output_item.call_id,
@@ -2457,6 +2908,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             code: output_item.code,
             container_id: output_item.container_id,
             outputs: output_item.outputs,
+            execution: output_item.execution,
             error: output_item.error,
             server_label: output_item.server_label,
             tools: output_item.tools.and_then(|tools| {
@@ -2509,6 +2961,12 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             Some(openai::InputItemType::McpApprovalRequest) => {
                 Some(openai::OutputItemType::McpApprovalRequest)
             }
+            Some(openai::InputItemType::ToolSearchCall) => {
+                Some(openai::OutputItemType::ToolSearchCall)
+            }
+            Some(openai::InputItemType::ToolSearchOutput) => {
+                Some(openai::OutputItemType::ToolSearchOutput)
+            }
             Some(openai::InputItemType::AdditionalTools) => {
                 Some(openai::OutputItemType::AdditionalTools)
             }
@@ -2558,6 +3016,7 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             summary: input_item.summary,
             arguments: input_item_arguments_to_output(input_item.arguments),
             name: input_item.name,
+            namespace: input_item.namespace,
             queries: input_item.queries,
             call_id: input_item.call_id,
             results: input_item.results,
@@ -2572,6 +3031,7 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             code: input_item.code,
             container_id: input_item.container_id,
             outputs: input_item.outputs,
+            execution: input_item.execution,
             error: input_item.error,
             output: input_item_output_to_output(input_item.output),
             server_label: input_item.server_label,
@@ -2596,6 +3056,34 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
 
         for mut item in items {
             let item_id = item.id.clone();
+
+            if matches!(
+                item.output_item_type,
+                Some(openai::OutputItemType::ToolSearchOutput)
+            ) {
+                let tool_call_id = item
+                    .call_id
+                    .clone()
+                    .or_else(|| item.id.clone())
+                    .ok_or_else(|| ConvertError::MissingRequiredField {
+                        field: "tool search output call_id".to_string(),
+                    })?;
+                messages.push(Message::Tool {
+                    content: vec![ToolContentPart::ToolDiscoveryResult(
+                        ToolDiscoveryResultContentPart {
+                            tool_call_id,
+                            discovery_tool_name: item
+                                .name
+                                .unwrap_or_else(|| "tool_search".to_string()),
+                            tools: discovery_items_from_openai_output_tools(item.tools)?,
+                            status: openai_status_to_string(item.status),
+                            execution: openai_tool_search_execution_to_string(item.execution),
+                            provider_options: None,
+                        },
+                    )],
+                });
+                continue;
+            }
 
             let parts: Vec<AssistantContentPart> = match item.output_item_type {
                 Some(openai::OutputItemType::Message) => {
@@ -2698,8 +3186,25 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         tool_name,
                         arguments: arguments_str.into(),
                         encrypted_content: None,
-                        provider_options: None,
+                        provider_options: provider_options_from_openai_namespace(item.namespace),
                         provider_executed: None,
+                    }]
+                }
+                Some(openai::OutputItemType::ToolSearchCall) => {
+                    let tool_call_id =
+                        item.call_id.or_else(|| item.id.clone()).ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
+                                field: "tool search call_id".to_string(),
+                            }
+                        })?;
+                    vec![AssistantContentPart::ToolDiscoveryCall {
+                        tool_call_id,
+                        discovery_tool_name: item.name.unwrap_or_else(|| "tool_search".to_string()),
+                        query: None,
+                        arguments: item.arguments,
+                        status: openai_status_to_string(item.status),
+                        execution: openai_tool_search_execution_to_string(item.execution),
+                        provider_options: None,
                     }]
                 }
                 Some(openai::OutputItemType::CodeInterpreterCall) => {
@@ -2859,50 +3364,96 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
         let mut result = Vec::new();
 
         for msg in messages {
-            if let Message::Assistant { content, id } = msg {
-                match content {
-                    AssistantContent::String(text) => {
-                        result.push(openai::OutputItem {
-                            output_item_type: Some(openai::OutputItemType::Message),
-                            role: Some(openai::RoleEnum::Assistant),
-                            content: Some(vec![openai::OutputMessageContent {
-                                output_message_content_type: openai::ContentType::OutputText,
-                                text: Some(text),
-                                annotations: Some(vec![]),
-                                logprobs: None,
-                                refusal: None,
-                            }]),
-                            id,
-                            status: Some(openai::FunctionCallItemStatus::Completed),
-                            ..Default::default()
-                        });
-                    }
-                    AssistantContent::Array(parts) => {
-                        // Track whether we've assigned the id to prevent duplicate IDs
-                        let mut id_used = false;
-                        let use_id = |used: &mut bool, id: &Option<String>| -> Option<String> {
-                            if *used {
-                                None
-                            } else {
-                                *used = true;
-                                id.clone()
+            match msg {
+                Message::Tool { content } => {
+                    for part in content {
+                        match part {
+                            ToolContentPart::ToolDiscoveryResult(discovery_result) => {
+                                result.push(openai::OutputItem {
+                                    output_item_type: Some(
+                                        openai::OutputItemType::ToolSearchOutput,
+                                    ),
+                                    call_id: Some(discovery_result.tool_call_id),
+                                    status: openai_status_from_string(discovery_result.status),
+                                    execution: openai_tool_search_execution_from_string(
+                                        discovery_result.execution,
+                                    ),
+                                    tools: Some(openai_output_tools_from_discovery_items(
+                                        discovery_result.tools,
+                                    )?),
+                                    ..Default::default()
+                                });
                             }
-                        };
+                            ToolContentPart::ToolResult(tool_result) => {
+                                let output_string = match tool_result.output {
+                                    serde_json::Value::String(s) => s,
+                                    other => serde_json::to_string(&other).map_err(|e| {
+                                        ConvertError::JsonSerializationFailed {
+                                            field: "tool_result_output".to_string(),
+                                            error: e.to_string(),
+                                        }
+                                    })?,
+                                };
+                                result.push(openai::OutputItem {
+                                    output_item_type: Some(
+                                        openai::OutputItemType::FunctionCallOutput,
+                                    ),
+                                    call_id: Some(tool_result.tool_call_id),
+                                    name: (!tool_result.tool_name.is_empty())
+                                        .then_some(tool_result.tool_name),
+                                    output: input_item_output_to_output(Some(
+                                        openai_output_from_string(output_string),
+                                    )),
+                                    ..Default::default()
+                                });
+                            }
+                        }
+                    }
+                }
+                Message::Assistant { content, id } => {
+                    match content {
+                        AssistantContent::String(text) => {
+                            result.push(openai::OutputItem {
+                                output_item_type: Some(openai::OutputItemType::Message),
+                                role: Some(openai::RoleEnum::Assistant),
+                                content: Some(vec![openai::OutputMessageContent {
+                                    output_message_content_type: openai::ContentType::OutputText,
+                                    text: Some(text),
+                                    annotations: Some(vec![]),
+                                    logprobs: None,
+                                    refusal: None,
+                                }]),
+                                id,
+                                status: Some(openai::FunctionCallItemStatus::Completed),
+                                ..Default::default()
+                            });
+                        }
+                        AssistantContent::Array(parts) => {
+                            // Track whether we've assigned the id to prevent duplicate IDs
+                            let mut id_used = false;
+                            let use_id = |used: &mut bool, id: &Option<String>| -> Option<String> {
+                                if *used {
+                                    None
+                                } else {
+                                    *used = true;
+                                    id.clone()
+                                }
+                            };
 
-                        // Collect consecutive reasoning parts into a single OutputItem
-                        let mut pending_reasoning_summaries: Vec<openai::SummaryText> = vec![];
-                        let mut pending_encrypted_content: Option<String> = None;
-                        let mut has_pending_reasoning = false;
+                            // Collect consecutive reasoning parts into a single OutputItem
+                            let mut pending_reasoning_summaries: Vec<openai::SummaryText> = vec![];
+                            let mut pending_encrypted_content: Option<String> = None;
+                            let mut has_pending_reasoning = false;
 
-                        let flush_reasoning =
-                            |result: &mut Vec<openai::OutputItem>,
-                             summaries: &mut Vec<openai::SummaryText>,
-                             encrypted: &mut Option<String>,
-                             has_reasoning: &mut bool,
-                             id_used: &mut bool,
-                             id: &Option<String>| {
-                                if *has_reasoning {
-                                    let use_id_inner =
+                            let flush_reasoning =
+                                |result: &mut Vec<openai::OutputItem>,
+                                 summaries: &mut Vec<openai::SummaryText>,
+                                 encrypted: &mut Option<String>,
+                                 has_reasoning: &mut bool,
+                                 id_used: &mut bool,
+                                 id: &Option<String>| {
+                                    if *has_reasoning {
+                                        let use_id_inner =
                                         |used: &mut bool, id: &Option<String>| -> Option<String> {
                                             if *used {
                                                 None
@@ -2911,42 +3462,46 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 id.clone()
                                             }
                                         };
-                                    result.push(openai::OutputItem {
-                                        output_item_type: Some(openai::OutputItemType::Reasoning),
-                                        summary: Some(std::mem::take(summaries)),
-                                        encrypted_content: encrypted.take(),
-                                        id: use_id_inner(id_used, id),
-                                        ..Default::default()
-                                    });
-                                    *has_reasoning = false;
-                                }
-                            };
-
-                        for part in parts {
-                            match part {
-                                AssistantContentPart::Text(text_part) => {
-                                    // Flush any pending reasoning before text
-                                    flush_reasoning(
-                                        &mut result,
-                                        &mut pending_reasoning_summaries,
-                                        &mut pending_encrypted_content,
-                                        &mut has_pending_reasoning,
-                                        &mut id_used,
-                                        &id,
-                                    );
-                                    // Extract annotations, logprobs, and phase from
-                                    // provider_options using a typed struct so we avoid raw
-                                    // Value field access. Default annotations to Some(vec![])
-                                    // so the Responses API output always has the required array.
-                                    #[derive(serde::Deserialize, Default)]
-                                    struct TextPartProviderOpts {
-                                        annotations: Option<Vec<openai::Annotation>>,
-                                        logprobs: Option<Vec<openai::LogProbability>>,
-                                        #[serde(rename = "_output_item_phase")]
-                                        phase: Option<openai::MessagePhase>,
+                                        result.push(openai::OutputItem {
+                                            output_item_type: Some(
+                                                openai::OutputItemType::Reasoning,
+                                            ),
+                                            content: Some(vec![]),
+                                            summary: Some(std::mem::take(summaries)),
+                                            encrypted_content: encrypted.take(),
+                                            id: use_id_inner(id_used, id),
+                                            ..Default::default()
+                                        });
+                                        *has_reasoning = false;
                                     }
-                                    let (annotations, logprobs, phase) =
-                                        if let Some(ref opts) = text_part.provider_options {
+                                };
+
+                            for part in parts {
+                                match part {
+                                    AssistantContentPart::Text(text_part) => {
+                                        // Flush any pending reasoning before text
+                                        flush_reasoning(
+                                            &mut result,
+                                            &mut pending_reasoning_summaries,
+                                            &mut pending_encrypted_content,
+                                            &mut has_pending_reasoning,
+                                            &mut id_used,
+                                            &id,
+                                        );
+                                        // Extract annotations, logprobs, and phase from
+                                        // provider_options using a typed struct so we avoid raw
+                                        // Value field access. Default annotations to Some(vec![])
+                                        // so the Responses API output always has the required array.
+                                        #[derive(serde::Deserialize, Default)]
+                                        struct TextPartProviderOpts {
+                                            annotations: Option<Vec<openai::Annotation>>,
+                                            logprobs: Option<Vec<openai::LogProbability>>,
+                                            #[serde(rename = "_output_item_phase")]
+                                            phase: Option<openai::MessagePhase>,
+                                        }
+                                        let (annotations, logprobs, phase) = if let Some(ref opts) =
+                                            text_part.provider_options
+                                        {
                                             let parsed =
                                                 serde_json::from_value::<TextPartProviderOpts>(
                                                     serde_json::Value::Object(opts.options.clone()),
@@ -2960,209 +3515,255 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         } else {
                                             (Some(vec![]), None, None)
                                         };
-                                    result.push(openai::OutputItem {
-                                        output_item_type: Some(openai::OutputItemType::Message),
-                                        role: Some(openai::RoleEnum::Assistant),
-                                        content: Some(vec![openai::OutputMessageContent {
-                                            output_message_content_type:
-                                                openai::ContentType::OutputText,
-                                            text: Some(text_part.text),
-                                            annotations,
-                                            logprobs,
-                                            refusal: None,
-                                        }]),
-                                        id: use_id(&mut id_used, &id),
-                                        status: Some(openai::FunctionCallItemStatus::Completed),
-                                        phase,
-                                        ..Default::default()
-                                    });
-                                }
-                                AssistantContentPart::Reasoning {
-                                    text,
-                                    encrypted_content,
-                                } => {
-                                    // Accumulate reasoning summaries
-                                    has_pending_reasoning = true;
-                                    if !text.is_empty() {
-                                        pending_reasoning_summaries.push(openai::SummaryText {
-                                            text,
-                                            summary_text_type: openai::SummaryType::SummaryText,
+                                        result.push(openai::OutputItem {
+                                            output_item_type: Some(openai::OutputItemType::Message),
+                                            role: Some(openai::RoleEnum::Assistant),
+                                            content: Some(vec![openai::OutputMessageContent {
+                                                output_message_content_type:
+                                                    openai::ContentType::OutputText,
+                                                text: Some(text_part.text),
+                                                annotations,
+                                                logprobs,
+                                                refusal: None,
+                                            }]),
+                                            id: use_id(&mut id_used, &id),
+                                            status: Some(openai::FunctionCallItemStatus::Completed),
+                                            phase,
+                                            ..Default::default()
                                         });
                                     }
-                                    if encrypted_content.is_some() {
-                                        pending_encrypted_content = encrypted_content;
+                                    AssistantContentPart::Reasoning {
+                                        text,
+                                        encrypted_content,
+                                    } => {
+                                        // Accumulate reasoning summaries
+                                        has_pending_reasoning = true;
+                                        if !text.is_empty() {
+                                            pending_reasoning_summaries.push(openai::SummaryText {
+                                                text,
+                                                summary_text_type: openai::SummaryType::SummaryText,
+                                            });
+                                        }
+                                        if encrypted_content.is_some() {
+                                            pending_encrypted_content = encrypted_content;
+                                        }
                                     }
-                                }
-                                AssistantContentPart::ToolCall {
-                                    tool_call_id,
-                                    tool_name,
-                                    arguments,
-                                    provider_executed,
-                                    ..
-                                } => {
-                                    // Flush any pending reasoning before tool call
-                                    flush_reasoning(
-                                        &mut result,
-                                        &mut pending_reasoning_summaries,
-                                        &mut pending_encrypted_content,
-                                        &mut has_pending_reasoning,
-                                        &mut id_used,
-                                        &id,
-                                    );
-                                    if provider_executed == Some(true) {
-                                        // Built-in tool: convert to appropriate OutputItem type
-                                        let args_value = match &arguments {
-                                            ToolCallArguments::Valid(map) => {
-                                                serde_json::Value::Object(map.clone())
-                                            }
-                                            ToolCallArguments::Invalid(s) => {
-                                                serde_json::Value::String(s.clone())
-                                            }
-                                        };
+                                    AssistantContentPart::ToolCall {
+                                        tool_call_id,
+                                        tool_name,
+                                        arguments,
+                                        provider_options,
+                                        provider_executed,
+                                        ..
+                                    } => {
+                                        // Flush any pending reasoning before tool call
+                                        flush_reasoning(
+                                            &mut result,
+                                            &mut pending_reasoning_summaries,
+                                            &mut pending_encrypted_content,
+                                            &mut has_pending_reasoning,
+                                            &mut id_used,
+                                            &id,
+                                        );
+                                        let namespace = openai_tool_call_provider_options_view(
+                                            &provider_options,
+                                        )
+                                        .and_then(|opts| opts.namespace);
 
-                                        let item = match tool_name.as_str() {
-                                            "code_interpreter" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::CodeInterpreterCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                code: args_value
-                                                    .get("code")
-                                                    .and_then(|v| v.as_str())
-                                                    .map(|s| s.to_string()),
-                                                container_id: args_value
-                                                    .get("container_id")
-                                                    .and_then(|v| v.as_str())
-                                                    .map(|s| s.to_string()),
-                                                outputs: args_value.get("outputs").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "web_search" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::WebSearchCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                action: args_value.get("action").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                queries: args_value.get("queries").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "file_search" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::FileSearchCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                queries: args_value.get("queries").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                results: args_value.get("results").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "computer" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::ComputerCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                action: args_value.get("action").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "image_generation" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::ImageGenerationCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                result: args_value
-                                                    .get("result")
-                                                    .and_then(|v| v.as_str())
-                                                    .map(|s| s.to_string()),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "local_shell" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::LocalShellCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                action: args_value.get("action").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "mcp_call" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::McpCall,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                server_label: args_value
-                                                    .get("server_label")
-                                                    .and_then(|v| v.as_str())
-                                                    .map(|s| s.to_string()),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "mcp_list_tools" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::McpListTools,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                server_label: args_value
-                                                    .get("server_label")
-                                                    .and_then(|v| v.as_str())
-                                                    .map(|s| s.to_string()),
-                                                tools: args_value.get("tools").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            "mcp_approval_request" => openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::McpApprovalRequest,
-                                                ),
-                                                id: Some(tool_call_id),
-                                                status: args_value.get("status").and_then(|v| {
-                                                    serde_json::from_value(v.clone()).ok()
-                                                }),
-                                                ..Default::default()
-                                            },
-                                            _ => {
-                                                // Unknown provider-executed tool - fall back to FunctionCall
-                                                openai::OutputItem {
+                                        if provider_executed == Some(true) {
+                                            // Built-in tool: convert to appropriate OutputItem type
+                                            let args_value = match &arguments {
+                                                ToolCallArguments::Valid(map) => {
+                                                    serde_json::Value::Object(map.clone())
+                                                }
+                                                ToolCallArguments::Invalid(s) => {
+                                                    serde_json::Value::String(s.clone())
+                                                }
+                                            };
+
+                                            let item = match &tool_name[..] {
+                                                "code_interpreter" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::CodeInterpreterCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    code: parse_builtin_field(
+                                                        &args_value,
+                                                        "code",
+                                                        "code_interpreter",
+                                                    )?,
+                                                    container_id: parse_builtin_field(
+                                                        &args_value,
+                                                        "container_id",
+                                                        "code_interpreter",
+                                                    )?,
+                                                    outputs: parse_builtin_field(
+                                                        &args_value,
+                                                        "outputs",
+                                                        "code_interpreter",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "code_interpreter",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "web_search" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::WebSearchCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    action: parse_builtin_field(
+                                                        &args_value,
+                                                        "action",
+                                                        "web_search",
+                                                    )?,
+                                                    queries: parse_builtin_field(
+                                                        &args_value,
+                                                        "queries",
+                                                        "web_search",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "web_search",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "file_search" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::FileSearchCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    queries: parse_builtin_field(
+                                                        &args_value,
+                                                        "queries",
+                                                        "file_search",
+                                                    )?,
+                                                    results: parse_builtin_field(
+                                                        &args_value,
+                                                        "results",
+                                                        "file_search",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "file_search",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "computer" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::ComputerCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    action: parse_builtin_field(
+                                                        &args_value,
+                                                        "action",
+                                                        "computer",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "computer",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "image_generation" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::ImageGenerationCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    result: parse_builtin_field(
+                                                        &args_value,
+                                                        "result",
+                                                        "image_generation",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "image_generation",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "local_shell" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::LocalShellCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    action: parse_builtin_field(
+                                                        &args_value,
+                                                        "action",
+                                                        "local_shell",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "local_shell",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "mcp_call" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::McpCall,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    server_label: parse_builtin_field(
+                                                        &args_value,
+                                                        "server_label",
+                                                        "mcp_call",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "mcp_call",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "mcp_list_tools" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::McpListTools,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    server_label: parse_builtin_field(
+                                                        &args_value,
+                                                        "server_label",
+                                                        "mcp_list_tools",
+                                                    )?,
+                                                    tools: parse_builtin_field(
+                                                        &args_value,
+                                                        "tools",
+                                                        "mcp_list_tools",
+                                                    )?,
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "mcp_list_tools",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                "mcp_approval_request" => openai::OutputItem {
+                                                    output_item_type: Some(
+                                                        openai::OutputItemType::McpApprovalRequest,
+                                                    ),
+                                                    id: Some(tool_call_id),
+                                                    status: parse_builtin_field(
+                                                        &args_value,
+                                                        "status",
+                                                        "mcp_approval_request",
+                                                    )?,
+                                                    ..Default::default()
+                                                },
+                                                _ => {
+                                                    // Unknown provider-executed tool - fall back to FunctionCall
+                                                    openai::OutputItem {
                                                     output_item_type: Some(
                                                         openai::OutputItemType::FunctionCall,
                                                     ),
                                                     call_id: Some(tool_call_id),
                                                     name: Some(tool_name),
+                                                    namespace,
                                                     arguments: Some(serde_json::Value::String(
                                                         arguments.to_string(),
                                                     )),
@@ -3171,41 +3772,81 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                     ),
                                                     ..Default::default()
                                                 }
-                                            }
-                                        };
-                                        result.push(item);
-                                    } else {
-                                        // Regular function call
+                                                }
+                                            };
+                                            result.push(item);
+                                        } else {
+                                            // Regular function call
+                                            result.push(openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::FunctionCall,
+                                                ),
+                                                id: use_id(&mut id_used, &id),
+                                                call_id: Some(tool_call_id),
+                                                name: Some(tool_name),
+                                                namespace,
+                                                arguments: Some(serde_json::Value::String(
+                                                    arguments.to_string(),
+                                                )),
+                                                status: Some(
+                                                    openai::FunctionCallItemStatus::Completed,
+                                                ),
+                                                ..Default::default()
+                                            });
+                                        }
+                                    }
+                                    AssistantContentPart::ToolDiscoveryCall {
+                                        tool_call_id,
+                                        discovery_tool_name: _,
+                                        query,
+                                        arguments,
+                                        status,
+                                        execution,
+                                        ..
+                                    } => {
+                                        flush_reasoning(
+                                            &mut result,
+                                            &mut pending_reasoning_summaries,
+                                            &mut pending_encrypted_content,
+                                            &mut has_pending_reasoning,
+                                            &mut id_used,
+                                            &id,
+                                        );
                                         result.push(openai::OutputItem {
                                             output_item_type: Some(
-                                                openai::OutputItemType::FunctionCall,
+                                                openai::OutputItemType::ToolSearchCall,
                                             ),
                                             id: use_id(&mut id_used, &id),
                                             call_id: Some(tool_call_id),
-                                            name: Some(tool_name),
-                                            arguments: Some(serde_json::Value::String(
-                                                arguments.to_string(),
-                                            )),
-                                            status: Some(openai::FunctionCallItemStatus::Completed),
+                                            arguments: arguments.or_else(|| {
+                                                query.map(
+                                                    |query| serde_json::json!({ "query": query }),
+                                                )
+                                            }),
+                                            status: openai_status_from_string(status),
+                                            execution: openai_tool_search_execution_from_string(
+                                                execution,
+                                            ),
                                             ..Default::default()
                                         });
                                     }
+                                    // Skip File and ToolResult variants as they don't map to OutputItems
+                                    _ => {}
                                 }
-                                // Skip File and ToolResult variants as they don't map to OutputItems
-                                _ => {}
                             }
+                            // Flush any remaining pending reasoning at the end
+                            flush_reasoning(
+                                &mut result,
+                                &mut pending_reasoning_summaries,
+                                &mut pending_encrypted_content,
+                                &mut has_pending_reasoning,
+                                &mut id_used,
+                                &id,
+                            );
                         }
-                        // Flush any remaining pending reasoning at the end
-                        flush_reasoning(
-                            &mut result,
-                            &mut pending_reasoning_summaries,
-                            &mut pending_encrypted_content,
-                            &mut has_pending_reasoning,
-                            &mut id_used,
-                            &id,
-                        );
                     }
                 }
+                _ => {}
             }
         }
 
@@ -3726,8 +4367,17 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                         field: "tool_result".to_string(),
                     }
                 })?;
-                let ToolContentPart::ToolResult(result) = part;
-                tool_result_to_chat_completion_message(result)
+                match part {
+                    ToolContentPart::ToolResult(result) => {
+                        tool_result_to_chat_completion_message(result)
+                    }
+                    ToolContentPart::ToolDiscoveryResult(_) => {
+                        Err(ConvertError::UnsupportedMapping {
+                            from: "ToolDiscoveryResult".to_string(),
+                            to: "ChatCompletionRequestMessage",
+                        })
+                    }
+                }
             }
         }
     }
@@ -3747,8 +4397,9 @@ pub(crate) fn messages_to_chat_completion_messages(
         match msg {
             Message::Tool { content } => {
                 for part in content {
-                    let ToolContentPart::ToolResult(tool_result) = part;
-                    result.push(tool_result_to_chat_completion_message(tool_result)?);
+                    if let ToolContentPart::ToolResult(tool_result) = part {
+                        result.push(tool_result_to_chat_completion_message(tool_result)?);
+                    }
                 }
             }
             other => result

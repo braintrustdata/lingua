@@ -657,8 +657,11 @@ impl TryFromLLM<Message> for GoogleContent {
             Message::Tool { content } => {
                 let parts: Vec<GooglePart> = content
                     .into_iter()
-                    .map(|part| {
-                        let ToolContentPart::ToolResult(result) = part;
+                    .filter_map(|part| match part {
+                        ToolContentPart::ToolResult(result) => Some(result),
+                        ToolContentPart::ToolDiscoveryResult(_) => None,
+                    })
+                    .map(|result| {
                         let response = value_to_map(&result.output);
 
                         Ok(GooglePart {

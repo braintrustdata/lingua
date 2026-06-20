@@ -9,7 +9,7 @@ actual struct validation.
 
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
-    CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
+    InputContentBlockType, InputMessage, MessageContent, MessageRole,
 };
 use crate::providers::anthropic::params::AnthropicParams;
 use crate::serde_json::{self, Value};
@@ -48,12 +48,15 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
 /// is not valid Anthropic format. Also rejects payloads containing
 /// OpenAI-specific fields to prevent misdetection. This also validates the
 /// model-gated `messages[].role = "system"` feature and its placement rules.
-pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
+pub fn try_parse_anthropic(payload: &Value) -> Result<AnthropicParams, DetectionError> {
     reject_openai_only_fields(payload)?;
 
-    let request: CreateMessageParams = serde_json::from_value(payload.clone())
+    let request: AnthropicParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-    validate_system_message_support_and_placement(&request.model, &request.messages)?;
+    let model = required_model(&request)?;
+    let messages = required_messages(&request)?;
+    required_max_tokens(&request)?;
+    validate_system_message_support_and_placement(model, messages)?;
     Ok(request)
 }
 
@@ -63,20 +66,23 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, Detec
 /// Claude Code-style Messages payloads with system-role entries even when the
 /// requested model belongs to another provider. Native Anthropic passthrough
 /// still uses `try_parse_anthropic`.
-pub fn try_parse_anthropic_source(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
+pub fn try_parse_anthropic_source(payload: &Value) -> Result<AnthropicParams, DetectionError> {
     reject_openai_only_fields(payload)?;
 
-    let request: CreateMessageParams = serde_json::from_value(payload.clone())
+    let request: AnthropicParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
 
-    validate_system_message_placement(&request.messages)?;
+    let model = required_model(&request)?;
+    let messages = required_messages(&request)?;
+    required_max_tokens(&request)?;
+    validate_system_message_placement(messages)?;
 
-    if system_messages_present(&request.messages)
-        && !capabilities::supports_mid_conversation_system_messages(&request.model)
+    if system_messages_present(messages)
+        && !capabilities::supports_mid_conversation_system_messages(model)
         && !has_anthropic_source_markers(&request)
     {
         return Err(DetectionError::UnsupportedSystemRoleMessages {
-            model: request.model.clone(),
+            model: model.to_string(),
         });
     }
 
@@ -96,11 +102,30 @@ fn reject_openai_only_fields(payload: &Value) -> Result<(), DetectionError> {
     Ok(())
 }
 
-fn has_anthropic_source_markers(request: &CreateMessageParams) -> bool {
+fn required_model(request: &AnthropicParams) -> Result<&str, DetectionError> {
+    request
+        .model
+        .as_deref()
+        .ok_or_else(|| DetectionError::DeserializationFailed("missing model".to_string()))
+}
+
+fn required_messages(request: &AnthropicParams) -> Result<&[InputMessage], DetectionError> {
+    request
+        .messages
+        .as_deref()
+        .ok_or_else(|| DetectionError::DeserializationFailed("missing messages".to_string()))
+}
+
+fn required_max_tokens(request: &AnthropicParams) -> Result<i64, DetectionError> {
+    request
+        .max_tokens
+        .ok_or_else(|| DetectionError::DeserializationFailed("missing max_tokens".to_string()))
+}
+
+fn has_anthropic_source_markers(request: &AnthropicParams) -> bool {
     request.system.is_some()
         || request.thinking.is_some()
         || request.output_config.is_some()
-        || request.cache_control.is_some()
         || request.top_k.is_some()
         || request
             .stop_sequences

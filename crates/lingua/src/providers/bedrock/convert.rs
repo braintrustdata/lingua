@@ -271,8 +271,11 @@ fn tool_result_blocks_from_content(
 ) -> Result<Vec<BedrockContentBlock>, ConvertError> {
     content
         .into_iter()
-        .map(|part| {
-            let ToolContentPart::ToolResult(result) = part;
+        .filter_map(|part| match part {
+            ToolContentPart::ToolResult(result) => Some(result),
+            ToolContentPart::ToolDiscoveryResult(_) => None,
+        })
+        .map(|result| {
             let content_text = match result.output {
                 Value::String(s) => s,
                 other => serde_json::to_string(&other).map_err(|e| {

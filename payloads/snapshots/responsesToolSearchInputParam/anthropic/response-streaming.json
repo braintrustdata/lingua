@@ -1,0 +1,215 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01Mi6sxEHqwmVHg6XRaHLXnv",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 721,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 5,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "I'll search for all"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " available tools by using a broad pattern."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "content_block_start",
+    "index": 1,
+    "content_block": {
+      "type": "server_tool_use",
+      "id": "srvtoolu_01RhVq9k2KPfvd193J75rpVg",
+      "name": "tool_search_tool_regex",
+      "input": {}
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "{\"patter"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "n\": \"."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "*\""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": ", \"limit\": "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 1,
+    "delta": {
+      "type": "input_json_delta",
+      "partial_json": "100}"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 1
+  },
+  {
+    "type": "content_block_start",
+    "index": 2,
+    "content_block": {
+      "type": "tool_search_tool_result",
+      "tool_use_id": "srvtoolu_01RhVq9k2KPfvd193J75rpVg",
+      "content": {
+        "type": "tool_search_tool_search_result",
+        "tool_references": [
+          {
+            "type": "tool_reference",
+            "tool_name": "tool_search_tool_regex"
+          },
+          {
+            "type": "tool_reference",
+            "tool_name": "search_code"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 2
+  },
+  {
+    "type": "content_block_start",
+    "index": 3,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "Based"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " on my search, there are **2 available tools**:\n\n1. **tool_search_tool_regex** - Searches for functions using regex patterns\n   "
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": "- Parameters:\n     - `pattern` (required): Python regex pattern to match against tool names, descriptions, and parameters\n     - `limit` (optional): Maximum number of matching tools to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " return (default: 5, max: 10000)\n\n2. **search_code** - Search code\n   - No parameters required\n\nThese are all"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 3,
+    "delta": {
+      "type": "text_delta",
+      "text": " the tools currently available in this environment."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 3
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 1807,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 209,
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      }
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

@@ -169,6 +169,23 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                             }
                         }
                     }
+                    AssistantContentPart::ToolDiscoveryCall {
+                        tool_call_id,
+                        discovery_tool_name,
+                        query,
+                        arguments,
+                        status,
+                        execution,
+                        ..
+                    } => {
+                        "tool_discovery_call".hash(hasher);
+                        tool_call_id.hash(hasher);
+                        discovery_tool_name.hash(hasher);
+                        query.hash(hasher);
+                        arguments.hash(hasher);
+                        status.hash(hasher);
+                        execution.hash(hasher);
+                    }
                     AssistantContentPart::ToolResult {
                         tool_call_id,
                         tool_name,
@@ -222,6 +239,16 @@ fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
                 result.tool_call_id.hash(hasher);
                 result.tool_name.hash(hasher);
                 result.output.hash(hasher);
+            }
+            crate::universal::ToolContentPart::ToolDiscoveryResult(result) => {
+                "tool_discovery_result".hash(hasher);
+                result.tool_call_id.hash(hasher);
+                result.discovery_tool_name.hash(hasher);
+                result.status.hash(hasher);
+                result.execution.hash(hasher);
+                for item in &result.tools {
+                    item.tool_name.hash(hasher);
+                }
             }
         }
     }

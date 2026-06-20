@@ -1373,6 +1373,72 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > responsesToolSearchInputParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": "Find the available tools.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "tools": [
+    {
+      "function": {
+        "description": "Search code.",
+        "name": "search_code",
+        "parameters": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object",
+        },
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → chat-completions > responsesToolSearchInputParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Here are the available tools you can use:
+
+- functions.search_code
+  - Description: Search code.
+  - Signature: () => any
+  - Parameters: none (no inputs)
+
+- multi_tool_use.parallel
+  - Description: Run multiple tools in parallel. Use this to invoke several tools at once.
+  - Signature: (parameters) => any
+  - Parameters format: {
+      tool_uses: [
+        { recipient_name: "functions.<tool_name>", parameters: { ... } },
+        ...
+      ]
+    }
+  - Notes: Only tools from the functions namespace may be used inside the parallel wrapper.
+
+Would you like me to run a quick code search, or demonstrate a parallel call using these tools?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_DsevDG4jOeyLV0oWRctPMvOTgHAI1",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 120,
+    "output_tokens": 987,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > safetyIdentifierParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -4000,6 +4066,65 @@ However, the sky can also appear in many other colors depending on the time of d
 }
 `;
 
+exports[`anthropic → google > responsesToolSearchInputParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Find the available tools.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "description": "Search code.",
+          "name": "search_code",
+          "parameters": null,
+          "parametersJsonSchema": {
+            "additionalProperties": false,
+            "properties": {},
+            "type": "object",
+          },
+          "response": null,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
+{
+  "content": [
+    {
+      "id": "yjrmuyb4",
+      "input": {},
+      "name": "search_code",
+      "type": "tool_use",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "tool_use",
+  "type": "message",
+  "usage": {
+    "input_tokens": 30,
+    "output_tokens": 246,
+  },
+}
+`;
+
 exports[`anthropic → google > safetyIdentifierParam > request 1`] = `
 {
   "contents": [
@@ -5235,6 +5360,7 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": [
@@ -5244,10 +5370,12 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
         },
       ],
       "role": "user",
+      "type": "message",
     },
     {
       "content": "Only use the exact tools provided by Claude Code.",
       "role": "system",
+      "type": "message",
     },
   ],
   "max_output_tokens": 32000,
@@ -5318,10 +5446,12 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > reque
     {
       "content": "If there is no later system message, answer the final question with exactly INITIAL.",
       "role": "system",
+      "type": "message",
     },
     {
       "content": "What is the required answer?",
       "role": "user",
+      "type": "message",
     },
     {
       "content": [
@@ -5331,6 +5461,7 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > reque
         },
       ],
       "role": "system",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16,
@@ -5365,6 +5496,7 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > request 1`
     {
       "content": "Look up the latest records.",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"collection":"example_collection"}",
@@ -5386,6 +5518,7 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > request 1`
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5442,10 +5575,12 @@ exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": "Hi",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5497,10 +5632,12 @@ exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": "Hi",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5548,6 +5685,7 @@ exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > r
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5595,6 +5733,7 @@ exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > r
     {
       "content": "Use the cached assistant prefill.",
       "role": "user",
+      "type": "message",
     },
     {
       "content": [
@@ -5648,6 +5787,7 @@ exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
     {
       "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -5720,6 +5860,7 @@ exports[`anthropic → responses > documentContentParam > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5766,6 +5907,7 @@ exports[`anthropic → responses > fableTemperatureParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5813,6 +5955,7 @@ exports[`anthropic → responses > imageContentParam > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5851,10 +5994,12 @@ exports[`anthropic → responses > instructionsParam > request 1`] = `
     {
       "content": "Say OK",
       "role": "system",
+      "type": "message",
     },
     {
       "content": "Hi",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5893,6 +6038,7 @@ exports[`anthropic → responses > jsonSchemaFormatParam > request 1`] = `
     {
       "content": "Return JSON with an ISO 8601 timestamp in created_at.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -5950,6 +6096,7 @@ exports[`anthropic → responses > maxCompletionTokensParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 500,
@@ -5988,6 +6135,7 @@ exports[`anthropic → responses > metadataParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6038,6 +6186,7 @@ exports[`anthropic → responses > multimodalRequest > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -6072,6 +6221,7 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 4096,
@@ -6113,6 +6263,7 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > reque
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16000,
@@ -6176,6 +6327,7 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > request 1`] = `
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6236,6 +6388,7 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > request 1`] = `
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6296,6 +6449,7 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > request 1`] 
     {
       "content": "NYC and LA weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6358,6 +6512,7 @@ exports[`anthropic → responses > parallelToolCallsRequest > request 1`] = `
     {
       "content": "What's the weather in San Francisco and New York?",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"location":"San Francisco, CA"}",
@@ -6448,10 +6603,12 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6490,6 +6647,7 @@ exports[`anthropic → responses > reasoningEffortLowParam > request 1`] = `
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16000,
@@ -6531,6 +6689,7 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > req
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16000,
@@ -6572,6 +6731,7 @@ exports[`anthropic → responses > reasoningRequest > request 1`] = `
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -6621,6 +6781,7 @@ exports[`anthropic → responses > reasoningRequestTruncated > request 1`] = `
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 100,
@@ -6655,6 +6816,7 @@ exports[`anthropic → responses > reasoningSummaryParam > request 1`] = `
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16000,
@@ -6696,6 +6858,7 @@ exports[`anthropic → responses > reasoningWithOutput > request 1`] = `
     {
       "content": "What color is the sky?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -6736,12 +6899,95 @@ If you tell me the time and location, I can describe what the sky would look lik
 }
 `;
 
+exports[`anthropic → responses > responsesToolSearchInputParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Find the available tools.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5.5",
+  "tools": [
+    {
+      "type": "tool_search",
+    },
+    {
+      "defer_loading": true,
+      "description": "Search code.",
+      "name": "search_code",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object",
+      },
+      "type": "function",
+    },
+  ],
+}
+`;
+
+exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "id": "srvtoolu_tsc_00fdc0dd80a436fd006a35ee9c4ee881919a231a482eebb0e7",
+      "input": {
+        "paths": [
+          "search_code",
+        ],
+      },
+      "name": "tool_search_tool_regex",
+      "type": "server_tool_use",
+    },
+    {
+      "content": {
+        "tool_references": [
+          {
+            "tool_name": "search_code",
+            "type": "tool_reference",
+          },
+        ],
+        "type": "tool_search_tool_search_result",
+      },
+      "tool_use_id": "srvtoolu_tso_00fdc0dd80a436fd006a35ee9c6e68819185d898f73a87082c",
+      "type": "tool_search_tool_result",
+    },
+    {
+      "text": "Available tools:
+
+- \`api_tool.list_resources\` — list/retrieve resource and tool descriptions.
+- \`multi_tool_use.parallel\` — run multiple developer tools in parallel when independent.
+- \`search_code.search_code\` — search code.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_00fdc0dd80a436fd006a35ee9afba881918c2e0aeba7bea9d2",
+  "model": "gpt-5.5-2026-04-23",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 588,
+    "output_tokens": 122,
+  },
+}
+`;
+
 exports[`anthropic → responses > safetyIdentifierParam > request 1`] = `
 {
   "input": [
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6783,6 +7029,7 @@ exports[`anthropic → responses > serviceTierParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6822,6 +7069,7 @@ exports[`anthropic → responses > simpleRequest > request 1`] = `
     {
       "content": "What is the capital of France?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -6860,6 +7108,7 @@ exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
     {
       "content": "Write a very long essay about the ocean.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16,
@@ -6894,6 +7143,7 @@ exports[`anthropic → responses > stopSequencesParam > request 1`] = `
     {
       "content": "Count to 20.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6951,6 +7201,7 @@ exports[`anthropic → responses > streamParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -6970,10 +7221,12 @@ exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": "What errors occurred recently?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -7008,6 +7261,7 @@ exports[`anthropic → responses > temperatureParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7021,6 +7275,7 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > request 1`] = `
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7081,6 +7336,7 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7141,6 +7397,7 @@ exports[`anthropic → responses > thinkingDisabledParam > request 1`] = `
     {
       "content": "2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7179,6 +7436,7 @@ exports[`anthropic → responses > toolCallRequest > request 1`] = `
     {
       "content": "What's the weather like in San Francisco?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -7241,6 +7499,7 @@ exports[`anthropic → responses > toolChoiceAnyParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7302,6 +7561,7 @@ exports[`anthropic → responses > toolChoiceAutoParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7364,6 +7624,7 @@ exports[`anthropic → responses > toolChoiceNoneParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7421,6 +7682,7 @@ exports[`anthropic → responses > toolChoiceRequiredParam > request 1`] = `
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7485,6 +7747,7 @@ exports[`anthropic → responses > topKParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7523,6 +7786,7 @@ exports[`anthropic → responses > topPParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7561,6 +7825,7 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > request 1`] = `
     {
       "content": "AI news",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7627,6 +7892,7 @@ exports[`anthropic → responses > webSearchToolParam > request 1`] = `
     {
       "content": "Latest OpenAI news",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -7767,6 +8033,7 @@ exports[`anthropic → responses > webSearchUserLocationParam > request 1`] = `
     {
       "content": "Local food",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -17305,6 +17572,7 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -17382,6 +17650,7 @@ exports[`chat-completions → responses > chatCompletionsAssistantCacheControlPa
     {
       "content": "Use the cached assistant prefill.",
       "role": "user",
+      "type": "message",
     },
     {
       "content": [
@@ -17461,6 +17730,7 @@ exports[`chat-completions → responses > complexReasoningRequest > request 1`] 
     {
       "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -17534,6 +17804,7 @@ exports[`chat-completions → responses > exclusiveMinimumToolParam > request 1`
     {
       "content": "Configure the LLM.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -17615,6 +17886,7 @@ exports[`chat-completions → responses > fableTemperatureParam > request 1`] = 
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -17667,6 +17939,7 @@ exports[`chat-completions → responses > frequencyPenaltyParam > request 1`] = 
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -17719,6 +17992,7 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5.4-mini",
@@ -17803,6 +18077,7 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
     {
       "content": "List the collections in the mydb database.",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"database":"mydb"}",
@@ -17899,6 +18174,7 @@ exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > reques
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -17951,10 +18227,12 @@ exports[`chat-completions → responses > instructionsParam > request 1`] = `
     {
       "content": "Always say ok.",
       "role": "system",
+      "type": "message",
     },
     {
       "content": "Hi",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18007,6 +18285,7 @@ exports[`chat-completions → responses > jsonSchemaFormatParam > request 1`] = 
     {
       "content": "Return JSON with an ISO 8601 timestamp in created_at.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18079,6 +18358,7 @@ exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > request 1
     {
       "content": "Return JSON with tags as an array of 2 to 3 strings.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18155,6 +18435,7 @@ exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > reques
     {
       "content": "Return JSON with score as an integer from 0 to 10.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18228,6 +18509,7 @@ exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > request 1
     {
       "content": "Return {"tuple": ["gateway", 7]} as JSON.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18319,6 +18601,7 @@ exports[`chat-completions → responses > logitBiasParam > request 1`] = `
     {
       "content": "Say hello.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18371,6 +18654,7 @@ exports[`chat-completions → responses > logprobsParam > request 1`] = `
     {
       "content": "What is 2 + 2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18384,6 +18668,7 @@ exports[`chat-completions → responses > maxCompletionTokensParam > request 1`]
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 500,
@@ -18437,6 +18722,7 @@ exports[`chat-completions → responses > metadataParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "metadata": {
@@ -18504,6 +18790,7 @@ exports[`chat-completions → responses > multimodalRequest > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -18548,6 +18835,7 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > request 1`
     {
       "content": "Say a word.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18600,6 +18888,7 @@ exports[`chat-completions → responses > openaiPromptCacheKeyParam > request 1`
     {
       "content": "Summarize the cached policy.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18669,6 +18958,7 @@ exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortP
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 4096,
@@ -18725,6 +19015,7 @@ exports[`chat-completions → responses > parallelToolCallsDisabledParam > reque
     {
       "content": "Weather in NYC and LA?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18807,6 +19098,7 @@ exports[`chat-completions → responses > parallelToolCallsRequest > request 1`]
     {
       "content": "What's the weather in San Francisco and New York?",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"location":"San Francisco, CA"}",
@@ -18911,6 +19203,7 @@ function divide(a, b) {
   return a / b;
 }",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -18995,6 +19288,7 @@ exports[`chat-completions → responses > presencePenaltyParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19047,6 +19341,7 @@ exports[`chat-completions → responses > promptCacheKeyParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19100,6 +19395,7 @@ exports[`chat-completions → responses > reasoningEffortLowParam > request 1`] 
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19152,6 +19448,7 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > request 
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19204,6 +19501,7 @@ exports[`chat-completions → responses > reasoningEffortNoneParam > request 1`]
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5.2",
@@ -19247,6 +19545,7 @@ exports[`chat-completions → responses > reasoningRequest > request 1`] = `
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19310,6 +19609,7 @@ exports[`chat-completions → responses > reasoningRequestTruncated > request 1`
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 100,
@@ -19354,6 +19654,7 @@ exports[`chat-completions → responses > reasoningSummaryParam > request 1`] = 
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19409,6 +19710,7 @@ exports[`chat-completions → responses > reasoningWithOutput > request 1`] = `
     {
       "content": "What color is the sky?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19461,6 +19763,7 @@ exports[`chat-completions → responses > safetyIdentifierParam > request 1`] = 
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "metadata": {
@@ -19516,6 +19819,7 @@ exports[`chat-completions → responses > seedParam > request 1`] = `
     {
       "content": "Pick a number.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19570,6 +19874,7 @@ exports[`chat-completions → responses > serviceTierParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19623,6 +19928,7 @@ exports[`chat-completions → responses > simpleRequest > request 1`] = `
     {
       "content": "What is the capital of France?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19675,6 +19981,7 @@ exports[`chat-completions → responses > simpleRequestTruncated > request 1`] =
     {
       "content": "Write a very long essay about the ocean.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16,
@@ -19716,6 +20023,7 @@ exports[`chat-completions → responses > stopSequencesParam > request 1`] = `
     {
       "content": "Count from 1 to 20.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19768,6 +20076,7 @@ exports[`chat-completions → responses > storeDisabledParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19826,10 +20135,12 @@ exports[`chat-completions → responses > systemMessageArrayContent > request 1`
         },
       ],
       "role": "system",
+      "type": "message",
     },
     {
       "content": "What errors occurred recently?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -19874,6 +20185,7 @@ exports[`chat-completions → responses > temperatureParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19886,6 +20198,7 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > request 1`
     {
       "content": "Return {"status": "ok"} as JSON.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -19943,6 +20256,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPro
     {
       "content": "Return an answer and short reasoning.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5.4-mini",
@@ -20006,6 +20320,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeG
     {
       "content": "Classify the query and return JSON.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20088,6 +20403,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaParam > request 1`
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20163,6 +20479,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionPar
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20239,6 +20556,7 @@ exports[`chat-completions → responses > textFormatTextParam > request 1`] = `
     {
       "content": "Say hello.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20296,6 +20614,7 @@ exports[`chat-completions → responses > toolCallRequest > request 1`] = `
     {
       "content": "What's the weather like in San Francisco?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20377,6 +20696,7 @@ exports[`chat-completions → responses > toolChoiceRequiredParam > request 1`] 
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20462,6 +20782,7 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20550,6 +20871,7 @@ exports[`chat-completions → responses > topPParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -20602,6 +20924,7 @@ exports[`chat-completions → responses > topPReasoningModelParam > request 1`] 
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -25872,6 +26195,7 @@ exports[`google → responses > complexReasoningRequest > request 1`] = `
     {
       "content": "There is a digital clock, with minutes and hours in the form of 00:00. The clock shows all times from 00:00 to 23:59 and repeating. Imagine you had a list of all these times. Which digit(s) is the most common and which is the rarest? Can you find their percentage?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 20000,
@@ -25951,6 +26275,7 @@ exports[`google → responses > exclusiveMinimumToolParam > request 1`] = `
     {
       "content": "Configure the LLM.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26027,6 +26352,7 @@ exports[`google → responses > googleOpenAIModelTopKParam > request 1`] = `
     {
       "content": "Write a short sentence about API gateways.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 1024,
@@ -26080,6 +26406,7 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > requ
     {
       "content": "Return JSON with keys gateway and score.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 128,
@@ -26145,6 +26472,7 @@ exports[`google → responses > googleThinkingJsonSchemaParam > request 1`] = `
 Caption: A creator compares two microphone setups, explains why the cheaper lavalier performs better outdoors, and asks viewers to comment with their setup.
 Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 2048,
@@ -26227,6 +26555,7 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > requ
     {
       "content": "List the collections in the mydb database.",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"database":"mydb"}",
@@ -26314,6 +26643,7 @@ exports[`google → responses > googleToolSchemaNumericInt64Param > request 1`] 
     {
       "content": "Validate tool schema bounds.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26411,6 +26741,7 @@ exports[`google → responses > imageConfigParam > request 1`] = `
     {
       "content": "Generate a tiny red dot.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26480,6 +26811,7 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26532,6 +26864,7 @@ exports[`google → responses > instructionsParam > request 1`] = `
     {
       "content": "Hi",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26584,6 +26917,7 @@ exports[`google → responses > jsonSchemaFormatParam > request 1`] = `
     {
       "content": "Return JSON with an ISO 8601 timestamp in created_at.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 128,
@@ -26644,6 +26978,7 @@ exports[`google → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
     {
       "content": "Return JSON with tags as an array of 2 to 3 strings.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 128,
@@ -26708,6 +27043,7 @@ exports[`google → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
     {
       "content": "Return JSON with score as an integer from 0 to 10.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 128,
@@ -26769,6 +27105,7 @@ exports[`google → responses > jsonSchemaPrefixItemsParam > request 1`] = `
     {
       "content": "Return {"tuple": ["gateway", 7]} as JSON.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 128,
@@ -26848,6 +27185,7 @@ exports[`google → responses > maxCompletionTokensParam > request 1`] = `
     {
       "content": "Say ok.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 500,
@@ -26901,6 +27239,7 @@ exports[`google → responses > mediaResolutionParam > request 1`] = `
     {
       "content": "Describe this image briefly.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -26962,6 +27301,7 @@ exports[`google → responses > multimodalRequest > request 1`] = `
         },
       ],
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -27003,6 +27343,7 @@ exports[`google → responses > parallelToolCallsRequest > request 1`] = `
     {
       "content": "What's the weather in San Francisco and New York?",
       "role": "user",
+      "type": "message",
     },
     {
       "arguments": "{"location":"San Francisco, CA"}",
@@ -27105,6 +27446,7 @@ exports[`google → responses > reasoningEffortLowParam > request 1`] = `
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27160,6 +27502,7 @@ exports[`google → responses > reasoningRequest > request 1`] = `
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27220,6 +27563,7 @@ exports[`google → responses > reasoningRequestTruncated > request 1`] = `
     {
       "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 100,
@@ -27261,6 +27605,7 @@ exports[`google → responses > reasoningSummaryParam > request 1`] = `
     {
       "content": "What is 2+2?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27316,6 +27661,7 @@ exports[`google → responses > reasoningWithOutput > request 1`] = `
     {
       "content": "What color is the sky?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27374,6 +27720,7 @@ exports[`google → responses > responseModalitiesAudioParam > request 1`] = `
     {
       "content": "Say hello in a warm, concise voice.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27426,6 +27773,7 @@ exports[`google → responses > seedParam > request 1`] = `
     {
       "content": "Pick a number.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27478,6 +27826,7 @@ exports[`google → responses > simpleRequest > request 1`] = `
     {
       "content": "What is the capital of France?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27530,6 +27879,7 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
     {
       "content": "Write a very long essay about the ocean.",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 16,
@@ -27570,6 +27920,7 @@ exports[`google → responses > speechConfigParam > request 1`] = `
     {
       "content": "Generate audio speaking exactly this text: "Hello."",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27622,6 +27973,7 @@ exports[`google → responses > stopSequencesParam > request 1`] = `
     {
       "content": "Count from 1 to 20.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27674,6 +28026,7 @@ exports[`google → responses > systemMessageArrayContent > request 1`] = `
     {
       "content": "What errors occurred recently?",
       "role": "user",
+      "type": "message",
     },
   ],
   "max_output_tokens": 300,
@@ -27715,6 +28068,7 @@ exports[`google → responses > temperatureParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27767,6 +28121,7 @@ exports[`google → responses > textFormatJsonObjectParam > request 1`] = `
     {
       "content": "Return {"status": "ok"} as JSON.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27824,6 +28179,7 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27898,6 +28254,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
     {
       "content": "Extract: John is 25.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -27972,6 +28329,7 @@ exports[`google → responses > thinkingLevelParam > request 1`] = `
     {
       "content": "Solve this complex problem.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28043,6 +28401,7 @@ exports[`google → responses > toolCallRequest > request 1`] = `
     {
       "content": "What's the weather like in San Francisco?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28120,6 +28479,7 @@ exports[`google → responses > toolChoiceAnyParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28196,6 +28556,7 @@ exports[`google → responses > toolChoiceAutoParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28273,6 +28634,7 @@ exports[`google → responses > toolChoiceNoneParam > request 1`] = `
     {
       "content": "Weather?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28350,6 +28712,7 @@ exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28429,6 +28792,7 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > request 1
     {
       "content": "Tokyo weather",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28511,6 +28875,7 @@ exports[`google → responses > toolModeValidatedParam > request 1`] = `
     {
       "content": "Weather in Tokyo?",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28587,6 +28952,7 @@ exports[`google → responses > topKParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28639,6 +29005,7 @@ exports[`google → responses > topPParam > request 1`] = `
     {
       "content": "Say hi.",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -28691,6 +29058,7 @@ exports[`google → responses > webSearchToolAdvancedParam > request 1`] = `
     {
       "content": "AI news",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -29233,6 +29601,7 @@ exports[`google → responses > webSearchToolParam > request 1`] = `
     {
       "content": "Latest OpenAI news",
       "role": "user",
+      "type": "message",
     },
   ],
   "model": "gpt-5-nano",
@@ -29445,6 +29814,7 @@ exports[`responses → anthropic > complexReasoningRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "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",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -29751,6 +30121,7 @@ exports[`responses → anthropic > functionToolsWithReasoningEffortParam > respo
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "EvcCCmQIDRgCKkCVjyd30PmtYqFiFoEY4TdUIerrZsZOObMOcrI5cNv2qcF0NKaa43ohCeNxKvr1XiXXYrbvUC2P4E1hzLIkcTbGMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgw7drsvHRMC++7Cjs4aDEnGp0pzLci6a6ENviIwnz3mHVENgTHTS7ltzPN4L4nJTqR+95VEV6+baqO81xwUaUfDe/oL6Y+DZObbyFbAKsAB+Dl9tjqGAfdO7Au3iARPqEBRwJsrOvcN2CkqXs7zqOFU4nLaGCNyXFVRNVoWpK/fFxxBTSMXgyq/s1vKFdv/MPRk8iREOXGrjK86eQE00QqedreBAPuEcVl58HuHuSbwSVNxv6tqfggpuNXNm13x+rbNZpC883vgqrrfoP3Oyrck5YV6TjOOndHQDUJV0MmkTn/7dLVt5Xug4UOe0Po2CInr5qLZMqk43A+WCBwn+DmucsUjYigKX+r3er1VRJt9GAE=",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -30605,6 +30976,7 @@ exports[`responses → anthropic > reasoningEffortLowParam > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "ErwBClkIDBgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCMg9jbGF1ZGUtb3B1cy00LTY4ABIM/acFFe7/mbxs0jbQGgymmS+XlX0vi/pfu0MiMCSHyIbU8NTmu+vX/Dgg0o2hZPk+j77UmMp3LLolUpb5iDpPAXQJMllGdHIw14pwrCoR3kduU/bmFLY/6nBUVuPnWnUYAQ==",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -30674,6 +31046,7 @@ exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = 
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "EvkBCmQIDRgCKkANrO4e7QOyBt+X28FZKLvTzNoQDVSTVMHBDOKtdn00Qyust7+mKBLyfu25KPMJ1vxi7EBV2nWiTwBDAqS5ISPSMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgw/sTgMpYjYyqbBLnMaDF8yU0tHuRxVgzHxSSIw//9txOKHSNs5JwtbhkCuBfn2djzsvCzY1EHhlNFETznSm2CAuCzOeaNYq2E1B2W4KkOrMGth6R/7yC59oVRVusJqeR0/4bHfs9B5/YedBZ1nWvncO+bAZ1y1EwMzbFT0ksuPhNay/4gvRr3Mf5E8aSxEL8P2GAE=",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -30800,6 +31173,7 @@ exports[`responses → anthropic > reasoningRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "Eo0GCkYICxgCKkCWf5Li7DwaRpTlXZCfNw43LgmK9ISm7pa+HJwOBIujpZp0rVwyqs4pp9tyLYcmHMcDn+3snF7mmekHzpIxPnkpEgzmJ2TOpmD7L2HwIH0aDE3GPAjq0ucjYgh3IiIwuHKY7BkarOdihXcA0/3Sd3wOLI6SS2OFQNYJfx+UYpJ3LNOh/Rdj6E3eBJTodUWqKvQEb2v8j7bjyzZT0Y6NCQCDlnmVx2vZDWScj//tuqA6385lL4OhjWyV9QPkzJDmL3aojSR+Jm1N9OFy5tPEHZ3P5OAF4ITS2pSTzxtQgMG5CdTD/GwLneAFoY0UBmDdareTfcoohR4YrPbbWEjR059NfcTzimPwNVI/YcGNLDj6GUPmhPcQlaz1z+rEnLOYwDb+Vv28xnuNMQgrjl3sbcsgrqOBRfkv8EAQqRv8ITZMkZgv5CrS4SOsnjDzYo3Ii91W4IXtsm7lOT3aJhZgLAyriP1dUa7dYByz5U1uqk18GEZMyd907UOtNRZCw+HdnOr5Saf06KemTjVvxaTQdMDurfKCPAVWICGhgLwHlIYv41y5hpyYfaKUB9X4x/j0Op8u72x+s0kqDY+JOpnhyx0CN8Cn0xyiepq0rfi76eBuJvs0k0mEb9TIlCHiSGfYHF7w73pM6NWOd5CHXD4tcxcuyGOjUn4CBb/HrQNGT+7zRQxUsq65XN6kDeWYxV6PhChu6JWuU35FI9Fh1IvEjJVxGcVkJQNQM7Gz7/ZdH19AScmZy79ysQV1A09l72sesM0FwGy3LY+Gr6N9YxjaKRcmJa8Za2qocxR9EDYl6ZS4tIwjbm1+l5bfvwfxiJZznAKxalB+hWR5T9Ifktqny114HuJy/s1lv3LrD06I0D2vF+CboOpYgzHvanjRGVIIRZw8KqQOSoolqAW561kRVFnR+Ra7KVoLqZkpYKwIVXwRG4hKUPViQ6oe43LDRS0rO/7aFYpc1lMMDdIiLxTQdr/Z98NgRV3aAiYCNysgOuVA5u+NplUsezolBViAfPWqLRuwAqHcxRgB",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -30956,6 +31330,7 @@ exports[`responses → anthropic > reasoningSummaryParam > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "ErwBClkIDBgCKkDo5w3BcOFDM2J7MsIKxgUfuba9NpwDavusotnNesPeZa7anZZRQjr0ND/Y4T9kgQgbRz4ipY8/DiooFD5PtwvCMg9jbGF1ZGUtb3B1cy00LTY4ABIMjCmqbsblk8XIy01MGgxD/avCHQaSFBD2re4iMGz7sG3dW45C8GoBk13qhupHekE1ZJK4/Dl11190gANqcj4DW5XYAfk+bLZm0Vg+3SoRh4rwPNqJEDjElkM60gHn75EYAQ==",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -31025,6 +31400,7 @@ exports[`responses → anthropic > reasoningWithOutput > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "EpYGCkYICxgCKkDN0nKcZq8FjobVKFRb/xmfE/ZmkXPjejR+8xqPKeX6NMwzUgZBwYF732MyAKiER9EaUnbQDjpWFRkaIQd0aZeSEgwqn1/xoeOa7mMd7iAaDBBrJWYvm/rxe+qXdCIwl09l4kLNYU9hXlt2DplQnw/vXj7+4nkQr9QfDtGPHSfB8qT7N/EvX2u1NNPCE/33Kv0EcrFjnsFD3It5CCbrEBch1E9YSCCqO3lO1toOZv+ZTxyJ+TM1ihlwUVbIYAMWNn0/4+m2Yav7NygZzUXqn23AVsA+dS5snO3DzoS5YMhRVlZD2BwqLcZ+wHB2oDHV32/JCLLS0FukolqHFK8zh/Nlr8NPj0EfY5eaSf7O0JzcwmbjKQh/LNuM4gFbOZHHsCQU53ehWJKIXUNzDZEA2Po/ZlLKCOMKwyPmZrHHKihckJNi2R0cNgb2VfL5yjnOOmyfPwnqlgQxxQB5fJjtIjnZSLo/gIU6ec+8JYriPU4oDAITptadCfTYxqc6sAw2arzkC+DksfWIfzJBU9FihHwvzi1a8QoAzWrn+yRT9CgKfkB8JKLA2LnwWFouMAGBfMuO3wLlmxtftdNjZXroL7jTv3WC6y3S1P0Yk1re+wR2OcNdiOUOgnKASW3ItCj+WD25dsnMOuCm4efKpziFtHEczXIzrs6prTmh6NaVUrQ1UfwTP8zAlpXbSwmBO0fT/GHRQifwk+WWqxclld7lmM9eEqYQ9gv0oXyuFBnG56sbFErHxE3qEOeXJESCTTAutERl9W47KDGfqcUzZ9CaOuKDvBajAgLWtbyXeNYB/tQeQ+Gs8It8mOimYpOIFAZ8fewxwG5uK5rH2qbTbZwR9Xu6+Hqu2t4zHB7Vmyk+m4zo+HTI7/sCibKUnzawqmLuRIpTzlKM8B8sMdV/p/2gps24E4FgpR2ZZqLLSnsn3mvxO6sJdOzo/JbnOZbw5ur0K9VZs6rIiPLHlVtkVmQ0rOhcF+N4afArXpW3/ZfdDlOrsWPJ6dTZJE83oaM75sABow5RSQBtQ4CcZt+M5r3oSRgB",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -31414,74 +31790,85 @@ exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] =
     {
       "content": [
         {
-          "id": "call_tool_search_123",
-          "input": {
-            "arguments": {},
-            "execution": "client",
-            "status": "completed",
+          "id": "srvtoolu_call_tool_search_123",
+          "input": {},
+          "name": "tool_search_tool_regex",
+          "type": "server_tool_use",
+        },
+        {
+          "content": {
+            "tool_references": [
+              {
+                "tool_name": "search_code",
+                "type": "tool_reference",
+              },
+            ],
+            "type": "tool_search_tool_search_result",
           },
-          "name": "tool_search",
-          "type": "tool_use",
+          "tool_use_id": "srvtoolu_call_tool_search_123",
+          "type": "tool_search_tool_result",
         },
       ],
       "role": "assistant",
     },
     {
-      "content": [
-        {
-          "content": "{"execution":"client","status":"completed","tools":[{"description":"Search code.","name":"search_code","parameters":{"additionalProperties":false,"properties":{},"type":"object"},"strict":true,"type":"function"}]}",
-          "tool_use_id": "call_tool_search_123",
-          "type": "tool_result",
-        },
-        {
-          "text": "Use the discovered tool list.",
-          "type": "text",
-        },
-      ],
+      "content": "Use the discovered tool list.",
       "role": "user",
     },
   ],
   "model": "claude-sonnet-4-5-20250929",
+  "tools": [
+    {
+      "defer_loading": true,
+      "description": "Search code.",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object",
+      },
+      "name": "search_code",
+      "strict": true,
+    },
+    {
+      "name": "tool_search_tool_regex",
+      "type": "tool_search_tool_regex_20251119",
+    },
+  ],
 }
 `;
 
 exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01XqkNmvYyDAucYecUDNM7x1",
+  "id": "resp_01RiJQe7d9WsFqr6Qa5HjG4k",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
-      "content": [
-        {
-          "annotations": [],
-          "text": "I'll use the discovered tool to search the code.",
-          "type": "output_text",
-        },
-      ],
+      "arguments": "{}",
+      "call_id": "toolu_01EQ97m49wLPcyGrgjwAahrz",
       "id": "msg_transformed_item_0",
-      "role": "assistant",
+      "name": "search_code",
       "status": "completed",
-      "type": "message",
+      "type": "function_call",
     },
   ],
-  "output_text": "I'll use the discovered tool to search the code.",
+  "output_text": "",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 175,
+    "input_tokens": 837,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 20,
+    "output_tokens": 36,
     "output_tokens_details": {
       "reasoning_tokens": 0,
     },
-    "total_tokens": 195,
+    "total_tokens": 873,
   },
 }
 `;
@@ -31624,6 +32011,7 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "encrypted_content": "EsoCCkYICxgCKkD5zM+jgIUOjDIU1NKWmzpNdQCwQNYUkunavnh72prMHBnjZcKGxtNT7MGMpcPg0oPpsj6mhkPR6WqafUiIZ5oXEgxZ3jOspYjQZ1/H2BkaDD2yEjUiKzYpFeL8hCIwsUxcqKLB15jz7steuNJ1I3E6zTBnL8mffUALE2O5kHsEMr66BT58XjJnu+2UDbhOKrEBTltQkF5iDAOchP5zay+8PZkvWQuoGKO2q9IMRvP/69sAXngSnbbp/kMpIfXmVRSC187MAB1RmURe0zzeQAcQz5hTyAOl5sAi00X6pYOgtz1YaDtkO/MSDwMWqIEQwB/kBj9Nat9WXXMH674G9gLcmJij5MumEuvPYcZ6NqfY8hQ0y/tO/Pxhp6gzgthGzQse1EzWI1Shh1LAaoFDRWCHbl/4Rcb4rpPGx0Xon5Qtnv67GAE=",
       "id": "msg_transformed_item_0",
       "summary": [
@@ -32727,6 +33115,7 @@ exports[`responses → google > complexReasoningRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -33231,6 +33620,7 @@ exports[`responses → google > functionToolsWithReasoningEffortParam > response
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34139,6 +34529,7 @@ exports[`responses → google > reasoningEffortLowParam > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34218,6 +34609,7 @@ exports[`responses → google > reasoningEffortMinimalParam > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34365,6 +34757,7 @@ exports[`responses → google > reasoningRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34551,6 +34944,7 @@ exports[`responses → google > reasoningRequestTruncated > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34632,6 +35026,7 @@ exports[`responses → google > reasoningSummaryParam > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -34711,6 +35106,7 @@ exports[`responses → google > reasoningWithOutput > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {
@@ -35081,48 +35477,6 @@ exports[`responses → google > responsesToolSearchInputParam > request 1`] = `
     {
       "parts": [
         {
-          "functionCall": {
-            "args": {
-              "arguments": {},
-              "execution": "client",
-              "status": "completed",
-            },
-            "name": "tool_search",
-          },
-        },
-      ],
-      "role": "model",
-    },
-    {
-      "parts": [
-        {
-          "functionResponse": {
-            "name": "tool_search",
-            "response": {
-              "execution": "client",
-              "status": "completed",
-              "tools": [
-                {
-                  "description": "Search code.",
-                  "name": "search_code",
-                  "parameters": {
-                    "additionalProperties": false,
-                    "properties": {},
-                    "type": "object",
-                  },
-                  "strict": true,
-                  "type": "function",
-                },
-              ],
-            },
-          },
-        },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
-        {
           "text": "Use the discovered tool list.",
         },
       ],
@@ -35142,29 +35496,54 @@ exports[`responses → google > responsesToolSearchInputParam > response 1`] = `
   "object": "response",
   "output": [
     {
-      "arguments": "{}",
-      "call_id": "5e9q0ave",
+      "content": [
+        {
+          "annotations": [],
+          "text": "It appears that there are no external tools (such as web search, calculators, or database connectors) currently configured or available in this session.
+
+However, I have a wide range of **built-in capabilities** that I can use to help you right now. These include:
+
+1. **Coding & Software Development:** Writing, debugging, explaining, and refactoring code in languages like Python, JavaScript, C++, HTML/CSS, SQL, and more.
+2. **Data Analysis & Mathematics:** Solving mathematical problems, explaining algorithms, and analyzing text-based data.
+3. **Writing & Editing:** Drafting essays, emails, reports, creative stories, or summarizing complex documents.
+4. **Learning & Explanation:** Explaining complex concepts (scientific, historical, technical) in simple terms.
+5. **Brainstorming & Planning:** Helping you plan projects, brainstorm ideas, or design workflows.
+
+If you have a specific task in mind, please let me know, and I will use my native capabilities to assist you!",
+          "type": "output_text",
+        },
+      ],
       "id": "msg_transformed_item_0",
-      "name": "search_code",
+      "role": "assistant",
       "status": "completed",
-      "type": "function_call",
+      "type": "message",
     },
   ],
-  "output_text": "",
+  "output_text": "It appears that there are no external tools (such as web search, calculators, or database connectors) currently configured or available in this session.
+
+However, I have a wide range of **built-in capabilities** that I can use to help you right now. These include:
+
+1. **Coding & Software Development:** Writing, debugging, explaining, and refactoring code in languages like Python, JavaScript, C++, HTML/CSS, SQL, and more.
+2. **Data Analysis & Mathematics:** Solving mathematical problems, explaining algorithms, and analyzing text-based data.
+3. **Writing & Editing:** Drafting essays, emails, reports, creative stories, or summarizing complex documents.
+4. **Learning & Explanation:** Explaining complex concepts (scientific, historical, technical) in simple terms.
+5. **Brainstorming & Planning:** Helping you plan projects, brainstorm ideas, or design workflows.
+
+If you have a specific task in mind, please let me know, and I will use my native capabilities to assist you!",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 103,
+    "input_tokens": 15,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 97,
+    "output_tokens": 695,
     "output_tokens_details": {
-      "reasoning_tokens": 87,
+      "reasoning_tokens": 484,
     },
-    "total_tokens": 200,
+    "total_tokens": 710,
   },
 }
 `;
@@ -35315,6 +35694,7 @@ exports[`responses → google > simpleRequest > response 1`] = `
   "object": "response",
   "output": [
     {
+      "content": [],
       "id": "msg_transformed_item_0",
       "summary": [
         {

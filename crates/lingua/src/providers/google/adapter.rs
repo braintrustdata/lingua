@@ -39,6 +39,27 @@ use serde::Serialize;
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
 
+fn is_discovery_only_message(message: &Message) -> bool {
+    match message {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+        }
+        Message::Tool { content } => {
+            !content.is_empty()
+                && content
+                    .iter()
+                    .all(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_)))
+        }
+        _ => false,
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GoogleStreamPart {
@@ -224,6 +245,7 @@ impl ProviderAdapter for GoogleAdapter {
         if capabilities.requires_thought_signature_for_function_call_history {
             add_dummy_thought_signatures_for_transferred_function_call_history(&mut messages);
         }
+        messages.retain(|message| !is_discovery_only_message(message));
 
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
@@ -504,13 +526,20 @@ impl ProviderAdapter for GoogleAdapter {
                 "finishReason": finish_reason
             })]
         } else {
-            resp.messages
+            let google_contents = resp
+                .messages
                 .iter()
-                .enumerate()
-                .map(|(i, msg)| {
-                    let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
-                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                .filter(|message| !is_discovery_only_message(message))
+                .map(|msg| {
+                    <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
+                })
+                .collect::<Result<Vec<_>, TransformError>>()?;
 
+            google_contents
+                .into_iter()
+                .enumerate()
+                .map(|(i, content)| {
                     let content_value = serde_json::to_value(&content)
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
@@ -852,10 +881,11 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     for msg in messages.iter_mut() {
         if let Message::Tool { content } = msg {
             for part in content.iter_mut() {
-                let ToolContentPart::ToolResult(result) = part;
-                if result.tool_name.is_empty() {
-                    if let Some(name) = id_to_name.get(&result.tool_call_id) {
-                        result.tool_name = name.clone();
+                if let ToolContentPart::ToolResult(result) = part {
+                    if result.tool_name.is_empty() {
+                        if let Some(name) = id_to_name.get(&result.tool_call_id) {
+                            result.tool_name = name.clone();
+                        }
                     }
                 }
             }
@@ -881,8 +911,9 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
         match &mut messages[index] {
             Message::Tool { content } => {
                 for part in content {
-                    let ToolContentPart::ToolResult(result) = part;
-                    later_tool_result_ids.insert(result.tool_call_id.clone());
+                    if let ToolContentPart::ToolResult(result) = part {
+                        later_tool_result_ids.insert(result.tool_call_id.clone());
+                    }
                 }
             }
             Message::Assistant {

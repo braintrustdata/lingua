@@ -1,13 +1,13 @@
 {
-  "id": "resp_0c7aaf7f3c0f080f006a34cb98647081a0bf3e185ee7bdca40",
+  "id": "resp_0335b41e1e0b7a2f006a35ee8d5fcc819d8048496e692d678d",
   "object": "response",
-  "created_at": 1781844888,
+  "created_at": 1781919373,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1781844890,
+  "completed_at": 1781919375,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,17 +18,17 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0c7aaf7f3c0f080f006a34cb99173c81a082ec9650d5884dbe",
+      "id": "rs_0335b41e1e0b7a2f006a35ee8e5ac0819d908b271ff5eede49",
       "type": "reasoning",
       "content": [],
       "summary": []
     },
     {
-      "id": "fc_0c7aaf7f3c0f080f006a34cb9a006c81a086b768367c69266f",
+      "id": "fc_0335b41e1e0b7a2f006a35ee8f0200819da42344378044b8c9",
       "type": "function_call",
       "status": "completed",
       "arguments": "{}",
-      "call_id": "call_mkPBg482NmR20TOyBajfXuS3",
+      "call_id": "call_yb4AChLOtLFVjpsb3djikSnR",
       "name": "search_code",
       "namespace": "search_code"
     }
@@ -82,11 +82,11 @@
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 68,
+    "output_tokens": 59,
     "output_tokens_details": {
-      "reasoning_tokens": 51
+      "reasoning_tokens": 42
     },
-    "total_tokens": 240
+    "total_tokens": 231
   },
   "user": null,
   "metadata": {},

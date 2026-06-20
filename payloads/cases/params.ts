@@ -10,6 +10,7 @@ import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
   ChatCompletionUserMessageWithCacheControl,
+  AnthropicMessageCreateParams,
   TestCase,
   TestCaseCollection,
 } from "./types";
@@ -183,7 +184,32 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
     },
-    anthropic: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "Find the available tools.",
+        },
+      ],
+      tools: [
+        {
+          type: "tool_search_tool_regex_20251119",
+          name: "tool_search_tool_regex",
+        },
+        {
+          name: "search_code",
+          description: "Search code.",
+          input_schema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+          defer_loading: true,
+        },
+      ],
+    } satisfies AnthropicMessageCreateParams,
     google: null,
     bedrock: null,
   },

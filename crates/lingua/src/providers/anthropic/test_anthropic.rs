@@ -2,19 +2,20 @@ use crate::providers::anthropic::convert::{
     anthropic_input_messages_to_universal_messages, universal_messages_to_anthropic_input_messages,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, CreateMessageParams, InputMessage, Message as AnthropicMessage,
+    ContentBlock, InputMessage, Message as AnthropicMessage,
 };
+use crate::providers::anthropic::params::AnthropicParams;
 use crate::serde_json::Value;
 use crate::universal::{convert::TryFromLLM, Message};
 use crate::util::test_runner::run_roundtrip_test;
 use crate::util::testutil::{discover_test_cases_typed, Provider, TestCase};
 
-pub type AnthropicTestCase = TestCase<CreateMessageParams, AnthropicMessage, Value>;
+pub type AnthropicTestCase = TestCase<AnthropicParams, AnthropicMessage, Value>;
 
 pub fn discover_anthropic_test_cases(
     test_name_filter: Option<&str>,
 ) -> Result<Vec<AnthropicTestCase>, crate::util::testutil::TestDiscoveryError> {
-    discover_test_cases_typed::<CreateMessageParams, AnthropicMessage, Value>(
+    discover_test_cases_typed::<AnthropicParams, AnthropicMessage, Value>(
         Provider::Anthropic,
         test_name_filter,
     )
@@ -36,7 +37,12 @@ mod tests {
         let result = run_roundtrip_test(
             case,
             // Extract messages from request
-            |request: &CreateMessageParams| Ok(&request.messages),
+            |request: &AnthropicParams| {
+                request
+                    .messages
+                    .as_ref()
+                    .ok_or_else(|| "Anthropic request missing messages".to_string())
+            },
             // Convert to universal
             |messages: &Vec<InputMessage>| {
                 anthropic_input_messages_to_universal_messages(messages.clone())

@@ -218,7 +218,30 @@
       "source": "Responses",
       "target": "*",
       "fields": [
-        { "pattern": "messages[*].content[*].tool_name", "reason": "Tool result names are not represented by ChatCompletions, Anthropic, or Bedrock tool result wire formats; those formats identify results by tool_call_id/tool_use_id only" }
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Tool result names are not represented by ChatCompletions, Anthropic, or Bedrock tool result wire formats; those formats identify results by tool_call_id/tool_use_id only" },
+        { "pattern": "messages[*].content[*].status", "reason": "Anthropic tool search transcript blocks do not preserve OpenAI Responses status metadata" },
+        { "pattern": "messages[*].content[*].execution", "reason": "Anthropic tool search transcript blocks do not preserve OpenAI Responses execution metadata" },
+        { "pattern": "messages[*].content[*].tools[*].tool", "reason": "Anthropic tool_search_tool_result carries tool_reference names; full deferred tool definitions are provided at top-level tools instead" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Provider-specific tool call metadata is not preserved through Anthropic tool search transcript blocks" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "Anthropic requires concrete tool search tool names such as tool_search_tool_regex instead of OpenAI's generic tool_search" },
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Anthropic requires tool search call IDs to use the srvtoolu_ prefix" },
+        { "pattern": "params.tools", "reason": "Anthropic requires discovered deferred tools and the tool search builtin in top-level tools for tool_reference replay" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery transcript blocks, so discovery-only messages are dropped" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery transcript blocks, so discovery-only messages are dropped" }
       ]
     },
     {

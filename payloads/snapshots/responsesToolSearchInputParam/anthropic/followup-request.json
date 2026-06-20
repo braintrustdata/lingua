@@ -1,0 +1,69 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Find the available tools."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll search for all available tools by using a broad pattern."
+        },
+        {
+          "type": "server_tool_use",
+          "id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+          "name": "tool_search_tool_regex",
+          "input": {
+            "pattern": ".*",
+            "limit": 100
+          }
+        },
+        {
+          "type": "tool_search_tool_result",
+          "tool_use_id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+          "content": {
+            "type": "tool_search_tool_search_result",
+            "tool_references": [
+              {
+                "type": "tool_reference",
+                "tool_name": "tool_search_tool_regex"
+              },
+              {
+                "type": "tool_reference",
+                "tool_name": "search_code"
+              }
+            ]
+          }
+        },
+        {
+          "type": "text",
+          "text": "Based on my search, here are the available tools:\n\n1. **tool_search_tool_regex** - Searches for functions using regex patterns\n   - Parameters:\n     - `pattern` (required): Python regex pattern to match against tool names, descriptions, and parameters (max 200 characters)\n     - `limit` (optional): Maximum number of matching tools to return (default: 5, max: 10000)\n\n2. **search_code** - Search code\n   - Parameters: None (empty object)\n\nThese are the two tools currently available in this environment."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "tool_search_tool_regex_20251119",
+      "name": "tool_search_tool_regex"
+    },
+    {
+      "name": "search_code",
+      "description": "Search code.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "defer_loading": true
+    }
+  ]
+}

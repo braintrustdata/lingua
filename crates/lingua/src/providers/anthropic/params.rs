@@ -7,6 +7,7 @@ eliminating the need for explicit KNOWN_KEYS arrays.
 
 use crate::providers::anthropic::generated::{
     InputMessage, JsonOutputFormat, Metadata, OutputConfig, System, Thinking, Tool, ToolChoice,
+    ToolType,
 };
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
@@ -38,7 +39,7 @@ pub struct AnthropicParams {
     pub stream: Option<bool>,
 
     // === Tools and function calling ===
-    pub tools: Option<Vec<Tool>>,
+    pub tools: Option<Vec<AnthropicTool>>,
     pub tool_choice: Option<ToolChoice>,
 
     // === Extended thinking ===
@@ -75,6 +76,54 @@ pub struct AnthropicExtrasView {
     pub output_config: Option<Value>,
     pub thinking: Option<Value>,
     pub metadata: Option<Value>,
+}
+
+/// Anthropic tool declarations accepted by the Messages API.
+///
+/// The generated `Tool` union currently omits the dynamic tool-search tool
+/// declarations even though the generated `ToolType` enum includes their type
+/// strings. This wrapper keeps the request boundary typed without editing
+/// generated files directly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AnthropicTool {
+    Generated(Tool),
+    ToolSearch(AnthropicToolSearchTool),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnthropicToolSearchTool {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub tool_type: AnthropicToolSearchToolType,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnthropicToolSearchToolType {
+    #[serde(rename = "tool_search_tool_bm25")]
+    ToolSearchToolBm25,
+    #[serde(rename = "tool_search_tool_bm25_20251119")]
+    ToolSearchToolBm2520251119,
+    #[serde(rename = "tool_search_tool_regex")]
+    ToolSearchToolRegex,
+    #[serde(rename = "tool_search_tool_regex_20251119")]
+    ToolSearchToolRegex20251119,
+}
+
+impl From<AnthropicToolSearchToolType> for ToolType {
+    fn from(value: AnthropicToolSearchToolType) -> Self {
+        match value {
+            AnthropicToolSearchToolType::ToolSearchToolBm25 => ToolType::ToolSearchToolBm25,
+            AnthropicToolSearchToolType::ToolSearchToolBm2520251119 => {
+                ToolType::ToolSearchToolBm2520251119
+            }
+            AnthropicToolSearchToolType::ToolSearchToolRegex => ToolType::ToolSearchToolRegex,
+            AnthropicToolSearchToolType::ToolSearchToolRegex20251119 => {
+                ToolType::ToolSearchToolRegex20251119
+            }
+        }
+    }
 }
 
 #[cfg(test)]

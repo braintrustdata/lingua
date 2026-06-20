@@ -22,6 +22,41 @@ where
     ProviderMessage: Clone + Serialize + DeserializeOwned,
     ResponseContent: Clone + Serialize + DeserializeOwned,
 {
+    run_roundtrip_test_with_normalization(
+        test_case,
+        extract_messages,
+        convert_to_universal,
+        convert_from_universal,
+        extract_response_content,
+        convert_response_to_universal,
+        convert_universal_to_response,
+        std::convert::identity,
+        std::convert::identity,
+    )
+}
+
+#[cfg(test)]
+pub fn run_roundtrip_test_with_normalization<
+    Req,
+    Resp,
+    StreamResp,
+    ProviderMessage,
+    ResponseContent,
+>(
+    test_case: &TestCase<Req, Resp, StreamResp>,
+    extract_messages: impl Fn(&Req) -> Result<&Vec<ProviderMessage>, String>,
+    convert_to_universal: impl Fn(&Vec<ProviderMessage>) -> Result<Vec<Message>, String>,
+    convert_from_universal: impl Fn(Vec<Message>) -> Result<Vec<ProviderMessage>, String>,
+    extract_response_content: impl Fn(&Resp) -> Result<ResponseContent, String>,
+    convert_response_to_universal: impl Fn(&ResponseContent) -> Result<Vec<Message>, String>,
+    convert_universal_to_response: impl Fn(Vec<Message>) -> Result<ResponseContent, String>,
+    normalize_provider_message: impl Fn(serde_json::Value) -> serde_json::Value + Copy,
+    normalize_response_content: impl Fn(serde_json::Value) -> serde_json::Value + Copy,
+) -> Result<(), String>
+where
+    ProviderMessage: Clone + Serialize + DeserializeOwned,
+    ResponseContent: Clone + Serialize + DeserializeOwned,
+{
     use crate::util::testutil::diff_serializable;
     use log::{debug, info};
 
@@ -71,7 +106,9 @@ where
     debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 
     // Compare original and roundtripped messages
-    let diff = diff_serializable(messages, &roundtripped, "messages");
+    let original_messages = normalize_values(messages, normalize_provider_message)?;
+    let roundtripped_messages = normalize_values(&roundtripped, normalize_provider_message)?;
+    let diff = diff_serializable(&original_messages, &roundtripped_messages, "messages");
     if !diff.starts_with("✅") {
         return Err(format!("Roundtrip conversion failed:\n{}", diff));
     }
@@ -129,6 +166,8 @@ where
             .map_err(|e| format!("Failed to serialize original response: {}", e))?;
         let roundtripped_json = serde_json::to_value(&roundtripped_response)
             .map_err(|e| format!("Failed to serialize roundtripped response: {}", e))?;
+        let original_json = normalize_response_content(original_json);
+        let roundtripped_json = normalize_response_content(roundtripped_json);
 
         if original_json != roundtripped_json {
             return Err(format!(
@@ -146,4 +185,22 @@ where
 
     println!("✅ {} - all conversions passed", test_case.name);
     Ok(())
+}
+
+#[cfg(test)]
+fn normalize_values<T>(
+    values: &[T],
+    normalize: impl Fn(serde_json::Value) -> serde_json::Value,
+) -> Result<Vec<serde_json::Value>, String>
+where
+    T: Serialize,
+{
+    values
+        .iter()
+        .map(|value| {
+            serde_json::to_value(value)
+                .map(&normalize)
+                .map_err(|e| format!("Failed to serialize value for comparison: {}", e))
+        })
+        .collect()
 }
