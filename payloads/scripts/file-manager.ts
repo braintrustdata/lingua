@@ -79,7 +79,13 @@ export function saveAllFiles(
   // Save error if it exists
   if (result.error) {
     const errorPath = join(testCaseDir, "error.json");
-    writeFileSync(errorPath, JSON.stringify({ error: result.error }, null, 2));
+    const errorCapture = {
+      error: result.error,
+      ...(result.errorDetails === undefined
+        ? {}
+        : { details: result.errorDetails }),
+    };
+    writeFileSync(errorPath, JSON.stringify(errorCapture, null, 2));
     savedFiles.push(errorPath);
   }
 

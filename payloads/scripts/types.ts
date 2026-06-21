@@ -12,6 +12,7 @@ export interface CaptureResult<
   followupResponse?: TResponse;
   followupStreamingResponse?: TStreamChunk[];
   error?: string;
+  errorDetails?: unknown;
 }
 
 export interface ProviderCase<TPayload = unknown> {

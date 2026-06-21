@@ -38,6 +38,48 @@ use std::convert::TryInto;
 
 const OPENAI_RESPONSES_MIN_MAX_OUTPUT_TOKENS: i64 = 16;
 
+#[derive(Debug, Clone, Deserialize)]
+struct ResponsesStreamErrorEvent {
+    message: Option<String>,
+    error: Option<ResponsesStreamError>,
+    response: Option<ResponsesStreamFailedResponse>,
+}
+
+impl ResponsesStreamErrorEvent {
+    fn display_message(self) -> String {
+        self.error
+            .or_else(|| self.response.and_then(|response| response.error))
+            .and_then(ResponsesStreamError::display_message)
+            .or(self.message)
+            .unwrap_or_else(|| "unknown stream error".to_string())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ResponsesStreamFailedResponse {
+    error: Option<ResponsesStreamError>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ResponsesStreamError {
+    message: Option<String>,
+    code: Option<String>,
+    #[serde(rename = "type")]
+    error_type: Option<String>,
+}
+
+impl ResponsesStreamError {
+    fn display_message(self) -> Option<String> {
+        let code = self.code.or(self.error_type);
+        match (self.message, code) {
+            (Some(message), Some(code)) => Some(format!("{message} ({code})")),
+            (Some(message), None) => Some(message),
+            (None, Some(code)) => Some(code),
+            (None, None) => None,
+        }
+    }
+}
+
 fn system_text(message: &Message) -> Option<&str> {
     match message {
         Message::System { content } => match content {
@@ -764,7 +806,7 @@ impl ProviderAdapter for ResponsesAdapter {
         payload
             .get("type")
             .and_then(Value::as_str)
-            .is_some_and(|t| t.starts_with("response.") || t == "keepalive")
+            .is_some_and(|t| t.starts_with("response.") || t == "keepalive" || t == "error")
             || payload
                 .get("object")
                 .and_then(Value::as_str)
@@ -810,6 +852,16 @@ impl ProviderAdapter for ResponsesAdapter {
         let delta_obj = payload.get("delta");
 
         match event_type.as_str() {
+            "error" | "response.failed" => {
+                let event = serde_json::from_value::<ResponsesStreamErrorEvent>(payload.clone())
+                    .map_err(|error| {
+                        TransformError::DeserializationFailed(format!(
+                            "Responses stream error event: {error}"
+                        ))
+                    })?;
+                Err(TransformError::ToUniversalFailed(event.display_message()))
+            }
+
             "keepalive" => Ok(Some(UniversalStreamChunk::keep_alive())),
 
             "response.output_text.delta" => {
@@ -2003,6 +2055,47 @@ mod tests {
             .expect("keepalive should emit a chunk");
 
         assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_responses_stream_error_allows_type_and_code_fields() {
+        let adapter = ResponsesAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "error",
+                "error": {
+                    "message": "bad request",
+                    "type": "invalid_request_error",
+                    "code": "invalid_tool_arguments"
+                }
+            }))
+            .expect_err("error event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: bad request (invalid_tool_arguments)"
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_response_failed_uses_response_error() {
+        let adapter = ResponsesAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "response.failed",
+                "response": {
+                    "error": {
+                        "message": "download failed",
+                        "code": "failed_to_download_image"
+                    }
+                }
+            }))
+            .expect_err("failed response event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: download failed (failed_to_download_image)"
+        );
     }
 
     #[test]

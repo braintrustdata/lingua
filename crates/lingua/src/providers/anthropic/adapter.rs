@@ -50,6 +50,37 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
 
+#[derive(Debug, Clone, Deserialize)]
+struct AnthropicStreamErrorEvent {
+    error: Option<AnthropicStreamError>,
+}
+
+impl AnthropicStreamErrorEvent {
+    fn display_message(self) -> String {
+        self.error
+            .and_then(AnthropicStreamError::display_message)
+            .unwrap_or_else(|| "unknown stream error".to_string())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct AnthropicStreamError {
+    message: Option<String>,
+    #[serde(rename = "type")]
+    error_type: Option<String>,
+}
+
+impl AnthropicStreamError {
+    fn display_message(self) -> Option<String> {
+        match (self.message, self.error_type) {
+            (Some(message), Some(error_type)) => Some(format!("{message} ({error_type})")),
+            (Some(message), None) => Some(message),
+            (None, Some(error_type)) => Some(error_type),
+            (None, None) => None,
+        }
+    }
+}
+
 fn parse_anthropic_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<AnthropicExtrasView, TransformError> {
@@ -733,6 +764,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     | "message_delta"
                     | "message_stop"
                     | "ping"
+                    | "error"
             )
         } else {
             false
@@ -749,6 +781,16 @@ impl ProviderAdapter for AnthropicAdapter {
             .ok_or_else(|| TransformError::ToUniversalFailed("missing type field".to_string()))?;
 
         match event_type {
+            "error" => {
+                let event = serde_json::from_value::<AnthropicStreamErrorEvent>(payload.clone())
+                    .map_err(|error| {
+                        TransformError::DeserializationFailed(format!(
+                            "Anthropic stream error event: {error}"
+                        ))
+                    })?;
+                Err(TransformError::ToUniversalFailed(event.display_message()))
+            }
+
             "content_block_delta" => {
                 let delta = payload.get("delta");
                 let delta_type = delta.and_then(|d| d.get("type")).and_then(Value::as_str);
@@ -2287,6 +2329,25 @@ mod tests {
         let delta = choice.delta_view().expect("delta must exist");
         let first = delta.reasoning.first().expect("reasoning item must exist");
         assert_eq!(first.content.as_deref(), Some("initial thought"),);
+    }
+
+    #[test]
+    fn test_stream_to_universal_error_event() {
+        let adapter = AnthropicAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "error",
+                "error": {
+                    "type": "invalid_request_error",
+                    "message": "bad request"
+                }
+            }))
+            .expect_err("error event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: bad request (invalid_request_error)"
+        );
     }
 
     #[test]

@@ -46,6 +46,36 @@ type ReplayableResponseOutputItem = Extract<
   ResponseInputItem
 >;
 
+function openAIErrorDetails(error: unknown): unknown {
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+
+  const details: Record<string, unknown> = {
+    message: error.message,
+    name: error.name,
+  };
+  if ("status" in error) {
+    details.status = error.status;
+  }
+  if ("code" in error) {
+    details.code = error.code;
+  }
+  if ("type" in error) {
+    details.type = error.type;
+  }
+  if ("param" in error) {
+    details.param = error.param;
+  }
+  if ("request_id" in error) {
+    details.request_id = error.request_id;
+  }
+  if ("error" in error) {
+    details.error = error.error;
+  }
+  return details;
+}
+
 function isReplayableResponseOutputItem(
   item: ResponseOutputItem
 ): item is ReplayableResponseOutputItem {
@@ -278,6 +308,7 @@ export async function executeOpenAIResponses(
     }
   } catch (error) {
     result.error = String(error);
+    result.errorDetails = openAIErrorDetails(error);
   }
 
   return result;
