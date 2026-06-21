@@ -78,6 +78,15 @@ fn response_error_code_message(code: ResponseErrorCode) -> String {
         .unwrap_or_else(|_| format!("{code:?}"))
 }
 
+fn is_responses_stream_error_event(payload: &Value) -> bool {
+    serde_json::from_value::<ResponseStreamEvent>(payload.clone()).is_ok_and(|event| {
+        matches!(
+            event.response_stream_event_type,
+            ResponseStreamEventType::Error
+        )
+    })
+}
+
 fn system_text(message: &Message) -> Option<&str> {
     match message {
         Message::System { content } => match content {
@@ -804,7 +813,11 @@ impl ProviderAdapter for ResponsesAdapter {
         payload
             .get("type")
             .and_then(Value::as_str)
-            .is_some_and(|t| t.starts_with("response.") || t == "keepalive" || t == "error")
+            .is_some_and(|t| {
+                t.starts_with("response.")
+                    || t == "keepalive"
+                    || (t == "error" && is_responses_stream_error_event(payload))
+            })
             || payload
                 .get("object")
                 .and_then(Value::as_str)
@@ -2039,6 +2052,20 @@ mod tests {
         });
 
         assert!(adapter.detect_stream_response(&payload));
+    }
+
+    #[test]
+    fn test_responses_detect_stream_response_rejects_anthropic_error() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "type": "error",
+            "error": {
+                "type": "invalid_request_error",
+                "message": "bad request"
+            }
+        });
+
+        assert!(!adapter.detect_stream_response(&payload));
     }
 
     #[test]
