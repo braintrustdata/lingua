@@ -23,8 +23,8 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, OutputConfig, Thinking, ThinkingType, Tool, ToolChoice,
-    ToolChoiceType,
+    ContentBlock, EffortLevel, ErrorResponse, ErrorType, OutputConfig, Thinking, ThinkingType,
+    Tool, ToolChoice, ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
@@ -50,35 +50,18 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
 
-#[derive(Debug, Clone, Deserialize)]
-struct AnthropicStreamErrorEvent {
-    error: Option<AnthropicStreamError>,
+fn anthropic_stream_error_message(event: ErrorResponse) -> String {
+    format!(
+        "{} ({})",
+        event.error.message,
+        anthropic_error_type_message(event.error.error_type)
+    )
 }
 
-impl AnthropicStreamErrorEvent {
-    fn display_message(self) -> String {
-        self.error
-            .and_then(AnthropicStreamError::display_message)
-            .unwrap_or_else(|| "unknown stream error".to_string())
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct AnthropicStreamError {
-    message: Option<String>,
-    #[serde(rename = "type")]
-    error_type: Option<String>,
-}
-
-impl AnthropicStreamError {
-    fn display_message(self) -> Option<String> {
-        match (self.message, self.error_type) {
-            (Some(message), Some(error_type)) => Some(format!("{message} ({error_type})")),
-            (Some(message), None) => Some(message),
-            (None, Some(error_type)) => Some(error_type),
-            (None, None) => None,
-        }
-    }
+fn anthropic_error_type_message(error_type: ErrorType) -> String {
+    serde_json::to_string(&error_type)
+        .map(|serialized| serialized.trim_matches('"').to_string())
+        .unwrap_or_else(|_| format!("{error_type:?}"))
 }
 
 fn parse_anthropic_extras(
@@ -782,13 +765,15 @@ impl ProviderAdapter for AnthropicAdapter {
 
         match event_type {
             "error" => {
-                let event = serde_json::from_value::<AnthropicStreamErrorEvent>(payload.clone())
-                    .map_err(|error| {
+                let event =
+                    serde_json::from_value::<ErrorResponse>(payload.clone()).map_err(|error| {
                         TransformError::DeserializationFailed(format!(
                             "Anthropic stream error event: {error}"
                         ))
                     })?;
-                Err(TransformError::ToUniversalFailed(event.display_message()))
+                Err(TransformError::ToUniversalFailed(
+                    anthropic_stream_error_message(event),
+                ))
             }
 
             "content_block_delta" => {

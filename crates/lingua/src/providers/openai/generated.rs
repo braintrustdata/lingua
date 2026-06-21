@@ -34,6 +34,8 @@ pub struct OpenaiSchemas {
     pub responses_request: Option<CreateResponseClass>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub responses_response: Option<TheResponseObject>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub responses_stream_response: Option<ResponseStreamEvent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1327,12 +1329,12 @@ pub struct ChatCompletionTokenLogprob {
     pub token: String,
     /// List of the most likely tokens and their log probability, at this token position. The
     /// number of entries may be fewer than the requested `top_logprobs`.
-    pub top_logprobs: Vec<TopLogprob>,
+    pub top_logprobs: Vec<ContentTopLogprob>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct TopLogprob {
+pub struct ContentTopLogprob {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bytes: Option<Vec<i64>>,
     /// The log probability of this token, if it is within the top 20 most likely tokens.
@@ -5194,6 +5196,22 @@ pub enum Truncation {
     Disabled,
 }
 
+/// Properties of the completed response.
+///
+///
+/// The response that was created.
+///
+///
+/// The response that is in progress.
+///
+///
+/// The response that failed.
+///
+///
+/// The response that was incomplete.
+///
+///
+/// The full response object that is queued.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct TheResponseObject {
@@ -5445,6 +5463,12 @@ pub enum TheResponseObjectObject {
     Response,
 }
 
+/// The output item that was added.
+///
+///
+/// The output item that was marked done.
+///
+///
 /// An output message from the model.
 ///
 ///
@@ -6670,6 +6694,908 @@ pub struct InputTokensDetails {
 pub struct OutputTokensDetails {
     /// The number of reasoning tokens.
     pub reasoning_tokens: i64,
+}
+
+/// Emitted when there is a partial audio response.
+///
+/// Emitted when the audio response is complete.
+///
+/// Emitted when there is a partial transcript of audio.
+///
+/// Emitted when the full audio transcript is completed.
+///
+/// Emitted when a partial code snippet is streamed by the code interpreter.
+///
+/// Emitted when the code snippet is finalized by the code interpreter.
+///
+/// Emitted when the code interpreter call is completed.
+///
+/// Emitted when a code interpreter call is in progress.
+///
+/// Emitted when the code interpreter is actively interpreting the code snippet.
+///
+/// Emitted when the model response is complete.
+///
+/// Emitted when a new content part is added.
+///
+/// Emitted when a content part is done.
+///
+/// An event that is emitted when a response is created.
+///
+///
+/// Emitted when an error occurs.
+///
+/// Emitted when a file search call is completed (results found).
+///
+/// Emitted when a file search call is initiated.
+///
+/// Emitted when a file search is currently searching.
+///
+/// Emitted when there is a partial function-call arguments delta.
+///
+/// Emitted when function-call arguments are finalized.
+///
+/// Emitted when the response is in progress.
+///
+/// An event that is emitted when a response fails.
+///
+///
+/// An event that is emitted when a response finishes as incomplete.
+///
+///
+/// Emitted when a new output item is added.
+///
+/// Emitted when an output item is marked done.
+///
+/// Emitted when a new reasoning summary part is added.
+///
+/// Emitted when a reasoning summary part is completed.
+///
+/// Emitted when a delta is added to a reasoning summary text.
+///
+/// Emitted when a reasoning summary text is completed.
+///
+/// Emitted when a delta is added to a reasoning text.
+///
+/// Emitted when a reasoning text is completed.
+///
+/// Emitted when there is a partial refusal text.
+///
+/// Emitted when refusal text is finalized.
+///
+/// Emitted when there is an additional text delta.
+///
+/// Emitted when text content is finalized.
+///
+/// Emitted when a web search call is completed.
+///
+/// Emitted when a web search call is initiated.
+///
+/// Emitted when a web search call is executing.
+///
+/// Emitted when an image generation tool call has completed and the final image is
+/// available.
+///
+///
+/// Emitted when an image generation tool call is actively generating an image (intermediate
+/// state).
+///
+///
+/// Emitted when an image generation tool call is in progress.
+///
+///
+/// Emitted when a partial image is available during image generation streaming.
+///
+///
+/// Emitted when there is a delta (partial update) to the arguments of an MCP tool call.
+///
+///
+/// Emitted when the arguments for an MCP tool call are finalized.
+///
+///
+/// Emitted when an MCP  tool call has completed successfully.
+///
+///
+/// Emitted when an MCP  tool call has failed.
+///
+///
+/// Emitted when an MCP  tool call is in progress.
+///
+///
+/// Emitted when the list of available MCP tools has been successfully retrieved.
+///
+///
+/// Emitted when the attempt to list available MCP tools has failed.
+///
+///
+/// Emitted when the system is in the process of retrieving the list of available MCP
+/// tools.
+///
+///
+/// Emitted when an annotation is added to output text content.
+///
+///
+/// Emitted when a response is queued and waiting to be processed.
+///
+///
+/// Event representing a delta (partial update) to the input of a custom tool call.
+///
+///
+/// Event indicating that input for a custom tool call is complete.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ResponseStreamEvent {
+    /// A chunk of Base64 encoded response audio bytes.
+    ///
+    ///
+    /// The partial transcript of the audio response.
+    ///
+    ///
+    /// The partial code snippet being streamed by the code interpreter.
+    ///
+    /// The function-call arguments delta that is added.
+    ///
+    ///
+    /// The text delta that was added to the summary.
+    ///
+    ///
+    /// The text delta that was added to the reasoning content.
+    ///
+    ///
+    /// The refusal text that is added.
+    ///
+    ///
+    /// The text delta that was added.
+    ///
+    ///
+    /// A JSON string containing the partial update to the arguments for the MCP tool call.
+    ///
+    ///
+    /// The incremental input data (delta) for the custom tool call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta: Option<String>,
+    /// A sequence number for this chunk of the stream response.
+    ///
+    ///
+    /// The sequence number of the delta.
+    ///
+    ///
+    /// The sequence number of this event.
+    ///
+    /// The sequence number of this event, used to order streaming events.
+    ///
+    /// The sequence number for this event.
+    ///
+    /// The sequence number of this event.
+    ///
+    ///
+    /// The sequence number of the web search call being processed.
+    ///
+    /// The sequence number of the image generation item being processed.
+    pub sequence_number: i64,
+    /// The type of the event. Always `response.audio.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.audio.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.audio.transcript.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.audio.transcript.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.code_interpreter_call_code.delta`.
+    ///
+    /// The type of the event. Always `response.code_interpreter_call_code.done`.
+    ///
+    /// The type of the event. Always `response.code_interpreter_call.completed`.
+    ///
+    /// The type of the event. Always `response.code_interpreter_call.in_progress`.
+    ///
+    /// The type of the event. Always `response.code_interpreter_call.interpreting`.
+    ///
+    /// The type of the event. Always `response.completed`.
+    ///
+    ///
+    /// The type of the event. Always `response.content_part.added`.
+    ///
+    ///
+    /// The type of the event. Always `response.content_part.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.created`.
+    ///
+    ///
+    /// The type of the event. Always `error`.
+    ///
+    ///
+    /// The type of the event. Always `response.file_search_call.completed`.
+    ///
+    ///
+    /// The type of the event. Always `response.file_search_call.in_progress`.
+    ///
+    ///
+    /// The type of the event. Always `response.file_search_call.searching`.
+    ///
+    ///
+    /// The type of the event. Always `response.function_call_arguments.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.in_progress`.
+    ///
+    ///
+    /// The type of the event. Always `response.failed`.
+    ///
+    ///
+    /// The type of the event. Always `response.incomplete`.
+    ///
+    ///
+    /// The type of the event. Always `response.output_item.added`.
+    ///
+    ///
+    /// The type of the event. Always `response.output_item.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_summary_part.added`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_summary_part.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_summary_text.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_summary_text.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_text.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.reasoning_text.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.refusal.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.refusal.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.output_text.delta`.
+    ///
+    ///
+    /// The type of the event. Always `response.output_text.done`.
+    ///
+    ///
+    /// The type of the event. Always `response.web_search_call.completed`.
+    ///
+    ///
+    /// The type of the event. Always `response.web_search_call.in_progress`.
+    ///
+    ///
+    /// The type of the event. Always `response.web_search_call.searching`.
+    ///
+    ///
+    /// The type of the event. Always 'response.image_generation_call.completed'.
+    ///
+    /// The type of the event. Always 'response.image_generation_call.generating'.
+    ///
+    /// The type of the event. Always 'response.image_generation_call.in_progress'.
+    ///
+    /// The type of the event. Always 'response.image_generation_call.partial_image'.
+    ///
+    /// The type of the event. Always 'response.mcp_call_arguments.delta'.
+    ///
+    /// The type of the event. Always 'response.mcp_call_arguments.done'.
+    ///
+    /// The type of the event. Always 'response.mcp_call.completed'.
+    ///
+    /// The type of the event. Always 'response.mcp_call.failed'.
+    ///
+    /// The type of the event. Always 'response.mcp_call.in_progress'.
+    ///
+    /// The type of the event. Always 'response.mcp_list_tools.completed'.
+    ///
+    /// The type of the event. Always 'response.mcp_list_tools.failed'.
+    ///
+    /// The type of the event. Always 'response.mcp_list_tools.in_progress'.
+    ///
+    /// The type of the event. Always 'response.output_text.annotation.added'.
+    ///
+    /// The type of the event. Always 'response.queued'.
+    ///
+    /// The event type identifier.
+    #[serde(rename = "type")]
+    pub response_stream_event_type: ResponseStreamEventType,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_id: Option<serde_json::Value>,
+    /// The unique identifier of the code interpreter tool call item.
+    ///
+    /// The ID of the output item that the content part was added to.
+    ///
+    ///
+    /// The ID of the output item that the file search call is initiated.
+    ///
+    ///
+    /// The ID of the output item that the function-call arguments delta is added to.
+    ///
+    ///
+    /// The ID of the item.
+    ///
+    /// The ID of the item this summary part is associated with.
+    ///
+    ///
+    /// The ID of the item this summary text delta is associated with.
+    ///
+    ///
+    /// The ID of the item this summary text is associated with.
+    ///
+    ///
+    /// The ID of the item this reasoning text delta is associated with.
+    ///
+    ///
+    /// The ID of the item this reasoning text is associated with.
+    ///
+    ///
+    /// The ID of the output item that the refusal text is added to.
+    ///
+    ///
+    /// The ID of the output item that the refusal text is finalized.
+    ///
+    ///
+    /// The ID of the output item that the text delta was added to.
+    ///
+    ///
+    /// The ID of the output item that the text content is finalized.
+    ///
+    ///
+    /// Unique ID for the output item associated with the web search call.
+    ///
+    ///
+    /// The unique identifier of the image generation item being processed.
+    ///
+    /// The unique identifier of the MCP tool call item being processed.
+    ///
+    /// The ID of the MCP tool call item that completed.
+    ///
+    /// The ID of the MCP tool call item that failed.
+    ///
+    /// The ID of the MCP tool call item that produced this output.
+    ///
+    /// The ID of the MCP tool call item that is being processed.
+    ///
+    /// The unique identifier of the item to which the annotation is being added.
+    ///
+    /// Unique identifier for the API item associated with this event.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub item_id: Option<String>,
+    /// The index of the output item in the response for which the code is being streamed.
+    ///
+    /// The index of the output item in the response for which the code is finalized.
+    ///
+    /// The index of the output item in the response for which the code interpreter call is
+    /// completed.
+    ///
+    /// The index of the output item in the response for which the code interpreter call is in
+    /// progress.
+    ///
+    /// The index of the output item in the response for which the code interpreter is
+    /// interpreting code.
+    ///
+    /// The index of the output item that the content part was added to.
+    ///
+    ///
+    /// The index of the output item that the file search call is initiated.
+    ///
+    ///
+    /// The index of the output item that the file search call is searching.
+    ///
+    ///
+    /// The index of the output item that the function-call arguments delta is added to.
+    ///
+    ///
+    /// The index of the output item.
+    ///
+    /// The index of the output item that was added.
+    ///
+    ///
+    /// The index of the output item that was marked done.
+    ///
+    ///
+    /// The index of the output item this summary part is associated with.
+    ///
+    ///
+    /// The index of the output item this summary text delta is associated with.
+    ///
+    ///
+    /// The index of the output item this summary text is associated with.
+    ///
+    ///
+    /// The index of the output item this reasoning text delta is associated with.
+    ///
+    ///
+    /// The index of the output item this reasoning text is associated with.
+    ///
+    ///
+    /// The index of the output item that the refusal text is added to.
+    ///
+    ///
+    /// The index of the output item that the refusal text is finalized.
+    ///
+    ///
+    /// The index of the output item that the text delta was added to.
+    ///
+    ///
+    /// The index of the output item that the text content is finalized.
+    ///
+    ///
+    /// The index of the output item that the web search call is associated with.
+    ///
+    ///
+    /// The index of the output item in the response's output array.
+    ///
+    /// The index of the output item that completed.
+    ///
+    /// The index of the output item that failed.
+    ///
+    /// The index of the output item that was processed.
+    ///
+    /// The index of the output item that is being processed.
+    ///
+    /// The index of the output this delta applies to.
+    ///
+    /// The index of the output this event applies to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_index: Option<i64>,
+    /// The final code snippet output by the code interpreter.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// Properties of the completed response.
+    ///
+    ///
+    /// The response that was created.
+    ///
+    ///
+    /// The response that is in progress.
+    ///
+    ///
+    /// The response that failed.
+    ///
+    ///
+    /// The response that was incomplete.
+    ///
+    ///
+    /// The full response object that is queued.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response: Option<TheResponseObject>,
+    /// The index of the content part that was added.
+    ///
+    ///
+    /// The index of the content part that is done.
+    ///
+    ///
+    /// The index of the reasoning content part this delta is associated with.
+    ///
+    ///
+    /// The index of the reasoning content part.
+    ///
+    ///
+    /// The index of the content part that the refusal text is added to.
+    ///
+    ///
+    /// The index of the content part that the refusal text is finalized.
+    ///
+    ///
+    /// The index of the content part that the text delta was added to.
+    ///
+    ///
+    /// The index of the content part that the text content is finalized.
+    ///
+    ///
+    /// The index of the content part within the output item.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_index: Option<i64>,
+    /// The content part that was added.
+    ///
+    ///
+    /// The content part that is done.
+    ///
+    ///
+    /// The summary part that was added.
+    ///
+    ///
+    /// The completed summary part.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub part: Option<OutputContent>,
+    /// The error message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub param: Option<String>,
+    /// The function-call arguments.
+    ///
+    /// A JSON string containing the finalized arguments for the MCP tool call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arguments: Option<String>,
+    /// The name of the function that was called.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// The output item that was added.
+    ///
+    ///
+    /// The output item that was marked done.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub item: Option<OutputItem>,
+    /// The index of the summary part within the reasoning summary.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary_index: Option<i64>,
+    /// The full text of the completed reasoning summary.
+    ///
+    ///
+    /// The full text of the completed reasoning content.
+    ///
+    ///
+    /// The text content that is finalized.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    /// The refusal text that is finalized.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
+    /// The log probabilities of the tokens in the delta.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<Vec<ResponseLogProb>>,
+    /// Base64-encoded partial image data, suitable for rendering as an image.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partial_image_b64: Option<String>,
+    /// 0-based index for the partial image (backend is 1-based, but this is 0-based for the
+    /// user).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partial_image_index: Option<i64>,
+    /// The annotation object being added. (See annotation schema for details.)
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotation: Option<serde_json::Map<String, serde_json::Value>>,
+    /// The index of the annotation within the content part.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotation_index: Option<i64>,
+    /// The complete input data for the custom tool call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<String>,
+}
+
+/// A logprob is the logarithmic probability that the model assigns to producing
+/// a particular token at a given position in the sequence. Less-negative (higher)
+/// logprob values indicate greater model confidence in that token choice.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ResponseLogProb {
+    /// The log probability of this token.
+    pub logprob: f64,
+    /// A possible text token.
+    pub token: String,
+    /// The log probabilities of up to 20 of the most likely tokens.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_logprobs: Option<Vec<LogprobTopLogprob>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct LogprobTopLogprob {
+    /// The log probability of this token.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprob: Option<f64>,
+    /// A possible text token.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
+}
+
+/// The content part that was added.
+///
+///
+/// The content part that is done.
+///
+///
+/// A text output from the model.
+///
+/// A refusal from the model.
+///
+/// Reasoning text from the model.
+///
+/// The summary part that was added.
+///
+///
+/// The completed summary part.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct OutputContent {
+    /// The annotations of the text output.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub annotations: Option<Vec<Annotation>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logprobs: Option<Vec<LogProbability>>,
+    /// The text output from the model.
+    ///
+    /// The reasoning text from the model.
+    ///
+    /// The text of the summary part.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    /// The type of the output text. Always `output_text`.
+    ///
+    /// The type of the refusal. Always `refusal`.
+    ///
+    /// The type of the reasoning text. Always `reasoning_text`.
+    ///
+    /// The type of the summary part. Always `summary_text`.
+    #[serde(rename = "type")]
+    pub output_content_type: PartType,
+    /// The refusal explanation from the model.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refusal: Option<String>,
+}
+
+/// The type of the output text. Always `output_text`.
+///
+/// The type of the refusal. Always `refusal`.
+///
+/// The type of the reasoning text. Always `reasoning_text`.
+///
+/// The type of the summary part. Always `summary_text`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum PartType {
+    #[serde(rename = "output_text")]
+    OutputText,
+    #[serde(rename = "reasoning_text")]
+    ReasoningText,
+    Refusal,
+    #[serde(rename = "summary_text")]
+    SummaryText,
+}
+
+/// The type of the event. Always `response.audio.delta`.
+///
+///
+/// The type of the event. Always `response.audio.done`.
+///
+///
+/// The type of the event. Always `response.audio.transcript.delta`.
+///
+///
+/// The type of the event. Always `response.audio.transcript.done`.
+///
+///
+/// The type of the event. Always `response.code_interpreter_call_code.delta`.
+///
+/// The type of the event. Always `response.code_interpreter_call_code.done`.
+///
+/// The type of the event. Always `response.code_interpreter_call.completed`.
+///
+/// The type of the event. Always `response.code_interpreter_call.in_progress`.
+///
+/// The type of the event. Always `response.code_interpreter_call.interpreting`.
+///
+/// The type of the event. Always `response.completed`.
+///
+///
+/// The type of the event. Always `response.content_part.added`.
+///
+///
+/// The type of the event. Always `response.content_part.done`.
+///
+///
+/// The type of the event. Always `response.created`.
+///
+///
+/// The type of the event. Always `error`.
+///
+///
+/// The type of the event. Always `response.file_search_call.completed`.
+///
+///
+/// The type of the event. Always `response.file_search_call.in_progress`.
+///
+///
+/// The type of the event. Always `response.file_search_call.searching`.
+///
+///
+/// The type of the event. Always `response.function_call_arguments.delta`.
+///
+///
+/// The type of the event. Always `response.in_progress`.
+///
+///
+/// The type of the event. Always `response.failed`.
+///
+///
+/// The type of the event. Always `response.incomplete`.
+///
+///
+/// The type of the event. Always `response.output_item.added`.
+///
+///
+/// The type of the event. Always `response.output_item.done`.
+///
+///
+/// The type of the event. Always `response.reasoning_summary_part.added`.
+///
+///
+/// The type of the event. Always `response.reasoning_summary_part.done`.
+///
+///
+/// The type of the event. Always `response.reasoning_summary_text.delta`.
+///
+///
+/// The type of the event. Always `response.reasoning_summary_text.done`.
+///
+///
+/// The type of the event. Always `response.reasoning_text.delta`.
+///
+///
+/// The type of the event. Always `response.reasoning_text.done`.
+///
+///
+/// The type of the event. Always `response.refusal.delta`.
+///
+///
+/// The type of the event. Always `response.refusal.done`.
+///
+///
+/// The type of the event. Always `response.output_text.delta`.
+///
+///
+/// The type of the event. Always `response.output_text.done`.
+///
+///
+/// The type of the event. Always `response.web_search_call.completed`.
+///
+///
+/// The type of the event. Always `response.web_search_call.in_progress`.
+///
+///
+/// The type of the event. Always `response.web_search_call.searching`.
+///
+///
+/// The type of the event. Always 'response.image_generation_call.completed'.
+///
+/// The type of the event. Always 'response.image_generation_call.generating'.
+///
+/// The type of the event. Always 'response.image_generation_call.in_progress'.
+///
+/// The type of the event. Always 'response.image_generation_call.partial_image'.
+///
+/// The type of the event. Always 'response.mcp_call_arguments.delta'.
+///
+/// The type of the event. Always 'response.mcp_call_arguments.done'.
+///
+/// The type of the event. Always 'response.mcp_call.completed'.
+///
+/// The type of the event. Always 'response.mcp_call.failed'.
+///
+/// The type of the event. Always 'response.mcp_call.in_progress'.
+///
+/// The type of the event. Always 'response.mcp_list_tools.completed'.
+///
+/// The type of the event. Always 'response.mcp_list_tools.failed'.
+///
+/// The type of the event. Always 'response.mcp_list_tools.in_progress'.
+///
+/// The type of the event. Always 'response.output_text.annotation.added'.
+///
+/// The type of the event. Always 'response.queued'.
+///
+/// The event type identifier.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum ResponseStreamEventType {
+    Error,
+    #[serde(rename = "response.audio.delta")]
+    ResponseAudioDelta,
+    #[serde(rename = "response.audio.done")]
+    ResponseAudioDone,
+    #[serde(rename = "response.audio.transcript.delta")]
+    ResponseAudioTranscriptDelta,
+    #[serde(rename = "response.audio.transcript.done")]
+    ResponseAudioTranscriptDone,
+    #[serde(rename = "response.code_interpreter_call_code.delta")]
+    ResponseCodeInterpreterCallCodeDelta,
+    #[serde(rename = "response.code_interpreter_call_code.done")]
+    ResponseCodeInterpreterCallCodeDone,
+    #[serde(rename = "response.code_interpreter_call.completed")]
+    ResponseCodeInterpreterCallCompleted,
+    #[serde(rename = "response.code_interpreter_call.in_progress")]
+    ResponseCodeInterpreterCallInProgress,
+    #[serde(rename = "response.code_interpreter_call.interpreting")]
+    ResponseCodeInterpreterCallInterpreting,
+    #[serde(rename = "response.completed")]
+    ResponseCompleted,
+    #[serde(rename = "response.content_part.added")]
+    ResponseContentPartAdded,
+    #[serde(rename = "response.content_part.done")]
+    ResponseContentPartDone,
+    #[serde(rename = "response.created")]
+    ResponseCreated,
+    #[serde(rename = "response.custom_tool_call_input.delta")]
+    ResponseCustomToolCallInputDelta,
+    #[serde(rename = "response.custom_tool_call_input.done")]
+    ResponseCustomToolCallInputDone,
+    #[serde(rename = "response.failed")]
+    ResponseFailed,
+    #[serde(rename = "response.file_search_call.completed")]
+    ResponseFileSearchCallCompleted,
+    #[serde(rename = "response.file_search_call.in_progress")]
+    ResponseFileSearchCallInProgress,
+    #[serde(rename = "response.file_search_call.searching")]
+    ResponseFileSearchCallSearching,
+    #[serde(rename = "response.function_call_arguments.delta")]
+    ResponseFunctionCallArgumentsDelta,
+    #[serde(rename = "response.function_call_arguments.done")]
+    ResponseFunctionCallArgumentsDone,
+    #[serde(rename = "response.image_generation_call.completed")]
+    ResponseImageGenerationCallCompleted,
+    #[serde(rename = "response.image_generation_call.generating")]
+    ResponseImageGenerationCallGenerating,
+    #[serde(rename = "response.image_generation_call.in_progress")]
+    ResponseImageGenerationCallInProgress,
+    #[serde(rename = "response.image_generation_call.partial_image")]
+    ResponseImageGenerationCallPartialImage,
+    #[serde(rename = "response.in_progress")]
+    ResponseInProgress,
+    #[serde(rename = "response.incomplete")]
+    ResponseIncomplete,
+    #[serde(rename = "response.mcp_call_arguments.delta")]
+    ResponseMcpCallArgumentsDelta,
+    #[serde(rename = "response.mcp_call_arguments.done")]
+    ResponseMcpCallArgumentsDone,
+    #[serde(rename = "response.mcp_call.completed")]
+    ResponseMcpCallCompleted,
+    #[serde(rename = "response.mcp_call.failed")]
+    ResponseMcpCallFailed,
+    #[serde(rename = "response.mcp_call.in_progress")]
+    ResponseMcpCallInProgress,
+    #[serde(rename = "response.mcp_list_tools.completed")]
+    ResponseMcpListToolsCompleted,
+    #[serde(rename = "response.mcp_list_tools.failed")]
+    ResponseMcpListToolsFailed,
+    #[serde(rename = "response.mcp_list_tools.in_progress")]
+    ResponseMcpListToolsInProgress,
+    #[serde(rename = "response.output_item.added")]
+    ResponseOutputItemAdded,
+    #[serde(rename = "response.output_item.done")]
+    ResponseOutputItemDone,
+    #[serde(rename = "response.output_text.annotation.added")]
+    ResponseOutputTextAnnotationAdded,
+    #[serde(rename = "response.output_text.delta")]
+    ResponseOutputTextDelta,
+    #[serde(rename = "response.output_text.done")]
+    ResponseOutputTextDone,
+    #[serde(rename = "response.queued")]
+    ResponseQueued,
+    #[serde(rename = "response.reasoning_summary_part.added")]
+    ResponseReasoningSummaryPartAdded,
+    #[serde(rename = "response.reasoning_summary_part.done")]
+    ResponseReasoningSummaryPartDone,
+    #[serde(rename = "response.reasoning_summary_text.delta")]
+    ResponseReasoningSummaryTextDelta,
+    #[serde(rename = "response.reasoning_summary_text.done")]
+    ResponseReasoningSummaryTextDone,
+    #[serde(rename = "response.reasoning_text.delta")]
+    ResponseReasoningTextDelta,
+    #[serde(rename = "response.reasoning_text.done")]
+    ResponseReasoningTextDone,
+    #[serde(rename = "response.refusal.delta")]
+    ResponseRefusalDelta,
+    #[serde(rename = "response.refusal.done")]
+    ResponseRefusalDone,
+    #[serde(rename = "response.web_search_call.completed")]
+    ResponseWebSearchCallCompleted,
+    #[serde(rename = "response.web_search_call.in_progress")]
+    ResponseWebSearchCallInProgress,
+    #[serde(rename = "response.web_search_call.searching")]
+    ResponseWebSearchCallSearching,
 }
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
