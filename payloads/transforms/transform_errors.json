@@ -11,7 +11,9 @@
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
     "webSearchToolParam": "Tool 'web_search_preview' of type 'web_search_preview' is not supported by anthropic",
     "codeInterpreterToolParam": "Expected: OpenAI Responses code_interpreter is provider-specific and is not a lossless equivalent of Anthropic bash",
-    "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation"
+    "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",
+    "responsesToolSearchStringArgumentsParam": "Expected: Responses tool_search_call string arguments are preserved for Responses replay and do not map non-lossily to Anthropic tool_search input",
+    "responsesNamespaceDuplicateLocalToolParam": "Expected: Responses namespace tools with duplicate local tool names cannot map non-lossily to Anthropic tools"
   },
   "responses_to_google": {
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation"

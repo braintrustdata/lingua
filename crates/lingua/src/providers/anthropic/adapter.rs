@@ -2213,6 +2213,77 @@ mod tests {
     }
 
     #[test]
+    fn responses_namespace_duplicate_local_tool_names_are_rejected_for_anthropic() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::responses_adapter::ResponsesAdapter;
+
+        let responses_adapter = ResponsesAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+        let responses_payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Search both systems."}],
+            "tools": [
+                {
+                    "type": "namespace",
+                    "name": "crm",
+                    "description": "CRM tools.",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup",
+                        "description": "Look up CRM records.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "customer_id": {"type": "string"}
+                            },
+                            "required": ["customer_id"]
+                        },
+                        "defer_loading": true
+                    }]
+                },
+                {
+                    "type": "namespace",
+                    "name": "erp",
+                    "description": "ERP tools.",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup",
+                        "description": "Look up ERP records.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "order_id": {"type": "string"}
+                            },
+                            "required": ["order_id"]
+                        },
+                        "defer_loading": true
+                    }]
+                },
+                {"type": "tool_search"}
+            ]
+        });
+
+        let mut universal = responses_adapter
+            .request_to_universal(responses_payload)
+            .expect("Responses request should convert to universal");
+        universal.model = Some("claude-sonnet-4-5-20250929".to_string());
+        anthropic_adapter.apply_defaults(&mut universal);
+
+        let err = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap_err();
+        match err {
+            TransformError::FromUniversalFailed(reason) => {
+                assert!(reason.contains("duplicate local tool name 'lookup'"));
+                assert!(reason.contains("'crm'"));
+                assert!(reason.contains("'erp'"));
+                assert!(reason.contains("Anthropic tools"));
+            }
+            other => panic!("expected unsupported namespace duplicate mapping, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn test_anthropic_response_tool_shim_unwraps_to_assistant_content() {
         let adapter = AnthropicAdapter;
         let payload = json!({

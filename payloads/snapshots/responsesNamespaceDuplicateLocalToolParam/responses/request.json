@@ -1,0 +1,67 @@
+{
+  "model": "gpt-5.5",
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": "Find lookup tools across namespaces."
+    }
+  ],
+  "tools": [
+    {
+      "type": "namespace",
+      "name": "crm",
+      "description": "Deferred CRM lookup tools.",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup",
+          "description": "Look up CRM records.",
+          "strict": true,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "customer_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "customer_id"
+            ],
+            "additionalProperties": false
+          },
+          "defer_loading": true
+        }
+      ]
+    },
+    {
+      "type": "namespace",
+      "name": "erp",
+      "description": "Deferred ERP lookup tools.",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup",
+          "description": "Look up ERP records.",
+          "strict": true,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "order_id"
+            ],
+            "additionalProperties": false
+          },
+          "defer_loading": true
+        }
+      ]
+    },
+    {
+      "type": "tool_search"
+    }
+  ]
+}

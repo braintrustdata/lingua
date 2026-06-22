@@ -1,0 +1,27 @@
+{
+  "model": "gpt-5.5",
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": "Find weather tools."
+    },
+    {
+      "type": "tool_search_call",
+      "call_id": "call_tool_search_string_args",
+      "status": "completed",
+      "execution": "client",
+      "arguments": "{\"query\":\"weather\"}"
+    },
+    {
+      "type": "message",
+      "role": "user",
+      "content": "Continue from the preserved tool search call."
+    }
+  ],
+  "tools": [
+    {
+      "type": "tool_search"
+    }
+  ]
+}

@@ -1368,6 +1368,86 @@ mod tests {
     }
 
     #[test]
+    fn responses_tool_search_json_string_arguments_extract_query_and_preserve_string() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{
+                "type": "tool_search_call",
+                "call_id": "call_tool_search_123",
+                "status": "completed",
+                "execution": "client",
+                "arguments": r#"{"query":"weather"}"#
+            }]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        let Message::Assistant { content, .. } = &universal.messages[0] else {
+            panic!("tool_search_call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("assistant content should be array");
+        };
+        let AssistantContentPart::ToolDiscoveryCall {
+            query, arguments, ..
+        } = &parts[0]
+        else {
+            panic!("tool_search_call should convert to tool discovery call");
+        };
+        assert_eq!(query.as_deref(), Some("weather"));
+        assert_eq!(arguments, &Some(json!(r#"{"query":"weather"}"#)));
+
+        let request: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        let input = match request.input.expect("input should be present") {
+            InputParam::InputItemArray(input) => input,
+            InputParam::String(_) => panic!("input should be item array"),
+        };
+
+        assert_eq!(
+            input[0].input_item_type,
+            Some(InputItemType::ToolSearchCall)
+        );
+        assert_eq!(
+            input[0].arguments,
+            Some(Arguments::String(r#"{"query":"weather"}"#.to_string()))
+        );
+    }
+
+    #[test]
+    fn responses_tool_search_opaque_string_arguments_import_without_query() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{
+                "type": "tool_search_call",
+                "call_id": "call_tool_search_123",
+                "status": "completed",
+                "execution": "client",
+                "arguments": "not json"
+            }]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        let Message::Assistant { content, .. } = &universal.messages[0] else {
+            panic!("tool_search_call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("assistant content should be array");
+        };
+        let AssistantContentPart::ToolDiscoveryCall {
+            query, arguments, ..
+        } = &parts[0]
+        else {
+            panic!("tool_search_call should convert to tool discovery call");
+        };
+        assert_eq!(query, &None);
+        assert_eq!(arguments, &Some(json!("not json")));
+    }
+
+    #[test]
     fn responses_tool_search_output_reuses_null_call_id_from_previous_call() {
         let output_items: Vec<crate::providers::openai::generated::OutputItem> =
             serde_json::from_value(json!([

@@ -331,21 +331,32 @@ pub(super) fn anthropic_tool_search_tool() -> UniversalTool {
     )
 }
 
+struct ExpandedTool {
+    tool: UniversalTool,
+    responses_namespace: Option<String>,
+}
+
 #[cfg(feature = "openai")]
 fn expand_responses_discovery_tool_for_anthropic(
     tool: UniversalTool,
-) -> Result<Vec<UniversalTool>, TransformError> {
+) -> Result<Vec<ExpandedTool>, TransformError> {
     let UniversalToolType::Builtin {
         provider: BuiltinToolProvider::Responses,
         builtin_type,
         config,
     } = &tool.tool_type
     else {
-        return Ok(vec![tool]);
+        return Ok(vec![ExpandedTool {
+            tool,
+            responses_namespace: None,
+        }]);
     };
 
     match &**builtin_type {
-        "tool_search" => Ok(vec![anthropic_tool_search_tool()]),
+        "tool_search" => Ok(vec![ExpandedTool {
+            tool: anthropic_tool_search_tool(),
+            responses_namespace: None,
+        }]),
         "namespace" => {
             let config = config.clone().ok_or_else(|| {
                 TransformError::FromUniversalFailed(format!(
@@ -359,38 +370,71 @@ fn expand_responses_discovery_tool_for_anthropic(
                     tool.name, e
                 ))
             })?;
+            let namespace_name = namespace.name.clone();
             let mut tools = parse_openai_responses_tools_array(&Value::Array(namespace.tools));
             for tool in &mut tools {
                 tool.availability = ToolAvailability::Deferred;
             }
-            Ok(tools)
+            Ok(tools
+                .into_iter()
+                .map(|tool| ExpandedTool {
+                    tool,
+                    responses_namespace: Some(namespace_name.clone()),
+                })
+                .collect())
         }
-        _ => Ok(vec![tool]),
+        _ => Ok(vec![ExpandedTool {
+            tool,
+            responses_namespace: None,
+        }]),
     }
 }
 
 #[cfg(not(feature = "openai"))]
 fn expand_responses_discovery_tool_for_anthropic(
     tool: UniversalTool,
-) -> Result<Vec<UniversalTool>, TransformError> {
-    Ok(vec![tool])
+) -> Result<Vec<ExpandedTool>, TransformError> {
+    Ok(vec![ExpandedTool {
+        tool,
+        responses_namespace: None,
+    }])
 }
 
 pub(super) fn normalize_tools_for_anthropic(
     tools: Vec<UniversalTool>,
 ) -> Result<Vec<UniversalTool>, TransformError> {
-    let mut normalized = Vec::new();
+    let mut normalized: Vec<ExpandedTool> = Vec::new();
 
     for tool in tools {
         for expanded_tool in expand_responses_discovery_tool_for_anthropic(tool)? {
-            if !normalized
+            if let Some(existing) = normalized
                 .iter()
-                .any(|existing: &UniversalTool| existing.name == expanded_tool.name)
+                .find(|existing| existing.tool.name == expanded_tool.tool.name)
             {
+                if existing.responses_namespace.is_some()
+                    && expanded_tool.responses_namespace.is_some()
+                {
+                    let existing_namespace = existing
+                        .responses_namespace
+                        .as_deref()
+                        .expect("checked namespace presence");
+                    let expanded_namespace = expanded_tool
+                        .responses_namespace
+                        .as_deref()
+                        .expect("checked namespace presence");
+                    return Err(TransformError::FromUniversalFailed(format!(
+                        "Unsupported mapping: cannot convert Responses namespace tools with duplicate local tool name '{}' from '{}' and '{}' to Anthropic tools",
+                        expanded_tool.tool.name, existing_namespace, expanded_namespace
+                    )));
+                }
+            } else {
                 normalized.push(expanded_tool);
             }
         }
     }
 
-    Ok(normalized)
+    Ok(normalized
+        .into_iter()
+        .map(|expanded| expanded.tool)
+        .collect())
 }

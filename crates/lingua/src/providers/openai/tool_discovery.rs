@@ -51,15 +51,25 @@ fn execution_from_string(execution: Option<String>) -> Option<openai::ToolSearch
 fn query_from_arguments(
     arguments: &Option<openai::Arguments>,
 ) -> Result<Option<String>, ConvertError> {
-    let Some(arguments) = arguments.clone() else {
-        return Ok(None);
-    };
-    let view: ToolDiscoveryQueryView = serde_json::from_value(arguments_to_value(arguments))
-        .map_err(|e| ConvertError::JsonSerializationFailed {
-            field: "tool_discovery.arguments".to_string(),
-            error: e.to_string(),
-        })?;
-    Ok(view.query)
+    match arguments {
+        Some(openai::Arguments::AnythingMap(map)) => {
+            let view: ToolDiscoveryQueryView = serde_json::from_value(Value::Object(map.clone()))
+                .map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "tool_discovery.arguments".to_string(),
+                    error: e.to_string(),
+                }
+            })?;
+            Ok(view.query)
+        }
+        Some(openai::Arguments::String(text)) => {
+            let Ok(view) = serde_json::from_str::<ToolDiscoveryQueryView>(text) else {
+                return Ok(None);
+            };
+            Ok(view.query)
+        }
+        None => Ok(None),
+    }
 }
 
 fn tool_type_name(tool_type: &openai::ToolType) -> Option<String> {

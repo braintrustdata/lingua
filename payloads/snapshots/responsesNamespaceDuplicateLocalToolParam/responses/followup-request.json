@@ -1,0 +1,92 @@
+{
+  "model": "gpt-5.5",
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": "Find lookup tools across namespaces."
+    },
+    {
+      "id": "rs_09df7de1bd46cc38006a39b12cd8d481919d70c60dcf8dcaf5",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_09df7de1bd46cc38006a39b12ea33881918565bafde317a0f8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Found lookup tools across these namespaces:\n\n- `crm.lookup` — Look up CRM records  \n  - Parameters: `{ customer_id: string }`\n\n- `erp.lookup` — Look up ERP records  \n  - Parameters: `{ order_id: string }`"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "namespace",
+      "name": "crm",
+      "description": "Deferred CRM lookup tools.",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup",
+          "description": "Look up CRM records.",
+          "strict": true,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "customer_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "customer_id"
+            ],
+            "additionalProperties": false
+          },
+          "defer_loading": true
+        }
+      ]
+    },
+    {
+      "type": "namespace",
+      "name": "erp",
+      "description": "Deferred ERP lookup tools.",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup",
+          "description": "Look up ERP records.",
+          "strict": true,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "order_id"
+            ],
+            "additionalProperties": false
+          },
+          "defer_loading": true
+        }
+      ]
+    },
+    {
+      "type": "tool_search"
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "id": "resp_09df7de1bd46cc38006a39b12faaa48191b95af05c49e4ecaa",
+  "object": "response",
+  "created_at": 1782165807,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1782165813,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.5-2026-04-23",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_09df7de1bd46cc38006a39b130796081918618ff17de3a4a98",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_09df7de1bd46cc38006a39b13319248191a08b7a95b93a1ff6",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Next, tell me which lookup you want to run and provide the required ID:\n\n- For CRM lookup: provide a `customer_id`\n  - Example: “Look up CRM customer `CUST-123`”\n\n- For ERP lookup: provide an `order_id`\n  - Example: “Look up ERP order `ORD-456`”\n\nIf you’re not sure which one you need, describe what you’re trying to find, and I’ll choose the right lookup."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "current_turn",
+    "effort": "medium",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "tool_search",
+      "description": null,
+      "parameters": null
+    },
+    {
+      "type": "namespace",
+      "description": "Deferred CRM lookup tools.",
+      "name": "crm",
+      "tools": [
+        {
+          "type": "function",
+          "defer_loading": true,
+          "description": "Look up CRM records.",
+          "name": "lookup",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "customer_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "customer_id"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    },
+    {
+      "type": "namespace",
+      "description": "Deferred ERP lookup tools.",
+      "name": "erp",
+      "tools": [
+        {
+          "type": "function",
+          "defer_loading": true,
+          "description": "Look up ERP records.",
+          "name": "lookup",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "order_id"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 477,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 185,
+    "output_tokens_details": {
+      "reasoning_tokens": 84
+    },
+    "total_tokens": 662
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Next, tell me which lookup you want to run and provide the required ID:\n\n- For CRM lookup: provide a `customer_id`\n  - Example: “Look up CRM customer `CUST-123`”\n\n- For ERP lookup: provide an `order_id`\n  - Example: “Look up ERP order `ORD-456`”\n\nIf you’re not sure which one you need, describe what you’re trying to find, and I’ll choose the right lookup."
+}
