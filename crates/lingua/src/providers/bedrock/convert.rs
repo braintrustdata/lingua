@@ -305,6 +305,21 @@ fn is_tool_result_message(message: &BedrockMessage) -> bool {
             .all(|block| matches!(block, BedrockContentBlock::ToolResult { .. }))
 }
 
+fn is_discovery_only_assistant_message(message: &Message) -> bool {
+    match message {
+        Message::Assistant { content, .. } => match content {
+            AssistantContent::Array(parts) => {
+                !parts.is_empty()
+                    && parts
+                        .iter()
+                        .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+            }
+            AssistantContent::String(_) => false,
+        },
+        _ => false,
+    }
+}
+
 fn reasoning_content_to_universal(
     reasoning_content: BedrockReasoningContentBlock,
 ) -> Option<(String, Option<String>)> {
@@ -375,6 +390,9 @@ pub fn universal_to_bedrock_messages(
     let mut bedrock_messages = Vec::new();
 
     for message in messages.iter().cloned() {
+        if is_discovery_only_assistant_message(&message) {
+            continue;
+        }
         match message {
             Message::Tool { content } => {
                 let blocks = tool_result_blocks_from_content(content)?;
@@ -859,10 +877,22 @@ mod tests {
     }
 
     #[test]
-    fn test_universal_to_bedrock_drops_discovery_only_tool_message() {
+    fn test_universal_to_bedrock_drops_discovery_only_history() {
         let messages = vec![
             Message::User {
                 content: UserContent::String("Find the available tools.".to_string()),
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: Some("repo:example symbol".to_string()),
+                    arguments: None,
+                    status: Some("completed".to_string()),
+                    execution: Some("client".to_string()),
+                    provider_options: None,
+                }]),
+                id: None,
             },
             Message::Tool {
                 content: vec![ToolContentPart::ToolDiscoveryResult(

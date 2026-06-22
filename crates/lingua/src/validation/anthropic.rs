@@ -121,6 +121,24 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_rejects_null_openai_only_fields() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "response_format": null
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_validate_anthropic_request_rejects_invalid_known_fields() {
         for (field, value) in [
             ("cache_control", r#""bad""#),

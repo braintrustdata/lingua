@@ -532,6 +532,17 @@ mod tests {
             try_parse_anthropic(&payload_with_functions),
             Err(DetectionError::OpenAIFieldPresent(_))
         ));
+
+        let payload_with_null_response_format = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "response_format": null
+        });
+        assert!(matches!(
+            try_parse_anthropic(&payload_with_null_response_format),
+            Err(DetectionError::OpenAIFieldPresent(_))
+        ));
     }
 
     #[test]
