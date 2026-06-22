@@ -1686,31 +1686,64 @@ pub(crate) fn universal_messages_to_anthropic_input_messages(
     let mut input_messages = Vec::new();
 
     for message in messages {
-        let mut input_message =
-            <generated::InputMessage as TryFromLLM<Message>>::try_from(message)?;
-        if let Some(previous) = input_messages.last_mut() {
-            if let Some(unmerged) =
-                try_merge_adjacent_assistant_tool_discovery_message(previous, input_message)?
-            {
-                input_message = unmerged;
-            } else {
-                continue;
-            }
+        for message in split_mixed_tool_discovery_message(message) {
+            let mut input_message =
+                <generated::InputMessage as TryFromLLM<Message>>::try_from(message)?;
+            if let Some(previous) = input_messages.last_mut() {
+                if let Some(unmerged) =
+                    try_merge_adjacent_assistant_tool_discovery_message(previous, input_message)?
+                {
+                    input_message = unmerged;
+                } else {
+                    continue;
+                }
 
-            if let Some(unmerged) =
-                try_merge_adjacent_user_tool_result_message(previous, input_message)?
-            {
-                input_messages.push(unmerged);
+                if let Some(unmerged) =
+                    try_merge_adjacent_user_tool_result_message(previous, input_message)?
+                {
+                    input_messages.push(unmerged);
+                }
+            } else {
+                if input_message_is_pure_tool_search_result(&input_message) {
+                    return Err(unpaired_tool_discovery_result_error());
+                }
+                input_messages.push(input_message);
             }
-        } else {
-            if input_message_is_pure_tool_search_result(&input_message) {
-                return Err(unpaired_tool_discovery_result_error());
-            }
-            input_messages.push(input_message);
         }
     }
 
     Ok(input_messages)
+}
+
+fn split_mixed_tool_discovery_message(message: Message) -> Vec<Message> {
+    let Message::Tool { content } = message else {
+        return vec![message];
+    };
+
+    let mut tool_results = Vec::new();
+    let mut discovery_results = Vec::new();
+
+    for part in content {
+        match part {
+            ToolContentPart::ToolResult(_) => tool_results.push(part),
+            ToolContentPart::ToolDiscoveryResult(_) => discovery_results.push(part),
+        }
+    }
+
+    if tool_results.is_empty() || discovery_results.is_empty() {
+        return vec![Message::Tool {
+            content: tool_results.into_iter().chain(discovery_results).collect(),
+        }];
+    }
+
+    vec![
+        Message::Tool {
+            content: discovery_results,
+        },
+        Message::Tool {
+            content: tool_results,
+        },
+    ]
 }
 
 pub(crate) fn try_parse_content_blocks_for_import(
@@ -2830,6 +2863,124 @@ mod tests {
                 assert_eq!(blocks[0].id, blocks[1].tool_use_id);
             }
             other => panic!("expected merged content blocks, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_splits_mixed_tool_discovery_results() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![
+                    AssistantContentPart::ToolDiscoveryCall {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        query: None,
+                        arguments: Some(json!({})),
+                        status: Some("completed".to_string()),
+                        execution: Some("server".to_string()),
+                        provider_options: None,
+                    },
+                    AssistantContentPart::ToolCall {
+                        tool_call_id: "call_normal_123".to_string(),
+                        tool_name: "get_weather".to_string(),
+                        arguments: ToolCallArguments::from("{}".to_string()),
+                        encrypted_content: None,
+                        provider_options: None,
+                        provider_executed: None,
+                    },
+                ]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![
+                    ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: "call_normal_123".to_string(),
+                        tool_name: "get_weather".to_string(),
+                        output: json!("sunny"),
+                        provider_options: None,
+                    }),
+                    ToolContentPart::ToolDiscoveryResult(
+                        crate::universal::ToolDiscoveryResultContentPart {
+                            tool_call_id: "call_tool_search_123".to_string(),
+                            discovery_tool_name: "tool_search".to_string(),
+                            tools: vec![],
+                            status: Some("completed".to_string()),
+                            execution: Some("server".to_string()),
+                            provider_options: None,
+                        },
+                    ),
+                ],
+            },
+        ];
+
+        let input_messages = universal_messages_to_anthropic_input_messages(messages)
+            .expect("mixed tool message should split and merge discovery result");
+
+        assert_eq!(input_messages.len(), 2);
+        match &input_messages[0].content {
+            generated::MessageContent::InputContentBlockArray(blocks) => {
+                assert_eq!(blocks.len(), 3);
+                assert_eq!(
+                    blocks[0].input_content_block_type,
+                    generated::InputContentBlockType::ServerToolUse
+                );
+                assert_eq!(
+                    blocks[1].input_content_block_type,
+                    generated::InputContentBlockType::ToolUse
+                );
+                assert_eq!(
+                    blocks[2].input_content_block_type,
+                    generated::InputContentBlockType::ToolSearchToolResult
+                );
+                assert_eq!(blocks[0].id, blocks[2].tool_use_id);
+            }
+            other => panic!("expected merged assistant content blocks, got {other:?}"),
+        }
+        match &input_messages[1].content {
+            generated::MessageContent::InputContentBlockArray(blocks) => {
+                assert_eq!(blocks.len(), 1);
+                assert_eq!(
+                    blocks[0].input_content_block_type,
+                    generated::InputContentBlockType::ToolResult
+                );
+                assert_eq!(blocks[0].tool_use_id.as_deref(), Some("call_normal_123"));
+            }
+            other => panic!("expected normal tool result user message, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_rejects_unpaired_mixed_tool_discovery_result()
+    {
+        let messages = vec![Message::Tool {
+            content: vec![
+                ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_normal_123".to_string(),
+                    tool_name: "get_weather".to_string(),
+                    output: json!("sunny"),
+                    provider_options: None,
+                }),
+                ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![],
+                        status: Some("completed".to_string()),
+                        execution: Some("server".to_string()),
+                        provider_options: None,
+                    },
+                ),
+            ],
+        }];
+
+        let error = universal_messages_to_anthropic_input_messages(messages)
+            .expect_err("unpaired discovery result should fail");
+
+        match error {
+            ConvertError::UnsupportedMapping { from, .. } => {
+                assert_eq!(from, "unpaired ToolDiscoveryResult");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
         }
     }
 

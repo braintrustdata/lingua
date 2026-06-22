@@ -3994,6 +3994,9 @@ pub(crate) fn messages_to_chat_completion_messages(
     let mut result = Vec::new();
     for msg in messages {
         match msg {
+            Message::Assistant { content, .. } if assistant_content_is_discovery_only(&content) => {
+                continue;
+            }
             Message::Tool { content } => {
                 for part in content {
                     if let ToolContentPart::ToolResult(tool_result) = part {
@@ -4006,6 +4009,18 @@ pub(crate) fn messages_to_chat_completion_messages(
         }
     }
     Ok(result)
+}
+
+fn assistant_content_is_discovery_only(content: &AssistantContent) -> bool {
+    match content {
+        AssistantContent::String(_) => false,
+        AssistantContent::Array(parts) => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+        }
+    }
 }
 
 /// Convert a single tool result into a chat completions tool-role message.
@@ -4665,6 +4680,71 @@ mod tests {
                 custom: None,
             }])
         );
+    }
+
+    #[test]
+    fn chat_messages_drop_discovery_only_history() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: None,
+                    arguments: Some(json!({})),
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                }]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![],
+                        status: Some("completed".to_string()),
+                        execution: Some("server".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+        ];
+
+        let converted = messages_to_chat_completion_messages(messages).unwrap();
+        assert!(converted.is_empty());
+    }
+
+    #[test]
+    fn chat_messages_keep_non_discovery_assistant_content() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Text(TextContentPart {
+                    text: "done".to_string(),
+                    cache_control: None,
+                    encrypted_content: None,
+                    provider_options: None,
+                }),
+                AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: None,
+                    arguments: Some(json!({})),
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                },
+            ]),
+            id: None,
+        }];
+
+        let converted = messages_to_chat_completion_messages(messages).unwrap();
+        assert_eq!(converted.len(), 1);
+        assert!(matches!(
+            converted[0].content,
+            Some(ChatCompletionRequestMessageContentExt::String(ref text)) if text == "done"
+        ));
+        assert!(converted[0].tool_calls.is_none());
     }
 
     #[test]
