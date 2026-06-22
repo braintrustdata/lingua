@@ -109,6 +109,10 @@ fn is_anthropic_tool_search_builtin_type(tool_type: &str) -> bool {
     )
 }
 
+fn is_responses_dynamic_discovery_builtin_type(tool_type: &str) -> bool {
+    matches!(tool_type, "namespace" | "tool_search")
+}
+
 /// Classification of tool types.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -615,6 +619,7 @@ pub fn tools_to_openai_chat_value(tools: &[UniversalTool]) -> Result<Option<Valu
                 ..
             }) if tool_type == "web_search_20250305"
                 || tool_type == "google_search"
+                || is_responses_dynamic_discovery_builtin_type(&tool_type)
                 || is_anthropic_tool_search_builtin_type(&tool_type) => {}
             Err(err) => return Err(err),
         }
@@ -965,6 +970,35 @@ mod tests {
 
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["function"]["name"], "tool1");
+    }
+
+    #[test]
+    fn test_responses_discovery_tools_are_dropped_for_openai_chat() {
+        let tools = vec![
+            UniversalTool::function("search_code", Some("Search code".to_string()), None, None),
+            UniversalTool::builtin(
+                "namespace",
+                BuiltinToolProvider::Responses,
+                "namespace",
+                Some(json!({
+                    "type": "namespace",
+                    "name": "search_code",
+                    "tools": []
+                })),
+            ),
+            UniversalTool::builtin(
+                "tool_search",
+                BuiltinToolProvider::Responses,
+                "tool_search",
+                Some(json!({ "type": "tool_search" })),
+            ),
+        ];
+
+        let result = tools_to_openai_chat_value(&tools).unwrap().unwrap();
+        let arr: Vec<Value> = serde_json::from_value(result).unwrap();
+
+        assert_eq!(arr.len(), 1);
+        assert_eq!(arr[0]["function"]["name"], "search_code");
     }
 
     #[test]
