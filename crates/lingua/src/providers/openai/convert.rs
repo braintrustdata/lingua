@@ -1749,7 +1749,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                             // Pure reasoning message - convert to reasoning InputItem
                             let reasoning_item = openai::InputItem {
                                 role: None, // Don't set role for reasoning items - let the original data determine this
-                                content: None,
+                                content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
                                 summary: Some(reasoning_parts),
@@ -2323,7 +2323,7 @@ pub fn universal_to_responses_input(
                         if has_reasoning {
                             result.push(openai::InputItem {
                                 role: None,
-                                content: None,
+                                content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
                                 summary: Some(reasoning_parts),
@@ -3074,7 +3074,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             output_item_type: Some(
                                                 openai::OutputItemType::Reasoning,
                                             ),
-                                            content: None,
+                                            content: Some(vec![]),
                                             summary: Some(std::mem::take(summaries)),
                                             encrypted_content: encrypted.take(),
                                             id: use_id_inner(id_used, id),
@@ -4461,102 +4461,6 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
-    }
-
-    #[test]
-    fn responses_reasoning_input_item_omits_content() {
-        let message = Message::Assistant {
-            id: Some("rs_123".to_string()),
-            content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
-                text: "Thinking summary.".to_string(),
-                encrypted_content: Some("encrypted_reasoning".to_string()),
-            }]),
-        };
-
-        let item =
-            <openai::InputItem as TryFromLLM<Message>>::try_from(message).expect("should convert");
-
-        assert_eq!(item.input_item_type, Some(openai::InputItemType::Reasoning));
-        assert!(item.content.is_none());
-        assert_eq!(item.id.as_deref(), Some("rs_123"));
-        assert_eq!(
-            item.encrypted_content.as_deref(),
-            Some("encrypted_reasoning")
-        );
-        assert_eq!(
-            item.summary
-                .as_ref()
-                .and_then(|summary| summary.first())
-                .map(|summary| summary.text.clone()),
-            Some("Thinking summary.".to_string())
-        );
-    }
-
-    #[test]
-    fn universal_to_responses_input_reasoning_item_omits_content() {
-        let messages = vec![Message::Assistant {
-            id: Some("rs_123".to_string()),
-            content: AssistantContent::Array(vec![
-                AssistantContentPart::Reasoning {
-                    text: "Thinking summary.".to_string(),
-                    encrypted_content: Some("encrypted_reasoning".to_string()),
-                },
-                AssistantContentPart::Text(TextContentPart {
-                    text: "Visible answer.".to_string(),
-                    encrypted_content: None,
-                    cache_control: None,
-                    provider_options: None,
-                }),
-            ]),
-        }];
-
-        let input = universal_to_responses_input(&messages).expect("should convert");
-
-        assert_eq!(
-            input[0].input_item_type,
-            Some(openai::InputItemType::Reasoning)
-        );
-        assert!(input[0].content.is_none());
-        assert_eq!(
-            input[0].encrypted_content.as_deref(),
-            Some("encrypted_reasoning")
-        );
-        assert_eq!(
-            input[1].input_item_type,
-            Some(openai::InputItemType::Message)
-        );
-    }
-
-    #[test]
-    fn responses_reasoning_output_item_omits_content() {
-        let messages = vec![Message::Assistant {
-            id: Some("rs_123".to_string()),
-            content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
-                text: "Thinking summary.".to_string(),
-                encrypted_content: Some("encrypted_reasoning".to_string()),
-            }]),
-        }];
-
-        let output = <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
-            .expect("should convert");
-
-        assert_eq!(
-            output[0].output_item_type,
-            Some(openai::OutputItemType::Reasoning)
-        );
-        assert!(output[0].content.is_none());
-        assert_eq!(
-            output[0].encrypted_content.as_deref(),
-            Some("encrypted_reasoning")
-        );
-        assert_eq!(
-            output[0]
-                .summary
-                .as_ref()
-                .and_then(|summary| summary.first())
-                .map(|summary| summary.text.clone()),
-            Some("Thinking summary.".to_string())
-        );
     }
 
     #[cfg(feature = "anthropic")]

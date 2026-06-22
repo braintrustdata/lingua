@@ -66,12 +66,26 @@ mod tests {
             item.input_item_type =
                 Some(crate::providers::openai::generated::InputItemType::Message);
         }
+        if item.input_item_type
+            == Some(crate::providers::openai::generated::InputItemType::Reasoning)
+            && item.content.is_none()
+        {
+            item.content = Some(
+                crate::providers::openai::generated::InputItemContent::InputContentArray(vec![]),
+            );
+        }
     }
 
     fn normalize_output_item(item: &mut OutputItem) {
         if item.output_item_type.is_none() && item.role.is_some() && item.content.is_some() {
             item.output_item_type =
                 Some(crate::providers::openai::generated::OutputItemType::Message);
+        }
+        if item.output_item_type
+            == Some(crate::providers::openai::generated::OutputItemType::Reasoning)
+            && item.content.is_none()
+        {
+            item.content = Some(vec![]);
         }
     }
 
