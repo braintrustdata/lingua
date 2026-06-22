@@ -24,11 +24,11 @@ parameters: Record<string, unknown> | null,
 /**
  * Whether to enforce strict schema validation (OpenAI Responses API)
  */
-strict: boolean | null,
+strict: boolean | null, 
 /**
  * Whether the tool is immediately available or deferred until discovered.
  */
-availability?: ToolAvailability, } & ({ "kind": "function" } | { "kind": "custom",
+availability?: ToolAvailability, } & ({ "kind": "function" } | { "kind": "custom", 
 /**
  * Optional input format for custom tools (e.g. text/grammar config)
  */

@@ -14,12 +14,15 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
     "n",
     "parallel_tool_calls",
     "presence_penalty",
+    "reasoning_enabled",
     "reasoning_effort",
     "response_format",
     "seed",
+    "suffix_messages",
     "stop",
     "store",
     "stream_options",
+    "chat_template_kwargs",
     "top_logprobs",
 ];
 
@@ -34,6 +37,11 @@ pub fn validate_anthropic_request(json: &str) -> Result<AnthropicParams, Validat
     if request.messages.is_none() {
         return Err(ValidationError::DeserializationFailed(
             "missing field `messages`".to_string(),
+        ));
+    }
+    if request.max_tokens.is_none() {
+        return Err(ValidationError::DeserializationFailed(
+            "missing field `max_tokens`".to_string(),
         ));
     }
     for field in OPENAI_ONLY_FIELDS {
@@ -93,11 +101,55 @@ mod tests {
                     "content": "Hello"
                 }
             ],
+            "max_tokens": 1024,
             "frequency_penalty": 0.5
         }"#;
 
         let result = validate_anthropic_request(json);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_requires_max_tokens() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ]
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_rejects_gateway_openai_only_fields() {
+        for field in [
+            "reasoning_enabled",
+            "suffix_messages",
+            "chat_template_kwargs",
+        ] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-3-5-sonnet-20241022",
+                    "messages": [
+                        {{
+                            "role": "user",
+                            "content": "Hello"
+                        }}
+                    ],
+                    "max_tokens": 1024,
+                    "{}": {{}}
+                }}"#,
+                field
+            );
+
+            let result = validate_anthropic_request(&json);
+            assert!(result.is_err(), "field should be rejected: {field}");
+        }
     }
 
     #[test]

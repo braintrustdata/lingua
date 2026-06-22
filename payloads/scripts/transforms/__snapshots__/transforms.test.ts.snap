@@ -1404,29 +1404,25 @@ exports[`anthropic → chat-completions > responsesToolSearchInputParam > respon
 {
   "content": [
     {
-      "text": "Here are the available tools you can use:
+      "text": "Available tools:
 
 - functions.search_code
-  - Description: Search code.
-  - Signature: () => any
-  - Parameters: none (no inputs)
+  - Description: Search code (no input parameters).
+  - Use when you want to search for keywords, symbols, or code patterns in the repository.
 
 - multi_tool_use.parallel
-  - Description: Run multiple tools in parallel. Use this to invoke several tools at once.
-  - Signature: (parameters) => any
-  - Parameters format: {
-      tool_uses: [
-        { recipient_name: "functions.<tool_name>", parameters: { ... } },
-        ...
-      ]
-    }
-  - Notes: Only tools from the functions namespace may be used inside the parallel wrapper.
+  - Description: Run multiple tools in parallel (wrapper).
+  - Parameters: 
+    - tool_uses: Array of objects, each with:
+      - recipient_name: e.g., "functions.search_code"
+      - parameters: object with the tool’s input
+  - Use when you want to run several tool calls simultaneously to save time.
 
-Would you like me to run a quick code search, or demonstrate a parallel call using these tools?",
+What would you like to do next? For example, tell me a code search term, or ask me to run multiple searches in parallel.",
       "type": "text",
     },
   ],
-  "id": "msg_DsevDG4jOeyLV0oWRctPMvOTgHAI1",
+  "id": "msg_DssNxAnpC2WxqjagQAqqiZV0DEtxA",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
@@ -1434,7 +1430,7 @@ Would you like me to run a quick code search, or demonstrate a parallel call usi
   "usage": {
     "cache_read_input_tokens": 0,
     "input_tokens": 120,
-    "output_tokens": 987,
+    "output_tokens": 664,
   },
 }
 `;
@@ -4107,7 +4103,7 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
 {
   "content": [
     {
-      "id": "yjrmuyb4",
+      "id": "g1131wwl",
       "input": {},
       "name": "search_code",
       "type": "tool_use",
@@ -4120,7 +4116,7 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
   "type": "message",
   "usage": {
     "input_tokens": 30,
-    "output_tokens": 246,
+    "output_tokens": 357,
   },
 }
 `;
@@ -6937,7 +6933,7 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
       "type": "thinking",
     },
     {
-      "id": "srvtoolu_tsc_00fdc0dd80a436fd006a35ee9c4ee881919a231a482eebb0e7",
+      "id": "srvtoolu_tsc_09ff7246a4ed01a0006a36b8c73c8c819cb8a722745dafc938",
       "input": {
         "paths": [
           "search_code",
@@ -6956,27 +6952,27 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
         ],
         "type": "tool_search_tool_search_result",
       },
-      "tool_use_id": "srvtoolu_tso_00fdc0dd80a436fd006a35ee9c6e68819185d898f73a87082c",
+      "tool_use_id": "srvtoolu_tso_09ff7246a4ed01a0006a36b8c76460819c86aa92a447aad0fb",
       "type": "tool_search_tool_result",
     },
     {
       "text": "Available tools:
 
-- \`api_tool.list_resources\` — list/retrieve resource and tool descriptions.
-- \`multi_tool_use.parallel\` — run multiple developer tools in parallel when independent.
-- \`search_code.search_code\` — search code.",
+- \`api_tool.list_resources\` — lists tool/content resources and retrieves tool schemas. *(analysis channel)*
+- \`search_code.search_code\` — searches code. *(commentary channel)*
+- \`multi_tool_use.parallel\` — runs multiple developer tools in parallel when applicable. *(commentary channel)*",
       "type": "text",
     },
   ],
-  "id": "msg_00fdc0dd80a436fd006a35ee9afba881918c2e0aeba7bea9d2",
+  "id": "msg_09ff7246a4ed01a0006a36b8c5b27c819ca9e686d7dbcd064d",
   "model": "gpt-5.5-2026-04-23",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
-    "input_tokens": 588,
-    "output_tokens": 122,
+    "input_tokens": 601,
+    "output_tokens": 152,
   },
 }
 `;
@@ -31840,21 +31836,34 @@ exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] =
 exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_01RiJQe7d9WsFqr6Qa5HjG4k",
+  "id": "resp_018dnWtxXzKH6BMwb3qd5KmK",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
-      "arguments": "{}",
-      "call_id": "toolu_01EQ97m49wLPcyGrgjwAahrz",
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'll use the discovered tool to search the code:",
+          "type": "output_text",
+        },
+      ],
       "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+    {
+      "arguments": "{}",
+      "call_id": "toolu_01CGfiadqRoi6EDTGVimMcYj",
+      "id": "msg_transformed_item_1",
       "name": "search_code",
       "status": "completed",
       "type": "function_call",
     },
   ],
-  "output_text": "",
+  "output_text": "I'll use the discovered tool to search the code:",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
@@ -31864,11 +31873,11 @@ exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] 
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 36,
+    "output_tokens": 48,
     "output_tokens_details": {
       "reasoning_tokens": 0,
     },
-    "total_tokens": 873,
+    "total_tokens": 885,
   },
 }
 `;
@@ -35499,17 +35508,11 @@ exports[`responses → google > responsesToolSearchInputParam > response 1`] = `
       "content": [
         {
           "annotations": [],
-          "text": "It appears that there are no external tools (such as web search, calculators, or database connectors) currently configured or available in this session.
+          "text": "It appears that no specific external tools (such as web search, file editors, or calculators) have been configured or provided in this current session's tool-calling schema. 
 
-However, I have a wide range of **built-in capabilities** that I can use to help you right now. These include:
+If you are running this in an agentic environment, please ensure that the tools are properly registered and passed to the model in the system prompt or API call configuration. 
 
-1. **Coding & Software Development:** Writing, debugging, explaining, and refactoring code in languages like Python, JavaScript, C++, HTML/CSS, SQL, and more.
-2. **Data Analysis & Mathematics:** Solving mathematical problems, explaining algorithms, and analyzing text-based data.
-3. **Writing & Editing:** Drafting essays, emails, reports, creative stories, or summarizing complex documents.
-4. **Learning & Explanation:** Explaining complex concepts (scientific, historical, technical) in simple terms.
-5. **Brainstorming & Planning:** Helping you plan projects, brainstorm ideas, or design workflows.
-
-If you have a specific task in mind, please let me know, and I will use my native capabilities to assist you!",
+Once those tools are provided, I will be able to discover them, list them, and use them to assist you!",
           "type": "output_text",
         },
       ],
@@ -35519,31 +35522,25 @@ If you have a specific task in mind, please let me know, and I will use my nativ
       "type": "message",
     },
   ],
-  "output_text": "It appears that there are no external tools (such as web search, calculators, or database connectors) currently configured or available in this session.
+  "output_text": "It appears that no specific external tools (such as web search, file editors, or calculators) have been configured or provided in this current session's tool-calling schema. 
 
-However, I have a wide range of **built-in capabilities** that I can use to help you right now. These include:
+If you are running this in an agentic environment, please ensure that the tools are properly registered and passed to the model in the system prompt or API call configuration. 
 
-1. **Coding & Software Development:** Writing, debugging, explaining, and refactoring code in languages like Python, JavaScript, C++, HTML/CSS, SQL, and more.
-2. **Data Analysis & Mathematics:** Solving mathematical problems, explaining algorithms, and analyzing text-based data.
-3. **Writing & Editing:** Drafting essays, emails, reports, creative stories, or summarizing complex documents.
-4. **Learning & Explanation:** Explaining complex concepts (scientific, historical, technical) in simple terms.
-5. **Brainstorming & Planning:** Helping you plan projects, brainstorm ideas, or design workflows.
-
-If you have a specific task in mind, please let me know, and I will use my native capabilities to assist you!",
+Once those tools are provided, I will be able to discover them, list them, and use them to assist you!",
   "parallel_tool_calls": false,
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
   "usage": {
-    "input_tokens": 15,
+    "input_tokens": 13,
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 695,
+    "output_tokens": 1378,
     "output_tokens_details": {
-      "reasoning_tokens": 484,
+      "reasoning_tokens": 1282,
     },
-    "total_tokens": 710,
+    "total_tokens": 1391,
   },
 }
 `;

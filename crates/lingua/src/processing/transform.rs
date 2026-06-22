@@ -1106,6 +1106,93 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_responses_discovery_tools_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "input": [
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": "Find the available tools."
+                },
+                {
+                    "type": "tool_search_call",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "arguments": {}
+                },
+                {
+                    "type": "tool_search_output",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "tools": [
+                        {
+                            "type": "function",
+                            "name": "search_code",
+                            "description": "Search code.",
+                            "strict": true,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": false
+                            }
+                        }
+                    ]
+                }
+            ],
+            "tools": [
+                {
+                    "type": "namespace",
+                    "name": "search_code",
+                    "description": "Deferred code search tools.",
+                    "tools": [
+                        {
+                            "type": "function",
+                            "name": "search_code",
+                            "description": "Search code.",
+                            "strict": true,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": false
+                            },
+                            "defer_loading": true
+                        }
+                    ]
+                },
+                { "type": "tool_search" }
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Responses));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        let tools = output
+            .get("tools")
+            .and_then(Value::as_array)
+            .expect("tools should be emitted");
+
+        assert!(tools.iter().any(|tool| {
+            tool.get("type").and_then(Value::as_str) == Some("tool_search_tool_regex_20251119")
+                && tool.get("name").and_then(Value::as_str) == Some("tool_search_tool_regex")
+        }));
+        assert!(tools.iter().any(|tool| {
+            tool.get("name").and_then(Value::as_str) == Some("search_code")
+                && tool.get("defer_loading").and_then(Value::as_bool) == Some(true)
+        }));
+        assert!(!tools
+            .iter()
+            .any(|tool| tool.get("type").and_then(Value::as_str) == Some("namespace")));
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_openai_system_role_to_anthropic_top_level_system() {
         let payload = json!({
             "model": "claude-haiku-4-5-20251001",

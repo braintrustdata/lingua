@@ -1,14 +1,14 @@
 {
-  "id": "chatcmpl-DsevDG4jOeyLV0oWRctPMvOTgHAI1",
+  "id": "chatcmpl-DssNxAnpC2WxqjagQAqqiZV0DEtxA",
   "object": "chat.completion",
-  "created": 1781919387,
+  "created": 1781971141,
   "model": "gpt-5-nano-2025-08-07",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Here are the available tools you can use:\n\n- functions.search_code\n  - Description: Search code.\n  - Signature: () => any\n  - Parameters: none (no inputs)\n\n- multi_tool_use.parallel\n  - Description: Run multiple tools in parallel. Use this to invoke several tools at once.\n  - Signature: (parameters) => any\n  - Parameters format: {\n      tool_uses: [\n        { recipient_name: \"functions.<tool_name>\", parameters: { ... } },\n        ...\n      ]\n    }\n  - Notes: Only tools from the functions namespace may be used inside the parallel wrapper.\n\nWould you like me to run a quick code search, or demonstrate a parallel call using these tools?",
+        "content": "Available tools:\n\n- functions.search_code\n  - Description: Search code (no input parameters).\n  - Use when you want to search for keywords, symbols, or code patterns in the repository.\n\n- multi_tool_use.parallel\n  - Description: Run multiple tools in parallel (wrapper).\n  - Parameters: \n    - tool_uses: Array of objects, each with:\n      - recipient_name: e.g., \"functions.search_code\"\n      - parameters: object with the tool’s input\n  - Use when you want to run several tool calls simultaneously to save time.\n\nWhat would you like to do next? For example, tell me a code search term, or ask me to run multiple searches in parallel.",
         "refusal": null,
         "annotations": []
       },
@@ -17,14 +17,14 @@
   ],
   "usage": {
     "prompt_tokens": 120,
-    "completion_tokens": 987,
-    "total_tokens": 1107,
+    "completion_tokens": 664,
+    "total_tokens": 784,
     "prompt_tokens_details": {
       "cached_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 832,
+      "reasoning_tokens": 512,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

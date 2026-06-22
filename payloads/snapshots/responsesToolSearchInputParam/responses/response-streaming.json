@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_0e6153ee4b61ba92006a35ee8d5f6c819c8ce94afab2587603",
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
       "object": "response",
-      "created_at": 1781919373,
+      "created_at": 1781971131,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -40,10 +40,27 @@
       "tool_choice": "auto",
       "tools": [
         {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
           "type": "namespace",
-          "description": "Search code.",
+          "description": "Deferred code search tools.",
           "name": "search_code",
           "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
             {
               "type": "function",
               "description": "Search code.",
@@ -70,9 +87,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_0e6153ee4b61ba92006a35ee8d5f6c819c8ce94afab2587603",
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
       "object": "response",
-      "created_at": 1781919373,
+      "created_at": 1781971131,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -108,10 +125,27 @@
       "tool_choice": "auto",
       "tools": [
         {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
           "type": "namespace",
-          "description": "Search code.",
+          "description": "Deferred code search tools.",
           "name": "search_code",
           "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
             {
               "type": "function",
               "description": "Search code.",
@@ -138,7 +172,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "rs_0e6153ee4b61ba92006a35ee8dd29c819cb55a7f2a25755acc",
+      "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
       "type": "reasoning",
       "content": [],
       "summary": []
@@ -149,7 +183,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "rs_0e6153ee4b61ba92006a35ee8dd29c819cb55a7f2a25755acc",
+      "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
       "type": "reasoning",
       "content": [],
       "summary": []
@@ -160,11 +194,11 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "fc_0e6153ee4b61ba92006a35ee8ea678819cba12cc87cbd521e6",
+      "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
       "type": "function_call",
       "status": "in_progress",
       "arguments": "",
-      "call_id": "call_2rGlDmMBqMojBO8dhXhq5iHs",
+      "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
       "name": "search_code",
       "namespace": "search_code"
     },
@@ -174,26 +208,26 @@
   {
     "type": "response.function_call_arguments.delta",
     "delta": "{}",
-    "item_id": "fc_0e6153ee4b61ba92006a35ee8ea678819cba12cc87cbd521e6",
-    "obfuscation": "qkSkorpYcXmv5l",
+    "item_id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+    "obfuscation": "cjINpZGhSGLNRy",
     "output_index": 1,
     "sequence_number": 5
   },
   {
     "type": "response.function_call_arguments.done",
     "arguments": "{}",
-    "item_id": "fc_0e6153ee4b61ba92006a35ee8ea678819cba12cc87cbd521e6",
+    "item_id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
     "output_index": 1,
     "sequence_number": 6
   },
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "fc_0e6153ee4b61ba92006a35ee8ea678819cba12cc87cbd521e6",
+      "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
       "type": "function_call",
       "status": "completed",
       "arguments": "{}",
-      "call_id": "call_2rGlDmMBqMojBO8dhXhq5iHs",
+      "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
       "name": "search_code",
       "namespace": "search_code"
     },
@@ -203,12 +237,12 @@
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_0e6153ee4b61ba92006a35ee8d5f6c819c8ce94afab2587603",
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
       "object": "response",
-      "created_at": 1781919373,
+      "created_at": 1781971131,
       "status": "completed",
       "background": false,
-      "completed_at": 1781919374,
+      "completed_at": 1781971133,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -219,17 +253,17 @@
       "moderation": null,
       "output": [
         {
-          "id": "rs_0e6153ee4b61ba92006a35ee8dd29c819cb55a7f2a25755acc",
+          "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
           "type": "reasoning",
           "content": [],
           "summary": []
         },
         {
-          "id": "fc_0e6153ee4b61ba92006a35ee8ea678819cba12cc87cbd521e6",
+          "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
           "type": "function_call",
           "status": "completed",
           "arguments": "{}",
-          "call_id": "call_2rGlDmMBqMojBO8dhXhq5iHs",
+          "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
           "name": "search_code",
           "namespace": "search_code"
         }
@@ -257,10 +291,27 @@
       "tool_choice": "auto",
       "tools": [
         {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
           "type": "namespace",
-          "description": "Search code.",
+          "description": "Deferred code search tools.",
           "name": "search_code",
           "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
             {
               "type": "function",
               "description": "Search code.",
@@ -279,15 +330,15 @@
       "top_p": 0.98,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 172,
+        "input_tokens": 538,
         "input_tokens_details": {
           "cached_tokens": 0
         },
-        "output_tokens": 62,
+        "output_tokens": 66,
         "output_tokens_details": {
-          "reasoning_tokens": 45
+          "reasoning_tokens": 49
         },
-        "total_tokens": 234
+        "total_tokens": 604
       },
       "user": null,
       "metadata": {}

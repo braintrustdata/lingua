@@ -10,12 +10,8 @@
       "role": "assistant",
       "content": [
         {
-          "type": "text",
-          "text": "I'll search for all available tools by using a broad pattern."
-        },
-        {
           "type": "server_tool_use",
-          "id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+          "id": "srvtoolu_018o2Q3JV1K1XJp26PpfY6UW",
           "name": "tool_search_tool_regex",
           "input": {
             "pattern": ".*",
@@ -24,7 +20,7 @@
         },
         {
           "type": "tool_search_tool_result",
-          "tool_use_id": "srvtoolu_015trjZ4BDBsUpnAFktJpmZW",
+          "tool_use_id": "srvtoolu_018o2Q3JV1K1XJp26PpfY6UW",
           "content": {
             "type": "tool_search_tool_search_result",
             "tool_references": [
@@ -41,7 +37,7 @@
         },
         {
           "type": "text",
-          "text": "Based on my search, here are the available tools:\n\n1. **tool_search_tool_regex** - Searches for functions using regex patterns\n   - Parameters:\n     - `pattern` (required): Python regex pattern to match against tool names, descriptions, and parameters (max 200 characters)\n     - `limit` (optional): Maximum number of matching tools to return (default: 5, max: 10000)\n\n2. **search_code** - Search code\n   - Parameters: None (empty object)\n\nThese are the two tools currently available in this environment."
+          "text": "Based on the search results, there are **2 available tools**:\n\n1. **tool_search_tool_regex** - Searches for functions using regex patterns\n   - Allows you to search for tools by matching patterns against tool names, descriptions, and parameters\n   - Parameters:\n     - `pattern` (required): Python regex pattern to match (case-insensitive, max 200 chars)\n     - `limit` (optional): Maximum number of results to return (default: 5, max: 10000)\n\n2. **search_code** - Search code\n   - A tool for searching code (no parameters required)\n\nWould you like me to demonstrate how to use any of these tools, or search for something specific?"
         }
       ]
     },

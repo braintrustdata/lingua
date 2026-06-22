@@ -1,13 +1,13 @@
 {
-  "id": "resp_0335b41e1e0b7a2f006a35ee8f5794819da1d838436f703be0",
+  "id": "resp_0ee13dc020be54dc006a36b8c1d98c819c99809da42e8f52d9",
   "object": "response",
-  "created_at": 1781919375,
+  "created_at": 1781971137,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1781919376,
+  "completed_at": 1781971139,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,7 +18,7 @@
   "moderation": null,
   "output": [
     {
-      "id": "msg_0335b41e1e0b7a2f006a35ee9031f0819d857e5a3051c86cc6",
+      "id": "msg_0ee13dc020be54dc006a36b8c3426c819c9c8897615565f97b",
       "type": "message",
       "status": "completed",
       "content": [
@@ -26,7 +26,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "The discovered tool returned: **71 degrees**."
+          "text": "The discovered available tool is:\n\n- `search_code.search_code` — Search code\n\nI used it, and it returned: `71 degrees`"
         }
       ],
       "phase": "final_answer",
@@ -56,10 +56,27 @@
   "tool_choice": "auto",
   "tools": [
     {
+      "type": "tool_search",
+      "description": null,
+      "parameters": null
+    },
+    {
       "type": "namespace",
-      "description": "Search code.",
+      "description": "Deferred code search tools.",
       "name": "search_code",
       "tools": [
+        {
+          "type": "function",
+          "defer_loading": true,
+          "description": "Search code.",
+          "name": "search_code",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        },
         {
           "type": "function",
           "description": "Search code.",
@@ -78,17 +95,17 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 245,
+    "input_tokens": 813,
     "input_tokens_details": {
       "cached_tokens": 0
     },
-    "output_tokens": 14,
+    "output_tokens": 33,
     "output_tokens_details": {
       "reasoning_tokens": 0
     },
-    "total_tokens": 259
+    "total_tokens": 846
   },
   "user": null,
   "metadata": {},
-  "output_text": "The discovered tool returned: **71 degrees**."
+  "output_text": "The discovered available tool is:\n\n- `search_code.search_code` — Search code\n\nI used it, and it returned: `71 degrees`"
 }

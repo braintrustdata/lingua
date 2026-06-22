@@ -230,6 +230,15 @@
     },
     {
       "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].tools[*].tool", "reason": "Anthropic tool_search_tool_result carries tool_reference names; Responses replay attaches recovered deferred tool definitions from top-level tools" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "Anthropic uses concrete tool search names such as tool_search_tool_regex; Responses uses generic tool_search" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
       "source": "Responses",
       "target": "ChatCompletions",
       "fields": [

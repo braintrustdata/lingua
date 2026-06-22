@@ -1366,6 +1366,33 @@ mod tests {
     }
 
     #[test]
+    fn responses_function_named_tool_search_stays_function_call() {
+        let adapter = ResponsesAdapter;
+        let universal = UniversalRequest {
+            model: Some("gpt-5-nano".to_string()),
+            messages: vec![Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_regular_tool_search".to_string(),
+                    tool_name: "tool_search".to_string(),
+                    arguments: r#"{"query":"weather"}"#.to_string().into(),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let request = adapter.request_from_universal(&universal).unwrap();
+        let input = request["input"].as_array().expect("input should be array");
+
+        assert_eq!(input[0]["type"], json!("function_call"));
+        assert_eq!(input[0]["name"], json!("tool_search"));
+        assert_eq!(input[0]["arguments"], json!("{\"query\":\"weather\"}"));
+    }
+
+    #[test]
     fn test_responses_moderation_preserved_when_exporting_to_chat() {
         let responses_adapter = ResponsesAdapter;
         let chat_adapter = crate::providers::openai::adapter::OpenAIAdapter;

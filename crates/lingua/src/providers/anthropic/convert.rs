@@ -10,6 +10,7 @@ use crate::providers::anthropic::generated::{
     CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice, ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicParams, AnthropicTool};
+use crate::providers::anthropic::tool_discovery;
 use crate::providers::google::generated::GoogleSearch;
 use crate::serde_json;
 use crate::serde_json::{json, Value};
@@ -23,8 +24,7 @@ use crate::universal::tools::{
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
     CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
-    ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
-    UserContentPart,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -75,239 +75,6 @@ fn anthropic_tool_use_caller_from_provider_options(
             .ok()
         })
         .and_then(|view| view.caller)
-}
-
-#[derive(Debug, Clone, Default, serde::Deserialize)]
-#[serde(default)]
-struct AnthropicToolDiscoveryInputView {
-    query: Option<String>,
-}
-
-fn is_anthropic_tool_search_tool_name(name: &str) -> bool {
-    matches!(
-        name,
-        "tool_search_tool_regex" | "tool_search_tool_bm25" | "tool_search"
-    )
-}
-
-fn anthropic_tool_search_tool_name(name: &str) -> String {
-    match name {
-        "tool_search" => "tool_search_tool_regex".to_string(),
-        _ => name.to_string(),
-    }
-}
-
-fn anthropic_tool_search_tool_call_id(tool_call_id: &str) -> String {
-    if tool_call_id.starts_with("srvtoolu_") {
-        tool_call_id.to_string()
-    } else {
-        format!("srvtoolu_{tool_call_id}")
-    }
-}
-
-fn anthropic_tool_discovery_input_map(
-    arguments: Option<Value>,
-    query: Option<String>,
-) -> Option<serde_json::Map<String, Value>> {
-    match arguments {
-        Some(Value::Object(map)) => Some(map),
-        _ => query.map(|query| {
-            let mut map = serde_json::Map::new();
-            map.insert("query".to_string(), Value::String(query));
-            map
-        }),
-    }
-}
-
-fn anthropic_tool_discovery_query(
-    input: &Option<serde_json::Map<String, Value>>,
-) -> Result<Option<String>, ConvertError> {
-    let Some(input) = input else {
-        return Ok(None);
-    };
-    let view: AnthropicToolDiscoveryInputView =
-        serde_json::from_value(Value::Object(input.clone())).map_err(|e| {
-            ConvertError::JsonSerializationFailed {
-                field: "tool_search.input".to_string(),
-                error: e.to_string(),
-            }
-        })?;
-    Ok(view.query)
-}
-
-fn anthropic_tool_discovery_arguments(
-    input: Option<serde_json::Map<String, Value>>,
-) -> Option<Value> {
-    input.map(Value::Object)
-}
-
-fn anthropic_tool_discovery_result_from_content(
-    tool_call_id: String,
-    discovery_tool_name: String,
-    content: Option<generated::InputContentBlockContent>,
-) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
-    let tools = match content {
-        Some(generated::InputContentBlockContent::RequestWebSearchToolResultError(result)) => {
-            result
-                .tool_references
-                .unwrap_or_default()
-                .into_iter()
-                .map(|tool_reference| ToolDiscoveryResultItem {
-                    tool_name: tool_reference.tool_name,
-                    tool: None,
-                    provider_options: None,
-                })
-                .collect()
-        }
-        Some(other) => {
-            let value =
-                serde_json::to_value(other).map_err(|e| ConvertError::JsonSerializationFailed {
-                    field: "tool_search_tool_result.content".to_string(),
-                    error: e.to_string(),
-                })?;
-            let mut options = serde_json::Map::new();
-            options.insert("content".to_string(), value);
-            vec![ToolDiscoveryResultItem {
-                tool_name: "unknown".to_string(),
-                tool: None,
-                provider_options: Some(ProviderOptions { options }),
-            }]
-        }
-        None => Vec::new(),
-    };
-
-    Ok(ToolDiscoveryResultContentPart {
-        tool_call_id,
-        discovery_tool_name,
-        tools,
-        status: None,
-        execution: None,
-        provider_options: None,
-    })
-}
-
-fn anthropic_tool_discovery_result_content(
-    tools: Vec<ToolDiscoveryResultItem>,
-) -> generated::InputContentBlockContent {
-    generated::InputContentBlockContent::RequestWebSearchToolResultError(
-        generated::RequestWebSearchToolResultError {
-            error_code: None,
-            request_web_search_tool_result_error_type:
-                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-            content: None,
-            retrieved_at: None,
-            url: None,
-            return_code: None,
-            stderr: None,
-            stdout: None,
-            encrypted_stdout: None,
-            error_message: None,
-            file_type: None,
-            num_lines: None,
-            start_line: None,
-            total_lines: None,
-            is_file_update: None,
-            lines: None,
-            new_lines: None,
-            new_start: None,
-            old_lines: None,
-            old_start: None,
-            tool_references: Some(
-                tools
-                    .into_iter()
-                    .map(|item| generated::RequestToolReferenceBlock {
-                        cache_control: None,
-                        tool_name: item.tool_name,
-                        request_tool_reference_block_type:
-                            generated::ToolReferenceType::ToolReference,
-                    })
-                    .collect(),
-            ),
-        },
-    )
-}
-
-fn anthropic_response_tool_discovery_result_from_content(
-    tool_call_id: String,
-    discovery_tool_name: String,
-    content: Option<generated::ContentBlockContent>,
-) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
-    let tools = match content {
-        Some(generated::ContentBlockContent::ResponseWebSearchToolResultError(result)) => result
-            .tool_references
-            .unwrap_or_default()
-            .into_iter()
-            .map(|tool_reference| ToolDiscoveryResultItem {
-                tool_name: tool_reference.tool_name,
-                tool: None,
-                provider_options: None,
-            })
-            .collect(),
-        Some(other) => {
-            let value =
-                serde_json::to_value(other).map_err(|e| ConvertError::JsonSerializationFailed {
-                    field: "tool_search_tool_result.content".to_string(),
-                    error: e.to_string(),
-                })?;
-            let mut options = serde_json::Map::new();
-            options.insert("content".to_string(), value);
-            vec![ToolDiscoveryResultItem {
-                tool_name: "unknown".to_string(),
-                tool: None,
-                provider_options: Some(ProviderOptions { options }),
-            }]
-        }
-        None => Vec::new(),
-    };
-
-    Ok(ToolDiscoveryResultContentPart {
-        tool_call_id,
-        discovery_tool_name,
-        tools,
-        status: None,
-        execution: None,
-        provider_options: None,
-    })
-}
-
-fn anthropic_response_tool_discovery_result_content(
-    tools: Vec<ToolDiscoveryResultItem>,
-) -> generated::ContentBlockContent {
-    generated::ContentBlockContent::ResponseWebSearchToolResultError(
-        generated::ResponseWebSearchToolResultError {
-            error_code: None,
-            response_web_search_tool_result_error_type:
-                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-            content: None,
-            retrieved_at: None,
-            url: None,
-            return_code: None,
-            stderr: None,
-            stdout: None,
-            encrypted_stdout: None,
-            error_message: None,
-            file_type: None,
-            num_lines: None,
-            start_line: None,
-            total_lines: None,
-            is_file_update: None,
-            lines: None,
-            new_lines: None,
-            new_start: None,
-            old_lines: None,
-            old_start: None,
-            tool_references: Some(
-                tools
-                    .into_iter()
-                    .map(|item| generated::ResponseToolReferenceBlock {
-                        tool_name: item.tool_name,
-                        response_tool_reference_block_type:
-                            generated::ToolReferenceType::ToolReference,
-                    })
-                    .collect(),
-            ),
-        },
-    )
 }
 
 fn universal_cache_control_from_anthropic(
@@ -686,7 +453,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     if let Some(tool_use_id) = block.tool_use_id {
                                         tool_content_parts.push(
                                             ToolContentPart::ToolDiscoveryResult(
-                                                anthropic_tool_discovery_result_from_content(
+                                                tool_discovery::result_from_input_content(
                                                     tool_use_id,
                                                     "tool_search".to_string(),
                                                     block.content,
@@ -928,15 +695,13 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                 generated::InputContentBlockType::ServerToolUse => {
                                     // Server-executed tool use (web search, etc.)
                                     if let (Some(id), Some(name)) = (&block.id, &block.name) {
-                                        if is_anthropic_tool_search_tool_name(name) {
+                                        if tool_discovery::is_tool_search_name(name) {
                                             content_parts.push(
                                                 AssistantContentPart::ToolDiscoveryCall {
                                                     tool_call_id: id.clone(),
                                                     discovery_tool_name: name.clone(),
-                                                    query: anthropic_tool_discovery_query(
-                                                        &block.input,
-                                                    )?,
-                                                    arguments: anthropic_tool_discovery_arguments(
+                                                    query: tool_discovery::query(&block.input)?,
+                                                    arguments: tool_discovery::arguments(
                                                         block.input.clone(),
                                                     ),
                                                     status: None,
@@ -1417,12 +1182,14 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 thinking: None,
                                 data: None,
                                 caller: None,
-                                id: Some(anthropic_tool_search_tool_call_id(&tool_call_id)),
-                                input: anthropic_tool_discovery_input_map(
+                                id: Some(tool_discovery::tool_search_call_id(&tool_call_id)),
+                                input: tool_discovery::input_map(
                                     arguments.clone(),
                                     query.clone(),
                                 ),
-                                name: Some(anthropic_tool_search_tool_name(&discovery_tool_name)),
+                                name: Some(tool_discovery::tool_search_name(
+                                    &discovery_tool_name,
+                                )),
                                 is_error: None,
                                 tool_use_id: None,
                                 file_id: None,
@@ -1532,7 +1299,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 source: None,
                                 context: None,
                                 title: None,
-                                content: Some(anthropic_tool_discovery_result_content(
+                                content: Some(tool_discovery::input_result_content(
                                     discovery_result.tools,
                                 )),
                                 signature: None,
@@ -1543,7 +1310,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input: None,
                                 name: None,
                                 is_error: None,
-                                tool_use_id: Some(anthropic_tool_search_tool_call_id(
+                                tool_use_id: Some(tool_discovery::tool_search_call_id(
                                     &discovery_result.tool_call_id,
                                 )),
                                 file_id: None,
@@ -1775,7 +1542,7 @@ fn split_assistant_tool_discovery_result_message(
             }
 
             if let Some(tool_use_id) = block.tool_use_id {
-                let discovery_result = anthropic_tool_discovery_result_from_content(
+                let discovery_result = tool_discovery::result_from_input_content(
                     tool_use_id,
                     "tool_search".to_string(),
                     block.content,
@@ -1980,9 +1747,9 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                 generated::ContentBlockType::ServerToolUse => {
                     // Server-executed tool (similar to ToolUse but provider_executed=true)
                     if let (Some(id), Some(name)) = (block.id, block.name) {
-                        if is_anthropic_tool_search_tool_name(&name) {
-                            let query = anthropic_tool_discovery_query(&block.input)?;
-                            let arguments = anthropic_tool_discovery_arguments(block.input);
+                        if tool_discovery::is_tool_search_name(&name) {
+                            let query = tool_discovery::query(&block.input)?;
+                            let arguments = tool_discovery::arguments(block.input);
                             content_parts.push(AssistantContentPart::ToolDiscoveryCall {
                                 tool_call_id: id,
                                 discovery_tool_name: name,
@@ -2049,12 +1816,11 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             });
                         }
 
-                        let discovery_result =
-                            anthropic_response_tool_discovery_result_from_content(
-                                id,
-                                "tool_search".to_string(),
-                                block.content,
-                            )?;
+                        let discovery_result = tool_discovery::result_from_response_content(
+                            id,
+                            "tool_search".to_string(),
+                            block.content,
+                        )?;
                         messages.push(Message::Tool {
                             content: vec![ToolContentPart::ToolDiscoveryResult(discovery_result)],
                         });
@@ -2227,12 +1993,14 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         thinking: None,
                                         data: None,
                                         caller: None,
-                                        id: Some(anthropic_tool_search_tool_call_id(&tool_call_id)),
-                                        input: anthropic_tool_discovery_input_map(
+                                        id: Some(tool_discovery::tool_search_call_id(
+                                            &tool_call_id,
+                                        )),
+                                        input: tool_discovery::input_map(
                                             arguments.clone(),
                                             query.clone(),
                                         ),
-                                        name: Some(anthropic_tool_search_tool_name(
+                                        name: Some(tool_discovery::tool_search_name(
                                             &discovery_tool_name,
                                         )),
                                         content: None,
@@ -2303,10 +2071,10 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                 id: None,
                                 input: None,
                                 name: None,
-                                content: Some(anthropic_response_tool_discovery_result_content(
+                                content: Some(tool_discovery::response_result_content(
                                     discovery_result.tools,
                                 )),
-                                tool_use_id: Some(anthropic_tool_search_tool_call_id(
+                                tool_use_id: Some(tool_discovery::tool_search_call_id(
                                     &discovery_result.tool_call_id,
                                 )),
                                 file_id: None,

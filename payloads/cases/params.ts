@@ -183,6 +183,30 @@ export const paramsCases: TestCaseCollection = {
           content: "Use the discovered tool list.",
         },
       ],
+      tools: [
+        {
+          type: "namespace",
+          name: "search_code",
+          description: "Deferred code search tools.",
+          tools: [
+            {
+              type: "function",
+              name: "search_code",
+              description: "Search code.",
+              strict: true,
+              parameters: {
+                type: "object",
+                properties: {},
+                additionalProperties: false,
+              },
+              defer_loading: true,
+            },
+          ],
+        },
+        {
+          type: "tool_search",
+        },
+      ],
     },
     anthropic: {
       model: ANTHROPIC_MODEL,

@@ -246,6 +246,12 @@ impl ProviderAdapter for GoogleAdapter {
             add_dummy_thought_signatures_for_transferred_function_call_history(&mut messages);
         }
         messages.retain(|message| !is_discovery_only_message(message));
+        if messages.is_empty() {
+            return Err(TransformError::ValidationFailed {
+                target: ProviderFormat::Google,
+                reason: "Google does not support dynamic tool discovery history without at least one non-discovery content message.".to_string(),
+            });
+        }
 
         // Convert messages to Google contents
         let google_contents: Vec<GoogleContent> =
@@ -1759,6 +1765,42 @@ mod tests {
             !schema_str.contains("exclusiveMinimum"),
             "exclusiveMinimum must be stripped from Google request"
         );
+    }
+
+    #[test]
+    fn test_google_rejects_discovery_only_history_after_filtering() {
+        let adapter = GoogleAdapter;
+        let request = UniversalRequest {
+            model: Some("gemini-2.5-flash".to_string()),
+            messages: vec![Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![crate::universal::ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: None,
+                            provider_options: None,
+                        }],
+                        status: Some("completed".to_string()),
+                        execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let err = adapter.request_from_universal(&request).unwrap_err();
+        match err {
+            TransformError::ValidationFailed {
+                target: ProviderFormat::Google,
+                reason,
+            } => {
+                assert!(reason.contains("dynamic tool discovery history"));
+            }
+            other => panic!("expected Google validation error, got {other:?}"),
+        }
     }
 
     #[test]

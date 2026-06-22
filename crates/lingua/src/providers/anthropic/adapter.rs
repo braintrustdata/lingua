@@ -27,20 +27,17 @@ use crate::providers::anthropic::generated::{
     ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
+use crate::providers::anthropic::tool_discovery;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent, UserContentPart,
-};
+use crate::universal::message::{Message, UserContent, UserContentPart};
 use crate::universal::reasoning::budget_to_effort;
 use crate::universal::request::{
     ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
     UniversalMetadataUserView,
 };
-use crate::universal::tools::{
-    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolType,
-};
+use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
@@ -54,83 +51,11 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
 
-fn is_anthropic_tool_search_builtin(tool: &UniversalTool) -> bool {
-    matches!(
-        &tool.tool_type,
-        UniversalToolType::Builtin {
-            provider: BuiltinToolProvider::Anthropic,
-            builtin_type,
-            ..
-        } if matches!(
-            &**builtin_type,
-            "tool_search_tool_regex"
-                | "tool_search_tool_regex_20251119"
-                | "tool_search_tool_bm25"
-                | "tool_search_tool_bm25_20251119"
-        )
-    )
-}
-
-fn has_tool_discovery(messages: &[Message]) -> bool {
-    messages.iter().any(|message| match message {
-        Message::Assistant {
-            content: AssistantContent::Array(parts),
-            ..
-        } => parts
-            .iter()
-            .any(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. })),
-        Message::Tool { content } => content
-            .iter()
-            .any(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_))),
-        _ => false,
-    })
-}
-
-fn discovered_tools_from_messages(messages: &[Message]) -> Vec<UniversalTool> {
-    messages
-        .iter()
-        .flat_map(|message| match message {
-            Message::Tool { content } => content
-                .iter()
-                .filter_map(|part| match part {
-                    ToolContentPart::ToolDiscoveryResult(result) => Some(
-                        result
-                            .tools
-                            .iter()
-                            .filter_map(|item| {
-                                item.tool.clone().map(|mut tool| {
-                                    tool.availability = ToolAvailability::Deferred;
-                                    tool
-                                })
-                            })
-                            .collect::<Vec<_>>(),
-                    ),
-                    _ => None,
-                })
-                .flatten()
-                .collect::<Vec<_>>(),
-            _ => Vec::new(),
-        })
-        .collect()
-}
-
-fn anthropic_tool_search_tool() -> UniversalTool {
-    UniversalTool::builtin(
-        "tool_search_tool_regex",
-        BuiltinToolProvider::Anthropic,
-        "tool_search_tool_regex_20251119",
-        Some(serde_json::json!({
-            "name": "tool_search_tool_regex",
-            "type": "tool_search_tool_regex_20251119"
-        })),
-    )
-}
-
 fn anthropic_tool_value(tool: &UniversalTool) -> Result<Value, TransformError> {
-    if is_anthropic_tool_search_builtin(tool) {
+    if tool_discovery::is_anthropic_tool_search_builtin(tool) {
         let builtin_type = match &tool.tool_type {
             UniversalToolType::Builtin { builtin_type, .. } => builtin_type,
-            _ => unreachable!("checked by is_anthropic_tool_search_builtin"),
+            _ => unreachable!("checked by tool_discovery::is_anthropic_tool_search_builtin"),
         };
         return Ok(serde_json::json!({
             "name": tool.name.clone(),
@@ -566,7 +491,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 && anthropic_extras_view.tool_choice.is_none();
 
         let mut tools_for_anthropic = req.params.tools.clone().unwrap_or_default();
-        for discovered_tool in discovered_tools_from_messages(&req.messages) {
+        for discovered_tool in tool_discovery::discovered_tools_from_messages(&req.messages) {
             if !tools_for_anthropic
                 .iter()
                 .any(|tool| tool.name == discovered_tool.name)
@@ -574,12 +499,13 @@ impl ProviderAdapter for AnthropicAdapter {
                 tools_for_anthropic.push(discovered_tool);
             }
         }
-        if has_tool_discovery(&req.messages)
+        tools_for_anthropic = tool_discovery::normalize_tools_for_anthropic(tools_for_anthropic)?;
+        if tool_discovery::has_tool_discovery(&req.messages)
             && !tools_for_anthropic
                 .iter()
-                .any(is_anthropic_tool_search_builtin)
+                .any(tool_discovery::is_anthropic_tool_search_builtin)
         {
-            tools_for_anthropic.push(anthropic_tool_search_tool());
+            tools_for_anthropic.push(tool_discovery::anthropic_tool_search_tool());
         }
 
         // Convert tools to Anthropic format
