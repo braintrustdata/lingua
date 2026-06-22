@@ -2,11 +2,19 @@ use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::AnthropicAdapter;
-use crate::serde_json::Value;
+use crate::serde_json::{self, Value};
 use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const VERTEX_ANTHROPIC_VERSION: &str = "vertex-2023-10-16";
+const VERTEX_ANTHROPIC_PLACEHOLDER_MODEL: &str = "vertex-anthropic-path-model";
+
+#[derive(Serialize)]
+struct VertexAnthropicBodyWithModel {
+    model: &'static str,
+    #[serde(flatten)]
+    body: Value,
+}
 
 #[derive(Deserialize)]
 struct VertexDetectHint {
@@ -60,6 +68,14 @@ impl VertexAnthropicAdapter {
         }
         payload
     }
+
+    fn add_placeholder_model(payload: Value) -> Result<Value, TransformError> {
+        serde_json::to_value(VertexAnthropicBodyWithModel {
+            model: VERTEX_ANTHROPIC_PLACEHOLDER_MODEL,
+            body: payload,
+        })
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+    }
 }
 
 impl Default for VertexAnthropicAdapter {
@@ -85,7 +101,10 @@ impl ProviderAdapter for VertexAnthropicAdapter {
         if !Self::is_raw_vertex_body(payload) {
             return false;
         }
-        self.inner.request_to_universal(payload.clone()).is_ok()
+        let Ok(payload) = Self::add_placeholder_model(payload.clone()) else {
+            return false;
+        };
+        self.inner.request_to_universal(payload).is_ok()
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -94,11 +113,17 @@ impl ProviderAdapter for VertexAnthropicAdapter {
                 "Invalid Vertex Anthropic request format".to_string(),
             ));
         }
-        self.inner.request_to_universal(payload)
+        let payload = Self::add_placeholder_model(payload)?;
+        let mut universal = self.inner.request_to_universal(payload)?;
+        universal.model = None;
+        Ok(universal)
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
         let mut request = req.clone();
+        if request.model.is_none() {
+            request.model = Some(VERTEX_ANTHROPIC_PLACEHOLDER_MODEL.to_string());
+        }
         request.params.stream = None;
         let anthropic_payload = self.inner.request_from_universal(&request)?;
         Ok(Self::convert_to_vertex_body(anthropic_payload))
@@ -143,15 +168,15 @@ mod tests {
     use crate::serde_json::{json, Map};
 
     #[test]
-    fn detect_request_rejects_raw_vertex_body_without_model() {
+    fn detect_request_accepts_raw_vertex_body() {
         let adapter = VertexAnthropicAdapter::new();
 
-        let missing_model = json!({
+        let valid = json!({
             "anthropic_version": "vertex-2023-10-16",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(!adapter.detect_request(&missing_model));
+        assert!(adapter.detect_request(&valid));
 
         let with_model = json!({
             "model": "claude-3-sonnet",
@@ -169,29 +194,49 @@ mod tests {
     }
 
     #[test]
-    fn request_to_universal_rejects_flat_body_without_model() {
+    fn request_to_universal_parses_flat_body() {
         let adapter = VertexAnthropicAdapter::new();
         let raw = json!({
             "anthropic_version": "vertex-2023-10-16",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        let err = adapter.request_to_universal(raw).unwrap_err();
-        assert!(err.to_string().contains("missing field `model`"));
+        let universal = adapter.request_to_universal(raw).unwrap();
+        assert_eq!(universal.model, None);
     }
 
     #[test]
     fn request_roundtrip_emits_flat_vertex_body() {
         let adapter = VertexAnthropicAdapter::new();
         let input = json!({
-            "model": "publishers/anthropic/models/claude-haiku-4-5",
+            "anthropic_version": "vertex-2023-10-16",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
 
-        let universal = crate::providers::anthropic::AnthropicAdapter
-            .request_to_universal(input)
-            .unwrap();
+        let mut universal = adapter.request_to_universal(input).unwrap();
+        universal.model = Some("publishers/anthropic/models/claude-haiku-4-5".to_string());
+        let transformed = adapter.request_from_universal(&universal).unwrap();
+
+        let obj: Map<String, Value> = crate::serde_json::from_value(transformed).unwrap();
+        assert!(!obj.contains_key("model"));
+        assert!(!obj.contains_key("stream"));
+        assert_eq!(obj["anthropic_version"], "vertex-2023-10-16");
+        assert!(obj.contains_key("messages"));
+        assert!(obj.contains_key("max_tokens"));
+    }
+
+    #[test]
+    fn request_roundtrip_without_model_uses_internal_placeholder_only() {
+        let adapter = VertexAnthropicAdapter::new();
+        let input = json!({
+            "anthropic_version": "vertex-2023-10-16",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+
+        let universal = adapter.request_to_universal(input).unwrap();
+        assert_eq!(universal.model, None);
         let transformed = adapter.request_from_universal(&universal).unwrap();
 
         let obj: Map<String, Value> = crate::serde_json::from_value(transformed).unwrap();
