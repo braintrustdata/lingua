@@ -1037,6 +1037,14 @@
       "errors": [
         { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
       ]
+    },
+    {
+      "testCase": "responsesStreamImageDownloadFailureParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
+      ]
     }
   ]
 }
