@@ -1552,6 +1552,15 @@ pub struct WebSearchTool20260209 {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolSearchTool {
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
 #[ts(export_to = "anthropic/")]
 pub enum Tool {
@@ -1593,6 +1602,18 @@ pub enum Tool {
 
     #[serde(rename = "web_search_20260209")]
     WebSearch20260209(WebSearchTool20260209),
+
+    #[serde(rename = "tool_search_tool_bm25")]
+    ToolSearchToolBm25(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_bm25_20251119")]
+    ToolSearchToolBm2520251119(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_regex")]
+    ToolSearchToolRegex(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_regex_20251119")]
+    ToolSearchToolRegex20251119(ToolSearchTool),
 
     #[serde(untagged)]
     Custom(CustomTool),

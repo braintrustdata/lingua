@@ -2,57 +2,23 @@
 Anthropic format validation.
 */
 
-use crate::providers::anthropic::generated::Message;
-use crate::providers::anthropic::params::AnthropicParams;
+use crate::providers::anthropic::generated::{CreateMessageParams, Message};
+use crate::providers::anthropic::params::first_openai_only_field;
 use crate::validation::{validate_json, ValidationError};
 
-const OPENAI_ONLY_FIELDS: &[&str] = &[
-    "frequency_penalty",
-    "logit_bias",
-    "logprobs",
-    "max_completion_tokens",
-    "n",
-    "parallel_tool_calls",
-    "presence_penalty",
-    "reasoning_enabled",
-    "reasoning_effort",
-    "response_format",
-    "seed",
-    "suffix_messages",
-    "stop",
-    "store",
-    "stream_options",
-    "chat_template_kwargs",
-    "top_logprobs",
-];
-
 /// Validates a JSON string as an Anthropic messages request
-pub fn validate_anthropic_request(json: &str) -> Result<AnthropicParams, ValidationError> {
-    let request: AnthropicParams = validate_json(json)?;
-    if request.model.is_none() {
-        return Err(ValidationError::DeserializationFailed(
-            "missing field `model`".to_string(),
-        ));
+pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, ValidationError> {
+    let value: crate::serde_json::Value = validate_json(json)?;
+    if let Some(field) =
+        first_openai_only_field(&value).map_err(ValidationError::DeserializationFailed)?
+    {
+        return Err(ValidationError::DeserializationFailed(format!(
+            "OpenAI-only field `{}` is not valid Anthropic request syntax",
+            field
+        )));
     }
-    if request.messages.is_none() {
-        return Err(ValidationError::DeserializationFailed(
-            "missing field `messages`".to_string(),
-        ));
-    }
-    if request.max_tokens.is_none() {
-        return Err(ValidationError::DeserializationFailed(
-            "missing field `max_tokens`".to_string(),
-        ));
-    }
-    for field in OPENAI_ONLY_FIELDS {
-        if request.extras.contains_key(*field) {
-            return Err(ValidationError::DeserializationFailed(format!(
-                "OpenAI-only field `{}` is not valid Anthropic request syntax",
-                field
-            )));
-        }
-    }
-    Ok(request)
+    crate::serde_json::from_value(value)
+        .map_err(|e| ValidationError::DeserializationFailed(e.to_string()))
 }
 
 /// Validates a JSON string as an Anthropic messages response
@@ -131,6 +97,8 @@ mod tests {
             "reasoning_enabled",
             "suffix_messages",
             "chat_template_kwargs",
+            "functions",
+            "function_call",
         ] {
             let json = format!(
                 r#"{{
@@ -150,6 +118,57 @@ mod tests {
             let result = validate_anthropic_request(&json);
             assert!(result.is_err(), "field should be rejected: {field}");
         }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_rejects_invalid_known_fields() {
+        for (field, value) in [
+            ("cache_control", r#""bad""#),
+            ("container", r#"{"id":"container_123"}"#),
+            ("inference_geo", r#"{"region":"us"}"#),
+            ("service_tier", r#""priority""#),
+        ] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-3-5-sonnet-20241022",
+                    "messages": [
+                        {{
+                            "role": "user",
+                            "content": "Hello"
+                        }}
+                    ],
+                    "max_tokens": 1024,
+                    "{}": {}
+                }}"#,
+                field, value
+            );
+
+            let result = validate_anthropic_request(&json);
+            assert!(result.is_err(), "field should be typed: {field}");
+        }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_tool_search_tool() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "tools": [
+                {
+                    "name": "tool_search_tool_regex",
+                    "type": "tool_search_tool_regex_20251119"
+                }
+            ]
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_ok());
     }
 
     #[test]

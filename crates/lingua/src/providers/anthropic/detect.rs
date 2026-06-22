@@ -9,38 +9,11 @@ actual struct validation.
 
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::{
-    InputContentBlockType, InputMessage, MessageContent, MessageRole,
+    CreateMessageParams, InputContentBlockType, InputMessage, MessageContent, MessageRole,
 };
-use crate::providers::anthropic::params::AnthropicParams;
+use crate::providers::anthropic::params::first_openai_only_field;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
-
-/// Fields that only exist in OpenAI format, never in Anthropic.
-/// If any of these are present, the request is definitely not Anthropic format.
-const OPENAI_ONLY_FIELDS: &[&str] = &[
-    "stream_options",
-    "n",
-    "logprobs",
-    "top_logprobs",
-    "logit_bias",
-    "response_format",
-    "seed",
-    "presence_penalty",
-    "frequency_penalty",
-    "store",
-    "parallel_tool_calls",
-    // OpenAI uses `stop`, Anthropic uses `stop_sequences`
-    "stop",
-    // OpenAI reasoning parameter
-    "reasoning_effort",
-    // Braintrust extension for disabling reasoning
-    "reasoning_enabled",
-    // Braintrust/OpenAI-compatible gateway extensions
-    "suffix_messages",
-    "chat_template_kwargs",
-    // OpenAI alias for max_tokens
-    "max_completion_tokens",
-];
 
 /// Attempt to parse a JSON Value as Anthropic CreateMessageParams.
 ///
@@ -48,15 +21,12 @@ const OPENAI_ONLY_FIELDS: &[&str] = &[
 /// is not valid Anthropic format. Also rejects payloads containing
 /// OpenAI-specific fields to prevent misdetection. This also validates the
 /// model-gated `messages[].role = "system"` feature and its placement rules.
-pub fn try_parse_anthropic(payload: &Value) -> Result<AnthropicParams, DetectionError> {
+pub fn try_parse_anthropic(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
     reject_openai_only_fields(payload)?;
 
-    let request: AnthropicParams = serde_json::from_value(payload.clone())
+    let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-    let model = required_model(&request)?;
-    let messages = required_messages(&request)?;
-    required_max_tokens(&request)?;
-    validate_system_message_support_and_placement(model, messages)?;
+    validate_system_message_support_and_placement(&request.model, &request.messages)?;
     Ok(request)
 }
 
@@ -66,23 +36,20 @@ pub fn try_parse_anthropic(payload: &Value) -> Result<AnthropicParams, Detection
 /// Claude Code-style Messages payloads with system-role entries even when the
 /// requested model belongs to another provider. Native Anthropic passthrough
 /// still uses `try_parse_anthropic`.
-pub fn try_parse_anthropic_source(payload: &Value) -> Result<AnthropicParams, DetectionError> {
+pub fn try_parse_anthropic_source(payload: &Value) -> Result<CreateMessageParams, DetectionError> {
     reject_openai_only_fields(payload)?;
 
-    let request: AnthropicParams = serde_json::from_value(payload.clone())
+    let request: CreateMessageParams = serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
 
-    let model = required_model(&request)?;
-    let messages = required_messages(&request)?;
-    required_max_tokens(&request)?;
-    validate_system_message_placement(messages)?;
+    validate_system_message_placement(&request.messages)?;
 
-    if system_messages_present(messages)
-        && !capabilities::supports_mid_conversation_system_messages(model)
+    if system_messages_present(&request.messages)
+        && !capabilities::supports_mid_conversation_system_messages(&request.model)
         && !has_anthropic_source_markers(&request)
     {
         return Err(DetectionError::UnsupportedSystemRoleMessages {
-            model: model.to_string(),
+            model: request.model.clone(),
         });
     }
 
@@ -90,40 +57,18 @@ pub fn try_parse_anthropic_source(payload: &Value) -> Result<AnthropicParams, De
 }
 
 fn reject_openai_only_fields(payload: &Value) -> Result<(), DetectionError> {
-    let params: AnthropicParams = serde_json::from_value(payload.clone())
-        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
-
-    for field in OPENAI_ONLY_FIELDS {
-        if params.extras.contains_key(*field) {
-            return Err(DetectionError::OpenAIFieldPresent((*field).to_string()));
-        }
+    if let Some(field) =
+        first_openai_only_field(payload).map_err(DetectionError::DeserializationFailed)?
+    {
+        return Err(DetectionError::OpenAIFieldPresent(field.to_string()));
     }
 
     Ok(())
 }
 
-fn required_model(request: &AnthropicParams) -> Result<&str, DetectionError> {
-    request
-        .model
-        .as_deref()
-        .ok_or_else(|| DetectionError::DeserializationFailed("missing model".to_string()))
-}
-
-fn required_messages(request: &AnthropicParams) -> Result<&[InputMessage], DetectionError> {
-    request
-        .messages
-        .as_deref()
-        .ok_or_else(|| DetectionError::DeserializationFailed("missing messages".to_string()))
-}
-
-fn required_max_tokens(request: &AnthropicParams) -> Result<i64, DetectionError> {
-    request
-        .max_tokens
-        .ok_or_else(|| DetectionError::DeserializationFailed("missing max_tokens".to_string()))
-}
-
-fn has_anthropic_source_markers(request: &AnthropicParams) -> bool {
-    request.system.is_some()
+fn has_anthropic_source_markers(request: &CreateMessageParams) -> bool {
+    request.cache_control.is_some()
+        || request.system.is_some()
         || request.thinking.is_some()
         || request.output_config.is_some()
         || request.top_k.is_some()
@@ -488,6 +433,22 @@ mod tests {
     }
 
     #[test]
+    fn test_try_parse_anthropic_source_allows_cache_control_marker() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "cache_control": {"type": "ephemeral"},
+            "messages": [
+                {"role": "user", "content": "Hello"},
+                {"role": "system", "content": "Use the provided context."}
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_err());
+        assert!(try_parse_anthropic_source(&payload).is_ok());
+    }
+
+    #[test]
     fn test_try_parse_anthropic_with_system_field() {
         // Valid Anthropic payload with system as top-level field
         let payload = json!({
@@ -554,6 +515,23 @@ mod tests {
             ]
         });
         assert!(try_parse_anthropic(&payload_with_suffix_messages).is_err());
+
+        let payload_with_functions = json!({
+            "model": "gpt-4o",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}],
+            "functions": [
+                {
+                    "name": "get_weather",
+                    "parameters": {"type": "object"}
+                }
+            ],
+            "function_call": "auto"
+        });
+        assert!(matches!(
+            try_parse_anthropic(&payload_with_functions),
+            Err(DetectionError::OpenAIFieldPresent(_))
+        ));
     }
 
     #[test]
@@ -564,6 +542,25 @@ mod tests {
             "service_tier": "auto",
             "messages": [
                 {"role": "user", "content": "Hello"}
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_with_tool_search_tool() {
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ],
+            "tools": [
+                {
+                    "name": "tool_search_tool_regex",
+                    "type": "tool_search_tool_regex_20251119"
+                }
             ]
         });
 

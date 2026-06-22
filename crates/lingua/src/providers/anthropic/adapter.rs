@@ -23,10 +23,10 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, OutputConfig, Thinking, ThinkingType, Tool, ToolChoice,
-    ToolChoiceType,
+    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum, Thinking,
+    ThinkingType, Tool, ToolChoice, ToolChoiceType,
 };
-use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
+use crate::providers::anthropic::params::AnthropicExtrasView;
 use crate::providers::anthropic::tool_discovery;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
@@ -78,6 +78,13 @@ fn parse_anthropic_extras(
             TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
         })
         .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
+
+fn service_tier_to_string(service_tier: ServiceTierEnum) -> String {
+    match service_tier {
+        ServiceTierEnum::Auto => "auto".to_string(),
+        ServiceTierEnum::StandardOnly => "standard_only".to_string(),
+    }
 }
 
 fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
@@ -226,17 +233,14 @@ impl ProviderAdapter for AnthropicAdapter {
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let raw_params_view: AnthropicExtrasView =
+            serde_json::from_value(Value::Object(raw_payload_obj.clone()))
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Single parse: typed params now includes typed messages via #[serde(flatten)]
-        let typed_params: AnthropicParams = serde_json::from_value(payload)
+        let typed_params: CreateMessageParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Extract typed messages (partial move - other fields remain accessible)
-        let input_messages = typed_params.messages.ok_or_else(|| {
-            TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
-        })?;
-
-        let mut messages = anthropic_input_messages_to_universal_messages(input_messages)
+        let mut messages = anthropic_input_messages_to_universal_messages(typed_params.messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(system) = typed_params.system.clone() {
@@ -252,7 +256,7 @@ impl ProviderAdapter for AnthropicAdapter {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
-            token_budget: typed_params.max_tokens.map(TokenBudget::OutputTokens),
+            token_budget: Some(TokenBudget::OutputTokens(typed_params.max_tokens)),
             stop: typed_params.stop_sequences.clone(),
             tools: typed_params.tools.map(|tools| {
                 <Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from(tools).unwrap_or_default()
@@ -265,7 +269,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .output_config
                 .as_ref()
                 .and_then(|oc| oc.format.as_ref())
-                .or(typed_params.output_format.as_ref())
+                .or(raw_params_view.output_format.as_ref())
                 .map(ResponseFormatConfig::from),
             seed: None,
             presence_penalty: None,
@@ -311,20 +315,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|m| serde_json::to_value(m).ok()),
             store: None,
             conversation_reference: None,
-            service_tier: typed_params.service_tier,
+            service_tier: typed_params.service_tier.map(service_tier_to_string),
             prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
             extras: Default::default(),
         };
-
-        // Use extras captured automatically via #[serde(flatten)]
-        if !typed_params.extras.is_empty() {
-            params.extras.insert(
-                ProviderFormat::Anthropic,
-                typed_params.extras.into_iter().collect(),
-            );
-        }
 
         let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
         for (key, value) in raw_payload_obj {
@@ -332,7 +328,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         Ok(UniversalRequest {
-            model: typed_params.model,
+            model: Some(typed_params.model),
             messages,
             params,
         })
@@ -1653,7 +1649,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert!(
@@ -1690,7 +1686,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert!(
@@ -1726,7 +1722,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert_eq!(
@@ -1763,7 +1759,7 @@ mod tests {
                 },
             };
 
-            let result: AnthropicParams =
+            let result: CreateMessageParams =
                 serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
             assert!(
@@ -1778,8 +1774,8 @@ mod tests {
                 result.top_k.is_none(),
                 "top_k should be stripped for {model}"
             );
-            assert_eq!(result.model, Some(model.to_string()));
-            assert_eq!(result.max_tokens, Some(1024));
+            assert_eq!(result.model, model);
+            assert_eq!(result.max_tokens, 1024);
         }
     }
 
@@ -1807,7 +1803,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1844,7 +1840,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1877,7 +1873,7 @@ mod tests {
                 && r.budget_tokens == Some(2048)
         }));
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1910,7 +1906,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -1955,7 +1951,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -1999,7 +1995,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -2037,7 +2033,7 @@ mod tests {
                 },
             };
 
-            let result: AnthropicParams =
+            let result: CreateMessageParams =
                 serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
             assert_eq!(

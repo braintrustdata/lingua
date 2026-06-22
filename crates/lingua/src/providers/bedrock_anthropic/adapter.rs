@@ -7,8 +7,17 @@ use crate::universal::{
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage,
 };
+use serde::Serialize;
 
 const BEDROCK_ANTHROPIC_VERSION: &str = "bedrock-2023-05-31";
+const BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL: &str = "bedrock-anthropic-path-model";
+
+#[derive(Serialize)]
+struct BedrockAnthropicBodyWithModel {
+    model: &'static str,
+    #[serde(flatten)]
+    body: Value,
+}
 
 /// Adapter for Bedrock's Anthropic invoke body format.
 ///
@@ -54,6 +63,14 @@ impl BedrockAnthropicAdapter {
         }
         payload
     }
+
+    fn add_placeholder_model(payload: Value) -> Result<Value, TransformError> {
+        serde_json::to_value(BedrockAnthropicBodyWithModel {
+            model: BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL,
+            body: payload,
+        })
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+    }
 }
 
 impl Default for BedrockAnthropicAdapter {
@@ -79,7 +96,10 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         if !Self::is_raw_invoke_body(payload) {
             return false;
         }
-        self.inner.request_to_universal(payload.clone()).is_ok()
+        let Ok(payload) = Self::add_placeholder_model(payload.clone()) else {
+            return false;
+        };
+        self.inner.request_to_universal(payload).is_ok()
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -88,7 +108,10 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
                 "Invalid Bedrock Anthropic request format".to_string(),
             ));
         }
-        self.inner.request_to_universal(payload)
+        let payload = Self::add_placeholder_model(payload)?;
+        let mut universal = self.inner.request_to_universal(payload)?;
+        universal.model = None;
+        Ok(universal)
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {

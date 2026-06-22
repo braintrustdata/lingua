@@ -7,9 +7,9 @@ use crate::import_parse::{
 };
 use crate::providers::anthropic::generated;
 use crate::providers::anthropic::generated::{
-    CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice, ToolChoiceType,
+    CreateMessageParams, CustomTool, JsonOutputFormat, JsonOutputFormatType, Tool, ToolChoice,
+    ToolChoiceType,
 };
-use crate::providers::anthropic::params::{AnthropicParams, AnthropicTool};
 use crate::providers::anthropic::tool_discovery;
 use crate::providers::google::generated::GoogleSearch;
 use crate::serde_json;
@@ -1720,7 +1720,7 @@ pub(crate) fn try_parse_content_blocks_for_import(
     try_convert_non_empty(blocks)
 }
 
-fn try_messages_from_anthropic_request(request: AnthropicParams) -> Option<Vec<Message>> {
+fn try_messages_from_anthropic_request(request: CreateMessageParams) -> Option<Vec<Message>> {
     let mut messages = Vec::new();
 
     if let Some(system) = request.system {
@@ -1730,7 +1730,7 @@ fn try_messages_from_anthropic_request(request: AnthropicParams) -> Option<Vec<M
     }
 
     let mut request_messages =
-        anthropic_input_messages_to_universal_messages(request.messages?).ok()?;
+        anthropic_input_messages_to_universal_messages(request.messages).ok()?;
     messages.append(&mut request_messages);
 
     if messages.is_empty() {
@@ -1750,7 +1750,7 @@ fn try_parse_input_messages_for_import(data: &serde_json::Value) -> Option<Vec<M
 }
 
 fn try_parse_anthropic_request_for_import(data: &serde_json::Value) -> Option<Vec<Message>> {
-    let request = try_parse::<AnthropicParams>(data)?;
+    let request = try_parse::<CreateMessageParams>(data)?;
     try_messages_from_anthropic_request(request)
 }
 
@@ -2352,27 +2352,6 @@ impl From<&Tool> for UniversalTool {
     }
 }
 
-impl From<&AnthropicTool> for UniversalTool {
-    fn from(tool: &AnthropicTool) -> Self {
-        match tool {
-            AnthropicTool::Generated(tool) => UniversalTool::from(tool),
-            AnthropicTool::ToolSearch(tool_search) => {
-                let tool_type: generated::ToolType = tool_search.tool_type.clone().into();
-                let builtin_type = serde_json::to_value(tool_type)
-                    .ok()
-                    .and_then(|value| serde_json::from_value(value).ok())
-                    .unwrap_or_else(|| tool_search.name.clone());
-                UniversalTool::builtin(
-                    tool_search.name.clone(),
-                    BuiltinToolProvider::Anthropic,
-                    builtin_type,
-                    serde_json::to_value(tool_search).ok(),
-                )
-            }
-        }
-    }
-}
-
 impl TryFrom<&UniversalTool> for Tool {
     type Error = ConvertError;
 
@@ -2445,14 +2424,6 @@ impl TryFromLLM<Vec<Tool>> for Vec<UniversalTool> {
     type Error = ConvertError;
 
     fn try_from(tools: Vec<Tool>) -> Result<Self, Self::Error> {
-        Ok(tools.iter().map(UniversalTool::from).collect())
-    }
-}
-
-impl TryFromLLM<Vec<AnthropicTool>> for Vec<UniversalTool> {
-    type Error = ConvertError;
-
-    fn try_from(tools: Vec<AnthropicTool>) -> Result<Self, Self::Error> {
         Ok(tools.iter().map(UniversalTool::from).collect())
     }
 }

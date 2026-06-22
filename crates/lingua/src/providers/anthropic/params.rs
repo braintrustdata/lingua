@@ -1,65 +1,15 @@
 /*!
-Typed parameter structs for Anthropic Messages API.
+Typed helper views for Anthropic request conversion.
 
-These structs use `#[serde(flatten)]` to automatically capture unknown fields,
-eliminating the need for explicit KNOWN_KEYS arrays.
+The Anthropic request boundary itself is `generated::CreateMessageParams`.
+These views cover only partial maps where the generated request type is not the
+right shape: provider extras and cross-provider detection guards.
 */
 
-use crate::providers::anthropic::generated::{
-    InputMessage, JsonOutputFormat, Metadata, OutputConfig, System, Thinking, Tool, ToolChoice,
-    ToolType,
-};
-use crate::serde_json::Value;
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use crate::serde_json::{self, Value};
+use serde::Deserialize;
 
-/// Anthropic Messages API request parameters.
-///
-/// All known fields are explicitly typed using generated types from the Anthropic API spec.
-/// Unknown fields automatically go into `extras` via `#[serde(flatten)]`.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct AnthropicParams {
-    // === Core fields ===
-    pub model: Option<String>,
-    pub messages: Option<Vec<InputMessage>>,
-
-    // === System prompt (string or array with cache_control) ===
-    pub system: Option<System>,
-
-    // === Required output control ===
-    pub max_tokens: Option<i64>,
-
-    // === Sampling parameters ===
-    pub temperature: Option<f64>,
-    pub top_p: Option<f64>,
-    pub top_k: Option<i64>,
-    pub stop_sequences: Option<Vec<String>>,
-
-    // === Streaming ===
-    pub stream: Option<bool>,
-
-    // === Tools and function calling ===
-    pub tools: Option<Vec<AnthropicTool>>,
-    pub tool_choice: Option<ToolChoice>,
-
-    // === Extended thinking ===
-    pub thinking: Option<Thinking>,
-
-    // === Structured outputs ===
-    /// Legacy output format (beta: structured-outputs-2025-11-13).
-    pub output_format: Option<JsonOutputFormat>,
-    /// Output config with effort and format fields.
-    pub output_config: Option<OutputConfig>,
-
-    // === Metadata and identification ===
-    pub metadata: Option<Metadata>,
-    pub service_tier: Option<String>,
-
-    /// Unknown fields - automatically captured by serde flatten.
-    /// These are provider-specific fields not in the canonical set.
-    #[serde(flatten)]
-    pub extras: BTreeMap<String, Value>,
-}
+use super::generated::JsonOutputFormat;
 
 /// Typed view over `UniversalParams.extras[Anthropic]` used during universal
 /// -> Anthropic reconstruction.
@@ -74,153 +24,68 @@ pub struct AnthropicExtrasView {
     pub tools: Option<Value>,
     pub tool_choice: Option<Value>,
     pub output_config: Option<Value>,
+    pub output_format: Option<JsonOutputFormat>,
     pub thinking: Option<Value>,
     pub metadata: Option<Value>,
 }
 
-/// Anthropic tool declarations accepted by the Messages API.
-///
-/// The generated `Tool` union currently omits the dynamic tool-search tool
-/// declarations even though the generated `ToolType` enum includes their type
-/// strings. This wrapper keeps the request boundary typed without editing
-/// generated files directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum AnthropicTool {
-    Generated(Tool),
-    ToolSearch(AnthropicToolSearchTool),
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct AnthropicOpenAiOnlyFieldsView {
+    stream_options: Option<Value>,
+    n: Option<Value>,
+    logprobs: Option<Value>,
+    top_logprobs: Option<Value>,
+    logit_bias: Option<Value>,
+    response_format: Option<Value>,
+    functions: Option<Value>,
+    function_call: Option<Value>,
+    seed: Option<Value>,
+    presence_penalty: Option<Value>,
+    frequency_penalty: Option<Value>,
+    store: Option<Value>,
+    parallel_tool_calls: Option<Value>,
+    stop: Option<Value>,
+    reasoning_effort: Option<Value>,
+    reasoning_enabled: Option<Value>,
+    suffix_messages: Option<Value>,
+    chat_template_kwargs: Option<Value>,
+    max_completion_tokens: Option<Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnthropicToolSearchTool {
-    pub name: String,
-    #[serde(rename = "type")]
-    pub tool_type: AnthropicToolSearchToolType,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AnthropicToolSearchToolType {
-    #[serde(rename = "tool_search_tool_bm25")]
-    ToolSearchToolBm25,
-    #[serde(rename = "tool_search_tool_bm25_20251119")]
-    ToolSearchToolBm2520251119,
-    #[serde(rename = "tool_search_tool_regex")]
-    ToolSearchToolRegex,
-    #[serde(rename = "tool_search_tool_regex_20251119")]
-    ToolSearchToolRegex20251119,
-}
-
-impl From<AnthropicToolSearchToolType> for ToolType {
-    fn from(value: AnthropicToolSearchToolType) -> Self {
-        match value {
-            AnthropicToolSearchToolType::ToolSearchToolBm25 => ToolType::ToolSearchToolBm25,
-            AnthropicToolSearchToolType::ToolSearchToolBm2520251119 => {
-                ToolType::ToolSearchToolBm2520251119
-            }
-            AnthropicToolSearchToolType::ToolSearchToolRegex => ToolType::ToolSearchToolRegex,
-            AnthropicToolSearchToolType::ToolSearchToolRegex20251119 => {
-                ToolType::ToolSearchToolRegex20251119
-            }
-        }
+impl AnthropicOpenAiOnlyFieldsView {
+    fn first_present(&self) -> Option<&'static str> {
+        [
+            ("stream_options", self.stream_options.is_some()),
+            ("n", self.n.is_some()),
+            ("logprobs", self.logprobs.is_some()),
+            ("top_logprobs", self.top_logprobs.is_some()),
+            ("logit_bias", self.logit_bias.is_some()),
+            ("response_format", self.response_format.is_some()),
+            ("functions", self.functions.is_some()),
+            ("function_call", self.function_call.is_some()),
+            ("seed", self.seed.is_some()),
+            ("presence_penalty", self.presence_penalty.is_some()),
+            ("frequency_penalty", self.frequency_penalty.is_some()),
+            ("store", self.store.is_some()),
+            ("parallel_tool_calls", self.parallel_tool_calls.is_some()),
+            ("stop", self.stop.is_some()),
+            ("reasoning_effort", self.reasoning_effort.is_some()),
+            ("reasoning_enabled", self.reasoning_enabled.is_some()),
+            ("suffix_messages", self.suffix_messages.is_some()),
+            ("chat_template_kwargs", self.chat_template_kwargs.is_some()),
+            (
+                "max_completion_tokens",
+                self.max_completion_tokens.is_some(),
+            ),
+        ]
+        .into_iter()
+        .find_map(|(field, present)| present.then_some(field))
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::serde_json;
-    use crate::serde_json::json;
-
-    #[test]
-    fn test_anthropic_params_known_fields() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 1024,
-            "temperature": 0.7,
-            "top_k": 40
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert_eq!(params.model, Some("claude-sonnet-4-20250514".to_string()));
-        assert_eq!(params.max_tokens, Some(1024));
-        assert_eq!(params.temperature, Some(0.7));
-        assert_eq!(params.top_k, Some(40));
-        assert!(params.extras.is_empty());
-    }
-
-    #[test]
-    fn test_anthropic_params_with_thinking() {
-        use crate::providers::anthropic::generated::ThinkingType;
-
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 16000,
-            "thinking": {
-                "type": "enabled",
-                "budget_tokens": 10000
-            }
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert!(params.thinking.is_some());
-        let thinking = params.thinking.unwrap();
-        assert_eq!(thinking.thinking_type, ThinkingType::Enabled);
-        assert_eq!(thinking.budget_tokens, Some(10000));
-    }
-
-    #[test]
-    fn test_anthropic_params_with_system_cache_control() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "system": [
-                {
-                    "type": "text",
-                    "text": "Be helpful.",
-                    "cache_control": {"type": "ephemeral", "ttl": "5m"}
-                }
-            ]
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert!(params.system.is_some());
-        assert!(params.extras.is_empty());
-    }
-
-    #[test]
-    fn test_anthropic_params_unknown_fields_go_to_extras() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "some_future_param": "value"
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert_eq!(params.extras.len(), 1);
-        assert_eq!(
-            params.extras.get("some_future_param"),
-            Some(&Value::String("value".to_string()))
-        );
-    }
-
-    #[test]
-    fn test_anthropic_roundtrip_preserves_extras() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "custom_field": {"nested": "data"}
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json.clone()).unwrap();
-        let back: Value = serde_json::to_value(&params).unwrap();
-
-        // Custom field should be preserved
-        assert_eq!(back.get("custom_field"), json.get("custom_field"));
-    }
+pub(crate) fn first_openai_only_field(payload: &Value) -> Result<Option<&'static str>, String> {
+    serde_json::from_value::<AnthropicOpenAiOnlyFieldsView>(payload.clone())
+        .map(|view| view.first_present())
+        .map_err(|e| e.to_string())
 }
