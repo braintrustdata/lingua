@@ -18,6 +18,7 @@ use crate::providers::openai::capabilities::{
 };
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
+    ResponseErrorCode, ResponseStreamEvent, ResponseStreamEventType,
 };
 use crate::providers::openai::params::{OpenAIResponsesExtrasView, OpenAIResponsesParams};
 use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
@@ -37,6 +38,54 @@ use serde::Deserialize;
 use std::convert::TryInto;
 
 const OPENAI_RESPONSES_MIN_MAX_OUTPUT_TOKENS: i64 = 16;
+
+fn responses_stream_error_message(event: ResponseStreamEvent) -> String {
+    let ResponseStreamEvent {
+        response_stream_event_type,
+        message,
+        code,
+        response,
+        ..
+    } = event;
+
+    match response_stream_event_type {
+        ResponseStreamEventType::Error => error_message_with_code(message, code),
+        ResponseStreamEventType::ResponseFailed => response
+            .and_then(|response| response.error)
+            .map(|error| {
+                error_message_with_code(
+                    Some(error.message),
+                    Some(response_error_code_message(error.code)),
+                )
+            })
+            .unwrap_or_else(|| error_message_with_code(message, code)),
+        _ => error_message_with_code(message, code),
+    }
+}
+
+fn error_message_with_code(message: Option<String>, code: Option<String>) -> String {
+    match (message, code) {
+        (Some(message), Some(code)) => format!("{message} ({code})"),
+        (Some(message), None) => message,
+        (None, Some(code)) => code,
+        (None, None) => "unknown stream error".to_string(),
+    }
+}
+
+fn response_error_code_message(code: ResponseErrorCode) -> String {
+    serde_json::to_string(&code)
+        .map(|serialized| serialized.trim_matches('"').to_string())
+        .unwrap_or_else(|_| format!("{code:?}"))
+}
+
+fn is_responses_stream_error_event(payload: &Value) -> bool {
+    serde_json::from_value::<ResponseStreamEvent>(payload.clone()).is_ok_and(|event| {
+        matches!(
+            event.response_stream_event_type,
+            ResponseStreamEventType::Error
+        )
+    })
+}
 
 fn system_text(message: &Message) -> Option<&str> {
     match message {
@@ -764,7 +813,11 @@ impl ProviderAdapter for ResponsesAdapter {
         payload
             .get("type")
             .and_then(Value::as_str)
-            .is_some_and(|t| t.starts_with("response.") || t == "keepalive")
+            .is_some_and(|t| {
+                t.starts_with("response.")
+                    || t == "keepalive"
+                    || (t == "error" && is_responses_stream_error_event(payload))
+            })
             || payload
                 .get("object")
                 .and_then(Value::as_str)
@@ -810,6 +863,18 @@ impl ProviderAdapter for ResponsesAdapter {
         let delta_obj = payload.get("delta");
 
         match event_type.as_str() {
+            "error" | "response.failed" => {
+                let event = serde_json::from_value::<ResponseStreamEvent>(payload.clone())
+                    .map_err(|error| {
+                        TransformError::DeserializationFailed(format!(
+                            "Responses stream error event: {error}"
+                        ))
+                    })?;
+                Err(TransformError::ToUniversalFailed(
+                    responses_stream_error_message(event),
+                ))
+            }
+
             "keepalive" => Ok(Some(UniversalStreamChunk::keep_alive())),
 
             "response.output_text.delta" => {
@@ -1990,6 +2055,20 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_detect_stream_response_rejects_anthropic_error() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "type": "error",
+            "error": {
+                "type": "invalid_request_error",
+                "message": "bad request"
+            }
+        });
+
+        assert!(!adapter.detect_stream_response(&payload));
+    }
+
+    #[test]
     fn test_responses_stream_to_universal_keepalive() {
         let adapter = ResponsesAdapter;
         let payload = json!({
@@ -2003,6 +2082,55 @@ mod tests {
             .expect("keepalive should emit a chunk");
 
         assert!(chunk.is_keep_alive());
+    }
+
+    #[test]
+    fn test_responses_stream_error_allows_type_and_code_fields() {
+        let adapter = ResponsesAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "error",
+                "code": "invalid_tool_arguments",
+                "message": "bad request",
+                "param": null,
+                "sequence_number": 1
+            }))
+            .expect_err("error event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: bad request (invalid_tool_arguments)"
+        );
+    }
+
+    #[test]
+    fn test_responses_stream_response_failed_uses_response_error() {
+        let adapter = ResponsesAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "response.failed",
+                "sequence_number": 1,
+                "response": {
+                    "id": "resp_123",
+                    "object": "response",
+                    "created_at": 1,
+                    "model": "gpt-5",
+                    "tool_choice": "auto",
+                    "tools": [],
+                    "output": [],
+                    "parallel_tool_calls": true,
+                    "error": {
+                        "message": "download failed",
+                        "code": "failed_to_download_image"
+                    }
+                }
+            }))
+            .expect_err("failed response event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: download failed (failed_to_download_image)"
+        );
     }
 
     #[test]

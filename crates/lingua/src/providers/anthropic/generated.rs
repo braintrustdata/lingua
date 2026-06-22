@@ -27,7 +27,60 @@ pub struct AnthropicSchemas {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request: Option<CreateMessageParams>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_response: Option<ErrorResponse>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub response: Option<Message>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_event: Option<MessageStreamEvent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ErrorResponse {
+    pub error: Error,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    #[serde(rename = "type")]
+    pub error_response_type: ErrorResponseType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct Error {
+    pub message: String,
+    #[serde(rename = "type")]
+    pub error_type: ErrorType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ErrorType {
+    #[serde(rename = "api_error")]
+    ApiError,
+    #[serde(rename = "authentication_error")]
+    AuthenticationError,
+    #[serde(rename = "billing_error")]
+    BillingError,
+    #[serde(rename = "invalid_request_error")]
+    InvalidRequestError,
+    #[serde(rename = "not_found_error")]
+    NotFoundError,
+    #[serde(rename = "overloaded_error")]
+    OverloadedError,
+    #[serde(rename = "permission_error")]
+    PermissionError,
+    #[serde(rename = "rate_limit_error")]
+    RateLimitError,
+    #[serde(rename = "timeout_error")]
+    TimeoutError,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum ErrorResponseType {
+    Error,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -304,7 +357,7 @@ pub enum Ttl {
 #[ts(export, export_to = "anthropic/")]
 pub struct InputMessage {
     pub content: MessageContent,
-    pub role: MessageRole,
+    pub role: PurpleRole,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -961,7 +1014,7 @@ pub enum InputContentBlockType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum MessageRole {
+pub enum PurpleRole {
     Assistant,
     System,
     User,
@@ -1805,7 +1858,7 @@ pub struct ContentBlock {
     /// PDF results in `page_location`, plain text results in `char_location`, and content
     /// document results in `content_block_location`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub citations: Option<Vec<ResponseLocationCitation>>,
+    pub citations: Option<Vec<Citation>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(rename = "type")]
@@ -1835,7 +1888,7 @@ pub struct ContentBlock {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct ResponseLocationCitation {
+pub struct Citation {
     /// The full text of the cited block range, concatenated.
     ///
     /// Always equals the contents of `content[start_block_index:end_block_index]` joined
@@ -1854,7 +1907,7 @@ pub struct ResponseLocationCitation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_char_index: Option<i64>,
     #[serde(rename = "type")]
-    pub response_location_citation_type: CitationType,
+    pub citation_type: CitationType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end_page_number: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2214,3 +2267,147 @@ pub enum ServiceTierServiceTier {
     Priority,
     Standard,
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct MessageStreamEvent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<Message>,
+    #[serde(rename = "type")]
+    pub message_stream_event_type: MessageStreamEventType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta: Option<Delta>,
+    /// Billing and rate-limit usage.
+    ///
+    /// Anthropic's API bills and rate-limits by token counts, as tokens represent the underlying
+    /// cost to our systems.
+    ///
+    /// Under the hood, the API transforms requests into a format suitable for the model. The
+    /// model's output then goes through a parsing stage before becoming an API response. As a
+    /// result, the token counts in `usage` will not match one-to-one with the exact visible
+    /// content of an API request or response.
+    ///
+    /// For example, `output_tokens` will be non-zero, even for an empty string response from
+    /// Claude.
+    ///
+    /// Total input tokens in a request is the summation of `input_tokens`,
+    /// `cache_creation_input_tokens`, and `cache_read_input_tokens`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<MessageDeltaUsage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_block: Option<ContentBlock>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index: Option<i64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct Delta {
+    /// Information about the container used in this request.
+    ///
+    /// This will be non-null if a container tool (e.g. code execution) was used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container: Option<Container>,
+    /// Structured information about why model output stopped.
+    ///
+    /// This is `null` when the `stop_reason` has no additional detail to report.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_details: Option<RefusalStopDetails>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_reason: Option<StopReason>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_sequence: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta_type: Option<DeltaType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub partial_json: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub citation: Option<Citation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thinking: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub signature: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum DeltaType {
+    #[serde(rename = "citations_delta")]
+    CitationsDelta,
+    #[serde(rename = "input_json_delta")]
+    InputJsonDelta,
+    #[serde(rename = "signature_delta")]
+    SignatureDelta,
+    #[serde(rename = "text_delta")]
+    TextDelta,
+    #[serde(rename = "thinking_delta")]
+    ThinkingDelta,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum MessageStreamEventType {
+    #[serde(rename = "content_block_delta")]
+    ContentBlockDelta,
+    #[serde(rename = "content_block_start")]
+    ContentBlockStart,
+    #[serde(rename = "content_block_stop")]
+    ContentBlockStop,
+    #[serde(rename = "message_delta")]
+    MessageDelta,
+    #[serde(rename = "message_start")]
+    MessageStart,
+    #[serde(rename = "message_stop")]
+    MessageStop,
+}
+
+/// Billing and rate-limit usage.
+///
+/// Anthropic's API bills and rate-limits by token counts, as tokens represent the underlying
+/// cost to our systems.
+///
+/// Under the hood, the API transforms requests into a format suitable for the model. The
+/// model's output then goes through a parsing stage before becoming an API response. As a
+/// result, the token counts in `usage` will not match one-to-one with the exact visible
+/// content of an API request or response.
+///
+/// For example, `output_tokens` will be non-zero, even for an empty string response from
+/// Claude.
+///
+/// Total input tokens in a request is the summation of `input_tokens`,
+/// `cache_creation_input_tokens`, and `cache_read_input_tokens`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct MessageDeltaUsage {
+    /// The cumulative number of input tokens used to create the cache entry.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_creation_input_tokens: Option<i64>,
+    /// The cumulative number of input tokens read from the cache.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_read_input_tokens: Option<i64>,
+    /// The cumulative number of input tokens which were used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_tokens: Option<i64>,
+    /// The cumulative number of output tokens which were used.
+    pub output_tokens: i64,
+    /// Breakdown of output tokens by category.
+    ///
+    /// `output_tokens` remains the inclusive, authoritative total used for billing.
+    /// This object provides a read-only decomposition for observability — for example,
+    /// how many of the billed output tokens were spent on internal reasoning that may
+    /// have been summarized before being returned to you.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_tokens_details: Option<OutputTokensDetails>,
+    /// The number of server tool requests.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_tool_use: Option<ServerToolUsage>,
+}
+
+// Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type MessageRole = PurpleRole;
+pub type ResponseLocationCitation = Citation;

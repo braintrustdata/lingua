@@ -1,0 +1,17 @@
+{
+  "error": "Error: 400 Error while downloading file. Upstream status code: 404.",
+  "details": {
+    "message": "400 Error while downloading file. Upstream status code: 404.",
+    "name": "Error",
+    "status": 400,
+    "code": "invalid_value",
+    "type": "invalid_request_error",
+    "param": "url",
+    "error": {
+      "message": "Error while downloading file. Upstream status code: 404.",
+      "type": "invalid_request_error",
+      "param": "url",
+      "code": "invalid_value"
+    }
+  }
+}

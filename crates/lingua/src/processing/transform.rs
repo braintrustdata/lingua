@@ -570,6 +570,19 @@ pub(crate) fn transform_stream_chunk_step(
     let source_adapter = detection.adapter;
     let source_format = source_adapter.format();
     let source_is_native_stream = matches!(detection.kind, DetectKind::Stream);
+
+    if source_format == target_format && source_is_native_stream {
+        let universal = source_adapter.stream_to_universal(chunk).ok().flatten();
+        return Ok(StreamTransformStep {
+            result: TransformResult::PassThrough(chunk_bytes),
+            source_format,
+            source_is_native_stream,
+            universal,
+            event_type,
+            is_passthrough: true,
+        });
+    }
+
     let universal = match detection.kind {
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
@@ -580,17 +593,6 @@ pub(crate) fn transform_stream_chunk_step(
             unreachable!("stream detection never falls back to request payloads")
         }
     };
-
-    if source_format == target_format && matches!(detection.kind, DetectKind::Stream) {
-        return Ok(StreamTransformStep {
-            result: TransformResult::PassThrough(chunk_bytes),
-            source_format,
-            source_is_native_stream,
-            universal,
-            event_type,
-            is_passthrough: true,
-        });
-    }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
@@ -1534,6 +1536,45 @@ mod tests {
                 .and_then(Value::as_str),
             Some("Hello from Vertex")
         );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_stream_chunk_passthrough_responses_error_event() {
+        let payload = json!({
+            "type": "error",
+            "code": "invalid_tool_arguments",
+            "message": "bad request",
+            "param": null,
+            "sequence_number": 1
+        });
+        let input = to_bytes(&payload);
+        let input_ptr = input.as_ptr();
+
+        let result = transform_stream_chunk(input, ProviderFormat::Responses).unwrap();
+
+        assert!(result.is_passthrough());
+        assert_eq!(result.into_bytes().as_ptr(), input_ptr);
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_transform_stream_chunk_passthrough_anthropic_error_event() {
+        let payload = json!({
+            "type": "error",
+            "error": {
+                "type": "invalid_request_error",
+                "message": "bad request"
+            },
+            "request_id": null
+        });
+        let input = to_bytes(&payload);
+        let input_ptr = input.as_ptr();
+
+        let result = transform_stream_chunk(input, ProviderFormat::Anthropic).unwrap();
+
+        assert!(result.is_passthrough());
+        assert_eq!(result.into_bytes().as_ptr(), input_ptr);
     }
 
     #[test]

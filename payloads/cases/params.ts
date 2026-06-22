@@ -488,6 +488,53 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesStreamImageDownloadFailureParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Describe this image.",
+            },
+            {
+              type: "input_image",
+              detail: "auto",
+              image_url: "https://example.com/not-an-image.png",
+            },
+          ],
+        },
+        {
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+          ],
+        },
+      ],
+      max_output_tokens: 300,
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   // === Text Response Configuration ===
 
   textFormatJsonObjectParam: {

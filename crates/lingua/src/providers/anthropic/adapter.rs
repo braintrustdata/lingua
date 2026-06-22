@@ -23,8 +23,8 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, OutputConfig, Thinking, ThinkingType, Tool, ToolChoice,
-    ToolChoiceType,
+    ContentBlock, EffortLevel, ErrorResponse, ErrorType, OutputConfig, Thinking, ThinkingType,
+    Tool, ToolChoice, ToolChoiceType,
 };
 use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
 use crate::providers::anthropic::try_parse_anthropic;
@@ -49,6 +49,20 @@ use serde::Deserialize;
 pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
+
+fn anthropic_stream_error_message(event: ErrorResponse) -> String {
+    format!(
+        "{} ({})",
+        event.error.message,
+        anthropic_error_type_message(event.error.error_type)
+    )
+}
+
+fn anthropic_error_type_message(error_type: ErrorType) -> String {
+    serde_json::to_string(&error_type)
+        .map(|serialized| serialized.trim_matches('"').to_string())
+        .unwrap_or_else(|_| format!("{error_type:?}"))
+}
 
 fn parse_anthropic_extras(
     extras: Option<&Map<String, Value>>,
@@ -733,6 +747,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     | "message_delta"
                     | "message_stop"
                     | "ping"
+                    | "error"
             )
         } else {
             false
@@ -749,6 +764,18 @@ impl ProviderAdapter for AnthropicAdapter {
             .ok_or_else(|| TransformError::ToUniversalFailed("missing type field".to_string()))?;
 
         match event_type {
+            "error" => {
+                let event =
+                    serde_json::from_value::<ErrorResponse>(payload.clone()).map_err(|error| {
+                        TransformError::DeserializationFailed(format!(
+                            "Anthropic stream error event: {error}"
+                        ))
+                    })?;
+                Err(TransformError::ToUniversalFailed(
+                    anthropic_stream_error_message(event),
+                ))
+            }
+
             "content_block_delta" => {
                 let delta = payload.get("delta");
                 let delta_type = delta.and_then(|d| d.get("type")).and_then(Value::as_str);
@@ -2287,6 +2314,25 @@ mod tests {
         let delta = choice.delta_view().expect("delta must exist");
         let first = delta.reasoning.first().expect("reasoning item must exist");
         assert_eq!(first.content.as_deref(), Some("initial thought"),);
+    }
+
+    #[test]
+    fn test_stream_to_universal_error_event() {
+        let adapter = AnthropicAdapter;
+        let error = adapter
+            .stream_to_universal(json!({
+                "type": "error",
+                "error": {
+                    "type": "invalid_request_error",
+                    "message": "bad request"
+                }
+            }))
+            .expect_err("error event should fail");
+
+        assert_eq!(
+            error.to_string(),
+            "Conversion to universal format failed: bad request (invalid_request_error)"
+        );
     }
 
     #[test]

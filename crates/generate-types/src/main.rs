@@ -239,6 +239,7 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     let chat_stream_response_type = "CreateChatCompletionStreamResponse";
     let responses_request_type = "CreateResponse";
     let responses_response_type = "Response";
+    let responses_stream_response_type = "ResponseStreamEvent";
 
     let default_map = serde_json::Map::new();
     let all_schemas = spec
@@ -283,6 +284,12 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
         &mut essential_schemas,
         &mut processed,
     );
+    add_openai_schema_with_dependencies(
+        responses_stream_response_type,
+        all_schemas,
+        &mut essential_schemas,
+        &mut processed,
+    );
 
     // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
     let mut fixed_schemas = serde_json::Map::new();
@@ -309,7 +316,8 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
                 "type": "object",
                 "properties": {
                     "responses_request": {"$ref": "#/definitions/CreateResponse"},
-                    "responses_response": {"$ref": "#/definitions/Response"}
+                    "responses_response": {"$ref": "#/definitions/Response"},
+                    "responses_stream_response": {"$ref": "#/definitions/ResponseStreamEvent"}
                 }
             }
         ],
@@ -562,6 +570,8 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     for schema_name in &response_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
+    add_dependencies_recursively("MessageStreamEvent", all_schemas, &mut separated_schemas);
+    add_dependencies_recursively("ErrorResponse", all_schemas, &mut separated_schemas);
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
@@ -595,7 +605,9 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
                 "title": "ResponseType",
                 "type": "object",
                 "properties": {
-                    "response": {"$ref": "#/definitions/Message"}
+                    "response": {"$ref": "#/definitions/Message"},
+                    "stream_event": {"$ref": "#/definitions/MessageStreamEvent"},
+                    "error_response": {"$ref": "#/definitions/ErrorResponse"}
                 }
             },
         ],
@@ -968,6 +980,15 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
+
+    processed.push_str(
+        r#"
+
+// Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type MessageRole = PurpleRole;
+pub type ResponseLocationCitation = Citation;
+"#,
+    );
 
     processed
 }
