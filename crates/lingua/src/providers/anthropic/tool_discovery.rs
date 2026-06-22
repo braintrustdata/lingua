@@ -121,42 +121,45 @@ pub(super) fn result_from_input_content(
 
 pub(super) fn input_result_content(
     tools: Vec<ToolDiscoveryResultItem>,
-) -> generated::InputContentBlockContent {
-    generated::InputContentBlockContent::RequestWebSearchToolResultError(
-        generated::RequestWebSearchToolResultError {
-            error_code: None,
-            request_web_search_tool_result_error_type:
-                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-            content: None,
-            retrieved_at: None,
-            url: None,
-            return_code: None,
-            stderr: None,
-            stdout: None,
-            encrypted_stdout: None,
-            error_message: None,
-            file_type: None,
-            num_lines: None,
-            start_line: None,
-            total_lines: None,
-            is_file_update: None,
-            lines: None,
-            new_lines: None,
-            new_start: None,
-            old_lines: None,
-            old_start: None,
-            tool_references: Some(
-                tools
-                    .into_iter()
-                    .map(|item| generated::RequestToolReferenceBlock {
-                        cache_control: None,
-                        tool_name: item.tool_name,
-                        request_tool_reference_block_type:
-                            generated::ToolReferenceType::ToolReference,
-                    })
-                    .collect(),
-            ),
-        },
+) -> Result<generated::InputContentBlockContent, ConvertError> {
+    reject_preserved_unknown_result_content(&tools, "Anthropic InputContentBlock")?;
+    Ok(
+        generated::InputContentBlockContent::RequestWebSearchToolResultError(
+            generated::RequestWebSearchToolResultError {
+                error_code: None,
+                request_web_search_tool_result_error_type:
+                    generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+                content: None,
+                retrieved_at: None,
+                url: None,
+                return_code: None,
+                stderr: None,
+                stdout: None,
+                encrypted_stdout: None,
+                error_message: None,
+                file_type: None,
+                num_lines: None,
+                start_line: None,
+                total_lines: None,
+                is_file_update: None,
+                lines: None,
+                new_lines: None,
+                new_start: None,
+                old_lines: None,
+                old_start: None,
+                tool_references: Some(
+                    tools
+                        .into_iter()
+                        .map(|item| generated::RequestToolReferenceBlock {
+                            cache_control: None,
+                            tool_name: item.tool_name,
+                            request_tool_reference_block_type:
+                                generated::ToolReferenceType::ToolReference,
+                        })
+                        .collect(),
+                ),
+            },
+        ),
     )
 }
 
@@ -203,41 +206,44 @@ pub(super) fn result_from_response_content(
 
 pub(super) fn response_result_content(
     tools: Vec<ToolDiscoveryResultItem>,
-) -> generated::ContentBlockContent {
-    generated::ContentBlockContent::ResponseWebSearchToolResultError(
-        generated::ResponseWebSearchToolResultError {
-            error_code: None,
-            response_web_search_tool_result_error_type:
-                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-            content: None,
-            retrieved_at: None,
-            url: None,
-            return_code: None,
-            stderr: None,
-            stdout: None,
-            encrypted_stdout: None,
-            error_message: None,
-            file_type: None,
-            num_lines: None,
-            start_line: None,
-            total_lines: None,
-            is_file_update: None,
-            lines: None,
-            new_lines: None,
-            new_start: None,
-            old_lines: None,
-            old_start: None,
-            tool_references: Some(
-                tools
-                    .into_iter()
-                    .map(|item| generated::ResponseToolReferenceBlock {
-                        tool_name: item.tool_name,
-                        response_tool_reference_block_type:
-                            generated::ToolReferenceType::ToolReference,
-                    })
-                    .collect(),
-            ),
-        },
+) -> Result<generated::ContentBlockContent, ConvertError> {
+    reject_preserved_unknown_result_content(&tools, "Anthropic ContentBlock")?;
+    Ok(
+        generated::ContentBlockContent::ResponseWebSearchToolResultError(
+            generated::ResponseWebSearchToolResultError {
+                error_code: None,
+                response_web_search_tool_result_error_type:
+                    generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+                content: None,
+                retrieved_at: None,
+                url: None,
+                return_code: None,
+                stderr: None,
+                stdout: None,
+                encrypted_stdout: None,
+                error_message: None,
+                file_type: None,
+                num_lines: None,
+                start_line: None,
+                total_lines: None,
+                is_file_update: None,
+                lines: None,
+                new_lines: None,
+                new_start: None,
+                old_lines: None,
+                old_start: None,
+                tool_references: Some(
+                    tools
+                        .into_iter()
+                        .map(|item| generated::ResponseToolReferenceBlock {
+                            tool_name: item.tool_name,
+                            response_tool_reference_block_type:
+                                generated::ToolReferenceType::ToolReference,
+                        })
+                        .collect(),
+                ),
+            },
+        ),
     )
 }
 
@@ -257,6 +263,23 @@ fn unknown_result_items<T: serde::Serialize>(
         tool: None,
         provider_options: Some(ProviderOptions { options }),
     }])
+}
+
+fn reject_preserved_unknown_result_content(
+    tools: &[ToolDiscoveryResultItem],
+    to: &'static str,
+) -> Result<(), ConvertError> {
+    if tools.iter().any(|item| {
+        item.provider_options
+            .as_ref()
+            .is_some_and(|options| options.options.contains_key("content"))
+    }) {
+        return Err(ConvertError::UnsupportedMapping {
+            from: "preserved unknown Anthropic tool_search_tool_result.content".to_string(),
+            to,
+        });
+    }
+    Ok(())
 }
 
 pub(super) fn is_anthropic_tool_search_builtin(tool: &UniversalTool) -> bool {
@@ -412,19 +435,13 @@ pub(super) fn normalize_tools_for_anthropic(
                 .find(|existing| existing.tool.name == expanded_tool.tool.name)
             {
                 if existing.responses_namespace.is_some()
-                    && expanded_tool.responses_namespace.is_some()
+                    || expanded_tool.responses_namespace.is_some()
                 {
-                    let existing_namespace = existing
-                        .responses_namespace
-                        .as_deref()
-                        .expect("checked namespace presence");
-                    let expanded_namespace = expanded_tool
-                        .responses_namespace
-                        .as_deref()
-                        .expect("checked namespace presence");
+                    let existing_origin = tool_origin(existing.responses_namespace.as_deref());
+                    let expanded_origin = tool_origin(expanded_tool.responses_namespace.as_deref());
                     return Err(TransformError::FromUniversalFailed(format!(
-                        "Unsupported mapping: cannot convert Responses namespace tools with duplicate local tool name '{}' from '{}' and '{}' to Anthropic tools",
-                        expanded_tool.tool.name, existing_namespace, expanded_namespace
+                        "Unsupported mapping: cannot convert Responses tools with duplicate local tool name '{}' from {} and {} to Anthropic tools",
+                        expanded_tool.tool.name, existing_origin, expanded_origin
                     )));
                 }
             } else {
@@ -437,4 +454,11 @@ pub(super) fn normalize_tools_for_anthropic(
         .into_iter()
         .map(|expanded| expanded.tool)
         .collect())
+}
+
+fn tool_origin(namespace: Option<&str>) -> String {
+    match namespace {
+        Some(namespace) => format!("namespace '{namespace}'"),
+        None => "top-level tool".to_string(),
+    }
 }

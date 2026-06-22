@@ -194,6 +194,27 @@ mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
     use crate::serde_json::{json, Value};
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct BedrockInvokeBodyView {
+        anthropic_version: String,
+        max_tokens: i64,
+        messages: Vec<Value>,
+        #[serde(default)]
+        model: Option<Value>,
+        #[serde(default)]
+        stream: Option<Value>,
+    }
+
+    fn assert_flat_invoke_body(transformed: Value) {
+        let body: BedrockInvokeBodyView = crate::serde_json::from_value(transformed).unwrap();
+        assert!(body.model.is_none());
+        assert!(body.stream.is_none());
+        assert_eq!(body.anthropic_version, "bedrock-2023-05-31");
+        assert_eq!(body.max_tokens, 1024);
+        assert!(!body.messages.is_empty());
+    }
 
     #[test]
     fn test_message_stop_with_bedrock_metrics_emits_usage_chunk() {
@@ -279,17 +300,7 @@ mod tests {
         universal.model = Some("us.anthropic.claude-haiku-4-5-20251001-v1:0".to_string());
         let transformed = adapter.request_from_universal(&universal).unwrap();
 
-        assert!(transformed.get("model").is_none());
-        assert!(transformed.get("stream").is_none());
-        assert_eq!(
-            transformed
-                .get("anthropic_version")
-                .and_then(Value::as_str)
-                .unwrap(),
-            "bedrock-2023-05-31"
-        );
-        assert!(transformed.get("messages").is_some());
-        assert!(transformed.get("max_tokens").is_some());
+        assert_flat_invoke_body(transformed);
     }
 
     #[test]
@@ -305,15 +316,6 @@ mod tests {
         assert_eq!(universal.model, None);
         let transformed = adapter.request_from_universal(&universal).unwrap();
 
-        assert!(transformed.get("model").is_none());
-        assert_eq!(
-            transformed
-                .get("anthropic_version")
-                .and_then(Value::as_str)
-                .unwrap(),
-            "bedrock-2023-05-31"
-        );
-        assert!(transformed.get("messages").is_some());
-        assert!(transformed.get("max_tokens").is_some());
+        assert_flat_invoke_body(transformed);
     }
 }

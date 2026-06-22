@@ -216,6 +216,13 @@
     {
       "testCase": "responsesToolSearchInputParam",
       "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Responses namespace-expanded tools and discovered top-level tools can share the same local name, but Anthropic tools are name-only; this lossy namespace-vs-function collision is intentionally rejected"
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
       "target": "*",
       "fields": [
         { "pattern": "messages[*].content[*].tool_name", "reason": "Tool result names are not represented by ChatCompletions, Anthropic, or Bedrock tool result wire formats; those formats identify results by tool_call_id/tool_use_id only" },

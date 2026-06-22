@@ -1130,8 +1130,8 @@ mod tests {
                     "tools": [
                         {
                             "type": "function",
-                            "name": "search_code",
-                            "description": "Search code.",
+                            "name": "search_docs",
+                            "description": "Search docs.",
                             "strict": true,
                             "parameters": {
                                 "type": "object",

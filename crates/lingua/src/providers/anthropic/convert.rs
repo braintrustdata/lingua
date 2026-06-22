@@ -1321,7 +1321,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 title: None,
                                 content: Some(tool_discovery::input_result_content(
                                     discovery_result.tools,
-                                )),
+                                )?),
                                 signature: None,
                                 thinking: None,
                                 data: None,
@@ -2184,7 +2184,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                 name: None,
                                 content: Some(tool_discovery::response_result_content(
                                     discovery_result.tools,
-                                )),
+                                )?),
                                 tool_use_id: Some(tool_discovery::tool_search_call_id(
                                     &discovery_result.tool_call_id,
                                 )),
@@ -2488,6 +2488,23 @@ mod tests {
         serde_json::from_value(value).expect("input message should deserialize")
     }
 
+    fn preserved_unknown_tool_discovery_item() -> crate::universal::ToolDiscoveryResultItem {
+        let mut options = serde_json::Map::new();
+        options.insert(
+            "content".to_string(),
+            json!({
+                "type": "tool_search_tool_unknown_result",
+                "payload": {"opaque": true}
+            }),
+        );
+
+        crate::universal::ToolDiscoveryResultItem {
+            tool_name: "unknown".to_string(),
+            tool: None,
+            provider_options: Some(ProviderOptions { options }),
+        }
+    }
+
     fn text_from_user(message: &Message) -> &str {
         match message {
             Message::User {
@@ -2765,6 +2782,79 @@ mod tests {
             ConvertError::UnsupportedMapping { from, to } => {
                 assert_eq!(from, "query-only ToolDiscoveryCall");
                 assert_eq!(to, "Anthropic tool_search input");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_rejects_preserved_unknown_tool_search_result()
+    {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: None,
+                    arguments: Some(json!({})),
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                }]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![preserved_unknown_tool_discovery_item()],
+                        status: Some("completed".to_string()),
+                        execution: Some("server".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+        ];
+
+        let err = universal_messages_to_anthropic_input_messages(messages).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(
+                    from,
+                    "preserved unknown Anthropic tool_search_tool_result.content"
+                );
+                assert_eq!(to, "Anthropic InputContentBlock");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_response_blocks_rejects_preserved_unknown_tool_search_result(
+    ) {
+        let messages = vec![Message::Tool {
+            content: vec![ToolContentPart::ToolDiscoveryResult(
+                crate::universal::ToolDiscoveryResultContentPart {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    tools: vec![preserved_unknown_tool_discovery_item()],
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                },
+            )],
+        }];
+
+        let err = <Vec<generated::ContentBlock> as TryFromLLM<Vec<Message>>>::try_from(messages)
+            .unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(
+                    from,
+                    "preserved unknown Anthropic tool_search_tool_result.content"
+                );
+                assert_eq!(to, "Anthropic ContentBlock");
             }
             other => panic!("expected unsupported mapping error, got {other:?}"),
         }
