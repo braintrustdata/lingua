@@ -416,6 +416,11 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(moderation) = typed_params.moderation {
             extras_map.insert("moderation".into(), moderation);
         }
+        if let Some(reasoning) = typed_params.reasoning.as_ref() {
+            if let Ok(raw) = serde_json::to_value(reasoning) {
+                extras_map.insert("reasoning".into(), raw);
+            }
+        }
 
         if !extras_map.is_empty() {
             params.extras.insert(ProviderFormat::Responses, extras_map);
@@ -2380,6 +2385,76 @@ mod tests {
         assert_eq!(
             tool_args.delta.as_deref(),
             Some("{\"query\":\"studio lights\"}")
+        );
+    }
+
+    #[test]
+    fn test_responses_reasoning_context_roundtrip() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "o3",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "high",
+                "context": "all_turns"
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+
+        let extras = universal
+            .params
+            .extras
+            .get(&ProviderFormat::Responses)
+            .expect("Responses extras should be present");
+        let raw_reasoning = extras
+            .get("reasoning")
+            .expect("reasoning should be in extras");
+        assert_eq!(
+            raw_reasoning.get("context").and_then(|v| v.as_str()),
+            Some("all_turns"),
+            "context field must survive in extras"
+        );
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reasoning = reconstructed
+            .get("reasoning")
+            .expect("reasoning should be present");
+        assert_eq!(
+            reasoning.get("context").and_then(|v| v.as_str()),
+            Some("all_turns"),
+            "context field must roundtrip through extras"
+        );
+        assert_eq!(
+            reasoning.get("effort").and_then(|v| v.as_str()),
+            Some("high"),
+            "effort must also survive"
+        );
+    }
+
+    #[test]
+    fn test_responses_reasoning_without_context_omits_it() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "o3",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "medium"
+            }
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reasoning = reconstructed
+            .get("reasoning")
+            .expect("reasoning should be present");
+        assert!(
+            reasoning.get("context").is_none() || reasoning.get("context") == Some(&Value::Null),
+            "context should be absent or null when not set"
+        );
+        assert_eq!(
+            reasoning.get("effort").and_then(|v| v.as_str()),
+            Some("medium")
         );
     }
 }

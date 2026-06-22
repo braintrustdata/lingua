@@ -5,7 +5,9 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
+use crate::providers::openai::generated::{
+    ChatCompletionRequestMessage, Context, Instructions, Summary,
+};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -223,6 +225,8 @@ pub struct OpenAIReasoning {
     pub effort: Option<OpenAIReasoningEffort>,
     pub summary: Option<Summary>,
     pub generate_summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Context>,
 }
 
 #[cfg(test)]

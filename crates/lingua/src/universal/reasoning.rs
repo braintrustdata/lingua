@@ -689,6 +689,7 @@ mod tests {
             effort: Some(OpenAIReasoningEffortParam::High),
             summary: Some(OpenAISummary::Detailed),
             generate_summary: None,
+            context: None,
         };
 
         // Test fallback conversion (uses DEFAULT_MAX_TOKENS)
