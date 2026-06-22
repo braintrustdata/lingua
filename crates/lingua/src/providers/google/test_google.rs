@@ -34,7 +34,7 @@ mod tests {
             case,
             // Extract messages from request
             |request: &GenerateContentRequest| {
-                Ok(request.contents.as_ref().expect("missing contents"))
+                Ok(request.contents.as_ref().expect("missing contents").clone())
             },
             // Convert to universal
             |messages: &Vec<GoogleContent>| {

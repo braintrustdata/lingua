@@ -1480,16 +1480,79 @@ fn input_message_is_pure_tool_search_result(message: &generated::InputMessage) -
     }
 }
 
+fn input_message_tool_search_result_ids(message: &generated::InputMessage) -> Option<Vec<String>> {
+    if !input_message_is_pure_tool_search_result(message) {
+        return None;
+    }
+
+    match &message.content {
+        generated::MessageContent::String(_) => None,
+        generated::MessageContent::InputContentBlockArray(blocks) => Some(
+            blocks
+                .iter()
+                .filter_map(|block| block.tool_use_id.clone())
+                .collect(),
+        ),
+    }
+}
+
+fn input_message_tool_search_call_ids(message: &generated::InputMessage) -> Vec<String> {
+    match &message.content {
+        generated::MessageContent::String(_) => Vec::new(),
+        generated::MessageContent::InputContentBlockArray(blocks) => blocks
+            .iter()
+            .filter_map(|block| {
+                let is_tool_search_call = block.input_content_block_type
+                    == generated::InputContentBlockType::ServerToolUse
+                    && block
+                        .name
+                        .as_deref()
+                        .map(tool_discovery::is_tool_search_name)
+                        .unwrap_or(false);
+                if is_tool_search_call {
+                    block.id.clone()
+                } else {
+                    None
+                }
+            })
+            .collect(),
+    }
+}
+
+fn unpaired_tool_discovery_result_error() -> ConvertError {
+    ConvertError::UnsupportedMapping {
+        from: "unpaired ToolDiscoveryResult".to_string(),
+        to: "Anthropic InputMessage",
+    }
+}
+
 fn try_merge_adjacent_assistant_tool_discovery_message(
     previous: &mut generated::InputMessage,
     current: generated::InputMessage,
 ) -> Result<Option<generated::InputMessage>, ConvertError> {
+    let tool_search_result_ids = input_message_tool_search_result_ids(&current);
+
+    if let Some(result_ids) = &tool_search_result_ids {
+        if previous.role != generated::MessageRole::Assistant {
+            return Err(unpaired_tool_discovery_result_error());
+        }
+
+        let call_ids = input_message_tool_search_call_ids(previous);
+        if result_ids.is_empty()
+            || !result_ids
+                .iter()
+                .all(|result_id| call_ids.iter().any(|call_id| call_id == result_id))
+        {
+            return Err(unpaired_tool_discovery_result_error());
+        }
+    }
+
     if previous.role != generated::MessageRole::Assistant {
         return Ok(Some(current));
     }
 
-    let should_merge_tool_result = current.role == generated::MessageRole::User
-        && input_message_is_pure_tool_search_result(&current);
+    let should_merge_tool_result =
+        current.role == generated::MessageRole::User && tool_search_result_ids.is_some();
     let should_merge_assistant_continuation = current.role == generated::MessageRole::Assistant
         && input_message_has_tool_search_result(previous);
 
@@ -1620,6 +1683,9 @@ pub(crate) fn universal_messages_to_anthropic_input_messages(
                 input_messages.push(unmerged);
             }
         } else {
+            if input_message_is_pure_tool_search_result(&input_message) {
+                return Err(unpaired_tool_discovery_result_error());
+            }
             input_messages.push(input_message);
         }
     }
@@ -2635,6 +2701,81 @@ mod tests {
                 );
             }
             other => panic!("expected pure tool result content, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_rejects_unpaired_tool_discovery_result() {
+        let messages = vec![Message::Tool {
+            content: vec![ToolContentPart::ToolDiscoveryResult(
+                crate::universal::ToolDiscoveryResultContentPart {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    tools: vec![],
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                },
+            )],
+        }];
+
+        let err = universal_messages_to_anthropic_input_messages(messages).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "unpaired ToolDiscoveryResult");
+                assert_eq!(to, "Anthropic InputMessage");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_merges_matching_tool_discovery_result() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: None,
+                    arguments: Some(json!({})),
+                    status: Some("completed".to_string()),
+                    execution: Some("server".to_string()),
+                    provider_options: None,
+                }]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![],
+                        status: Some("completed".to_string()),
+                        execution: Some("server".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+        ];
+
+        let input_messages = universal_messages_to_anthropic_input_messages(messages)
+            .expect("matching discovery result should merge");
+
+        assert_eq!(input_messages.len(), 1);
+        match &input_messages[0].content {
+            generated::MessageContent::InputContentBlockArray(blocks) => {
+                assert_eq!(blocks.len(), 2);
+                assert_eq!(
+                    blocks[0].input_content_block_type,
+                    generated::InputContentBlockType::ServerToolUse
+                );
+                assert_eq!(
+                    blocks[1].input_content_block_type,
+                    generated::InputContentBlockType::ToolSearchToolResult
+                );
+                assert_eq!(blocks[0].id, blocks[1].tool_use_id);
+            }
+            other => panic!("expected merged content blocks, got {other:?}"),
         }
     }
 

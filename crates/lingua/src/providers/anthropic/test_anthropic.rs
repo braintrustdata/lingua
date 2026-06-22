@@ -40,7 +40,7 @@ mod tests {
             |request: &AnthropicParams| {
                 request
                     .messages
-                    .as_ref()
+                    .clone()
                     .ok_or_else(|| "Anthropic request missing messages".to_string())
             },
             // Convert to universal

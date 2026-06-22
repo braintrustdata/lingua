@@ -1368,6 +1368,62 @@ mod tests {
     }
 
     #[test]
+    fn responses_tool_search_output_reuses_null_call_id_from_previous_call() {
+        let output_items: Vec<crate::providers::openai::generated::OutputItem> =
+            serde_json::from_value(json!([
+            {
+                "type": "tool_search_call",
+                "id": "tsc_1",
+                "call_id": null,
+                "status": "completed",
+                "execution": "server",
+                "arguments": {}
+            },
+            {
+                "type": "tool_search_output",
+                "id": "tso_1",
+                "call_id": null,
+                "status": "completed",
+                "execution": "server",
+                "tools": [{
+                    "type": "function",
+                    "name": "search_code",
+                    "description": "Search code."
+                }]
+            }
+            ]))
+            .expect("output items should deserialize");
+
+        let messages: Vec<Message> =
+            TryFromLLM::try_from(output_items).expect("output items should convert");
+
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("tool_search_call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("assistant content should be array");
+        };
+        let AssistantContentPart::ToolDiscoveryCall {
+            tool_call_id: call_id,
+            ..
+        } = &parts[0]
+        else {
+            panic!("first output item should become discovery call");
+        };
+
+        let Message::Tool { content } = &messages[1] else {
+            panic!("tool_search_output should convert to tool message");
+        };
+        let ToolContentPart::ToolDiscoveryResult(result) = &content[0] else {
+            panic!("second output item should become discovery result");
+        };
+
+        assert_eq!(call_id, "tsc_1");
+        assert_eq!(result.tool_call_id, *call_id);
+        assert_ne!(result.tool_call_id, "tso_1");
+    }
+
+    #[test]
     fn responses_function_named_tool_search_stays_function_call() {
         let adapter = ResponsesAdapter;
         let universal = UniversalRequest {

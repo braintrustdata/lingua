@@ -2688,16 +2688,30 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
 
     fn try_from(items: Vec<openai::OutputItem>) -> Result<Vec<Message>, Self::Error> {
         let mut messages: Vec<Message> = Vec::new();
+        let mut last_tool_search_call_id: Option<String> = None;
 
         for mut item in items {
             let item_id = item.id.clone();
-
-            if matches!(
+            let is_tool_search_call = matches!(
+                item.output_item_type,
+                Some(openai::OutputItemType::ToolSearchCall)
+            );
+            let is_tool_search_output = matches!(
                 item.output_item_type,
                 Some(openai::OutputItemType::ToolSearchOutput)
-            ) {
+            );
+
+            if is_tool_search_output {
+                if item.call_id.is_none() {
+                    item.call_id = last_tool_search_call_id.clone();
+                }
+                last_tool_search_call_id = None;
                 messages.push(tool_discovery::message_from_output_output(item)?);
                 continue;
+            }
+
+            if !is_tool_search_call {
+                last_tool_search_call_id = None;
             }
 
             let parts: Vec<AssistantContentPart> = match item.output_item_type {
@@ -2806,6 +2820,10 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                     }]
                 }
                 Some(openai::OutputItemType::ToolSearchCall) => {
+                    if item.call_id.is_none() {
+                        item.call_id = item.id.clone();
+                    }
+                    last_tool_search_call_id = item.call_id.clone();
                     vec![tool_discovery::part_from_output_call(item)?]
                 }
                 Some(openai::OutputItemType::CodeInterpreterCall) => {
