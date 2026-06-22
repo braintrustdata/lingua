@@ -6952,7 +6952,7 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
         ],
         "type": "tool_search_tool_search_result",
       },
-      "tool_use_id": "srvtoolu_tso_09ff7246a4ed01a0006a36b8c76460819c86aa92a447aad0fb",
+      "tool_use_id": "srvtoolu_tsc_09ff7246a4ed01a0006a36b8c73c8c819cb8a722745dafc938",
       "type": "tool_search_tool_result",
     },
     {
