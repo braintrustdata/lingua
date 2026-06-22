@@ -856,7 +856,9 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
 
     fn try_from(inputs: Vec<openai::InputItem>) -> Result<Self, Self::Error> {
         let mut result = Vec::new();
+        let mut last_tool_search_call_id: Option<String> = None;
         for mut input in inputs {
+            let pending_tool_search_call_id = last_tool_search_call_id.take();
             match input.input_item_type {
                 // Built-in tool calls - convert to ToolCall with provider_executed: true
                 Some(openai::InputItemType::WebSearchCall) => {
@@ -1017,9 +1019,13 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     });
                 }
                 Some(openai::InputItemType::ToolSearchCall) => {
+                    last_tool_search_call_id = input.call_id.clone().or_else(|| input.id.clone());
                     result.push(tool_discovery::message_from_input_call(input)?);
                 }
                 Some(openai::InputItemType::ToolSearchOutput) => {
+                    if input.call_id.is_none() {
+                        input.call_id = pending_tool_search_call_id;
+                    }
                     result.push(tool_discovery::message_from_input_output(input)?);
                 }
                 Some(openai::InputItemType::ItemReference) => {
@@ -5006,6 +5012,61 @@ mod tests {
             vec!["developer", "user", "tool"],
             "item_reference items should be silently dropped; function_call_output should become a tool message"
         );
+    }
+
+    #[test]
+    fn responses_input_tool_search_output_reuses_null_call_id_from_previous_call() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "tool_search_call",
+                "id": "tsc_1",
+                "call_id": null,
+                "status": "completed",
+                "execution": "server",
+                "arguments": {}
+            },
+            {
+                "type": "tool_search_output",
+                "id": "tso_1",
+                "call_id": null,
+                "status": "completed",
+                "execution": "server",
+                "tools": [{
+                    "type": "function",
+                    "name": "search_code",
+                    "description": "Search code."
+                }]
+            }
+        ]))
+        .expect("input items should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect("input items should convert");
+
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("tool_search_call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("assistant content should be array");
+        };
+        let AssistantContentPart::ToolDiscoveryCall {
+            tool_call_id: call_id,
+            ..
+        } = &parts[0]
+        else {
+            panic!("first input item should become discovery call");
+        };
+
+        let Message::Tool { content } = &messages[1] else {
+            panic!("tool_search_output should convert to tool message");
+        };
+        let ToolContentPart::ToolDiscoveryResult(result) = &content[0] else {
+            panic!("second input item should become discovery result");
+        };
+
+        assert_eq!(call_id, "tsc_1");
+        assert_eq!(result.tool_call_id, *call_id);
+        assert_ne!(result.tool_call_id, "tso_1");
     }
 
     #[test]
