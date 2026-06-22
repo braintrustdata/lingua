@@ -2762,4 +2762,91 @@ mod tests {
         assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
         assert!(err.to_string().contains("root type is required"));
     }
+
+    #[test]
+    fn test_code_execution_20260521_tool_roundtrips_through_universal() {
+        let tool = Tool::CodeExecution20260521(generated::CodeExecutionTool20260521 {
+            allowed_callers: None,
+            cache_control: None,
+            defer_loading: None,
+            name: "code_execution".to_string(),
+            strict: None,
+        });
+
+        let universal = UniversalTool::from(&tool);
+        assert_eq!(universal.name, "code_execution");
+        match &universal.tool_type {
+            UniversalToolType::Builtin {
+                provider,
+                builtin_type,
+                config,
+            } => {
+                assert!(matches!(provider, BuiltinToolProvider::Anthropic));
+                assert_eq!(builtin_type, "code_execution_20260521");
+                assert!(config.is_some());
+            }
+            other => panic!("expected Builtin tool type, got {other:?}"),
+        }
+
+        let roundtripped = Tool::try_from(&universal).expect("roundtrip should succeed");
+        match roundtripped {
+            Tool::CodeExecution20260521(ce) => {
+                assert_eq!(ce.name, "code_execution");
+                assert!(ce.allowed_callers.is_none());
+            }
+            other => panic!("expected CodeExecution20260521, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_caller_type_roundtrips_through_provider_options() {
+        let caller = generated::Caller {
+            caller_type: generated::CallerType::CodeExecution20260120,
+            tool_id: Some("tool_123".to_string()),
+        };
+
+        let provider_options =
+            anthropic_tool_use_provider_options_from_caller(Some(caller.clone()));
+        assert!(provider_options.is_some());
+
+        let roundtripped = anthropic_tool_use_caller_from_provider_options(&provider_options);
+        let roundtripped = roundtripped.expect("caller should roundtrip");
+        assert_eq!(
+            roundtripped.caller_type,
+            generated::CallerType::CodeExecution20260120
+        );
+        assert_eq!(roundtripped.tool_id, Some("tool_123".to_string()));
+    }
+
+    #[test]
+    fn test_caller_type_direct_variant_roundtrips() {
+        let caller = generated::Caller {
+            caller_type: generated::CallerType::Direct,
+            tool_id: None,
+        };
+
+        let provider_options = anthropic_tool_use_provider_options_from_caller(Some(caller));
+
+        let roundtripped = anthropic_tool_use_caller_from_provider_options(&provider_options);
+        let roundtripped = roundtripped.expect("caller should roundtrip");
+        assert_eq!(roundtripped.caller_type, generated::CallerType::Direct);
+        assert!(roundtripped.tool_id.is_none());
+    }
+
+    #[test]
+    fn test_refusal_stop_details_deserializes_with_renamed_category() {
+        let json = json!({
+            "type": "refusal",
+            "category": "bio",
+            "explanation": "Content was refused due to safety policy."
+        });
+
+        let details: generated::RefusalStopDetails =
+            serde_json::from_value(json).expect("RefusalStopDetails should deserialize");
+        assert_eq!(details.category, Some(generated::RefusalCategory::Bio));
+        assert_eq!(
+            details.explanation.as_deref(),
+            Some("Content was refused due to safety policy.")
+        );
+    }
 }
