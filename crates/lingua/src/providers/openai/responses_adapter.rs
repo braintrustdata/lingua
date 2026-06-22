@@ -1222,6 +1222,8 @@ mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
     use crate::processing::transform::transform_response;
+    use crate::providers::openai::generated::{Arguments, InputParam};
+    use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
     use crate::universal::{AssistantContentPart, ToolContentPart};
     use bytes::Bytes;
@@ -1384,12 +1386,19 @@ mod tests {
             params: UniversalParams::default(),
         };
 
-        let request = adapter.request_from_universal(&universal).unwrap();
-        let input = request["input"].as_array().expect("input should be array");
+        let request: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        let input = match request.input.expect("input should be present") {
+            InputParam::InputItemArray(input) => input,
+            InputParam::String(_) => panic!("input should be item array"),
+        };
 
-        assert_eq!(input[0]["type"], json!("function_call"));
-        assert_eq!(input[0]["name"], json!("tool_search"));
-        assert_eq!(input[0]["arguments"], json!("{\"query\":\"weather\"}"));
+        assert_eq!(input[0].input_item_type, Some(InputItemType::FunctionCall));
+        assert_eq!(input[0].name.as_deref(), Some("tool_search"));
+        assert_eq!(
+            input[0].arguments,
+            Some(Arguments::String(r#"{"query":"weather"}"#.to_string()))
+        );
     }
 
     #[test]

@@ -1790,8 +1790,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     }
                                 };
 
-                                let (input_item_type, mut item) = match tool_call.tool_name.as_str()
-                                {
+                                let (input_item_type, mut item) = match &*tool_call.tool_name {
                                     "web_search" => (
                                         openai::InputItemType::WebSearchCall,
                                         openai::InputItem {
