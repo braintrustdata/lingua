@@ -1,3 +1,0 @@
-{
-  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert Responses namespace tools with duplicate local tool name 'lookup' from 'crm' and 'erp' to Anthropic tools"
-}
