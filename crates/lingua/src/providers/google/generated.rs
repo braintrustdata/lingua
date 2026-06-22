@@ -1390,6 +1390,9 @@ pub struct Tool {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct ComputerUse {
+    /// Optional. Whether enable the prompt injection detection check on computer-use request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_prompt_injection_detection: Option<bool>,
     /// Required. The environment being operated.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<Environment>,
@@ -1408,6 +1411,10 @@ pub struct ComputerUse {
 pub enum Environment {
     #[serde(rename = "ENVIRONMENT_BROWSER")]
     EnvironmentBrowser,
+    #[serde(rename = "ENVIRONMENT_DESKTOP")]
+    EnvironmentDesktop,
+    #[serde(rename = "ENVIRONMENT_MOBILE")]
+    EnvironmentMobile,
     #[serde(rename = "ENVIRONMENT_UNSPECIFIED")]
     EnvironmentUnspecified,
 }
