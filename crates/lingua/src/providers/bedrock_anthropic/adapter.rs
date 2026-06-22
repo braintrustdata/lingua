@@ -7,17 +7,8 @@ use crate::universal::{
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage,
 };
-use serde::Serialize;
 
 const BEDROCK_ANTHROPIC_VERSION: &str = "bedrock-2023-05-31";
-const BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL: &str = "bedrock-anthropic-path-model";
-
-#[derive(Serialize)]
-struct BedrockAnthropicBodyWithModel {
-    model: &'static str,
-    #[serde(flatten)]
-    body: Value,
-}
 
 /// Adapter for Bedrock's Anthropic invoke body format.
 ///
@@ -63,14 +54,6 @@ impl BedrockAnthropicAdapter {
         }
         payload
     }
-
-    fn add_placeholder_model(payload: Value) -> Result<Value, TransformError> {
-        serde_json::to_value(BedrockAnthropicBodyWithModel {
-            model: BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL,
-            body: payload,
-        })
-        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
-    }
 }
 
 impl Default for BedrockAnthropicAdapter {
@@ -96,10 +79,7 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         if !Self::is_raw_invoke_body(payload) {
             return false;
         }
-        let Ok(payload) = Self::add_placeholder_model(payload.clone()) else {
-            return false;
-        };
-        self.inner.request_to_universal(payload).is_ok()
+        self.inner.request_to_universal(payload.clone()).is_ok()
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -108,10 +88,7 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
                 "Invalid Bedrock Anthropic request format".to_string(),
             ));
         }
-        let payload = Self::add_placeholder_model(payload)?;
-        let mut universal = self.inner.request_to_universal(payload)?;
-        universal.model = None;
-        Ok(universal)
+        self.inner.request_to_universal(payload)
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
@@ -229,15 +206,15 @@ mod tests {
     }
 
     #[test]
-    fn detect_request_accepts_raw_invoke_body() {
+    fn detect_request_rejects_raw_invoke_body_without_model() {
         let adapter = BedrockAnthropicAdapter::new();
 
-        let valid = json!({
+        let missing_model = json!({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        assert!(adapter.detect_request(&valid));
+        assert!(!adapter.detect_request(&missing_model));
 
         let with_model = json!({
             "model": "claude-3-sonnet",
@@ -251,29 +228,29 @@ mod tests {
     }
 
     #[test]
-    fn request_to_universal_parses_flat_body() {
+    fn request_to_universal_rejects_flat_body_without_model() {
         let adapter = BedrockAnthropicAdapter::new();
         let raw = json!({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
-        let universal = adapter.request_to_universal(raw).unwrap();
-        assert_eq!(universal.model, None);
+        let err = adapter.request_to_universal(raw).unwrap_err();
+        assert!(err.to_string().contains("missing field `model`"));
     }
 
     #[test]
     fn request_roundtrip_emits_flat_invoke_body() {
         let adapter = BedrockAnthropicAdapter::new();
         let input = json!({
-            "anthropic_version": "bedrock-2023-05-31",
+            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
             "max_tokens": 1024,
             "messages": [{"role": "user", "content": "Hello"}]
         });
 
-        let mut universal = adapter.request_to_universal(input).unwrap();
-        // Model is injected externally (by the router/runner) since it's in the URL path
-        universal.model = Some("us.anthropic.claude-haiku-4-5-20251001-v1:0".to_string());
+        let universal = crate::providers::anthropic::AnthropicAdapter
+            .request_to_universal(input)
+            .unwrap();
         let transformed = adapter.request_from_universal(&universal).unwrap();
 
         assert!(transformed.get("model").is_none());
