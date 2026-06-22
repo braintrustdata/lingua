@@ -45,14 +45,18 @@ pub(super) fn tool_search_call_id(tool_call_id: &str) -> String {
 pub(super) fn input_map(
     arguments: Option<Value>,
     query: Option<String>,
-) -> Option<serde_json::Map<String, Value>> {
+) -> Result<Option<serde_json::Map<String, Value>>, ConvertError> {
     match arguments {
-        Some(Value::Object(map)) => Some(map),
-        _ => query.map(|query| {
-            let mut map = serde_json::Map::new();
-            map.insert("query".to_string(), Value::String(query));
-            map
+        Some(Value::Object(map)) => Ok(Some(map)),
+        Some(_) => Err(ConvertError::UnsupportedMapping {
+            from: "non-object ToolDiscoveryCall arguments".to_string(),
+            to: "Anthropic tool_search input",
         }),
+        None if query.is_some() => Err(ConvertError::UnsupportedMapping {
+            from: "query-only ToolDiscoveryCall".to_string(),
+            to: "Anthropic tool_search input",
+        }),
+        None => Ok(None),
     }
 }
 
@@ -81,6 +85,15 @@ pub(super) fn result_from_input_content(
 ) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
     let tools = match content {
         Some(generated::InputContentBlockContent::RequestWebSearchToolResultError(result)) => {
+            if result.request_web_search_tool_result_error_type
+                == generated::RequestWebSearchToolResultErrorType::ToolSearchToolResultError
+            {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic tool_search_tool_result_error".to_string(),
+                    to: "ToolDiscoveryResult",
+                });
+            }
+
             result
                 .tool_references
                 .unwrap_or_default()
@@ -153,16 +166,27 @@ pub(super) fn result_from_response_content(
     content: Option<generated::ContentBlockContent>,
 ) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
     let tools = match content {
-        Some(generated::ContentBlockContent::ResponseWebSearchToolResultError(result)) => result
-            .tool_references
-            .unwrap_or_default()
-            .into_iter()
-            .map(|tool_reference| ToolDiscoveryResultItem {
-                tool_name: tool_reference.tool_name,
-                tool: None,
-                provider_options: None,
-            })
-            .collect(),
+        Some(generated::ContentBlockContent::ResponseWebSearchToolResultError(result)) => {
+            if result.response_web_search_tool_result_error_type
+                == generated::RequestWebSearchToolResultErrorType::ToolSearchToolResultError
+            {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic tool_search_tool_result_error".to_string(),
+                    to: "ToolDiscoveryResult",
+                });
+            }
+
+            result
+                .tool_references
+                .unwrap_or_default()
+                .into_iter()
+                .map(|tool_reference| ToolDiscoveryResultItem {
+                    tool_name: tool_reference.tool_name,
+                    tool: None,
+                    provider_options: None,
+                })
+                .collect()
+        }
         Some(other) => unknown_result_items("tool_search_tool_result.content", other)?,
         None => Vec::new(),
     };

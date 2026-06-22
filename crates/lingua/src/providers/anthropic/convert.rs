@@ -77,6 +77,27 @@ fn anthropic_tool_use_caller_from_provider_options(
         .and_then(|view| view.caller)
 }
 
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(default)]
+struct AnthropicTextProviderOptionsView {
+    #[serde(default)]
+    citations: Option<Value>,
+}
+
+fn anthropic_text_citations_from_provider_options<T>(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    provider_options
+        .as_ref()
+        .and_then(|opts| serde_json::to_value(&opts.options).ok())
+        .and_then(|value| serde_json::from_value::<AnthropicTextProviderOptionsView>(value).ok())
+        .and_then(|view| view.citations)
+        .and_then(|citations| serde_json::from_value::<T>(citations).ok())
+}
+
 fn universal_cache_control_from_anthropic(
     cache_control: Option<generated::CacheControlEphemeral>,
 ) -> Option<CacheControl> {
@@ -826,7 +847,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         tool_use_id: None,
                                         file_id: None,
                                     })
-                                }
+                                },
                                 UserContentPart::Image {
                                     image, media_type, ..
                                 } => {
@@ -1038,7 +1059,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         tool_use_id: None,
                                         file_id: None,
                                     })
-                                }
+                                },
                             })
                             .collect();
                         generated::MessageContent::InputContentBlockArray(blocks)
@@ -1054,46 +1075,43 @@ impl TryFromLLM<Message> for generated::InputMessage {
                 let content = match content {
                     AssistantContent::String(text) => generated::MessageContent::String(text),
                     AssistantContent::Array(parts) => {
-                        let blocks = parts
-                            .into_iter()
-                            .filter_map(|part| match part {
+                        let mut blocks = Vec::new();
+                        for part in parts {
+                            let block = match part {
                                 AssistantContentPart::Text(text_part) => {
                                     let cache_control = anthropic_cache_control_from_universal(
                                         text_part.cache_control.clone(),
                                     );
-                                // Restore citations from provider_options
-                                let citations = text_part.provider_options
-                                    .as_ref()
-                                    .and_then(|opts| opts.options.get("citations"))
-                                    .and_then(|v| serde_json::from_value::<generated::Citations>(v.clone()).ok());
+                                    let citations = anthropic_text_citations_from_provider_options(
+                                        &text_part.provider_options,
+                                    );
 
-                                Some(generated::InputContentBlock {
-                                    cache_control,
-                                    citations,
-                                    text: Some(text_part.text),
-                                    input_content_block_type:
-                                        generated::InputContentBlockType::Text,
-                                    source: None,
-                                    context: None,
-                                    title: None,
-                                    content: None,
-                                    signature: None,
-                                    thinking: None,
-                                    data: None,
-                                    caller: None,
-                                    id: None,
-                                    input: None,
-                                    name: None,
-                                    is_error: None,
-                                    tool_use_id: None,
-                                    file_id: None,
-                                })
-                            }
-                            AssistantContentPart::Reasoning {
-                                text,
-                                encrypted_content,
-                            } => {
-                                Some(generated::InputContentBlock {
+                                    Some(generated::InputContentBlock {
+                                        cache_control,
+                                        citations,
+                                        text: Some(text_part.text),
+                                        input_content_block_type:
+                                            generated::InputContentBlockType::Text,
+                                        source: None,
+                                        context: None,
+                                        title: None,
+                                        content: None,
+                                        signature: None,
+                                        thinking: None,
+                                        data: None,
+                                        caller: None,
+                                        id: None,
+                                        input: None,
+                                        name: None,
+                                        is_error: None,
+                                        tool_use_id: None,
+                                        file_id: None,
+                                    })
+                                },
+                                AssistantContentPart::Reasoning {
+                                    text,
+                                    encrypted_content,
+                                } => Some(generated::InputContentBlock {
                                     cache_control: None,
                                     citations: None,
                                     text: None,
@@ -1114,9 +1132,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
-                                })
-                            }
-                            AssistantContentPart::ToolCall {
+                                }),
+                                AssistantContentPart::ToolCall {
                                 tool_call_id,
                                 tool_name,
                                 arguments,
@@ -1161,8 +1178,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     tool_use_id: None,
                                     file_id: None,
                                 })
-                            }
-                            AssistantContentPart::ToolDiscoveryCall {
+                                },
+                                AssistantContentPart::ToolDiscoveryCall {
                                 tool_call_id,
                                 discovery_tool_name,
                                 query,
@@ -1186,15 +1203,15 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input: tool_discovery::input_map(
                                     arguments.clone(),
                                     query.clone(),
-                                ),
+                                )?,
                                 name: Some(tool_discovery::tool_search_name(
                                     &discovery_tool_name,
                                 )),
                                 is_error: None,
                                 tool_use_id: None,
                                 file_id: None,
-                            }),
-                            AssistantContentPart::ToolResult {
+                                }),
+                                AssistantContentPart::ToolResult {
                                 tool_call_id,
                                 output,
                                 ..
@@ -1235,10 +1252,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 } else {
                                     None // Skip other tool results in assistant messages
                                 }
+                                },
+                                _ => None, // Skip other types for now
+                            };
+                            if let Some(block) = block {
+                                blocks.push(block);
                             }
-                            _ => None, // Skip other types for now
-                        })
-                        .collect();
+                        }
                         generated::MessageContent::InputContentBlockArray(blocks)
                     }
                 };
@@ -1954,17 +1974,9 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                         for part in parts {
                             match part {
                                 AssistantContentPart::Text(text_part) => {
-                                    // Restore citations from provider_options if present
-                                    let citations = text_part
-                                        .provider_options
-                                        .as_ref()
-                                        .and_then(|opts| opts.options.get("citations"))
-                                        .and_then(|v| {
-                                            serde_json::from_value::<
-                                                Vec<generated::ResponseLocationCitation>,
-                                            >(v.clone())
-                                            .ok()
-                                        });
+                                    let citations = anthropic_text_citations_from_provider_options(
+                                        &text_part.provider_options,
+                                    );
                                     content_blocks.push(generated::ContentBlock {
                                         citations,
                                         text: Some(text_part.text),
@@ -2065,7 +2077,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         input: tool_discovery::input_map(
                                             arguments.clone(),
                                             query.clone(),
-                                        ),
+                                        )?,
                                         name: Some(tool_discovery::tool_search_name(
                                             &discovery_tool_name,
                                         )),
@@ -2724,6 +2736,77 @@ mod tests {
             ConvertError::UnsupportedMapping { from, to } => {
                 assert_eq!(from, "unpaired ToolDiscoveryResult");
                 assert_eq!(to, "Anthropic InputMessage");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn universal_messages_to_anthropic_input_messages_rejects_query_only_tool_discovery_call() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                tool_call_id: "call_tool_search_123".to_string(),
+                discovery_tool_name: "tool_search".to_string(),
+                query: Some("search_code".to_string()),
+                arguments: None,
+                status: Some("completed".to_string()),
+                execution: Some("server".to_string()),
+                provider_options: None,
+            }]),
+            id: None,
+        }];
+
+        let err = universal_messages_to_anthropic_input_messages(messages).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "query-only ToolDiscoveryCall");
+                assert_eq!(to, "Anthropic tool_search input");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_tool_search_result_error_is_unsupported() {
+        let input: generated::InputMessage = serde_json::from_value(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_search_tool_result",
+                "tool_use_id": "srvtoolu_call_tool_search_123",
+                "content": {
+                    "type": "tool_search_tool_result_error"
+                }
+            }]
+        }))
+        .unwrap();
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic tool_search_tool_result_error");
+                assert_eq!(to, "ToolDiscoveryResult");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_response_tool_search_result_error_is_unsupported() {
+        let blocks: Vec<generated::ContentBlock> = serde_json::from_value(json!([{
+            "type": "tool_search_tool_result",
+            "tool_use_id": "srvtoolu_call_tool_search_123",
+            "content": {
+                "type": "tool_search_tool_result_error"
+            }
+        }]))
+        .unwrap();
+
+        let err = <Vec<Message> as TryFromLLM<Vec<generated::ContentBlock>>>::try_from(blocks)
+            .unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic tool_search_tool_result_error");
+                assert_eq!(to, "ToolDiscoveryResult");
             }
             other => panic!("expected unsupported mapping error, got {other:?}"),
         }
