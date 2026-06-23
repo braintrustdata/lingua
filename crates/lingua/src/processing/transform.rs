@@ -16,6 +16,7 @@ use bytes::Bytes;
 use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::{adapter_for_format, adapters, ProviderAdapter};
+use crate::processing::model_validators::{model_has_request_validator, reject_reason_for_model};
 use crate::processing::normalize_json_lone_surrogate_escapes;
 #[cfg(feature = "openai")]
 use crate::providers::openai::model_needs_transforms;
@@ -337,14 +338,32 @@ pub fn transform_request(
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
-    if source_format == target_format
-        && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
-        && target_adapter.detect_passthrough_request(&payload)
-    {
-        return Ok(TransformResult::PassThrough(request_bytes));
-    }
+    let effective_validation_model = model.or(request_model.as_deref());
+    let mut universal = if effective_validation_model.is_some_and(model_has_request_validator) {
+        let mut universal = source_adapter.request_to_universal(payload)?;
+        if let Some(model) = model {
+            universal.model = Some(model.to_string());
+        }
+        if let Some(validation_model) = effective_validation_model {
+            if let Some(reason) = reject_reason_for_model(validation_model, &universal) {
+                return Err(TransformError::ToUniversalFailed(reason.to_string()));
+            }
+        }
+        universal
+    } else {
+        if source_format == target_format
+            && !request_model_needs_forced_translation(
+                request_model.as_deref(),
+                model,
+                target_format,
+            )
+            && target_adapter.detect_passthrough_request(&payload)
+        {
+            return Ok(TransformResult::PassThrough(request_bytes));
+        }
 
-    let mut universal = source_adapter.request_to_universal(payload)?;
+        source_adapter.request_to_universal(payload)?
+    };
 
     if let Some(model) = model {
         universal.model = Some(model.to_string());
@@ -899,6 +918,62 @@ mod tests {
         assert_eq!(
             parsed["messages"][0].get("name").and_then(Value::as_str),
             Some("example_user")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_glm_5_2_validator_accepts_chat_completions_passthrough_shape() {
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("glm-5.2")).unwrap();
+
+        assert!(!result.is_passthrough());
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").and_then(Value::as_str), Some("glm-5.2"));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_glm_5_2_validator_accepts_transformed_anthropic_shape() {
+        let payload = json!({
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 128,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("glm-5.2")).unwrap();
+
+        assert!(!result.is_passthrough());
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(output.get("model").and_then(Value::as_str), Some("glm-5.2"));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_model_without_validator_still_transforms_anthropic_shape() {
+        let payload = json!({
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 128,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result =
+            transform_request(input, ProviderFormat::ChatCompletions, Some("gpt-5-mini")).unwrap();
+
+        assert!(!result.is_passthrough());
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        assert_eq!(
+            output.get("model").and_then(Value::as_str),
+            Some("gpt-5-mini")
         );
     }
 

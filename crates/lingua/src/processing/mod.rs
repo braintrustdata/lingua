@@ -2,6 +2,7 @@ pub mod adapters;
 pub mod dedup;
 pub mod import;
 mod json_repair;
+pub(crate) mod model_validators;
 pub mod stream;
 pub mod transform;
 
