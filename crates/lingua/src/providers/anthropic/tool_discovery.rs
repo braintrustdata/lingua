@@ -437,10 +437,13 @@ pub(super) fn normalize_tools_for_anthropic(
                 if existing.responses_namespace.is_some()
                     || expanded_tool.responses_namespace.is_some()
                 {
+                    if existing.tool == expanded_tool.tool {
+                        continue;
+                    }
                     let existing_origin = tool_origin(existing.responses_namespace.as_deref());
                     let expanded_origin = tool_origin(expanded_tool.responses_namespace.as_deref());
                     return Err(TransformError::FromUniversalFailed(format!(
-                        "Unsupported mapping: cannot convert Responses tools with duplicate local tool name '{}' from {} and {} to Anthropic tools",
+                        "Unsupported mapping: cannot convert Responses tools with duplicate local tool name '{}' from {} and {} to Anthropic tools because their definitions differ",
                         expanded_tool.tool.name, existing_origin, expanded_origin
                     )));
                 }
