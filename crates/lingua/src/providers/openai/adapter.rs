@@ -30,7 +30,9 @@ use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
 use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent};
+use crate::universal::message::{
+    AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent,
+};
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
     ReasoningConfig, ReasoningEffort, TokenBudget, UniversalMetadataUserView,
@@ -134,6 +136,24 @@ fn reject_untyped_legacy_prompt_params(
     }
 
     reject_legacy_prompt_only_extras(&params.extras)
+}
+
+fn is_discovery_only_response_message(msg: &Message) -> bool {
+    match msg {
+        Message::Assistant { content, .. } => match content {
+            AssistantContent::Array(parts) => {
+                !parts.is_empty()
+                    && parts
+                        .iter()
+                        .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+            }
+            AssistantContent::String(_) => false,
+        },
+        Message::Tool { content } => content
+            .iter()
+            .all(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_))),
+        _ => false,
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -589,6 +609,7 @@ impl ProviderAdapter for OpenAIAdapter {
         let choices: Vec<Value> = resp
             .messages
             .iter()
+            .filter(|msg| !is_discovery_only_response_message(msg))
             .enumerate()
             .map(|(i, msg)| {
                 // Use extended type to include reasoning field in output
@@ -825,7 +846,9 @@ fn build_reasoning_config(
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::message::UserContent;
+    use crate::universal::message::{
+        ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, UserContent,
+    };
 
     #[test]
     fn test_openai_detect_request() {
@@ -910,6 +933,75 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[derive(serde::Deserialize)]
+    struct ChatCompletionResponseView {
+        choices: Vec<ChatCompletionChoiceView>,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct ChatCompletionChoiceView {
+        message: ChatCompletionMessageView,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct ChatCompletionMessageView {
+        content: Option<String>,
+    }
+
+    #[test]
+    fn response_from_universal_drops_discovery_only_history() {
+        let adapter = OpenAIAdapter;
+        let resp = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("gpt-4".to_string()),
+            messages: vec![
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::ToolDiscoveryCall {
+                            tool_call_id: "tsc_1".to_string(),
+                            discovery_tool_name: "tool_search".to_string(),
+                            query: Some("repo:example symbol".to_string()),
+                            arguments: None,
+                            status: Some("completed".to_string()),
+                            execution: Some("server".to_string()),
+                            provider_options: None,
+                        },
+                    ]),
+                    id: None,
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolDiscoveryResult(
+                        ToolDiscoveryResultContentPart {
+                            tool_call_id: "tsc_1".to_string(),
+                            discovery_tool_name: "tool_search".to_string(),
+                            tools: vec![ToolDiscoveryResultItem {
+                                tool_name: "search_code".to_string(),
+                                tool: None,
+                                provider_options: None,
+                            }],
+                            status: Some("completed".to_string()),
+                            execution: Some("server".to_string()),
+                            provider_options: None,
+                        },
+                    )],
+                },
+                Message::Assistant {
+                    content: AssistantContent::String("Done".to_string()),
+                    id: None,
+                },
+            ],
+            usage: None,
+            finish_reason: None,
+        };
+
+        let value = adapter.response_from_universal(&resp).unwrap();
+        let response: ChatCompletionResponseView = serde_json::from_value(value).unwrap();
+
+        assert_eq!(response.choices.len(), 1);
+        assert_eq!(response.choices[0].message.content.as_deref(), Some("Done"));
     }
 
     #[test]

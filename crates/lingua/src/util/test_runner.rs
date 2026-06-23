@@ -11,7 +11,7 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(test)]
 pub fn run_roundtrip_test<Req, Resp, StreamResp, ProviderMessage, ResponseContent>(
     test_case: &TestCase<Req, Resp, StreamResp>,
-    extract_messages: impl Fn(&Req) -> Result<&Vec<ProviderMessage>, String>,
+    extract_messages: impl Fn(&Req) -> Result<Vec<ProviderMessage>, String>,
     convert_to_universal: impl Fn(&Vec<ProviderMessage>) -> Result<Vec<Message>, String>,
     convert_from_universal: impl Fn(Vec<Message>) -> Result<Vec<ProviderMessage>, String>,
     extract_response_content: impl Fn(&Resp) -> Result<ResponseContent, String>,
@@ -22,6 +22,82 @@ where
     ProviderMessage: Clone + Serialize + DeserializeOwned,
     ResponseContent: Clone + Serialize + DeserializeOwned,
 {
+    run_roundtrip_test_with_config(
+        test_case,
+        RoundtripTestConfig {
+            extract_messages,
+            convert_to_universal,
+            convert_from_universal,
+            extract_response_content,
+            convert_response_to_universal,
+            convert_universal_to_response,
+            normalize_provider_message: std::convert::identity,
+            normalize_response_content: std::convert::identity,
+        },
+    )
+}
+
+#[cfg(test)]
+pub struct RoundtripTestConfig<
+    ExtractMessages,
+    ConvertToUniversal,
+    ConvertFromUniversal,
+    ExtractResponseContent,
+    ConvertResponseToUniversal,
+    ConvertUniversalToResponse,
+    NormalizeProviderMessage,
+    NormalizeResponseContent,
+> {
+    pub extract_messages: ExtractMessages,
+    pub convert_to_universal: ConvertToUniversal,
+    pub convert_from_universal: ConvertFromUniversal,
+    pub extract_response_content: ExtractResponseContent,
+    pub convert_response_to_universal: ConvertResponseToUniversal,
+    pub convert_universal_to_response: ConvertUniversalToResponse,
+    pub normalize_provider_message: NormalizeProviderMessage,
+    pub normalize_response_content: NormalizeResponseContent,
+}
+
+#[cfg(test)]
+pub fn run_roundtrip_test_with_config<
+    Req,
+    Resp,
+    StreamResp,
+    ProviderMessage,
+    ResponseContent,
+    ExtractMessages,
+    ConvertToUniversal,
+    ConvertFromUniversal,
+    ExtractResponseContent,
+    ConvertResponseToUniversal,
+    ConvertUniversalToResponse,
+    NormalizeProviderMessage,
+    NormalizeResponseContent,
+>(
+    test_case: &TestCase<Req, Resp, StreamResp>,
+    config: RoundtripTestConfig<
+        ExtractMessages,
+        ConvertToUniversal,
+        ConvertFromUniversal,
+        ExtractResponseContent,
+        ConvertResponseToUniversal,
+        ConvertUniversalToResponse,
+        NormalizeProviderMessage,
+        NormalizeResponseContent,
+    >,
+) -> Result<(), String>
+where
+    ProviderMessage: Clone + Serialize + DeserializeOwned,
+    ResponseContent: Clone + Serialize + DeserializeOwned,
+    ExtractMessages: Fn(&Req) -> Result<Vec<ProviderMessage>, String>,
+    ConvertToUniversal: Fn(&Vec<ProviderMessage>) -> Result<Vec<Message>, String>,
+    ConvertFromUniversal: Fn(Vec<Message>) -> Result<Vec<ProviderMessage>, String>,
+    ExtractResponseContent: Fn(&Resp) -> Result<ResponseContent, String>,
+    ConvertResponseToUniversal: Fn(&ResponseContent) -> Result<Vec<Message>, String>,
+    ConvertUniversalToResponse: Fn(Vec<Message>) -> Result<ResponseContent, String>,
+    NormalizeProviderMessage: Fn(serde_json::Value) -> serde_json::Value + Copy,
+    NormalizeResponseContent: Fn(serde_json::Value) -> serde_json::Value + Copy,
+{
     use crate::util::testutil::diff_serializable;
     use log::{debug, info};
 
@@ -30,7 +106,7 @@ where
 
     info!("🧪 Testing roundtrip conversion for: {}", test_case.name);
 
-    let messages = extract_messages(&test_case.request)?;
+    let messages = (config.extract_messages)(&test_case.request)?;
 
     // Log conversion steps
     debug!("📄 Original: {} Messages", messages.len());
@@ -39,7 +115,7 @@ where
     debug!("🔄 Converting to universal format...");
 
     // Convert to universal format
-    let universal_request = convert_to_universal(messages)?;
+    let universal_request = (config.convert_to_universal)(&messages)?;
 
     debug!("✓ Universal: {} Messages", universal_request.len());
     debug!(
@@ -52,7 +128,7 @@ where
     // Convert back to provider format. Error-only snapshots come from real requests
     // that the provider rejected, so they still validate import but may not be
     // exportable from universal without changing semantics.
-    let roundtripped = match convert_from_universal(universal_request.clone()) {
+    let roundtripped = match (config.convert_from_universal)(universal_request.clone()) {
         Ok(roundtripped) => roundtripped,
         Err(_error)
             if test_case.error.is_some()
@@ -71,7 +147,9 @@ where
     debug!("\n{}", serde_json::to_string_pretty(&roundtripped).unwrap());
 
     // Compare original and roundtripped messages
-    let diff = diff_serializable(messages, &roundtripped, "messages");
+    let original_messages = normalize_values(&messages, config.normalize_provider_message)?;
+    let roundtripped_messages = normalize_values(&roundtripped, config.normalize_provider_message)?;
+    let diff = diff_serializable(&original_messages, &roundtripped_messages, "messages");
     if !diff.starts_with("✅") {
         return Err(format!("Roundtrip conversion failed:\n{}", diff));
     }
@@ -85,7 +163,7 @@ where
     if let Some(response) = &test_case.non_streaming_response {
         info!("🧪 Testing response conversion for: {}", test_case.name);
 
-        let response_content = extract_response_content(response)?;
+        let response_content = (config.extract_response_content)(response)?;
 
         debug!(
             "📄 Response Original: {} items",
@@ -102,7 +180,7 @@ where
         debug!("🔄 Converting response to universal format...");
 
         // Convert response to universal format
-        let universal_response = convert_response_to_universal(&response_content)?;
+        let universal_response = (config.convert_response_to_universal)(&response_content)?;
 
         debug!(
             "✓ Universal Response: {} Messages",
@@ -116,7 +194,8 @@ where
         debug!("↩️  Converting response back to provider format...");
 
         // Convert back to provider response format
-        let roundtripped_response = convert_universal_to_response(universal_response.clone())?;
+        let roundtripped_response =
+            (config.convert_universal_to_response)(universal_response.clone())?;
 
         debug!(
             "\n{}",
@@ -129,6 +208,8 @@ where
             .map_err(|e| format!("Failed to serialize original response: {}", e))?;
         let roundtripped_json = serde_json::to_value(&roundtripped_response)
             .map_err(|e| format!("Failed to serialize roundtripped response: {}", e))?;
+        let original_json = (config.normalize_response_content)(original_json);
+        let roundtripped_json = (config.normalize_response_content)(roundtripped_json);
 
         if original_json != roundtripped_json {
             return Err(format!(
@@ -146,4 +227,22 @@ where
 
     println!("✅ {} - all conversions passed", test_case.name);
     Ok(())
+}
+
+#[cfg(test)]
+fn normalize_values<T>(
+    values: &[T],
+    normalize: impl Fn(serde_json::Value) -> serde_json::Value,
+) -> Result<Vec<serde_json::Value>, String>
+where
+    T: Serialize,
+{
+    values
+        .iter()
+        .map(|value| {
+            serde_json::to_value(value)
+                .map(&normalize)
+                .map_err(|e| format!("Failed to serialize value for comparison: {}", e))
+        })
+        .collect()
 }

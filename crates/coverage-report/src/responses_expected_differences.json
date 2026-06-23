@@ -160,6 +160,31 @@
   ],
   "perTestCase": [
     {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].tools[*].tool", "reason": "Anthropic tool_search_tool_result carries tool_reference names; Responses replay attaches recovered deferred tool definitions from top-level tools" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "Anthropic uses concrete tool search names such as tool_search_tool_regex; Responses uses generic tool_search" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery result response block, so discovery-only messages are dropped" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Google has no dynamic tool discovery result response block, so discovery-only messages are dropped" }
+      ]
+    },
+    {
       "testCase": "googleThinkingJsonSchemaParam",
       "source": "Google",
       "target": "Responses",

@@ -1,6 +1,8 @@
+use crate::universal::tools::ToolAvailability;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, CacheControl, CacheControlTtl, CacheControlType,
-    Message, TextContentPart, ToolContent, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, BuiltinToolProvider, CacheControl, CacheControlTtl,
+    CacheControlType, Message, TextContentPart, ToolContent, UniversalTool, UniversalToolType,
+    UserContent, UserContentPart,
 };
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
@@ -169,6 +171,23 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                             }
                         }
                     }
+                    AssistantContentPart::ToolDiscoveryCall {
+                        tool_call_id,
+                        discovery_tool_name,
+                        query,
+                        arguments,
+                        status,
+                        execution,
+                        ..
+                    } => {
+                        "tool_discovery_call".hash(hasher);
+                        tool_call_id.hash(hasher);
+                        discovery_tool_name.hash(hasher);
+                        query.hash(hasher);
+                        arguments.hash(hasher);
+                        status.hash(hasher);
+                        execution.hash(hasher);
+                    }
                     AssistantContentPart::ToolResult {
                         tool_call_id,
                         tool_name,
@@ -223,7 +242,70 @@ fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
                 result.tool_name.hash(hasher);
                 result.output.hash(hasher);
             }
+            crate::universal::ToolContentPart::ToolDiscoveryResult(result) => {
+                "tool_discovery_result".hash(hasher);
+                result.tool_call_id.hash(hasher);
+                result.discovery_tool_name.hash(hasher);
+                result.status.hash(hasher);
+                result.execution.hash(hasher);
+                for item in &result.tools {
+                    item.tool_name.hash(hasher);
+                    hash_optional_universal_tool(&item.tool, hasher);
+                }
+            }
         }
+    }
+}
+
+fn hash_optional_universal_tool(tool: &Option<UniversalTool>, hasher: &mut DefaultHasher) {
+    match tool {
+        Some(tool) => {
+            "some".hash(hasher);
+            hash_universal_tool(tool, hasher);
+        }
+        None => "none".hash(hasher),
+    }
+}
+
+fn hash_universal_tool(tool: &UniversalTool, hasher: &mut DefaultHasher) {
+    tool.name.hash(hasher);
+    tool.description.hash(hasher);
+    tool.parameters.hash(hasher);
+    tool.strict.hash(hasher);
+    hash_tool_availability(tool.availability, hasher);
+
+    match &tool.tool_type {
+        UniversalToolType::Function => "function".hash(hasher),
+        UniversalToolType::Custom { format } => {
+            "custom".hash(hasher);
+            format.hash(hasher);
+        }
+        UniversalToolType::Builtin {
+            provider,
+            builtin_type,
+            config,
+        } => {
+            "builtin".hash(hasher);
+            hash_builtin_tool_provider(*provider, hasher);
+            builtin_type.hash(hasher);
+            config.hash(hasher);
+        }
+    }
+}
+
+fn hash_tool_availability(availability: ToolAvailability, hasher: &mut DefaultHasher) {
+    match availability {
+        ToolAvailability::Immediate => "immediate".hash(hasher),
+        ToolAvailability::Deferred => "deferred".hash(hasher),
+    }
+}
+
+fn hash_builtin_tool_provider(provider: BuiltinToolProvider, hasher: &mut DefaultHasher) {
+    match provider {
+        BuiltinToolProvider::Anthropic => "anthropic".hash(hasher),
+        BuiltinToolProvider::Responses => "responses".hash(hasher),
+        BuiltinToolProvider::Google => "google".hash(hasher),
+        BuiltinToolProvider::Converse => "converse".hash(hasher),
     }
 }
 
@@ -591,6 +673,69 @@ mod tests {
         let result = deduplicate_messages(messages);
         // These should be considered duplicates since we only compare content text
         assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_dedup_preserves_discovery_results_with_different_tool_definitions() {
+        let first_tool = UniversalTool::function(
+            "search_code",
+            Some("Search code.".to_string()),
+            Some(crate::serde_json::json!({
+                "type": "object",
+                "properties": {}
+            })),
+            Some(true),
+        );
+        let second_tool = UniversalTool::function(
+            "search_code",
+            Some("Search code.".to_string()),
+            Some(crate::serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"}
+                },
+                "required": ["query"]
+            })),
+            Some(true),
+        );
+
+        let messages = vec![
+            Message::Tool {
+                content: vec![crate::universal::ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![crate::universal::ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: Some(first_tool),
+                            provider_options: None,
+                        }],
+                        status: Some("completed".to_string()),
+                        execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+            Message::Tool {
+                content: vec![crate::universal::ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![crate::universal::ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: Some(second_tool),
+                            provider_options: None,
+                        }],
+                        status: Some("completed".to_string()),
+                        execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
     }
 
     #[test]

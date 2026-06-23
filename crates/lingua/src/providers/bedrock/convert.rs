@@ -271,8 +271,11 @@ fn tool_result_blocks_from_content(
 ) -> Result<Vec<BedrockContentBlock>, ConvertError> {
     content
         .into_iter()
-        .map(|part| {
-            let ToolContentPart::ToolResult(result) = part;
+        .filter_map(|part| match part {
+            ToolContentPart::ToolResult(result) => Some(result),
+            ToolContentPart::ToolDiscoveryResult(_) => None,
+        })
+        .map(|result| {
             let content_text = match result.output {
                 Value::String(s) => s,
                 other => serde_json::to_string(&other).map_err(|e| {
@@ -300,6 +303,21 @@ fn is_tool_result_message(message: &BedrockMessage) -> bool {
             .content
             .iter()
             .all(|block| matches!(block, BedrockContentBlock::ToolResult { .. }))
+}
+
+fn is_discovery_only_assistant_message(message: &Message) -> bool {
+    match message {
+        Message::Assistant { content, .. } => match content {
+            AssistantContent::Array(parts) => {
+                !parts.is_empty()
+                    && parts
+                        .iter()
+                        .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+            }
+            AssistantContent::String(_) => false,
+        },
+        _ => false,
+    }
 }
 
 fn reasoning_content_to_universal(
@@ -372,9 +390,15 @@ pub fn universal_to_bedrock_messages(
     let mut bedrock_messages = Vec::new();
 
     for message in messages.iter().cloned() {
+        if is_discovery_only_assistant_message(&message) {
+            continue;
+        }
         match message {
             Message::Tool { content } => {
                 let blocks = tool_result_blocks_from_content(content)?;
+                if blocks.is_empty() {
+                    continue;
+                }
                 if let Some(last_message) = bedrock_messages.last_mut() {
                     if is_tool_result_message(last_message) {
                         last_message.content.extend(blocks);
@@ -600,6 +624,7 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::message::{ToolDiscoveryResultContentPart, ToolDiscoveryResultItem};
 
     #[test]
     fn test_bedrock_message_to_universal_user() {
@@ -849,6 +874,53 @@ mod tests {
         assert_eq!(arr.len(), 1);
         assert_eq!(arr[0]["role"], "assistant");
         assert!(arr[0]["content"][0].get("toolUse").is_some());
+    }
+
+    #[test]
+    fn test_universal_to_bedrock_drops_discovery_only_history() {
+        let messages = vec![
+            Message::User {
+                content: UserContent::String("Find the available tools.".to_string()),
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    query: Some("repo:example symbol".to_string()),
+                    arguments: None,
+                    status: Some("completed".to_string()),
+                    execution: Some("client".to_string()),
+                    provider_options: None,
+                }]),
+                id: None,
+            },
+            Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: None,
+                            provider_options: None,
+                        }],
+                        status: Some("completed".to_string()),
+                        execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+            Message::User {
+                content: UserContent::String("Use the discovered tool list.".to_string()),
+            },
+        ];
+
+        let result = universal_to_bedrock_messages(&messages).unwrap();
+
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].role, BedrockConversationRole::User);
+        assert_eq!(result[1].role, BedrockConversationRole::User);
+        assert!(result.iter().all(|message| !message.content.is_empty()));
     }
 
     #[test]

@@ -507,6 +507,7 @@ fn generate_anthropic_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
+    processed_output = add_anthropic_tool_search_tool_variants(&processed_output);
 
     let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
 
@@ -970,6 +971,36 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     processed = add_serde_skip_if_none(&processed);
 
     processed
+}
+
+fn add_anthropic_tool_search_tool_variants(processed: &str) -> String {
+    if processed.contains("pub struct ToolSearchTool") {
+        return processed.to_string();
+    }
+
+    let tool_search_struct = r#"#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolSearchTool {
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+"#;
+
+    let with_struct = processed.replace(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
+        &format!(
+            "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
+            tool_search_struct
+        ),
+    );
+
+    with_struct.replace(
+        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(untagged)]",
+        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]",
+    )
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {

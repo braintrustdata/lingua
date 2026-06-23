@@ -39,6 +39,27 @@ use serde::Serialize;
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
 
+fn is_discovery_only_message(message: &Message) -> bool {
+    match message {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
+        }
+        Message::Tool { content } => {
+            !content.is_empty()
+                && content
+                    .iter()
+                    .all(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_)))
+        }
+        _ => false,
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct GoogleStreamPart {
@@ -223,6 +244,13 @@ impl ProviderAdapter for GoogleAdapter {
         let capabilities = GoogleCapabilities::detect(req.model.as_deref());
         if capabilities.requires_thought_signature_for_function_call_history {
             add_dummy_thought_signatures_for_transferred_function_call_history(&mut messages);
+        }
+        messages.retain(|message| !is_discovery_only_message(message));
+        if messages.is_empty() {
+            return Err(TransformError::ValidationFailed {
+                target: ProviderFormat::Google,
+                reason: "Google does not support dynamic tool discovery history without at least one non-discovery content message.".to_string(),
+            });
         }
 
         // Convert messages to Google contents
@@ -504,13 +532,20 @@ impl ProviderAdapter for GoogleAdapter {
                 "finishReason": finish_reason
             })]
         } else {
-            resp.messages
+            let google_contents = resp
+                .messages
                 .iter()
-                .enumerate()
-                .map(|(i, msg)| {
-                    let content = <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
-                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+                .filter(|message| !is_discovery_only_message(message))
+                .map(|msg| {
+                    <GoogleContent as TryFromLLM<Message>>::try_from(msg.clone())
+                        .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))
+                })
+                .collect::<Result<Vec<_>, TransformError>>()?;
 
+            google_contents
+                .into_iter()
+                .enumerate()
+                .map(|(i, content)| {
                     let content_value = serde_json::to_value(&content)
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
@@ -852,10 +887,11 @@ fn fill_tool_names_from_context(messages: &mut [Message]) {
     for msg in messages.iter_mut() {
         if let Message::Tool { content } = msg {
             for part in content.iter_mut() {
-                let ToolContentPart::ToolResult(result) = part;
-                if result.tool_name.is_empty() {
-                    if let Some(name) = id_to_name.get(&result.tool_call_id) {
-                        result.tool_name = name.clone();
+                if let ToolContentPart::ToolResult(result) = part {
+                    if result.tool_name.is_empty() {
+                        if let Some(name) = id_to_name.get(&result.tool_call_id) {
+                            result.tool_name = name.clone();
+                        }
                     }
                 }
             }
@@ -881,8 +917,9 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
         match &mut messages[index] {
             Message::Tool { content } => {
                 for part in content {
-                    let ToolContentPart::ToolResult(result) = part;
-                    later_tool_result_ids.insert(result.tool_call_id.clone());
+                    if let ToolContentPart::ToolResult(result) = part {
+                        later_tool_result_ids.insert(result.tool_call_id.clone());
+                    }
                 }
             }
             Message::Assistant {
@@ -1728,6 +1765,42 @@ mod tests {
             !schema_str.contains("exclusiveMinimum"),
             "exclusiveMinimum must be stripped from Google request"
         );
+    }
+
+    #[test]
+    fn test_google_rejects_discovery_only_history_after_filtering() {
+        let adapter = GoogleAdapter;
+        let request = UniversalRequest {
+            model: Some("gemini-2.5-flash".to_string()),
+            messages: vec![Message::Tool {
+                content: vec![ToolContentPart::ToolDiscoveryResult(
+                    crate::universal::ToolDiscoveryResultContentPart {
+                        tool_call_id: "call_tool_search_123".to_string(),
+                        discovery_tool_name: "tool_search".to_string(),
+                        tools: vec![crate::universal::ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: None,
+                            provider_options: None,
+                        }],
+                        status: Some("completed".to_string()),
+                        execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let err = adapter.request_from_universal(&request).unwrap_err();
+        match err {
+            TransformError::ValidationFailed {
+                target: ProviderFormat::Google,
+                reason,
+            } => {
+                assert!(reason.contains("dynamic tool discovery history"));
+            }
+            other => panic!("expected Google validation error, got {other:?}"),
+        }
     }
 
     #[test]

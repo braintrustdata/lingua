@@ -1,6 +1,6 @@
 use crate::providers::openai::generated as openai;
 use crate::serde_json::{self, Value};
-use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+use crate::universal::tools::{BuiltinToolProvider, ToolAvailability, UniversalTool};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -30,6 +30,7 @@ struct OpenAIResponsesFunctionWire {
     description: Option<String>,
     parameters: Option<Value>,
     strict: Option<bool>,
+    defer_loading: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,6 +38,7 @@ struct OpenAIResponsesCustomWire {
     name: String,
     description: Option<String>,
     format: Option<Value>,
+    defer_loading: Option<bool>,
 }
 
 fn parse_tool_array(tools: &Value) -> Vec<Value> {
@@ -92,20 +94,24 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
         openai::ToolType::Function => {
             let function: OpenAIResponsesFunctionWire =
                 serde_json::from_value(value.clone()).ok()?;
-            Some(UniversalTool::function(
+            let mut tool = UniversalTool::function(
                 function.name,
                 function.description,
                 function.parameters,
                 function.strict,
-            ))
+            );
+            if function.defer_loading == Some(true) {
+                tool.availability = ToolAvailability::Deferred;
+            }
+            Some(tool)
         }
         openai::ToolType::Custom => {
             let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
-            Some(UniversalTool::custom(
-                custom.name,
-                custom.description,
-                custom.format,
-            ))
+            let mut tool = UniversalTool::custom(custom.name, custom.description, custom.format);
+            if custom.defer_loading == Some(true) {
+                tool.availability = ToolAvailability::Deferred;
+            }
+            Some(tool)
         }
         tool_type => {
             let tool_type_name = generated_tool_type_name(tool_type)?;

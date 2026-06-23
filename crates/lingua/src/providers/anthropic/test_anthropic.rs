@@ -36,7 +36,7 @@ mod tests {
         let result = run_roundtrip_test(
             case,
             // Extract messages from request
-            |request: &CreateMessageParams| Ok(&request.messages),
+            |request: &CreateMessageParams| Ok(request.messages.clone()),
             // Convert to universal
             |messages: &Vec<InputMessage>| {
                 anthropic_input_messages_to_universal_messages(messages.clone())

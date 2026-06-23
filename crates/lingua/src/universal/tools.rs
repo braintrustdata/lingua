@@ -72,9 +72,45 @@ pub struct UniversalTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
 
+    /// Whether the tool is immediately available or deferred until discovered.
+    #[serde(default, skip_serializing_if = "ToolAvailability::is_immediate")]
+    pub availability: ToolAvailability,
+
     /// Tool type classification
     #[serde(flatten)]
     pub tool_type: UniversalToolType,
+}
+
+/// Availability of a tool definition in the model context.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolAvailability {
+    /// Tool is included in the active tool set immediately.
+    #[default]
+    Immediate,
+    /// Tool is defined but loaded only after dynamic discovery.
+    Deferred,
+}
+
+impl ToolAvailability {
+    fn is_immediate(&self) -> bool {
+        matches!(self, Self::Immediate)
+    }
+}
+
+fn is_anthropic_tool_search_builtin_type(tool_type: &str) -> bool {
+    matches!(
+        tool_type,
+        "tool_search_tool_regex"
+            | "tool_search_tool_regex_20251119"
+            | "tool_search_tool_bm25"
+            | "tool_search_tool_bm25_20251119"
+    )
+}
+
+fn is_responses_dynamic_discovery_builtin_type(tool_type: &str) -> bool {
+    matches!(tool_type, "namespace" | "tool_search")
 }
 
 /// Classification of tool types.
@@ -138,6 +174,7 @@ impl UniversalTool {
             description,
             parameters,
             strict,
+            availability: ToolAvailability::Immediate,
             tool_type: UniversalToolType::Function,
         }
     }
@@ -153,6 +190,7 @@ impl UniversalTool {
             description,
             parameters: None,
             strict: None,
+            availability: ToolAvailability::Immediate,
             tool_type: UniversalToolType::Custom { format },
         }
     }
@@ -169,6 +207,7 @@ impl UniversalTool {
             description: None,
             parameters: None,
             strict: None,
+            availability: ToolAvailability::Immediate,
             tool_type: UniversalToolType::Builtin {
                 provider,
                 builtin_type: builtin_type.into(),
@@ -403,6 +442,15 @@ impl UniversalTool {
                         target_provider: ProviderFormat::ChatCompletions,
                     })
                 }
+                BuiltinToolProvider::Anthropic
+                    if is_anthropic_tool_search_builtin_type(builtin_type) =>
+                {
+                    Err(ConvertError::UnsupportedToolType {
+                        tool_name: self.name.clone(),
+                        tool_type: builtin_type.clone(),
+                        target_provider: ProviderFormat::ChatCompletions,
+                    })
+                }
                 _ => Err(ConvertError::UnsupportedToolType {
                     tool_name: self.name.clone(),
                     tool_type: builtin_type.clone(),
@@ -433,6 +481,9 @@ impl UniversalTool {
                 if let Some(strict) = self.strict {
                     obj.insert("strict".into(), Value::Bool(strict));
                 }
+                if self.availability == ToolAvailability::Deferred {
+                    obj.insert("defer_loading".into(), Value::Bool(true));
+                }
 
                 Ok(Value::Object(obj))
             }
@@ -447,6 +498,9 @@ impl UniversalTool {
 
                 if let Some(fmt) = format {
                     obj.insert("format".into(), fmt.clone());
+                }
+                if self.availability == ToolAvailability::Deferred {
+                    obj.insert("defer_loading".into(), Value::Bool(true));
                 }
 
                 Ok(Value::Object(obj))
@@ -527,6 +581,11 @@ impl UniversalTool {
                     })
                 }
                 BuiltinToolProvider::Anthropic
+                    if is_anthropic_tool_search_builtin_type(builtin_type) =>
+                {
+                    Ok(json!({ "type": "tool_search" }))
+                }
+                BuiltinToolProvider::Anthropic
                 | BuiltinToolProvider::Converse
                 | BuiltinToolProvider::Google => Err(ConvertError::UnsupportedToolType {
                     tool_name: self.name.clone(),
@@ -558,7 +617,10 @@ pub fn tools_to_openai_chat_value(tools: &[UniversalTool]) -> Result<Option<Valu
                 tool_type,
                 target_provider: ProviderFormat::ChatCompletions,
                 ..
-            }) if tool_type == "web_search_20250305" || tool_type == "google_search" => {}
+            }) if tool_type == "web_search_20250305"
+                || tool_type == "google_search"
+                || is_responses_dynamic_discovery_builtin_type(&tool_type)
+                || is_anthropic_tool_search_builtin_type(&tool_type) => {}
             Err(err) => return Err(err),
         }
     }
@@ -908,6 +970,35 @@ mod tests {
 
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["function"]["name"], "tool1");
+    }
+
+    #[test]
+    fn test_responses_discovery_tools_are_dropped_for_openai_chat() {
+        let tools = vec![
+            UniversalTool::function("search_code", Some("Search code".to_string()), None, None),
+            UniversalTool::builtin(
+                "namespace",
+                BuiltinToolProvider::Responses,
+                "namespace",
+                Some(json!({
+                    "type": "namespace",
+                    "name": "search_code",
+                    "tools": []
+                })),
+            ),
+            UniversalTool::builtin(
+                "tool_search",
+                BuiltinToolProvider::Responses,
+                "tool_search",
+                Some(json!({ "type": "tool_search" })),
+            ),
+        ];
+
+        let result = tools_to_openai_chat_value(&tools).unwrap().unwrap();
+        let arr: Vec<Value> = serde_json::from_value(result).unwrap();
+
+        assert_eq!(arr.len(), 1);
+        assert_eq!(arr[0]["function"]["name"], "search_code");
     }
 
     #[test]

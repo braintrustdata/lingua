@@ -42,7 +42,7 @@ mod tests {
         run_roundtrip_test(
             case,
             // Extract messages from request (convert to extended type)
-            |request: &OpenAIChatCompletionsRoundtripRequest| Ok(&request.messages),
+            |request: &OpenAIChatCompletionsRoundtripRequest| Ok(request.messages.clone()),
             // Convert to universal (via extended type)
             |messages: &Vec<ChatCompletionRequestMessageExt>| {
                 <Vec<Message> as TryFromLLM<Vec<ChatCompletionRequestMessageExt>>>::try_from(
