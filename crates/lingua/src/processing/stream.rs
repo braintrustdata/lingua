@@ -3282,13 +3282,6 @@ mod tests {
         );
     }
 
-    // Regression: GLM/zai (OpenAI chat-completions upstream) streams assistant text
-    // followed by a tool call. The provider bundles id/model + role + the first text
-    // delta into a single chunk, so there is no separate role-only/metadata-only chunk
-    // to trigger message_start. The Anthropic SSE output must still open the message,
-    // open and close the text block at index 0, open a *new* tool_use block index,
-    // stream the arguments as input_json_delta, and emit the terminators.
-    // See glm-bug.md.
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_session_openai_text_then_tool_call_emits_anthropic_framing() {
@@ -3427,10 +3420,6 @@ mod tests {
         assert_eq!(parsed[8]["delta"]["stop_reason"], json!("tool_use"));
     }
 
-    // Control: a "clean" OpenAI stream (separate role-only first chunk with empty
-    // content) that emits text then a tool call was already framed correctly before
-    // the GLM fix. This documents that the defect is specific to providers that bundle
-    // content into the first chunk; native OpenAI cannot reproduce it.
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_session_openai_clean_text_then_tool_call_emits_anthropic_framing() {
@@ -3527,11 +3516,6 @@ mod tests {
         );
     }
 
-    // Regression for the real GLM/zai wire framing captured via Baseten: the opening
-    // tool-call delta bundles the first argument fragment with the name, the id is
-    // repeated on continuation deltas, and the final argument fragment rides on the
-    // finish delta. All argument fragments must be re-emitted as input_json_delta on a
-    // single tool_use block. See glm-bug.md.
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_session_glm_bundled_tool_call_streams_all_arguments() {

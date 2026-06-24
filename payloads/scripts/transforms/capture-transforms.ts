@@ -323,26 +323,27 @@ export async function captureTransforms(
 
       streamingTasks.push(async () => {
         try {
-          // The provider whose SDK is called (and whose request format the request is
-          // validated against) may differ from the directory's `target` label.
-          const captureProvider =
-            streamingPair.captureProvider ?? streamingPair.target;
           const streamInput =
             input && typeof input === "object" && !Array.isArray(input)
               ? { ...input, stream: true }
               : input;
-          const targetModel = getTargetModelForCase(captureProvider, caseName);
+          const targetModel = getTargetModelForCase(
+            streamingPair.target,
+            caseName
+          );
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- transformAndValidateRequest returns validated object
           const streamRequest = transformAndValidateRequest(
             streamInput,
             streamingPair.wasmTarget,
-            captureProvider,
+            streamingPair.target,
             targetModel
           ) as Record<string, unknown>;
 
-          const streamResponse = await callProvider(captureProvider, streamRequest, {
-            stream: true,
-          });
+          const streamResponse = await callProvider(
+            streamingPair.target,
+            streamRequest,
+            { stream: true }
+          );
           const chunks = await collectStreamChunks(streamResponse);
 
           writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));

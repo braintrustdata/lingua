@@ -504,9 +504,6 @@ export const advancedCases: TestCaseCollection = {
     responses: null,
     google: null,
     bedrock: null,
-    // Native Anthropic capture for the same prompt — the gold reference for what a
-    // correct Anthropic streaming tool-call sequence looks like (the contract the
-    // transformed Baseten/GLM stream must match).
     anthropic: {
       model: ANTHROPIC_MODEL,
       max_tokens: 1024,
@@ -535,9 +532,6 @@ export const advancedCases: TestCaseCollection = {
       ],
       tool_choice: { type: "auto" },
     },
-    // Native source: GLM-5.2 served via Baseten's OpenAI-compatible API. Its real
-    // streaming framing (bundled first chunk, repeated tool-call id, args on the
-    // finish delta) is what the baseten → anthropic transform must handle.
     baseten: {
       model: BASETEN_MODEL,
       messages: [
