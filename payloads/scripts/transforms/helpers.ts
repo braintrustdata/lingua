@@ -24,6 +24,7 @@ import {
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
+  BASETEN_MODEL,
   BEDROCK_MODEL,
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -37,7 +38,8 @@ export type SourceFormat =
   | "anthropic"
   | "bedrock"
   | "google"
-  | "vertex-anthropic";
+  | "vertex-anthropic"
+  | "baseten";
 export type WasmFormat =
   | "OpenAI"
   | "Responses"
@@ -50,6 +52,12 @@ export interface TransformPair {
   target: SourceFormat;
   wasmSource: WasmFormat;
   wasmTarget: WasmFormat;
+  // Provider whose SDK is actually called to capture the fixture. Defaults to
+  // `source`. Set this when the directory name (`source_to_target`) describes the
+  // transformation direction rather than the provider being called — e.g.
+  // baseten → anthropic captures the native Baseten/GLM stream (the source) and
+  // renders it onto the Anthropic surface (the target).
+  captureProvider?: SourceFormat;
 }
 
 export interface FixtureHandlerConfig {
@@ -153,6 +161,8 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   bedrock: validate_bedrock_request,
   google: validate_google_request,
   "vertex-anthropic": validate_anthropic_request,
+  // Baseten is OpenAI-compatible (chat-completions wire format).
+  baseten: validate_chat_completions_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
@@ -162,6 +172,8 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   bedrock: validate_bedrock_response,
   google: validate_google_response,
   "vertex-anthropic": validate_anthropic_response,
+  // Baseten is OpenAI-compatible (chat-completions wire format).
+  baseten: validate_chat_completions_response,
 };
 
 interface TransformResultData {
@@ -273,6 +285,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
   "vertex-anthropic": VERTEX_ANTHROPIC_MODEL,
+  baseten: BASETEN_MODEL,
 };
 
 export function getTargetModelForCase(
@@ -402,6 +415,19 @@ export const STREAMING_PAIRS: TransformPair[] = [
     target: "vertex-anthropic",
     wasmSource: "OpenAI",
     wasmTarget: "Anthropic",
+  },
+  // OSS models served via Baseten's OpenAI-compatible API. The transformation under
+  // test runs baseten → anthropic: capture the native Baseten/GLM chat-completions
+  // stream (captureProvider "baseten") and render it onto the Anthropic surface
+  // (wasmSource "Anthropic"), reproducing the chat-completions→Anthropic streaming
+  // translation the gateway performs for OSS models — the direction the bug lives in.
+  // Opt-in: a baseten-source pair only includes cases that define a `baseten` entry.
+  {
+    source: "baseten",
+    target: "anthropic",
+    wasmSource: "Anthropic",
+    wasmTarget: "OpenAI",
+    captureProvider: "baseten",
   },
 ];
 

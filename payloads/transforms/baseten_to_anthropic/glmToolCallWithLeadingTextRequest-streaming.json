@@ -1,0 +1,259 @@
+[
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "I",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1782315718,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 1,
+      "total_tokens": 201,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "'m about to look up"
+        }
+      }
+    ],
+    "created": 1782315718,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 6,
+      "total_tokens": 206,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " the weather"
+        }
+      }
+    ],
+    "created": 1782315718,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 8,
+      "total_tokens": 208,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " for San Francisco, CA"
+        }
+      }
+    ],
+    "created": 1782315718,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 13,
+      "total_tokens": 213,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": ".",
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "chatcmpl-tool-8407ef02d8ed4b07920b2984f2431235",
+              "type": "function",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "created": 1782315719,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 18,
+      "total_tokens": 218,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "chatcmpl-tool-8407ef02d8ed4b07920b2984f2431235",
+              "type": "function",
+              "function": {
+                "arguments": "\"location\": \"San Francisco"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "created": 1782315719,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 23,
+      "total_tokens": 223,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "tool_calls": [
+            {
+              "index": 0,
+              "id": "chatcmpl-tool-8407ef02d8ed4b07920b2984f2431235",
+              "type": "function",
+              "function": {
+                "arguments": ", CA\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls",
+        "stop_reason": 154829
+      }
+    ],
+    "created": 1782315719,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 27,
+      "total_tokens": 227,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-29213056326a4b6b80d3cfc3704acc78",
+    "choices": [],
+    "created": 1782315719,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 200,
+      "completion_tokens": 27,
+      "total_tokens": 227,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 32
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]

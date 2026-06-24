@@ -21,3 +21,9 @@ export const BEDROCK_ANTHROPIC_MODEL =
   "us.anthropic.claude-haiku-4-5-20251001-v1:0";
 export const VERTEX_ANTHROPIC_MODEL =
   "publishers/anthropic/models/claude-haiku-4-5";
+
+// Baseten serves OSS models behind an OpenAI-compatible (chat-completions) API.
+// Used to capture real OSS-provider wire behavior (e.g. GLM streaming framing)
+// that native OpenAI does not exhibit.
+export const BASETEN_BASE_URL = "https://inference.baseten.co/v1";
+export const BASETEN_MODEL = "zai-org/GLM-5.2";

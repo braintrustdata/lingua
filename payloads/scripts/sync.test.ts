@@ -21,6 +21,7 @@ const SNAPSHOT_PROVIDERS: ProviderType[] = [
   "anthropic",
   "google",
   "bedrock",
+  "baseten",
 ];
 
 describe("test data sync", () => {

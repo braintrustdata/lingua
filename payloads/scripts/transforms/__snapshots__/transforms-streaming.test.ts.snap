@@ -3424,6 +3424,55 @@ data: {"type":"message_stop"}
 "
 `;
 
+exports[`streaming: baseten → anthropic > glmToolCallWithLeadingTextRequest > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"chatcmpl-29213056326a4b6b80d3cfc3704acc78","model":"zai-org/GLM-5.2","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"cache_read_input_tokens":32,"input_tokens":168,"output_tokens":1}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"I","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"'m about to look up","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" the weather","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" for San Francisco, CA","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"id":"chatcmpl-tool-8407ef02d8ed4b07920b2984f2431235","input":{},"name":"get_weather","type":"tool_use"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"partial_json":"{","type":"input_json_delta"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"partial_json":"\\"location\\": \\"San Francisco","type":"input_json_delta"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"partial_json":", CA\\"}","type":"input_json_delta"}}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"tool_use"},"type":"message_delta","usage":{"cache_read_input_tokens":32,"input_tokens":168,"output_tokens":27}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
 exports[`streaming: chat-completions → anthropic > complexReasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01Jbqq7pu2VC5ixYeKCSgU7y","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":4,"prompt_tokens":80,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":84}}
 
