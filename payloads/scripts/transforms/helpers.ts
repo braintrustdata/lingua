@@ -52,6 +52,12 @@ export interface TransformPair {
   target: SourceFormat;
   wasmSource: WasmFormat;
   wasmTarget: WasmFormat;
+  // Provider whose SDK is actually called to capture the fixture. Defaults to
+  // `source`. Set this when the directory name (`source_to_target`) describes the
+  // transformation direction rather than the provider being called — e.g.
+  // baseten → anthropic captures the native Baseten/GLM stream (the source) and
+  // renders it onto the Anthropic surface (the target).
+  captureProvider?: SourceFormat;
 }
 
 export interface FixtureHandlerConfig {
@@ -352,13 +358,13 @@ export function getTransformableCases(
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
     if (sourceCase == null || testCase?.expect) return false;
-    // Baseten is an opt-in OSS target, not a universal one: only cases that define a
-    // `baseten` entry transform to Baseten, and those OSS cases transform *only* to
-    // Baseten (kept off the standard cross-provider matrix). Without this, the
-    // anthropic → baseten pair would route every anthropic case to GLM.
+    // Baseten is an opt-in OSS source: the baseten → anthropic pair (source "baseten")
+    // naturally includes only cases that define a `baseten` entry. Those OSS cases also
+    // define an `anthropic` request (gold reference) — keep them off the standard
+    // anthropic→openai/google/etc. fan-out so the repro stays scoped to the GLM stream.
     const definesBaseten =
       getCaseForProvider(allTestCases, caseName, "baseten") != null;
-    if (definesBaseten !== (pair.target === "baseten")) return false;
+    if (definesBaseten && pair.source !== "baseten") return false;
     return true;
   });
 }
@@ -418,18 +424,18 @@ export const STREAMING_PAIRS: TransformPair[] = [
     wasmSource: "OpenAI",
     wasmTarget: "Anthropic",
   },
-  // OSS models served via Baseten's OpenAI-compatible API. Conventional client →
-  // provider pair (like anthropic → chat-completions): the Anthropic request is
-  // transformed to chat-completions and sent to Baseten, and the captured GLM stream
-  // is rendered back onto the Anthropic surface (wasmSource "Anthropic"), exercising
-  // the chat-completions→Anthropic streaming translation the gateway performs for OSS
-  // models. Baseten is an opt-in target (see getTransformableCases): only cases that
-  // define a `baseten` entry are routed here.
+  // OSS models served via Baseten's OpenAI-compatible API. The transformation under
+  // test runs baseten → anthropic: capture the native Baseten/GLM chat-completions
+  // stream (captureProvider "baseten") and render it onto the Anthropic surface
+  // (wasmSource "Anthropic"), reproducing the chat-completions→Anthropic streaming
+  // translation the gateway performs for OSS models — the direction the bug lives in.
+  // Opt-in: a baseten-source pair only includes cases that define a `baseten` entry.
   {
-    source: "anthropic",
-    target: "baseten",
+    source: "baseten",
+    target: "anthropic",
     wasmSource: "Anthropic",
     wasmTarget: "OpenAI",
+    captureProvider: "baseten",
   },
 ];
 
