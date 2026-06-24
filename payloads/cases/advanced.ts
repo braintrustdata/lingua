@@ -504,34 +504,10 @@ export const advancedCases: TestCaseCollection = {
     responses: null,
     google: null,
     bedrock: null,
-    anthropic: {
-      model: ANTHROPIC_MODEL,
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "user",
-          content:
-            "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA.",
-        },
-      ],
-      tools: [
-        {
-          name: "get_weather",
-          description: "Get the current weather for a location",
-          input_schema: {
-            type: "object",
-            properties: {
-              location: {
-                type: "string",
-                description: "The city and state, e.g. San Francisco, CA",
-              },
-            },
-            required: ["location"],
-          },
-        },
-      ],
-      tool_choice: { type: "auto" },
-    },
+    anthropic: null,
+    // Native source: GLM-5.2 served via Baseten's OpenAI-compatible API. Its real
+    // streaming framing (bundled first chunk, repeated tool-call id, args on the
+    // finish delta) is what the baseten → anthropic transform must handle.
     baseten: {
       model: BASETEN_MODEL,
       messages: [

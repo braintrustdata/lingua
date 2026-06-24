@@ -265,22 +265,6 @@
       ]
     },
     {
-      "testCase": "glmToolCallWithLeadingTextRequest",
-      "source": "Anthropic",
-      "target": "ChatCompletions",
-      "fields": [
-        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic tool_use 'caller' field has no ChatCompletions equivalent" }
-      ]
-    },
-    {
-      "testCase": "glmToolCallWithLeadingTextRequest",
-      "source": "Anthropic",
-      "target": "Google",
-      "fields": [
-        { "pattern": "messages[*].content[*].provider_options", "reason": "Anthropic tool_use 'caller' field has no Google equivalent" }
-      ]
-    },
-    {
       "testCase": "webSearchToolParam",
       "source": "Anthropic",
       "target": "Responses",

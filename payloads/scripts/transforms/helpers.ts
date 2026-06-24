@@ -357,15 +357,7 @@ export function getTransformableCases(
     if (filter && !caseName.includes(filter)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
-    if (sourceCase == null || testCase?.expect) return false;
-    // Baseten is an opt-in OSS source: the baseten → anthropic pair (source "baseten")
-    // naturally includes only cases that define a `baseten` entry. Those OSS cases also
-    // define an `anthropic` request (gold reference) — keep them off the standard
-    // anthropic→openai/google/etc. fan-out so the repro stays scoped to the GLM stream.
-    const definesBaseten =
-      getCaseForProvider(allTestCases, caseName, "baseten") != null;
-    if (definesBaseten && pair.source !== "baseten") return false;
-    return true;
+    return sourceCase != null && !testCase?.expect;
   });
 }
 
