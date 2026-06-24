@@ -24,6 +24,7 @@ import {
 import { allTestCases, getCaseNames, getCaseForProvider } from "../../cases";
 import {
   ANTHROPIC_MODEL,
+  BASETEN_MODEL,
   BEDROCK_MODEL,
   GOOGLE_MODEL,
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -37,7 +38,8 @@ export type SourceFormat =
   | "anthropic"
   | "bedrock"
   | "google"
-  | "vertex-anthropic";
+  | "vertex-anthropic"
+  | "baseten";
 export type WasmFormat =
   | "OpenAI"
   | "Responses"
@@ -153,6 +155,8 @@ const REQUEST_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   bedrock: validate_bedrock_request,
   google: validate_google_request,
   "vertex-anthropic": validate_anthropic_request,
+  // Baseten is OpenAI-compatible (chat-completions wire format).
+  baseten: validate_chat_completions_request,
 };
 
 const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
@@ -162,6 +166,8 @@ const RESPONSE_VALIDATORS: Record<SourceFormat, (json: string) => unknown> = {
   bedrock: validate_bedrock_response,
   google: validate_google_response,
   "vertex-anthropic": validate_anthropic_response,
+  // Baseten is OpenAI-compatible (chat-completions wire format).
+  baseten: validate_chat_completions_response,
 };
 
 interface TransformResultData {
@@ -273,6 +279,7 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   responses: OPENAI_RESPONSES_MODEL,
   google: GOOGLE_MODEL,
   "vertex-anthropic": VERTEX_ANTHROPIC_MODEL,
+  baseten: BASETEN_MODEL,
 };
 
 export function getTargetModelForCase(
@@ -402,6 +409,18 @@ export const STREAMING_PAIRS: TransformPair[] = [
     target: "vertex-anthropic",
     wasmSource: "OpenAI",
     wasmTarget: "Anthropic",
+  },
+  // OSS models served via Baseten's OpenAI-compatible API. The request is authored
+  // directly in chat-completions form (source/target "baseten") and sent to Baseten;
+  // the snapshot renders the captured stream onto the Anthropic surface
+  // (wasmSource "Anthropic"), exercising the chat-completions→Anthropic streaming
+  // translation the gateway performs for OSS models. Scoped to cases that define a
+  // `baseten` entry, so it does not fan out across every chat-completions case.
+  {
+    source: "baseten",
+    target: "baseten",
+    wasmSource: "Anthropic",
+    wasmTarget: "OpenAI",
   },
 ];
 

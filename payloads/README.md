@@ -155,6 +155,21 @@ pnpm install --frozen-lockfile
 
 - `OPENAI_API_KEY`: Required for capturing OpenAI payloads
 - `ANTHROPIC_API_KEY`: Required for capturing Anthropic payloads
+- `BASETEN_API_KEY`: Required for capturing OSS-model payloads via Baseten
+
+### OSS models via Baseten
+
+Baseten serves OSS models (e.g. `zai-org/GLM-5.2`) behind an OpenAI-compatible
+chat-completions API. It is wired in as a `baseten` provider so real OSS-provider
+wire behavior — which native OpenAI does not reproduce, such as bundling the first
+tool-argument fragment with the tool name — can be captured for transform fixtures.
+
+To add an OSS reproduce case, define a `baseten` entry on the case (a
+chat-completions request whose `model` is the Baseten model id) and leave the other
+providers `null`. The `baseten → baseten` streaming pair captures the OSS stream and
+renders it onto the Anthropic surface, exercising the chat-completions→Anthropic
+translation the gateway performs for OSS models. See `glmToolCallWithLeadingTextRequest`
+in `cases/advanced.ts`.
 
 ## Usage
 

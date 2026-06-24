@@ -5,6 +5,7 @@ import { dirname } from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { allTestCases, getCaseForProvider, GOOGLE_MODEL } from "../../cases";
+import { BASETEN_BASE_URL } from "../../cases/models";
 import { callBedrockConverse } from "../providers/bedrock";
 import { executeVertexAnthropic } from "../providers/vertex-anthropic";
 import {
@@ -38,6 +39,7 @@ async function runConcurrently(tasks: (() => Promise<void>)[]): Promise<void> {
 
 let _anthropic: Anthropic | undefined;
 let _openai: OpenAI | undefined;
+let _baseten: OpenAI | undefined;
 
 type CallProviderOptions = {
   stream?: boolean;
@@ -51,6 +53,19 @@ function getAnthropic(): Anthropic {
 function getOpenAI(): OpenAI {
   if (!_openai) _openai = new OpenAI();
   return _openai;
+}
+
+// Baseten exposes OSS models through an OpenAI-compatible API, so the OpenAI SDK
+// is reused with a Baseten base URL and key.
+function getBaseten(): OpenAI {
+  if (!_baseten) {
+    const apiKey = process.env.BASETEN_API_KEY;
+    if (!apiKey) {
+      throw new Error("BASETEN_API_KEY environment variable is required");
+    }
+    _baseten = new OpenAI({ apiKey, baseURL: BASETEN_BASE_URL });
+  }
+  return _baseten;
 }
 
 async function callGoogleProvider(
@@ -117,6 +132,16 @@ async function callProvider(
         } as OpenAI.ChatCompletionCreateParams);
       }
       return getOpenAI().chat.completions.create(
+        request as unknown as OpenAI.ChatCompletionCreateParams
+      );
+    case "baseten":
+      if (stream) {
+        return getBaseten().chat.completions.create({
+          ...(request as unknown as OpenAI.ChatCompletionCreateParams),
+          stream: true,
+        } as OpenAI.ChatCompletionCreateParams);
+      }
+      return getBaseten().chat.completions.create(
         request as unknown as OpenAI.ChatCompletionCreateParams
       );
     case "responses":

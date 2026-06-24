@@ -9,6 +9,7 @@ import {
   BEDROCK_ANTHROPIC_MODEL,
   GOOGLE_GEMINI_3_MODEL,
   VERTEX_ANTHROPIC_MODEL,
+  BASETEN_MODEL,
 } from "./models";
 
 const IMAGE_BASE64 =
@@ -495,6 +496,49 @@ export const advancedCases: TestCaseCollection = {
       tool_choice: {
         type: "any",
       },
+    },
+  },
+
+  // Regression for glm-bug.md. OSS models served via Baseten (GLM-5.2) stream
+  // assistant text *before* a tool call AND bundle id/role/first-text into the
+  // first chunk — a framing native OpenAI never produces. Captured against
+  // Baseten, then rendered to the Anthropic surface, this reproduces the broken
+  // OpenAI(chat-completions)→Anthropic streaming translation in the gateway.
+  glmToolCallWithLeadingTextRequest: {
+    "chat-completions": null,
+    responses: null,
+    google: null,
+    bedrock: null,
+    anthropic: null,
+    baseten: {
+      model: BASETEN_MODEL,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
     },
   },
 
