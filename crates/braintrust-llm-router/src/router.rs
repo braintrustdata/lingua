@@ -25,6 +25,7 @@ use crate::streaming::{
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
 use lingua::{TransformError, TransformResult};
+use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
 pub use lingua::{extract_request_hints, RequestHints};
@@ -402,6 +403,7 @@ impl Router {
             output_format,
             strategy,
         } = request.inner;
+        let fallback_response_model = spec.model.clone();
         let response_bytes = self
             .execute_with_retry(
                 provider,
@@ -421,7 +423,9 @@ impl Router {
         )?;
         let response = match result {
             TransformResult::PassThrough(bytes) => bytes,
-            TransformResult::Transformed { bytes, .. } => bytes,
+            TransformResult::Transformed { bytes, .. } => {
+                replace_transformed_response_model(bytes, &fallback_response_model)?
+            }
         };
         Ok(CompleteResponseWithRaw {
             response,
@@ -964,6 +968,34 @@ impl Router {
     }
 }
 
+fn replace_transformed_response_model(bytes: Bytes, model: &str) -> Result<Bytes> {
+    if !bytes
+        .windows(br#""model":"transformed""#.len())
+        .any(|window| window == br#""model":"transformed""#)
+    {
+        return Ok(bytes);
+    }
+
+    #[derive(Deserialize)]
+    struct ResponseModelView {
+        model: Option<String>,
+    }
+
+    let model_view: ResponseModelView = lingua::serde_json::from_slice(&bytes)?;
+    if model_view.model.as_deref() != Some("transformed") {
+        return Ok(bytes);
+    }
+
+    let mut value: Value = lingua::serde_json::from_slice(&bytes)?;
+    if let Some(object) = value.as_object_mut() {
+        object.insert("model".to_string(), Value::String(model.to_string()));
+    }
+
+    lingua::serde_json::to_vec(&value)
+        .map(Bytes::from)
+        .map_err(Error::LinguaJson)
+}
+
 fn default_alias_provider_id(alias: &str) -> Option<&'static str> {
     match alias {
         "OPENAI_API_KEY" => Some("openai"),
@@ -1363,6 +1395,51 @@ mod tests {
         Bytes::from_static(
             br#"{"id":"chatcmpl-test","object":"chat.completion.chunk","created":0,"model":"gpt-5-mini","choices":[{"index":0,"delta":{"content":"hello"},"finish_reason":null}]}"#,
         )
+    }
+
+    #[test]
+    fn replace_transformed_response_model_replaces_exact_placeholder() {
+        let response = Bytes::from_static(
+            br#"{"id":"msg_transformed","type":"message","model":"transformed","content":[]}"#,
+        );
+
+        let patched =
+            replace_transformed_response_model(response, "global.anthropic.claude-opus-4-8")
+                .expect("response model patches");
+        let parsed: Value = serde_json::from_slice(&patched).expect("valid response json");
+
+        assert_eq!(
+            parsed.get("model").and_then(Value::as_str),
+            Some("global.anthropic.claude-opus-4-8")
+        );
+    }
+
+    #[test]
+    fn replace_transformed_response_model_preserves_real_model() {
+        let response = Bytes::from_static(
+            br#"{"id":"msg_123","type":"message","model":"claude-sonnet-4-5","content":[]}"#,
+        );
+
+        let patched = replace_transformed_response_model(
+            response.clone(),
+            "global.anthropic.claude-opus-4-8",
+        )
+        .expect("response model patches");
+
+        assert_eq!(patched, response);
+    }
+
+    #[test]
+    fn replace_transformed_response_model_preserves_missing_model() {
+        let response = Bytes::from_static(br#"{"id":"msg_123","type":"message","content":[]}"#);
+
+        let patched = replace_transformed_response_model(
+            response.clone(),
+            "global.anthropic.claude-opus-4-8",
+        )
+        .expect("response model patches");
+
+        assert_eq!(patched, response);
     }
 
     fn resolved_aliases(
