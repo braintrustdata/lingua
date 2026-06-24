@@ -352,15 +352,13 @@ export function getTransformableCases(
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
     if (sourceCase == null || testCase?.expect) return false;
-    // OSS reproduce cases (those defining `baseten`) only participate in transforms
-    // that target Baseten; they still get native provider snapshots, but are kept off
-    // the standard cross-provider fan-out (anthropic→openai/google/etc.).
-    if (
-      getCaseForProvider(allTestCases, caseName, "baseten") != null &&
-      pair.target !== "baseten"
-    ) {
-      return false;
-    }
+    // Baseten is an opt-in OSS target, not a universal one: only cases that define a
+    // `baseten` entry transform to Baseten, and those OSS cases transform *only* to
+    // Baseten (kept off the standard cross-provider matrix). Without this, the
+    // anthropic → baseten pair would route every anthropic case to GLM.
+    const definesBaseten =
+      getCaseForProvider(allTestCases, caseName, "baseten") != null;
+    if (definesBaseten !== (pair.target === "baseten")) return false;
     return true;
   });
 }
@@ -425,8 +423,8 @@ export const STREAMING_PAIRS: TransformPair[] = [
   // transformed to chat-completions and sent to Baseten, and the captured GLM stream
   // is rendered back onto the Anthropic surface (wasmSource "Anthropic"), exercising
   // the chat-completions→Anthropic streaming translation the gateway performs for OSS
-  // models. Scoped to cases that define a `baseten` entry so it does not fan out
-  // across the standard cross-provider pairs.
+  // models. Baseten is an opt-in target (see getTransformableCases): only cases that
+  // define a `baseten` entry are routed here.
   {
     source: "anthropic",
     target: "baseten",
