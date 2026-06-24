@@ -3731,7 +3731,12 @@ mod tests {
         let partial_json: String = parsed
             .iter()
             .filter(|event| event["delta"]["type"] == json!("input_json_delta"))
-            .map(|event| event["delta"]["partial_json"].as_str().unwrap_or("").to_string())
+            .map(|event| {
+                event["delta"]["partial_json"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string()
+            })
             .collect();
         assert_eq!(partial_json, "{\"city\": \"SF\"}");
     }

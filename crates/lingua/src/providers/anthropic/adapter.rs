@@ -1249,9 +1249,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 // then the tool events, returning an array when there is more than one.
                 if !delta_view.tool_calls.is_empty() {
                     let mut events = Vec::new();
-                    if let Some(content) =
-                        delta_view.content.as_deref().filter(|c| !c.is_empty())
-                    {
+                    if let Some(content) = delta_view.content.as_deref().filter(|c| !c.is_empty()) {
                         events.push(serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,
