@@ -3424,7 +3424,7 @@ data: {"type":"message_stop"}
 "
 `;
 
-exports[`streaming: baseten → baseten > glmToolCallWithLeadingTextRequest > streaming 1`] = `
+exports[`streaming: baseten → anthropic > glmToolCallWithLeadingTextRequest > streaming 1`] = `
 "event: message_start
 data: {"message":{"content":[],"id":"chatcmpl-1ed304343c5d41c18ccd90658320f273","model":"zai-org/GLM-5.2","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"cache_read_input_tokens":32,"input_tokens":169,"output_tokens":1}},"type":"message_start"}
 

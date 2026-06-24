@@ -1,0 +1,61 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'm about to look up the weather for you."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01CU21Q18Sh9n9WmFVYcFYAc",
+          "name": "get_weather",
+          "input": {
+            "location": "San Francisco, CA"
+          },
+          "caller": {
+            "type": "direct"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "toolu_01CU21Q18Sh9n9WmFVYcFYAc",
+          "content": "71 degrees"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "auto"
+  }
+}
