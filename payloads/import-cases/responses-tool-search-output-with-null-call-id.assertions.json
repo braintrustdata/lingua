@@ -1,0 +1,16 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": [
+    "assistant",
+    "tool"
+  ],
+  "mustContainText": [
+    "tool_discovery_call",
+    "tool_discovery_result",
+    "tsc_discover_catalog",
+    "list_catalog_items"
+  ],
+  "mustNotContainText": [
+    "tso_discover_catalog"
+  ]
+}

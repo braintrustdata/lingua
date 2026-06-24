@@ -13,6 +13,8 @@ struct ImportAssertionCase {
     expected_message_count: Option<usize>,
     expected_roles_in_order: Option<Vec<String>>,
     must_contain_text: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    must_not_contain_text: Option<Vec<String>>,
 }
 
 fn workspace_root() -> PathBuf {
@@ -152,6 +154,7 @@ fn infer_assertions_from_messages(messages: &[Message]) -> ImportAssertionCase {
         expected_message_count: Some(messages.len()),
         expected_roles_in_order: Some(roles),
         must_contain_text: Some(vec![]),
+        must_not_contain_text: None,
     }
 }
 
@@ -243,6 +246,7 @@ fn test_import_cases_from_shared_fixtures() {
                     expected_message_count: inferred.expected_message_count,
                     expected_roles_in_order: inferred.expected_roles_in_order,
                     must_contain_text: existing.must_contain_text.clone(),
+                    must_not_contain_text: existing.must_not_contain_text.clone(),
                 };
                 write_assertions_fixture(&assertions_path, &updated);
                 generated_count += 1;
@@ -292,6 +296,17 @@ fn test_import_cases_from_shared_fixtures() {
                     serialized_messages.contains(&required_text),
                     "missing required text '{}' for case '{}'",
                     required_text,
+                    case_name
+                );
+            }
+        }
+
+        if let Some(disallowed_texts) = assertions.must_not_contain_text {
+            for disallowed_text in disallowed_texts {
+                assert!(
+                    !serialized_messages.contains(&disallowed_text),
+                    "found disallowed text '{}' for case '{}'",
+                    disallowed_text,
                     case_name
                 );
             }
