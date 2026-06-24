@@ -1242,11 +1242,26 @@ impl ProviderAdapter for AnthropicAdapter {
             }
 
             if let Some(delta_view) = choice.delta_view() {
-                // Tool calls. A single delta may need to expand into multiple Anthropic
-                // events (e.g. an opening delta that also carries the first argument
-                // fragment), so build the list and return an array when needed.
+                // Tool calls. A single delta may carry assistant text and/or the opening
+                // of a tool call (some OSS providers bundle the final text fragment onto
+                // the tool-call chunk), and a tool-call delta may itself expand into
+                // multiple Anthropic events. Emit any text first so it is never dropped,
+                // then the tool events, returning an array when there is more than one.
                 if !delta_view.tool_calls.is_empty() {
-                    let mut events = anthropic_tool_call_stream_events(&delta_view, choice.index);
+                    let mut events = Vec::new();
+                    if let Some(content) =
+                        delta_view.content.as_deref().filter(|c| !c.is_empty())
+                    {
+                        events.push(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "text_delta",
+                                "text": content
+                            }
+                        }));
+                    }
+                    events.extend(anthropic_tool_call_stream_events(&delta_view, choice.index));
                     return Ok(if events.len() == 1 {
                         events.remove(0)
                     } else {

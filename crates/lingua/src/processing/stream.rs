@@ -3648,4 +3648,91 @@ mod tests {
             json!({ "location": "San Francisco" })
         );
     }
+
+    // Regression: a single OpenAI-compatible delta may carry BOTH assistant text and the
+    // opening of a tool call (GLM/zai bundles the final text fragment onto the tool-call
+    // chunk). The text must not be dropped — it stays on the text block before the
+    // tool_use block opens. See glm-bug.md.
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_bundled_text_and_tool_call_preserves_text() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let text = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": { "role": "assistant", "content": "Sure" }, "finish_reason": null }]
+        }));
+        // This delta carries the trailing text "." AND opens the tool call.
+        let text_and_tool = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "content": ".",
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "chatcmpl-tool-abc",
+                        "type": "function",
+                        "function": { "name": "get_weather", "arguments": "{\"city\": \"SF\"}" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let finish = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": {}, "finish_reason": "tool_calls" }]
+        }));
+        let usage = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30 }
+        }));
+
+        let mut events: Vec<StreamOutputChunk> = Vec::new();
+        for chunk in [text, text_and_tool, finish, usage] {
+            events.extend(session.push(chunk).unwrap());
+        }
+        events.extend(session.finish());
+
+        let parsed: Vec<Value> = events
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice(&chunk.data).unwrap())
+            .collect();
+
+        // Both text fragments are preserved on the text block (index 0).
+        let text: String = parsed
+            .iter()
+            .filter(|event| event["delta"]["type"] == json!("text_delta"))
+            .map(|event| {
+                assert_eq!(event["index"], json!(0));
+                event["delta"]["text"].as_str().unwrap_or("").to_string()
+            })
+            .collect();
+        assert_eq!(text, "Sure.");
+
+        // The tool_use block still opens (on a new index) with streamed arguments.
+        let tool_start = parsed.iter().find(|event| {
+            event["type"] == json!("content_block_start")
+                && event["content_block"]["type"] == json!("tool_use")
+        });
+        assert_eq!(
+            tool_start.map(|event| event["content_block"]["name"].clone()),
+            Some(json!("get_weather"))
+        );
+        let partial_json: String = parsed
+            .iter()
+            .filter(|event| event["delta"]["type"] == json!("input_json_delta"))
+            .map(|event| event["delta"]["partial_json"].as_str().unwrap_or("").to_string())
+            .collect();
+        assert_eq!(partial_json, "{\"city\": \"SF\"}");
+    }
 }

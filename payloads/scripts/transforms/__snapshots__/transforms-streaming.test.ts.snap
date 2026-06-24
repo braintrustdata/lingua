@@ -3443,6 +3443,9 @@ data: {"delta":{"text":" the weather","type":"text_delta"},"index":0,"type":"con
 event: content_block_delta
 data: {"delta":{"text":" for San Francisco, CA","type":"text_delta"},"index":0,"type":"content_block_delta"}
 
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
 event: content_block_stop
 data: {"index":0,"type":"content_block_stop"}
 
