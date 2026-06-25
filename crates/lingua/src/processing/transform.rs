@@ -314,13 +314,6 @@ fn target_format_is_anthropic(format: ProviderFormat) -> bool {
     )
 }
 
-fn is_billing_header_part(part: &UserContentPart) -> bool {
-    matches!(
-        part,
-        UserContentPart::Text(text) if text.text.trim_start().starts_with(CLAUDE_CODE_BILLING_PREFIX)
-    )
-}
-
 fn system_content_is_empty(content: &UserContent) -> bool {
     match content {
         UserContent::Array(parts) => parts.is_empty(),
@@ -335,7 +328,10 @@ fn drop_leading_marker_line(text: &str) -> String {
     }
 }
 
-/// Remove Claude Code's billing-attribution block from system messages. A
+/// Remove Claude Code's billing-attribution block from system messages. The
+/// billing marker is normally its own leading text block, but it can also share
+/// a block with real instructions (`"x-anthropic-billing-header: ...\nYou are
+/// helpful"`); in that case we drop only the marker line and keep the rest. A
 /// system message left empty solely by this removal is dropped so we don't emit
 /// a stray empty system prompt downstream.
 fn strip_claude_code_attribution(req: &mut UniversalRequest) {
@@ -346,9 +342,23 @@ fn strip_claude_code_attribution(req: &mut UniversalRequest) {
         };
         let stripped = match content {
             UserContent::Array(parts) => {
-                let before = parts.len();
-                parts.retain(|part| !is_billing_header_part(part));
-                parts.len() != before
+                let mut stripped = false;
+                parts.retain_mut(|part| {
+                    let UserContentPart::Text(text) = part else {
+                        return true;
+                    };
+                    if !text
+                        .text
+                        .trim_start()
+                        .starts_with(CLAUDE_CODE_BILLING_PREFIX)
+                    {
+                        return true;
+                    }
+                    stripped = true;
+                    text.text = drop_leading_marker_line(&text.text);
+                    !text.text.trim().is_empty()
+                });
+                stripped
             }
             UserContent::String(text) => {
                 if text.trim_start().starts_with(CLAUDE_CODE_BILLING_PREFIX) {
@@ -1624,6 +1634,35 @@ mod tests {
         assert!(
             text.contains("x-anthropic-billing-header"),
             "billing header must be preserved for Anthropic targets: {text}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_combined_block_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {
+                    "type": "text",
+                    "text": "x-anthropic-billing-header: cch=abc123;\nYou are running inside Claude Code."
+                }
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing line should be stripped from a combined block: {text}"
+        );
+        assert!(
+            text.contains("You are running inside Claude Code."),
+            "real instructions in a combined block must be preserved: {text}"
         );
     }
 
