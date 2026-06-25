@@ -342,9 +342,13 @@ export async function captureTransforms(
             targetModel
           ) as Record<string, unknown>;
 
-          const streamResponse = await callProvider(captureProvider, streamRequest, {
-            stream: true,
-          });
+          const streamResponse = await callProvider(
+            captureProvider,
+            streamRequest,
+            {
+              stream: true,
+            }
+          );
           const chunks = await collectStreamChunks(streamResponse);
 
           writeFileSync(streamingPath, JSON.stringify(chunks, null, 2));

@@ -133,6 +133,21 @@ jobs:
           echo "log_path=$log_path" >> "$GITHUB_OUTPUT"
           exit "$generate_status"
 
+      - name: Snapshot Braintrust trace for repair
+        id: repair_task_trace
+        if: steps.generate.outcome == 'failure'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: repair failed generation
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
+
       - name: Repair failed generation
         id: repair
         if: steps.generate.outcome == 'failure'
@@ -150,11 +165,11 @@ jobs:
           settings: |
             {
               "env": {
-                "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.repair_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
-                "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.repair_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.repair_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
@@ -240,6 +255,21 @@ jobs:
           echo "Changes detected:"
           git status --short
 
+      - name: Snapshot Braintrust trace for integration review
+        id: integration_review_task_trace
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: review generated provider integration
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
+
       - name: Review generated provider integration
         id: integration_review
         if: steps.changes.outputs.has_changes == 'true'
@@ -257,11 +287,11 @@ jobs:
           settings: |
             {
               "env": {
-                "TRACE_TO_BRAINTRUST": "${{ steps.braintrust_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.integration_review_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.braintrust_trace.outputs.span_id }}",
-                "CC_ROOT_SPAN_ID": "${{ steps.braintrust_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.integration_review_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.integration_review_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
