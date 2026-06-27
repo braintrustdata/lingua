@@ -24,7 +24,7 @@ use crate::serde_json::Value;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -298,6 +298,86 @@ fn chat_completions_upgrade_model(
     request_model.map(str::to_string)
 }
 
+/// Claude Code prepends a billing-attribution text block to the front of the
+/// system prompt (`x-anthropic-billing-header: ...; cch=<hash>;`). The trailing
+/// hash changes every turn, so when a request is routed to a non-Anthropic
+/// provider the block busts the provider's prompt-prefix cache for no benefit.
+/// We strip it for non-Anthropic targets; Anthropic targets keep it intact.
+const CLAUDE_CODE_BILLING_PREFIX: &str = "x-anthropic-billing-header:";
+
+fn target_format_is_anthropic(format: ProviderFormat) -> bool {
+    matches!(
+        format,
+        ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic
+    )
+}
+
+fn system_content_is_empty(content: &UserContent) -> bool {
+    match content {
+        UserContent::Array(parts) => parts.is_empty(),
+        UserContent::String(text) => text.trim().is_empty(),
+    }
+}
+
+fn drop_leading_marker_line(text: &str) -> String {
+    match text.split_once('\n') {
+        Some((_, rest)) => rest.trim_start_matches('\n').to_string(),
+        None => String::new(),
+    }
+}
+
+/// Remove Claude Code's billing-attribution block from system messages. The
+/// billing marker is normally its own leading text block, but it can also share
+/// a block with real instructions (`"x-anthropic-billing-header: ...\nYou are
+/// helpful"`); in that case we drop only the marker line and keep the rest. A
+/// system message left empty solely by this removal is dropped so we don't emit
+/// a stray empty system prompt downstream.
+fn strip_claude_code_attribution(req: &mut UniversalRequest) {
+    let mut empty_after_strip: Vec<usize> = Vec::new();
+    for (idx, message) in req.messages.iter_mut().enumerate() {
+        let Message::System { content } = message else {
+            continue;
+        };
+        let stripped = match content {
+            UserContent::Array(parts) => {
+                let mut stripped = false;
+                parts.retain_mut(|part| {
+                    let UserContentPart::Text(text) = part else {
+                        return true;
+                    };
+                    if !text
+                        .text
+                        .trim_start()
+                        .starts_with(CLAUDE_CODE_BILLING_PREFIX)
+                    {
+                        return true;
+                    }
+                    stripped = true;
+                    text.text = drop_leading_marker_line(&text.text);
+                    !text.text.trim().is_empty()
+                });
+                stripped
+            }
+            UserContent::String(text) => {
+                if text.trim_start().starts_with(CLAUDE_CODE_BILLING_PREFIX) {
+                    *text = drop_leading_marker_line(text);
+                    true
+                } else {
+                    false
+                }
+            }
+        };
+        if stripped && system_content_is_empty(content) {
+            empty_after_strip.push(idx);
+        }
+    }
+    for idx in empty_after_strip.into_iter().rev() {
+        req.messages.remove(idx);
+    }
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -348,6 +428,10 @@ pub fn transform_request(
 
     if let Some(model) = model {
         universal.model = Some(model.to_string());
+    }
+
+    if !target_format_is_anthropic(target_format) {
+        strip_claude_code_attribution(&mut universal);
     }
 
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
@@ -1499,6 +1583,108 @@ mod tests {
             Some("gemini-2.5-flash")
         );
         assert!(output.get("contents").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {"type": "text", "text": "x-anthropic-billing-header: cc_version=1.2.3; cc_entrypoint=cli; cch=abc123;"},
+                {
+                    "type": "text",
+                    "text": "You are running inside Claude Code.",
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing header should be stripped for non-Anthropic targets: {text}"
+        );
+        assert!(text.contains("You are running inside Claude Code."));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_preserve_claude_code_billing_header_to_anthropic() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 1024,
+            "system": [
+                {"type": "text", "text": "x-anthropic-billing-header: cc_version=1.2.3; cch=abc123;"},
+                {"type": "text", "text": "You are running inside Claude Code."}
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            text.contains("x-anthropic-billing-header"),
+            "billing header must be preserved for Anthropic targets: {text}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_combined_block_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {
+                    "type": "text",
+                    "text": "x-anthropic-billing-header: cch=abc123;\nYou are running inside Claude Code."
+                }
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing line should be stripped from a combined block: {text}"
+        );
+        assert!(
+            text.contains("You are running inside Claude Code."),
+            "real instructions in a combined block must be preserved: {text}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_string_system_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "x-anthropic-billing-header: cch=abc123;\nYou are running inside Claude Code.",
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing header should be stripped from string system prompts: {text}"
+        );
+        assert!(text.contains("You are running inside Claude Code."));
     }
 
     #[test]

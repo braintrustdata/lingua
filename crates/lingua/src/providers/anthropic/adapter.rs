@@ -1187,7 +1187,21 @@ impl ProviderAdapter for AnthropicAdapter {
                 obj_map.insert("usage".into(), usage_value);
             }
 
-            return Ok(obj);
+            // Some providers (e.g. GLM/zai) place the final tool-argument fragment in the
+            // same delta that carries finish_reason. Re-emit any tool events before the
+            // terminating message_delta so those arguments are not dropped.
+            let tool_events = chunk
+                .choices
+                .first()
+                .and_then(|choice| choice.delta_view().map(|view| (choice.index, view)))
+                .map(|(index, view)| anthropic_tool_call_stream_events(&view, index))
+                .unwrap_or_default();
+            if tool_events.is_empty() {
+                return Ok(obj);
+            }
+            let mut events = tool_events;
+            events.push(obj);
+            return Ok(Value::Array(events));
         }
 
         // Content deltas
@@ -1228,40 +1242,29 @@ impl ProviderAdapter for AnthropicAdapter {
             }
 
             if let Some(delta_view) = choice.delta_view() {
-                // Tool calls
-                if let Some(tool_call) = delta_view.tool_calls.first() {
-                    let tool_index = tool_call.index.unwrap_or(choice.index);
-                    let function = tool_call.function.clone().unwrap_or_default();
-                    let tool_name = function.name.unwrap_or_default();
-                    let tool_id = tool_call.id.clone().unwrap_or_default();
-                    let arguments = function.arguments.unwrap_or_default();
-
-                    if !tool_name.is_empty() || !tool_id.is_empty() {
-                        let input = serde_json::from_str::<Value>(&arguments)
-                            .ok()
-                            .filter(Value::is_object)
-                            .unwrap_or_else(|| serde_json::json!({}));
-                        let content_block_start = serde_json::json!({
-                            "type": "content_block_start",
-                            "index": tool_index,
-                            "content_block": {
-                                "type": "tool_use",
-                                "id": tool_id,
-                                "name": tool_name,
-                                "input": input
+                // Tool calls. A single delta may carry assistant text and/or the opening
+                // of a tool call (some OSS providers bundle the final text fragment onto
+                // the tool-call chunk), and a tool-call delta may itself expand into
+                // multiple Anthropic events. Emit any text first so it is never dropped,
+                // then the tool events, returning an array when there is more than one.
+                if !delta_view.tool_calls.is_empty() {
+                    let mut events = Vec::new();
+                    if let Some(content) = delta_view.content.as_deref().filter(|c| !c.is_empty()) {
+                        events.push(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "text_delta",
+                                "text": content
                             }
-                        });
-                        return Ok(content_block_start);
+                        }));
                     }
-
-                    return Ok(serde_json::json!({
-                        "type": "content_block_delta",
-                        "index": tool_index,
-                        "delta": {
-                            "type": "input_json_delta",
-                            "partial_json": arguments
-                        }
-                    }));
+                    events.extend(anthropic_tool_call_stream_events(&delta_view, choice.index));
+                    return Ok(if events.len() == 1 {
+                        events.remove(0)
+                    } else {
+                        Value::Array(events)
+                    });
                 }
 
                 // Text content delta
@@ -1329,6 +1332,66 @@ fn tool_input_to_arguments(input: &Value) -> String {
         return String::new();
     }
     serde_json::to_string(input).unwrap_or_else(|_| "{}".to_string())
+}
+
+/// Build the Anthropic streaming events for the tool calls in a single delta.
+///
+/// Maps OpenAI-style streaming tool-call deltas to Anthropic events. The presence of
+/// `function.name` (which only appears on the opening delta of a tool call) decides when
+/// to open a `tool_use` block — `id` is not used because some OpenAI-compatible providers
+/// (e.g. GLM/zai) repeat it on every continuation delta. Argument fragments are always
+/// re-emitted as `input_json_delta`, including a fragment bundled into the opening delta,
+/// so none are dropped.
+fn anthropic_tool_call_stream_events(
+    delta_view: &UniversalStreamDelta,
+    fallback_index: u32,
+) -> Vec<Value> {
+    let mut events = Vec::new();
+    for tool_call in &delta_view.tool_calls {
+        let tool_index = tool_call.index.unwrap_or(fallback_index);
+        let function = tool_call.function.clone().unwrap_or_default();
+        let tool_name = function.name.unwrap_or_default();
+        if tool_name.is_empty() {
+            // Continuation delta: stream the argument fragment. Empty fragments are
+            // preserved so providers that emit an initial empty input_json_delta
+            // round-trip losslessly.
+            let arguments = function.arguments.unwrap_or_default();
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+            continue;
+        }
+
+        // Opening delta: open the tool_use block.
+        events.push(serde_json::json!({
+            "type": "content_block_start",
+            "index": tool_index,
+            "content_block": {
+                "type": "tool_use",
+                "id": tool_call.id.clone().unwrap_or_default(),
+                "name": tool_name,
+                "input": {}
+            }
+        }));
+        // Some providers bundle the first argument fragment into the opening delta;
+        // re-emit it so it is not lost.
+        if let Some(arguments) = function.arguments.filter(|arguments| !arguments.is_empty()) {
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+        }
+    }
+    events
 }
 
 #[derive(Debug, Deserialize, Default)]
