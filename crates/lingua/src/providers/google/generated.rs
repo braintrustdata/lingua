@@ -1390,6 +1390,12 @@ pub struct Tool {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct ComputerUse {
+    /// Optional. Disabled safety policies for computer use.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled_safety_policies: Option<Vec<DisabledSafetyPolicy>>,
+    /// Optional. Whether enable the prompt injection detection check on computer-use request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_prompt_injection_detection: Option<bool>,
     /// Required. The environment being operated.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<Environment>,
@@ -1401,6 +1407,28 @@ pub struct ComputerUse {
     pub excluded_predefined_functions: Option<Vec<String>>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum DisabledSafetyPolicy {
+    #[serde(rename = "ACCOUNT_CREATION")]
+    AccountCreation,
+    #[serde(rename = "COMMUNICATION_TOOL")]
+    CommunicationTool,
+    #[serde(rename = "DATA_MODIFICATION")]
+    DataModification,
+    #[serde(rename = "FINANCIAL_TRANSACTIONS")]
+    FinancialTransactions,
+    #[serde(rename = "LEGAL_TERMS_AND_AGREEMENTS")]
+    LegalTermsAndAgreements,
+    #[serde(rename = "SAFETY_POLICY_UNSPECIFIED")]
+    SafetyPolicyUnspecified,
+    #[serde(rename = "SENSITIVE_DATA_MODIFICATION")]
+    SensitiveDataModification,
+    #[serde(rename = "USER_CONSENT_MANAGEMENT")]
+    UserConsentManagement,
+}
+
 /// Required. The environment being operated.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -1408,6 +1436,10 @@ pub struct ComputerUse {
 pub enum Environment {
     #[serde(rename = "ENVIRONMENT_BROWSER")]
     EnvironmentBrowser,
+    #[serde(rename = "ENVIRONMENT_DESKTOP")]
+    EnvironmentDesktop,
+    #[serde(rename = "ENVIRONMENT_MOBILE")]
+    EnvironmentMobile,
     #[serde(rename = "ENVIRONMENT_UNSPECIFIED")]
     EnvironmentUnspecified,
 }
