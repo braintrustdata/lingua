@@ -969,6 +969,21 @@ impl TryFromLLM<Vec<GoogleTool>> for Vec<UniversalTool> {
                     Some(Value::Object(url_context.clone())),
                 ));
             }
+
+            if let Some(computer_use) = &tool.computer_use {
+                let config = serde_json::to_value(computer_use).map_err(|e| {
+                    ConvertError::JsonSerializationFailed {
+                        field: "computer_use".to_string(),
+                        error: e.to_string(),
+                    }
+                })?;
+                result.push(UniversalTool::builtin(
+                    "computer_use",
+                    BuiltinToolProvider::Google,
+                    "computer_use",
+                    Some(config),
+                ));
+            }
         }
 
         Ok(result)
@@ -1021,6 +1036,11 @@ impl TryFromLLM<Vec<UniversalTool>> for Vec<GoogleTool> {
                                 Value::Object(map) => Some(map.clone()),
                                 _ => None,
                             });
+                        }
+                        "computer_use" => {
+                            google_tool.computer_use = config
+                                .as_ref()
+                                .and_then(|v| serde_json::from_value(v.clone()).ok());
                         }
                         _ => {
                             continue;
@@ -1744,6 +1764,69 @@ mod tests {
             <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
         assert_eq!(back.len(), 1);
         assert_eq!(back[0].url_context, Some(Map::new()));
+    }
+
+    #[test]
+    fn test_computer_use_builtin_roundtrip() {
+        use crate::providers::google::generated::{ComputerUse, DisabledSafetyPolicy, Environment};
+
+        let computer_use = ComputerUse {
+            environment: Some(Environment::EnvironmentBrowser),
+            disabled_safety_policies: Some(vec![
+                DisabledSafetyPolicy::FinancialTransactions,
+                DisabledSafetyPolicy::AccountCreation,
+            ]),
+            enable_prompt_injection_detection: Some(true),
+            excluded_predefined_functions: None,
+        };
+
+        let google_tools = vec![GoogleTool {
+            computer_use: Some(computer_use.clone()),
+            ..Default::default()
+        }];
+
+        let universal =
+            <Vec<UniversalTool> as TryFromLLM<Vec<GoogleTool>>>::try_from(google_tools).unwrap();
+        assert_eq!(universal.len(), 1);
+        assert_eq!(universal[0].name, "computer_use");
+        assert!(!universal[0].is_function());
+
+        let back =
+            <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
+        assert_eq!(back.len(), 1);
+        assert_eq!(back[0].computer_use, Some(computer_use));
+    }
+
+    #[test]
+    fn test_computer_use_new_environments_roundtrip() {
+        use crate::providers::google::generated::{ComputerUse, Environment};
+
+        for env in [
+            Environment::EnvironmentDesktop,
+            Environment::EnvironmentMobile,
+        ] {
+            let computer_use = ComputerUse {
+                environment: Some(env.clone()),
+                disabled_safety_policies: None,
+                enable_prompt_injection_detection: None,
+                excluded_predefined_functions: None,
+            };
+
+            let google_tools = vec![GoogleTool {
+                computer_use: Some(computer_use.clone()),
+                ..Default::default()
+            }];
+
+            let universal =
+                <Vec<UniversalTool> as TryFromLLM<Vec<GoogleTool>>>::try_from(google_tools)
+                    .unwrap();
+            let back =
+                <Vec<GoogleTool> as TryFromLLM<Vec<UniversalTool>>>::try_from(universal).unwrap();
+            assert_eq!(
+                back[0].computer_use.as_ref().unwrap().environment,
+                Some(env)
+            );
+        }
     }
 
     #[test]
