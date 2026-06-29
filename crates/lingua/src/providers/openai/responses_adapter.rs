@@ -416,6 +416,12 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(moderation) = typed_params.moderation {
             extras_map.insert("moderation".into(), moderation);
         }
+        if let Some(ref reasoning) = typed_params.reasoning {
+            let reasoning_val = serde_json::to_value(reasoning).map_err(|e| {
+                TransformError::SerializationFailed(format!("reasoning extras: {}", e))
+            })?;
+            extras_map.insert("reasoning".into(), reasoning_val);
+        }
 
         if !extras_map.is_empty() {
             params.extras.insert(ProviderFormat::Responses, extras_map);
@@ -2142,6 +2148,70 @@ mod tests {
         assert_eq!(
             typed.reasoning.and_then(|r| r.effort),
             Some(crate::providers::openai::params::OpenAIReasoningEffort::High)
+        );
+    }
+
+    #[test]
+    fn test_responses_reasoning_context_roundtrips() {
+        let input_json = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "high",
+                "context": "current_turn"
+            }
+        });
+
+        let adapter = ResponsesAdapter;
+        let universal = adapter
+            .request_to_universal(input_json)
+            .expect("should parse");
+
+        let output_json = adapter
+            .request_from_universal(&universal)
+            .expect("should reconstruct");
+
+        let reasoning = output_json
+            .get("reasoning")
+            .expect("reasoning should be present");
+        assert_eq!(
+            reasoning.get("context").and_then(|v| v.as_str()),
+            Some("current_turn"),
+            "reasoning.context should roundtrip"
+        );
+        assert_eq!(
+            reasoning.get("effort").and_then(|v| v.as_str()),
+            Some("high"),
+            "reasoning.effort should roundtrip"
+        );
+    }
+
+    #[test]
+    fn test_responses_reasoning_context_all_turns_roundtrips() {
+        let input_json = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "medium",
+                "context": "all_turns"
+            }
+        });
+
+        let adapter = ResponsesAdapter;
+        let universal = adapter
+            .request_to_universal(input_json)
+            .expect("should parse");
+
+        let output_json = adapter
+            .request_from_universal(&universal)
+            .expect("should reconstruct");
+
+        let reasoning = output_json
+            .get("reasoning")
+            .expect("reasoning should be present");
+        assert_eq!(
+            reasoning.get("context").and_then(|v| v.as_str()),
+            Some("all_turns"),
         );
     }
 
