@@ -5,7 +5,9 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
+use crate::providers::openai::generated::{
+    ChatCompletionRequestMessage, Context as ReasoningContext, Instructions, Summary,
+};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -220,8 +222,13 @@ pub enum OpenAIReasoningEffort {
 /// Typed OpenAI Responses reasoning parameter view.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OpenAIReasoning {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<ReasoningContext>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<OpenAIReasoningEffort>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
 }
 
@@ -344,6 +351,39 @@ mod tests {
             params.reasoning.and_then(|r| r.effort),
             Some(OpenAIReasoningEffort::None)
         );
+    }
+
+    #[test]
+    fn test_reasoning_context_parses() {
+        use crate::providers::openai::generated::Context as ReasoningContext;
+
+        let responses = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "high", "context": "current_turn"}
+        });
+        let params: OpenAIResponsesParams = serde_json::from_value(responses).unwrap();
+        let reasoning = params.reasoning.expect("reasoning should be present");
+        assert_eq!(reasoning.effort, Some(OpenAIReasoningEffort::High));
+        assert_eq!(reasoning.context, Some(ReasoningContext::CurrentTurn));
+
+        let all_turns = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "medium", "context": "all_turns"}
+        });
+        let params: OpenAIResponsesParams = serde_json::from_value(all_turns).unwrap();
+        let reasoning = params.reasoning.expect("reasoning should be present");
+        assert_eq!(reasoning.context, Some(ReasoningContext::AllTurns));
+
+        let auto = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "high", "context": "auto"}
+        });
+        let params: OpenAIResponsesParams = serde_json::from_value(auto).unwrap();
+        let reasoning = params.reasoning.expect("reasoning should be present");
+        assert_eq!(reasoning.context, Some(ReasoningContext::Auto));
     }
 
     #[test]

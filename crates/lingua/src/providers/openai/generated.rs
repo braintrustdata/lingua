@@ -1819,15 +1819,11 @@ pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<Prompt>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning: Option<Reasoning>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<ResponseTextParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<CreateResponseToolChoiceParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context_management: Option<Vec<ContextManagementParam>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1845,11 +1841,15 @@ pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parallel_tool_calls: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<Reasoning>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub store: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream_options: Option<ResponseStreamOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truncation: Option<Truncation>,
 }
 
 /// Context management configuration for this request.
@@ -3742,8 +3742,8 @@ pub struct InputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -3767,10 +3767,14 @@ pub struct InputItemTool {
     /// A label for this MCP server, used to identify it in tool calls.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_label: Option<String>,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code, along with an
     /// optional `memory_limit` setting.
@@ -3884,8 +3888,8 @@ pub enum Background {
 }
 
 /// Identifier for service connectors, like those available in ChatGPT. One of
-/// `server_url` or `connector_id` must be provided. Learn more about service
-/// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+/// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+/// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
 ///
 /// Currently supported `connector_id` values are:
 ///
@@ -4564,11 +4568,27 @@ pub struct Input {
 #[ts(export_to = "openai/")]
 pub struct Reasoning {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Context>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<ReasoningEffort>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+}
+
+/// Controls which reasoning items are rendered back to the model on later turns.
+/// When returned on a response, this is the effective reasoning context mode
+/// used for the response.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum Context {
+    #[serde(rename = "all_turns")]
+    AllTurns,
+    Auto,
+    #[serde(rename = "current_turn")]
+    CurrentTurn,
 }
 
 /// **Deprecated:** use `summary` instead.
@@ -4974,8 +4994,8 @@ pub struct MCPTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -5003,10 +5023,14 @@ pub struct MCPTool {
     pub server_description: Option<String>,
     /// A label for this MCP server, used to identify it in tool calls.
     pub server_label: String,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
 }
 
 /// A tool that runs Python code to help generate a response to a prompt.
@@ -5243,13 +5267,9 @@ pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<Prompt>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning: Option<Reasoning>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<ResponseTextParam>,
     pub tool_choice: TheResponseObjectToolChoiceParam,
     pub tools: Vec<Tool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_at: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5283,10 +5303,14 @@ pub struct TheResponseObject {
     pub output_text: Option<String>,
     /// Whether to allow the model to run tool calls in parallel.
     pub parallel_tool_calls: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<Reasoning>,
     /// The status of the response generation. One of `completed`, `failed`,
     /// `in_progress`, `cancelled`, `queued`, or `incomplete`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<StatusEnum>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<ResponseUsage>,
 }
@@ -6515,8 +6539,8 @@ pub struct OutputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -6540,10 +6564,14 @@ pub struct OutputItemTool {
     /// A label for this MCP server, used to identify it in tool calls.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_label: Option<String>,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code, along with an
     /// optional `memory_limit` setting.
