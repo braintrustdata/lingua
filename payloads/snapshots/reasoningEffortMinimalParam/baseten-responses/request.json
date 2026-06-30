@@ -1,0 +1,12 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    }
+  ],
+  "reasoning": {
+    "effort": "minimal"
+  }
+}

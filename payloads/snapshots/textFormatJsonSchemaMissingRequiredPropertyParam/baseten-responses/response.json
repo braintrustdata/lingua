@@ -1,0 +1,80 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_a5055e3cc3dd43498964232923056bdf",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I don't see a question or prompt! Please ask your question, and I will provide an answer along with a short reasoning."
+        }
+      ],
+      "id": "msg_3dba9a8bb32d41589da8179ca1bd49c9",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "structured_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string"
+          },
+          "reasoning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 26,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 40
+  },
+  "output_text": "I don't see a question or prompt! Please ask your question, and I will provide an answer along with a short reasoning."
+}

@@ -1,0 +1,82 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_a3cf2d0b6f2c46adb13b778da0873312",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "It depends on what you're working on! Here are a few common ways we could go from here, based on what you might need:\n\n1. **Generate more data:** I can create a larger JSON array of objects, each with their own 2-3 tags. This is great if you need mock data for a database or UI.\n2. **Customize the tags:** You can give me a specific topic (e.g., \"cooking,\" \"finance,\" \"cybersecurity\") and I can return the JSON with tags specifically related to that topic.\n3. **Format for code:** I can write a function in your preferred programming language (Python, JavaScript, etc.) that generates this exact JSON structure.\n4. **Build on the JSON:** We can add more keys to the JSON, such as an `id`, `title`, or `description` alongside the `tags` array. \n\nWhat is your end goal? Let me know and we can take the exact next step you need!"
+        }
+      ],
+      "id": "msg_b8cff60f73a348b691c850687e995e9f",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "tag_list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 51,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 203,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 254
+  },
+  "output_text": "It depends on what you're working on! Here are a few common ways we could go from here, based on what you might need:\n\n1. **Generate more data:** I can create a larger JSON array of objects, each with their own 2-3 tags. This is great if you need mock data for a database or UI.\n2. **Customize the tags:** You can give me a specific topic (e.g., \"cooking,\" \"finance,\" \"cybersecurity\") and I can return the JSON with tags specifically related to that topic.\n3. **Format for code:** I can write a function in your preferred programming language (Python, JavaScript, etc.) that generates this exact JSON structure.\n4. **Build on the JSON:** We can add more keys to the JSON, such as an `id`, `title`, or `description` alongside the `tags` array. \n\nWhat is your end goal? Let me know and we can take the exact next step you need!"
+}

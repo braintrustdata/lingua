@@ -1,0 +1,28 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Hi there! I'm the GLM language model trained by Z.ai. How can I assist you today? Whether you have questions, need information, or just want to chat, I'm here to help. What would you like to discuss?"
+        }
+      ],
+      "id": "msg_d89f8525d6c54180b8bad2484d9ca4db",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "safety_identifier": "test-user"
+}

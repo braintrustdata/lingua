@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_7fe0ed2247c442409deea44d17d8710b",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "It looks like the image didn't come through! If you still want me to look at something, here is exactly what you should do next:\n\n1. **Look for the attachment/upload icon** in the chat window (it usually looks like a **paperclip**, a **plus sign (+)**, or an **image icon**).\n2. **Click that icon** and select the image file from your computer or phone.\n3. **Wait for the image to upload** and appear in the chat box.\n4. **Press send** (you can just type \"Here it is\" or ask your question again).\n\nOnce it uploads successfully, I'll be able to analyze it for you! \n\n*(Note: If you are using a platform that doesn't support image uploads, you can alternatively describe the image to me in as much detail as possible, and I can help you from there!)*"
+        }
+      ],
+      "id": "msg_e3e7b8db3b264aca918fdae2659af14e",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 67,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 180,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 247
+  },
+  "output_text": "It looks like the image didn't come through! If you still want me to look at something, here is exactly what you should do next:\n\n1. **Look for the attachment/upload icon** in the chat window (it usually looks like a **paperclip**, a **plus sign (+)**, or an **image icon**).\n2. **Click that icon** and select the image file from your computer or phone.\n3. **Wait for the image to upload** and appear in the chat box.\n4. **Press send** (you can just type \"Here it is\" or ask your question again).\n\nOnce it uploads successfully, I'll be able to analyze it for you! \n\n*(Note: If you are using a platform that doesn't support image uploads, you can alternatively describe the image to me in as much detail as possible, and I can help you from there!)*"
+}

@@ -1,0 +1,31 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "2+2"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "2+2=4"
+        }
+      ],
+      "id": "msg_3b516328eeda4fba9d1002ce3b04f456",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "medium",
+    "summary": "detailed"
+  }
+}

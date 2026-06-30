@@ -1,0 +1,38 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What do you see in this image?"
+        },
+        {
+          "type": "input_image",
+          "detail": "auto",
+          "image_url": "https://t3.ftcdn.net/jpg/02/36/99/22/360_F_236992283_sNOxCVQeFLd5pdqaKGh8DRGMZy7P4XKm.jpg"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I don't see any image attached to your message. If you would like to share an image with me, please upload it, and I'll be happy to take a look and tell you what I see!"
+        }
+      ],
+      "id": "msg_10738e1e625040e996665e13b88a352e",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 300
+}

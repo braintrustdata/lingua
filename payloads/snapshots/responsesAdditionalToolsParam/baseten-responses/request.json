@@ -1,0 +1,33 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Use any additional tools made available later."
+    },
+    {
+      "type": "additional_tools",
+      "role": "developer",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup_policy",
+          "description": "Look up an internal policy by slug.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_a936592e6a1a42bb936dfbf52fb06c65",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That’s a big question! Since I don't know exactly what you're working on right now, I can give you a few different options depending on your situation. \n\n**If you are at work or being productive:**\n*   Make a list of the top 3 things you need to get done today.\n*   Knock out the smallest, easiest task first to build momentum.\n*   Organize your inbox or clear off your desk.\n*   Take a 10-minute break to stretch and rest your eyes.\n\n**If you are bored and looking for entertainment:**\n*   Start a new TV show or movie. (Let me know your favorite genre and I can recommend one!)\n*   Pick up a book, podcast, or audiobook.\n*   Put on a playlist of music you loved 10 years ago.\n*   Look up a recipe for something you've never cooked before and make a grocery list.\n\n**If you are feeling stressed or overwhelmed:**\n*   Do a 5-minute guided meditation or just close your eyes and take 10 deep breaths.\n*   Step away from your screens entirely and go for a short walk outside.\n*   Write down everything that's bothering you on a piece of paper, and then physically rip it up.\n*   Drink a glass of water and eat a healthy snack.\n\n**If you want to learn something new:**\n*   Pick a random topic (like black holes, the history of the Roman Empire, or how AI works) and ask me to explain it to you.\n*   Find a free tutorial on YouTube for a skill you've always wanted to learn (juggling, coding, origami, speaking a new language).\n\nDo any of these strike your fancy, or are you trying to figure out the next step in a specific project? Let me know what's on your mind!"
+        }
+      ],
+      "id": "msg_ed475357fd4841538ffb1b4c2a3a43fe",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "auto",
+  "usage": {
+    "input_tokens": 27,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 373,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 400
+  },
+  "output_text": "That’s a big question! Since I don't know exactly what you're working on right now, I can give you a few different options depending on your situation. \n\n**If you are at work or being productive:**\n*   Make a list of the top 3 things you need to get done today.\n*   Knock out the smallest, easiest task first to build momentum.\n*   Organize your inbox or clear off your desk.\n*   Take a 10-minute break to stretch and rest your eyes.\n\n**If you are bored and looking for entertainment:**\n*   Start a new TV show or movie. (Let me know your favorite genre and I can recommend one!)\n*   Pick up a book, podcast, or audiobook.\n*   Put on a playlist of music you loved 10 years ago.\n*   Look up a recipe for something you've never cooked before and make a grocery list.\n\n**If you are feeling stressed or overwhelmed:**\n*   Do a 5-minute guided meditation or just close your eyes and take 10 deep breaths.\n*   Step away from your screens entirely and go for a short walk outside.\n*   Write down everything that's bothering you on a piece of paper, and then physically rip it up.\n*   Drink a glass of water and eat a healthy snack.\n\n**If you want to learn something new:**\n*   Pick a random topic (like black holes, the history of the Roman Empire, or how AI works) and ask me to explain it to you.\n*   Find a free tutorial on YouTube for a skill you've always wanted to learn (juggling, coding, origami, speaking a new language).\n\nDo any of these strike your fancy, or are you trying to figure out the next step in a specific project? Let me know what's on your mind!"
+}

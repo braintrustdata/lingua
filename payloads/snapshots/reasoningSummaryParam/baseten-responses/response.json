@@ -1,0 +1,66 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_e81ce7ac29c249c0bad999f30e677358",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "2+2=4"
+        }
+      ],
+      "id": "msg_3b516328eeda4fba9d1002ce3b04f456",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": "detailed"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 10,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 5,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 15
+  },
+  "output_text": "2+2=4"
+}

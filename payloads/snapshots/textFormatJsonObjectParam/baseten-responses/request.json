@@ -1,0 +1,14 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return JSON with a=1"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_object"
+    }
+  }
+}

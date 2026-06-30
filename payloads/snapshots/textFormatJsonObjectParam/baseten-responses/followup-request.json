@@ -1,0 +1,32 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return JSON with a=1"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "```json\n{\n  \"a\": 1\n}\n```"
+        }
+      ],
+      "id": "msg_79afe322b5f143778367bdc992ed49ab",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_object"
+    }
+  }
+}

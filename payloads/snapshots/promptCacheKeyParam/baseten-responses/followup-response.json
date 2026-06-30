@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851043,
+  "completed_at": 1782851043,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_9aa9d99afb6b41f882c509694e9eb6cc",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That’s a very open-ended question! To give you the best advice, it would help to know a little more about your current situation. \n\nAre you looking for advice regarding:\n* **Your career or job?** (e.g., looking for a new role, wanting a promotion, or feeling stuck)\n* **A project you are working on?** (e.g., learning to code, writing a book, starting a business)\n* **Personal growth or life?** (e.g., building better habits, figuring out a hobby, planning a trip)\n* **Just a general conversation?** (e.g., \"What movie should I watch?\" or \"What topic should I learn about?\")\n\nIf you tell me a bit about what's on your mind right now, I can give you some specific, actionable next steps!"
+        }
+      ],
+      "id": "msg_0a3e0e822e5b41eda48582e99f285776",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 42,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 168,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 210
+  },
+  "output_text": "That’s a very open-ended question! To give you the best advice, it would help to know a little more about your current situation. \n\nAre you looking for advice regarding:\n* **Your career or job?** (e.g., looking for a new role, wanting a promotion, or feeling stuck)\n* **A project you are working on?** (e.g., learning to code, writing a book, starting a business)\n* **Personal growth or life?** (e.g., building better habits, figuring out a hobby, planning a trip)\n* **Just a general conversation?** (e.g., \"What movie should I watch?\" or \"What topic should I learn about?\")\n\nIf you tell me a bit about what's on your mind right now, I can give you some specific, actionable next steps!"
+}

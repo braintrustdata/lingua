@@ -1,0 +1,10 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    }
+  ],
+  "service_tier": "default"
+}

@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_776edace4f214708a480f2c2505a8209",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "你好！我是Z.ai训练的GLM大语言模型，很高兴能与你交流。有什么我可以帮助你的吗？"
+        }
+      ],
+      "id": "msg_becc59a47ff34b82b0e245730c8d0f3e",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 24,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 32
+  },
+  "output_text": "你好！我是Z.ai训练的GLM大语言模型，很高兴能与你交流。有什么我可以帮助你的吗？"
+}

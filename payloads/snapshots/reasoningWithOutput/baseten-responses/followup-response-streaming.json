@@ -1,0 +1,1005 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_480052acf90544b2a0d9e1838a91ea6c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_480052acf90544b2a0d9e1838a91ea6c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "That",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " completely",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depends on what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you’re",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to achieve",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "! Since we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " were just talking about the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sky,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " here are a few different",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " directions you could take:\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you want to keep",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " exploring the topic",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n* Ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me *",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "why* the sky is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " blue (there",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'s a cool",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " science reason",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it!).\n* Ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a poem or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " short",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " story about a strange",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sky",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "like a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " green sky before",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a storm).\n* Ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the sky looks",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like on other planets (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "M",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ars, for instance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", has a very",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " different sky).\n\n**If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looking for something",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " practical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to do right",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " now:**\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Go",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " outside:** Step",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " outside and look up",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "30 seconds.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " It's a great way",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a quick",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " mental break.\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a goal:** Tell me",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trying to get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " done today (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "work, a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " hobby",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", planning",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a trip",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "), and I can help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you break it down into",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " steps",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n* **Brain",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "storm:** If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " bored, ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a random",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fun",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fact, a r",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "iddle, or a recommendation",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for a new movie",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or book.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "What sounds",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " most",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interesting to you? Or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", if",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you have",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a specific project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in mind, let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know what it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 91,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "That completely depends on what you’re trying to achieve! Since we were just talking about the sky, here are a few different directions you could take:\n\n**If you want to keep exploring the topic:**\n* Ask me *why* the sky is blue (there's a cool science reason for it!).\n* Ask me to write a poem or a short story about a strange sky (like a green sky before a storm).\n* Ask what the sky looks like on other planets (Mars, for instance, has a very different sky).\n\n**If you're looking for something practical to do right now:**\n* **Go outside:** Step outside and look up for 30 seconds. It's a great way to take a quick mental break.\n* **Set a goal:** Tell me what you are trying to get done today (work, a hobby, planning a trip), and I can help you break it down into steps.\n* **Brainstorm:** If you're bored, ask me for a random fun fact, a riddle, or a recommendation for a new movie or book.\n\nWhat sounds most interesting to you? Or, if you have a specific project in mind, let me know what it is!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 92,
+    "item_id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "That completely depends on what you’re trying to achieve! Since we were just talking about the sky, here are a few different directions you could take:\n\n**If you want to keep exploring the topic:**\n* Ask me *why* the sky is blue (there's a cool science reason for it!).\n* Ask me to write a poem or a short story about a strange sky (like a green sky before a storm).\n* Ask what the sky looks like on other planets (Mars, for instance, has a very different sky).\n\n**If you're looking for something practical to do right now:**\n* **Go outside:** Step outside and look up for 30 seconds. It's a great way to take a quick mental break.\n* **Set a goal:** Tell me what you are trying to get done today (work, a hobby, planning a trip), and I can help you break it down into steps.\n* **Brainstorm:** If you're bored, ask me for a random fun fact, a riddle, or a recommendation for a new movie or book.\n\nWhat sounds most interesting to you? Or, if you have a specific project in mind, let me know what it is!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 93,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "That completely depends on what you’re trying to achieve! Since we were just talking about the sky, here are a few different directions you could take:\n\n**If you want to keep exploring the topic:**\n* Ask me *why* the sky is blue (there's a cool science reason for it!).\n* Ask me to write a poem or a short story about a strange sky (like a green sky before a storm).\n* Ask what the sky looks like on other planets (Mars, for instance, has a very different sky).\n\n**If you're looking for something practical to do right now:**\n* **Go outside:** Step outside and look up for 30 seconds. It's a great way to take a quick mental break.\n* **Set a goal:** Tell me what you are trying to get done today (work, a hobby, planning a trip), and I can help you break it down into steps.\n* **Brainstorm:** If you're bored, ask me for a random fun fact, a riddle, or a recommendation for a new movie or book.\n\nWhat sounds most interesting to you? Or, if you have a specific project in mind, let me know what it is!"
+        }
+      ],
+      "id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 94,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851045,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_480052acf90544b2a0d9e1838a91ea6c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "That completely depends on what you’re trying to achieve! Since we were just talking about the sky, here are a few different directions you could take:\n\n**If you want to keep exploring the topic:**\n* Ask me *why* the sky is blue (there's a cool science reason for it!).\n* Ask me to write a poem or a short story about a strange sky (like a green sky before a storm).\n* Ask what the sky looks like on other planets (Mars, for instance, has a very different sky).\n\n**If you're looking for something practical to do right now:**\n* **Go outside:** Step outside and look up for 30 seconds. It's a great way to take a quick mental break.\n* **Set a goal:** Tell me what you are trying to get done today (work, a hobby, planning a trip), and I can help you break it down into steps.\n* **Brainstorm:** If you're bored, ask me for a random fun fact, a riddle, or a recommendation for a new movie or book.\n\nWhat sounds most interesting to you? Or, if you have a specific project in mind, let me know what it is!"
+            }
+          ],
+          "id": "msg_e7f5cac5a6364b2ea24a3ce9b13f7eb3",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 99,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 244,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 343
+      }
+    }
+  }
+]

@@ -1,0 +1,67 @@
+{
+  "background": false,
+  "created_at": 1782851050,
+  "completed_at": 1782851050,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_b2c898b086a845a2aabb944e36795abf",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Here is a roundup of the latest major news regarding OpenAI as of **May 2024**:\n\n**1. Launch of \"GPT-4o\" (Omni)**\nOn May 13, OpenAI unveiled GPT-4o, their newest flagship model. The \"o\" stands for \"omni,\" reflecting its ability to process and generate text, audio, and images natively in real-time. \n* **Key features:** It can respond to audio queries in as little as 232 milliseconds (human-like speed), handles multiple languages with native fluency, and features improved vision capabilities (it can see and comment on live video through a phone camera). \n* **Accessibility:** OpenAI made GPT-4o available for free to all ChatGPT users, with higher message limits for paid subscribers.\n\n**2. Real-Time Voice and Desktop Apps**\nAlongside GPT-4o, OpenAI announced a new desktop app for ChatGPT (initially for macOS, with Windows to follow later this year) and an updated Voice Mode. The new Voice Mode allows for real-time, interruptible conversations that pick up on emotional tone, background noise, and multiple speakers.\n\n**3. Scarlett Johansson Voice Controversy**\nThe announcement of GPT-4o's voice capabilities was quickly followed by controversy. Actress Scarlett Johansson publically claimed that OpenAI replicated her voice without her permission. She stated that OpenAI CEO Sam Altman had previously approached her to voice the ChatGPT assistant, which she declined. OpenAI paused the release of the \"Sky\" voice (which many said sounded exactly like Johansson) and denied intentionally mimicking the actress, stating the voice belonged to a different voice actress. \n\n**4. Partnership with Apple (iOS 18 Integration)**\nAt Apple’s Worldwide Developers Conference (WWDC) in June 2024, Apple announced a major partnership with OpenAI. iOS 18 will integrate ChatGPT directly into Siri and the operating system. Users will be able to ask Siri questions and, if the query is complex, Siri will hand off the request to ChatGPT. Apple emphasized that user requests will remain private (not logged by OpenAI) and IP addresses will be obscured. \n\n**5. Restructuring of the Safety Team and Departures**\nIn May 2024, two of OpenAI’s most prominent safety researchers—Ilya Sutskever (co-founder and Chief Scientist) and Jan Leike (head of alignment)—resigned from the company. Following their departures, OpenAI announced it was disbanding its \"Superteam\" (a team dedicated to controlling existential risks from superintelligent AI). Both Sutskever and Leike later pointed to a lack of resources and prioritization for safety alignment at the company as a reason for leaving. OpenAI has stated they are forming a new safety committee to report to the board.\n\n**6. Sam Altman's Role on the Board (Revisited)**\nIn a March 2024 announcement regarding new board members, OpenAI stated that CEO Sam Altman would rejoin its Board of Directors. This reverses the dramatic event from November 2023, when the previous board fired Altman, only to reinstate him days later after pressure from employees and investors. \n\n**7. OpenAI Sora (Video Generation)**\nEarlier in 2024, OpenAI showcased \"Sora,\" a text-to-video model capable of generating highly realistic, up to 60-second video clips. While not yet released to the public, OpenAI has been granting access to select artists, filmmakers, and visual creators. The company continues to state that Sora is in a \"red-teaming\" phase to ensure the model cannot be used to generate deepfakes or highly political content. \n\n**8. OpenAI Elon Musk Lawsuit**\nThe ongoing legal battle between Elon Musk and OpenAI continues to unfold. Musk alleges that OpenAI breached its founding agreement to develop AI for the benefit of humanity and essentially became a for-profit subsidiary of Microsoft. In April 2024, Musk dropped the lawsuit—only to quickly refile a revised version of it, continuing the legal dispute."
+        }
+      ],
+      "id": "msg_c03e03aaef274d348dbf5c34d183a3b4",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "web_search_preview"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 854,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 865
+  },
+  "output_text": "Here is a roundup of the latest major news regarding OpenAI as of **May 2024**:\n\n**1. Launch of \"GPT-4o\" (Omni)**\nOn May 13, OpenAI unveiled GPT-4o, their newest flagship model. The \"o\" stands for \"omni,\" reflecting its ability to process and generate text, audio, and images natively in real-time. \n* **Key features:** It can respond to audio queries in as little as 232 milliseconds (human-like speed), handles multiple languages with native fluency, and features improved vision capabilities (it can see and comment on live video through a phone camera). \n* **Accessibility:** OpenAI made GPT-4o available for free to all ChatGPT users, with higher message limits for paid subscribers.\n\n**2. Real-Time Voice and Desktop Apps**\nAlongside GPT-4o, OpenAI announced a new desktop app for ChatGPT (initially for macOS, with Windows to follow later this year) and an updated Voice Mode. The new Voice Mode allows for real-time, interruptible conversations that pick up on emotional tone, background noise, and multiple speakers.\n\n**3. Scarlett Johansson Voice Controversy**\nThe announcement of GPT-4o's voice capabilities was quickly followed by controversy. Actress Scarlett Johansson publically claimed that OpenAI replicated her voice without her permission. She stated that OpenAI CEO Sam Altman had previously approached her to voice the ChatGPT assistant, which she declined. OpenAI paused the release of the \"Sky\" voice (which many said sounded exactly like Johansson) and denied intentionally mimicking the actress, stating the voice belonged to a different voice actress. \n\n**4. Partnership with Apple (iOS 18 Integration)**\nAt Apple’s Worldwide Developers Conference (WWDC) in June 2024, Apple announced a major partnership with OpenAI. iOS 18 will integrate ChatGPT directly into Siri and the operating system. Users will be able to ask Siri questions and, if the query is complex, Siri will hand off the request to ChatGPT. Apple emphasized that user requests will remain private (not logged by OpenAI) and IP addresses will be obscured. \n\n**5. Restructuring of the Safety Team and Departures**\nIn May 2024, two of OpenAI’s most prominent safety researchers—Ilya Sutskever (co-founder and Chief Scientist) and Jan Leike (head of alignment)—resigned from the company. Following their departures, OpenAI announced it was disbanding its \"Superteam\" (a team dedicated to controlling existential risks from superintelligent AI). Both Sutskever and Leike later pointed to a lack of resources and prioritization for safety alignment at the company as a reason for leaving. OpenAI has stated they are forming a new safety committee to report to the board.\n\n**6. Sam Altman's Role on the Board (Revisited)**\nIn a March 2024 announcement regarding new board members, OpenAI stated that CEO Sam Altman would rejoin its Board of Directors. This reverses the dramatic event from November 2023, when the previous board fired Altman, only to reinstate him days later after pressure from employees and investors. \n\n**7. OpenAI Sora (Video Generation)**\nEarlier in 2024, OpenAI showcased \"Sora,\" a text-to-video model capable of generating highly realistic, up to 60-second video clips. While not yet released to the public, OpenAI has been granting access to select artists, filmmakers, and visual creators. The company continues to state that Sora is in a \"red-teaming\" phase to ensure the model cannot be used to generate deepfakes or highly political content. \n\n**8. OpenAI Elon Musk Lawsuit**\nThe ongoing legal battle between Elon Musk and OpenAI continues to unfold. Musk alleges that OpenAI breached its founding agreement to develop AI for the benefit of humanity and essentially became a for-profit subsidiary of Microsoft. In April 2024, Musk dropped the lawsuit—only to quickly refile a revised version of it, continuing the legal dispute."
+}

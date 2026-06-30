@@ -1,0 +1,1314 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_136d9bc303334e658ca89c5e7fca7cb1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_136d9bc303334e658ca89c5e7fca7cb1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_0130e5334ef04ee482c877d833f3ce37",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are some",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " suggestions for what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " do next with",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your MongoDB instance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n###",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 1. **Create",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database**\nYou",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " currently only",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " have the default system",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " databases. You can create",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a new database",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for your application",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " by simply",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " switching to it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (e.g., `",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "use my",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "App`)",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and inserting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a document. MongoDB",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " creates",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the database on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the first insert.\n\n###",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 2. **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Explore the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " existing databases",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nYou",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can inspect",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the contents of the existing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " databases:\n- **admin",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – Look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at users and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " roles (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "e.g., `db",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Users()`,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " `db.get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Roles()`",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ").\n-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **local",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – Check",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the op",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "log or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " replication",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " info",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (e.g., `",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "db.op",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "log.rs",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".find()`",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ").\n-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **config** –",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're running",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a sharded cluster,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you can review shard",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " chunk metadata.\n\n###",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 3. **Set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " up authentication",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nIf",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you haven't already,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " consider creating",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " admin user and enabling",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " authentication to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " secure your MongoDB instance.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "### 4. **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Create collections and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " insert",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " data**\nStart",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " building",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your data",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " model by creating",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " collections and inserting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " documents:\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "``",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "`\nuse",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " myApp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\ndb.users",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".insertOne({ name",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ": \"Alice\", email",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ": \"alice@example.com",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\" })\n```\n\n###",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 5. **Configure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " replication",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sh",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "arding**\nIf",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you need high",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " availability,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " set up a **rep",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "lica set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**. If you need",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " horizontal scaling, configure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **sharding**.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "### 6. **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Back up your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " data**\nSet",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " up a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " backup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " strategy using tools",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like `mongodump",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "` or a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " cloud",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " backup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " solution.\n\n---\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Would you like help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with any of these?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're trying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to accomplish",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I can guide",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you through it!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 122,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Here are some suggestions for what you can do next with your MongoDB instance:\n\n### 1. **Create a new database**\nYou currently only have the default system databases. You can create a new database for your application by simply switching to it (e.g., `use myApp`) and inserting a document. MongoDB creates the database on the first insert.\n\n### 2. **Explore the existing databases**\nYou can inspect the contents of the existing databases:\n- **admin** – Look at users and roles (e.g., `db.getUsers()`, `db.getRoles()`).\n- **local** – Check the oplog or replication info (e.g., `db.oplog.rs.find()`).\n- **config** – If you're running a sharded cluster, you can review shard and chunk metadata.\n\n### 3. **Set up authentication**\nIf you haven't already, consider creating an admin user and enabling authentication to secure your MongoDB instance.\n\n### 4. **Create collections and insert data**\nStart building out your data model by creating collections and inserting documents:\n```\nuse myApp\ndb.users.insertOne({ name: \"Alice\", email: \"alice@example.com\" })\n```\n\n### 5. **Configure replication or sharding**\nIf you need high availability, set up a **replica set**. If you need horizontal scaling, configure **sharding**.\n\n### 6. **Back up your data**\nSet up a backup strategy using tools like `mongodump` or a cloud backup solution.\n\n---\n\nWould you like help with any of these? Let me know what you're trying to accomplish and I can guide you through it!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 123,
+    "item_id": "msg_0130e5334ef04ee482c877d833f3ce37",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Here are some suggestions for what you can do next with your MongoDB instance:\n\n### 1. **Create a new database**\nYou currently only have the default system databases. You can create a new database for your application by simply switching to it (e.g., `use myApp`) and inserting a document. MongoDB creates the database on the first insert.\n\n### 2. **Explore the existing databases**\nYou can inspect the contents of the existing databases:\n- **admin** – Look at users and roles (e.g., `db.getUsers()`, `db.getRoles()`).\n- **local** – Check the oplog or replication info (e.g., `db.oplog.rs.find()`).\n- **config** – If you're running a sharded cluster, you can review shard and chunk metadata.\n\n### 3. **Set up authentication**\nIf you haven't already, consider creating an admin user and enabling authentication to secure your MongoDB instance.\n\n### 4. **Create collections and insert data**\nStart building out your data model by creating collections and inserting documents:\n```\nuse myApp\ndb.users.insertOne({ name: \"Alice\", email: \"alice@example.com\" })\n```\n\n### 5. **Configure replication or sharding**\nIf you need high availability, set up a **replica set**. If you need horizontal scaling, configure **sharding**.\n\n### 6. **Back up your data**\nSet up a backup strategy using tools like `mongodump` or a cloud backup solution.\n\n---\n\nWould you like help with any of these? Let me know what you're trying to accomplish and I can guide you through it!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 124,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are some suggestions for what you can do next with your MongoDB instance:\n\n### 1. **Create a new database**\nYou currently only have the default system databases. You can create a new database for your application by simply switching to it (e.g., `use myApp`) and inserting a document. MongoDB creates the database on the first insert.\n\n### 2. **Explore the existing databases**\nYou can inspect the contents of the existing databases:\n- **admin** – Look at users and roles (e.g., `db.getUsers()`, `db.getRoles()`).\n- **local** – Check the oplog or replication info (e.g., `db.oplog.rs.find()`).\n- **config** – If you're running a sharded cluster, you can review shard and chunk metadata.\n\n### 3. **Set up authentication**\nIf you haven't already, consider creating an admin user and enabling authentication to secure your MongoDB instance.\n\n### 4. **Create collections and insert data**\nStart building out your data model by creating collections and inserting documents:\n```\nuse myApp\ndb.users.insertOne({ name: \"Alice\", email: \"alice@example.com\" })\n```\n\n### 5. **Configure replication or sharding**\nIf you need high availability, set up a **replica set**. If you need horizontal scaling, configure **sharding**.\n\n### 6. **Back up your data**\nSet up a backup strategy using tools like `mongodump` or a cloud backup solution.\n\n---\n\nWould you like help with any of these? Let me know what you're trying to accomplish and I can guide you through it!"
+        }
+      ],
+      "id": "msg_0130e5334ef04ee482c877d833f3ce37",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 125,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": 1782851048,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_136d9bc303334e658ca89c5e7fca7cb1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Here are some suggestions for what you can do next with your MongoDB instance:\n\n### 1. **Create a new database**\nYou currently only have the default system databases. You can create a new database for your application by simply switching to it (e.g., `use myApp`) and inserting a document. MongoDB creates the database on the first insert.\n\n### 2. **Explore the existing databases**\nYou can inspect the contents of the existing databases:\n- **admin** – Look at users and roles (e.g., `db.getUsers()`, `db.getRoles()`).\n- **local** – Check the oplog or replication info (e.g., `db.oplog.rs.find()`).\n- **config** – If you're running a sharded cluster, you can review shard and chunk metadata.\n\n### 3. **Set up authentication**\nIf you haven't already, consider creating an admin user and enabling authentication to secure your MongoDB instance.\n\n### 4. **Create collections and insert data**\nStart building out your data model by creating collections and inserting documents:\n```\nuse myApp\ndb.users.insertOne({ name: \"Alice\", email: \"alice@example.com\" })\n```\n\n### 5. **Configure replication or sharding**\nIf you need high availability, set up a **replica set**. If you need horizontal scaling, configure **sharding**.\n\n### 6. **Back up your data**\nSet up a backup strategy using tools like `mongodump` or a cloud backup solution.\n\n---\n\nWould you like help with any of these? Let me know what you're trying to accomplish and I can guide you through it!"
+            }
+          ],
+          "id": "msg_0130e5334ef04ee482c877d833f3ce37",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 301,
+        "input_tokens_details": {
+          "cached_tokens": 160
+        },
+        "output_tokens": 336,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 637
+      }
+    }
+  }
+]

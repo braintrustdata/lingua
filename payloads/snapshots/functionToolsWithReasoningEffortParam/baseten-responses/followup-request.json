@@ -1,0 +1,45 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Tokyo weather"
+    },
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"Tokyo\"}",
+      "call_id": "chatcmpl-tool-98ec5ea4e77e442fb53453978252adcd",
+      "name": "get_weather",
+      "id": "fc_b35390338fe14606b0ab6fae80d0b666",
+      "status": "completed"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "chatcmpl-tool-98ec5ea4e77e442fb53453978252adcd",
+      "output": "71 degrees"
+    }
+  ],
+  "reasoning": {
+    "effort": "medium"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

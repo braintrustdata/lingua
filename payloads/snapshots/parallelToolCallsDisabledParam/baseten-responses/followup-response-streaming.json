@@ -1,0 +1,534 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e3612cc0bf8148a18cf8330eeb3b380f",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e3612cc0bf8148a18cf8330eeb3b380f",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are the current",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " weather results for both cities",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n|",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " City | Temperature",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " |\n|------",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "|-----------",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "|\n| 🗽 **New York",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " City** | ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "71°F |\n| 🌴 **Los",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Angeles** | ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "71°F |\n\nBoth",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " cities are currently experiencing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the same temperature",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of **71",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "°F**!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " It",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looks",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like a pleasant",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " day in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " both NYC",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and LA",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know if you'd",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like more details or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " weather",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " info",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " other locations!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 33,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Here are the current weather results for both cities:\n\n| City | Temperature |\n|------|-----------|\n| 🗽 **New York City** | 71°F |\n| 🌴 **Los Angeles** | 71°F |\n\nBoth cities are currently experiencing the same temperature of **71°F**! It looks like a pleasant day in both NYC and LA. Let me know if you'd like more details or weather info for any other locations!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 34,
+    "item_id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Here are the current weather results for both cities:\n\n| City | Temperature |\n|------|-----------|\n| 🗽 **New York City** | 71°F |\n| 🌴 **Los Angeles** | 71°F |\n\nBoth cities are currently experiencing the same temperature of **71°F**! It looks like a pleasant day in both NYC and LA. Let me know if you'd like more details or weather info for any other locations!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 35,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here are the current weather results for both cities:\n\n| City | Temperature |\n|------|-----------|\n| 🗽 **New York City** | 71°F |\n| 🌴 **Los Angeles** | 71°F |\n\nBoth cities are currently experiencing the same temperature of **71°F**! It looks like a pleasant day in both NYC and LA. Let me know if you'd like more details or weather info for any other locations!"
+        }
+      ],
+      "id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 36,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e3612cc0bf8148a18cf8330eeb3b380f",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Here are the current weather results for both cities:\n\n| City | Temperature |\n|------|-----------|\n| 🗽 **New York City** | 71°F |\n| 🌴 **Los Angeles** | 71°F |\n\nBoth cities are currently experiencing the same temperature of **71°F**! It looks like a pleasant day in both NYC and LA. Let me know if you'd like more details or weather info for any other locations!"
+            }
+          ],
+          "id": "msg_b6ad49d453104e698f887b7525c1e1ff",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 215,
+        "input_tokens_details": {
+          "cached_tokens": 128
+        },
+        "output_tokens": 90,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 305
+      }
+    }
+  }
+]

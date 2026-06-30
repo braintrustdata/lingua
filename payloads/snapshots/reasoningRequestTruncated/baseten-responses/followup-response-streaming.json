@@ -1,0 +1,483 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_2306332b87d545b8837099bc6797cdf5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 100,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_2306332b87d545b8837099bc6797cdf5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 100,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_5043622836fd49829bc6e84c8eb43e29",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Contin",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "uing from where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " we left off:\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Step 2:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Calculate the distance of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the second part of the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trip.**\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Speed",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " = 80",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " mph\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Time =",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 1 hour\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Distance = 80",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " mph ×",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 1 hour = **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "80 miles**\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**Step 3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ": Find the total",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " distance traveled",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".**\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Total Distance =",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Distance of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " part",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 1 + Distance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of part 2\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "* Total Distance =",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 120 miles + ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "80 miles = **200",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " miles**\n\n**Step",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 33,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Continuing from where we left off:\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80 mph\n* Time = 1 hour\n* Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n* Total Distance = Distance of part 1 + Distance of part 2\n* Total Distance = 120 miles + 80 miles = **200 miles**\n\n**Step",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 34,
+    "item_id": "msg_5043622836fd49829bc6e84c8eb43e29",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Continuing from where we left off:\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80 mph\n* Time = 1 hour\n* Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n* Total Distance = Distance of part 1 + Distance of part 2\n* Total Distance = 120 miles + 80 miles = **200 miles**\n\n**Step"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 35,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Continuing from where we left off:\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80 mph\n* Time = 1 hour\n* Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n* Total Distance = Distance of part 1 + Distance of part 2\n* Total Distance = 120 miles + 80 miles = **200 miles**\n\n**Step"
+        }
+      ],
+      "id": "msg_5043622836fd49829bc6e84c8eb43e29",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 36,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_2306332b87d545b8837099bc6797cdf5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 100,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Continuing from where we left off:\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80 mph\n* Time = 1 hour\n* Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n* Total Distance = Distance of part 1 + Distance of part 2\n* Total Distance = 120 miles + 80 miles = **200 miles**\n\n**Step"
+            }
+          ],
+          "id": "msg_5043622836fd49829bc6e84c8eb43e29",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 150,
+        "input_tokens_details": {
+          "cached_tokens": 32
+        },
+        "output_tokens": 100,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 250
+      }
+    }
+  }
+]

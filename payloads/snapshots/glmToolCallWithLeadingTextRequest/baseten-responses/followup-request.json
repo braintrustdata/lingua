@@ -1,0 +1,57 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA."
+    },
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"San Francisco, CA\"}",
+      "call_id": "chatcmpl-tool-2a6bf0abee734b8987c193c99fc8fbc2",
+      "name": "get_weather",
+      "id": "fc_137b4036c39b4d31a495b24e706ad7cc",
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I'm about to look up the weather for San Francisco, CA."
+        }
+      ],
+      "id": "msg_aa58fa99710c427289243b5dddfcc009",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "chatcmpl-tool-2a6bf0abee734b8987c193c99fc8fbc2",
+      "output": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get the current weather for a location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false
+    }
+  ],
+  "tool_choice": "auto"
+}

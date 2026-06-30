@@ -1,0 +1,702 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_249a8afe301946439345ad385a9616ee",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_249a8afe301946439345ad385a9616ee",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'ll",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " query the project logs",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to find any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " recent errors for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "```",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "sql",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\nSELECT timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", severity",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", message_code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", message",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "FROM project_logs \n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "WHERE project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_id = 'abc-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "123' AND",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " severity = 'ERROR",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "' \nORDER BY timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " DESC \nLIMIT 10",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ";\n```\n\nI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " need",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " execute this query against",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the data",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " source to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " get the results",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Could you please confirm",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1. **Time",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "frame",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** - How",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " far",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " back do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you want me to look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "? (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "e.g., last ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "24 hours, last ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "7 days)\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2. **Specific",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " error types",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** - Are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you looking for all",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " errors, or specific",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ones like",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " `",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "message_code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "` values?\n\nOnce I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " have this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " clarification",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", I can run the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " exact",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " query and summarize",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the errors for you.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 58,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "I'll query the project logs to find any recent errors for you.\n\n```sql\nSELECT timestamp, severity, message_code, message \nFROM project_logs \nWHERE project_id = 'abc-123' AND severity = 'ERROR' \nORDER BY timestamp DESC \nLIMIT 10;\n```\n\nI need to execute this query against the data source to get the results. Could you please confirm:\n\n1. **Timeframe** - How far back do you want me to look? (e.g., last 24 hours, last 7 days)\n2. **Specific error types** - Are you looking for all errors, or specific ones like `message_code` values?\n\nOnce I have this clarification, I can run the exact query and summarize the errors for you.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 59,
+    "item_id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "I'll query the project logs to find any recent errors for you.\n\n```sql\nSELECT timestamp, severity, message_code, message \nFROM project_logs \nWHERE project_id = 'abc-123' AND severity = 'ERROR' \nORDER BY timestamp DESC \nLIMIT 10;\n```\n\nI need to execute this query against the data source to get the results. Could you please confirm:\n\n1. **Timeframe** - How far back do you want me to look? (e.g., last 24 hours, last 7 days)\n2. **Specific error types** - Are you looking for all errors, or specific ones like `message_code` values?\n\nOnce I have this clarification, I can run the exact query and summarize the errors for you."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 60,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I'll query the project logs to find any recent errors for you.\n\n```sql\nSELECT timestamp, severity, message_code, message \nFROM project_logs \nWHERE project_id = 'abc-123' AND severity = 'ERROR' \nORDER BY timestamp DESC \nLIMIT 10;\n```\n\nI need to execute this query against the data source to get the results. Could you please confirm:\n\n1. **Timeframe** - How far back do you want me to look? (e.g., last 24 hours, last 7 days)\n2. **Specific error types** - Are you looking for all errors, or specific ones like `message_code` values?\n\nOnce I have this clarification, I can run the exact query and summarize the errors for you."
+        }
+      ],
+      "id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 61,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_249a8afe301946439345ad385a9616ee",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "I'll query the project logs to find any recent errors for you.\n\n```sql\nSELECT timestamp, severity, message_code, message \nFROM project_logs \nWHERE project_id = 'abc-123' AND severity = 'ERROR' \nORDER BY timestamp DESC \nLIMIT 10;\n```\n\nI need to execute this query against the data source to get the results. Could you please confirm:\n\n1. **Timeframe** - How far back do you want me to look? (e.g., last 24 hours, last 7 days)\n2. **Specific error types** - Are you looking for all errors, or specific ones like `message_code` values?\n\nOnce I have this clarification, I can run the exact query and summarize the errors for you."
+            }
+          ],
+          "id": "msg_a1e67c6023214125a8837eb86c5aa24c",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 33,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 153,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 186
+      }
+    }
+  }
+]

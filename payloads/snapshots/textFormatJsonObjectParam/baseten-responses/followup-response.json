@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_7f0bdbe0f52140879eaab29b86703670",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "It depends on what you're trying to accomplish! Since we just started with a simple JSON request, here are a few ways we can go from here:\n\n**1. Continue with JSON and coding**\n*   Add more keys to the JSON (e.g., include a string, an array, or a boolean).\n*   Parse or generate JSON using a specific programming language (like Python, JavaScript, Java, etc.).\n*   Build a mock API that returns that JSON.\n\n**2. Learn or brainstorm**\n*   Ask me to explain a concept (e.g., \"How does machine learning work?\").\n*   Brainstorm ideas for a project, a business, or a piece of writing.\n\n**3. Utility and productivity**\n*   Translate a block of text.\n*   Summarize a long article or document.\n*   Write a professional email or a piece of code.\n\nWhat is your ultimate goal right now? If you have a project in mind, tell me about it and we can start working on it together!"
+        }
+      ],
+      "id": "msg_0541bebf27174ae69fde8c5fd19334d8",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_object"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 36,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 208,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 244
+  },
+  "output_text": "It depends on what you're trying to accomplish! Since we just started with a simple JSON request, here are a few ways we can go from here:\n\n**1. Continue with JSON and coding**\n*   Add more keys to the JSON (e.g., include a string, an array, or a boolean).\n*   Parse or generate JSON using a specific programming language (like Python, JavaScript, Java, etc.).\n*   Build a mock API that returns that JSON.\n\n**2. Learn or brainstorm**\n*   Ask me to explain a concept (e.g., \"How does machine learning work?\").\n*   Brainstorm ideas for a project, a business, or a piece of writing.\n\n**3. Utility and productivity**\n*   Translate a block of text.\n*   Summarize a long article or document.\n*   Write a professional email or a piece of code.\n\nWhat is your ultimate goal right now? If you have a project in mind, tell me about it and we can start working on it together!"
+}

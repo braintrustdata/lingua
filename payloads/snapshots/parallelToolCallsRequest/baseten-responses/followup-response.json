@@ -1,0 +1,82 @@
+{
+  "background": false,
+  "created_at": 1782851046,
+  "completed_at": 1782851046,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_de9e168d713d4867adb775ef40842af0",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That depends on a few things! Here are some suggestions based on what you might be looking for:\n\n1. **If you're planning a trip to San Francisco** ☀️ — It's sunny and comfortable at 65°F, so it's a great time to:\n   - Walk along the Embarcadero or Fisherman's Wharf\n   - Visit Golden Gate Park or the Presidio\n   - Grab outdoor dining in the Mission District\n\n2. **If you're heading to New York** ☁️ — It's a bit chilly at 45°F and cloudy, so you might want to:\n   - Dress in layers and bring a jacket\n   - Check out indoor attractions like museums (MoMA, MET, etc.)\n   - Enjoy a warm meal at a cozy restaurant\n\n3. **If you need more weather info** — I can check the weather for other cities, upcoming forecasts, or help you compare destinations.\n\n4. **If you're planning an event or activity** — I can help you figure out the best time and place based on weather conditions.\n\nWhat are you working on or planning? I'd be happy to help with more specific advice! 😊"
+        }
+      ],
+      "id": "msg_f9c27865520a445ca2f9efb766fdd04c",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The city and state, e.g. San Francisco, CA"
+          }
+        },
+        "required": [
+          "location"
+        ]
+      },
+      "strict": false,
+      "description": "Get the current weather for a location"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 308,
+    "input_tokens_details": {
+      "cached_tokens": 32
+    },
+    "output_tokens": 242,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 550
+  },
+  "output_text": "That depends on a few things! Here are some suggestions based on what you might be looking for:\n\n1. **If you're planning a trip to San Francisco** ☀️ — It's sunny and comfortable at 65°F, so it's a great time to:\n   - Walk along the Embarcadero or Fisherman's Wharf\n   - Visit Golden Gate Park or the Presidio\n   - Grab outdoor dining in the Mission District\n\n2. **If you're heading to New York** ☁️ — It's a bit chilly at 45°F and cloudy, so you might want to:\n   - Dress in layers and bring a jacket\n   - Check out indoor attractions like museums (MoMA, MET, etc.)\n   - Enjoy a warm meal at a cozy restaurant\n\n3. **If you need more weather info** — I can check the weather for other cities, upcoming forecasts, or help you compare destinations.\n\n4. **If you're planning an event or activity** — I can help you figure out the best time and place based on weather conditions.\n\nWhat are you working on or planning? I'd be happy to help with more specific advice! 😊"
+}

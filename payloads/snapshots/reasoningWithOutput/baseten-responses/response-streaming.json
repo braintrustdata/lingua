@@ -1,0 +1,510 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_831772e4f2a744f7963abd3a29d56ef5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_831772e4f2a744f7963abd3a29d56ef5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_381e8c69873741c0a8c84074e7975510",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "During",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the day",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", when",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the weather",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is clear, the sky",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is typically",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **blue**. \n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "However, the color",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of the sky can change",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depending on the time",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of day and the weather",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n* **Sun",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "rise and sunset:** The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sky often turns",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " shades of **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "red, orange, pink",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", and purple",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**.\n* **Cloud",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "y or storm",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "y days",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** The sky usually",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looks",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **gray**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or dark",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " gray",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n* **Night:**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " The sky is **black",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "or very",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dark blue",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ") and dotted",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with stars.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 36,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "During the day, when the weather is clear, the sky is typically **blue**. \n\nHowever, the color of the sky can change depending on the time of day and the weather:\n* **Sunrise and sunset:** The sky often turns shades of **red, orange, pink, and purple**.\n* **Cloudy or stormy days:** The sky usually looks **gray** or dark gray.\n* **Night:** The sky is **black** (or very dark blue) and dotted with stars.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 37,
+    "item_id": "msg_381e8c69873741c0a8c84074e7975510",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "During the day, when the weather is clear, the sky is typically **blue**. \n\nHowever, the color of the sky can change depending on the time of day and the weather:\n* **Sunrise and sunset:** The sky often turns shades of **red, orange, pink, and purple**.\n* **Cloudy or stormy days:** The sky usually looks **gray** or dark gray.\n* **Night:** The sky is **black** (or very dark blue) and dotted with stars."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 38,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "During the day, when the weather is clear, the sky is typically **blue**. \n\nHowever, the color of the sky can change depending on the time of day and the weather:\n* **Sunrise and sunset:** The sky often turns shades of **red, orange, pink, and purple**.\n* **Cloudy or stormy days:** The sky usually looks **gray** or dark gray.\n* **Night:** The sky is **black** (or very dark blue) and dotted with stars."
+        }
+      ],
+      "id": "msg_381e8c69873741c0a8c84074e7975510",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 39,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_831772e4f2a744f7963abd3a29d56ef5",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "During the day, when the weather is clear, the sky is typically **blue**. \n\nHowever, the color of the sky can change depending on the time of day and the weather:\n* **Sunrise and sunset:** The sky often turns shades of **red, orange, pink, and purple**.\n* **Cloudy or stormy days:** The sky usually looks **gray** or dark gray.\n* **Night:** The sky is **black** (or very dark blue) and dotted with stars."
+            }
+          ],
+          "id": "msg_381e8c69873741c0a8c84074e7975510",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "low"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 13,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 103,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 116
+      }
+    }
+  }
+]

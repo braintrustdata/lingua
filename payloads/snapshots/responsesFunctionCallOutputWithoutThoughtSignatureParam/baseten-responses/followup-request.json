@@ -1,0 +1,57 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "What databases exist in the connected MongoDB instance? Use the list_databases tool."
+        }
+      ]
+    },
+    {
+      "type": "function_call",
+      "call_id": "6k7x6c84",
+      "name": "list_databases",
+      "arguments": "{}"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "6k7x6c84",
+      "output": "[{\"type\":\"text\",\"text\":\"{\\\"databases\\\":[\\\"admin\\\",\\\"config\\\",\\\"local\\\"]}\"}]"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "The connected MongoDB instance contains **3 databases**:\n\n1. **admin** – The administrative database used for user management, authentication, and other admin-level operations.\n2. **config** – The configuration database that stores metadata for sharded clusters.\n3. **local** – The local database that holds instance-specific data such as the `oplog` for replication.\n\nThese are all standard/default databases that come with a fresh MongoDB installation. There are no additional user-created databases present in this instance."
+        }
+      ],
+      "id": "msg_c38b71bff7e94cf282cce8851fc149ee",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "list_databases",
+      "description": "List databases in the connected MongoDB instance.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ],
+  "tool_choice": "auto"
+}

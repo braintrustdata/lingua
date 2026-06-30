@@ -1,0 +1,65 @@
+{
+  "background": false,
+  "created_at": 1782851043,
+  "completed_at": 1782851043,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_d2b4c85192a747b2b8504c71475240af",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That is entirely up to you! Since we just started with a little math, here are a few different directions we could go:\n\n*   **Keep it casual:** Ask me another trivia question, a riddle, or give me a brain teaser.\n*   **Learn something new:** Pick a topic you've always been curious about (like black holes, Ancient Rome, or how the internet works) and I can explain it to you.\n*   **Be productive:** We could draft an email, brainstorm ideas for a project, help you plan your week, or write a poem.\n*   **Just chat:** Tell me about your day, a hobby you enjoy, or a movie you just watched. \n\nWhat sounds the most interesting to you right now?"
+        }
+      ],
+      "id": "msg_a96c47e1ebf1457abd69080cd8aa708d",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 152,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 183
+  },
+  "output_text": "That is entirely up to you! Since we just started with a little math, here are a few different directions we could go:\n\n*   **Keep it casual:** Ask me another trivia question, a riddle, or give me a brain teaser.\n*   **Learn something new:** Pick a topic you've always been curious about (like black holes, Ancient Rome, or how the internet works) and I can explain it to you.\n*   **Be productive:** We could draft an email, brainstorm ideas for a project, help you plan your week, or write a poem.\n*   **Just chat:** Tell me about your day, a hobby you enjoy, or a movie you just watched. \n\nWhat sounds the most interesting to you right now?"
+}

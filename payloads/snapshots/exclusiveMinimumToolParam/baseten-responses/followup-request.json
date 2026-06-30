@@ -1,0 +1,49 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Configure the LLM."
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I'd be happy to configure the LLM for you, but I need one required parameter to proceed:\n\n- **max_tokens**: The maximum number of tokens to generate. This must be a positive number.\n\nCould you please provide the value for `max_tokens` that you'd like to set? For example, 256, 512, 1024, 2048, etc."
+        }
+      ],
+      "id": "msg_4afe00ebc01e45cf9379e6736ccd1742",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "configure_llm",
+      "description": "Configure LLM generation parameters",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false
+    }
+  ]
+}

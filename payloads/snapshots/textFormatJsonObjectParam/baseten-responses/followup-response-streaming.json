@@ -1,0 +1,639 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e5805a6f7dd141feabc5c711561f3361",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_object"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e5805a6f7dd141feabc5c711561f3361",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_object"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "That",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depends entirely on what you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are trying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to build! Let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " know if you want",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "  \n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Extend",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " JSON** by",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " adding more fields",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (e.g., `\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "b\": ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2`, `\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "c\": ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "3`).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "  \n-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Convert",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into another format",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (like",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " YAML, XML, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a Python",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dictionary).  \n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "- **Use",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it in code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "e.g., fetch",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in JavaScript",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", parse",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it in Python).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "  \n-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Generate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " larger structure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "e.g., an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " array of objects).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "  \n\nGive",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me more",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " context, and I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " help with the next",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " step!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 51,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "That depends entirely on what you are trying to build! Let me know if you want to:  \n\n- **Extend this JSON** by adding more fields (e.g., `\"b\": 2`, `\"c\": 3`).  \n- **Convert it** into another format (like YAML, XML, or a Python dictionary).  \n- **Use it in code** (e.g., fetch it in JavaScript, parse it in Python).  \n- **Generate a larger structure** (e.g., an array of objects).  \n\nGive me more context, and I can help with the next step!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 52,
+    "item_id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "That depends entirely on what you are trying to build! Let me know if you want to:  \n\n- **Extend this JSON** by adding more fields (e.g., `\"b\": 2`, `\"c\": 3`).  \n- **Convert it** into another format (like YAML, XML, or a Python dictionary).  \n- **Use it in code** (e.g., fetch it in JavaScript, parse it in Python).  \n- **Generate a larger structure** (e.g., an array of objects).  \n\nGive me more context, and I can help with the next step!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 53,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "That depends entirely on what you are trying to build! Let me know if you want to:  \n\n- **Extend this JSON** by adding more fields (e.g., `\"b\": 2`, `\"c\": 3`).  \n- **Convert it** into another format (like YAML, XML, or a Python dictionary).  \n- **Use it in code** (e.g., fetch it in JavaScript, parse it in Python).  \n- **Generate a larger structure** (e.g., an array of objects).  \n\nGive me more context, and I can help with the next step!"
+        }
+      ],
+      "id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 54,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851043,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e5805a6f7dd141feabc5c711561f3361",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "That depends entirely on what you are trying to build! Let me know if you want to:  \n\n- **Extend this JSON** by adding more fields (e.g., `\"b\": 2`, `\"c\": 3`).  \n- **Convert it** into another format (like YAML, XML, or a Python dictionary).  \n- **Use it in code** (e.g., fetch it in JavaScript, parse it in Python).  \n- **Generate a larger structure** (e.g., an array of objects).  \n\nGive me more context, and I can help with the next step!"
+            }
+          ],
+          "id": "msg_8cfe2de24a804daf8e19904f3f50d0a0",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_object"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 36,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 120,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 156
+      }
+    }
+  }
+]

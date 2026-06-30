@@ -1,0 +1,51 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Return JSON with tags as an array of 2 to 3 strings."
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "```json\n{\n  \"tags\": [\"technology\", \"programming\", \"code\"]\n}\n```"
+        }
+      ],
+      "id": "msg_759e3b60751f463aab30d8363678172c",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "tag_list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

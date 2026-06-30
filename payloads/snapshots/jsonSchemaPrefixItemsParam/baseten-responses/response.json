@@ -1,0 +1,97 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_bb9c3da1177d419ea48b8af6654e647f",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "```json\n{\n  \"tuple\": [\n    \"gateway\",\n    7\n  ]\n}\n```"
+        }
+      ],
+      "id": "msg_3b0c11bac8744abb99c89165049c2236",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "tuple_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tuple": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "tuple"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 20,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 21,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 41
+  },
+  "output_text": "```json\n{\n  \"tuple\": [\n    \"gateway\",\n    7\n  ]\n}\n```"
+}

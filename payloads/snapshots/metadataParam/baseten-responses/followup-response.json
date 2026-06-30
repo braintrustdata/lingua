@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_348b9a9b8b3d487fa29cee0b0ecbfe25",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That's a very open-ended question! To give you the best advice, it helps to know what's on your mind. \n\nAre you asking about:\n*   **A specific task or project?** (e.g., \"I just finished learning HTML, what should I learn next?\")\n*   **Your career or life goals?** (e.g., \"I'm feeling stuck in my current job, what should I do next?\")\n*   **How to use me?** (e.g., \"We just finished a conversation, what other features do you have?\")\n*   **Or are you just bored and looking for something fun to do?**\n\nTell me a little bit about what you're working on or what's on your mind, and I'll gladly give you some concrete next steps!"
+        }
+      ],
+      "id": "msg_585153d98ddc4aa6bef0de9abbd5ba34",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 40,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 161,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 201
+  },
+  "output_text": "That's a very open-ended question! To give you the best advice, it helps to know what's on your mind. \n\nAre you asking about:\n*   **A specific task or project?** (e.g., \"I just finished learning HTML, what should I learn next?\")\n*   **Your career or life goals?** (e.g., \"I'm feeling stuck in my current job, what should I do next?\")\n*   **How to use me?** (e.g., \"We just finished a conversation, what other features do you have?\")\n*   **Or are you just bored and looking for something fun to do?**\n\nTell me a little bit about what you're working on or what's on your mind, and I'll gladly give you some concrete next steps!"
+}

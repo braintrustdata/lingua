@@ -1,0 +1,82 @@
+{
+  "background": false,
+  "created_at": 1782851050,
+  "completed_at": 1782851050,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_313f894b3d6445b89aa6b141e4334a99",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "At 25, you are in a really interesting phase of life. You’re likely out of the \"just starting out\" phase, but you have plenty of runway ahead of you. Because \"what's next\" is a massive question, it helps to break it down into a few different buckets. \n\nHere is a framework to help you figure out your next move. Ask yourself which of these areas feels the most urgent or exciting to you right now:\n\n### 1. Career & Ambition (The \"Hustle\" Bucket)\n*   **Skill Stacking:** What is one skill that, if you mastered it over the next 12 months, would double your income or get you a promotion? (e.g., coding, public speaking, data analysis, a new language).\n*   **Network:** Have you been staying in your lane? Your next move might be attending an industry conference, joining a professional group, or just grabbing coffee with someone whose career you admire.\n*   **Pivot:** Are you happy in your current field? If not, 25 is the perfect time to pivot. Start researching what it would take to transition into a field you actually care about.\n\n### 2. Financial Foundation (The \"Future Self\" Bucket)\n*   **Emergency Fund:** Do you have 3 to 6 months of living expenses saved up? If not, this is step one. It buys you freedom and peace of mind.\n*   **Investing:** Have you started putting money into the stock market (like an S&P 500 index fund) or a retirement account? Thanks to compound interest, a dollar invested at 25 is worth significantly more than a dollar invested at 35.\n*   **Kill Bad Debt:** If you have high-interest credit card debt, your next step is aggressively paying that down. \n\n### 3. Health & Wellness (The \"Engine\" Bucket)\n*   **Establish a Routine:** As responsibilities increase, having a solid physical routine becomes a lifesaver. If you don't have one, start lifting weights, running, doing yoga, or playing a sport 3–4 times a week.\n*   **Mental Maintenance:** Have you ever tried therapy or meditation? Learning how to manage stress and understand your own mind now will save you a lot of trouble in your 30s.\n\n### 4. Life Experience (The \"Fun\" Bucket)\n*   **Travel:** Is there a place you’ve always wanted to see? Plan a trip. It doesn't have to be expensive, but traveling solo or with close friends in your mid-20s creates memories and perspectives that last a lifetime.\n*   **Hobbies:** Do you have something you do *just* for fun that isn't tied to making money or building a resume? If not, find one. \n\n### 5. Relationships (The \"People\" Bucket)\n*   **Audit your circle:** Are the people you hang out with pushing you to be better, or are they holding you back? Invest heavily in the friendships that bring out the best in you.\n*   **Dating/Family:** Depending on where you are, your next step might be focusing on finding a long-term partner, or maybe it's disconnecting from dating apps to focus on yourself. \n\n**So, John, to narrow it down:**\nIf you had to pick just **one** of these areas to focus on for the next 6 months, would it be your **career, your money, your health, or your life experiences**? Let me know, and we can map out some specific, actionable steps!"
+        }
+      ],
+      "id": "msg_5e4e64bb1adb4f499dcb462af5a8ab1c",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": "Extract person information from text",
+      "name": "person_info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 132,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 731,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 863
+  },
+  "output_text": "At 25, you are in a really interesting phase of life. You’re likely out of the \"just starting out\" phase, but you have plenty of runway ahead of you. Because \"what's next\" is a massive question, it helps to break it down into a few different buckets. \n\nHere is a framework to help you figure out your next move. Ask yourself which of these areas feels the most urgent or exciting to you right now:\n\n### 1. Career & Ambition (The \"Hustle\" Bucket)\n*   **Skill Stacking:** What is one skill that, if you mastered it over the next 12 months, would double your income or get you a promotion? (e.g., coding, public speaking, data analysis, a new language).\n*   **Network:** Have you been staying in your lane? Your next move might be attending an industry conference, joining a professional group, or just grabbing coffee with someone whose career you admire.\n*   **Pivot:** Are you happy in your current field? If not, 25 is the perfect time to pivot. Start researching what it would take to transition into a field you actually care about.\n\n### 2. Financial Foundation (The \"Future Self\" Bucket)\n*   **Emergency Fund:** Do you have 3 to 6 months of living expenses saved up? If not, this is step one. It buys you freedom and peace of mind.\n*   **Investing:** Have you started putting money into the stock market (like an S&P 500 index fund) or a retirement account? Thanks to compound interest, a dollar invested at 25 is worth significantly more than a dollar invested at 35.\n*   **Kill Bad Debt:** If you have high-interest credit card debt, your next step is aggressively paying that down. \n\n### 3. Health & Wellness (The \"Engine\" Bucket)\n*   **Establish a Routine:** As responsibilities increase, having a solid physical routine becomes a lifesaver. If you don't have one, start lifting weights, running, doing yoga, or playing a sport 3–4 times a week.\n*   **Mental Maintenance:** Have you ever tried therapy or meditation? Learning how to manage stress and understand your own mind now will save you a lot of trouble in your 30s.\n\n### 4. Life Experience (The \"Fun\" Bucket)\n*   **Travel:** Is there a place you’ve always wanted to see? Plan a trip. It doesn't have to be expensive, but traveling solo or with close friends in your mid-20s creates memories and perspectives that last a lifetime.\n*   **Hobbies:** Do you have something you do *just* for fun that isn't tied to making money or building a resume? If not, find one. \n\n### 5. Relationships (The \"People\" Bucket)\n*   **Audit your circle:** Are the people you hang out with pushing you to be better, or are they holding you back? Invest heavily in the friendships that bring out the best in you.\n*   **Dating/Family:** Depending on where you are, your next step might be focusing on finding a long-term partner, or maybe it's disconnecting from dating apps to focus on yourself. \n\n**So, John, to narrow it down:**\nIf you had to pick just **one** of these areas to focus on for the next 6 months, would it be your **career, your money, your health, or your life experiences**? Let me know, and we can map out some specific, actionable steps!"
+}

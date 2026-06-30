@@ -1,0 +1,78 @@
+{
+  "background": false,
+  "created_at": 1782851046,
+  "completed_at": 1782851046,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_473de115d17540718bb02a3df97f3d80",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "What you do next depends on what you are trying to build! In the previous JSON, `2024-05-22T14:32:00Z` was a hardcoded placeholder. \n\nHere are a few common next steps depending on your project:\n\n**1. Generate a dynamic timestamp in your code**\nIf you are building an application, you'll want to generate that timestamp dynamically rather than hardcoding it. Here is how you do that in a few popular languages:\n*   **JavaScript/Node.js:** `new Date().toISOString()`\n*   **Python:** `datetime.datetime.now(datetime.timezone.utc).isoformat()`\n*   **Java:** `Instant.now().toString()`\n*   **C#:** `DateTime.UtcNow.ToString(\"o\")`\n\n**2. Use it in an API**\nIf you are building a REST API (e.g., returning this JSON when a user creates a new resource), make sure your server applies the `created_at` timestamp *before* saving it to your database. \n\n**3. Parse the timestamp on the frontend**\nIf you are receiving this JSON on a frontend client and need to display it to a user, you will need to parse the string back into a date object to format it nicely:\n```javascript\nconst data = {\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"created_at\": \"2024-05-22T14:32:00Z\"\n};\n\nconst date = new Date(data.created_at);\nconsole.log(date.toLocaleString()); // Prints locally formatted date\n```\n\n**Tell me a bit more about what you are working on!** Are you writing a backend server, a frontend application, or a database schema? I can give you more specific guidance."
+        }
+      ],
+      "id": "msg_7198e3b99f234b858abbf85fe07bcc8d",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "timestamp_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 73,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 356,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 429
+  },
+  "output_text": "What you do next depends on what you are trying to build! In the previous JSON, `2024-05-22T14:32:00Z` was a hardcoded placeholder. \n\nHere are a few common next steps depending on your project:\n\n**1. Generate a dynamic timestamp in your code**\nIf you are building an application, you'll want to generate that timestamp dynamically rather than hardcoding it. Here is how you do that in a few popular languages:\n*   **JavaScript/Node.js:** `new Date().toISOString()`\n*   **Python:** `datetime.datetime.now(datetime.timezone.utc).isoformat()`\n*   **Java:** `Instant.now().toString()`\n*   **C#:** `DateTime.UtcNow.ToString(\"o\")`\n\n**2. Use it in an API**\nIf you are building a REST API (e.g., returning this JSON when a user creates a new resource), make sure your server applies the `created_at` timestamp *before* saving it to your database. \n\n**3. Parse the timestamp on the frontend**\nIf you are receiving this JSON on a frontend client and need to display it to a user, you will need to parse the string back into a date object to format it nicely:\n```javascript\nconst data = {\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"created_at\": \"2024-05-22T14:32:00Z\"\n};\n\nconst date = new Date(data.created_at);\nconsole.log(date.toLocaleString()); // Prints locally formatted date\n```\n\n**Tell me a bit more about what you are working on!** Are you writing a backend server, a frontend application, or a database schema? I can give you more specific guidance."
+}

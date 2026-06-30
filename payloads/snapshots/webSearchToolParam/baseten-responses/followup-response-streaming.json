@@ -1,0 +1,1848 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851052,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0a5be210eda1411eae64866dd051b28b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851052,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0a5be210eda1411eae64866dd051b28b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_971e590787f94c4b83a771876adb96ef",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " were just talking about Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI, I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " give",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you a few recommendations",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on how to dive",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " deeper into that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " topic, or we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can pivot to something",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " entirely different.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n\nHere are a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " few options",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " do next:\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1. Try",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out the new Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI features",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If you haven",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t yet",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " best way to understand",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the G",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "PT-4o update",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is to play",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with it. \n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Go",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to Chat",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "GPT (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " download the new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " desktop",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " app if",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you use",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a Mac).\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Try",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " using",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Voice Mode",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " mobile app to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " experience",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the real-time,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interruptible",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " conversation.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n* Ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it to analyze",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " image,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a math",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " problem, or a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " piece of code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you.\n\n**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Dive deeper into a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " specific Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI story**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "We",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " only",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " scratched",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the surface on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " these",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " topics",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can give",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " deep",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dive on any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of them:\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Apple Integration",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** What",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " means for your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " iPhone",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " privacy and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " how it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " will",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " actually work",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "The Safety",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Exodus",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** The full",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " context",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "lya Suts",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "kever leaving",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ",",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "alignment",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\" means",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " AI, and why",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " matters for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the future of humanity",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **The S",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ora Video",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Model:** How",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " text",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-to-video works",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the ethical implications of deep",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "fakes.\n\n**3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Learn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " about the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " broader AI landscape**\nOpen",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " making",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " moves",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", but they",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " aren't the only player",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 122,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in town",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 123,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 124,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Ask me about",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 125,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Anth",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 126,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ropic's",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 127,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Claude ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 128,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "3.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 129,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "5** (currently",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 130,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 131,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " massive",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 132,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " competitor to ChatGPT",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 133,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ").\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 134,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Ask me",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 135,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " about **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 136,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Google Gemini",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 137,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 138,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 139,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Meta",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 140,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'s",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 141,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Llama 3**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 142,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 143,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**4",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 144,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 145,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a step back to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 146,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 147,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Basics",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 148,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nIf you are feeling",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 149,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " overwhelmed by terms",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 150,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like \"G",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 151,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "PT,\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 152,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"training",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 153,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " models,\" or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 154,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"red",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 155,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-teaming,\" ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 156,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 157,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " explain the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 158,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fundamentals",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 159,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of how",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 160,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " gener",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 161,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ative AI actually",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 162,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " works in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 163,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " plain English.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 164,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n\n**5",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 165,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Pivot",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 166,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " completely**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 167,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "We can drop",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 168,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 169,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " talk",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 170,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " entirely",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 171,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 172,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 173,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 174,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 175,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " email, plan",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 176,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a trip, brainstorm",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 177,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 178,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", or summarize",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 179,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a long",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 180,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " article for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 181,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you. \n\nWhat sounds",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 182,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the most interesting to you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 183,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " right now?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 184,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Since we were just talking about OpenAI, I can give you a few recommendations on how to dive deeper into that topic, or we can pivot to something entirely different. \n\nHere are a few options for what you can do next:\n\n**1. Try out the new OpenAI features**\nIf you haven't yet, the best way to understand the GPT-4o update is to play with it. \n* Go to ChatGPT (or download the new desktop app if you use a Mac).\n* Try using the **Voice Mode** on the mobile app to experience the real-time, interruptible conversation. \n* Ask it to analyze an image, a math problem, or a piece of code for you.\n\n**2. Dive deeper into a specific OpenAI story**\nWe only scratched the surface on these topics. I can give you a deep dive on any of them:\n* **The Apple Integration:** What this means for your iPhone privacy and how it will actually work.\n* **The Safety Exodus:** The full context of Ilya Sutskever leaving, what \"alignment\" means in AI, and why it matters for the future of humanity.\n* **The Sora Video Model:** How text-to-video works and the ethical implications of deepfakes.\n\n**3. Learn about the broader AI landscape**\nOpenAI is making moves, but they aren't the only player in town. \n* Ask me about **Anthropic's Claude 3.5** (currently a massive competitor to ChatGPT).\n* Ask me about **Google Gemini** or **Meta's Llama 3**.\n\n**4. Take a step back to AI Basics**\nIf you are feeling overwhelmed by terms like \"GPT,\" \"training models,\" or \"red-teaming,\" ask me to explain the fundamentals of how generative AI actually works in plain English. \n\n**5. Pivot completely**\nWe can drop the AI talk entirely. I can help you write an email, plan a trip, brainstorm a project, or summarize a long article for you. \n\nWhat sounds the most interesting to you right now?",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 185,
+    "item_id": "msg_971e590787f94c4b83a771876adb96ef",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Since we were just talking about OpenAI, I can give you a few recommendations on how to dive deeper into that topic, or we can pivot to something entirely different. \n\nHere are a few options for what you can do next:\n\n**1. Try out the new OpenAI features**\nIf you haven't yet, the best way to understand the GPT-4o update is to play with it. \n* Go to ChatGPT (or download the new desktop app if you use a Mac).\n* Try using the **Voice Mode** on the mobile app to experience the real-time, interruptible conversation. \n* Ask it to analyze an image, a math problem, or a piece of code for you.\n\n**2. Dive deeper into a specific OpenAI story**\nWe only scratched the surface on these topics. I can give you a deep dive on any of them:\n* **The Apple Integration:** What this means for your iPhone privacy and how it will actually work.\n* **The Safety Exodus:** The full context of Ilya Sutskever leaving, what \"alignment\" means in AI, and why it matters for the future of humanity.\n* **The Sora Video Model:** How text-to-video works and the ethical implications of deepfakes.\n\n**3. Learn about the broader AI landscape**\nOpenAI is making moves, but they aren't the only player in town. \n* Ask me about **Anthropic's Claude 3.5** (currently a massive competitor to ChatGPT).\n* Ask me about **Google Gemini** or **Meta's Llama 3**.\n\n**4. Take a step back to AI Basics**\nIf you are feeling overwhelmed by terms like \"GPT,\" \"training models,\" or \"red-teaming,\" ask me to explain the fundamentals of how generative AI actually works in plain English. \n\n**5. Pivot completely**\nWe can drop the AI talk entirely. I can help you write an email, plan a trip, brainstorm a project, or summarize a long article for you. \n\nWhat sounds the most interesting to you right now?"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 186,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Since we were just talking about OpenAI, I can give you a few recommendations on how to dive deeper into that topic, or we can pivot to something entirely different. \n\nHere are a few options for what you can do next:\n\n**1. Try out the new OpenAI features**\nIf you haven't yet, the best way to understand the GPT-4o update is to play with it. \n* Go to ChatGPT (or download the new desktop app if you use a Mac).\n* Try using the **Voice Mode** on the mobile app to experience the real-time, interruptible conversation. \n* Ask it to analyze an image, a math problem, or a piece of code for you.\n\n**2. Dive deeper into a specific OpenAI story**\nWe only scratched the surface on these topics. I can give you a deep dive on any of them:\n* **The Apple Integration:** What this means for your iPhone privacy and how it will actually work.\n* **The Safety Exodus:** The full context of Ilya Sutskever leaving, what \"alignment\" means in AI, and why it matters for the future of humanity.\n* **The Sora Video Model:** How text-to-video works and the ethical implications of deepfakes.\n\n**3. Learn about the broader AI landscape**\nOpenAI is making moves, but they aren't the only player in town. \n* Ask me about **Anthropic's Claude 3.5** (currently a massive competitor to ChatGPT).\n* Ask me about **Google Gemini** or **Meta's Llama 3**.\n\n**4. Take a step back to AI Basics**\nIf you are feeling overwhelmed by terms like \"GPT,\" \"training models,\" or \"red-teaming,\" ask me to explain the fundamentals of how generative AI actually works in plain English. \n\n**5. Pivot completely**\nWe can drop the AI talk entirely. I can help you write an email, plan a trip, brainstorm a project, or summarize a long article for you. \n\nWhat sounds the most interesting to you right now?"
+        }
+      ],
+      "id": "msg_971e590787f94c4b83a771876adb96ef",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 187,
+    "response": {
+      "background": false,
+      "created_at": 1782851052,
+      "completed_at": 1782851057,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0a5be210eda1411eae64866dd051b28b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Since we were just talking about OpenAI, I can give you a few recommendations on how to dive deeper into that topic, or we can pivot to something entirely different. \n\nHere are a few options for what you can do next:\n\n**1. Try out the new OpenAI features**\nIf you haven't yet, the best way to understand the GPT-4o update is to play with it. \n* Go to ChatGPT (or download the new desktop app if you use a Mac).\n* Try using the **Voice Mode** on the mobile app to experience the real-time, interruptible conversation. \n* Ask it to analyze an image, a math problem, or a piece of code for you.\n\n**2. Dive deeper into a specific OpenAI story**\nWe only scratched the surface on these topics. I can give you a deep dive on any of them:\n* **The Apple Integration:** What this means for your iPhone privacy and how it will actually work.\n* **The Safety Exodus:** The full context of Ilya Sutskever leaving, what \"alignment\" means in AI, and why it matters for the future of humanity.\n* **The Sora Video Model:** How text-to-video works and the ethical implications of deepfakes.\n\n**3. Learn about the broader AI landscape**\nOpenAI is making moves, but they aren't the only player in town. \n* Ask me about **Anthropic's Claude 3.5** (currently a massive competitor to ChatGPT).\n* Ask me about **Google Gemini** or **Meta's Llama 3**.\n\n**4. Take a step back to AI Basics**\nIf you are feeling overwhelmed by terms like \"GPT,\" \"training models,\" or \"red-teaming,\" ask me to explain the fundamentals of how generative AI actually works in plain English. \n\n**5. Pivot completely**\nWe can drop the AI talk entirely. I can help you write an email, plan a trip, brainstorm a project, or summarize a long article for you. \n\nWhat sounds the most interesting to you right now?"
+            }
+          ],
+          "id": "msg_971e590787f94c4b83a771876adb96ef",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 875,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 425,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1300
+      }
+    }
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_84ed7dda1433443e87611893d9971480",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That depends entirely on what you're in the mood for and what you're trying to accomplish! Since we just said hello, we can take this conversation in almost any direction. \n\nHere are a few ideas for what you can do next:\n\n**1. Learn or Create something**\n*   **Ask me to write something:** I can draft an email, write a poem, create a short story, or help you outline a project.\n*   **Brainstorm ideas:** If you're stuck on a project, a gift idea, or what to make for dinner, tell me the parameters and we can brainstorm together.\n*   **Learn a new concept:** Ask me to explain a complex topic (like quantum physics, how the stock market works, or a historical event) in simple terms.\n\n**2. Get Productive**\n*   **Plan your day:** Tell me what you need to get done, and I can help you create a schedule or a to-do list.\n*   **Solve a problem:** If you have a coding bug, a math equation, or a logical puzzle you're stuck on, let's tackle it together.\n*   **Practice a skill:** We can do a mock interview, or you can practice a new language with me.\n\n**3. Have some Fun**\n*   **Play a game:** We can play trivia, 20 Questions, or Word Association.\n*   **Roleplay:** We can start a choose-your-own-adventure text game.\n*   **Recommendations:** Ask me for movie, book, or music recommendations based on your exact mood.\n\n**Tell me a little bit about what you're doing right now.** Are you working, relaxing, trying to solve a specific problem, or just bored? I can give you a much better suggestion if you share what's on your mind!"
+        }
+      ],
+      "id": "msg_fc96e39e65cd489a85e9e601a4aebd3e",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 370,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 401
+  },
+  "output_text": "That depends entirely on what you're in the mood for and what you're trying to accomplish! Since we just said hello, we can take this conversation in almost any direction. \n\nHere are a few ideas for what you can do next:\n\n**1. Learn or Create something**\n*   **Ask me to write something:** I can draft an email, write a poem, create a short story, or help you outline a project.\n*   **Brainstorm ideas:** If you're stuck on a project, a gift idea, or what to make for dinner, tell me the parameters and we can brainstorm together.\n*   **Learn a new concept:** Ask me to explain a complex topic (like quantum physics, how the stock market works, or a historical event) in simple terms.\n\n**2. Get Productive**\n*   **Plan your day:** Tell me what you need to get done, and I can help you create a schedule or a to-do list.\n*   **Solve a problem:** If you have a coding bug, a math equation, or a logical puzzle you're stuck on, let's tackle it together.\n*   **Practice a skill:** We can do a mock interview, or you can practice a new language with me.\n\n**3. Have some Fun**\n*   **Play a game:** We can play trivia, 20 Questions, or Word Association.\n*   **Roleplay:** We can start a choose-your-own-adventure text game.\n*   **Recommendations:** Ask me for movie, book, or music recommendations based on your exact mood.\n\n**Tell me a little bit about what you're doing right now.** Are you working, relaxing, trying to solve a specific problem, or just bored? I can give you a much better suggestion if you share what's on your mind!"
+}

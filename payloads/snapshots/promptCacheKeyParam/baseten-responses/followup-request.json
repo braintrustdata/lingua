@@ -1,0 +1,28 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "你好！我是Z.ai训练的GLM大语言模型，很高兴能与你交流。有什么我可以帮助你的吗？"
+        }
+      ],
+      "id": "msg_becc59a47ff34b82b0e245730c8d0f3e",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_key": "test-key"
+}

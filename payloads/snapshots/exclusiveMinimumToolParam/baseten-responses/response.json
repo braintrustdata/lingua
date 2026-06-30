@@ -1,0 +1,84 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_d3d87745d9c54d4ba5ec621411b9ae96",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I'd be happy to configure the LLM for you, but I need one required parameter to proceed:\n\n- **max_tokens**: The maximum number of tokens to generate. This must be a positive number.\n\nCould you please provide the value for `max_tokens` that you'd like to set? For example, 256, 512, 1024, 2048, etc."
+        }
+      ],
+      "id": "msg_4afe00ebc01e45cf9379e6736ccd1742",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "name": "configure_llm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false,
+      "description": "Configure LLM generation parameters"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 180,
+    "input_tokens_details": {
+      "cached_tokens": 32
+    },
+    "output_tokens": 78,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 258
+  },
+  "output_text": "I'd be happy to configure the LLM for you, but I need one required parameter to proceed:\n\n- **max_tokens**: The maximum number of tokens to generate. This must be a positive number.\n\nCould you please provide the value for `max_tokens` that you'd like to set? For example, 256, 512, 1024, 2048, etc."
+}

@@ -1,0 +1,786 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851044,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_70e9c8ac567246a6a2b42e4d88dbc63c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "required",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          },
+          "strict": false,
+          "description": "Get the current weather for a location"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851044,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_70e9c8ac567246a6a2b42e4d88dbc63c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "required",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          },
+          "strict": false,
+          "description": "Get the current weather for a location"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_d357a5e314434b1987b8f45832e371fa",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "It",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looks like the weather information",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for San Francisco didn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t come through",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " clearly",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". However",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", I can still",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " help you figure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to do next!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Here are some",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " suggestions depending",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on your goals",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n1",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". **Check",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the weather again",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** –",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I can retry",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " getting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the weather for San Francisco",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " other city",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interested in.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2. **Plan",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " activity** –",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " If you're in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " San Francisco,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can suggest",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " things",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to do like",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " visiting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Golden Gate Bridge",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", exploring",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Fisherman's",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Wharf, or checking",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out Golden",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Gate Park.\n\n3.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " weather",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for multiple locations",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – If you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " planning a trip, I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can check the weather for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " several cities at",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " once to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " help you decide where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to go.\n\nWhat",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you interested",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in? Let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know and I'll",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " be",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " happy to help! 😊",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 61,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "It looks like the weather information for San Francisco didn't come through clearly. However, I can still help you figure out what to do next! Here are some suggestions depending on your goals:\n\n1. **Check the weather again** – I can retry getting the weather for San Francisco or any other city you're interested in.\n\n2. **Plan an activity** – If you're in San Francisco, I can suggest things to do like visiting the Golden Gate Bridge, exploring Fisherman's Wharf, or checking out Golden Gate Park.\n\n3. **Get weather for multiple locations** – If you're planning a trip, I can check the weather for several cities at once to help you decide where to go.\n\nWhat are you interested in? Let me know and I'll be happy to help! 😊",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 62,
+    "item_id": "msg_d357a5e314434b1987b8f45832e371fa",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "It looks like the weather information for San Francisco didn't come through clearly. However, I can still help you figure out what to do next! Here are some suggestions depending on your goals:\n\n1. **Check the weather again** – I can retry getting the weather for San Francisco or any other city you're interested in.\n\n2. **Plan an activity** – If you're in San Francisco, I can suggest things to do like visiting the Golden Gate Bridge, exploring Fisherman's Wharf, or checking out Golden Gate Park.\n\n3. **Get weather for multiple locations** – If you're planning a trip, I can check the weather for several cities at once to help you decide where to go.\n\nWhat are you interested in? Let me know and I'll be happy to help! 😊"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 63,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It looks like the weather information for San Francisco didn't come through clearly. However, I can still help you figure out what to do next! Here are some suggestions depending on your goals:\n\n1. **Check the weather again** – I can retry getting the weather for San Francisco or any other city you're interested in.\n\n2. **Plan an activity** – If you're in San Francisco, I can suggest things to do like visiting the Golden Gate Bridge, exploring Fisherman's Wharf, or checking out Golden Gate Park.\n\n3. **Get weather for multiple locations** – If you're planning a trip, I can check the weather for several cities at once to help you decide where to go.\n\nWhat are you interested in? Let me know and I'll be happy to help! 😊"
+        }
+      ],
+      "id": "msg_d357a5e314434b1987b8f45832e371fa",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 64,
+    "response": {
+      "background": false,
+      "created_at": 1782851044,
+      "completed_at": 1782851048,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_70e9c8ac567246a6a2b42e4d88dbc63c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "It looks like the weather information for San Francisco didn't come through clearly. However, I can still help you figure out what to do next! Here are some suggestions depending on your goals:\n\n1. **Check the weather again** – I can retry getting the weather for San Francisco or any other city you're interested in.\n\n2. **Plan an activity** – If you're in San Francisco, I can suggest things to do like visiting the Golden Gate Bridge, exploring Fisherman's Wharf, or checking out Golden Gate Park.\n\n3. **Get weather for multiple locations** – If you're planning a trip, I can check the weather for several cities at once to help you decide where to go.\n\nWhat are you interested in? Let me know and I'll be happy to help! 😊"
+            }
+          ],
+          "id": "msg_d357a5e314434b1987b8f45832e371fa",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "required",
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              }
+            },
+            "required": [
+              "location"
+            ]
+          },
+          "strict": false,
+          "description": "Get the current weather for a location"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 200,
+        "input_tokens_details": {
+          "cached_tokens": 32
+        },
+        "output_tokens": 161,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 361
+      }
+    }
+  }
+]

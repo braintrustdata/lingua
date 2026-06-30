@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851046,
+  "completed_at": 1782851046,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_35c3e7a45b7d4c9bb3589ffcd9a5142f",
+  "incomplete_details": null,
+  "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+  "max_output_tokens": 300,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "While I don't have the actual results from that query to diagnose specific issues for you, here is a standard troubleshooting workflow a data analyst would recommend for handling these errors:\n\n**1. Categorize the Errors**\nGroup the errors you just pulled by `error_code` or `error_message`. Often, 10 recent errors might actually just be the same root cause being triggered repeatedly. \n* *Action:* Let me know which error message or code appears most frequently, and we can focus on that first.\n\n**2. Correlate with Deployments**\nCheck if these errors started immediately after a recent code deployment, configuration change, or infrastructure update.\n* *Action:* If you can give me the timestamp of a recent deployment, I can write a query to look for the exact moment the error rate spiked.\n\n**3. Pull the Full Stack Traces**\nThe initial query only pulled a summary. To actually fix the issue, your engineering team will likely need the full stack trace or payload associated with the error.\n* *Action:* I can run a query to pull the complete raw log entries for a specific error if you narrow down which one you want to investigate.\n\n**4. Look for Warnings**\nSometimes an `ERROR` is preceded by `WARN` logs that hint at the underlying problem (e.g., a timeout warning right before a database connection error).\n* *Action:* I can query the `project_logs` for `WARN` or `INFO` levels immediately preceding the error"
+        }
+      ],
+      "id": "msg_9d0612700f494b28888dd3c0d9b55a7a",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 148,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 300,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 448
+  },
+  "output_text": "While I don't have the actual results from that query to diagnose specific issues for you, here is a standard troubleshooting workflow a data analyst would recommend for handling these errors:\n\n**1. Categorize the Errors**\nGroup the errors you just pulled by `error_code` or `error_message`. Often, 10 recent errors might actually just be the same root cause being triggered repeatedly. \n* *Action:* Let me know which error message or code appears most frequently, and we can focus on that first.\n\n**2. Correlate with Deployments**\nCheck if these errors started immediately after a recent code deployment, configuration change, or infrastructure update.\n* *Action:* If you can give me the timestamp of a recent deployment, I can write a query to look for the exact moment the error rate spiked.\n\n**3. Pull the Full Stack Traces**\nThe initial query only pulled a summary. To actually fix the issue, your engineering team will likely need the full stack trace or payload associated with the error.\n* *Action:* I can run a query to pull the complete raw log entries for a specific error if you narrow down which one you want to investigate.\n\n**4. Look for Warnings**\nSometimes an `ERROR` is preceded by `WARN` logs that hint at the underlying problem (e.g., a timeout warning right before a database connection error).\n* *Action:* I can query the `project_logs` for `WARN` or `INFO` levels immediately preceding the error"
+}

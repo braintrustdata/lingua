@@ -1,0 +1,30 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "reasoning": {
+    "effort": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What color is the sky?"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "The sky is typically **blue** during a clear day. \n\nHowever, its color changes depending on the time of day and the weather:\n* **Sunrise and sunset:** It can appear orange, pink, red, or purple.\n* **Night:** It appears dark blue or black.\n* **Overcast/Stormy:** It appears gray or white due to cloud cover."
+        }
+      ],
+      "id": "msg_b6f32ce0b80049f3970ad1f12a54075e",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

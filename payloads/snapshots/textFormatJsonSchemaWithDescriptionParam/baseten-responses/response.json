@@ -1,0 +1,82 @@
+{
+  "background": false,
+  "created_at": 1782851043,
+  "completed_at": 1782851043,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_029f610792bb4a4e82815676ff04f4a9",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Hello, John! Since you're 25, you're right in the heart of young adulthood—a great time for career growth, personal development, and exploring new interests. \n\nI see we have the basics down, but I'd love to know more to help you better. What's on your mind today? We could talk about:\n- Career advice or resume building\n- Fitness and health tips\n- Learning a new skill or hobby\n- Travel recommendations\n- Or just have a casual chat!\n\nWhat would you like to do?"
+        }
+      ],
+      "id": "msg_2768e60c46814119b8ca92f3e038e848",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "description": "Extract person information from text",
+      "name": "person_info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 15,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 107,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 122
+  },
+  "output_text": "Hello, John! Since you're 25, you're right in the heart of young adulthood—a great time for career growth, personal development, and exploring new interests. \n\nI see we have the basics down, but I'd love to know more to help you better. What's on your mind today? We could talk about:\n- Career advice or resume building\n- Fitness and health tips\n- Learning a new skill or hobby\n- Travel recommendations\n- Or just have a casual chat!\n\nWhat would you like to do?"
+}

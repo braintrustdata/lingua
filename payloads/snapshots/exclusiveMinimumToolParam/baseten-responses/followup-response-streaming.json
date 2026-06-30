@@ -1,0 +1,810 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_3162c8a103944263908d7d5a050ec522",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "configure_llm",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "max_tokens": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Maximum number of tokens to generate"
+              }
+            },
+            "required": [
+              "max_tokens"
+            ],
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "Configure LLM generation parameters"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_3162c8a103944263908d7d5a050ec522",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "configure_llm",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "max_tokens": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Maximum number of tokens to generate"
+              }
+            },
+            "required": [
+              "max_tokens"
+            ],
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "Configure LLM generation parameters"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'s",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what I'd recommend",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " as next",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " steps:\n\n1. **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Configure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the LLM** —",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " We",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " still",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " need to set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the `max_tokens",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "` parameter to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " complete",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the L",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "LM configuration. Just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " desired token",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " limit (e.g.,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 256",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", 512, ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1024, ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2048,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 4096,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " etc.), and I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'ll configure it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " right away.\n\n2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". **Tell",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me about",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your task** — After",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " configuration, let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know what you'd",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like to accomplish",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " For example:\n  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " - Text",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " generation or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " completion",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n   - Answer",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ing questions\n  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " - Summarizing content",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " - Writing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   - Brain",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "storming ideas",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " - Or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " anything",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " else you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " have in mind!\n\nTo",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " get started, just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " provide a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " `",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "max_tokens` value",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and I'll take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " from there! 🚀",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 63,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Here's what I'd recommend as next steps:\n\n1. **Configure the LLM** — We still need to set the `max_tokens` parameter to complete the LLM configuration. Just let me know your desired token limit (e.g., 256, 512, 1024, 2048, 4096, etc.), and I'll configure it right away.\n\n2. **Tell me about your task** — After configuration, let me know what you'd like to accomplish! For example:\n   - Text generation or completion\n   - Answering questions\n   - Summarizing content\n   - Writing code\n   - Brainstorming ideas\n   - Or anything else you have in mind!\n\nTo get started, just provide a `max_tokens` value and I'll take it from there! 🚀",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 64,
+    "item_id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Here's what I'd recommend as next steps:\n\n1. **Configure the LLM** — We still need to set the `max_tokens` parameter to complete the LLM configuration. Just let me know your desired token limit (e.g., 256, 512, 1024, 2048, 4096, etc.), and I'll configure it right away.\n\n2. **Tell me about your task** — After configuration, let me know what you'd like to accomplish! For example:\n   - Text generation or completion\n   - Answering questions\n   - Summarizing content\n   - Writing code\n   - Brainstorming ideas\n   - Or anything else you have in mind!\n\nTo get started, just provide a `max_tokens` value and I'll take it from there! 🚀"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 65,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here's what I'd recommend as next steps:\n\n1. **Configure the LLM** — We still need to set the `max_tokens` parameter to complete the LLM configuration. Just let me know your desired token limit (e.g., 256, 512, 1024, 2048, 4096, etc.), and I'll configure it right away.\n\n2. **Tell me about your task** — After configuration, let me know what you'd like to accomplish! For example:\n   - Text generation or completion\n   - Answering questions\n   - Summarizing content\n   - Writing code\n   - Brainstorming ideas\n   - Or anything else you have in mind!\n\nTo get started, just provide a `max_tokens` value and I'll take it from there! 🚀"
+        }
+      ],
+      "id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 66,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851043,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_3162c8a103944263908d7d5a050ec522",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Here's what I'd recommend as next steps:\n\n1. **Configure the LLM** — We still need to set the `max_tokens` parameter to complete the LLM configuration. Just let me know your desired token limit (e.g., 256, 512, 1024, 2048, 4096, etc.), and I'll configure it right away.\n\n2. **Tell me about your task** — After configuration, let me know what you'd like to accomplish! For example:\n   - Text generation or completion\n   - Answering questions\n   - Summarizing content\n   - Writing code\n   - Brainstorming ideas\n   - Or anything else you have in mind!\n\nTo get started, just provide a `max_tokens` value and I'll take it from there! 🚀"
+            }
+          ],
+          "id": "msg_c1761549e0f84873b654cc0cc1c5c1ba",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "configure_llm",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "max_tokens": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Maximum number of tokens to generate"
+              }
+            },
+            "required": [
+              "max_tokens"
+            ],
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "Configure LLM generation parameters"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 268,
+        "input_tokens_details": {
+          "cached_tokens": 160
+        },
+        "output_tokens": 169,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 437
+      }
+    }
+  }
+]

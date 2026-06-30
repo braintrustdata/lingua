@@ -1,0 +1,1926 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c8690a1844b5438780551484ad862fc1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "timestamp_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "created_at"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c8690a1844b5438780551484ad862fc1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "timestamp_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "created_at"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "It",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depends on what you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " building",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "! Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you started",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with a JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " object",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and a timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are a few common",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "next steps\" you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " might want to take:\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**1. Add",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " more data to the JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nIf this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is part",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " record",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " API response, you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " might want to expand",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it with",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " more",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fields,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " such as:\n```json",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n{\n  \"id",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\": ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "123,\n ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"message\": \"Hello",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", world!\",\n ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"status\": \"active",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\",\n ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"created_at\": \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024-05-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "22T14",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":32:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "00Z\",\n ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"updated_at",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\": \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024-05-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "22T14",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":35:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "00Z\"\n}\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "```\n\n**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Generate it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dynamically with code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nIf you are writing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a program",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", you'll",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " want to generate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dynamically so",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is always current",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is how",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in a few popular",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " languages:\n\n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "JavaScript /",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Node.js:**\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```javascript\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " const data = {\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "      id: ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "123,\n     ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " message: \"Hello",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", world",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "!\",\n     ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " created_at: new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Date().toISOString()\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " };\n    console.log(JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".stringify(data, null",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", 2));\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```\n\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Python",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```python\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " import json\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " from datetime import datetime",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", timezone\n\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " data = {\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "        \"id\": ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "123,\n       ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"message\": \"Hello",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", world!\",\n       ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"created_at",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\": datetime",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".now(time",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "zone.utc).iso",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "format().",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "replace(\"+",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "00:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "00\", \"Z",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\")\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " }\n    print(json.dumps",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "(data, indent=",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2))\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```\n\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Go",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```go\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " package main\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "    import (\n       ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"encoding/json\"\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "        \"fmt",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\"\n       ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"time\"\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " )\n\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " func main() {\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "        data :=",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " map[string]interface",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "{}{\n           ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"id\":        ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 123,\n           ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 122,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"message\":   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 123,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"Hello,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 124,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " world!\",\n           ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 125,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"created_at",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 126,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\": time",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 127,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".Now().UTC",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 128,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "().Format(time.R",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 129,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "FC3339),\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 130,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "        }\n        \n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 131,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "        jsonData",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 132,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", _ := json.Marshal",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 133,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Indent(data, \"\",",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 134,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \" ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 135,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \")\n       ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 136,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fmt.Println(string",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 137,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "(jsonData",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 138,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "))\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 139,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " }\n   ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 140,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ```\n\n**3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 141,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Use",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 142,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it in an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 143,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " API**\nIf",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 144,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 145,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are building a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 146,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " REST API (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 147,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "using",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 148,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Express, Fast",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 149,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "API, Spring",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 150,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Boot",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 151,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", etc.), your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 152,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " next step would",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 153,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " be to set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 154,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 155,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 156,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " as the response",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 157,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " payload for a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 158,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " `POST` or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 159,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " `GET",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 160,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "` request.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 161,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**4",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 162,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Parse",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 163,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 164,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If you are receiving",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 165,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this JSON",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 166,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " from somewhere",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 167,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " else, your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 168,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " next step is to parse",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 169,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 170,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " extract the timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 171,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 172,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " use in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 173,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your application logic",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 174,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n**Where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 175,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " would you like to go",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 176,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " from here?** Are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 177,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you working",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 178,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 179,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a specific programming",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 180,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 181,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", trying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 182,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to format",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 183,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 184,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 185,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or just experimenting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 186,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 187,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Let",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 188,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 189,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "It depends on what you are building! Since you started with a JSON object and a timestamp, here are a few common \"next steps\" you might want to take:\n\n**1. Add more data to the JSON**\nIf this is part of a database record or an API response, you might want to expand it with more fields, such as:\n```json\n{\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-05-22T14:32:00Z\",\n  \"updated_at\": \"2024-05-22T14:35:00Z\"\n}\n```\n\n**2. Generate it dynamically with code**\nIf you are writing a program, you'll want to generate this JSON dynamically so the timestamp is always current. Here is how you do that in a few popular languages:\n\n*   **JavaScript / Node.js:**\n    ```javascript\n    const data = {\n      id: 123,\n      message: \"Hello, world!\",\n      created_at: new Date().toISOString()\n    };\n    console.log(JSON.stringify(data, null, 2));\n    ```\n\n*   **Python:**\n    ```python\n    import json\n    from datetime import datetime, timezone\n\n    data = {\n        \"id\": 123,\n        \"message\": \"Hello, world!\",\n        \"created_at\": datetime.now(timezone.utc).isoformat().replace(\"+00:00\", \"Z\")\n    }\n    print(json.dumps(data, indent=2))\n    ```\n\n*   **Go:**\n    ```go\n    package main\n\n    import (\n        \"encoding/json\"\n        \"fmt\"\n        \"time\"\n    )\n\n    func main() {\n        data := map[string]interface{}{\n            \"id\":         123,\n            \"message\":    \"Hello, world!\",\n            \"created_at\": time.Now().UTC().Format(time.RFC3339),\n        }\n        \n        jsonData, _ := json.MarshalIndent(data, \"\", \"  \")\n        fmt.Println(string(jsonData))\n    }\n    ```\n\n**3. Use it in an API**\nIf you are building a REST API (using Express, FastAPI, Spring Boot, etc.), your next step would be to set this JSON as the response payload for a `POST` or `GET` request.\n\n**4. Parse it**\nIf you are receiving this JSON from somewhere else, your next step is to parse it and extract the timestamp to use in your application logic.\n\n**Where would you like to go from here?** Are you working on a specific programming project, trying to format a database, or just experimenting? Let me know!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 190,
+    "item_id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "It depends on what you are building! Since you started with a JSON object and a timestamp, here are a few common \"next steps\" you might want to take:\n\n**1. Add more data to the JSON**\nIf this is part of a database record or an API response, you might want to expand it with more fields, such as:\n```json\n{\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-05-22T14:32:00Z\",\n  \"updated_at\": \"2024-05-22T14:35:00Z\"\n}\n```\n\n**2. Generate it dynamically with code**\nIf you are writing a program, you'll want to generate this JSON dynamically so the timestamp is always current. Here is how you do that in a few popular languages:\n\n*   **JavaScript / Node.js:**\n    ```javascript\n    const data = {\n      id: 123,\n      message: \"Hello, world!\",\n      created_at: new Date().toISOString()\n    };\n    console.log(JSON.stringify(data, null, 2));\n    ```\n\n*   **Python:**\n    ```python\n    import json\n    from datetime import datetime, timezone\n\n    data = {\n        \"id\": 123,\n        \"message\": \"Hello, world!\",\n        \"created_at\": datetime.now(timezone.utc).isoformat().replace(\"+00:00\", \"Z\")\n    }\n    print(json.dumps(data, indent=2))\n    ```\n\n*   **Go:**\n    ```go\n    package main\n\n    import (\n        \"encoding/json\"\n        \"fmt\"\n        \"time\"\n    )\n\n    func main() {\n        data := map[string]interface{}{\n            \"id\":         123,\n            \"message\":    \"Hello, world!\",\n            \"created_at\": time.Now().UTC().Format(time.RFC3339),\n        }\n        \n        jsonData, _ := json.MarshalIndent(data, \"\", \"  \")\n        fmt.Println(string(jsonData))\n    }\n    ```\n\n**3. Use it in an API**\nIf you are building a REST API (using Express, FastAPI, Spring Boot, etc.), your next step would be to set this JSON as the response payload for a `POST` or `GET` request.\n\n**4. Parse it**\nIf you are receiving this JSON from somewhere else, your next step is to parse it and extract the timestamp to use in your application logic.\n\n**Where would you like to go from here?** Are you working on a specific programming project, trying to format a database, or just experimenting? Let me know!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 191,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It depends on what you are building! Since you started with a JSON object and a timestamp, here are a few common \"next steps\" you might want to take:\n\n**1. Add more data to the JSON**\nIf this is part of a database record or an API response, you might want to expand it with more fields, such as:\n```json\n{\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-05-22T14:32:00Z\",\n  \"updated_at\": \"2024-05-22T14:35:00Z\"\n}\n```\n\n**2. Generate it dynamically with code**\nIf you are writing a program, you'll want to generate this JSON dynamically so the timestamp is always current. Here is how you do that in a few popular languages:\n\n*   **JavaScript / Node.js:**\n    ```javascript\n    const data = {\n      id: 123,\n      message: \"Hello, world!\",\n      created_at: new Date().toISOString()\n    };\n    console.log(JSON.stringify(data, null, 2));\n    ```\n\n*   **Python:**\n    ```python\n    import json\n    from datetime import datetime, timezone\n\n    data = {\n        \"id\": 123,\n        \"message\": \"Hello, world!\",\n        \"created_at\": datetime.now(timezone.utc).isoformat().replace(\"+00:00\", \"Z\")\n    }\n    print(json.dumps(data, indent=2))\n    ```\n\n*   **Go:**\n    ```go\n    package main\n\n    import (\n        \"encoding/json\"\n        \"fmt\"\n        \"time\"\n    )\n\n    func main() {\n        data := map[string]interface{}{\n            \"id\":         123,\n            \"message\":    \"Hello, world!\",\n            \"created_at\": time.Now().UTC().Format(time.RFC3339),\n        }\n        \n        jsonData, _ := json.MarshalIndent(data, \"\", \"  \")\n        fmt.Println(string(jsonData))\n    }\n    ```\n\n**3. Use it in an API**\nIf you are building a REST API (using Express, FastAPI, Spring Boot, etc.), your next step would be to set this JSON as the response payload for a `POST` or `GET` request.\n\n**4. Parse it**\nIf you are receiving this JSON from somewhere else, your next step is to parse it and extract the timestamp to use in your application logic.\n\n**Where would you like to go from here?** Are you working on a specific programming project, trying to format a database, or just experimenting? Let me know!"
+        }
+      ],
+      "id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 192,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": 1782851050,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c8690a1844b5438780551484ad862fc1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "It depends on what you are building! Since you started with a JSON object and a timestamp, here are a few common \"next steps\" you might want to take:\n\n**1. Add more data to the JSON**\nIf this is part of a database record or an API response, you might want to expand it with more fields, such as:\n```json\n{\n  \"id\": 123,\n  \"message\": \"Hello, world!\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-05-22T14:32:00Z\",\n  \"updated_at\": \"2024-05-22T14:35:00Z\"\n}\n```\n\n**2. Generate it dynamically with code**\nIf you are writing a program, you'll want to generate this JSON dynamically so the timestamp is always current. Here is how you do that in a few popular languages:\n\n*   **JavaScript / Node.js:**\n    ```javascript\n    const data = {\n      id: 123,\n      message: \"Hello, world!\",\n      created_at: new Date().toISOString()\n    };\n    console.log(JSON.stringify(data, null, 2));\n    ```\n\n*   **Python:**\n    ```python\n    import json\n    from datetime import datetime, timezone\n\n    data = {\n        \"id\": 123,\n        \"message\": \"Hello, world!\",\n        \"created_at\": datetime.now(timezone.utc).isoformat().replace(\"+00:00\", \"Z\")\n    }\n    print(json.dumps(data, indent=2))\n    ```\n\n*   **Go:**\n    ```go\n    package main\n\n    import (\n        \"encoding/json\"\n        \"fmt\"\n        \"time\"\n    )\n\n    func main() {\n        data := map[string]interface{}{\n            \"id\":         123,\n            \"message\":    \"Hello, world!\",\n            \"created_at\": time.Now().UTC().Format(time.RFC3339),\n        }\n        \n        jsonData, _ := json.MarshalIndent(data, \"\", \"  \")\n        fmt.Println(string(jsonData))\n    }\n    ```\n\n**3. Use it in an API**\nIf you are building a REST API (using Express, FastAPI, Spring Boot, etc.), your next step would be to set this JSON as the response payload for a `POST` or `GET` request.\n\n**4. Parse it**\nIf you are receiving this JSON from somewhere else, your next step is to parse it and extract the timestamp to use in your application logic.\n\n**Where would you like to go from here?** Are you working on a specific programming project, trying to format a database, or just experimenting? Let me know!"
+            }
+          ],
+          "id": "msg_6cb5871f57844d0ba6c8162b3b207c62",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "timestamp_response",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "created_at"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 73,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 549,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 622
+      }
+    }
+  }
+]

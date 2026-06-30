@@ -1,0 +1,1248 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0182761861f2407f952bfab15d3af05c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0182761861f2407f952bfab15d3af05c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " just finished",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a step",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-by-step math problem",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " next depends on what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're looking to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out of our",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " conversation",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "! Here are a few",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " options:\n\n**1",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Try",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " another math",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " problem**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "We",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can tackle",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " another travel",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " problem",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can give",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you a new one",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to test your skills",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". For",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " example:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " *\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "A car",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " travels",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 120",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " miles in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " hours,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " then ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "40",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " miles in ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1 hour. What",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is the average speed?\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "* (Hint",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ": See",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " if you can solve",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it using",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the same steps we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " used!)\n\n**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Explore",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a common",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " math",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trap**\nA",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " very common mistake people",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " make is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " averaging",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the speeds",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " together ((",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "60 +",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 80) /",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 2 =",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 70 mph",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "). Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " train spent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " *",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "more time* traveling",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at the slower speed",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", the true",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " average is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " pulled down closer",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to 60. We",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at more",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " examples of how time",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " weights",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " averages",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " if",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interested.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**3. Move",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on to a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " completely new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " topic**\nIf you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " done with math, we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can switch",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " gears. I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an email, learn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a new concept",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", plan",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a trip, or even",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " tell",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a story",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n\n**4.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a break**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " brain is tired",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " numbers",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", step",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " away from",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the screen, grab a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " snack, or take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a walk!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " You",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can come back and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " chat with me whenever",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ready.\n\nWhat sounds",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " good",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to you?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 118,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Since we just finished a step-by-step math problem, what you do next depends on what you're looking to get out of our conversation! Here are a few options:\n\n**1. Try another math problem**\nWe can tackle another travel problem, or I can give you a new one to test your skills. For example: *\"A car travels 120 miles in 2 hours, and then 40 miles in 1 hour. What is the average speed?\"* (Hint: See if you can solve it using the same steps we just used!)\n\n**2. Explore a common math trap**\nA very common mistake people make is averaging the speeds together ((60 + 80) / 2 = 70 mph). Since the train spent *more time* traveling at the slower speed, the true average is pulled down closer to 60. We can look at more examples of how time weights averages if you're interested.\n\n**3. Move on to a completely new topic**\nIf you're done with math, we can switch gears. I can help you write an email, learn a new concept, plan a trip, or even tell you a story. \n\n**4. Take a break**\nIf your brain is tired of numbers, step away from the screen, grab a snack, or take a walk! You can come back and chat with me whenever you're ready.\n\nWhat sounds good to you?",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 119,
+    "item_id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Since we just finished a step-by-step math problem, what you do next depends on what you're looking to get out of our conversation! Here are a few options:\n\n**1. Try another math problem**\nWe can tackle another travel problem, or I can give you a new one to test your skills. For example: *\"A car travels 120 miles in 2 hours, and then 40 miles in 1 hour. What is the average speed?\"* (Hint: See if you can solve it using the same steps we just used!)\n\n**2. Explore a common math trap**\nA very common mistake people make is averaging the speeds together ((60 + 80) / 2 = 70 mph). Since the train spent *more time* traveling at the slower speed, the true average is pulled down closer to 60. We can look at more examples of how time weights averages if you're interested.\n\n**3. Move on to a completely new topic**\nIf you're done with math, we can switch gears. I can help you write an email, learn a new concept, plan a trip, or even tell you a story. \n\n**4. Take a break**\nIf your brain is tired of numbers, step away from the screen, grab a snack, or take a walk! You can come back and chat with me whenever you're ready.\n\nWhat sounds good to you?"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 120,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Since we just finished a step-by-step math problem, what you do next depends on what you're looking to get out of our conversation! Here are a few options:\n\n**1. Try another math problem**\nWe can tackle another travel problem, or I can give you a new one to test your skills. For example: *\"A car travels 120 miles in 2 hours, and then 40 miles in 1 hour. What is the average speed?\"* (Hint: See if you can solve it using the same steps we just used!)\n\n**2. Explore a common math trap**\nA very common mistake people make is averaging the speeds together ((60 + 80) / 2 = 70 mph). Since the train spent *more time* traveling at the slower speed, the true average is pulled down closer to 60. We can look at more examples of how time weights averages if you're interested.\n\n**3. Move on to a completely new topic**\nIf you're done with math, we can switch gears. I can help you write an email, learn a new concept, plan a trip, or even tell you a story. \n\n**4. Take a break**\nIf your brain is tired of numbers, step away from the screen, grab a snack, or take a walk! You can come back and chat with me whenever you're ready.\n\nWhat sounds good to you?"
+        }
+      ],
+      "id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 121,
+    "response": {
+      "background": false,
+      "created_at": 1782851043,
+      "completed_at": 1782851046,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_0182761861f2407f952bfab15d3af05c",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Since we just finished a step-by-step math problem, what you do next depends on what you're looking to get out of our conversation! Here are a few options:\n\n**1. Try another math problem**\nWe can tackle another travel problem, or I can give you a new one to test your skills. For example: *\"A car travels 120 miles in 2 hours, and then 40 miles in 1 hour. What is the average speed?\"* (Hint: See if you can solve it using the same steps we just used!)\n\n**2. Explore a common math trap**\nA very common mistake people make is averaging the speeds together ((60 + 80) / 2 = 70 mph). Since the train spent *more time* traveling at the slower speed, the true average is pulled down closer to 60. We can look at more examples of how time weights averages if you're interested.\n\n**3. Move on to a completely new topic**\nIf you're done with math, we can switch gears. I can help you write an email, learn a new concept, plan a trip, or even tell you a story. \n\n**4. Take a break**\nIf your brain is tired of numbers, step away from the screen, grab a snack, or take a walk! You can come back and chat with me whenever you're ready.\n\nWhat sounds good to you?"
+            }
+          ],
+          "id": "msg_7920cdbc165d4fddb624c73e4a90007d",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "high"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 343,
+        "input_tokens_details": {
+          "cached_tokens": 64
+        },
+        "output_tokens": 283,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 626
+      }
+    }
+  }
+]

@@ -538,6 +538,35 @@ export const advancedCases: TestCaseCollection = {
       ],
       tool_choice: "auto",
     },
+    "baseten-responses": {
+      model: BASETEN_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          name: "get_weather",
+          description: "Get the current weather for a location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city and state, e.g. San Francisco, CA",
+              },
+            },
+            required: ["location"],
+          },
+          strict: false,
+        },
+      ],
+      tool_choice: "auto",
+    },
   },
 
   parallelToolCallsRequest: {
