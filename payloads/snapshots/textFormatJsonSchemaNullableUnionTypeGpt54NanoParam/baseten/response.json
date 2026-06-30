@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-9c442c1a9ea04918b358c2ecedf6e52c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "```json\n{\n  \"query_type\": null,\n  \"error\": \"No query provided for classification.\"\n}\n```",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 24,
+    "total_tokens": 39,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

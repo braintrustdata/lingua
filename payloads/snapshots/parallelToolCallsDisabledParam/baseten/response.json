@@ -1,0 +1,42 @@
+{
+  "id": "chatcmpl-ee78afba7e2f420680bd2d1c1fa82c6b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "I'll check the weather for both cities at the same time!",
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-ab2189cacf65444ba9ed3c4da6105c22",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"New York City\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "finish_reason": "tool_calls",
+      "stop_reason": "</tool_call>"
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 157,
+    "completion_tokens": 25,
+    "total_tokens": 182,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

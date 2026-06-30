@@ -1,0 +1,20 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hello."
+    },
+    {
+      "content": "Hello! How can I help you today?",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "response_format": {
+    "type": "text"
+  }
+}

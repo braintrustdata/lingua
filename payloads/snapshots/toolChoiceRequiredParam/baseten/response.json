@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-02e3221a54b24efe8cf198fe5ebdda51",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154829
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 154,
+    "completion_tokens": 11,
+    "total_tokens": 165,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

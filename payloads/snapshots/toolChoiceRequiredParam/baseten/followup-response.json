@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-b7333f7afb39410f83eb5e179247194b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It looks like the weather information didn't come through clearly. Let me fetch the Tokyo weather again for you!<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154829
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 175,
+    "completion_tokens": 33,
+    "total_tokens": 208,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

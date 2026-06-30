@@ -1,0 +1,18 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Summarize the cached policy."
+    },
+    {
+      "content": "It looks like you didn't include the text of the cached policy in your message! \n\nPlease paste the text or the details of the policy you would like me to summarize, and I will gladly provide a concise summary for you.",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_key": "policy-cache-v1"
+}

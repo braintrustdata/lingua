@@ -1,0 +1,30 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use this stable reference text as cacheable context.",
+          "cache_control": {
+            "type": "ephemeral",
+            "ttl": "1h"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Now summarize it."
+        }
+      ]
+    },
+    {
+      "content": "It looks like you forgot to provide the reference text! Please paste the text you would like me to use as cacheable context, and I will gladly summarize it for you.",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

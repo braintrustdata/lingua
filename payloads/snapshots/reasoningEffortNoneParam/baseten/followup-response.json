@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-b4ea734ad709427aa3dbdb6d63232cd9",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to accomplish! Since we just started with a little math, I don't know much about your situation yet. \n\nHere are a few ways I can help you figure out what to do next:\n\n*   **If you're at work or studying:** Tell me what project you're working on, and I can help you outline a plan, brainstorm ideas, or proofread your writing.\n*   **If you're being productive:** We could make a to-do list, organize your schedule, or learn a new skill.\n*   **If you're just exploring:** Ask me a fun trivia question, request a random fact, or ask me to tell you a story.\n*   **If you're bored:** I can suggest a movie, a book, a video game, or a logic puzzle to pass the time.\n\nWhat's on your mind right now? Or, what is your main goal for today?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 190,
+    "total_tokens": 221,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-6d420640f42147d6824d8de5d09e475e",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "```json\n{\"tuple\": [\"gateway\", 7]}\n```",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 20,
+    "completion_tokens": 13,
+    "total_tokens": 33,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

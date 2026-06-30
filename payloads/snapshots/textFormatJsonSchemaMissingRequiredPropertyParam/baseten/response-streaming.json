@@ -1,0 +1,172 @@
+[
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "Please",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 1,
+      "total_tokens": 15,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " provide the question"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 4,
+      "total_tokens": 18,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " you"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 5,
+      "total_tokens": 19,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " would like me to answer"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 10,
+      "total_tokens": 24,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "!"
+        },
+        "finish_reason": "stop",
+        "stop_reason": 154827
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 11,
+      "total_tokens": 25,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-840e6296447743dd9f7ebf91e285efab",
+    "choices": [],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 11,
+      "total_tokens": 25,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]

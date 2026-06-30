@@ -1,0 +1,31 @@
+{
+  "id": "chatcmpl-e359abfb144c4d57b22e03047e86ee1f",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Sorry about that cut-off! Let's pick up right where we left off. \n\nHere is what you should do next:\n\n**Step 2 (continued): Calculate the distance of the second part of the trip.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the Total Distance.**\n*   Add the distances from both parts of the trip.\n*",
+        "role": "assistant"
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 151,
+    "completion_tokens": 100,
+    "total_tokens": 251,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 64
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

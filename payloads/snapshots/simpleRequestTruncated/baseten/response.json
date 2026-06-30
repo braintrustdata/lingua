@@ -1,0 +1,31 @@
+{
+  "id": "chatcmpl-1d7869d38cc0476a80dc4db8479a6303",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "**",
+        "role": "assistant"
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "created": 1782852412,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 16,
+    "completion_tokens": 1,
+    "total_tokens": 17,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

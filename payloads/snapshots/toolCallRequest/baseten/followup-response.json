@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-8c069a5deeab4d8e97f631e60a27e170",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Based on the weather information retrieved, here are some suggestions for what you might want to do next:\n\n1. **Plan your day** – If it's sunny, consider outdoor activities like visiting Golden Gate Park, walking along the Embarcadero, or exploring Fisherman's Wharf. If it's rainy or foggy, indoor activities like visiting museums (e.g., the de Young Museum or the California Academy of Sciences) might be better.\n\n2. **Dress appropriately** – San Francisco weather can change quickly throughout the day. If it's cool or foggy, make sure to bring layers!\n\n3. **Check other locations** – If you're planning to travel, I can check the weather for other cities you're considering visiting.\n\n4. **Plan for the week** – Keep an eye on the forecast for the coming days to plan your activities accordingly.\n\nWould you like me to check the weather for any other locations, or is there anything else I can help you with?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 212,
+    "completion_tokens": 199,
+    "total_tokens": 411,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

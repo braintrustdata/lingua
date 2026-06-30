@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-b23e646606db4b6d942a8387dfe08c67",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It depends entirely on what you're trying to achieve! Since we just started this conversation, you have a completely blank slate. \n\nHere are a few ideas for what we can do next:\n\n*   **Learn something new:** Ask me to explain a complex topic, a historical event, or how a piece of technology works.\n*   **Get creative:** Ask me to write a story, a poem, a song, or a script. \n*   **Brainstorm:** We can bounce ideas around for a project, a business, a gift, or an event.\n*   **Be productive:** I can help you write an email, draft an essay, organize a to-do list, or summarize a long article.\n*   **Solve a problem:** Ask me to help you debug code, figure out a math problem, or troubleshoot a daily life issue.\n*   **Just chat:** Talk about your day, a hobby, or a random thought you've been having.\n\nWhat's on your mind right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 22,
+    "completion_tokens": 205,
+    "total_tokens": 227,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

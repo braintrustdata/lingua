@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-fd04c1c9077a40338ac429a77930fe9a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Since we started with \"John is 25,\" it depends on what your goal is! Here are a few ways we can continue:\n\n**1. Use the data:** \nIs John a character in a story? An applicant for a job? We can brainstorm next steps for him based on his age.\n\n**2. Add more context:** \nYou can give me more details to write a story, create a profile, or build a database. For example: *\"John is 25. He works as a software engineer in Seattle and wants to buy a house.\"*\n\n**3. Ask a question:**\nYou can ask me to explain a concept, help you write an email, or brainstorm ideas for a project. \n\n**4. Summarize or extract more:**\nIf you have a longer text you want me to pull key information from, just paste it here.\n\nWhat were you working on when you typed \"John is 25\"? I can help you pick up right where you left off!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 29,
+    "completion_tokens": 202,
+    "total_tokens": 231,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

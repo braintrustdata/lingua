@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-db55f1283abb4d0f8357ab83631800bb",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That is a very open-ended question! It depends entirely on what you're trying to accomplish right now. \n\nTo give you a few ideas, we could:\n\n*   **Brainstorm:** Work on a creative project, write a story, or come up with ideas for a project.\n*   **Learn:** I can teach you about a new topic, explain a complex concept, or help you practice a language.\n*   **Be productive:** Write emails, summarize long articles, debug code, or organize your to-do list.\n*   **Play:** Play a text-based adventure game, trivia, or word puzzles.\n*   **Plan:** Map out a workout routine, a travel itinerary, or a meal prep schedule.\n\nWhat is on your mind right now, or what were you doing right before we started talking?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 29,
+    "completion_tokens": 164,
+    "total_tokens": 193,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

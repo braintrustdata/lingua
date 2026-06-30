@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-987754361afd490aa6ecbf12db1b493c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 11,
+    "total_tokens": 21,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

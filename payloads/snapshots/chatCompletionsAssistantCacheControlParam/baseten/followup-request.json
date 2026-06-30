@@ -1,0 +1,30 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Use the cached assistant prefill."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "This assistant prefill should remain cacheable.",
+          "cache_control": {
+            "type": "ephemeral",
+            "ttl": "1h"
+          }
+        }
+      ]
+    },
+    {
+      "content": "The provided context is empty, so there's nothing specific to respond to. However, since you've requested the use of a cached assistant prefill, I'll maintain consistency with what would typically be a cacheable response format.\n\nIf you have a specific question or topic in mind, please provide it, and I'll be happy to help!",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

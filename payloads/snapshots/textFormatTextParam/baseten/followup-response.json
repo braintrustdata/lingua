@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-15b101148e7342ae808989b491f58a1c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends on what you're trying to accomplish! Since we just said hello, the floor is wide open. \n\nHere are a few things people often do next with an AI:\n\n*   **Ask a question:** Need a quick fact, a historical summary, or an explanation of a complex topic?\n*   **Brainstorm ideas:** Stuck on a project? I can help you come up with ideas for a gift, a work presentation, a story, or a marketing campaign.\n*   **Get something written:** I can help draft an email, write a poem, create a meal plan, or outline an essay.\n*   **Solve a problem:** Need to debug some code, figure out a math problem, or troubleshoot a tech issue? \n*   **Learn something new:** We could start a language lesson or dive into a topic you've always been curious about.\n\nWhat's on your mind today? Is there a specific project, task, or curiosity you're working on right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 29,
+    "completion_tokens": 202,
+    "total_tokens": 231,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

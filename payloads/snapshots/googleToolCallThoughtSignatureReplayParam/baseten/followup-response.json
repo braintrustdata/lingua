@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-e948f6c9cb90486c95003d7d043ca20c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends on what you'd like to accomplish! Here are a few suggestions for what you can do next:\n\n1. **Explore a collection** – I can help you query or view documents within the **movies** or **users** collections.\n2. **Insert data** – If you need to add new documents to either collection, I can assist with that.\n3. **Update or delete data** – If you need to modify or remove existing documents, just let me know.\n4. **Analyze data** – I can help you run queries to find specific information, such as filtering, sorting, or aggregating data.\n5. **Database management** – If you need to create new collections, drop existing ones, or manage indexes, I can guide you through that.\n\nJust let me know your goal, and I'll help you get it done!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 227,
+    "completion_tokens": 173,
+    "total_tokens": 400,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

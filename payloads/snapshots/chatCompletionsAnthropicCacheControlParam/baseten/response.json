@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-30b13520b1bc4ed0ab73527ecf09648a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It looks like you forgot to provide the reference text! Please paste the text you would like me to use as cacheable context, and I will gladly summarize it for you.",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852414,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 21,
+    "completion_tokens": 35,
+    "total_tokens": 56,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Pick a number."
+    },
+    {
+      "content": "Okay, I pick **42**. \n\nNot only is it the famous \"Answer to the Ultimate Question of Life, the Universe, and Everything\" from *The Hitchhiker's Guide to the Galaxy*, but it's also a perfectly balanced, even number. \n\nWhat did you have in mind for it?",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "seed": 12345
+}

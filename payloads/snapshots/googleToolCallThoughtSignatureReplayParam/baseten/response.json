@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-746e73cf23334e2e95410cda6033c00a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "The **mydb** database contains the following **2 collections**:\n\n1. **movies**\n2. **users**\n\nWould you like to perform any operations on these collections?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 182,
+    "completion_tokens": 35,
+    "total_tokens": 217,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 32
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

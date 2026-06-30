@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-f3cfaf75bae34d87bd9f6937d8982f16",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That is entirely up to you! Since we started with a little math, here are a few different directions we could go, depending on what you're looking for:\n\n*   **Keep it practical:** I can help you write an email, plan a schedule, brainstorm ideas for a project, or organize a to-do list.\n*   **Learn something new:** You can ask me to explain a complex topic, tell you a historical fact, or teach you about how something works. \n*   **Get creative:** I can help you write a story, a poem, or even come up with a plot for a game.\n*   **Have some fun:** I can give you a riddle to solve, tell you a joke, or we could play a text-based adventure game.\n*   **Just chat:** We can talk about your day, a hobby you're interested in, or a movie you just watched.\n\nIs there a specific task you are trying to accomplish today, or are you just looking for some entertainment?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 205,
+    "total_tokens": 236,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,431 @@
+[
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "It",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 1,
+      "total_tokens": 213,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " looks like I wasn"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 5,
+      "total_tokens": 217,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "'t able to retrieve"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 9,
+      "total_tokens": 221,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " the weather information"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 12,
+      "total_tokens": 224,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " for San"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 14,
+      "total_tokens": 226,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " Francisco at"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 16,
+      "total_tokens": 228,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " the moment. Let"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 20,
+      "total_tokens": 232,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " me try again!"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 24,
+      "total_tokens": 236,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "<tool_call>get"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 26,
+      "total_tokens": 238,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "_weather<arg_key>"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 28,
+      "total_tokens": 240,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "location</arg_key>"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 30,
+      "total_tokens": 242,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "<arg_value>San Francisco, CA"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 35,
+      "total_tokens": 247,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "</arg_value></tool_call>"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 37,
+      "total_tokens": 249,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {},
+        "finish_reason": "stop",
+        "stop_reason": 154829
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 37,
+      "total_tokens": 249,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-31bc1d32dbc14a83bf491b6824f5deac",
+    "choices": [],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 212,
+      "completion_tokens": 37,
+      "total_tokens": 249,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 160
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]

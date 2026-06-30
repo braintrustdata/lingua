@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-b397a2e3be7142f3bb410cbd176e4a43",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "The current weather in Tokyo is **71°F**. It's a pleasant temperature — comfortable for outdoor activities! Let me know if you'd like more details or weather for another location.",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 173,
+    "completion_tokens": 37,
+    "total_tokens": 210,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

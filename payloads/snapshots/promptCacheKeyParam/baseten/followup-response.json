@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-3495dc3d04cb4289b722b2b280072eb2",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to accomplish! Since I don't know what you were working on before, here are a few general directions we could go:\n\n**If you were working on a project:**\n*   Tell me what it is (writing an email, coding a website, planning a trip) and we can pick up where you left off.\n*   Ask me to review something you've already done.\n\n**If you're unsure and just exploring:**\n*   **Learn something new:** Ask me to explain a complex topic, a historical event, or a new technology.\n*   **Brainstorm:** We can bounce ideas around for a business, a story, a gift, or a weekend project.\n*   **Be productive:** Tell me a task you've been putting off, and we can break it down into small, manageable steps.\n*   **Play a game:** We can play trivia, 20 Questions, or a text-based roleplaying game.\n*   **Plan:** Tell me your goals for the day, and I can help you create a schedule to achieve them.\n\nWhat's on your mind right now? Tell me a little bit about what you need, and I'll guide you from there!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 22,
+    "completion_tokens": 248,
+    "total_tokens": 270,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

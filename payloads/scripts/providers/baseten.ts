@@ -6,7 +6,7 @@ import {
   getCaseForProvider,
   hasExpectation,
 } from "../../cases";
-import { BASETEN_BASE_URL } from "../../cases/models";
+import { BASETEN_BASE_URL, BASETEN_MODEL } from "../../cases/models";
 import { executeOpenAI, openaiExecutor } from "./openai";
 
 // Baseten serves OSS models behind an OpenAI-compatible chat-completions API, so the
@@ -24,6 +24,19 @@ getCaseNames(allTestCases).forEach((caseName) => {
   const caseData = getCaseForProvider(allTestCases, caseName, "baseten");
   if (caseData) {
     basetenCases[caseName] = caseData;
+    return;
+  }
+
+  const chatCompletionsCase = getCaseForProvider(
+    allTestCases,
+    caseName,
+    "chat-completions"
+  );
+  if (chatCompletionsCase) {
+    basetenCases[caseName] = {
+      ...chatCompletionsCase,
+      model: BASETEN_MODEL,
+    };
   }
 });
 

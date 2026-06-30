@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-8554323f1d014c64a5ed57c2b4f8d3a4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "\nTo give you the best advice, I need a little more context! \"Next\" depends entirely on what you are trying to achieve. \n\nHere are a few questions to help us figure it out:\n\n1.  **What is your current goal?** (e.g., learning a new skill, starting a project, solving a specific problem)\n2.  **What have you just finished?** (e.g., reading a tutorial, completing a task, finishing a meeting)\n3.  **What challenge are you facing right now?**\n\n**In the meantime, here are a few universally useful \"next steps\":**\n\n*   **Review your goal:** Remind yourself *why* you are doing what you are doing.\n*   **Break it down:** If you have a big task ahead, break it into the smallest possible first step.\n*   **Eliminate distractions:** Close unnecessary tabs, put your phone away, and create a clear workspace.\n*   **Ask a specific question:** Tell me what you need help with!\n\n**Example:**\n\nIf you just finished learning about Python variables, your next step should be to write a simple program that uses them.\n\nIf you just finished a workout, your next step should be to stretch and hydrate.\n\nIf you just finished a project proposal, your next step should be to review it for clarity and typos.\n\n**Tell me more about your situation, and I can give you a specific recommendation.**",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 21,
+    "completion_tokens": 294,
+    "total_tokens": 315,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

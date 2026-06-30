@@ -1,0 +1,12 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hello."
+    }
+  ],
+  "logit_bias": {
+    "15339": -100
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-6ef33a10943247a7ac087b4ce0fe3e7d",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to achieve! Since we just started with a simple math question, I don't know much about your goals yet. \n\nHere are a few ways I can help you right now:\n\n*   **Brainstorm or plan:** Do you have a project you need to start, or a problem you're trying to solve?\n*   **Learn something new:** Want me to explain a concept, suggest a book, or teach you a random fun fact?\n*   **Write or create:** Need help drafting an email, writing a story, or generating ideas for a creative project?\n*   **Be productive:** Do you have a list of tasks you need to get done today and want help organizing them?\n\nIf you're just looking for a quick recommendation, pick one of these and let me know:\n1. Tell me a fun fact.\n2. Give me a quick 5-minute task to be more productive today.\n3. Suggest a new topic I should learn about. \n\nWhat sounds good to you?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 209,
+    "total_tokens": 240,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

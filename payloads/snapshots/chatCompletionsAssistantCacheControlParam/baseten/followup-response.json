@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-be434d0f208646e1a7f76c20293a42f9",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're currently working on! Since I don't have the context of your previous project or conversation, it would help to know a bit more.\n\nIf you're just looking for general ideas on how to spend your time, here are a few options:\n\n1. **Productivity:** Tackle the most daunting task on your to-do list (often called \"eating the frog\").\n2. **Organization:** Take 10 minutes to clear your desk, organize your computer files, or sort your email inbox.\n3. **Learning:** Read a chapter of a book, listen to a podcast, or watch a tutorial on a subject you've been wanting to learn.\n4. **Creativity:** Brainstorm ideas for a new project, write in a journal, or sketch out a design.\n5. **Recharge:** Step away from the screen, grab a glass of water, stretch, or take a quick walk outside.\n\nIf you have a specific project in mind—like writing a piece of code, drafting an email, or learning a new skill—let me know what it is, and I can give you a step-by-step guide on what to do next!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 104,
+    "completion_tokens": 237,
+    "total_tokens": 341,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

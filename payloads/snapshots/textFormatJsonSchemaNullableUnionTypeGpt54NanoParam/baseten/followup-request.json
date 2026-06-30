@@ -1,0 +1,47 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Classify the query and return JSON."
+    },
+    {
+      "content": "```json\n{\n  \"query_type\": null,\n  \"error\": \"No query provided for classification.\"\n}\n```",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "query_result",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "filter": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "match": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "explanation",
+          "filter",
+          "match"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

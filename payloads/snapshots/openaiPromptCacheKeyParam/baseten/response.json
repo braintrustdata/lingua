@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-1a858d16265d4898a119b10a79c1bd0e",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It looks like you didn't include the text of the cached policy in your message! \n\nPlease paste the text or the details of the policy you would like me to summarize, and I will gladly provide a concise summary for you.",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 46,
+    "total_tokens": 60,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

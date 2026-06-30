@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-df900f44f97746a58df41e849e9995cb",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Let me check the current weather in San Francisco for you!<tool_call>get_weather<arg_key>location</arg_key><arg_value>San Francisco, CA</arg_value></tool_call>",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154829
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 177,
+    "completion_tokens": 25,
+    "total_tokens": 202,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

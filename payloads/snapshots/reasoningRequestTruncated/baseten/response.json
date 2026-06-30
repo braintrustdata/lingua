@@ -1,0 +1,31 @@
+{
+  "id": "chatcmpl-2f7aba0f5ceb4013b1e34fa63343a97d",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "To find the average speed, we need to use the formula:\n**Average Speed = Total Distance ÷ Total Time**\n\nHere is the step-by-step calculation:\n\n**Step 1: Calculate the distance of the first part of the trip.**\n* Speed = 60 mph\n* Time = 2 hours\n* Distance = 60 mph × 2 hours = **120 miles**\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80",
+        "role": "assistant"
+      },
+      "finish_reason": "length"
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 41,
+    "completion_tokens": 100,
+    "total_tokens": 141,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 32
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}
