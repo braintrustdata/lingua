@@ -1,0 +1,97 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_2afd8429e3914214b1917f22d78ce15e",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Since you asked for a JSON object containing `\"gateway\"` and the number `7`, what you do next depends on what that data represents in your project. \n\nHere are a few common next steps depending on your context:\n\n**1. If you are testing an API or writing code:**\n*   **Parse the JSON:** If you are receiving this as a string in your code, parse it into a native object/dictionary.\n    *   *Python:* `data = json.loads(response_text)`\n    *   *JavaScript:* `const data = JSON.parse(responseString);`\n*   **Access the data:** Extract the values to use in your logic.\n    *   `gateway_name = data[\"tuple\"][0]` (yields \"gateway\")\n    *   `level = data[\"tuple\"][1]` (yields 7)\n\n**2. If you were using this to test me (the AI):**\n*   Tell me if the format wasn't exactly what you expected! I can adjust how I output JSON (e.g., minified onto one line, with specific spacing, or inside a JSON code block) based on your requirements.\n\n**3. If \"gateway\" and \"7\" have a specific meaning in your app:**\n*   Are you building a routing system? (e.g., routing traffic to \"gateway\" port 7).\n*   Is this a game mechanic? (e.g., reaching \"gateway\" level 7).\n*   Let me know what the end goal is, and I can help you write the logic, database query, or API endpoint to handle this data! \n\nWhat is the broader project you are working on?"
+        }
+      ],
+      "id": "msg_8db11a8f630e4632a8af2bf53c755741",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "tuple_response",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "tuple": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "required": [
+          "tuple"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 51,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 339,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 390
+  },
+  "output_text": "Since you asked for a JSON object containing `\"gateway\"` and the number `7`, what you do next depends on what that data represents in your project. \n\nHere are a few common next steps depending on your context:\n\n**1. If you are testing an API or writing code:**\n*   **Parse the JSON:** If you are receiving this as a string in your code, parse it into a native object/dictionary.\n    *   *Python:* `data = json.loads(response_text)`\n    *   *JavaScript:* `const data = JSON.parse(responseString);`\n*   **Access the data:** Extract the values to use in your logic.\n    *   `gateway_name = data[\"tuple\"][0]` (yields \"gateway\")\n    *   `level = data[\"tuple\"][1]` (yields 7)\n\n**2. If you were using this to test me (the AI):**\n*   Tell me if the format wasn't exactly what you expected! I can adjust how I output JSON (e.g., minified onto one line, with specific spacing, or inside a JSON code block) based on your requirements.\n\n**3. If \"gateway\" and \"7\" have a specific meaning in your app:**\n*   Are you building a routing system? (e.g., routing traffic to \"gateway\" port 7).\n*   Is this a game mechanic? (e.g., reaching \"gateway\" level 7).\n*   Let me know what the end goal is, and I can help you write the logic, database query, or API endpoint to handle this data! \n\nWhat is the broader project you are working on?"
+}

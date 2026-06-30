@@ -1,0 +1,98 @@
+{
+  "background": false,
+  "created_at": 1782851041,
+  "completed_at": 1782851041,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_80324a71338e4c6095447fb1c65550a9",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"New York City\"}",
+      "call_id": "chatcmpl-tool-9807cb08e17e46c3a8191e6b41a71882",
+      "name": "get_weather",
+      "id": "fc_8d9a67d837d147e5b99970eaaf7942b9",
+      "status": "completed"
+    },
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"Los Angeles\"}",
+      "call_id": "chatcmpl-tool-2b93946a8c714112a717b0191f503603",
+      "name": "get_weather",
+      "id": "fc_62805b4126534c8194bc7b5765a431c0",
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I'll check the weather for both New York City and Los Angeles at the same time!"
+        }
+      ],
+      "id": "msg_7dfc8f4fa1e740bfbdd97f5755c59736",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true,
+      "description": "Get weather"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 156,
+    "input_tokens_details": {
+      "cached_tokens": 32
+    },
+    "output_tokens": 41,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 197
+  },
+  "output_text": "I'll check the weather for both New York City and Los Angeles at the same time!"
+}

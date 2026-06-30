@@ -1,0 +1,41 @@
+{
+  "id": "chatcmpl-74305562cc7542ae83835d7a6fbca145",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-639bbf99a6254cf89cb48a442c8a315a",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"Los Angeles\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "finish_reason": "tool_calls",
+      "stop_reason": "</tool_call>"
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 190,
+    "completion_tokens": 11,
+    "total_tokens": 201,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

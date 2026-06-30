@@ -1,0 +1,1386 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_cdfc49fffd1b47ec885dc06dc722c7be",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_cdfc49fffd1b47ec885dc06dc722c7be",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I don't have the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " actual results from",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the previous query, my",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " recommendation",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depends",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " those",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " recent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " errors look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like. However",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", here is a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " standard troubleshooting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " workflow",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you should",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " follow next",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n**1. Identify",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the root",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " cause**\nLook",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at the error",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " messages and stack",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " traces from",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the recent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " logs. \n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "*  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " they",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " syntax errors, timeouts",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", out",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-of-memory exceptions",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", or connection",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " issues",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "?\n*   Did",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " these",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " errors start occurring",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " after a specific time?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " so, that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " might correlate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with a recent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " code deployment or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " infrastructure",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " change.\n\n**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Group",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " prioritize",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nIf",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " there",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " were",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " multiple errors, group",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " them by type",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Prior",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "itize fixing errors",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that are affecting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " user",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " experience",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or blocking",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " critical processes",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " over",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " intermittent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " minor bugs",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n**3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Dig",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " deeper with",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " targeted",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " queries**\nIf",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " error stands",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " out as",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " critical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can query",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the logs",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " again for more context",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". For",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " example, we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can look for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the exact",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " events that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " happened right",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " before the error",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " occurred:\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "```sql\nSELECT",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " timestamp, log",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_level, message",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", request",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_id\nFROM",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " project_logs",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\nWHERE",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " project_id = 'abc",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-123'\n ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " AND timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " >= (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "SELECT",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " FROM project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_logs WHERE log",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_level = 'ERROR",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "' ORDER",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " BY timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " DESC LIMIT ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1)",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " - interval",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " '5",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " minutes'\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ORDER BY timestamp",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ASC;\n``",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "`\n\n**How",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " would",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you like to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " proceed?**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n*  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " If you can share",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the specific",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " error message",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 122,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you are seeing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 123,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 124,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can help you write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 125,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 126,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " query to trace",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 127,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its origins",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 128,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or suggest",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 129,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " direct",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 130,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fixes.\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 131,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "*   Would",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 132,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you like to look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 133,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 134,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Since I don't have the actual results from the previous query, my recommendation depends on what those recent errors look like. However, here is a standard troubleshooting workflow you should follow next:\n\n**1. Identify the root cause**\nLook at the error messages and stack traces from the recent logs. \n*   Are they syntax errors, timeouts, out-of-memory exceptions, or connection issues?\n*   Did these errors start occurring after a specific time? If so, that timestamp might correlate with a recent code deployment or infrastructure change.\n\n**2. Group and prioritize**\nIf there were multiple errors, group them by type. Prioritize fixing errors that are affecting user experience or blocking critical processes over intermittent or minor bugs.\n\n**3. Dig deeper with targeted queries**\nIf an error stands out as critical, we can query the logs again for more context. For example, we can look for the exact events that happened right before the error occurred:\n```sql\nSELECT timestamp, log_level, message, request_id\nFROM project_logs\nWHERE project_id = 'abc-123'\n  AND timestamp >= (SELECT timestamp FROM project_logs WHERE log_level = 'ERROR' ORDER BY timestamp DESC LIMIT 1) - interval '5 minutes'\nORDER BY timestamp ASC;\n```\n\n**How would you like to proceed?** \n*   If you can share the specific error message you are seeing, I can help you write a query to trace its origins or suggest direct fixes.\n*   Would you like to look into",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 135,
+    "item_id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Since I don't have the actual results from the previous query, my recommendation depends on what those recent errors look like. However, here is a standard troubleshooting workflow you should follow next:\n\n**1. Identify the root cause**\nLook at the error messages and stack traces from the recent logs. \n*   Are they syntax errors, timeouts, out-of-memory exceptions, or connection issues?\n*   Did these errors start occurring after a specific time? If so, that timestamp might correlate with a recent code deployment or infrastructure change.\n\n**2. Group and prioritize**\nIf there were multiple errors, group them by type. Prioritize fixing errors that are affecting user experience or blocking critical processes over intermittent or minor bugs.\n\n**3. Dig deeper with targeted queries**\nIf an error stands out as critical, we can query the logs again for more context. For example, we can look for the exact events that happened right before the error occurred:\n```sql\nSELECT timestamp, log_level, message, request_id\nFROM project_logs\nWHERE project_id = 'abc-123'\n  AND timestamp >= (SELECT timestamp FROM project_logs WHERE log_level = 'ERROR' ORDER BY timestamp DESC LIMIT 1) - interval '5 minutes'\nORDER BY timestamp ASC;\n```\n\n**How would you like to proceed?** \n*   If you can share the specific error message you are seeing, I can help you write a query to trace its origins or suggest direct fixes.\n*   Would you like to look into"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 136,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Since I don't have the actual results from the previous query, my recommendation depends on what those recent errors look like. However, here is a standard troubleshooting workflow you should follow next:\n\n**1. Identify the root cause**\nLook at the error messages and stack traces from the recent logs. \n*   Are they syntax errors, timeouts, out-of-memory exceptions, or connection issues?\n*   Did these errors start occurring after a specific time? If so, that timestamp might correlate with a recent code deployment or infrastructure change.\n\n**2. Group and prioritize**\nIf there were multiple errors, group them by type. Prioritize fixing errors that are affecting user experience or blocking critical processes over intermittent or minor bugs.\n\n**3. Dig deeper with targeted queries**\nIf an error stands out as critical, we can query the logs again for more context. For example, we can look for the exact events that happened right before the error occurred:\n```sql\nSELECT timestamp, log_level, message, request_id\nFROM project_logs\nWHERE project_id = 'abc-123'\n  AND timestamp >= (SELECT timestamp FROM project_logs WHERE log_level = 'ERROR' ORDER BY timestamp DESC LIMIT 1) - interval '5 minutes'\nORDER BY timestamp ASC;\n```\n\n**How would you like to proceed?** \n*   If you can share the specific error message you are seeing, I can help you write a query to trace its origins or suggest direct fixes.\n*   Would you like to look into"
+        }
+      ],
+      "id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 137,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851046,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_cdfc49fffd1b47ec885dc06dc722c7be",
+      "incomplete_details": null,
+      "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Since I don't have the actual results from the previous query, my recommendation depends on what those recent errors look like. However, here is a standard troubleshooting workflow you should follow next:\n\n**1. Identify the root cause**\nLook at the error messages and stack traces from the recent logs. \n*   Are they syntax errors, timeouts, out-of-memory exceptions, or connection issues?\n*   Did these errors start occurring after a specific time? If so, that timestamp might correlate with a recent code deployment or infrastructure change.\n\n**2. Group and prioritize**\nIf there were multiple errors, group them by type. Prioritize fixing errors that are affecting user experience or blocking critical processes over intermittent or minor bugs.\n\n**3. Dig deeper with targeted queries**\nIf an error stands out as critical, we can query the logs again for more context. For example, we can look for the exact events that happened right before the error occurred:\n```sql\nSELECT timestamp, log_level, message, request_id\nFROM project_logs\nWHERE project_id = 'abc-123'\n  AND timestamp >= (SELECT timestamp FROM project_logs WHERE log_level = 'ERROR' ORDER BY timestamp DESC LIMIT 1) - interval '5 minutes'\nORDER BY timestamp ASC;\n```\n\n**How would you like to proceed?** \n*   If you can share the specific error message you are seeing, I can help you write a query to trace its origins or suggest direct fixes.\n*   Would you like to look into"
+            }
+          ],
+          "id": "msg_0c0be94b7eb94d448cd876b5998f0c63",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 148,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 300,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 448
+      }
+    }
+  }
+]

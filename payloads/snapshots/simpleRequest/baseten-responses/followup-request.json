@@ -1,0 +1,33 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "The capital of France is Paris."
+        }
+      ],
+      "id": "msg_f28d73ffad504fefbfa86994e83bc927",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

@@ -1,0 +1,2667 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e0aa50154cdf4ba1a2bd7792d37ff3e1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e0aa50154cdf4ba1a2bd7792d37ff3e1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_95dc419fd66c41a59a8b590da3650616",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is a roundup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of the latest major",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " news regarding OpenAI as",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of mid",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-2024:\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1. Apple",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " OpenAI Partnership",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nAt",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Apple",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "’s WWDC ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024 in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " June, it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " was officially",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " announced that Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI is integrating",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Chat",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "GPT into iOS",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 18",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", iPadOS ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "18, and macOS",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Sequoia",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". This",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " integration will",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " allow Siri",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to hand",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " off complex",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " requests to Chat",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "GPT (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "using",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the GPT-4",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "o model).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Not",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ably, Apple",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " stated that users",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " will not need",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " OpenAI account to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " use the free tier",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " this integration",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", and privacy",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " protections will",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " be in place (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "IP addresses are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " red",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "acted, and requests aren",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t stored).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n\n**2. Launch",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of G",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "PT-4o**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "In",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " May ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024, OpenAI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " announced",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " GPT-4o",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (\"o",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\" for om",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ni). This new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " flagship model is significantly",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " faster than",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " previous versions and can reason",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " across text, audio",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", and video",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in real-time. A",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " major highlight",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of G",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "PT-4o is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its improved",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " voice capabilities, allowing for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " much",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " more natural, conversational",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interactions without",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the awkward",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " delays present",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in previous voice",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " modes",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n\n**3.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Leadership",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Depart",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ures",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nOpenAI has experienced",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " significant",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " changes in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its executive",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " team over",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the last",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " few months:\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Depart",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ures",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Jan",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Le",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ike (alignment",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " safety co",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-lead) and I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "lya Suts",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "kever",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (co-founder and Chief",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Scientist) announced their",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " departures in May ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024. They",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " have",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " since co",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-founded a new AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " safety startup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " called",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Safe Superintelligence",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Inc. (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "SSI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "). John",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Schulman,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a co-founder and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " lead of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " reinforcement",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 122,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " learning, also recently left",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 123,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " OpenAI to join rival",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 124,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 125,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " company Anthropic. Additionally",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 126,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", Greg Brockman (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 127,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "co-founder and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 128,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " President) announced",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 129,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " he",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 130,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is taking a s",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 131,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "abbatical until",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 132,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the end of ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 133,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "2024.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 134,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n* **New",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 135,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Appointments:** In",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 136,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " May 2024,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 137,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " OpenAI appointed",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 138,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " retired",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 139,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " U",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 140,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".S. Army General and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 141,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " former Chairman of the Joint",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 142,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Chiefs of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 143,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Staff, Paul M",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 144,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Nakasone",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 145,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", to its",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 146,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Board of Directors to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 147,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " help oversee",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 148,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " safety",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 149,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and security. \n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 150,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**4. Dis",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 151,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "banding the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 152,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Sup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 153,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "eralalignment",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 154,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Team**\nFollowing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 155,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the depart",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 156,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ures of Jan",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 157,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Leike and I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 158,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "lya Sutskever",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 159,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", OpenAI dissolved",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 160,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its \"Superalignment",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 161,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\" team—a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 162,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " team",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 163,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " dedicated to ensuring",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 164,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 165,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " future highly",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 166,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " advanced AI systems remain",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 167,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " aligned with human values and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 168,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " safety. Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 169,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI stated that the team",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 170,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'s work will",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 171,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " be integrated into the broader",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 172,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " company research",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 173,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " efforts,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 174,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " but",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 175,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 176,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " move drew",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 177,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " criticism from some",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 178,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " AI safety advocates.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 179,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**5. Water",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 180,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "marking AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 181,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 182,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Generated Images",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 183,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 184,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "In",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 185,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " May",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 186,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 2024, Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 187,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI announced",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 188,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 189,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 190,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " joining the Steering",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 191,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Committee of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 192,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " C2PA",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 193,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (Coalition for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 194,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Content Provenance and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 195,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Authenticity).",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 196,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " As",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 197,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " part of this, Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 198,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI will",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 199,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " add metadata",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 200,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 201,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 202,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " cryptographic watermark) to images",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 203,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " generated by DALL-E",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 204,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 3 and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 205,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 206,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " newer",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 207,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Sora video",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 208,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " model.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 209,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " This is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 210,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " part",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 211,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 212,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " industry-wide effort to help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 213,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " people identify AI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 214,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-generated content and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 215,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " combat deep",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 216,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "fakes in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 217,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the lead-up to global",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 218,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " elections.\n\n**6.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 219,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Restr",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 220,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ucturing the Board",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 221,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of Directors**\nOpenAI",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 222,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " has continued",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 223,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to reshape",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 224,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " its board",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 225,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " following the November",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 226,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 2023 leadership crisis",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 227,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". In",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 228,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " recent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 229,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " months, the company",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 230,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " added new board",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 231,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " members including",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 232,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Paula",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 233,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Goldman",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 234,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 235,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Senior",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 236,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Vice President of Salesforce)",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 237,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and Nicole",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 238,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Sel",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 239,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "igman",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 240,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (former President",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 241,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of Sony Entertainment",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 242,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "). Along",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 243,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 244,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 245,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " addition of General",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 246,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Nakasone, the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 247,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " expanded",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 248,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " board helps",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 249,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " guide",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 250,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the company's governance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 251,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and safety initiatives",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 252,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 253,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "To",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 254,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " stay",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 255,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " completely",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 256,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " up to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 257,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " date on smaller",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 258,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", daily developments",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 259,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", checking",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 260,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " OpenAI's official blog",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 261,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or technology",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 262,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " news sites",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 263,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " like The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 264,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Verge and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 265,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " TechCrunch is recommended",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 266,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ",",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 267,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " as Open",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 268,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "AI frequently",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 269,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " pushes",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 270,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " minor",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 271,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " updates and beta",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 272,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " features to their",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 273,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " API and apps",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 274,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 275,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Here is a roundup of the latest major news regarding OpenAI as of mid-2024:\n\n**1. Apple and OpenAI Partnership**\nAt Apple’s WWDC 2024 in June, it was officially announced that OpenAI is integrating ChatGPT into iOS 18, iPadOS 18, and macOS Sequoia. This integration will allow Siri to hand off complex requests to ChatGPT (using the GPT-4o model). Notably, Apple stated that users will not need an OpenAI account to use the free tier of this integration, and privacy protections will be in place (IP addresses are redacted, and requests aren't stored). \n\n**2. Launch of GPT-4o**\nIn May 2024, OpenAI announced GPT-4o (\"o\" for omni). This new flagship model is significantly faster than previous versions and can reason across text, audio, and video in real-time. A major highlight of GPT-4o is its improved voice capabilities, allowing for much more natural, conversational interactions without the awkward delays present in previous voice modes. \n\n**3. Leadership and Departures**\nOpenAI has experienced significant changes in its executive team over the last few months:\n* **Departures:** Jan Leike (alignment and safety co-lead) and Ilya Sutskever (co-founder and Chief Scientist) announced their departures in May 2024. They have since co-founded a new AI safety startup called Safe Superintelligence Inc. (SSI). John Schulman, a co-founder and lead of reinforcement learning, also recently left OpenAI to join rival AI company Anthropic. Additionally, Greg Brockman (co-founder and President) announced he is taking a sabbatical until the end of 2024. \n* **New Appointments:** In May 2024, OpenAI appointed retired U.S. Army General and former Chairman of the Joint Chiefs of Staff, Paul M. Nakasone, to its Board of Directors to help oversee safety and security. \n\n**4. Disbanding the Superalalignment Team**\nFollowing the departures of Jan Leike and Ilya Sutskever, OpenAI dissolved its \"Superalignment\" team—a team dedicated to ensuring that future highly advanced AI systems remain aligned with human values and safety. OpenAI stated that the team's work will be integrated into the broader company research efforts, but the move drew criticism from some AI safety advocates.\n\n**5. Watermarking AI-Generated Images\nIn May 2024, OpenAI announced it is joining the Steering Committee of C2PA (Coalition for Content Provenance and Authenticity). As part of this, OpenAI will add metadata (a cryptographic watermark) to images generated by DALL-E 3 and its newer Sora video model. This is part of an industry-wide effort to help people identify AI-generated content and combat deepfakes in the lead-up to global elections.\n\n**6. Restructuring the Board of Directors**\nOpenAI has continued to reshape its board following the November 2023 leadership crisis. In recent months, the company added new board members including Paula Goldman (Senior Vice President of Salesforce) and Nicole Seligman (former President of Sony Entertainment). Along with the addition of General Nakasone, the expanded board helps guide the company's governance and safety initiatives.\n\nTo stay completely up to date on smaller, daily developments, checking OpenAI's official blog or technology news sites like The Verge and TechCrunch is recommended, as OpenAI frequently pushes minor updates and beta features to their API and apps.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 276,
+    "item_id": "msg_95dc419fd66c41a59a8b590da3650616",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Here is a roundup of the latest major news regarding OpenAI as of mid-2024:\n\n**1. Apple and OpenAI Partnership**\nAt Apple’s WWDC 2024 in June, it was officially announced that OpenAI is integrating ChatGPT into iOS 18, iPadOS 18, and macOS Sequoia. This integration will allow Siri to hand off complex requests to ChatGPT (using the GPT-4o model). Notably, Apple stated that users will not need an OpenAI account to use the free tier of this integration, and privacy protections will be in place (IP addresses are redacted, and requests aren't stored). \n\n**2. Launch of GPT-4o**\nIn May 2024, OpenAI announced GPT-4o (\"o\" for omni). This new flagship model is significantly faster than previous versions and can reason across text, audio, and video in real-time. A major highlight of GPT-4o is its improved voice capabilities, allowing for much more natural, conversational interactions without the awkward delays present in previous voice modes. \n\n**3. Leadership and Departures**\nOpenAI has experienced significant changes in its executive team over the last few months:\n* **Departures:** Jan Leike (alignment and safety co-lead) and Ilya Sutskever (co-founder and Chief Scientist) announced their departures in May 2024. They have since co-founded a new AI safety startup called Safe Superintelligence Inc. (SSI). John Schulman, a co-founder and lead of reinforcement learning, also recently left OpenAI to join rival AI company Anthropic. Additionally, Greg Brockman (co-founder and President) announced he is taking a sabbatical until the end of 2024. \n* **New Appointments:** In May 2024, OpenAI appointed retired U.S. Army General and former Chairman of the Joint Chiefs of Staff, Paul M. Nakasone, to its Board of Directors to help oversee safety and security. \n\n**4. Disbanding the Superalalignment Team**\nFollowing the departures of Jan Leike and Ilya Sutskever, OpenAI dissolved its \"Superalignment\" team—a team dedicated to ensuring that future highly advanced AI systems remain aligned with human values and safety. OpenAI stated that the team's work will be integrated into the broader company research efforts, but the move drew criticism from some AI safety advocates.\n\n**5. Watermarking AI-Generated Images\nIn May 2024, OpenAI announced it is joining the Steering Committee of C2PA (Coalition for Content Provenance and Authenticity). As part of this, OpenAI will add metadata (a cryptographic watermark) to images generated by DALL-E 3 and its newer Sora video model. This is part of an industry-wide effort to help people identify AI-generated content and combat deepfakes in the lead-up to global elections.\n\n**6. Restructuring the Board of Directors**\nOpenAI has continued to reshape its board following the November 2023 leadership crisis. In recent months, the company added new board members including Paula Goldman (Senior Vice President of Salesforce) and Nicole Seligman (former President of Sony Entertainment). Along with the addition of General Nakasone, the expanded board helps guide the company's governance and safety initiatives.\n\nTo stay completely up to date on smaller, daily developments, checking OpenAI's official blog or technology news sites like The Verge and TechCrunch is recommended, as OpenAI frequently pushes minor updates and beta features to their API and apps."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 277,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Here is a roundup of the latest major news regarding OpenAI as of mid-2024:\n\n**1. Apple and OpenAI Partnership**\nAt Apple’s WWDC 2024 in June, it was officially announced that OpenAI is integrating ChatGPT into iOS 18, iPadOS 18, and macOS Sequoia. This integration will allow Siri to hand off complex requests to ChatGPT (using the GPT-4o model). Notably, Apple stated that users will not need an OpenAI account to use the free tier of this integration, and privacy protections will be in place (IP addresses are redacted, and requests aren't stored). \n\n**2. Launch of GPT-4o**\nIn May 2024, OpenAI announced GPT-4o (\"o\" for omni). This new flagship model is significantly faster than previous versions and can reason across text, audio, and video in real-time. A major highlight of GPT-4o is its improved voice capabilities, allowing for much more natural, conversational interactions without the awkward delays present in previous voice modes. \n\n**3. Leadership and Departures**\nOpenAI has experienced significant changes in its executive team over the last few months:\n* **Departures:** Jan Leike (alignment and safety co-lead) and Ilya Sutskever (co-founder and Chief Scientist) announced their departures in May 2024. They have since co-founded a new AI safety startup called Safe Superintelligence Inc. (SSI). John Schulman, a co-founder and lead of reinforcement learning, also recently left OpenAI to join rival AI company Anthropic. Additionally, Greg Brockman (co-founder and President) announced he is taking a sabbatical until the end of 2024. \n* **New Appointments:** In May 2024, OpenAI appointed retired U.S. Army General and former Chairman of the Joint Chiefs of Staff, Paul M. Nakasone, to its Board of Directors to help oversee safety and security. \n\n**4. Disbanding the Superalalignment Team**\nFollowing the departures of Jan Leike and Ilya Sutskever, OpenAI dissolved its \"Superalignment\" team—a team dedicated to ensuring that future highly advanced AI systems remain aligned with human values and safety. OpenAI stated that the team's work will be integrated into the broader company research efforts, but the move drew criticism from some AI safety advocates.\n\n**5. Watermarking AI-Generated Images\nIn May 2024, OpenAI announced it is joining the Steering Committee of C2PA (Coalition for Content Provenance and Authenticity). As part of this, OpenAI will add metadata (a cryptographic watermark) to images generated by DALL-E 3 and its newer Sora video model. This is part of an industry-wide effort to help people identify AI-generated content and combat deepfakes in the lead-up to global elections.\n\n**6. Restructuring the Board of Directors**\nOpenAI has continued to reshape its board following the November 2023 leadership crisis. In recent months, the company added new board members including Paula Goldman (Senior Vice President of Salesforce) and Nicole Seligman (former President of Sony Entertainment). Along with the addition of General Nakasone, the expanded board helps guide the company's governance and safety initiatives.\n\nTo stay completely up to date on smaller, daily developments, checking OpenAI's official blog or technology news sites like The Verge and TechCrunch is recommended, as OpenAI frequently pushes minor updates and beta features to their API and apps."
+        }
+      ],
+      "id": "msg_95dc419fd66c41a59a8b590da3650616",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 278,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851048,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_e0aa50154cdf4ba1a2bd7792d37ff3e1",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Here is a roundup of the latest major news regarding OpenAI as of mid-2024:\n\n**1. Apple and OpenAI Partnership**\nAt Apple’s WWDC 2024 in June, it was officially announced that OpenAI is integrating ChatGPT into iOS 18, iPadOS 18, and macOS Sequoia. This integration will allow Siri to hand off complex requests to ChatGPT (using the GPT-4o model). Notably, Apple stated that users will not need an OpenAI account to use the free tier of this integration, and privacy protections will be in place (IP addresses are redacted, and requests aren't stored). \n\n**2. Launch of GPT-4o**\nIn May 2024, OpenAI announced GPT-4o (\"o\" for omni). This new flagship model is significantly faster than previous versions and can reason across text, audio, and video in real-time. A major highlight of GPT-4o is its improved voice capabilities, allowing for much more natural, conversational interactions without the awkward delays present in previous voice modes. \n\n**3. Leadership and Departures**\nOpenAI has experienced significant changes in its executive team over the last few months:\n* **Departures:** Jan Leike (alignment and safety co-lead) and Ilya Sutskever (co-founder and Chief Scientist) announced their departures in May 2024. They have since co-founded a new AI safety startup called Safe Superintelligence Inc. (SSI). John Schulman, a co-founder and lead of reinforcement learning, also recently left OpenAI to join rival AI company Anthropic. Additionally, Greg Brockman (co-founder and President) announced he is taking a sabbatical until the end of 2024. \n* **New Appointments:** In May 2024, OpenAI appointed retired U.S. Army General and former Chairman of the Joint Chiefs of Staff, Paul M. Nakasone, to its Board of Directors to help oversee safety and security. \n\n**4. Disbanding the Superalalignment Team**\nFollowing the departures of Jan Leike and Ilya Sutskever, OpenAI dissolved its \"Superalignment\" team—a team dedicated to ensuring that future highly advanced AI systems remain aligned with human values and safety. OpenAI stated that the team's work will be integrated into the broader company research efforts, but the move drew criticism from some AI safety advocates.\n\n**5. Watermarking AI-Generated Images\nIn May 2024, OpenAI announced it is joining the Steering Committee of C2PA (Coalition for Content Provenance and Authenticity). As part of this, OpenAI will add metadata (a cryptographic watermark) to images generated by DALL-E 3 and its newer Sora video model. This is part of an industry-wide effort to help people identify AI-generated content and combat deepfakes in the lead-up to global elections.\n\n**6. Restructuring the Board of Directors**\nOpenAI has continued to reshape its board following the November 2023 leadership crisis. In recent months, the company added new board members including Paula Goldman (Senior Vice President of Salesforce) and Nicole Seligman (former President of Sony Entertainment). Along with the addition of General Nakasone, the expanded board helps guide the company's governance and safety initiatives.\n\nTo stay completely up to date on smaller, daily developments, checking OpenAI's official blog or technology news sites like The Verge and TechCrunch is recommended, as OpenAI frequently pushes minor updates and beta features to their API and apps."
+            }
+          ],
+          "id": "msg_95dc419fd66c41a59a8b590da3650616",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "web_search_preview"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 11,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 734,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 745
+      }
+    }
+  }
+]

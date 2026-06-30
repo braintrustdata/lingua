@@ -1,0 +1,333 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_40a88ffa2ab647b2a812b32910b6339b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_40a88ffa2ab647b2a812b32910b6339b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_603d65937df2473683265892c66200cc",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "It",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looks like you forgot to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " include the text",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or the document",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for the cached",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " policy! \n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Please paste the content",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of the policy in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " next",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " reply, and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I will gladly summarize",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it for you.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 17,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "It looks like you forgot to include the text or the document for the cached policy! \n\nPlease paste the content of the policy in your next reply, and I will gladly summarize it for you.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 18,
+    "item_id": "msg_603d65937df2473683265892c66200cc",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "It looks like you forgot to include the text or the document for the cached policy! \n\nPlease paste the content of the policy in your next reply, and I will gladly summarize it for you."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 19,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It looks like you forgot to include the text or the document for the cached policy! \n\nPlease paste the content of the policy in your next reply, and I will gladly summarize it for you."
+        }
+      ],
+      "id": "msg_603d65937df2473683265892c66200cc",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 20,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_40a88ffa2ab647b2a812b32910b6339b",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "It looks like you forgot to include the text or the document for the cached policy! \n\nPlease paste the content of the policy in your next reply, and I will gladly summarize it for you."
+            }
+          ],
+          "id": "msg_603d65937df2473683265892c66200cc",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 14,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 39,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 53
+      }
+    }
+  }
+]

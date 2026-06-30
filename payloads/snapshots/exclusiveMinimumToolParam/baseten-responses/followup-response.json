@@ -1,0 +1,84 @@
+{
+  "background": false,
+  "created_at": 1782851043,
+  "completed_at": 1782851043,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_0dff30c1ce9041f5aee425360e3be6f2",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "To help you configure the LLM, please provide a value for the required parameter:\n\n- **max_tokens**: The maximum number of tokens to generate (must be a positive number greater than 0).\n\nFor example, you could say something like:\n> \"Set max_tokens to 1024\"\n\nHere are some common values to consider:\n| max_tokens | Use Case |\n|---|---|\n| 256 | Short responses (e.g., Q&A, chatbot replies) |\n| 512 | Medium-length responses |\n| 1024 | Longer, more detailed responses |\n| 2048+ | Extended content generation (e.g., articles, stories) |\n\nJust let me know your preferred value and I'll configure it right away!"
+        }
+      ],
+      "id": "msg_f94d6777436c4a199db86a635d13c533",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "function",
+      "name": "configure_llm",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of tokens to generate"
+          }
+        },
+        "required": [
+          "max_tokens"
+        ],
+        "additionalProperties": false
+      },
+      "strict": false,
+      "description": "Configure LLM generation parameters"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 268,
+    "input_tokens_details": {
+      "cached_tokens": 160
+    },
+    "output_tokens": 149,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 417
+  },
+  "output_text": "To help you configure the LLM, please provide a value for the required parameter:\n\n- **max_tokens**: The maximum number of tokens to generate (must be a positive number greater than 0).\n\nFor example, you could say something like:\n> \"Set max_tokens to 1024\"\n\nHere are some common values to consider:\n| max_tokens | Use Case |\n|---|---|\n| 256 | Short responses (e.g., Q&A, chatbot replies) |\n| 512 | Medium-length responses |\n| 1024 | Longer, more detailed responses |\n| 2048+ | Extended content generation (e.g., articles, stories) |\n\nJust let me know your preferred value and I'll configure it right away!"
+}

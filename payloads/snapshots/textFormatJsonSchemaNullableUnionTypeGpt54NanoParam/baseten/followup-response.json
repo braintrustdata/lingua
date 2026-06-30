@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-aaf97290f12f4f1a88d3ed9adb67ca7a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "```json\n{\n  \"query_type\": \"advice\",\n  \"intent\": \"seeking_guidance\",\n  \"category\": \"general\"\n}\n```",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 49,
+    "completion_tokens": 32,
+    "total_tokens": 81,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 32
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

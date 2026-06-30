@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-90421e52474149dfb1176830e7af5f00",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to achieve! Since we just started a new chat, I don't have any context yet. \n\nHere are a few common things people do next:\n\n*   **Ask a question:** Need an explanation, a summary, or advice on a specific topic?\n*   **Brainstorm ideas:** Want help coming up with names, concepts, or project ideas?\n*   **Write or edit:** Need help drafting an email, writing an essay, or fixing code?\n*   **Plan something:** Want to create a schedule, a travel itinerary, or a workout plan?\n\nJust let me know what's on your mind, and I'll help you out!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852418,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 22,
+    "completion_tokens": 138,
+    "total_tokens": 160,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-95d3563d9ce548bb98c75e34cd3ea720",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Here is the summary of the text we are working with:\n\n1. The text explores several key themes.\n2. It outlines the primary objective.\n3. It identifies several important takeaways.\n\n(Placeholder summary created because no stable reference text was provided)\n\nAs the creator of this conversation, I am here to help you move forward. Do you want to try providing the text again?\n\n1. **Provide the Text**:\n   - Paste the \"stable reference text\" you want me to summarize.\n   - I will then generate an accurate summary based on that specific content.\n\n2. **Ask a Different Question**:\n   - If you have a different task or question in mind that doesn't require the text, just let me know!\n   - I'm ready to assist with a wide variety of topics.\n\n3. **Start Over**:\n   - If you'd like to change the topic or start a completely new task, just say the word.\n\nI am awaiting your input to proceed effectively.",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852418,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 66,
+    "completion_tokens": 199,
+    "total_tokens": 265,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

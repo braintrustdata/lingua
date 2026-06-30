@@ -1,0 +1,85 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_ec374f05932644c9963371c9f1b32b89",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Based on the weather information retrieved for Tokyo, here are some suggestions on what you could do next:\n\n1. **Plan your outfit** – Use the weather details to decide what to wear (e.g., bring an umbrella if rain is expected, dress in layers if it's chilly).\n\n2. **Plan outdoor activities** – If the weather is clear and pleasant, it might be a great time to explore outdoor attractions like:\n   - **Senso-ji Temple** in Asakusa\n   - **Shibuya Crossing** and **Meiji Shrine**\n   - **Ueno Park** for a stroll\n   - **Tokyo Skytree** for panoramic views\n\n3. **Plan indoor activities** – If the weather is rainy or too hot/cold, consider indoor options like:\n   - Visiting **teamLab Borderless/Planets** (digital art museum)\n   - Exploring **Tokyo National Museum**\n   - Shopping in **Ginza** or **Akihabara**\n   - Enjoying a meal at an **izakaya** or trying authentic ramen\n\n4. **Check the forecast for the week** – If you're planning a trip, you could ask me to check the weather for upcoming days or for other cities you'll be visiting.\n\n5. **Travel planning** – If you're heading to Tokyo soon, I can help you check the weather for your travel dates or suggest packing tips.\n\nWould you like me to help with any of these, or is there something else you'd like to know? 😊"
+        }
+      ],
+      "id": "msg_e0f8e48852354b4b9978298dee7ac515",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": {
+    "type": "function",
+    "name": "get_weather"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true,
+      "description": "Get weather"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 175,
+    "input_tokens_details": {
+      "cached_tokens": 32
+    },
+    "output_tokens": 316,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 491
+  },
+  "output_text": "Based on the weather information retrieved for Tokyo, here are some suggestions on what you could do next:\n\n1. **Plan your outfit** – Use the weather details to decide what to wear (e.g., bring an umbrella if rain is expected, dress in layers if it's chilly).\n\n2. **Plan outdoor activities** – If the weather is clear and pleasant, it might be a great time to explore outdoor attractions like:\n   - **Senso-ji Temple** in Asakusa\n   - **Shibuya Crossing** and **Meiji Shrine**\n   - **Ueno Park** for a stroll\n   - **Tokyo Skytree** for panoramic views\n\n3. **Plan indoor activities** – If the weather is rainy or too hot/cold, consider indoor options like:\n   - Visiting **teamLab Borderless/Planets** (digital art museum)\n   - Exploring **Tokyo National Museum**\n   - Shopping in **Ginza** or **Akihabara**\n   - Enjoying a meal at an **izakaya** or trying authentic ramen\n\n4. **Check the forecast for the week** – If you're planning a trip, you could ask me to check the weather for upcoming days or for other cities you'll be visiting.\n\n5. **Travel planning** – If you're heading to Tokyo soon, I can help you check the weather for your travel dates or suggest packing tips.\n\nWould you like me to help with any of these, or is there something else you'd like to know? 😊"
+}

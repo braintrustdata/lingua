@@ -1,0 +1,870 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_93902c1148404d2b8402d485fb830558",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "minimal"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_93902c1148404d2b8402d485fb830558",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "minimal"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "That",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depends on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to achieve",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "! Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " just started",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with a math",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " problem",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " floor",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is wide",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " open. Here are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a few suggestions",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " could do next:\n\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Ask another",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " question:** I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with trivia",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", science",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", history, or more",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " math.\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Brainstorm ideas",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** If you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'re working on a project",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", a story, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " presentation, we",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can bounce ideas",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " around.\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " practical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can help you draft",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an email, write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " piece of code, translate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " some",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " text, or make",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a daily",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " schedule.\n* **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Learn something",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " new:** Ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " explain a complex",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " topic, like how",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " black holes work or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " basics of quantum",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " computing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n* **Be",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " entertained:** I",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can tell",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you a joke",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", write",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a short story, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " share",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interesting historical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fact.\n\nWhat's",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on your mind today",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "? Is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " there a specific problem",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'re",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " trying to solve?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 76,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "That depends on what you're trying to achieve! Since we just started with a math problem, the floor is wide open. Here are a few suggestions on what we could do next:\n\n* **Ask another question:** I can help you with trivia, science, history, or more math.\n* **Brainstorm ideas:** If you're working on a project, a story, or a presentation, we can bounce ideas around.\n* **Get practical help:** I can help you draft an email, write a piece of code, translate some text, or make a daily schedule.\n* **Learn something new:** Ask me to explain a complex topic, like how black holes work or the basics of quantum computing.\n* **Be entertained:** I can tell you a joke, write a short story, or share an interesting historical fact.\n\nWhat's on your mind today? Is there a specific problem you're trying to solve?",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 77,
+    "item_id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "That depends on what you're trying to achieve! Since we just started with a math problem, the floor is wide open. Here are a few suggestions on what we could do next:\n\n* **Ask another question:** I can help you with trivia, science, history, or more math.\n* **Brainstorm ideas:** If you're working on a project, a story, or a presentation, we can bounce ideas around.\n* **Get practical help:** I can help you draft an email, write a piece of code, translate some text, or make a daily schedule.\n* **Learn something new:** Ask me to explain a complex topic, like how black holes work or the basics of quantum computing.\n* **Be entertained:** I can tell you a joke, write a short story, or share an interesting historical fact.\n\nWhat's on your mind today? Is there a specific problem you're trying to solve?"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 78,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "That depends on what you're trying to achieve! Since we just started with a math problem, the floor is wide open. Here are a few suggestions on what we could do next:\n\n* **Ask another question:** I can help you with trivia, science, history, or more math.\n* **Brainstorm ideas:** If you're working on a project, a story, or a presentation, we can bounce ideas around.\n* **Get practical help:** I can help you draft an email, write a piece of code, translate some text, or make a daily schedule.\n* **Learn something new:** Ask me to explain a complex topic, like how black holes work or the basics of quantum computing.\n* **Be entertained:** I can tell you a joke, write a short story, or share an interesting historical fact.\n\nWhat's on your mind today? Is there a specific problem you're trying to solve?"
+        }
+      ],
+      "id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 79,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851043,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_93902c1148404d2b8402d485fb830558",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "That depends on what you're trying to achieve! Since we just started with a math problem, the floor is wide open. Here are a few suggestions on what we could do next:\n\n* **Ask another question:** I can help you with trivia, science, history, or more math.\n* **Brainstorm ideas:** If you're working on a project, a story, or a presentation, we can bounce ideas around.\n* **Get practical help:** I can help you draft an email, write a piece of code, translate some text, or make a daily schedule.\n* **Learn something new:** Ask me to explain a complex topic, like how black holes work or the basics of quantum computing.\n* **Be entertained:** I can tell you a joke, write a short story, or share an interesting historical fact.\n\nWhat's on your mind today? Is there a specific problem you're trying to solve?"
+            }
+          ],
+          "id": "msg_5ce0bb53d9124ee8bec7cd98f8fc1723",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": {
+        "effort": "minimal"
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 31,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 183,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 214
+      }
+    }
+  }
+]

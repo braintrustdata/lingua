@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_495e1f342c254e958df956c7b9da1db6",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That is a very open-ended question! To give you the best advice, it helps to know a little more about what's going on in your life right now. \n\nAre you asking about:\n*   **Your career or education?** (e.g., looking for a job, thinking about switching fields, deciding what to study)\n*   **A project you're working on?** (e.g., you just finished a big task and are wondering what the next phase is)\n*   **Life in general?** (e.g., feeling bored, stuck, or wanting to build a new habit)\n*   **AI/Technology?** (e.g., you just finished a prompt and want to know what to ask me next)\n\nIf you can give me just a little bit of context about where you are right now, I can give you a much better list of options! \n\nIf you're just looking for general inspiration, here are four random but productive things you could do right now:\n1. **Take a 5-minute break:** Stand up, stretch, and look away from your screen to rest your eyes.\n2. **Do a \"brain dump\":** Grab a piece of paper and write down every single thing on your mind. It helps clear mental clutter.\n3. **Learn one new thing:** Ask me to explain a concept you've always been curious about but never looked up.\n4. **Tackle one small task:** Pick the easiest, quickest thing on your to-do list and get it done to build some momentum.\n\nWhat sounds most relevant to you right now?"
+        }
+      ],
+      "id": "msg_3e6b4f025aee496899ba11682862e544",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 67,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 321,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 388
+  },
+  "output_text": "That is a very open-ended question! To give you the best advice, it helps to know a little more about what's going on in your life right now. \n\nAre you asking about:\n*   **Your career or education?** (e.g., looking for a job, thinking about switching fields, deciding what to study)\n*   **A project you're working on?** (e.g., you just finished a big task and are wondering what the next phase is)\n*   **Life in general?** (e.g., feeling bored, stuck, or wanting to build a new habit)\n*   **AI/Technology?** (e.g., you just finished a prompt and want to know what to ask me next)\n\nIf you can give me just a little bit of context about where you are right now, I can give you a much better list of options! \n\nIf you're just looking for general inspiration, here are four random but productive things you could do right now:\n1. **Take a 5-minute break:** Stand up, stretch, and look away from your screen to rest your eyes.\n2. **Do a \"brain dump\":** Grab a piece of paper and write down every single thing on your mind. It helps clear mental clutter.\n3. **Learn one new thing:** Ask me to explain a concept you've always been curious about but never looked up.\n4. **Tackle one small task:** Pick the easiest, quickest thing on your to-do list and get it done to build some momentum.\n\nWhat sounds most relevant to you right now?"
+}

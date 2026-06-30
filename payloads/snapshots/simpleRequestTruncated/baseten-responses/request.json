@@ -1,0 +1,10 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "max_output_tokens": 1,
+  "input": [
+    {
+      "role": "user",
+      "content": "Write a very long essay about the ocean."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-119ba69d3e574de1bf4ada15a4bfc880",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That is the big question! Since I don't know what you were doing before this, here are a few different ways we can go: \n\n**If you want to be productive:**\n*   **Brainstorm:** We can bounce ideas around for a project you're working on.\n*   **Learn:** Ask me to explain a complex topic you've always wanted to understand (like quantum computing, black holes, or how the stock market works).\n*   **Plan:** Tell me a goal you have (e.g., \"I want to run a 5k\" or \"I want to learn Spanish\") and I can make a step-by-step plan.\n\n**If you want to be entertained:**\n*   **Play a game:** We can play trivia, 20 Questions, or a text-based adventure game.\n*   **Get a recommendation:** Tell me your favorite movie, book, or band, and I'll recommend something similar you might like.\n*   **Read a story:** Give me a prompt and I'll write a short story or poem for you.\n\n**If you want to sort out your life:**\n*   **Make a to-do list:** Tell me everything buzzing around in your head, and I'll help you organize it into a prioritized list.\n*   **Talk it out:** Tell me about a problem you're trying to solve or a decision you have to make, and I can help you weigh the pros and cons.\n\n**If you're just bored:**\n*   Ask me for a random fun fact.\n*   Ask me to tell you a joke. \n\nWhat sounds the most appealing to you right now? Or just tell me what's on your mind!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852418,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 343,
+    "total_tokens": 374,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

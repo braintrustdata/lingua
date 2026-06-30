@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-f99242295b8c44c08a5bfa1e7b9aeb3a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to accomplish! Since we don't have much context yet, here are a few common next steps you can take:\n\n1. **Provide context:** If you have a specific task in mind (like grading an essay, evaluating a piece of code, or rating a product review), share the text with me and ask me to score it.\n2. **Adjust the criteria:** Tell me *why* something should get a certain score. For example, you could say, \"Score this resume out of 10 based on its formatting and use of action verbs.\"\n3. **Ask for a breakdown:** Instead of just a single number, ask me to provide a score for different categories (e.g., `{\"grammar_score\": 8, \"creativity_score\": 9}`).\n4. **Move on to a new task:** Tell me what else you'd like to do! I can help with writing, coding, brainstorming, analysis, and more. \n\nWhat's your goal? Let me know how I can help!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 44,
+    "completion_tokens": 214,
+    "total_tokens": 258,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

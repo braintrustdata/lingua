@@ -1,0 +1,28 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Say hi."
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Hi! 👋 How can I help you today?"
+        }
+      ],
+      "id": "msg_4905cd2c238447a8807152872f19b2c2",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "top_p": 0.9
+}

@@ -1,0 +1,28 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "max_output_tokens": 1,
+  "input": [
+    {
+      "role": "user",
+      "content": "Write a very long essay about the ocean."
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "**"
+        }
+      ],
+      "id": "msg_403f836f4e07456c87f7f58d2890f746",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

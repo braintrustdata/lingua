@@ -1,0 +1,70 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "NYC and LA weather"
+    },
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"New York City\"}",
+      "call_id": "chatcmpl-tool-9807cb08e17e46c3a8191e6b41a71882",
+      "name": "get_weather",
+      "id": "fc_8d9a67d837d147e5b99970eaaf7942b9",
+      "status": "completed"
+    },
+    {
+      "type": "function_call",
+      "arguments": "{\"location\": \"Los Angeles\"}",
+      "call_id": "chatcmpl-tool-2b93946a8c714112a717b0191f503603",
+      "name": "get_weather",
+      "id": "fc_62805b4126534c8194bc7b5765a431c0",
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I'll check the weather for both New York City and Los Angeles at the same time!"
+        }
+      ],
+      "id": "msg_7dfc8f4fa1e740bfbdd97f5755c59736",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "chatcmpl-tool-9807cb08e17e46c3a8191e6b41a71882",
+      "output": "71 degrees"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "chatcmpl-tool-2b93946a8c714112a717b0191f503603",
+      "output": "71 degrees"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_weather",
+      "description": "Get weather",
+      "strict": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "location"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "parallel_tool_calls": false
+}

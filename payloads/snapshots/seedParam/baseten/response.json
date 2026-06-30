@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-4e7acfd136da458caf3c097ac5b4e093",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Okay, I pick **42**. \n\nNot only is it the famous \"Answer to the Ultimate Question of Life, the Universe, and Everything\" from *The Hitchhiker's Guide to the Galaxy*, but it's also a perfectly balanced, even number. \n\nWhat did you have in mind for it?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 11,
+    "completion_tokens": 63,
+    "total_tokens": 74,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

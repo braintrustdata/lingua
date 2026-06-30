@@ -1,0 +1,636 @@
+[
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "Here",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1782852412,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 1,
+      "total_tokens": 224,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "'s the current weather"
+        }
+      }
+    ],
+    "created": 1782852412,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 5,
+      "total_tokens": 228,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " for both cities:\n\n-"
+        }
+      }
+    ],
+    "created": 1782852412,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 10,
+      "total_tokens": 233,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " **San Francisco,"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 14,
+      "total_tokens": 237,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " CA**: "
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 17,
+      "total_tokens": 240,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "65°F and"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 20,
+      "total_tokens": 243,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " sunny ☀️\n"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 25,
+      "total_tokens": 248,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "- **New"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 28,
+      "total_tokens": 251,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " York, NY**:"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 32,
+      "total_tokens": 255,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " 45°F and"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 36,
+      "total_tokens": 259,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " cloudy ☁️\n\n"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 41,
+      "total_tokens": 264,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "San Francisco is"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 44,
+      "total_tokens": 267,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " warmer"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 45,
+      "total_tokens": 268,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " and enjoying"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 47,
+      "total_tokens": 270,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " sunny skies, while New"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 52,
+      "total_tokens": 275,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " York is cooler"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 55,
+      "total_tokens": 278,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " and over"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 57,
+      "total_tokens": 280,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "cast. Let me know"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 62,
+      "total_tokens": 285,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " if you'd like weather"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 67,
+      "total_tokens": 290,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": " details for any other locations"
+        }
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 72,
+      "total_tokens": 295,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [
+      {
+        "index": 0,
+        "delta": {
+          "content": "!"
+        },
+        "finish_reason": "stop",
+        "stop_reason": 154827
+      }
+    ],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 73,
+      "total_tokens": 296,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  },
+  {
+    "id": "chatcmpl-b1a2494d7ce244b4aecee8f1f008db59",
+    "choices": [],
+    "created": 1782852413,
+    "model": "zai-org/GLM-5.2",
+    "object": "chat.completion.chunk",
+    "usage": {
+      "prompt_tokens": 223,
+      "completion_tokens": 73,
+      "total_tokens": 296,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 192
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    }
+  }
+]

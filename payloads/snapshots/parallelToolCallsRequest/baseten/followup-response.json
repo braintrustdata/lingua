@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-95cabdd2574943d19d84c374f388b782",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That's a great question! Based on the weather conditions, here are some suggestions:\n\n### 🌞 San Francisco (65°F, Sunny)\n- **Go for a walk** — It's perfect weather to stroll through Golden Gate Park or along the Embarcadero.\n- **Visit the beach** — Check out Ocean Beach or Baker Beach while the sun is out.\n- **Enjoy outdoor dining** — Grab a meal at a patio or rooftop restaurant.\n\n### ☁️ New York (45°F, Cloudy)\n- **Visit a museum** — Check out the Met, MoMA, or the Natural History Museum.\n- **See a Broadway show** — A great indoor activity for a cloudy day.\n- **Cozy up at a café** — Explore the city's amazing coffee scene.\n\n---\n\nWould you like me to:\n1. **Check the weather** for a different location?\n2. **Compare more cities** to help you plan a trip?\n3. **Something else entirely**?\n\nLet me know how I can help! 😊",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 303,
+    "completion_tokens": 212,
+    "total_tokens": 515,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

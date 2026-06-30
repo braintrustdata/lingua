@@ -1,0 +1,2529 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_8d8f7b2dbf6545d7ba9795726821b9ee",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_8d8f7b2dbf6545d7ba9795726821b9ee",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "That",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ultimate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " question, John",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "! At",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 25, you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in a really",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " interesting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " phase",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of life",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "—",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "often called",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the \"quarter-life",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " phase. You're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " likely out",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of school",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ",",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " maybe",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " established",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " job, but",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " probably",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " still figuring out the long",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-term game plan.\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since I don't know",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your specific situation",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are a few different paths",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " consider depending",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " head is at",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " right now:\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1. If you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " feeling bored",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "stuck\" in a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " rut",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Take",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a micro-tr",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ip:** Go",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " somewhere you've",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " never been,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " even if it's just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a town",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " hour away, for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the weekend.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n*   **Learn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a random",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " skill:** Pick",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " something completely",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " outside",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your wheel",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "house. Try",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " rock",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " climbing, coding",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", making",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " pasta from",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " scratch, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a new language",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n*  ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " **Do a digital detox",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Delete",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " social",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " media off",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your phone for ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " days and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " see what you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " naturally",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " gravitate toward",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " doing when",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " bored.\n\n**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". If you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 84,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " thinking about your career:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 85,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 86,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Audit",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 87,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your current",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 88,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " path",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 89,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 90,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 91,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you want to be",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 92,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "? Does",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 93,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 94,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " current job have",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 95,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a ",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 96,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "5-year trajectory",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 97,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that exc",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 98,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ites you?\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 99,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "*   **Upgrade",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 100,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your skills",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 101,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 102,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 103,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " certification,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 104,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 105,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " online course (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 106,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Coursera, Ud",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 107,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "emy),",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 108,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or a workshop",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 109,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that makes",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 110,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you more",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 111,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " valuable in your industry",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 112,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "—or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 113,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " helps",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 114,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you pivot to a new",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 115,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " one.\n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 116,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Network strategically",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 117,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Reach out to someone",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 118,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " whose career you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 119,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " admire and ask them for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 120,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a 15-minute virtual",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 121,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " coffee just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 122,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to ask",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 123,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " them about their journey",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 124,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n**3. If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 125,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you are thinking about personal",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 126,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " growth &",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 127,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " habits",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 128,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 129,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Get",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 130,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your finances in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 131,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " check",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 132,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** If you haven",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 133,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t started, look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 134,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into opening",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 135,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a Roth IRA,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 136,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " setting",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 137,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " up a high",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 138,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-yield savings account,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 139,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or creating a strict",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 140,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " monthly",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 141,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " budget. The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 142,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " earlier",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 143,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you start",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 144,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " investing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 145,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at 25",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 146,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", the better.\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 147,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "*   **Focus",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 148,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on health",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 149,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Set",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 150,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a tangible",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 151,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " physical goal that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 152,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " has",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 153,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " nothing to do with appearance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 154,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Aim",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 155,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to run a 5",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 156,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "K, dead",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 157,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "lift your",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 158,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " body weight, or just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 159,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " drink",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 160,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 161,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " gallon of water a day",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 162,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 163,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Read a book:** *",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 164,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Atomic",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 165,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Habits* by",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 166,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " James Clear, *",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 167,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "The Def",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 168,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ining Dec",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 169,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ade* by Meg",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 170,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Jay, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 171,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " *Can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 172,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t Hurt",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 173,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Me* by David",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 174,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Goggins",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 175,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are all great reads for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 176,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " guys",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 177,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in their mid",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 178,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 179,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "20s.\n\n**4",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 180,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". If you are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 181,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " feeling lonely",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 182,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or want",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 183,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " better",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 184,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " social connections",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 185,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":**\n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 186,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Join a local group",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 187,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Find",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 188,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 189,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " intramural",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 190,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sports league (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 191,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "kick",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 192,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ball, softball",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 193,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", soccer",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 194,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "), a run",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 195,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " club, or a board",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 196,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " game cafe",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 197,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " group",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 198,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n*   **",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 199,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Re",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 200,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "connect:**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 201,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Text",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 202,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a friend you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 203,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " haven't spoken",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 204,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to in a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 205,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " while",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 206,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and just say,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 207,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"Hey man",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 208,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", been",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 209,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a minute",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 210,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 211,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Let's grab a beer",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 212,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "/coffee this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 213,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " week.\"\n\n**5",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 214,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 215,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 216,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"Life Audit\" (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 217,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "High",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 218,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ly Recommended)",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 219,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nGrab",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 220,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a piece",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 221,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of paper and write down",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 222,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " these four categories:\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 223,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   Career /",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 224,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Fin",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 225,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ances\n*   Health",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 226,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " / Fitness",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 227,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\n*   Relationships (",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 228,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Family",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 229,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", Friends, Dating",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 230,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ")\n*   Personal",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 231,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Growth /",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 232,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Fun\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 233,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Rate your satisfaction",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 234,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in each from",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 235,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " 1-",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 236,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "10. Pick the lowest",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 237,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " scoring",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 238,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " one,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 239,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and choose",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 240,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " *",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 241,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "one* small action you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 242,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " can take this",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 243,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " week to improve it.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 244,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \n\nDo",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 245,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " any of these resonate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 246,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " with where",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 247,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 248,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " at right now? What",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 249,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'s",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 250,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " taking",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 251,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " up the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 252,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " most space",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 253,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in your brain",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 254,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " lately?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 255,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "That is the ultimate question, John! At 25, you are in a really interesting phase of life—often called the \"quarter-life\" phase. You're likely out of school, maybe established in a job, but probably still figuring out the long-term game plan.\n\nSince I don't know your specific situation, here are a few different paths to consider depending on where your head is at right now:\n\n**1. If you are feeling bored or \"stuck\" in a rut:**\n*   **Take a micro-trip:** Go somewhere you've never been, even if it's just a town an hour away, for the weekend. \n*   **Learn a random new skill:** Pick something completely outside your wheelhouse. Try rock climbing, coding, making pasta from scratch, or a new language. \n*   **Do a digital detox:** Delete social media off your phone for 3 days and see what you naturally gravitate toward doing when you're bored.\n\n**2. If you are thinking about your career:**\n*   **Audit your current path:** Are you where you want to be? Does your current job have a 5-year trajectory that excites you?\n*   **Upgrade your skills:** Look into a certification, an online course (Coursera, Udemy), or a workshop that makes you more valuable in your industry—or helps you pivot to a new one.\n*   **Network strategically:** Reach out to someone whose career you admire and ask them for a 15-minute virtual coffee just to ask them about their journey.\n\n**3. If you are thinking about personal growth & habits:**\n*   **Get your finances in check:** If you haven't started, look into opening a Roth IRA, setting up a high-yield savings account, or creating a strict monthly budget. The earlier you start investing at 25, the better.\n*   **Focus on health:** Set a tangible physical goal that has nothing to do with appearance. Aim to run a 5K, deadlift your body weight, or just drink a gallon of water a day. \n*   **Read a book:** *Atomic Habits* by James Clear, *The Defining Decade* by Meg Jay, or *Can't Hurt Me* by David Goggins are all great reads for guys in their mid-20s.\n\n**4. If you are feeling lonely or want better social connections:**\n*   **Join a local group:** Find an intramural sports league (kickball, softball, soccer), a run club, or a board game cafe group. \n*   **Reconnect:** Text a friend you haven't spoken to in a while and just say, \"Hey man, been a minute. Let's grab a beer/coffee this week.\"\n\n**5. Do a \"Life Audit\" (Highly Recommended)**\nGrab a piece of paper and write down these four categories:\n*   Career / Finances\n*   Health / Fitness\n*   Relationships (Family, Friends, Dating)\n*   Personal Growth / Fun\nRate your satisfaction in each from 1-10. Pick the lowest scoring one, and choose *one* small action you can take this week to improve it. \n\nDo any of these resonate with where you're at right now? What's taking up the most space in your brain lately?",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 256,
+    "item_id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "That is the ultimate question, John! At 25, you are in a really interesting phase of life—often called the \"quarter-life\" phase. You're likely out of school, maybe established in a job, but probably still figuring out the long-term game plan.\n\nSince I don't know your specific situation, here are a few different paths to consider depending on where your head is at right now:\n\n**1. If you are feeling bored or \"stuck\" in a rut:**\n*   **Take a micro-trip:** Go somewhere you've never been, even if it's just a town an hour away, for the weekend. \n*   **Learn a random new skill:** Pick something completely outside your wheelhouse. Try rock climbing, coding, making pasta from scratch, or a new language. \n*   **Do a digital detox:** Delete social media off your phone for 3 days and see what you naturally gravitate toward doing when you're bored.\n\n**2. If you are thinking about your career:**\n*   **Audit your current path:** Are you where you want to be? Does your current job have a 5-year trajectory that excites you?\n*   **Upgrade your skills:** Look into a certification, an online course (Coursera, Udemy), or a workshop that makes you more valuable in your industry—or helps you pivot to a new one.\n*   **Network strategically:** Reach out to someone whose career you admire and ask them for a 15-minute virtual coffee just to ask them about their journey.\n\n**3. If you are thinking about personal growth & habits:**\n*   **Get your finances in check:** If you haven't started, look into opening a Roth IRA, setting up a high-yield savings account, or creating a strict monthly budget. The earlier you start investing at 25, the better.\n*   **Focus on health:** Set a tangible physical goal that has nothing to do with appearance. Aim to run a 5K, deadlift your body weight, or just drink a gallon of water a day. \n*   **Read a book:** *Atomic Habits* by James Clear, *The Defining Decade* by Meg Jay, or *Can't Hurt Me* by David Goggins are all great reads for guys in their mid-20s.\n\n**4. If you are feeling lonely or want better social connections:**\n*   **Join a local group:** Find an intramural sports league (kickball, softball, soccer), a run club, or a board game cafe group. \n*   **Reconnect:** Text a friend you haven't spoken to in a while and just say, \"Hey man, been a minute. Let's grab a beer/coffee this week.\"\n\n**5. Do a \"Life Audit\" (Highly Recommended)**\nGrab a piece of paper and write down these four categories:\n*   Career / Finances\n*   Health / Fitness\n*   Relationships (Family, Friends, Dating)\n*   Personal Growth / Fun\nRate your satisfaction in each from 1-10. Pick the lowest scoring one, and choose *one* small action you can take this week to improve it. \n\nDo any of these resonate with where you're at right now? What's taking up the most space in your brain lately?"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 257,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "That is the ultimate question, John! At 25, you are in a really interesting phase of life—often called the \"quarter-life\" phase. You're likely out of school, maybe established in a job, but probably still figuring out the long-term game plan.\n\nSince I don't know your specific situation, here are a few different paths to consider depending on where your head is at right now:\n\n**1. If you are feeling bored or \"stuck\" in a rut:**\n*   **Take a micro-trip:** Go somewhere you've never been, even if it's just a town an hour away, for the weekend. \n*   **Learn a random new skill:** Pick something completely outside your wheelhouse. Try rock climbing, coding, making pasta from scratch, or a new language. \n*   **Do a digital detox:** Delete social media off your phone for 3 days and see what you naturally gravitate toward doing when you're bored.\n\n**2. If you are thinking about your career:**\n*   **Audit your current path:** Are you where you want to be? Does your current job have a 5-year trajectory that excites you?\n*   **Upgrade your skills:** Look into a certification, an online course (Coursera, Udemy), or a workshop that makes you more valuable in your industry—or helps you pivot to a new one.\n*   **Network strategically:** Reach out to someone whose career you admire and ask them for a 15-minute virtual coffee just to ask them about their journey.\n\n**3. If you are thinking about personal growth & habits:**\n*   **Get your finances in check:** If you haven't started, look into opening a Roth IRA, setting up a high-yield savings account, or creating a strict monthly budget. The earlier you start investing at 25, the better.\n*   **Focus on health:** Set a tangible physical goal that has nothing to do with appearance. Aim to run a 5K, deadlift your body weight, or just drink a gallon of water a day. \n*   **Read a book:** *Atomic Habits* by James Clear, *The Defining Decade* by Meg Jay, or *Can't Hurt Me* by David Goggins are all great reads for guys in their mid-20s.\n\n**4. If you are feeling lonely or want better social connections:**\n*   **Join a local group:** Find an intramural sports league (kickball, softball, soccer), a run club, or a board game cafe group. \n*   **Reconnect:** Text a friend you haven't spoken to in a while and just say, \"Hey man, been a minute. Let's grab a beer/coffee this week.\"\n\n**5. Do a \"Life Audit\" (Highly Recommended)**\nGrab a piece of paper and write down these four categories:\n*   Career / Finances\n*   Health / Fitness\n*   Relationships (Family, Friends, Dating)\n*   Personal Growth / Fun\nRate your satisfaction in each from 1-10. Pick the lowest scoring one, and choose *one* small action you can take this week to improve it. \n\nDo any of these resonate with where you're at right now? What's taking up the most space in your brain lately?"
+        }
+      ],
+      "id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 258,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851049,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_8d8f7b2dbf6545d7ba9795726821b9ee",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "That is the ultimate question, John! At 25, you are in a really interesting phase of life—often called the \"quarter-life\" phase. You're likely out of school, maybe established in a job, but probably still figuring out the long-term game plan.\n\nSince I don't know your specific situation, here are a few different paths to consider depending on where your head is at right now:\n\n**1. If you are feeling bored or \"stuck\" in a rut:**\n*   **Take a micro-trip:** Go somewhere you've never been, even if it's just a town an hour away, for the weekend. \n*   **Learn a random new skill:** Pick something completely outside your wheelhouse. Try rock climbing, coding, making pasta from scratch, or a new language. \n*   **Do a digital detox:** Delete social media off your phone for 3 days and see what you naturally gravitate toward doing when you're bored.\n\n**2. If you are thinking about your career:**\n*   **Audit your current path:** Are you where you want to be? Does your current job have a 5-year trajectory that excites you?\n*   **Upgrade your skills:** Look into a certification, an online course (Coursera, Udemy), or a workshop that makes you more valuable in your industry—or helps you pivot to a new one.\n*   **Network strategically:** Reach out to someone whose career you admire and ask them for a 15-minute virtual coffee just to ask them about their journey.\n\n**3. If you are thinking about personal growth & habits:**\n*   **Get your finances in check:** If you haven't started, look into opening a Roth IRA, setting up a high-yield savings account, or creating a strict monthly budget. The earlier you start investing at 25, the better.\n*   **Focus on health:** Set a tangible physical goal that has nothing to do with appearance. Aim to run a 5K, deadlift your body weight, or just drink a gallon of water a day. \n*   **Read a book:** *Atomic Habits* by James Clear, *The Defining Decade* by Meg Jay, or *Can't Hurt Me* by David Goggins are all great reads for guys in their mid-20s.\n\n**4. If you are feeling lonely or want better social connections:**\n*   **Join a local group:** Find an intramural sports league (kickball, softball, soccer), a run club, or a board game cafe group. \n*   **Reconnect:** Text a friend you haven't spoken to in a while and just say, \"Hey man, been a minute. Let's grab a beer/coffee this week.\"\n\n**5. Do a \"Life Audit\" (Highly Recommended)**\nGrab a piece of paper and write down these four categories:\n*   Career / Finances\n*   Health / Fitness\n*   Relationships (Family, Friends, Dating)\n*   Personal Growth / Fun\nRate your satisfaction in each from 1-10. Pick the lowest scoring one, and choose *one* small action you can take this week to improve it. \n\nDo any of these resonate with where you're at right now? What's taking up the most space in your brain lately?"
+            }
+          ],
+          "id": "msg_acb3fd75fc9b4edb98c6aac55ef6d93c",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "json_schema",
+          "name": "person_info",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "age"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 85,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 682,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 767
+      }
+    }
+  }
+]

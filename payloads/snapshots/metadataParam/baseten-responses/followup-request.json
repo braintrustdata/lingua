@@ -1,0 +1,30 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Hi there! I'm the GLM language model trained by Z.ai. How can I assist you today?"
+        }
+      ],
+      "id": "msg_1a2a8c3b45cf4078b39e04ed6b233cec",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "metadata": {
+    "key": "value"
+  }
+}

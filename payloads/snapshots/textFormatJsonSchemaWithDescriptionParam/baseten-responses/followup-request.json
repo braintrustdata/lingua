@@ -1,0 +1,51 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Name: John, Age: 25"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Hello, John! Since you're 25, you're right in the heart of young adulthood—a great time for career growth, personal development, and exploring new interests. \n\nI see we have the basics down, but I'd love to know more to help you better. What's on your mind today? We could talk about:\n- Career advice or resume building\n- Fitness and health tips\n- Learning a new skill or hobby\n- Travel recommendations\n- Or just have a casual chat!\n\nWhat would you like to do?"
+        }
+      ],
+      "id": "msg_2768e60c46814119b8ca92f3e038e848",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "person_info",
+      "description": "Extract person information from text",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  }
+}

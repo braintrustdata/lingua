@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-389212ea12304684b9708cc54bf1a1ef",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "I'd be happy to help you figure out what to do next! Could you share a bit more context about what you're looking for? For example:\n\n- **Planning a trip to Tokyo?** I can suggest activities based on the current weather.\n- **Looking for daily task advice?** I can help you organize your day.\n- **Need help with a project or decision?** I can assist with planning and next steps.\n\nLet me know what's on your mind, and I'll do my best to guide you! 😊",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852414,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 175,
+    "completion_tokens": 108,
+    "total_tokens": 283,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

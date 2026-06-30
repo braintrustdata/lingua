@@ -1,0 +1,426 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5d7acf28b23640bb91efba4924793a44",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": {
+        "type": "function",
+        "name": "get_weather"
+      },
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5d7acf28b23640bb91efba4924793a44",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": {
+        "type": "function",
+        "name": "get_weather"
+      },
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_c89ed5e97125411c97871376bc183c6b",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "It",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " looks like you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " previously",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " asked about the weather in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Tokyo, but it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " seems the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " response",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " didn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t come through",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Let me try",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " fetching",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " that for",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you again!<tool_call>",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "get_weather<arg_key>",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "location</arg_key>",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "<arg_value>Tokyo</arg_value></tool_call>",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 20,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "It looks like you previously asked about the weather in Tokyo, but it seems the response didn't come through. Let me try fetching that for you again!<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 21,
+    "item_id": "msg_c89ed5e97125411c97871376bc183c6b",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "It looks like you previously asked about the weather in Tokyo, but it seems the response didn't come through. Let me try fetching that for you again!<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 22,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "It looks like you previously asked about the weather in Tokyo, but it seems the response didn't come through. Let me try fetching that for you again!<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>"
+        }
+      ],
+      "id": "msg_c89ed5e97125411c97871376bc183c6b",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 23,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5d7acf28b23640bb91efba4924793a44",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "It looks like you previously asked about the weather in Tokyo, but it seems the response didn't come through. Let me try fetching that for you again!<tool_call>get_weather<arg_key>location</arg_key><arg_value>Tokyo</arg_value></tool_call>"
+            }
+          ],
+          "id": "msg_c89ed5e97125411c97871376bc183c6b",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": {
+        "type": "function",
+        "name": "get_weather"
+      },
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true,
+          "description": "Get weather"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 175,
+        "input_tokens_details": {
+          "cached_tokens": 32
+        },
+        "output_tokens": 42,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 217
+      }
+    }
+  }
+]

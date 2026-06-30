@@ -1,0 +1,21 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Always say ok."
+    },
+    {
+      "role": "user",
+      "content": "Hi"
+    },
+    {
+      "content": "OK",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

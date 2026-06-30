@@ -1,0 +1,36 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Analyze the letter and summarize the key points."
+        },
+        {
+          "type": "input_file",
+          "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf"
+        }
+      ]
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "It looks like you forgot to include or paste the letter into your prompt! \n\nPlease provide the text of the letter you would like me to analyze, and I will gladly break it down and summarize the key points for you."
+        }
+      ],
+      "id": "msg_9b4251b352cb4058a7f0ec513f238cd9",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

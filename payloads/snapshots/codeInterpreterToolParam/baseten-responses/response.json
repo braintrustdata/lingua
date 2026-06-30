@@ -1,0 +1,70 @@
+{
+  "background": false,
+  "created_at": 1782851042,
+  "completed_at": 1782851042,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_d739634b46914f739e94957e9a096ded",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Here is the Python code to generate a random number:\n\n```python\nimport random\n\n# Generate a random integer between 1 and 100\nrandom_number = random.randint(1, 100)\n\nprint(f\"Random number generated: {random_number}\")\n```\n\nIf you need a random decimal (float) between 0 and 1, you can use `random.random()` instead:\n\n```python\nimport random\n\nrandom_decimal = random.random()\nprint(f\"Random decimal generated: {random_decimal}\")\n```\n\nFor cryptographically secure random numbers (e.g., for passwords or tokens), it is recommended to use the built-in `secrets` module:\n\n```python\nimport secrets\n\nsecure_number = secrets.randbelow(100) # Generates a number from 0 to 99\nprint(f\"Secure random number: {secure_number}\")\n```"
+        }
+      ],
+      "id": "msg_8f8d8237fcd04b9f8bdf66bbe30bb93e",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "code_interpreter",
+      "container": {
+        "type": "auto"
+      }
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 15,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 170,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 185
+  },
+  "output_text": "Here is the Python code to generate a random number:\n\n```python\nimport random\n\n# Generate a random integer between 1 and 100\nrandom_number = random.randint(1, 100)\n\nprint(f\"Random number generated: {random_number}\")\n```\n\nIf you need a random decimal (float) between 0 and 1, you can use `random.random()` instead:\n\n```python\nimport random\n\nrandom_decimal = random.random()\nprint(f\"Random decimal generated: {random_decimal}\")\n```\n\nFor cryptographically secure random numbers (e.g., for passwords or tokens), it is recommended to use the built-in `secrets` module:\n\n```python\nimport secrets\n\nsecure_number = secrets.randbelow(100) # Generates a number from 0 to 99\nprint(f\"Secure random number: {secure_number}\")\n```"
+}

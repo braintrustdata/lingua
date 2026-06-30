@@ -84,6 +84,8 @@ export interface TestCase {
   "vertex-anthropic"?: AnthropicMessageCreateParams | null;
   // Baseten serves OSS models via an OpenAI-compatible chat-completions API.
   baseten?: ChatCompletionCreateParams | null;
+  // Baseten's OpenAI-compatible Responses API.
+  "baseten-responses"?: OpenAI.Responses.ResponseCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }
@@ -104,4 +106,5 @@ export const PROVIDER_TYPES = [
   "bedrock",
   "bedrock-anthropic",
   "vertex-anthropic",
+  "baseten-responses",
 ] as const;

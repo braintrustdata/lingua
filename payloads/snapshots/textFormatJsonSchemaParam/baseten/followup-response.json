@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-903dc6cf52f2412b8322da08ba2fb406",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It depends on what your overall goal is! Since we just started with a basic extraction, here are a few different directions we could go:\n\n1. **Add more data:** If you have a larger text (like an article, a resume, or a list of names) that you want me to extract specific information from, you can paste it here. \n2. **Extract specific entities:** You can ask me to pull out specific types of information from any text you provide, such as names, dates, locations, or monetary values.\n3. **Format the data:** If you have a list of raw text, I can help you structure it into a neat format, like a table, a bulleted list, or JSON.\n4. **Analyze the text:** Once information is extracted, I can help you summarize it, draw conclusions, or answer questions about it.\n5. **Switch topics:** If extracting data isn't what you meant to do, feel free to ask me anything else! I can help with writing, coding, brainstorming, or answering general questions.\n\nWhat sounds most helpful to you right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 29,
+    "completion_tokens": 226,
+    "total_tokens": 255,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

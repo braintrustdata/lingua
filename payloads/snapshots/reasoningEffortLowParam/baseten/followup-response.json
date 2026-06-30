@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-fcdcc08f774c446f90e8b47494f54296",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends entirely on what you're trying to accomplish! Since we just did a quick math problem, the sky is the limit. Here are a few ideas for what we can do next:\n\n**If you want to keep exercising your brain:**\n*   Test me with a riddle or a harder math problem.\n*   Ask me to explain a complex topic (like black holes, quantum computing, or how AI works).\n*   Play a word game, like 20 Questions or trivia.\n\n**If you need to get something done:**\n*   Ask me to help you write an email, a cover letter, or a blog post.\n*   Have me brainstorm ideas for a project, a gift, or a dinner recipe based on what's in your fridge.\n*   Ask me to organize a to-do list or help you plan your week.\n\n**If you just want a random spark of inspiration:**\n*   Ask me for a bizarre historical fact.\n*   Have me write a short story or a poem about a random topic.\n*   Ask for a recommendation for a movie, book, or hobby based on your interests.\n\nWhat's on your mind right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 236,
+    "total_tokens": 267,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

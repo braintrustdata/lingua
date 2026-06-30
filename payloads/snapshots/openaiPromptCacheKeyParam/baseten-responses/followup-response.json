@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_61b2812250e14c36a28eed525795285e",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Since we don't have a cached policy to work with right now, here are a few options for what you can do next:\n\n**1. Retrieve and paste the policy**\n* **If you have it saved locally:** Open the document on your computer, copy the text, and paste it directly into our chat.\n* **If it's a standard policy:** Tell me the name of it (e.g., \"Summarize the GitHub Acceptable Use Policy\" or \"Summarize the HIPAA Security Rule\"), and I can use my general knowledge to summarize it for you.\n* **If it was from a previous chat:** Unfortunately, I don't retain memory across different chat sessions. You will need to copy it from that previous conversation and paste it here.\n\n**2. Tell me what you need the summary for**\nIf you let me know your end goal, I can tailor the summary to be more useful for you. For example:\n* \"I need a 3-bullet-point summary to present to my team.\"\n* \"I need a simplified 'plain English' version of this policy for our users.\"\n* \"I just need to know what my specific responsibilities are under this policy.\"\n\n**3. Start something new**\nIf the policy is no longer needed, we can move on to a completely different task. Just let me know what you'd like to work on! \n\nWhat sounds best to you?"
+        }
+      ],
+      "id": "msg_c738b199100c493b92a4463c2b2500fc",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 81,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 285,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 366
+  },
+  "output_text": "Since we don't have a cached policy to work with right now, here are a few options for what you can do next:\n\n**1. Retrieve and paste the policy**\n* **If you have it saved locally:** Open the document on your computer, copy the text, and paste it directly into our chat.\n* **If it's a standard policy:** Tell me the name of it (e.g., \"Summarize the GitHub Acceptable Use Policy\" or \"Summarize the HIPAA Security Rule\"), and I can use my general knowledge to summarize it for you.\n* **If it was from a previous chat:** Unfortunately, I don't retain memory across different chat sessions. You will need to copy it from that previous conversation and paste it here.\n\n**2. Tell me what you need the summary for**\nIf you let me know your end goal, I can tailor the summary to be more useful for you. For example:\n* \"I need a 3-bullet-point summary to present to my team.\"\n* \"I need a simplified 'plain English' version of this policy for our users.\"\n* \"I just need to know what my specific responsibilities are under this policy.\"\n\n**3. Start something new**\nIf the policy is no longer needed, we can move on to a completely different task. Just let me know what you'd like to work on! \n\nWhat sounds best to you?"
+}

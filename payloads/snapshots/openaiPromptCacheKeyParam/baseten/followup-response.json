@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-b78cc04bbf0a48f595818e2af0af5e12",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "If you are trying to get a summary of a specific policy, here are your next steps:\n\n1. **Find the policy text:** Locate the document, code snippet, or text of the \"cached policy\" you mentioned.\n2. **Paste it into our chat:** Copy the text and paste it into your next message to me. \n3. **Add any specific instructions (optional):** Let me know if you need the summary to be a certain length (e.g., one paragraph, bullet points) or if you are looking for specific information within the policy (e.g., expiration dates, user permissions, privacy rules).\n\nOnce you paste the text, I'll read it and provide the summary for you right away!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852419,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 70,
+    "completion_tokens": 145,
+    "total_tokens": 215,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

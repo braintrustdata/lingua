@@ -15,6 +15,7 @@ import { bedrockExecutor } from "./providers/bedrock";
 import { bedrockAnthropicExecutor } from "./providers/bedrock-anthropic";
 import { vertexAnthropicExecutor } from "./providers/vertex-anthropic";
 import { basetenExecutor } from "./providers/baseten";
+import { basetenResponsesExecutor } from "./providers/baseten-responses";
 import { type ProviderExecutor } from "./types";
 
 // Update provider names to be more descriptive
@@ -27,6 +28,7 @@ const allProviders = [
   bedrockAnthropicExecutor,
   vertexAnthropicExecutor,
   basetenExecutor,
+  basetenResponsesExecutor,
 ] as const;
 
 interface CaptureOptions {

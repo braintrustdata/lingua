@@ -1,0 +1,65 @@
+{
+  "background": false,
+  "created_at": 1782851045,
+  "completed_at": 1782851045,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_78c4e058ab014af7ba09bf03848c21ae",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That’s a very open-ended question! It depends entirely on what’s going on in your world right now. Since I’m an AI, I don’t know your context, but here are a few common directions you could take:\n\n**1. If we’re just chatting and you're bored:**\n* Ask me a fun trivia question.\n* Have me tell you a story or write a poem.\n* Play a text-based adventure game with me (I can be the dungeon master).\n* Ask me to explain a complex topic (like black holes, quantum mechanics, or history).\n\n**2. If you're working on a project:**\n* Let me know what you're writing or building, and I can help you brainstorm, outline, or edit.\n* Ask me to write a piece of code or help you debug an error you're stuck on.\n* Have me draft an email, a social media post, or a professional document.\n\n**3. If you're trying to figure out your actual life:**\n* **If you feel overwhelmed:** Take a 5-minute break, step away from the screen, and take some deep breaths. \n* **If you've been sitting a while:** Get a glass of water, stand up, and stretch your legs.\n* **If you have a long to-do list:** Pick the *smallest, easiest* task on your list and do it right now to build some momentum.\n\nWhat's on your mind? Tell me a little bit about your situation, and I can give you a much better suggestion!"
+        }
+      ],
+      "id": "msg_4bc681f75f194db7ab1796626ea9146c",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "low"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 99,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 313,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 412
+  },
+  "output_text": "That’s a very open-ended question! It depends entirely on what’s going on in your world right now. Since I’m an AI, I don’t know your context, but here are a few common directions you could take:\n\n**1. If we’re just chatting and you're bored:**\n* Ask me a fun trivia question.\n* Have me tell you a story or write a poem.\n* Play a text-based adventure game with me (I can be the dungeon master).\n* Ask me to explain a complex topic (like black holes, quantum mechanics, or history).\n\n**2. If you're working on a project:**\n* Let me know what you're writing or building, and I can help you brainstorm, outline, or edit.\n* Ask me to write a piece of code or help you debug an error you're stuck on.\n* Have me draft an email, a social media post, or a professional document.\n\n**3. If you're trying to figure out your actual life:**\n* **If you feel overwhelmed:** Take a 5-minute break, step away from the screen, and take some deep breaths. \n* **If you've been sitting a while:** Get a glass of water, stand up, and stretch your legs.\n* **If you have a long to-do list:** Pick the *smallest, easiest* task on your list and do it right now to build some momentum.\n\nWhat's on your mind? Tell me a little bit about your situation, and I can give you a much better suggestion!"
+}

@@ -1,0 +1,29 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "instructions": "You are a helpful data analyst. The default data source is project_logs with id abc-123.",
+  "input": [
+    {
+      "role": "user",
+      "content": "What errors occurred recently?"
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I will retrieve the recent error logs from the `project_logs` data source (ID: `abc-123`).\n\n```sql\nSELECT timestamp, error_level, error_message, error_code\nFROM project_logs\nWHERE project_id = 'abc-123'\n  AND log_level = 'ERROR'\nORDER BY timestamp DESC\nLIMIT 20;\n```\n\nHere are the most recent errors that have occurred in your project. Let me know if you need more details on any specific error or want to look into warnings as well!"
+        }
+      ],
+      "id": "msg_526c0138e9a74418b8617c5873bb9e5b",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "max_output_tokens": 300
+}

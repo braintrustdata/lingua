@@ -1,0 +1,14 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Latest OpenAI news"
+    }
+  ],
+  "tools": [
+    {
+      "type": "web_search_preview"
+    }
+  ]
+}

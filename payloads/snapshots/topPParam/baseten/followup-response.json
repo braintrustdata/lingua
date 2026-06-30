@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-addb06a492e34b5c83a7181ce445ce34",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That’s a great question, but it depends entirely on what you're up to! To give you a good answer, tell me a little bit about what’s going on. Are you looking for something to do in your:\n\n*   **Free time?** (I can suggest a hobby, a movie to watch, a book to read, or a fun project)\n*   **Work or studies?** (I can help you plan your next task, organize a project, or brainstorm ideas)\n*   **Life in general?** (We could talk about setting some personal goals, building a new healthy habit, or planning a trip)\n\nOr did you mean, \"What should I ask you to do next?\" (I can write code, draft emails, explain complex topics, create recipes based on what's in your fridge, and much more!)\n\nTell me what’s on your mind, and we'll figure out the next step together.",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852417,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 30,
+    "completion_tokens": 189,
+    "total_tokens": 219,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

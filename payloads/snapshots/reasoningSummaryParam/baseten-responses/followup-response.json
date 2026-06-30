@@ -1,0 +1,66 @@
+{
+  "background": false,
+  "created_at": 1782851043,
+  "completed_at": 1782851043,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_14032b32733e4a248a3296f4c99301cf",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "It really depends on what you're trying to achieve! But if you're looking for some inspiration, here are a few fun (and productive) things you can do next:\n\n**If you want to keep playing around:**\n*   Ask me a harder math question!\n*   Play a word game, trivia, or text-based adventure.\n*   Ask me to write a poem or a story about something random.\n\n**If you want to get something done:**\n*   **Write something:** Tell me what you need (an email, a cover letter, a social media post) and I can draft it for you.\n*   **Brainstorm:** Give me a topic, and I can give you 10 ideas for a project, dinner tonight, or a weekend trip.\n*   **Learn something:** Ask me to explain a complex topic (like quantum physics, blockchain, or how a car engine works) as if you were 5 years old.\n\n**If you're just looking to relax:**\n*   Ask me for a joke.\n*   Tell me about your day, and I can just listen and chat.\n\nWhat sounds good to you? Or, just tell me what's on your mind!"
+        }
+      ],
+      "id": "msg_32a9fb3632174261904cd3745c3a5cf5",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "medium",
+    "summary": "detailed"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 25,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 243,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 268
+  },
+  "output_text": "It really depends on what you're trying to achieve! But if you're looking for some inspiration, here are a few fun (and productive) things you can do next:\n\n**If you want to keep playing around:**\n*   Ask me a harder math question!\n*   Play a word game, trivia, or text-based adventure.\n*   Ask me to write a poem or a story about something random.\n\n**If you want to get something done:**\n*   **Write something:** Tell me what you need (an email, a cover letter, a social media post) and I can draft it for you.\n*   **Brainstorm:** Give me a topic, and I can give you 10 ideas for a project, dinner tonight, or a weekend trip.\n*   **Learn something:** Ask me to explain a complex topic (like quantum physics, blockchain, or how a car engine works) as if you were 5 years old.\n\n**If you're just looking to relax:**\n*   Ask me for a joke.\n*   Tell me about your day, and I can just listen and chat.\n\nWhat sounds good to you? Or, just tell me what's on your mind!"
+}

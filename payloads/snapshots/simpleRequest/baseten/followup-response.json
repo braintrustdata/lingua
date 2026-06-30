@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-971af576030e45459baabd50bd06a79a",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Since we just started with a simple trivia question, the world is your oyster! Here are a few fun directions we could go, depending on your mood:\n\n*   **Keep the trivia going:** I can ask you more geography questions, or we can switch to history, science, or movies. \n*   **Plan a virtual trip:** Since we were just talking about Paris, I can tell you about the best things to do and see there, or recommend some French food you could try making at home.\n*   **Get practical:** I can help you draft an email, write a poem, brainstorm ideas for a project, or explain a complex topic you've been curious about.\n*   **Play a game:** We could play a text-based adventure game, 20 Questions, or word trivia.\n\nWhat sounds the most fun or helpful to you right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 31,
+    "completion_tokens": 174,
+    "total_tokens": 205,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

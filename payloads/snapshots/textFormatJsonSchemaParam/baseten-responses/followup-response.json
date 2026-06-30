@@ -1,0 +1,81 @@
+{
+  "background": false,
+  "created_at": 1782851050,
+  "completed_at": 1782851050,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_56e0e3f7da844f0e805c88324d821bcb",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "At 25, you’re in a really interesting spot. Usually, people refer to this time as your \"quarter-life\" phase. You've been an adult for a few years, but you still have a lot of flexibility and time to pivot before major life obligations typically set in. \n\nSince I don’t know your exact situation, I broke down some ideas into the four main areas most 25-year-olds are navigating. Take a look and see what jumps out at you:\n\n**1. Career & Learning**\n*   **Assess your current path:** Are you happy in your current job or industry? If not, this is the best time to pivot. Look into certifications, online courses, or even going back to school. \n*   **Build your network:** Start attending industry events, local meetups, or joining professional groups on Discord/LinkedIn. The jobs and opportunities you get from 25 onward will increasingly come from *who* you know.\n*   **Find a mentor:** Look for someone 5–10 years ahead of you in a career path you admire. Ask them for a 15-minute coffee chat to ask how they got to where they are.\n\n**2. Financial Foundation**\n*   **Build your emergency fund:** If you don't have one, aim to save 3 to 6 months' worth of living expenses. This buys you the freedom to leave a bad job or handle unexpected emergencies without going into debt.\n*   **Start investing (if you haven't):** Compound interest is your best friend at 25. Even putting $50–$100 a month into an S&P 500 index fund (or a Roth IRA, depending on where you live) will grow into a massive nest egg by the time you retire.\n*   **Tackle high-interest debt:** If you have credit card debt, make a concrete plan to crush it now so it doesn’t hold you back in your 30s.\n\n**3. Health & Independence**\n*   **Establish a fitness routine:** Your body starts changing around this age. Find a way of moving that you actually enjoy—weightlifting, running, martial arts, or just daily walks. \n*   **Learn to cook 5 solid meals:** If you rely on takeout or delivery, learning to cook a few go-to, healthy meals will save you thousands of dollars a year and improve your health.\n*   **Book those health check-ups:** Go to the dentist, get a general physical, and get your eyes checked. Preventative care is much cheaper than reactive care.\n\n**4. Fun & Personal Growth**\n*   **Plan a \"Big Trip\":** If you have the means, plan a solo trip or a trip with friends to a place you've never been. It expands your worldview and builds confidence.\n*   **Pick up a hobby that isn't on a screen:** Woodworking, rock climbing, playing the guitar, cooking, or gardening. Having a hands-on hobby is a great way to decompress from the digital world.\n*   **Date intentionally (if you're single):** If you're looking for a partner, start thinking about what you actually *need* in a relationship versus what you *want*. \n\n**To help me narrow it down, tell me a bit more about where you are:**\n1. Are you currently happy with your job/studies, or are you feeling stuck?\n2. What is the biggest stressor in your life right now? \n3. When you picture yourself at 30, what is the one thing you hope you've accomplished?"
+        }
+      ],
+      "id": "msg_c777b7db9f254cffa81393faf07641e7",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "person_info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "age"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 85,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 725,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 810
+  },
+  "output_text": "At 25, you’re in a really interesting spot. Usually, people refer to this time as your \"quarter-life\" phase. You've been an adult for a few years, but you still have a lot of flexibility and time to pivot before major life obligations typically set in. \n\nSince I don’t know your exact situation, I broke down some ideas into the four main areas most 25-year-olds are navigating. Take a look and see what jumps out at you:\n\n**1. Career & Learning**\n*   **Assess your current path:** Are you happy in your current job or industry? If not, this is the best time to pivot. Look into certifications, online courses, or even going back to school. \n*   **Build your network:** Start attending industry events, local meetups, or joining professional groups on Discord/LinkedIn. The jobs and opportunities you get from 25 onward will increasingly come from *who* you know.\n*   **Find a mentor:** Look for someone 5–10 years ahead of you in a career path you admire. Ask them for a 15-minute coffee chat to ask how they got to where they are.\n\n**2. Financial Foundation**\n*   **Build your emergency fund:** If you don't have one, aim to save 3 to 6 months' worth of living expenses. This buys you the freedom to leave a bad job or handle unexpected emergencies without going into debt.\n*   **Start investing (if you haven't):** Compound interest is your best friend at 25. Even putting $50–$100 a month into an S&P 500 index fund (or a Roth IRA, depending on where you live) will grow into a massive nest egg by the time you retire.\n*   **Tackle high-interest debt:** If you have credit card debt, make a concrete plan to crush it now so it doesn’t hold you back in your 30s.\n\n**3. Health & Independence**\n*   **Establish a fitness routine:** Your body starts changing around this age. Find a way of moving that you actually enjoy—weightlifting, running, martial arts, or just daily walks. \n*   **Learn to cook 5 solid meals:** If you rely on takeout or delivery, learning to cook a few go-to, healthy meals will save you thousands of dollars a year and improve your health.\n*   **Book those health check-ups:** Go to the dentist, get a general physical, and get your eyes checked. Preventative care is much cheaper than reactive care.\n\n**4. Fun & Personal Growth**\n*   **Plan a \"Big Trip\":** If you have the means, plan a solo trip or a trip with friends to a place you've never been. It expands your worldview and builds confidence.\n*   **Pick up a hobby that isn't on a screen:** Woodworking, rock climbing, playing the guitar, cooking, or gardening. Having a hands-on hobby is a great way to decompress from the digital world.\n*   **Date intentionally (if you're single):** If you're looking for a partner, start thinking about what you actually *need* in a relationship versus what you *want*. \n\n**To help me narrow it down, tell me a bit more about where you are:**\n1. Are you currently happy with your job/studies, or are you feeling stuck?\n2. What is the biggest stressor in your life right now? \n3. When you picture yourself at 30, what is the one thing you hope you've accomplished?"
+}

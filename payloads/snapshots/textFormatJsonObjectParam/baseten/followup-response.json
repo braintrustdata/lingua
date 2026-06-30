@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-76025a0f24a5422e8e5fdd987589159c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That depends on what you are trying to build or accomplish! Since I just returned a simple status check, here are a few common next steps you might take:\n\n**1. Continue coding or building**\nIf you are developing an app or API, a `{\"status\": \"ok\"}` response usually means a successful connection. You might want to:\n*   Write the next function or endpoint.\n*   Connect your frontend to this backend response.\n*   Set up a database query.\n\n**2. Ask a question**\nYou can ask me to help you with something specific, such as:\n*   Writing code (Python, JavaScript, HTML/CSS, SQL, etc.)\n*   Debugging an error you're stuck on\n*   Drafting an email or a document\n*   Explaining a complex concept\n\n**3. Brainstorm or plan**\nIf you have a project idea but don't know where to start, tell me about it! I can help you outline the steps, suggest the best tools to use, or help you structure your project.\n\n**What is your main goal right now?** Tell me a bit more, and I'll guide you from there!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852415,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 37,
+    "completion_tokens": 237,
+    "total_tokens": 274,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-9ac5027413cd45d0a3f65b765c96d396",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "That’s a great question! Since I don't know exactly what you're working on right now, I can offer a few different paths. \n\nHere are a few ideas depending on your mood:\n\n**If you want to learn something new:**\n*   Ask me to explain a complex topic (like black holes, the stock market, or how AI works).\n*   Ask me for a random, fascinating trivia fact.\n\n**If you want to be productive:**\n*   Tell me about a project you're working on, and I can help you brainstorm or outline it.\n*   Give me a task you've been putting off, and we can break it down into small, easy steps.\n*   Ask me to help you draft an email or a message you need to send.\n\n**If you want to have fun:**\n*   Ask me to tell you a joke or a story.\n*   Play a game with me (like 20 Questions or trivia).\n*   Ask me for a riddle to solve.\n\n**If you're not sure:**\n*   Just tell me a bit about your day, and I can suggest something based on that!\n\nWhat sounds the most interesting to you right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 30,
+    "completion_tokens": 243,
+    "total_tokens": 273,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

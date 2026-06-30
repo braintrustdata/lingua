@@ -1,0 +1,18 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "max_completion_tokens": 100,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Solve this step by step: If a train travels 60 mph for 2 hours, then 80 mph for 1 hour, what's the average speed?"
+    },
+    {
+      "content": "To find the average speed, we need to use the formula:\n**Average Speed = Total Distance ÷ Total Time**\n\nHere is the step-by-step calculation:\n\n**Step 1: Calculate the distance of the first part of the trip.**\n* Speed = 60 mph\n* Time = 2 hours\n* Distance = 60 mph × 2 hours = **120 miles**\n\n**Step 2: Calculate the distance of the second part of the trip.**\n* Speed = 80",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

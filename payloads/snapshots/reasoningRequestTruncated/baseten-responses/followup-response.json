@@ -1,0 +1,65 @@
+{
+  "background": false,
+  "created_at": 1782851042,
+  "completed_at": 1782851042,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_cdf37bf4a3d4454cac101fa0a9fc91f3",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 100,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "Here are the next steps to finish solving the problem:\n\n**Step 2 (continued): Calculate the distance of the second part of the trip.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n*   Add the distance from the first part and the second part together.\n*   Total Distance = 120 miles + 80"
+        }
+      ],
+      "id": "msg_fa556c181cf445d79b94e5b8410836ec",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "high"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 150,
+    "input_tokens_details": {
+      "cached_tokens": 32
+    },
+    "output_tokens": 100,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 250
+  },
+  "output_text": "Here are the next steps to finish solving the problem:\n\n**Step 2 (continued): Calculate the distance of the second part of the trip.**\n*   Speed = 80 mph\n*   Time = 1 hour\n*   Distance = 80 mph × 1 hour = **80 miles**\n\n**Step 3: Find the total distance traveled.**\n*   Add the distance from the first part and the second part together.\n*   Total Distance = 120 miles + 80"
+}

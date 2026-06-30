@@ -1,0 +1,20 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Return {\"status\": \"ok\"} as JSON."
+    },
+    {
+      "content": "```json\n{\"status\": \"ok\"}\n```",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "response_format": {
+    "type": "json_object"
+  }
+}

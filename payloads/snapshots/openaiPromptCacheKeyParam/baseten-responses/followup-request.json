@@ -1,0 +1,28 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "input": [
+    {
+      "role": "user",
+      "content": "Summarize the cached policy."
+    },
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "I don’t have a cached policy in my current context or memory to summarize for you. \n\nCould you please paste the text of the policy you would like me to summarize, or provide the specific details? Once you share the text, I will be happy to provide a concise summary."
+        }
+      ],
+      "id": "msg_76cb38a5ab804cd6887c825f6e768470",
+      "role": "assistant",
+      "status": "completed"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_key": "policy-cache-v1"
+}

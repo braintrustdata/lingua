@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-6be88b98988541aca82f53066e08d62b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "It depends on what you're trying to accomplish! Since we just started, you can really take this in any direction. Here are a few ideas:\n\n*   **Ask a question:** Need something explained, or want to brainstorm ideas?\n*   **Get productive:** I can help you write an email, an essay, code, or a to-do list.\n*   **Be creative:** We can write a story, come up with business ideas, or generate some poetry.\n*   **Learn something:** Ask me to teach you about a historical event, a science concept, or a new language.\n*   **Just chat:** Tell me about your day or a problem you're trying to solve.\n\nWhat's on your mind right now?",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852416,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 22,
+    "completion_tokens": 148,
+    "total_tokens": 170,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,612 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5fc968559b364ee8a94a518d22f9e149",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5fc968559b364ee8a94a518d22f9e149",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " connected MongoDB instance contains",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the following databases",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n1",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". **admin",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – The",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " built",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-in administrative",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database used",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for user",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " authentication and administrative",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " operations",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n2. **config",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – The configuration",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " typically used in sh",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "arded clusters",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to store shard",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " metadata.\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "3. **local",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "** – The local",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " database that",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " stores instance",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-specific data,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " such as the `startup",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "_log",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "` collection",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and replica",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " set information",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\nThese",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are the three default/system",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " databases that come",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " pre",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "-installed with any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " MongoDB instance. No",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " additional",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " custom",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " databases",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " have been created yet",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 44,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "The connected MongoDB instance contains the following databases:\n\n1. **admin** – The built-in administrative database used for user authentication and administrative operations.\n2. **config** – The configuration database, typically used in sharded clusters to store shard metadata.\n3. **local** – The local database that stores instance-specific data, such as the `startup_log` collection and replica set information.\n\nThese are the three default/system databases that come pre-installed with any MongoDB instance. No additional custom databases have been created yet.",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 45,
+    "item_id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "The connected MongoDB instance contains the following databases:\n\n1. **admin** – The built-in administrative database used for user authentication and administrative operations.\n2. **config** – The configuration database, typically used in sharded clusters to store shard metadata.\n3. **local** – The local database that stores instance-specific data, such as the `startup_log` collection and replica set information.\n\nThese are the three default/system databases that come pre-installed with any MongoDB instance. No additional custom databases have been created yet."
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 46,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "The connected MongoDB instance contains the following databases:\n\n1. **admin** – The built-in administrative database used for user authentication and administrative operations.\n2. **config** – The configuration database, typically used in sharded clusters to store shard metadata.\n3. **local** – The local database that stores instance-specific data, such as the `startup_log` collection and replica set information.\n\nThese are the three default/system databases that come pre-installed with any MongoDB instance. No additional custom databases have been created yet."
+        }
+      ],
+      "id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 47,
+    "response": {
+      "background": false,
+      "created_at": 1782851040,
+      "completed_at": 1782851042,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_5fc968559b364ee8a94a518d22f9e149",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "The connected MongoDB instance contains the following databases:\n\n1. **admin** – The built-in administrative database used for user authentication and administrative operations.\n2. **config** – The configuration database, typically used in sharded clusters to store shard metadata.\n3. **local** – The local database that stores instance-specific data, such as the `startup_log` collection and replica set information.\n\nThese are the three default/system databases that come pre-installed with any MongoDB instance. No additional custom databases have been created yet."
+            }
+          ],
+          "id": "msg_1176d979cdb2474fba8543e3a65fd58a",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "function",
+          "name": "list_databases",
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": false,
+          "description": "List databases in the connected MongoDB instance."
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 192,
+        "input_tokens_details": {
+          "cached_tokens": 32
+        },
+        "output_tokens": 103,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 295
+      }
+    }
+  }
+]

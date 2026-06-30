@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-5a8996864d14463b9ebcbd9e6e51593c",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "I'd be happy to help configure the LLM! However, the `configure_llm` function requires a **`max_tokens`** parameter, which specifies the maximum number of tokens to generate. This value must be greater than 0.\n\nCould you please provide the desired **max_tokens** value you'd like to set? For example:\n- **256** – for short responses\n- **1024** – for medium-length responses\n- **4096** – for longer, more detailed responses",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852413,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 180,
+    "completion_tokens": 102,
+    "total_tokens": 282,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 160
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "reasoning": {
+    "effort": "minimal"
+  },
+  "text": {
+    "verbosity": "low"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    }
+  ]
+}

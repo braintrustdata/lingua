@@ -1,0 +1,65 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_89510ddeff564cc5b6e0f9647b5f495b",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That is completely up to you! Since we started with a simple math problem, here are a few different directions we could go:\n\n*   **Learn something new:** We could explore another math puzzle, a science fact, or a moment in history.\n*   **Brainstorm ideas:** If you have a project you're working on, we can bounce ideas back and forth.\n*   **Get organized:** I can help you make a to-do list, draft an email, or plan out your day.\n*   **Be creative:** We could write a short story, a poem, or even a song.\n*   **Just chat:** We can talk about your hobbies, a movie you just watched, or where you'd like to travel next.\n\nDo any of those sound interesting, or is there something specific on your mind?"
+        }
+      ],
+      "id": "msg_18df9d65eeb6451f95aa9ed914094faa",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": {
+    "effort": "none"
+  },
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 1,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 166,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 197
+  },
+  "output_text": "That is completely up to you! Since we started with a simple math problem, here are a few different directions we could go:\n\n*   **Learn something new:** We could explore another math puzzle, a science fact, or a moment in history.\n*   **Brainstorm ideas:** If you have a project you're working on, we can bounce ideas back and forth.\n*   **Get organized:** I can help you make a to-do list, draft an email, or plan out your day.\n*   **Be creative:** We could write a short story, a poem, or even a song.\n*   **Just chat:** We can talk about your hobbies, a movie you just watched, or where you'd like to travel next.\n\nDo any of those sound interesting, or is there something specific on your mind?"
+}

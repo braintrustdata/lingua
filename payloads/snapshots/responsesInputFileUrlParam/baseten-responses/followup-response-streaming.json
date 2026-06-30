@@ -1,0 +1,927 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c755b8b368f2475084b10f3fef3df956",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c755b8b368f2475084b10f3fef3df956",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_9660a3afea1f47bd8ee270882892377d",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you originally",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " asked me to analyze a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " letter but the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " text didn",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t come",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " through, here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " are",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the immediate",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " next steps you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " should",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " take:\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "1. Paste",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the letter",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \nCopy",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " text of",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the letter you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " want me",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to analyze and paste",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it directly",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into our",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " chat here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". \n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Specify",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " your goal",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (optional)",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nLet",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " me know if you want",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " specific",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " type of analysis. For",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " example, do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you want:\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "* A",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " short, bul",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "leted summary of the main",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " points?\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " An analysis of the tone",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or underlying",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " intent",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "?\n* Help",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " drafting a response to the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " letter?\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "* An",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " explanation",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " of any",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " confusing legal",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or technical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " jargon?\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Check",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for privacy**\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If the",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " letter contains",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " sensitive information",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " (like passwords",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", private",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " medical",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " info",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", or strict",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " confidential business",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " details), you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " may",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " want to red",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "act those",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " parts",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " before past",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "ing it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " into the chat",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\nWhenever",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ready, just",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " paste the text and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I'll",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " get to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " work!",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 83,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Since you originally asked me to analyze a letter but the text didn't come through, here are the immediate next steps you should take:\n\n**1. Paste the letter** \nCopy the text of the letter you want me to analyze and paste it directly into our chat here. \n\n**2. Specify your goal (optional)**\nLet me know if you want a specific type of analysis. For example, do you want:\n* A short, bulleted summary of the main points?\n* An analysis of the tone or underlying intent?\n* Help drafting a response to the letter?\n* An explanation of any confusing legal or technical jargon?\n\n**3. Check for privacy**\nIf the letter contains sensitive information (like passwords, private medical info, or strict confidential business details), you may want to redact those parts before pasting it into the chat.\n\nWhenever you're ready, just paste the text and I'll get to work!",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 84,
+    "item_id": "msg_9660a3afea1f47bd8ee270882892377d",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Since you originally asked me to analyze a letter but the text didn't come through, here are the immediate next steps you should take:\n\n**1. Paste the letter** \nCopy the text of the letter you want me to analyze and paste it directly into our chat here. \n\n**2. Specify your goal (optional)**\nLet me know if you want a specific type of analysis. For example, do you want:\n* A short, bulleted summary of the main points?\n* An analysis of the tone or underlying intent?\n* Help drafting a response to the letter?\n* An explanation of any confusing legal or technical jargon?\n\n**3. Check for privacy**\nIf the letter contains sensitive information (like passwords, private medical info, or strict confidential business details), you may want to redact those parts before pasting it into the chat.\n\nWhenever you're ready, just paste the text and I'll get to work!"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 85,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Since you originally asked me to analyze a letter but the text didn't come through, here are the immediate next steps you should take:\n\n**1. Paste the letter** \nCopy the text of the letter you want me to analyze and paste it directly into our chat here. \n\n**2. Specify your goal (optional)**\nLet me know if you want a specific type of analysis. For example, do you want:\n* A short, bulleted summary of the main points?\n* An analysis of the tone or underlying intent?\n* Help drafting a response to the letter?\n* An explanation of any confusing legal or technical jargon?\n\n**3. Check for privacy**\nIf the letter contains sensitive information (like passwords, private medical info, or strict confidential business details), you may want to redact those parts before pasting it into the chat.\n\nWhenever you're ready, just paste the text and I'll get to work!"
+        }
+      ],
+      "id": "msg_9660a3afea1f47bd8ee270882892377d",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 86,
+    "response": {
+      "background": false,
+      "created_at": 1782851041,
+      "completed_at": 1782851043,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_c755b8b368f2475084b10f3fef3df956",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 4096,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Since you originally asked me to analyze a letter but the text didn't come through, here are the immediate next steps you should take:\n\n**1. Paste the letter** \nCopy the text of the letter you want me to analyze and paste it directly into our chat here. \n\n**2. Specify your goal (optional)**\nLet me know if you want a specific type of analysis. For example, do you want:\n* A short, bulleted summary of the main points?\n* An analysis of the tone or underlying intent?\n* Help drafting a response to the letter?\n* An explanation of any confusing legal or technical jargon?\n\n**3. Check for privacy**\nIf the letter contains sensitive information (like passwords, private medical info, or strict confidential business details), you may want to redact those parts before pasting it into the chat.\n\nWhenever you're ready, just paste the text and I'll get to work!"
+            }
+          ],
+          "id": "msg_9660a3afea1f47bd8ee270882892377d",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 72,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 187,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 259
+      }
+    }
+  }
+]

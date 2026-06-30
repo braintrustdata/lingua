@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-ace97c3386db40278967890e14cc300e",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "Since `created_at` is usually meant to record when something is created, the best next step depends on what you are building. Here are a few common paths you can take:\n\n### 1. Integrate it into your application or database\nIf you are building a backend or API, you'll want to replace that hardcoded timestamp with a dynamic one. \n*   **Node.js / JavaScript:** `new Date().toISOString()`\n*   **Python:** `datetime.now(timezone.utc).isoformat()`\n*   **SQL:** If you are using a database like PostgreSQL, you can set the column default to `CURRENT_TIMESTAMP` so it populates automatically.\n\n### 2. Complete the JSON payload\nA `created_at` field usually lives inside a larger object representing a database record. You might want to add other standard fields. For example:\n```json\n{\n  \"id\": 123,\n  \"title\": \"My new item\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-05-22T14:30:00Z\",\n  \"updated_at\": \"2024-05-22T14:30:00Z\"\n}\n```\n\n### 3. Parse the timestamp\nIf you received this JSON from an API and need to read it in your code, you'll need to parse the string back into a Date object so you can manipulate it or display it to users.\n*   **JavaScript:** `const date = new Date(jsonData.created_at);`\n*   **Python:** `from datetime import datetime; dt = datetime.fromisoformat(json_data[\"created_at\"])`\n\n### 4. Add an `updated_at` field\nIf your application allows data to be changed after it is created, you will likely want to add an `updated_at` field. This should initially match `created_at`, but be updated every time the data is modified.\n\n**What is your specific use case?** Are you building an API, saving to a database, or reading data from somewhere else? Let me know and I can give you the exact code or steps you need!",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852418,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 57,
+    "completion_tokens": 430,
+    "total_tokens": 487,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

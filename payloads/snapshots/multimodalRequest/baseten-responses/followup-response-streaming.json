@@ -1,0 +1,936 @@
+[
+  {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_88e8e27cb74a46e48e7d2b927f7d01f6",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.in_progress",
+    "sequence_number": 1,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_88e8e27cb74a46e48e7d2b927f7d01f6",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "in_progress",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": null
+    }
+  },
+  {
+    "type": "response.output_item.added",
+    "sequence_number": 2,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [],
+      "id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+      "role": "assistant",
+      "status": "in_progress"
+    }
+  },
+  {
+    "type": "response.content_part.added",
+    "sequence_number": 3,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    }
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 4,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Since",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 5,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I can",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 6,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'t see an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 7,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " image right",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 8,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " now, here",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 9,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " is",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 10,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " what you can do next",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 11,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " depending",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 12,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on what",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 13,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you're trying to accomplish",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 14,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 15,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 16,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you meant",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 17,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to share an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 18,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " image:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 19,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\n1",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 20,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Look",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 21,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for a paper",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 22,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "clip icon",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 23,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", a \"+\"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 24,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " button, or an",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 25,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " \"",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 26,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "Add",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 27,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " image",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 28,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "\" button",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 29,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in the text",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 30,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " box you",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 31,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "'re",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 32,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " typing",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 33,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " in",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 34,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n2",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 35,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Click",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 36,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 37,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 38,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " select the image",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 39,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " file",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 40,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " from your computer or phone",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 41,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n3",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 42,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ". Send",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 43,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " the message,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 44,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " and I'll",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 45,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " be",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 46,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " able to analyze it",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 47,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " for you!\n\n**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 48,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "If you want",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 49,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to talk",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 50,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " about something",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 51,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " else:",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 52,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "**\nJust",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 53,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " let me know what's",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 54,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " on your mind.",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 55,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " I can help you with",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 56,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 57,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " wide variety of things,",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 58,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " such as:\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 59,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Writing:**",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 60,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " Drafting emails",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 61,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", essays",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 62,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ", or creative",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 63,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " stories.\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 64,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Brain",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 65,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "storming:** Generating",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 66,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " ideas for a",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 67,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " project or event",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 68,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 69,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Learning",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 70,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Expl",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 71,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "aining complex",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 72,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " topics",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 73,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " or answering",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 74,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " questions.\n*",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 75,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "   **Coding",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 76,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ":** Helping",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 77,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " to",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 78,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " write, debug, or",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 79,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " explain code",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 80,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": ".\n\n",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 81,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "What would",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 82,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": " you like to do",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.delta",
+    "sequence_number": 83,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "delta": "?",
+    "logprobs": []
+  },
+  {
+    "type": "response.output_text.done",
+    "sequence_number": 84,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "text": "Since I can't see an image right now, here is what you can do next depending on what you're trying to accomplish:\n\n**If you meant to share an image:**\n1. Look for a paperclip icon, a \"+\" button, or an \"Add image\" button in the text box you're typing in.\n2. Click it and select the image file from your computer or phone.\n3. Send the message, and I'll be able to analyze it for you!\n\n**If you want to talk about something else:**\nJust let me know what's on your mind. I can help you with a wide variety of things, such as:\n*   **Writing:** Drafting emails, essays, or creative stories.\n*   **Brainstorming:** Generating ideas for a project or event.\n*   **Learning:** Explaining complex topics or answering questions.\n*   **Coding:** Helping to write, debug, or explain code.\n\nWhat would you like to do?",
+    "logprobs": []
+  },
+  {
+    "type": "response.content_part.done",
+    "sequence_number": 85,
+    "item_id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+    "output_index": 0,
+    "content_index": 0,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Since I can't see an image right now, here is what you can do next depending on what you're trying to accomplish:\n\n**If you meant to share an image:**\n1. Look for a paperclip icon, a \"+\" button, or an \"Add image\" button in the text box you're typing in.\n2. Click it and select the image file from your computer or phone.\n3. Send the message, and I'll be able to analyze it for you!\n\n**If you want to talk about something else:**\nJust let me know what's on your mind. I can help you with a wide variety of things, such as:\n*   **Writing:** Drafting emails, essays, or creative stories.\n*   **Brainstorming:** Generating ideas for a project or event.\n*   **Learning:** Explaining complex topics or answering questions.\n*   **Coding:** Helping to write, debug, or explain code.\n\nWhat would you like to do?"
+    }
+  },
+  {
+    "type": "response.output_item.done",
+    "sequence_number": 86,
+    "output_index": 0,
+    "item": {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Since I can't see an image right now, here is what you can do next depending on what you're trying to accomplish:\n\n**If you meant to share an image:**\n1. Look for a paperclip icon, a \"+\" button, or an \"Add image\" button in the text box you're typing in.\n2. Click it and select the image file from your computer or phone.\n3. Send the message, and I'll be able to analyze it for you!\n\n**If you want to talk about something else:**\nJust let me know what's on your mind. I can help you with a wide variety of things, such as:\n*   **Writing:** Drafting emails, essays, or creative stories.\n*   **Brainstorming:** Generating ideas for a project or event.\n*   **Learning:** Explaining complex topics or answering questions.\n*   **Coding:** Helping to write, debug, or explain code.\n\nWhat would you like to do?"
+        }
+      ],
+      "id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+      "role": "assistant",
+      "status": "completed"
+    }
+  },
+  {
+    "type": "response.completed",
+    "sequence_number": 87,
+    "response": {
+      "background": false,
+      "created_at": 1782851042,
+      "completed_at": 1782851044,
+      "error": null,
+      "frequency_penalty": 0,
+      "id": "resp_88e8e27cb74a46e48e7d2b927f7d01f6",
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": 300,
+      "max_tool_calls": null,
+      "metadata": {},
+      "model": "zai-org/GLM-5.2",
+      "object": "response",
+      "output": [
+        {
+          "type": "message",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Since I can't see an image right now, here is what you can do next depending on what you're trying to accomplish:\n\n**If you meant to share an image:**\n1. Look for a paperclip icon, a \"+\" button, or an \"Add image\" button in the text box you're typing in.\n2. Click it and select the image file from your computer or phone.\n3. Send the message, and I'll be able to analyze it for you!\n\n**If you want to talk about something else:**\nJust let me know what's on your mind. I can help you with a wide variety of things, such as:\n*   **Writing:** Drafting emails, essays, or creative stories.\n*   **Brainstorming:** Generating ideas for a project or event.\n*   **Learning:** Explaining complex topics or answering questions.\n*   **Coding:** Helping to write, debug, or explain code.\n\nWhat would you like to do?"
+            }
+          ],
+          "id": "msg_f978f3f1f0684ae7abca195d4b7c643f",
+          "role": "assistant",
+          "status": "completed"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "reasoning": null,
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "status": "completed",
+      "store": false,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        }
+      },
+      "tool_choice": "auto",
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 1,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 67,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 197,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 264
+      }
+    }
+  }
+]

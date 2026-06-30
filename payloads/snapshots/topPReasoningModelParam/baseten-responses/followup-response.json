@@ -1,0 +1,63 @@
+{
+  "background": false,
+  "created_at": 1782851044,
+  "completed_at": 1782851044,
+  "error": null,
+  "frequency_penalty": 0,
+  "id": "resp_595fbf9ac4d342bdaa1725590e3e8a20",
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 4096,
+  "max_tool_calls": null,
+  "metadata": {},
+  "model": "zai-org/GLM-5.2",
+  "object": "response",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": null,
+          "text": "That is the million-dollar question! Since I don't know what you were doing right before this, I can give you a few different options depending on your mood. \n\nHere are six things we can do next:\n\n1. **Brainstorm:** If you're working on a project, a story, or a business idea, we can bounce ideas around.\n2. **Learn:** I can teach you about a fascinating topic, like black holes, the history of pizza, or how memory works.\n3. **Create:** I can help you write a poem, a short story, an email, or a piece of code.\n4. **Solve:** If you're stuck on a math problem, a coding bug, or a life dilemma, we can work through it together.\n5. **Play:** We can play a text-based game like trivia, 20 Questions, or word association.\n6. **Plan:** If you're trying to figure out your day, we can make a to-do list or a schedule to keep you on track.\n\nWhat sounds the most appealing to you right now? Or, if you prefer, just tell me what you were doing 10 minutes ago and I'll suggest the logical next step!"
+        }
+      ],
+      "id": "msg_d82f2ac4163a469ab64e896106e39036",
+      "role": "assistant",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "reasoning": null,
+  "safety_identifier": null,
+  "service_tier": "auto",
+  "status": "completed",
+  "store": false,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.9,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 31,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 246,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 277
+  },
+  "output_text": "That is the million-dollar question! Since I don't know what you were doing right before this, I can give you a few different options depending on your mood. \n\nHere are six things we can do next:\n\n1. **Brainstorm:** If you're working on a project, a story, or a business idea, we can bounce ideas around.\n2. **Learn:** I can teach you about a fascinating topic, like black holes, the history of pizza, or how memory works.\n3. **Create:** I can help you write a poem, a short story, an email, or a piece of code.\n4. **Solve:** If you're stuck on a math problem, a coding bug, or a life dilemma, we can work through it together.\n5. **Play:** We can play a text-based game like trivia, 20 Questions, or word association.\n6. **Plan:** If you're trying to figure out your day, we can make a to-do list or a schedule to keep you on track.\n\nWhat sounds the most appealing to you right now? Or, if you prefer, just tell me what you were doing 10 minutes ago and I'll suggest the logical next step!"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "chatcmpl-51f0b946cbf341d7a98c30b4eccef225",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "I will query the project logs for you to find recent errors.\n\n{\n  \"dataSource\": \"project_logs\",\n  \"id\": \"abc-123\",\n  \"query\": {\n    \"type\": \"find\",\n    \"filter\": {\n      \"level\": \"error\"\n    },\n    \"sort\": {\n      \"timestamp\": -1\n    },\n    \"limit\": 10\n  }\n}",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "stop_reason": 154827
+    }
+  ],
+  "created": 1782852414,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 33,
+    "completion_tokens": 81,
+    "total_tokens": 114,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    }
+  ],
+  "presence_penalty": 0.5
+}

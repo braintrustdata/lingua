@@ -1,0 +1,10 @@
+{
+  "model": "zai-org/GLM-5.2",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say ok."
+    }
+  ],
+  "max_completion_tokens": 500
+}
