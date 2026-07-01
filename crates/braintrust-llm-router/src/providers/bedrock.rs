@@ -160,6 +160,7 @@ where
 pub struct BedrockConfig {
     pub endpoint: Url,
     pub service: String,
+    pub region: Option<String>,
     pub timeout: Option<Duration>,
 }
 
@@ -169,6 +170,7 @@ impl Default for BedrockConfig {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/")
                 .expect("valid Bedrock endpoint"),
             service: "bedrock".to_string(),
+            region: None,
             timeout: None,
         }
     }
@@ -218,6 +220,12 @@ impl BedrockProvider {
                 .map_err(|e| Error::InvalidRequest(format!("invalid Bedrock region: {e}")))?;
         }
 
+        // Track the region independently of the endpoint so the mantle host can
+        // be derived even when the endpoint is a custom api_base.
+        if let Some(region) = metadata.get("region").and_then(Value::as_str) {
+            config.region = Some(region.to_string());
+        }
+
         if let Some(service) = metadata.get("service").and_then(Value::as_str) {
             config.service = service.to_string();
         }
@@ -254,6 +262,64 @@ impl BedrockProvider {
 
     fn chat_completions_url(&self) -> Result<Url> {
         let mut url = self.config.endpoint.clone();
+        // The AWS-managed `bedrock-runtime` host serves the OpenAI API under
+        // `/openai/v1`; a custom api_base uses a plain `/v1/chat/completions`.
+        let is_aws_runtime = url.host_str().is_some_and(|host| {
+            host.starts_with("bedrock-runtime.") && host.ends_with(".amazonaws.com")
+        });
+        let has_openai = url
+            .path_segments()
+            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "openai"));
+        let has_v1 = url
+            .path_segments()
+            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
+        {
+            let mut segments = url
+                .path_segments_mut()
+                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
+            segments.pop_if_empty();
+            if is_aws_runtime && !has_openai {
+                segments.push("openai");
+            }
+            if !has_v1 {
+                segments.push("v1");
+            }
+            segments.push("chat");
+            segments.push("completions");
+        }
+        Ok(url)
+    }
+
+    fn responses_url(&self) -> Result<Url> {
+        // AWS serves the Responses API on the `bedrock-mantle` host; a custom
+        // api_base is honored as-is with `v1/responses` appended.
+        let host = self.config.endpoint.host_str();
+        let is_aws_runtime = host.is_some_and(|host| {
+            host.starts_with("bedrock-runtime.") && host.ends_with(".amazonaws.com")
+        });
+
+        if is_aws_runtime {
+            let region = self
+                .config
+                .region
+                .clone()
+                .or_else(|| {
+                    host.and_then(|h| {
+                        h.strip_prefix("bedrock-runtime.")
+                            .and_then(|rest| rest.strip_suffix(".amazonaws.com"))
+                            .map(str::to_string)
+                    })
+                })
+                .ok_or_else(|| {
+                    Error::InvalidRequest("Bedrock region required for Responses API".into())
+                })?;
+            let url = format!("https://bedrock-mantle.{region}.api.aws/openai/v1/responses");
+            return Url::parse(&url).map_err(|e| {
+                Error::InvalidRequest(format!("failed to build mantle responses url: {e}"))
+            });
+        }
+
+        let mut url = self.config.endpoint.clone();
         let has_v1 = url
             .path_segments()
             .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
@@ -265,8 +331,7 @@ impl BedrockProvider {
             if !has_v1 {
                 segments.push("v1");
             }
-            segments.push("chat");
-            segments.push("completions");
+            segments.push("responses");
         }
         Ok(url)
     }
@@ -355,6 +420,12 @@ impl BedrockProvider {
 
         let mut headers = <Self as crate::providers::Provider>::build_headers(self, client_headers);
         for (name, value) in signed_request.headers().iter() {
+            // `host` stays in the signed set but is not sent explicitly: the
+            // client sets it from the URL, and an extra header duplicates it
+            // under HTTP/2 and breaks signature verification.
+            if name.as_str().eq_ignore_ascii_case("host") {
+                continue;
+            }
             headers.insert(
                 name.clone(),
                 HeaderValue::from_bytes(value.as_bytes())
@@ -422,7 +493,11 @@ impl crate::providers::Provider for BedrockProvider {
     }
 
     fn provider_formats(&self) -> Vec<ProviderFormat> {
-        vec![ProviderFormat::Converse, ProviderFormat::BedrockAnthropic]
+        vec![
+            ProviderFormat::Converse,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::Responses,
+        ]
     }
 
     async fn complete(
@@ -436,6 +511,7 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            ProviderFormat::Responses => self.responses_url()?,
             _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
@@ -459,11 +535,15 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            ProviderFormat::Responses => self.responses_url()?,
             _ => self.converse_url(&spec.model, true)?,
         };
 
         let response = self.send_signed(url, payload, auth, client_headers).await?;
-        if matches!(format, ProviderFormat::ChatCompletions) {
+        if matches!(
+            format,
+            ProviderFormat::ChatCompletions | ProviderFormat::Responses
+        ) {
             Ok(sse_stream(response))
         } else {
             Ok(bedrock_event_stream(response))
@@ -512,6 +592,7 @@ mod tests {
         let config = BedrockConfig {
             endpoint: Url::parse("https://bedrock-runtime.us-east-1.amazonaws.com/").unwrap(),
             service: "bedrock".to_string(),
+            region: Some("us-east-1".to_string()),
             timeout: None,
         };
         BedrockProvider::new(config).unwrap()
@@ -585,13 +666,84 @@ mod tests {
     }
 
     #[test]
-    fn chat_completions_url_uses_bedrock_runtime_v1_path() {
+    fn chat_completions_url_uses_bedrock_openai_path_for_aws_runtime() {
         let provider = provider();
         let url = provider.chat_completions_url().unwrap();
         assert_eq!(
             url.as_str(),
-            "https://bedrock-runtime.us-east-1.amazonaws.com/v1/chat/completions"
+            "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions"
         );
+    }
+
+    #[test]
+    fn chat_completions_url_preserves_custom_endpoint_path() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
+            service: "bedrock".to_string(),
+            region: None,
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        let url = provider.chat_completions_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://my-proxy.example.com/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_does_not_double_existing_openai_segment() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-west-2.amazonaws.com/openai").unwrap(),
+            service: "bedrock".to_string(),
+            region: Some("us-west-2".to_string()),
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        let url = provider.chat_completions_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn responses_url_uses_bedrock_mantle_host_for_aws_runtime() {
+        let provider = provider();
+        let url = provider.responses_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses"
+        );
+    }
+
+    #[test]
+    fn responses_url_derives_region_from_runtime_host_when_unset() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://bedrock-runtime.us-west-2.amazonaws.com/").unwrap(),
+            service: "bedrock".to_string(),
+            region: None,
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        let url = provider.responses_url().unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses"
+        );
+    }
+
+    #[test]
+    fn responses_url_preserves_custom_endpoint_path() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
+            service: "bedrock".to_string(),
+            region: None,
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        let url = provider.responses_url().unwrap();
+        assert_eq!(url.as_str(), "https://my-proxy.example.com/v1/responses");
     }
 
     #[test]
