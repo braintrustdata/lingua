@@ -48,6 +48,12 @@ pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bo
     )
 }
 
+// xAI/Grok on Bedrock is served only on the `bedrock-mantle` host, not
+// `bedrock-runtime`.
+fn is_bedrock_mantle_only_model(model: &str) -> bool {
+    model.starts_with("xai.")
+}
+
 /// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
 ///
 /// The router still owns the Bedrock-specific fork, but the Bedrock module owns
@@ -260,13 +266,44 @@ impl BedrockProvider {
             .map_err(|e| Error::InvalidRequest(format!("failed to build invoke url: {e}")))
     }
 
-    fn chat_completions_url(&self) -> Result<Url> {
+    fn is_aws_managed_endpoint(&self) -> bool {
+        self.config.endpoint.host_str().is_some_and(|host| {
+            host.starts_with("bedrock-runtime.") && host.ends_with(".amazonaws.com")
+        })
+    }
+
+    // Build a `bedrock-mantle.{region}.api.aws/openai/v1/{suffix}` URL, deriving
+    // the region from config or the runtime endpoint host.
+    fn mantle_openai_url(&self, suffix: &str) -> Result<Url> {
+        let region = self
+            .config
+            .region
+            .clone()
+            .or_else(|| {
+                self.config.endpoint.host_str().and_then(|h| {
+                    h.strip_prefix("bedrock-runtime.")
+                        .and_then(|rest| rest.strip_suffix(".amazonaws.com"))
+                        .map(str::to_string)
+                })
+            })
+            .ok_or_else(|| {
+                Error::InvalidRequest("Bedrock region required for mantle endpoint".into())
+            })?;
+        Url::parse(&format!(
+            "https://bedrock-mantle.{region}.api.aws/openai/v1/{suffix}"
+        ))
+        .map_err(|e| Error::InvalidRequest(format!("failed to build mantle url: {e}")))
+    }
+
+    fn chat_completions_url(&self, model: &str) -> Result<Url> {
+        if self.is_aws_managed_endpoint() && is_bedrock_mantle_only_model(model) {
+            return self.mantle_openai_url("chat/completions");
+        }
+
         let mut url = self.config.endpoint.clone();
         // The AWS-managed `bedrock-runtime` host serves the OpenAI API under
         // `/openai/v1`; a custom api_base uses a plain `/v1/chat/completions`.
-        let is_aws_runtime = url.host_str().is_some_and(|host| {
-            host.starts_with("bedrock-runtime.") && host.ends_with(".amazonaws.com")
-        });
+        let is_aws_runtime = self.is_aws_managed_endpoint();
         let has_openai = url
             .path_segments()
             .is_some_and(|segments| segments.into_iter().any(|segment| segment == "openai"));
@@ -293,30 +330,8 @@ impl BedrockProvider {
     fn responses_url(&self) -> Result<Url> {
         // AWS serves the Responses API on the `bedrock-mantle` host; a custom
         // api_base is honored as-is with `v1/responses` appended.
-        let host = self.config.endpoint.host_str();
-        let is_aws_runtime = host.is_some_and(|host| {
-            host.starts_with("bedrock-runtime.") && host.ends_with(".amazonaws.com")
-        });
-
-        if is_aws_runtime {
-            let region = self
-                .config
-                .region
-                .clone()
-                .or_else(|| {
-                    host.and_then(|h| {
-                        h.strip_prefix("bedrock-runtime.")
-                            .and_then(|rest| rest.strip_suffix(".amazonaws.com"))
-                            .map(str::to_string)
-                    })
-                })
-                .ok_or_else(|| {
-                    Error::InvalidRequest("Bedrock region required for Responses API".into())
-                })?;
-            let url = format!("https://bedrock-mantle.{region}.api.aws/openai/v1/responses");
-            return Url::parse(&url).map_err(|e| {
-                Error::InvalidRequest(format!("failed to build mantle responses url: {e}"))
-            });
+        if self.is_aws_managed_endpoint() {
+            return self.mantle_openai_url("responses");
         }
 
         let mut url = self.config.endpoint.clone();
@@ -510,7 +525,7 @@ impl crate::providers::Provider for BedrockProvider {
     ) -> Result<Bytes> {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
-            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
             ProviderFormat::Responses => self.responses_url()?,
             _ => self.converse_url(&spec.model, false)?,
         };
@@ -534,7 +549,7 @@ impl crate::providers::Provider for BedrockProvider {
 
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
-            ProviderFormat::ChatCompletions => self.chat_completions_url()?,
+            ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
             ProviderFormat::Responses => self.responses_url()?,
             _ => self.converse_url(&spec.model, true)?,
         };
@@ -668,10 +683,22 @@ mod tests {
     #[test]
     fn chat_completions_url_uses_bedrock_openai_path_for_aws_runtime() {
         let provider = provider();
-        let url = provider.chat_completions_url().unwrap();
+        let url = provider
+            .chat_completions_url("openai.gpt-oss-safeguard-120b")
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_routes_xai_models_to_mantle() {
+        let provider = provider();
+        let url = provider.chat_completions_url("xai.grok-4.3").unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-mantle.us-east-1.api.aws/openai/v1/chat/completions"
         );
     }
 
@@ -684,7 +711,9 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.chat_completions_url().unwrap();
+        let url = provider
+            .chat_completions_url("openai.gpt-oss-safeguard-120b")
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://my-proxy.example.com/v1/chat/completions"
@@ -700,7 +729,9 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.chat_completions_url().unwrap();
+        let url = provider
+            .chat_completions_url("openai.gpt-oss-safeguard-120b")
+            .unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-runtime.us-west-2.amazonaws.com/openai/v1/chat/completions"
