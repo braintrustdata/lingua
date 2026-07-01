@@ -3541,4 +3541,90 @@ mod tests {
         assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
         assert!(err.to_string().contains("root type is required"));
     }
+
+    #[test]
+    fn test_web_search_20260318_roundtrips_through_universal() {
+        let tool_json = json!({
+            "type": "web_search_20260318",
+            "name": "web_search",
+            "allowed_domains": ["example.com"],
+            "max_uses": 5
+        });
+
+        let tool: Tool = serde_json::from_value(tool_json.clone()).expect("should parse");
+        let universal = UniversalTool::from(&tool);
+        assert!(universal.is_builtin());
+
+        let round_tripped = Tool::try_from(&universal).expect("should convert back");
+        let round_tripped_json = serde_json::to_value(&round_tripped).expect("should serialize");
+        assert_eq!(
+            round_tripped_json.get("type").and_then(|v| v.as_str()),
+            Some("web_search_20260318")
+        );
+        assert_eq!(
+            round_tripped_json.get("name").and_then(|v| v.as_str()),
+            Some("web_search")
+        );
+        assert_eq!(
+            round_tripped_json
+                .get("allowed_domains")
+                .and_then(|v| v.as_array())
+                .map(|a| a.len()),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn test_web_fetch_20260318_roundtrips_through_universal() {
+        let tool_json = json!({
+            "type": "web_fetch_20260318",
+            "name": "web_fetch",
+            "blocked_domains": ["evil.com"],
+            "max_content_tokens": 4096,
+            "use_cache": false
+        });
+
+        let tool: Tool = serde_json::from_value(tool_json.clone()).expect("should parse");
+        let universal = UniversalTool::from(&tool);
+        assert!(universal.is_builtin());
+
+        let round_tripped = Tool::try_from(&universal).expect("should convert back");
+        let round_tripped_json = serde_json::to_value(&round_tripped).expect("should serialize");
+        assert_eq!(
+            round_tripped_json.get("type").and_then(|v| v.as_str()),
+            Some("web_fetch_20260318")
+        );
+        assert_eq!(
+            round_tripped_json.get("name").and_then(|v| v.as_str()),
+            Some("web_fetch")
+        );
+        assert_eq!(
+            round_tripped_json
+                .get("max_content_tokens")
+                .and_then(|v| v.as_i64()),
+            Some(4096)
+        );
+    }
+
+    #[test]
+    fn test_tool_search_variants_still_deserialize() {
+        for tool_type in [
+            "tool_search_tool_bm25",
+            "tool_search_tool_bm25_20251119",
+            "tool_search_tool_regex",
+            "tool_search_tool_regex_20251119",
+        ] {
+            let tool_json = json!({
+                "type": tool_type,
+                "name": "tool_search"
+            });
+            let tool: Tool = serde_json::from_value(tool_json)
+                .unwrap_or_else(|e| panic!("{tool_type} should deserialize as Tool variant: {e}"));
+            let universal = UniversalTool::from(&tool);
+            assert!(
+                universal.is_builtin(),
+                "{tool_type} should map to builtin universal tool"
+            );
+        }
+    }
 }
