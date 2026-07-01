@@ -1296,6 +1296,21 @@ fn expand_anthropic_session_chunks(
         return Ok(out);
     }
 
+    // Any other content-bearing chunk that arrives before the Anthropic message has
+    // been opened must still emit message_start first. Some OpenAI-compatible providers
+    // (e.g. GLM/zai) bundle id/model + role + the first text delta into a single chunk,
+    // so there is no separate metadata-only or role-only chunk to open the message.
+    // Without message_start the downstream ordering pass never synthesizes content block
+    // starts/stops, so text and tool_use collide on index 0 and tool arguments are lost.
+    if !anthropic_message_started && !chunks.is_empty() {
+        out.push(StreamOutputChunk::with_event(
+            anthropic_message_start_bytes(universal)?,
+            "message_start".to_string(),
+        ));
+        out.append(&mut chunks);
+        return Ok(out);
+    }
+
     Ok(chunks)
 }
 
@@ -3265,5 +3280,464 @@ mod tests {
             second_args_chunk["choices"][0]["delta"]["tool_calls"][0]["index"],
             json!(1)
         );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_openai_text_then_tool_call_emits_anthropic_framing() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        // First chunk carries metadata + role + the first text delta together.
+        let text_start = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "created": 123,
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": { "role": "assistant", "content": "Sure" },
+                "finish_reason": null
+            }]
+        }));
+        let text_more = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": { "content": "! Let me check the weather." },
+                "finish_reason": null
+            }]
+        }));
+        let tool_start = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "chatcmpl-tool-abc",
+                        "type": "function",
+                        "function": { "name": "get_weather", "arguments": "" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let tool_args = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "function": { "arguments": "{\"city\": \"San Francisco\"}" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let finish = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": {}, "finish_reason": "tool_calls" }]
+        }));
+        let usage = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30 }
+        }));
+
+        let mut events: Vec<StreamOutputChunk> = Vec::new();
+        for chunk in [text_start, text_more, tool_start, tool_args, finish, usage] {
+            events.extend(session.push(chunk).unwrap());
+        }
+        events.extend(session.finish());
+
+        let kinds: Vec<&str> = events
+            .iter()
+            .filter_map(|chunk| chunk.event_type.as_deref())
+            .collect();
+
+        assert_eq!(
+            kinds,
+            vec![
+                "message_start",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_delta",
+                "content_block_stop",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_stop",
+                "message_delta",
+                "message_stop",
+            ],
+            "unexpected Anthropic event sequence: {kinds:?}"
+        );
+
+        let parsed: Vec<Value> = events
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice(&chunk.data).unwrap())
+            .collect();
+
+        // Text block opens at index 0 as a text block.
+        assert_eq!(parsed[1]["index"], json!(0));
+        assert_eq!(parsed[1]["content_block"]["type"], json!("text"));
+
+        // Text deltas stay on index 0.
+        assert_eq!(parsed[2]["index"], json!(0));
+        assert_eq!(parsed[2]["delta"]["text"], json!("Sure"));
+        assert_eq!(parsed[3]["index"], json!(0));
+
+        // Text block is closed at index 0.
+        assert_eq!(parsed[4]["index"], json!(0));
+
+        // Tool_use opens a NEW block index (1), not colliding with the text block.
+        assert_eq!(parsed[5]["index"], json!(1));
+        assert_eq!(parsed[5]["content_block"]["type"], json!("tool_use"));
+        assert_eq!(parsed[5]["content_block"]["name"], json!("get_weather"));
+
+        // Arguments are streamed as input_json_delta on the tool_use index.
+        assert_eq!(parsed[6]["index"], json!(1));
+        assert_eq!(parsed[6]["delta"]["type"], json!("input_json_delta"));
+        assert_eq!(
+            parsed[6]["delta"]["partial_json"],
+            json!("{\"city\": \"San Francisco\"}")
+        );
+
+        // Tool block closed at index 1.
+        assert_eq!(parsed[7]["index"], json!(1));
+
+        // Terminators.
+        assert_eq!(parsed[8]["delta"]["stop_reason"], json!("tool_use"));
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_openai_clean_text_then_tool_call_emits_anthropic_framing() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        // Role-only first chunk with empty content (native OpenAI shape).
+        let role_only = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [{
+                "index": 0,
+                "delta": { "role": "assistant", "content": "" },
+                "finish_reason": null
+            }]
+        }));
+        let text = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [{ "index": 0, "delta": { "content": "Sure" }, "finish_reason": null }]
+        }));
+        let tool_start = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_abc",
+                        "type": "function",
+                        "function": { "name": "get_weather", "arguments": "" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let tool_args = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "function": { "arguments": "{\"city\": \"San Francisco\"}" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let finish = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [{ "index": 0, "delta": {}, "finish_reason": "tool_calls" }]
+        }));
+        let usage = to_bytes(&json!({
+            "id": "chatcmpl-oai",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5-nano",
+            "choices": [],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30 }
+        }));
+
+        let mut events: Vec<StreamOutputChunk> = Vec::new();
+        for chunk in [role_only, text, tool_start, tool_args, finish, usage] {
+            events.extend(session.push(chunk).unwrap());
+        }
+        events.extend(session.finish());
+
+        let kinds: Vec<&str> = events
+            .iter()
+            .filter_map(|chunk| chunk.event_type.as_deref())
+            .collect();
+
+        assert_eq!(
+            kinds,
+            vec![
+                "message_start",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_stop",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_stop",
+                "message_delta",
+                "message_stop",
+            ],
+            "unexpected Anthropic event sequence: {kinds:?}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_glm_bundled_tool_call_streams_all_arguments() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let text = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": { "role": "assistant", "content": "I" }, "finish_reason": null }]
+        }));
+        // Opening tool delta bundles name + first argument fragment.
+        let tool_open = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "chatcmpl-tool-abc",
+                        "type": "function",
+                        "function": { "name": "get_weather", "arguments": "{" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        // Continuation delta repeats the id and carries only arguments.
+        let tool_cont = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "chatcmpl-tool-abc",
+                        "function": { "arguments": "\"location\": \"San Francisco\"" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        // Final argument fragment rides on the finish delta.
+        let finish = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": { "tool_calls": [{ "index": 0, "function": { "arguments": "}" } }] },
+                "finish_reason": "tool_calls"
+            }]
+        }));
+        let usage = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30 }
+        }));
+
+        let mut events: Vec<StreamOutputChunk> = Vec::new();
+        for chunk in [text, tool_open, tool_cont, finish, usage] {
+            events.extend(session.push(chunk).unwrap());
+        }
+        events.extend(session.finish());
+
+        let parsed: Vec<Value> = events
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice(&chunk.data).unwrap())
+            .collect();
+        let kinds: Vec<&str> = events
+            .iter()
+            .filter_map(|chunk| chunk.event_type.as_deref())
+            .collect();
+
+        assert_eq!(
+            kinds,
+            vec![
+                "message_start",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_stop",
+                "content_block_start",
+                "content_block_delta",
+                "content_block_delta",
+                "content_block_delta",
+                "content_block_stop",
+                "message_delta",
+                "message_stop",
+            ],
+            "unexpected Anthropic event sequence: {kinds:?}"
+        );
+
+        // Exactly one tool_use block is opened, named, at index 1.
+        let tool_starts: Vec<&Value> = parsed
+            .iter()
+            .filter(|event| {
+                event["type"] == json!("content_block_start")
+                    && event["content_block"]["type"] == json!("tool_use")
+            })
+            .collect();
+        assert_eq!(tool_starts.len(), 1);
+        assert_eq!(tool_starts[0]["index"], json!(1));
+        assert_eq!(
+            tool_starts[0]["content_block"]["name"],
+            json!("get_weather")
+        );
+
+        // Every argument fragment is streamed as input_json_delta on index 1 and they
+        // reconstruct the full tool input.
+        let partial_json: String = parsed
+            .iter()
+            .filter(|event| event["delta"]["type"] == json!("input_json_delta"))
+            .map(|event| {
+                assert_eq!(event["index"], json!(1));
+                event["delta"]["partial_json"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string()
+            })
+            .collect();
+        assert_eq!(partial_json, "{\"location\": \"San Francisco\"}");
+        assert_eq!(
+            serde_json::from_str::<Value>(&partial_json).unwrap(),
+            json!({ "location": "San Francisco" })
+        );
+    }
+
+    // Regression: a single OpenAI-compatible delta may carry BOTH assistant text and the
+    // opening of a tool call (GLM/zai bundles the final text fragment onto the tool-call
+    // chunk). The text must not be dropped — it stays on the text block before the
+    // tool_use block opens. See glm-bug.md.
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_bundled_text_and_tool_call_preserves_text() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+
+        let text = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": { "role": "assistant", "content": "Sure" }, "finish_reason": null }]
+        }));
+        // This delta carries the trailing text "." AND opens the tool call.
+        let text_and_tool = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "content": ".",
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "chatcmpl-tool-abc",
+                        "type": "function",
+                        "function": { "name": "get_weather", "arguments": "{\"city\": \"SF\"}" }
+                    }]
+                },
+                "finish_reason": null
+            }]
+        }));
+        let finish = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [{ "index": 0, "delta": {}, "finish_reason": "tool_calls" }]
+        }));
+        let usage = to_bytes(&json!({
+            "id": "chatcmpl-glm",
+            "object": "chat.completion.chunk",
+            "model": "zai-org/GLM-5.2",
+            "choices": [],
+            "usage": { "prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30 }
+        }));
+
+        let mut events: Vec<StreamOutputChunk> = Vec::new();
+        for chunk in [text, text_and_tool, finish, usage] {
+            events.extend(session.push(chunk).unwrap());
+        }
+        events.extend(session.finish());
+
+        let parsed: Vec<Value> = events
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice(&chunk.data).unwrap())
+            .collect();
+
+        // Both text fragments are preserved on the text block (index 0).
+        let text: String = parsed
+            .iter()
+            .filter(|event| event["delta"]["type"] == json!("text_delta"))
+            .map(|event| {
+                assert_eq!(event["index"], json!(0));
+                event["delta"]["text"].as_str().unwrap_or("").to_string()
+            })
+            .collect();
+        assert_eq!(text, "Sure.");
+
+        // The tool_use block still opens (on a new index) with streamed arguments.
+        let tool_start = parsed.iter().find(|event| {
+            event["type"] == json!("content_block_start")
+                && event["content_block"]["type"] == json!("tool_use")
+        });
+        assert_eq!(
+            tool_start.map(|event| event["content_block"]["name"].clone()),
+            Some(json!("get_weather"))
+        );
+        let partial_json: String = parsed
+            .iter()
+            .filter(|event| event["delta"]["type"] == json!("input_json_delta"))
+            .map(|event| {
+                event["delta"]["partial_json"]
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string()
+            })
+            .collect();
+        assert_eq!(partial_json, "{\"city\": \"SF\"}");
     }
 }

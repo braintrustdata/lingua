@@ -1,0 +1,348 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
+      "object": "response",
+      "created_at": 1781971131,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
+          "type": "namespace",
+          "description": "Deferred code search tools.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
+      "object": "response",
+      "created_at": 1781971131,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
+          "type": "namespace",
+          "description": "Deferred code search tools.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
+      "name": "search_code",
+      "namespace": "search_code"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{}",
+    "item_id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+    "obfuscation": "cjINpZGhSGLNRy",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{}",
+    "item_id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{}",
+      "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
+      "name": "search_code",
+      "namespace": "search_code"
+    },
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0baf651ff210bd6c006a36b8bbb580819d8215b3f9bf23f32f",
+      "object": "response",
+      "created_at": 1781971131,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1781971133,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.5-2026-04-23",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_0baf651ff210bd6c006a36b8bca210819d89bd79992ed940ee",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "fc_0baf651ff210bd6c006a36b8bd86c8819d923dd6207caced19",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{}",
+          "call_id": "call_pkQBlHuPULDkIK6Aj6JK2Pxd",
+          "name": "search_code",
+          "namespace": "search_code"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "current_turn",
+        "effort": "medium",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tools": [
+        {
+          "type": "tool_search",
+          "description": null,
+          "parameters": null
+        },
+        {
+          "type": "namespace",
+          "description": "Deferred code search tools.",
+          "name": "search_code",
+          "tools": [
+            {
+              "type": "function",
+              "defer_loading": true,
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            },
+            {
+              "type": "function",
+              "description": "Search code.",
+              "name": "search_code",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              },
+              "strict": true
+            }
+          ]
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 538,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 66,
+        "output_tokens_details": {
+          "reasoning_tokens": 49
+        },
+        "total_tokens": 604
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 8
+  }
+]

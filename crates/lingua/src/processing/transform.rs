@@ -22,9 +22,9 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta,
+    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -298,6 +298,86 @@ fn chat_completions_upgrade_model(
     request_model.map(str::to_string)
 }
 
+/// Claude Code prepends a billing-attribution text block to the front of the
+/// system prompt (`x-anthropic-billing-header: ...; cch=<hash>;`). The trailing
+/// hash changes every turn, so when a request is routed to a non-Anthropic
+/// provider the block busts the provider's prompt-prefix cache for no benefit.
+/// We strip it for non-Anthropic targets; Anthropic targets keep it intact.
+const CLAUDE_CODE_BILLING_PREFIX: &str = "x-anthropic-billing-header:";
+
+fn target_format_is_anthropic(format: ProviderFormat) -> bool {
+    matches!(
+        format,
+        ProviderFormat::Anthropic
+            | ProviderFormat::BedrockAnthropic
+            | ProviderFormat::VertexAnthropic
+    )
+}
+
+fn system_content_is_empty(content: &UserContent) -> bool {
+    match content {
+        UserContent::Array(parts) => parts.is_empty(),
+        UserContent::String(text) => text.trim().is_empty(),
+    }
+}
+
+fn drop_leading_marker_line(text: &str) -> String {
+    match text.split_once('\n') {
+        Some((_, rest)) => rest.trim_start_matches('\n').to_string(),
+        None => String::new(),
+    }
+}
+
+/// Remove Claude Code's billing-attribution block from system messages. The
+/// billing marker is normally its own leading text block, but it can also share
+/// a block with real instructions (`"x-anthropic-billing-header: ...\nYou are
+/// helpful"`); in that case we drop only the marker line and keep the rest. A
+/// system message left empty solely by this removal is dropped so we don't emit
+/// a stray empty system prompt downstream.
+fn strip_claude_code_attribution(req: &mut UniversalRequest) {
+    let mut empty_after_strip: Vec<usize> = Vec::new();
+    for (idx, message) in req.messages.iter_mut().enumerate() {
+        let Message::System { content } = message else {
+            continue;
+        };
+        let stripped = match content {
+            UserContent::Array(parts) => {
+                let mut stripped = false;
+                parts.retain_mut(|part| {
+                    let UserContentPart::Text(text) = part else {
+                        return true;
+                    };
+                    if !text
+                        .text
+                        .trim_start()
+                        .starts_with(CLAUDE_CODE_BILLING_PREFIX)
+                    {
+                        return true;
+                    }
+                    stripped = true;
+                    text.text = drop_leading_marker_line(&text.text);
+                    !text.text.trim().is_empty()
+                });
+                stripped
+            }
+            UserContent::String(text) => {
+                if text.trim_start().starts_with(CLAUDE_CODE_BILLING_PREFIX) {
+                    *text = drop_leading_marker_line(text);
+                    true
+                } else {
+                    false
+                }
+            }
+        };
+        if stripped && system_content_is_empty(content) {
+            empty_after_strip.push(idx);
+        }
+    }
+    for idx in empty_after_strip.into_iter().rev() {
+        req.messages.remove(idx);
+    }
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -350,6 +430,10 @@ pub fn transform_request(
         universal.model = Some(model.to_string());
     }
 
+    if !target_format_is_anthropic(target_format) {
+        strip_claude_code_attribution(&mut universal);
+    }
+
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     target_adapter.apply_defaults(&mut universal);
 
@@ -364,6 +448,17 @@ pub fn transform_request(
         source_format,
         actual_target_format: target_format,
     })
+}
+
+/// Parse a request payload into Lingua's universal request representation.
+///
+/// Unlike [`transform_request`], this does not apply target-provider defaults,
+/// model overrides, or same-format passthrough. It only detects the source
+/// request format and converts the payload to universal messages and params.
+pub fn request_to_universal(input: Bytes) -> Result<UniversalRequest, TransformError> {
+    let parsed = parse_json_body(input)?;
+    let source_adapter = detect_adapter(&parsed.value, DetectKind::Request)?;
+    source_adapter.request_to_universal(parsed.value)
 }
 
 // ============================================================================
@@ -518,8 +613,9 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             }),
                         });
                     }
-                    AssistantContentPart::File { .. } | AssistantContentPart::ToolResult { .. } => {
-                    }
+                    AssistantContentPart::File { .. }
+                    | AssistantContentPart::ToolResult { .. }
+                    | AssistantContentPart::ToolDiscoveryCall { .. } => {}
                 }
             }
 
@@ -798,9 +894,27 @@ where
 mod tests {
     use super::*;
     use crate::serde_json::json;
+    use crate::universal::{UserContent, UserContentPart};
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    fn last_user_text(request: &UniversalRequest) -> Option<&str> {
+        request
+            .messages
+            .iter()
+            .rev()
+            .find_map(|message| match message {
+                Message::User { content } => match content {
+                    UserContent::String(text) => Some(text.as_str()),
+                    UserContent::Array(parts) => parts.iter().find_map(|part| match part {
+                        UserContentPart::Text(text) => Some(text.text.as_str()),
+                        _ => None,
+                    }),
+                },
+                _ => None,
+            })
     }
 
     #[test]
@@ -921,6 +1035,91 @@ mod tests {
         );
         assert_eq!(output.get("temperature"), None);
         assert_eq!(output.get("stream").and_then(Value::as_bool), Some(false));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_request_to_universal_chat_completions_messages() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "messages": [
+                {"role": "user", "content": "first"},
+                {"role": "assistant", "content": "middle"},
+                {"role": "user", "content": "last"}
+            ]
+        });
+
+        let request = request_to_universal(to_bytes(&payload)).unwrap();
+
+        assert_eq!(request.model.as_deref(), Some("gpt-5-mini"));
+        assert_eq!(last_user_text(&request), Some("last"));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_request_to_universal_responses_string_input() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": "Reply with exactly: codex trace ok"
+        });
+
+        let request = request_to_universal(to_bytes(&payload)).unwrap();
+
+        assert_eq!(request.model.as_deref(), Some("gpt-5-mini"));
+        assert_eq!(
+            last_user_text(&request),
+            Some("Reply with exactly: codex trace ok")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_request_to_universal_responses_input_items() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [{
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Reply with exactly: codex trace ok"}]
+            }]
+        });
+
+        let request = request_to_universal(to_bytes(&payload)).unwrap();
+
+        assert_eq!(request.model.as_deref(), Some("gpt-5-mini"));
+        assert_eq!(
+            last_user_text(&request),
+            Some("Reply with exactly: codex trace ok")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_request_to_universal_responses_tools_reasoning_input_items() {
+        let payload = json!({
+            "model": "gpt-5-mini",
+            "input": [{
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Explain brainstore/query"}]
+            }],
+            "tools": [{
+                "type": "function",
+                "name": "shell",
+                "description": "Run a shell command",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"cmd": {"type": "string"}},
+                    "required": ["cmd"]
+                }
+            }],
+            "reasoning": {"effort": "medium"}
+        });
+
+        let request = request_to_universal(to_bytes(&payload)).unwrap();
+
+        assert_eq!(request.model.as_deref(), Some("gpt-5-mini"));
+        assert_eq!(last_user_text(&request), Some("Explain brainstore/query"));
     }
 
     #[test]
@@ -1101,6 +1300,93 @@ mod tests {
         assert!(output.get("max_tokens").is_some());
         // Should have messages
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_responses_discovery_tools_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "input": [
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": "Find the available tools."
+                },
+                {
+                    "type": "tool_search_call",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "arguments": {}
+                },
+                {
+                    "type": "tool_search_output",
+                    "call_id": "call_tool_search_123",
+                    "status": "completed",
+                    "execution": "client",
+                    "tools": [
+                        {
+                            "type": "function",
+                            "name": "search_docs",
+                            "description": "Search docs.",
+                            "strict": true,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": false
+                            }
+                        }
+                    ]
+                }
+            ],
+            "tools": [
+                {
+                    "type": "namespace",
+                    "name": "search_code",
+                    "description": "Deferred code search tools.",
+                    "tools": [
+                        {
+                            "type": "function",
+                            "name": "search_code",
+                            "description": "Search code.",
+                            "strict": true,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "additionalProperties": false
+                            },
+                            "defer_loading": true
+                        }
+                    ]
+                },
+                { "type": "tool_search" }
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        assert_eq!(result.source_format(), Some(ProviderFormat::Responses));
+
+        let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
+        let tools = output
+            .get("tools")
+            .and_then(Value::as_array)
+            .expect("tools should be emitted");
+
+        assert!(tools.iter().any(|tool| {
+            tool.get("type").and_then(Value::as_str) == Some("tool_search_tool_regex_20251119")
+                && tool.get("name").and_then(Value::as_str) == Some("tool_search_tool_regex")
+        }));
+        assert!(tools.iter().any(|tool| {
+            tool.get("name").and_then(Value::as_str) == Some("search_code")
+                && tool.get("defer_loading").and_then(Value::as_bool) == Some(true)
+        }));
+        assert!(!tools
+            .iter()
+            .any(|tool| tool.get("type").and_then(Value::as_str) == Some("namespace")));
     }
 
     #[test]
@@ -1297,6 +1583,108 @@ mod tests {
             Some("gemini-2.5-flash")
         );
         assert!(output.get("contents").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {"type": "text", "text": "x-anthropic-billing-header: cc_version=1.2.3; cc_entrypoint=cli; cch=abc123;"},
+                {
+                    "type": "text",
+                    "text": "You are running inside Claude Code.",
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        assert!(!result.is_passthrough());
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing header should be stripped for non-Anthropic targets: {text}"
+        );
+        assert!(text.contains("You are running inside Claude Code."));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_preserve_claude_code_billing_header_to_anthropic() {
+        let payload = json!({
+            "model": "claude-opus-4-8",
+            "max_tokens": 1024,
+            "system": [
+                {"type": "text", "text": "x-anthropic-billing-header: cc_version=1.2.3; cch=abc123;"},
+                {"type": "text", "text": "You are running inside Claude Code."}
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::Anthropic, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            text.contains("x-anthropic-billing-header"),
+            "billing header must be preserved for Anthropic targets: {text}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_combined_block_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": [
+                {
+                    "type": "text",
+                    "text": "x-anthropic-billing-header: cch=abc123;\nYou are running inside Claude Code."
+                }
+            ],
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing line should be stripped from a combined block: {text}"
+        );
+        assert!(
+            text.contains("You are running inside Claude Code."),
+            "real instructions in a combined block must be preserved: {text}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_strip_claude_code_billing_header_string_system_to_openai() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "max_tokens": 1024,
+            "system": "x-anthropic-billing-header: cch=abc123;\nYou are running inside Claude Code.",
+            "messages": [{"role": "user", "content": "hello world"}]
+        });
+        let input = to_bytes(&payload);
+
+        let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
+
+        let text = String::from_utf8(result.as_bytes().to_vec()).unwrap();
+        assert!(
+            !text.contains("x-anthropic-billing-header"),
+            "billing header should be stripped from string system prompts: {text}"
+        );
+        assert!(text.contains("You are running inside Claude Code."));
     }
 
     #[test]

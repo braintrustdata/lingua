@@ -26,6 +26,7 @@ _openai_message: ChatCompletionMessageParam = {"role": "user", "content": "Hello
 OPENAI_REQUEST_DATA = {
     "model": "gpt-4",
     "messages": [_openai_message],
+    "frequency_penalty": 0.2,
 }
 
 # OpenAI response is constructed using official SDK types

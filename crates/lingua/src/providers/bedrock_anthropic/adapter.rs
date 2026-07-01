@@ -7,8 +7,17 @@ use crate::universal::{
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
     UniversalUsage,
 };
+use serde::Serialize;
 
 const BEDROCK_ANTHROPIC_VERSION: &str = "bedrock-2023-05-31";
+const BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL: &str = "bedrock-anthropic-path-model";
+
+#[derive(Serialize)]
+struct BedrockAnthropicBodyWithModel {
+    model: &'static str,
+    #[serde(flatten)]
+    body: Value,
+}
 
 /// Adapter for Bedrock's Anthropic invoke body format.
 ///
@@ -54,6 +63,14 @@ impl BedrockAnthropicAdapter {
         }
         payload
     }
+
+    fn add_placeholder_model(payload: Value) -> Result<Value, TransformError> {
+        serde_json::to_value(BedrockAnthropicBodyWithModel {
+            model: BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL,
+            body: payload,
+        })
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+    }
 }
 
 impl Default for BedrockAnthropicAdapter {
@@ -79,7 +96,10 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
         if !Self::is_raw_invoke_body(payload) {
             return false;
         }
-        self.inner.request_to_universal(payload.clone()).is_ok()
+        let Ok(payload) = Self::add_placeholder_model(payload.clone()) else {
+            return false;
+        };
+        self.inner.request_to_universal(payload).is_ok()
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -88,11 +108,17 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
                 "Invalid Bedrock Anthropic request format".to_string(),
             ));
         }
-        self.inner.request_to_universal(payload)
+        let payload = Self::add_placeholder_model(payload)?;
+        let mut universal = self.inner.request_to_universal(payload)?;
+        universal.model = None;
+        Ok(universal)
     }
 
     fn request_from_universal(&self, req: &UniversalRequest) -> Result<Value, TransformError> {
         let mut request = req.clone();
+        if request.model.is_none() {
+            request.model = Some(BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL.to_string());
+        }
         request.params.stream = None;
         let anthropic_payload = self.inner.request_from_universal(&request)?;
         Ok(Self::convert_to_invoke_body(anthropic_payload))
@@ -168,6 +194,27 @@ mod tests {
     use super::*;
     use crate::processing::adapters::ProviderAdapter;
     use crate::serde_json::{json, Value};
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct BedrockInvokeBodyView {
+        anthropic_version: String,
+        max_tokens: i64,
+        messages: Vec<Value>,
+        #[serde(default)]
+        model: Option<Value>,
+        #[serde(default)]
+        stream: Option<Value>,
+    }
+
+    fn assert_flat_invoke_body(transformed: Value) {
+        let body: BedrockInvokeBodyView = crate::serde_json::from_value(transformed).unwrap();
+        assert!(body.model.is_none());
+        assert!(body.stream.is_none());
+        assert_eq!(body.anthropic_version, "bedrock-2023-05-31");
+        assert_eq!(body.max_tokens, 1024);
+        assert!(!body.messages.is_empty());
+    }
 
     #[test]
     fn test_message_stop_with_bedrock_metrics_emits_usage_chunk() {
@@ -253,16 +300,22 @@ mod tests {
         universal.model = Some("us.anthropic.claude-haiku-4-5-20251001-v1:0".to_string());
         let transformed = adapter.request_from_universal(&universal).unwrap();
 
-        assert!(transformed.get("model").is_none());
-        assert!(transformed.get("stream").is_none());
-        assert_eq!(
-            transformed
-                .get("anthropic_version")
-                .and_then(Value::as_str)
-                .unwrap(),
-            "bedrock-2023-05-31"
-        );
-        assert!(transformed.get("messages").is_some());
-        assert!(transformed.get("max_tokens").is_some());
+        assert_flat_invoke_body(transformed);
+    }
+
+    #[test]
+    fn request_roundtrip_without_model_uses_internal_placeholder_only() {
+        let adapter = BedrockAnthropicAdapter::new();
+        let input = json!({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "Hello"}]
+        });
+
+        let universal = adapter.request_to_universal(input).unwrap();
+        assert_eq!(universal.model, None);
+        let transformed = adapter.request_from_universal(&universal).unwrap();
+
+        assert_flat_invoke_body(transformed);
     }
 }

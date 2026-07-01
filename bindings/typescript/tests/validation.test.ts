@@ -30,6 +30,7 @@ const OPENAI_REQUEST_DATA: ChatCompletionCreateParamsNonStreaming = {
       content: "Hello",
     },
   ],
+  frequency_penalty: 0.2,
 };
 const OPENAI_REQUEST = JSON.stringify(OPENAI_REQUEST_DATA);
 

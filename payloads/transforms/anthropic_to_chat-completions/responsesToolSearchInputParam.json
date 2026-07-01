@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-DssNxAnpC2WxqjagQAqqiZV0DEtxA",
+  "object": "chat.completion",
+  "created": 1781971141,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Available tools:\n\n- functions.search_code\n  - Description: Search code (no input parameters).\n  - Use when you want to search for keywords, symbols, or code patterns in the repository.\n\n- multi_tool_use.parallel\n  - Description: Run multiple tools in parallel (wrapper).\n  - Parameters: \n    - tool_uses: Array of objects, each with:\n      - recipient_name: e.g., \"functions.search_code\"\n      - parameters: object with the tool’s input\n  - Use when you want to run several tool calls simultaneously to save time.\n\nWhat would you like to do next? For example, tell me a code search term, or ask me to run multiple searches in parallel.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 120,
+    "completion_tokens": 664,
+    "total_tokens": 784,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 512,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

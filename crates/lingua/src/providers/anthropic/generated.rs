@@ -270,7 +270,8 @@ pub struct CacheControlEphemeral {
     /// - `5m`: 5 minutes
     /// - `1h`: 1 hour
     ///
-    /// Defaults to `5m`.
+    /// Defaults to `5m`. See [prompt caching
+    /// pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ttl: Option<Ttl>,
     #[serde(rename = "type")]
@@ -290,7 +291,8 @@ pub enum CacheControlEphemeralType {
 /// - `5m`: 5 minutes
 /// - `1h`: 1 hour
 ///
-/// Defaults to `5m`.
+/// Defaults to `5m`. See [prompt caching
+/// pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub enum Ttl {
@@ -390,23 +392,15 @@ pub struct InputContentBlock {
 #[ts(export_to = "anthropic/")]
 pub struct Caller {
     #[serde(rename = "type")]
-    pub caller_type: AllowedCaller,
+    pub caller_type: CallerType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_id: Option<String>,
 }
 
-/// Specifies who can invoke a tool.
-///
-/// Values:
-/// direct: The model can call this tool directly.
-/// code_execution_20250825: The tool can be called from the code execution environment
-/// (v1).
-/// code_execution_20260120: The tool can be called from the code execution environment (v2
-/// with persistence).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum AllowedCaller {
+pub enum CallerType {
     #[serde(rename = "code_execution_20250825")]
     CodeExecution20250825,
     #[serde(rename = "code_execution_20260120")]
@@ -1143,6 +1137,8 @@ pub enum ToolChoiceType {
 
 /// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
 ///
+/// Code execution tool with REPL state persistence.
+///
 /// Web fetch tool with use_cache parameter for bypassing cached content.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
@@ -1251,6 +1247,28 @@ pub struct CodeExecutionTool20250825 {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct CodeExecutionTool20260120 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+}
+
+/// Code execution tool with REPL state persistence.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct CodeExecutionTool20260521 {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_callers: Option<Vec<AllowedCaller>>,
     /// Create a cache control breakpoint at this content block.
@@ -1552,6 +1570,15 @@ pub struct WebSearchTool20260209 {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ToolSearchTool {
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
 #[ts(export_to = "anthropic/")]
 pub enum Tool {
@@ -1566,6 +1593,9 @@ pub enum Tool {
 
     #[serde(rename = "code_execution_20260120")]
     CodeExecution20260120(CodeExecutionTool20260120),
+
+    #[serde(rename = "code_execution_20260521")]
+    CodeExecution20260521(CodeExecutionTool20260521),
 
     #[serde(rename = "memory_20250818")]
     Memory20250818(MemoryTool20250818),
@@ -1594,8 +1624,43 @@ pub enum Tool {
     #[serde(rename = "web_search_20260209")]
     WebSearch20260209(WebSearchTool20260209),
 
+    #[serde(rename = "tool_search_tool_bm25")]
+    ToolSearchToolBm25(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_bm25_20251119")]
+    ToolSearchToolBm2520251119(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_regex")]
+    ToolSearchToolRegex(ToolSearchTool),
+
+    #[serde(rename = "tool_search_tool_regex_20251119")]
+    ToolSearchToolRegex20251119(ToolSearchTool),
+
     #[serde(untagged)]
     Custom(CustomTool),
+}
+
+/// Specifies who can invoke a tool.
+///
+/// Values:
+/// direct: The model can call this tool directly.
+/// code_execution_20250825: The tool can be called from the code execution environment
+/// (v1).
+/// code_execution_20260120: The tool can be called from the code execution environment (v2
+/// with persistence).
+/// code_execution_20260521: The tool can be called from the code execution environment (v2
+/// with persistence).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum AllowedCaller {
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825,
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120,
+    #[serde(rename = "code_execution_20260521")]
+    CodeExecution20260521,
+    Direct,
 }
 
 /// [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
@@ -1633,6 +1698,8 @@ pub enum ToolType {
     CodeExecution20250825,
     #[serde(rename = "code_execution_20260120")]
     CodeExecution20260120,
+    #[serde(rename = "code_execution_20260521")]
+    CodeExecution20260521,
     Custom,
     #[serde(rename = "memory_20250818")]
     Memory20250818,
@@ -2075,7 +2142,7 @@ pub struct RefusalStopDetails {
     ///
     /// `null` when the refusal doesn't map to a named category.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<Category>,
+    pub category: Option<RefusalCategory>,
     /// Human-readable explanation of the refusal.
     ///
     /// This text is not guaranteed to be stable. `null` when no explanation is available for the
@@ -2086,14 +2153,17 @@ pub struct RefusalStopDetails {
     pub refusal_stop_details_type: RefusalStopDetailsType,
 }
 
+/// The policy category that triggered a refusal.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum Category {
+pub enum RefusalCategory {
     Bio,
     Cyber,
     #[serde(rename = "frontier_llm")]
     FrontierLlm,
+    #[serde(rename = "military_weapons")]
+    MilitaryWeapons,
     #[serde(rename = "reasoning_extraction")]
     ReasoningExtraction,
 }

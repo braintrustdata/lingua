@@ -23,10 +23,11 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, EffortLevel, OutputConfig, Thinking, ThinkingType, Tool, ToolChoice,
-    ToolChoiceType,
+    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum, Thinking,
+    ThinkingType, Tool, ToolChoice, ToolChoiceType,
 };
-use crate::providers::anthropic::params::{AnthropicExtrasView, AnthropicParams};
+use crate::providers::anthropic::params::AnthropicExtrasView;
+use crate::providers::anthropic::tool_discovery;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -36,7 +37,7 @@ use crate::universal::request::{
     ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
     UniversalMetadataUserView,
 };
-use crate::universal::tools::UniversalTool;
+use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
@@ -50,6 +51,23 @@ pub const DEFAULT_MAX_TOKENS: i64 = 4096;
 const JSON_OBJECT_SHIM_TOOL_NAME: &str = "json";
 const JSON_OBJECT_SHIM_TOOL_DESCRIPTION: &str = "Output the result in JSON format";
 
+fn anthropic_tool_value(tool: &UniversalTool) -> Result<Value, TransformError> {
+    if tool_discovery::is_anthropic_tool_search_builtin(tool) {
+        let builtin_type = match &tool.tool_type {
+            UniversalToolType::Builtin { builtin_type, .. } => builtin_type,
+            _ => unreachable!("checked by tool_discovery::is_anthropic_tool_search_builtin"),
+        };
+        return Ok(serde_json::json!({
+            "name": tool.name.clone(),
+            "type": builtin_type.clone()
+        }));
+    }
+
+    let anthropic_tool = Tool::try_from(tool)?;
+    serde_json::to_value(&anthropic_tool)
+        .map_err(|e| TransformError::SerializationFailed(e.to_string()))
+}
+
 fn parse_anthropic_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<AnthropicExtrasView, TransformError> {
@@ -60,6 +78,13 @@ fn parse_anthropic_extras(
             TransformError::FromUniversalFailed(format!("invalid Anthropic extras shape: {}", e))
         })
         .map(|v: Option<AnthropicExtrasView>| v.unwrap_or_default())
+}
+
+fn service_tier_to_string(service_tier: ServiceTierEnum) -> String {
+    match service_tier {
+        ServiceTierEnum::Auto => "auto".to_string(),
+        ServiceTierEnum::StandardOnly => "standard_only".to_string(),
+    }
 }
 
 fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
@@ -208,17 +233,14 @@ impl ProviderAdapter for AnthropicAdapter {
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let raw_params_view: AnthropicExtrasView =
+            serde_json::from_value(Value::Object(raw_payload_obj.clone()))
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Single parse: typed params now includes typed messages via #[serde(flatten)]
-        let typed_params: AnthropicParams = serde_json::from_value(payload)
+        let typed_params: CreateMessageParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
-        // Extract typed messages (partial move - other fields remain accessible)
-        let input_messages = typed_params.messages.ok_or_else(|| {
-            TransformError::ToUniversalFailed("Anthropic: missing 'messages' field".to_string())
-        })?;
-
-        let mut messages = anthropic_input_messages_to_universal_messages(input_messages)
+        let mut messages = anthropic_input_messages_to_universal_messages(typed_params.messages)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         if let Some(system) = typed_params.system.clone() {
@@ -234,7 +256,7 @@ impl ProviderAdapter for AnthropicAdapter {
             temperature: typed_params.temperature,
             top_p: typed_params.top_p,
             top_k: typed_params.top_k,
-            token_budget: typed_params.max_tokens.map(TokenBudget::OutputTokens),
+            token_budget: Some(TokenBudget::OutputTokens(typed_params.max_tokens)),
             stop: typed_params.stop_sequences.clone(),
             tools: typed_params.tools.map(|tools| {
                 <Vec<UniversalTool> as TryFromLLM<Vec<_>>>::try_from(tools).unwrap_or_default()
@@ -247,7 +269,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .output_config
                 .as_ref()
                 .and_then(|oc| oc.format.as_ref())
-                .or(typed_params.output_format.as_ref())
+                .or(raw_params_view.output_format.as_ref())
                 .map(ResponseFormatConfig::from),
             seed: None,
             presence_penalty: None,
@@ -293,20 +315,12 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|m| serde_json::to_value(m).ok()),
             store: None,
             conversation_reference: None,
-            service_tier: typed_params.service_tier,
+            service_tier: typed_params.service_tier.map(service_tier_to_string),
             prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
             extras: Default::default(),
         };
-
-        // Use extras captured automatically via #[serde(flatten)]
-        if !typed_params.extras.is_empty() {
-            params.extras.insert(
-                ProviderFormat::Anthropic,
-                typed_params.extras.into_iter().collect(),
-            );
-        }
 
         let anthropic_extras = params.extras.entry(ProviderFormat::Anthropic).or_default();
         for (key, value) in raw_payload_obj {
@@ -314,7 +328,7 @@ impl ProviderAdapter for AnthropicAdapter {
         }
 
         Ok(UniversalRequest {
-            model: typed_params.model,
+            model: Some(typed_params.model),
             messages,
             params,
         })
@@ -472,6 +486,24 @@ impl ProviderAdapter for AnthropicAdapter {
                 && anthropic_extras_view.tools.is_none()
                 && anthropic_extras_view.tool_choice.is_none();
 
+        let mut tools_for_anthropic = req.params.tools.clone().unwrap_or_default();
+        for discovered_tool in tool_discovery::discovered_tools_from_messages(&req.messages) {
+            if !tools_for_anthropic
+                .iter()
+                .any(|tool| tool.name == discovered_tool.name)
+            {
+                tools_for_anthropic.push(discovered_tool);
+            }
+        }
+        tools_for_anthropic = tool_discovery::normalize_tools_for_anthropic(tools_for_anthropic)?;
+        if tool_discovery::has_tool_discovery(&req.messages)
+            && !tools_for_anthropic
+                .iter()
+                .any(tool_discovery::is_anthropic_tool_search_builtin)
+        {
+            tools_for_anthropic.push(tool_discovery::anthropic_tool_search_tool());
+        }
+
         // Convert tools to Anthropic format
         if let Some(raw_tools) = anthropic_extras_view.tools.as_ref() {
             obj.insert("tools".into(), raw_tools.clone());
@@ -484,18 +516,12 @@ impl ProviderAdapter for AnthropicAdapter {
                     "input_schema": { "type": "object" }
                 }]),
             );
-        } else if let Some(tools) = &req.params.tools {
-            if !tools.is_empty() {
-                let anthropic_tools: Vec<Tool> = tools
-                    .iter()
-                    .map(Tool::try_from)
-                    .collect::<Result<Vec<_>, _>>()?;
-                obj.insert(
-                    "tools".into(),
-                    serde_json::to_value(&anthropic_tools)
-                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
-                );
-            }
+        } else if !tools_for_anthropic.is_empty() {
+            let anthropic_tools = tools_for_anthropic
+                .iter()
+                .map(anthropic_tool_value)
+                .collect::<Result<Vec<_>, _>>()?;
+            obj.insert("tools".into(), Value::Array(anthropic_tools));
         }
 
         // Convert tool_choice using helper method (handles parallel_tool_calls internally)
@@ -1161,7 +1187,21 @@ impl ProviderAdapter for AnthropicAdapter {
                 obj_map.insert("usage".into(), usage_value);
             }
 
-            return Ok(obj);
+            // Some providers (e.g. GLM/zai) place the final tool-argument fragment in the
+            // same delta that carries finish_reason. Re-emit any tool events before the
+            // terminating message_delta so those arguments are not dropped.
+            let tool_events = chunk
+                .choices
+                .first()
+                .and_then(|choice| choice.delta_view().map(|view| (choice.index, view)))
+                .map(|(index, view)| anthropic_tool_call_stream_events(&view, index))
+                .unwrap_or_default();
+            if tool_events.is_empty() {
+                return Ok(obj);
+            }
+            let mut events = tool_events;
+            events.push(obj);
+            return Ok(Value::Array(events));
         }
 
         // Content deltas
@@ -1202,40 +1242,29 @@ impl ProviderAdapter for AnthropicAdapter {
             }
 
             if let Some(delta_view) = choice.delta_view() {
-                // Tool calls
-                if let Some(tool_call) = delta_view.tool_calls.first() {
-                    let tool_index = tool_call.index.unwrap_or(choice.index);
-                    let function = tool_call.function.clone().unwrap_or_default();
-                    let tool_name = function.name.unwrap_or_default();
-                    let tool_id = tool_call.id.clone().unwrap_or_default();
-                    let arguments = function.arguments.unwrap_or_default();
-
-                    if !tool_name.is_empty() || !tool_id.is_empty() {
-                        let input = serde_json::from_str::<Value>(&arguments)
-                            .ok()
-                            .filter(Value::is_object)
-                            .unwrap_or_else(|| serde_json::json!({}));
-                        let content_block_start = serde_json::json!({
-                            "type": "content_block_start",
-                            "index": tool_index,
-                            "content_block": {
-                                "type": "tool_use",
-                                "id": tool_id,
-                                "name": tool_name,
-                                "input": input
+                // Tool calls. A single delta may carry assistant text and/or the opening
+                // of a tool call (some OSS providers bundle the final text fragment onto
+                // the tool-call chunk), and a tool-call delta may itself expand into
+                // multiple Anthropic events. Emit any text first so it is never dropped,
+                // then the tool events, returning an array when there is more than one.
+                if !delta_view.tool_calls.is_empty() {
+                    let mut events = Vec::new();
+                    if let Some(content) = delta_view.content.as_deref().filter(|c| !c.is_empty()) {
+                        events.push(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "text_delta",
+                                "text": content
                             }
-                        });
-                        return Ok(content_block_start);
+                        }));
                     }
-
-                    return Ok(serde_json::json!({
-                        "type": "content_block_delta",
-                        "index": tool_index,
-                        "delta": {
-                            "type": "input_json_delta",
-                            "partial_json": arguments
-                        }
-                    }));
+                    events.extend(anthropic_tool_call_stream_events(&delta_view, choice.index));
+                    return Ok(if events.len() == 1 {
+                        events.remove(0)
+                    } else {
+                        Value::Array(events)
+                    });
                 }
 
                 // Text content delta
@@ -1303,6 +1332,66 @@ fn tool_input_to_arguments(input: &Value) -> String {
         return String::new();
     }
     serde_json::to_string(input).unwrap_or_else(|_| "{}".to_string())
+}
+
+/// Build the Anthropic streaming events for the tool calls in a single delta.
+///
+/// Maps OpenAI-style streaming tool-call deltas to Anthropic events. The presence of
+/// `function.name` (which only appears on the opening delta of a tool call) decides when
+/// to open a `tool_use` block — `id` is not used because some OpenAI-compatible providers
+/// (e.g. GLM/zai) repeat it on every continuation delta. Argument fragments are always
+/// re-emitted as `input_json_delta`, including a fragment bundled into the opening delta,
+/// so none are dropped.
+fn anthropic_tool_call_stream_events(
+    delta_view: &UniversalStreamDelta,
+    fallback_index: u32,
+) -> Vec<Value> {
+    let mut events = Vec::new();
+    for tool_call in &delta_view.tool_calls {
+        let tool_index = tool_call.index.unwrap_or(fallback_index);
+        let function = tool_call.function.clone().unwrap_or_default();
+        let tool_name = function.name.unwrap_or_default();
+        if tool_name.is_empty() {
+            // Continuation delta: stream the argument fragment. Empty fragments are
+            // preserved so providers that emit an initial empty input_json_delta
+            // round-trip losslessly.
+            let arguments = function.arguments.unwrap_or_default();
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+            continue;
+        }
+
+        // Opening delta: open the tool_use block.
+        events.push(serde_json::json!({
+            "type": "content_block_start",
+            "index": tool_index,
+            "content_block": {
+                "type": "tool_use",
+                "id": tool_call.id.clone().unwrap_or_default(),
+                "name": tool_name,
+                "input": {}
+            }
+        }));
+        // Some providers bundle the first argument fragment into the opening delta;
+        // re-emit it so it is not lost.
+        if let Some(arguments) = function.arguments.filter(|arguments| !arguments.is_empty()) {
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+        }
+    }
+    events
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -1623,7 +1712,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert!(
@@ -1660,7 +1749,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert!(
@@ -1696,7 +1785,7 @@ mod tests {
         };
 
         let result = adapter.request_from_universal(&req).unwrap();
-        let parsed: AnthropicParams = serde_json::from_value(result).unwrap();
+        let parsed: CreateMessageParams = serde_json::from_value(result).unwrap();
 
         assert!(parsed.tool_choice.is_some());
         assert_eq!(
@@ -1733,7 +1822,7 @@ mod tests {
                 },
             };
 
-            let result: AnthropicParams =
+            let result: CreateMessageParams =
                 serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
             assert!(
@@ -1748,8 +1837,8 @@ mod tests {
                 result.top_k.is_none(),
                 "top_k should be stripped for {model}"
             );
-            assert_eq!(result.model, Some(model.to_string()));
-            assert_eq!(result.max_tokens, Some(1024));
+            assert_eq!(result.model, model);
+            assert_eq!(result.max_tokens, 1024);
         }
     }
 
@@ -1777,7 +1866,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1814,7 +1903,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1847,7 +1936,7 @@ mod tests {
                 && r.budget_tokens == Some(2048)
         }));
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
 
         let thinking = result.thinking.expect("thinking should be present");
@@ -1880,7 +1969,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -1925,7 +2014,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -1969,7 +2058,7 @@ mod tests {
             },
         };
 
-        let result: AnthropicParams =
+        let result: CreateMessageParams =
             serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
         assert!(
@@ -2007,7 +2096,7 @@ mod tests {
                 },
             };
 
-            let result: AnthropicParams =
+            let result: CreateMessageParams =
                 serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
 
             assert_eq!(
@@ -2184,6 +2273,142 @@ mod tests {
                 .is_none(),
             "output_config.format should be omitted for json_object shim"
         );
+    }
+
+    #[test]
+    fn responses_namespace_duplicate_local_tool_names_are_rejected_for_anthropic() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::responses_adapter::ResponsesAdapter;
+
+        let responses_adapter = ResponsesAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+        let responses_payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Search both systems."}],
+            "tools": [
+                {
+                    "type": "namespace",
+                    "name": "crm",
+                    "description": "CRM tools.",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup",
+                        "description": "Look up CRM records.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "customer_id": {"type": "string"}
+                            },
+                            "required": ["customer_id"]
+                        },
+                        "defer_loading": true
+                    }]
+                },
+                {
+                    "type": "namespace",
+                    "name": "erp",
+                    "description": "ERP tools.",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup",
+                        "description": "Look up ERP records.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "order_id": {"type": "string"}
+                            },
+                            "required": ["order_id"]
+                        },
+                        "defer_loading": true
+                    }]
+                },
+                {"type": "tool_search"}
+            ]
+        });
+
+        let mut universal = responses_adapter
+            .request_to_universal(responses_payload)
+            .expect("Responses request should convert to universal");
+        universal.model = Some("claude-sonnet-4-5-20250929".to_string());
+        anthropic_adapter.apply_defaults(&mut universal);
+
+        let err = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap_err();
+        match err {
+            TransformError::FromUniversalFailed(reason) => {
+                assert!(reason.contains("duplicate local tool name 'lookup'"));
+                assert!(reason.contains("'crm'"));
+                assert!(reason.contains("'erp'"));
+                assert!(reason.contains("Anthropic tools"));
+            }
+            other => panic!("expected unsupported namespace duplicate mapping, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn responses_namespace_and_top_level_duplicate_local_tool_names_are_rejected_for_anthropic() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::responses_adapter::ResponsesAdapter;
+
+        let responses_adapter = ResponsesAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+        let responses_payload = json!({
+            "model": "gpt-5-nano",
+            "input": [{"role": "user", "content": "Search both systems."}],
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "lookup",
+                    "description": "Look up top-level records.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "record_id": {"type": "string"}
+                        },
+                        "required": ["record_id"]
+                    }
+                },
+                {
+                    "type": "namespace",
+                    "name": "crm",
+                    "description": "CRM tools.",
+                    "tools": [{
+                        "type": "function",
+                        "name": "lookup",
+                        "description": "Look up CRM records.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "customer_id": {"type": "string"}
+                            },
+                            "required": ["customer_id"]
+                        },
+                        "defer_loading": true
+                    }]
+                },
+                {"type": "tool_search"}
+            ]
+        });
+
+        let mut universal = responses_adapter
+            .request_to_universal(responses_payload)
+            .expect("Responses request should convert to universal");
+        universal.model = Some("claude-sonnet-4-5-20250929".to_string());
+        anthropic_adapter.apply_defaults(&mut universal);
+
+        let err = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap_err();
+        match err {
+            TransformError::FromUniversalFailed(reason) => {
+                assert!(reason.contains("duplicate local tool name 'lookup'"));
+                assert!(reason.contains("top-level tool"));
+                assert!(reason.contains("namespace 'crm'"));
+                assert!(reason.contains("Anthropic tools"));
+            }
+            other => panic!("expected unsupported duplicate mapping, got {other:?}"),
+        }
     }
 
     #[test]

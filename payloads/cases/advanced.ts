@@ -9,6 +9,7 @@ import {
   BEDROCK_ANTHROPIC_MODEL,
   GOOGLE_GEMINI_3_MODEL,
   VERTEX_ANTHROPIC_MODEL,
+  BASETEN_MODEL,
 } from "./models";
 
 const IMAGE_BASE64 =
@@ -495,6 +496,47 @@ export const advancedCases: TestCaseCollection = {
       tool_choice: {
         type: "any",
       },
+    },
+  },
+
+  glmToolCallWithLeadingTextRequest: {
+    "chat-completions": null,
+    responses: null,
+    google: null,
+    bedrock: null,
+    anthropic: null,
+    // Native source: GLM-5.2 served via Baseten's OpenAI-compatible API. Its real
+    // streaming framing (bundled first chunk, repeated tool-call id, args on the
+    // finish delta) is what the baseten → anthropic transform must handle.
+    baseten: {
+      model: BASETEN_MODEL,
+      messages: [
+        {
+          role: "user",
+          content:
+            "Before doing anything else, reply with one short sentence telling me you are about to look up the weather. Then call the get_weather tool for San Francisco, CA.",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get the current weather for a location",
+            parameters: {
+              type: "object",
+              properties: {
+                location: {
+                  type: "string",
+                  description: "The city and state, e.g. San Francisco, CA",
+                },
+              },
+              required: ["location"],
+            },
+          },
+        },
+      ],
+      tool_choice: "auto",
     },
   },
 

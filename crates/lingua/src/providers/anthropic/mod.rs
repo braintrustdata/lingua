@@ -11,6 +11,7 @@ pub mod convert;
 pub mod detect;
 pub mod generated;
 pub mod params;
+pub(crate) mod tool_discovery;
 
 #[cfg(test)]
 pub mod test_anthropic;

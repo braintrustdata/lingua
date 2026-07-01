@@ -7,7 +7,9 @@ use crate::providers::anthropic::convert::{
 };
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
-use crate::providers::openai::convert::ChatCompletionRequestMessageExt;
+use crate::providers::openai::convert::{
+    messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
+};
 use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::universal::{convert::TryFromLLM, Message};
@@ -98,7 +100,11 @@ fn lingua_to_chat_completions_messages<'py>(
     py: Python<'py>,
     value: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    convert_from_lingua::<Vec<Message>, Vec<ChatCompletionRequestMessageExt>>(py, value)
+    let messages: Vec<Message> = py_to_rust(py, value)?;
+    let chat_messages = messages_to_chat_completion_messages(messages).map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Conversion error: {:?}", e))
+    })?;
+    rust_to_py(py, &chat_messages)
 }
 
 /// Convert array of Responses API messages to Lingua Messages

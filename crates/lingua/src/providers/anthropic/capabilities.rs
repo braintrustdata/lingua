@@ -13,8 +13,8 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     .expect("valid Opus 4.7+ or Fable model regex")
 });
 static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.:])|^claude-opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})($|[-.])")
-        .expect("valid Opus 4.8+ model regex")
+    Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.:])|^claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.])")
+        .expect("valid Opus 4.8+ / Fable model regex")
 });
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
@@ -44,9 +44,9 @@ pub fn supports_adaptive_thinking(model: &str) -> bool {
 
 /// Check if an Anthropic model supports system-role entries in `messages`.
 ///
-/// Direct Anthropic and Bedrock Anthropic Opus 4.8+ model IDs support these
-/// messages. Slash/at provider-wrapped IDs remain excluded until their provider
-/// documents the same behavior.
+/// Direct Anthropic and Bedrock Anthropic Opus 4.8+ and Fable model IDs support
+/// these messages. Slash/at provider-wrapped IDs remain excluded until their
+/// provider documents the same behavior.
 pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
     is_supported_mid_conversation_system_model(&model.to_ascii_lowercase())
 }
@@ -220,14 +220,33 @@ mod tests {
         assert!(supports_mid_conversation_system_messages(
             "us.anthropic.claude-opus-4-10-v1:0"
         ));
+        assert!(supports_mid_conversation_system_messages("claude-fable-5"));
+        assert!(supports_mid_conversation_system_messages(
+            "claude-fable-5-20260601"
+        ));
+        assert!(supports_mid_conversation_system_messages("CLAUDE-FABLE-5"));
+        assert!(supports_mid_conversation_system_messages("claude-fable-6"));
+        assert!(supports_mid_conversation_system_messages(
+            "us.anthropic.claude-fable-5-v1:0"
+        ));
+        assert!(supports_mid_conversation_system_messages(
+            "anthropic.claude-fable-5-v1:0"
+        ));
         assert!(!supports_mid_conversation_system_messages(
             "anthropic/claude-opus-4-8@20260528"
+        ));
+        assert!(!supports_mid_conversation_system_messages(
+            "anthropic/claude-fable-5@20260601"
         ));
         assert!(!supports_mid_conversation_system_messages(
             "claude-opus-4-7"
         ));
         assert!(!supports_mid_conversation_system_messages(
             "claude-haiku-4-5-20251001"
+        ));
+        assert!(!supports_mid_conversation_system_messages("claude-fable"));
+        assert!(!supports_mid_conversation_system_messages(
+            "not-claude-fable-5"
         ));
     }
 

@@ -1,64 +1,15 @@
 /*!
-Typed parameter structs for Anthropic Messages API.
+Typed helper views for Anthropic request conversion.
 
-These structs use `#[serde(flatten)]` to automatically capture unknown fields,
-eliminating the need for explicit KNOWN_KEYS arrays.
+The Anthropic request boundary itself is `generated::CreateMessageParams`.
+These views cover only partial maps where the generated request type is not the
+right shape: provider extras and cross-provider detection guards.
 */
 
-use crate::providers::anthropic::generated::{
-    InputMessage, JsonOutputFormat, Metadata, OutputConfig, System, Thinking, Tool, ToolChoice,
-};
-use crate::serde_json::Value;
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use crate::serde_json::{self, Value};
+use serde::{de::IgnoredAny, Deserialize};
 
-/// Anthropic Messages API request parameters.
-///
-/// All known fields are explicitly typed using generated types from the Anthropic API spec.
-/// Unknown fields automatically go into `extras` via `#[serde(flatten)]`.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct AnthropicParams {
-    // === Core fields ===
-    pub model: Option<String>,
-    pub messages: Option<Vec<InputMessage>>,
-
-    // === System prompt (string or array with cache_control) ===
-    pub system: Option<System>,
-
-    // === Required output control ===
-    pub max_tokens: Option<i64>,
-
-    // === Sampling parameters ===
-    pub temperature: Option<f64>,
-    pub top_p: Option<f64>,
-    pub top_k: Option<i64>,
-    pub stop_sequences: Option<Vec<String>>,
-
-    // === Streaming ===
-    pub stream: Option<bool>,
-
-    // === Tools and function calling ===
-    pub tools: Option<Vec<Tool>>,
-    pub tool_choice: Option<ToolChoice>,
-
-    // === Extended thinking ===
-    pub thinking: Option<Thinking>,
-
-    // === Structured outputs ===
-    /// Legacy output format (beta: structured-outputs-2025-11-13).
-    pub output_format: Option<JsonOutputFormat>,
-    /// Output config with effort and format fields.
-    pub output_config: Option<OutputConfig>,
-
-    // === Metadata and identification ===
-    pub metadata: Option<Metadata>,
-    pub service_tier: Option<String>,
-
-    /// Unknown fields - automatically captured by serde flatten.
-    /// These are provider-specific fields not in the canonical set.
-    #[serde(flatten)]
-    pub extras: BTreeMap<String, Value>,
-}
+use super::generated::JsonOutputFormat;
 
 /// Typed view over `UniversalParams.extras[Anthropic]` used during universal
 /// -> Anthropic reconstruction.
@@ -73,105 +24,92 @@ pub struct AnthropicExtrasView {
     pub tools: Option<Value>,
     pub tool_choice: Option<Value>,
     pub output_config: Option<Value>,
+    pub output_format: Option<JsonOutputFormat>,
     pub thinking: Option<Value>,
     pub metadata: Option<Value>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::serde_json;
-    use crate::serde_json::json;
+fn deserialize_present<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    IgnoredAny::deserialize(deserializer)?;
+    Ok(true)
+}
 
-    #[test]
-    fn test_anthropic_params_known_fields() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "max_tokens": 1024,
-            "temperature": 0.7,
-            "top_k": 40
-        });
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct AnthropicOpenAiOnlyFieldsView {
+    #[serde(default, deserialize_with = "deserialize_present")]
+    stream_options: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    n: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    logprobs: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    top_logprobs: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    logit_bias: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    response_format: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    functions: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    function_call: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    seed: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    presence_penalty: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    frequency_penalty: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    store: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    parallel_tool_calls: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    stop: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    reasoning_effort: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    reasoning_enabled: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    suffix_messages: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    chat_template_kwargs: bool,
+    #[serde(default, deserialize_with = "deserialize_present")]
+    max_completion_tokens: bool,
+}
 
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert_eq!(params.model, Some("claude-sonnet-4-20250514".to_string()));
-        assert_eq!(params.max_tokens, Some(1024));
-        assert_eq!(params.temperature, Some(0.7));
-        assert_eq!(params.top_k, Some(40));
-        assert!(params.extras.is_empty());
+impl AnthropicOpenAiOnlyFieldsView {
+    fn first_present(&self) -> Option<&'static str> {
+        [
+            ("stream_options", self.stream_options),
+            ("n", self.n),
+            ("logprobs", self.logprobs),
+            ("top_logprobs", self.top_logprobs),
+            ("logit_bias", self.logit_bias),
+            ("response_format", self.response_format),
+            ("functions", self.functions),
+            ("function_call", self.function_call),
+            ("seed", self.seed),
+            ("presence_penalty", self.presence_penalty),
+            ("frequency_penalty", self.frequency_penalty),
+            ("store", self.store),
+            ("parallel_tool_calls", self.parallel_tool_calls),
+            ("stop", self.stop),
+            ("reasoning_effort", self.reasoning_effort),
+            ("reasoning_enabled", self.reasoning_enabled),
+            ("suffix_messages", self.suffix_messages),
+            ("chat_template_kwargs", self.chat_template_kwargs),
+            ("max_completion_tokens", self.max_completion_tokens),
+        ]
+        .into_iter()
+        .find_map(|(field, present)| present.then_some(field))
     }
+}
 
-    #[test]
-    fn test_anthropic_params_with_thinking() {
-        use crate::providers::anthropic::generated::ThinkingType;
-
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 16000,
-            "thinking": {
-                "type": "enabled",
-                "budget_tokens": 10000
-            }
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert!(params.thinking.is_some());
-        let thinking = params.thinking.unwrap();
-        assert_eq!(thinking.thinking_type, ThinkingType::Enabled);
-        assert_eq!(thinking.budget_tokens, Some(10000));
-    }
-
-    #[test]
-    fn test_anthropic_params_with_system_cache_control() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "system": [
-                {
-                    "type": "text",
-                    "text": "Be helpful.",
-                    "cache_control": {"type": "ephemeral", "ttl": "5m"}
-                }
-            ]
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert!(params.system.is_some());
-        assert!(params.extras.is_empty());
-    }
-
-    #[test]
-    fn test_anthropic_params_unknown_fields_go_to_extras() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "some_future_param": "value"
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json).unwrap();
-        assert_eq!(params.extras.len(), 1);
-        assert_eq!(
-            params.extras.get("some_future_param"),
-            Some(&Value::String("value".to_string()))
-        );
-    }
-
-    #[test]
-    fn test_anthropic_roundtrip_preserves_extras() {
-        let json = json!({
-            "model": "claude-sonnet-4-20250514",
-            "messages": [],
-            "max_tokens": 1024,
-            "custom_field": {"nested": "data"}
-        });
-
-        let params: AnthropicParams = serde_json::from_value(json.clone()).unwrap();
-        let back: Value = serde_json::to_value(&params).unwrap();
-
-        // Custom field should be preserved
-        assert_eq!(back.get("custom_field"), json.get("custom_field"));
-    }
+pub(crate) fn first_openai_only_field(payload: &Value) -> Result<Option<&'static str>, String> {
+    serde_json::from_value::<AnthropicOpenAiOnlyFieldsView>(payload.clone())
+        .map(|view| view.first_present())
+        .map_err(|e| e.to_string())
 }

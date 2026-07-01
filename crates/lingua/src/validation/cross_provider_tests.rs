@@ -14,10 +14,15 @@ mod tests {
         "model": "gpt-4",
         "messages": [
             {
+                "role": "system",
+                "content": "You are helpful."
+            },
+            {
                 "role": "user",
                 "content": "Hello"
             }
-        ]
+        ],
+        "frequency_penalty": 0.2
     }"#;
 
     const OPENAI_RESPONSE: &str = r#"{
@@ -195,13 +200,12 @@ mod tests {
 
         #[test]
         fn test_openai_request_fails_as_anthropic() {
-            // OpenAI uses string content: "content": "Hello"
-            // Anthropic requires array content: "content": [{"type": "text", "text": "Hello"}]
+            // OpenAI-only top-level fields must not validate as Anthropic syntax.
             // This MUST fail
             let result = validate_anthropic_request(OPENAI_REQUEST);
             assert!(
                 result.is_err(),
-                "OpenAI request should fail Anthropic validation - OpenAI uses string content, Anthropic requires array"
+                "OpenAI request should fail Anthropic validation - OpenAI-only field is present"
             );
         }
 

@@ -59,7 +59,8 @@ Notes:
 {
   "expectedMessageCount": 2,
   "expectedRolesInOrder": ["user", "assistant"],
-  "mustContainText": []
+  "mustContainText": [],
+  "mustNotContainText": []
 }
 ```
 
@@ -68,6 +69,7 @@ Supported keys:
 - `expectedMessageCount` (number)
 - `expectedRolesInOrder` (string array)
 - `mustContainText` (string array)
+- `mustNotContainText` (string array)
 
 Notes:
 

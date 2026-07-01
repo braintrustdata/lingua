@@ -214,6 +214,62 @@
       ]
     },
     {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Tool result names are not represented by ChatCompletions, Anthropic, or Bedrock tool result wire formats; those formats identify results by tool_call_id/tool_use_id only" },
+        { "pattern": "messages[*].content[*].status", "reason": "Anthropic tool search transcript blocks do not preserve OpenAI Responses status metadata" },
+        { "pattern": "messages[*].content[*].execution", "reason": "Anthropic tool search transcript blocks do not preserve OpenAI Responses execution metadata" },
+        { "pattern": "messages[*].content[*].tools[*].tool", "reason": "Anthropic tool_search_tool_result carries tool_reference names; full deferred tool definitions are provided at top-level tools instead" },
+        { "pattern": "messages[*].content[*].provider_options", "reason": "Provider-specific tool call metadata is not preserved through Anthropic tool search transcript blocks" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "Anthropic requires concrete tool search tool names such as tool_search_tool_regex instead of OpenAI's generic tool_search" },
+        { "pattern": "messages[*].content[*].tool_call_id", "reason": "Anthropic requires tool search call IDs to use the srvtoolu_ prefix" },
+        { "pattern": "params.tools", "reason": "Anthropic requires discovered deferred tools and the tool search builtin in top-level tools for tool_reference replay" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages[*].content[*].tools[*].tool", "reason": "Anthropic tool_search_tool_result carries tool_reference names; Responses replay attaches recovered deferred tool definitions from top-level tools" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "Anthropic uses concrete tool search names such as tool_search_tool_regex; Responses uses generic tool_search" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "ChatCompletions has no tool-discovery types, so tool_discovery_call/tool_discovery_result project to generic tool_call/tool_result and cannot be re-tagged as discovery on reparse" },
+        { "pattern": "messages[*].content[*].tools", "reason": "ChatCompletions tool results carry no structured tools list; discovered tools are serialized into the tool message content/output instead" },
+        { "pattern": "messages[*].content[*].output", "reason": "The discovery result payload is serialized into the ChatCompletions tool message output string" },
+        { "pattern": "messages[*].content[*].arguments", "reason": "ChatCompletions tool-call arguments round-trip as a JSON string wrapped in the universal valid/invalid arguments envelope" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].type", "reason": "ChatCompletions has no tool-discovery types, so tool_discovery_call/tool_discovery_result project to generic tool_call/tool_result and cannot be re-tagged as discovery on reparse" },
+        { "pattern": "messages[*].content[*].tools", "reason": "ChatCompletions tool results carry no structured tools list; discovered tools are serialized into the tool message content/output instead" },
+        { "pattern": "messages[*].content[*].output", "reason": "The discovery result payload is serialized into the ChatCompletions tool message output string" },
+        { "pattern": "messages[*].content[*].arguments", "reason": "ChatCompletions tool-call arguments round-trip as a JSON string wrapped in the universal valid/invalid arguments envelope" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "ChatCompletions identifies the discovery call by its function name (tool_name); discovery_tool_name is not preserved as a separate field" },
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Discovery call/result names round-trip as the ChatCompletions function/tool name" }
+      ]
+    },
+    {
+      "testCase": "responsesToolSearchInputParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].output", "reason": "Bedrock Converse tool results serialize structured JSON output as a JSON string" }
+      ]
+    },
+    {
       "testCase": "imageContentParam",
       "source": "*",
       "target": "Anthropic",

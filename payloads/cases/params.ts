@@ -10,6 +10,7 @@ import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
   ChatCompletionUserMessageWithCacheControl,
+  AnthropicMessageCreateParams,
   TestCase,
   TestCaseCollection,
 } from "./types";
@@ -136,6 +137,103 @@ export const paramsCases: TestCaseCollection = {
       prompt_cache_key: "policy-cache-v1",
     },
     anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesToolSearchInputParam: {
+    "chat-completions": null,
+    responses: {
+      model: "gpt-5.5",
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: "Find the available tools.",
+        },
+        {
+          type: "tool_search_call",
+          call_id: "call_tool_search_123",
+          status: "completed",
+          execution: "client",
+          arguments: {},
+        },
+        {
+          type: "tool_search_output",
+          call_id: "call_tool_search_123",
+          status: "completed",
+          execution: "client",
+          tools: [
+            {
+              type: "function",
+              name: "search_code",
+              description: "Search code.",
+              strict: true,
+              parameters: {
+                type: "object",
+                properties: {},
+                additionalProperties: false,
+              },
+            },
+          ],
+        },
+        {
+          type: "message",
+          role: "user",
+          content: "Use the discovered tool list.",
+        },
+      ],
+      tools: [
+        {
+          type: "namespace",
+          name: "search_code",
+          description: "Deferred code search tools.",
+          tools: [
+            {
+              type: "function",
+              name: "search_code",
+              description: "Search code.",
+              strict: true,
+              parameters: {
+                type: "object",
+                properties: {},
+                additionalProperties: false,
+              },
+              defer_loading: true,
+            },
+          ],
+        },
+        {
+          type: "tool_search",
+        },
+      ],
+    },
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: "Find the available tools.",
+        },
+      ],
+      tools: [
+        {
+          type: "tool_search_tool_regex_20251119",
+          name: "tool_search_tool_regex",
+        },
+        {
+          name: "search_code",
+          description: "Search code.",
+          input_schema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+          defer_loading: true,
+        },
+      ],
+    } satisfies AnthropicMessageCreateParams,
     google: null,
     bedrock: null,
   },

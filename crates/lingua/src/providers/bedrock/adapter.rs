@@ -189,6 +189,12 @@ impl ProviderAdapter for BedrockAdapter {
         // Convert messages to Bedrock format
         let bedrock_messages: Vec<BedrockMessage> = universal_to_bedrock_messages(&req.messages)
             .map_err(|e| TransformError::FromUniversalFailed(e.to_string()))?;
+        if bedrock_messages.is_empty() && !req.messages.is_empty() {
+            return Err(TransformError::ValidationFailed {
+                target: ProviderFormat::Converse,
+                reason: "Bedrock Converse does not support dynamic tool discovery history without at least one non-discovery content message.".to_string(),
+            });
+        }
 
         let mut obj = Map::new();
         obj.insert("modelId".into(), Value::String(model_id.clone()));
@@ -679,6 +685,61 @@ mod tests {
         );
         assert!(reconstructed.get("messages").is_some());
         assert!(reconstructed.get("inferenceConfig").is_some());
+    }
+
+    #[test]
+    fn test_bedrock_rejects_discovery_only_history_after_filtering() {
+        use crate::universal::message::{AssistantContent, AssistantContentPart, ToolContentPart};
+        use crate::universal::{ToolDiscoveryResultContentPart, ToolDiscoveryResultItem};
+
+        let adapter = BedrockAdapter;
+        let request = UniversalRequest {
+            model: Some("anthropic.claude-3-sonnet".to_string()),
+            messages: vec![
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::ToolDiscoveryCall {
+                            tool_call_id: "call_tool_search_123".to_string(),
+                            discovery_tool_name: "tool_search".to_string(),
+                            query: Some("search_code".to_string()),
+                            arguments: None,
+                            status: Some("completed".to_string()),
+                            execution: Some("client".to_string()),
+                            provider_options: None,
+                        },
+                    ]),
+                    id: None,
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolDiscoveryResult(
+                        ToolDiscoveryResultContentPart {
+                            tool_call_id: "call_tool_search_123".to_string(),
+                            discovery_tool_name: "tool_search".to_string(),
+                            tools: vec![ToolDiscoveryResultItem {
+                                tool_name: "search_code".to_string(),
+                                tool: None,
+                                provider_options: None,
+                            }],
+                            status: Some("completed".to_string()),
+                            execution: Some("client".to_string()),
+                            provider_options: None,
+                        },
+                    )],
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let err = adapter.request_from_universal(&request).unwrap_err();
+        match err {
+            TransformError::ValidationFailed {
+                target: ProviderFormat::Converse,
+                reason,
+            } => {
+                assert!(reason.contains("dynamic tool discovery history"));
+            }
+            other => panic!("expected Bedrock validation error, got {other:?}"),
+        }
     }
 
     #[test]
