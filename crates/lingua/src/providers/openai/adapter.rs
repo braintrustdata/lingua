@@ -31,7 +31,7 @@ use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt}
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ToolContentPart, UserContent,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolContentPart, UserContent,
 };
 use crate::universal::reasoning::effort_to_budget;
 use crate::universal::request::{
@@ -154,6 +154,83 @@ fn is_discovery_only_response_message(msg: &Message) -> bool {
             .all(|part| matches!(part, ToolContentPart::ToolDiscoveryResult(_))),
         _ => false,
     }
+}
+
+fn is_reasoning_only_response_message(msg: &Message) -> bool {
+    match msg {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+        }
+        _ => false,
+    }
+}
+
+fn merge_reasoning_response_messages(messages: Vec<Message>) -> Vec<Message> {
+    let mut merged = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
+            && matches!(message, Message::Assistant { .. });
+
+        if !should_merge {
+            merged.push(message);
+            continue;
+        }
+
+        let Some(previous) = merged.pop() else {
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: AssistantContent::Array(reasoning_parts),
+            id: reasoning_id,
+        } = previous
+        else {
+            merged.push(previous);
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: next_content,
+            id: next_id,
+        } = message
+        else {
+            merged.push(Message::Assistant {
+                content: AssistantContent::Array(reasoning_parts),
+                id: reasoning_id,
+            });
+            merged.push(message);
+            continue;
+        };
+
+        let mut combined_parts = reasoning_parts;
+        match next_content {
+            AssistantContent::Array(parts) => combined_parts.extend(parts),
+            AssistantContent::String(text) => {
+                combined_parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }));
+            }
+        }
+
+        merged.push(Message::Assistant {
+            content: AssistantContent::Array(combined_parts),
+            id: next_id.or(reasoning_id),
+        });
+    }
+
+    merged
 }
 
 #[derive(serde::Deserialize)]
@@ -606,10 +683,16 @@ impl ProviderAdapter for OpenAIAdapter {
             .map(|r| r.to_provider_string(self.format()).to_string())
             .unwrap_or_else(|| "stop".to_string());
 
-        let choices: Vec<Value> = resp
-            .messages
+        let response_messages = merge_reasoning_response_messages(
+            resp.messages
+                .iter()
+                .filter(|msg| !is_discovery_only_response_message(msg))
+                .cloned()
+                .collect(),
+        );
+
+        let choices: Vec<Value> = response_messages
             .iter()
-            .filter(|msg| !is_discovery_only_response_message(msg))
             .enumerate()
             .map(|(i, msg)| {
                 // Use extended type to include reasoning field in output

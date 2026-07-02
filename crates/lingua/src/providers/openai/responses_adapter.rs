@@ -1559,6 +1559,62 @@ mod tests {
     }
 
     #[test]
+    fn responses_reasoning_then_message_transforms_to_chat_content() {
+        let payload = json!({
+            "id": "resp_123",
+            "object": "response",
+            "model": "gpt-5.5",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "reasoning",
+                    "id": "rs_123",
+                    "summary": [],
+                    "encrypted_content": "encrypted-reasoning"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_123",
+                    "status": "completed",
+                    "role": "assistant",
+                    "content": [{
+                        "type": "output_text",
+                        "text": "visible answer",
+                        "annotations": []
+                    }]
+                }
+            ],
+            "usage": {
+                "input_tokens": 10,
+                "output_tokens": 12,
+                "output_tokens_details": {
+                    "reasoning_tokens": 4
+                },
+                "total_tokens": 22
+            }
+        });
+
+        let transformed = transform_response(
+            Bytes::from(payload.to_string()),
+            ProviderFormat::ChatCompletions,
+        )
+        .expect("Responses response should transform to Chat Completions")
+        .into_bytes();
+        let chat: Value = serde_json::from_slice(&transformed).unwrap();
+
+        assert_eq!(chat["choices"].as_array().unwrap().len(), 1);
+        assert_eq!(
+            chat["choices"][0]["message"]["content"],
+            json!("visible answer")
+        );
+        assert_eq!(chat["choices"][0]["message"]["reasoning"], json!(""));
+        assert_eq!(
+            chat["choices"][0]["message"]["reasoning_signature"],
+            json!("encrypted-reasoning")
+        );
+    }
+
+    #[test]
     fn test_responses_preserves_deferred_namespace_tool_search_tools() {
         let adapter = ResponsesAdapter;
         let namespace = json!({
