@@ -1600,17 +1600,35 @@ mod tests {
         )
         .expect("Responses response should transform to Chat Completions")
         .into_bytes();
-        let chat: Value = serde_json::from_slice(&transformed).unwrap();
 
-        assert_eq!(chat["choices"].as_array().unwrap().len(), 1);
+        #[derive(serde::Deserialize)]
+        struct ChatResponse {
+            choices: Vec<ChatChoice>,
+        }
+
+        #[derive(serde::Deserialize)]
+        struct ChatChoice {
+            message: ChatMessage,
+        }
+
+        #[derive(serde::Deserialize)]
+        struct ChatMessage {
+            content: Option<String>,
+            reasoning: Option<String>,
+            reasoning_signature: Option<String>,
+        }
+
+        let chat: ChatResponse = serde_json::from_slice(&transformed).unwrap();
+
+        assert_eq!(chat.choices.len(), 1);
         assert_eq!(
-            chat["choices"][0]["message"]["content"],
-            json!("visible answer")
+            chat.choices[0].message.content.as_deref(),
+            Some("visible answer")
         );
-        assert_eq!(chat["choices"][0]["message"]["reasoning"], json!(""));
+        assert_eq!(chat.choices[0].message.reasoning.as_deref(), Some(""));
         assert_eq!(
-            chat["choices"][0]["message"]["reasoning_signature"],
-            json!("encrypted-reasoning")
+            chat.choices[0].message.reasoning_signature.as_deref(),
+            Some("encrypted-reasoning")
         );
     }
 
