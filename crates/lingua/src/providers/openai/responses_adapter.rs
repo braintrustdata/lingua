@@ -25,7 +25,7 @@ use crate::providers::openai::{try_parse_responses, universal_to_responses_input
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, UserContent, UserContentPart,
+    AssistantContent, Message, TextContentPart, UserContent, UserContentPart,
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
@@ -54,83 +54,6 @@ fn system_text(message: &Message) -> Option<&str> {
         },
         _ => None,
     }
-}
-
-fn is_reasoning_only_response_message(msg: &Message) -> bool {
-    match msg {
-        Message::Assistant {
-            content: AssistantContent::Array(parts),
-            ..
-        } => {
-            !parts.is_empty()
-                && parts
-                    .iter()
-                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
-        }
-        _ => false,
-    }
-}
-
-fn merge_responses_output_parts(messages: Vec<Message>) -> Vec<Message> {
-    let mut merged = Vec::with_capacity(messages.len());
-
-    for message in messages {
-        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
-            && matches!(message, Message::Assistant { .. });
-
-        if !should_merge {
-            merged.push(message);
-            continue;
-        }
-
-        let Some(previous) = merged.pop() else {
-            merged.push(message);
-            continue;
-        };
-
-        let Message::Assistant {
-            content: AssistantContent::Array(reasoning_parts),
-            id: reasoning_id,
-        } = previous
-        else {
-            merged.push(previous);
-            merged.push(message);
-            continue;
-        };
-
-        let Message::Assistant {
-            content: next_content,
-            id: next_id,
-        } = message
-        else {
-            merged.push(Message::Assistant {
-                content: AssistantContent::Array(reasoning_parts),
-                id: reasoning_id,
-            });
-            merged.push(message);
-            continue;
-        };
-
-        let mut combined_parts = reasoning_parts;
-        match next_content {
-            AssistantContent::Array(parts) => combined_parts.extend(parts),
-            AssistantContent::String(text) => {
-                combined_parts.push(AssistantContentPart::Text(TextContentPart {
-                    text,
-                    encrypted_content: None,
-                    cache_control: None,
-                    provider_options: None,
-                }));
-            }
-        }
-
-        merged.push(Message::Assistant {
-            content: AssistantContent::Array(combined_parts),
-            id: next_id.or(reasoning_id),
-        });
-    }
-
-    merged
 }
 
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
@@ -722,7 +645,6 @@ impl ProviderAdapter for ResponsesAdapter {
 
         let messages: Vec<Message> = TryFromLLM::try_from(output_items)
             .map_err(|e: ConvertError| TransformError::ToUniversalFailed(e.to_string()))?;
-        let messages = merge_responses_output_parts(messages);
 
         let has_actionable_tool_calls = messages.iter().any(|m| {
             if let Message::Assistant {
@@ -1707,6 +1629,80 @@ mod tests {
         assert_eq!(
             chat.choices[0].message.reasoning_signature.as_deref(),
             Some("encrypted-reasoning")
+        );
+    }
+
+    #[test]
+    fn responses_reasoning_then_message_preserves_output_item_ids_in_universal() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "id": "resp_123",
+            "object": "response",
+            "model": "gpt-5.5",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "reasoning",
+                    "id": "rs_123",
+                    "summary": [],
+                    "encrypted_content": "encrypted-reasoning"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_123",
+                    "status": "completed",
+                    "role": "assistant",
+                    "content": [{
+                        "type": "output_text",
+                        "text": "visible answer",
+                        "annotations": []
+                    }]
+                }
+            ]
+        });
+
+        let universal = adapter
+            .response_to_universal(payload)
+            .expect("Responses output should convert to universal");
+
+        assert_eq!(universal.messages.len(), 2);
+        assert!(matches!(
+            &universal.messages[0],
+            Message::Assistant {
+                id: Some(id),
+                content: AssistantContent::Array(parts),
+            } if id == "rs_123" && matches!(parts.as_slice(), [AssistantContentPart::Reasoning { .. }])
+        ));
+        assert!(matches!(
+            &universal.messages[1],
+            Message::Assistant {
+                id: Some(id),
+                content: AssistantContent::Array(parts),
+            } if id == "msg_123" && matches!(parts.as_slice(), [AssistantContentPart::Text(_)])
+        ));
+
+        #[derive(serde::Deserialize)]
+        struct ResponsesOutput {
+            output: Vec<ResponsesOutputItem>,
+        }
+
+        #[derive(serde::Deserialize)]
+        struct ResponsesOutputItem {
+            id: String,
+        }
+
+        let serialized = adapter
+            .response_from_universal(&universal)
+            .expect("Universal response should convert back to Responses");
+        let responses: ResponsesOutput = serde_json::from_value(serialized).unwrap();
+
+        assert_eq!(
+            responses
+                .output
+                .iter()
+                .map(|item| item.id.clone())
+                .collect::<Vec<_>>(),
+            vec!["rs_123".to_string(), "msg_123".to_string()]
         );
     }
 

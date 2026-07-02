@@ -22,9 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, UniversalReasoningDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
+    UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -465,6 +466,83 @@ pub fn request_to_universal(input: Bytes) -> Result<UniversalRequest, TransformE
 // Response transformation
 // ============================================================================
 
+fn is_reasoning_only_response_message(msg: &Message) -> bool {
+    match msg {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+        }
+        _ => false,
+    }
+}
+
+fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> Vec<Message> {
+    let mut merged = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
+            && matches!(message, Message::Assistant { .. });
+
+        if !should_merge {
+            merged.push(message);
+            continue;
+        }
+
+        let Some(previous) = merged.pop() else {
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: AssistantContent::Array(reasoning_parts),
+            id: reasoning_id,
+        } = previous
+        else {
+            merged.push(previous);
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: next_content,
+            id: next_id,
+        } = message
+        else {
+            merged.push(Message::Assistant {
+                content: AssistantContent::Array(reasoning_parts),
+                id: reasoning_id,
+            });
+            merged.push(message);
+            continue;
+        };
+
+        let mut combined_parts = reasoning_parts;
+        match next_content {
+            AssistantContent::Array(parts) => combined_parts.extend(parts),
+            AssistantContent::String(text) => {
+                combined_parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }));
+            }
+        }
+
+        merged.push(Message::Assistant {
+            content: AssistantContent::Array(combined_parts),
+            id: next_id.or(reasoning_id),
+        });
+    }
+
+    merged
+}
+
 /// Transform a response payload from one format to another.
 ///
 /// # Arguments
@@ -495,7 +573,16 @@ pub fn transform_response(
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
 
-    let universal_resp = source_adapter.response_to_universal(response)?;
+    let mut universal_resp = source_adapter.response_to_universal(response)?;
+    if source_format == ProviderFormat::Responses
+        && matches!(
+            target_format,
+            ProviderFormat::ChatCompletions | ProviderFormat::Google
+        )
+    {
+        universal_resp.messages =
+            merge_responses_output_parts_for_chat_completions(universal_resp.messages);
+    }
     let transformed = target_adapter.response_from_universal(&universal_resp)?;
 
     let bytes = crate::serde_json::to_vec(&transformed)
