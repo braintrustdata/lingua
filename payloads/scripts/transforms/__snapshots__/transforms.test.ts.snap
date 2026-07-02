@@ -25841,15 +25841,6 @@ exports[`google → responses > complexReasoningRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Total digits shown over a full day (00:00 to 23:59) are 24 hours × 60 minutes × 4 digits = 5,760 digits.
 
@@ -25883,7 +25874,7 @@ So:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -25939,15 +25930,6 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -25960,7 +25942,7 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -25998,15 +25980,6 @@ exports[`google → responses > googleOpenAIModelTopKParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "An API gateway acts as a single entry point that handles authentication, rate limiting, and routing for backend services.",
           },
@@ -26014,7 +25987,7 @@ exports[`google → responses > googleOpenAIModelTopKParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26147,15 +26120,6 @@ exports[`google → responses > googleThinkingJsonSchemaParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"confidence":0.0,"recommendation":"Highlight price‑performance tradeoffs between the mics and invite viewers to share their own outdoor setups to boost engagement.","topic":"Mic setup comparison and outdoor performance with audience engagement"}",
           },
@@ -26163,7 +26127,7 @@ exports[`google → responses > googleThinkingJsonSchemaParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26231,15 +26195,6 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > resp
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "The collections in mydb are:
 - movies
@@ -26251,7 +26206,7 @@ Would you like any details from these collections (e.g., document counts or samp
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26317,15 +26272,6 @@ exports[`google → responses > googleToolSchemaNumericInt64Param > response 1`]
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are the bounds the tool schema enforces:
 
@@ -26349,7 +26295,7 @@ Please provide values for index_name and tags (an array of strings), and I’ll 
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26386,15 +26332,6 @@ exports[`google → responses > imageConfigParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are a couple of simple ways to render a tiny red dot.
 
@@ -26410,7 +26347,7 @@ If you had a different size or format in mind (PNG, data URL, etc.), tell me and
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26456,15 +26393,6 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "A cute tabby cat lies stretched out on a wooden surface, facing the camera. It has striped brown-gray fur, large amber eyes, and long white whiskers. Its front paws are extended forward, and its head is slightly tilted to the side, with a soft, indoor background blurred behind it.",
           },
@@ -26472,7 +26400,7 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26509,15 +26437,6 @@ exports[`google → responses > instructionsParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! How can I help today? I can answer questions, explain concepts, draft or edit text, brainstorm ideas, help with code, translate, summarize, plan things, or analyze images. Tell me what you’d like to do or what you’re curious about.",
           },
@@ -26525,7 +26444,7 @@ exports[`google → responses > instructionsParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26831,15 +26750,6 @@ exports[`google → responses > maxCompletionTokensParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Ok.",
           },
@@ -26847,7 +26757,7 @@ exports[`google → responses > maxCompletionTokensParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26884,15 +26794,6 @@ exports[`google → responses > mediaResolutionParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I can’t see an image attached. Please upload the image or share a link, and I’ll give a brief description (1–2 sentences) focusing on the main subject, setting, and mood.",
           },
@@ -26900,7 +26801,7 @@ exports[`google → responses > mediaResolutionParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27033,15 +26934,6 @@ exports[`google → responses > parallelToolCallsRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here’s the current weather:
 
@@ -27054,7 +26946,7 @@ Want a 7-day forecast or a weather alert for either city?",
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27094,15 +26986,6 @@ exports[`google → responses > reasoningEffortLowParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "4 (in base-10 arithmetic).",
           },
@@ -27110,7 +26993,7 @@ exports[`google → responses > reasoningEffortLowParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27147,15 +27030,6 @@ exports[`google → responses > reasoningRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Step-by-step:
 
@@ -27171,7 +27045,7 @@ Answer: 200/3 mph (about 66.67 mph)",
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27253,15 +27127,6 @@ exports[`google → responses > reasoningSummaryParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "4",
           },
@@ -27269,7 +27134,7 @@ exports[`google → responses > reasoningSummaryParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27306,15 +27171,6 @@ exports[`google → responses > reasoningWithOutput > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "On a clear day, the sky usually looks blue. This is because sunlight is scattered by the Earth's atmosphere, and blue light scatters more than other colors.
 
@@ -27328,7 +27184,7 @@ The color can change:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27365,15 +27221,6 @@ exports[`google → responses > responseModalitiesAudioParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hello! It’s wonderful to meet you.",
           },
@@ -27381,7 +27228,7 @@ exports[`google → responses > responseModalitiesAudioParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27418,15 +27265,6 @@ exports[`google → responses > seedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "7",
           },
@@ -27434,7 +27272,7 @@ exports[`google → responses > seedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27471,15 +27309,6 @@ exports[`google → responses > simpleRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Paris.",
           },
@@ -27487,7 +27316,7 @@ exports[`google → responses > simpleRequest > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27565,15 +27394,6 @@ exports[`google → responses > speechConfigParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hello! It’s wonderful to meet you.",
           },
@@ -27581,7 +27401,7 @@ exports[`google → responses > speechConfigParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27618,15 +27438,6 @@ exports[`google → responses > stopSequencesParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
           },
@@ -27634,7 +27445,7 @@ exports[`google → responses > stopSequencesParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27713,15 +27524,6 @@ exports[`google → responses > temperatureParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! 👋 How can I help today?",
           },
@@ -27729,7 +27531,7 @@ exports[`google → responses > temperatureParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27771,15 +27573,6 @@ exports[`google → responses > textFormatJsonObjectParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"status": "ok"}",
           },
@@ -27787,7 +27580,7 @@ exports[`google → responses > textFormatJsonObjectParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27846,15 +27639,6 @@ exports[`google → responses > textFormatJsonSchemaParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"age":25,"name":"John"}",
           },
@@ -27862,7 +27646,7 @@ exports[`google → responses > textFormatJsonSchemaParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27921,15 +27705,6 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"age":25,"name":"John"}",
           },
@@ -27937,7 +27712,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27977,15 +27752,6 @@ exports[`google → responses > thinkingLevelParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I’m ready to help, but I don’t see the problem statement yet. Please share one of the following:
 
@@ -28009,7 +27775,7 @@ If you can’t share the problem statement, you can still describe it (in your o
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28066,15 +27832,6 @@ exports[`google → responses > toolCallRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28087,7 +27844,7 @@ exports[`google → responses > toolCallRequest > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28143,15 +27900,6 @@ exports[`google → responses > toolChoiceAnyParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28164,7 +27912,7 @@ exports[`google → responses > toolChoiceAnyParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28220,15 +27968,6 @@ exports[`google → responses > toolChoiceAutoParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Sure—what location would you like the weather for? Please specify a city (and country if needed) or a ZIP/postal code.
 
@@ -28242,7 +27981,7 @@ If you just want the current weather for your area, share your location and I’
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28298,15 +28037,6 @@ exports[`google → responses > toolChoiceNoneParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I can’t access live weather data right now. Tell me:
 
@@ -28320,7 +28050,7 @@ If you’d like, I can guide you to check it quickly on your phone or computer u
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28379,15 +28109,6 @@ exports[`google → responses > toolChoiceRequiredParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28400,7 +28121,7 @@ exports[`google → responses > toolChoiceRequiredParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28462,15 +28183,6 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > response 
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28483,7 +28195,7 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > response 
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28539,15 +28251,6 @@ exports[`google → responses > toolModeValidatedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28560,7 +28263,7 @@ exports[`google → responses > toolModeValidatedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28597,15 +28300,6 @@ exports[`google → responses > topKParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! How can I help you today?",
           },
@@ -28613,7 +28307,7 @@ exports[`google → responses > topKParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28650,15 +28344,6 @@ exports[`google → responses > topPParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! 👋 How can I help you today?",
           },
@@ -28666,7 +28351,7 @@ exports[`google → responses > topPParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28708,15 +28393,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28741,7 +28417,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
     {
       "content": {
@@ -28750,15 +28426,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28777,7 +28444,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 1,
     },
     {
       "content": {
@@ -28786,15 +28453,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28819,7 +28477,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 5,
+      "index": 2,
     },
     {
       "content": {
@@ -28828,15 +28486,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28855,7 +28504,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 7,
+      "index": 3,
     },
     {
       "content": {
@@ -28864,15 +28513,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 8,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28891,7 +28531,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 9,
+      "index": 4,
     },
     {
       "content": {
@@ -28900,15 +28540,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 10,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28931,7 +28562,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 11,
+      "index": 5,
     },
     {
       "content": {
@@ -28940,15 +28571,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 12,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28967,7 +28589,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 13,
+      "index": 6,
     },
     {
       "content": {
@@ -28976,15 +28598,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 14,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29007,7 +28620,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 15,
+      "index": 7,
     },
     {
       "content": {
@@ -29016,15 +28629,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 16,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29043,7 +28647,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 17,
+      "index": 8,
     },
     {
       "content": {
@@ -29052,15 +28656,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 18,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29079,7 +28674,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 19,
+      "index": 9,
     },
     {
       "content": {
@@ -29088,15 +28683,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 20,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29115,7 +28701,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 21,
+      "index": 10,
     },
     {
       "content": {
@@ -29124,15 +28710,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 22,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29151,7 +28728,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 23,
+      "index": 11,
     },
     {
       "content": {
@@ -29160,15 +28737,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 24,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are some notable AI news items in early 2026 (with exact dates for clarity). Want deeper details on any item?
 
@@ -29209,7 +28777,7 @@ If you’d like, I can:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 25,
+      "index": 12,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29251,15 +28819,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29284,7 +28843,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
     {
       "content": {
@@ -29293,15 +28852,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29324,7 +28874,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 1,
     },
     {
       "content": {
@@ -29333,15 +28883,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29364,7 +28905,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 5,
+      "index": 2,
     },
     {
       "content": {
@@ -29373,15 +28914,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are the latest OpenAI news highlights as of today, April 7, 2026. If you want deeper details on any item, I can pull up the full article or official post.
 
@@ -29402,7 +28934,7 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 7,
+      "index": 3,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",

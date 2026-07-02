@@ -25,7 +25,7 @@ use crate::providers::openai::{try_parse_responses, universal_to_responses_input
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
-    AssistantContent, Message, TextContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, UserContent, UserContentPart,
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
@@ -54,6 +54,83 @@ fn system_text(message: &Message) -> Option<&str> {
         },
         _ => None,
     }
+}
+
+fn is_reasoning_only_response_message(msg: &Message) -> bool {
+    match msg {
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+        }
+        _ => false,
+    }
+}
+
+fn merge_responses_output_parts(messages: Vec<Message>) -> Vec<Message> {
+    let mut merged = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
+            && matches!(message, Message::Assistant { .. });
+
+        if !should_merge {
+            merged.push(message);
+            continue;
+        }
+
+        let Some(previous) = merged.pop() else {
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: AssistantContent::Array(reasoning_parts),
+            id: reasoning_id,
+        } = previous
+        else {
+            merged.push(previous);
+            merged.push(message);
+            continue;
+        };
+
+        let Message::Assistant {
+            content: next_content,
+            id: next_id,
+        } = message
+        else {
+            merged.push(Message::Assistant {
+                content: AssistantContent::Array(reasoning_parts),
+                id: reasoning_id,
+            });
+            merged.push(message);
+            continue;
+        };
+
+        let mut combined_parts = reasoning_parts;
+        match next_content {
+            AssistantContent::Array(parts) => combined_parts.extend(parts),
+            AssistantContent::String(text) => {
+                combined_parts.push(AssistantContentPart::Text(TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: None,
+                }));
+            }
+        }
+
+        merged.push(Message::Assistant {
+            content: AssistantContent::Array(combined_parts),
+            id: next_id.or(reasoning_id),
+        });
+    }
+
+    merged
 }
 
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
@@ -645,6 +722,7 @@ impl ProviderAdapter for ResponsesAdapter {
 
         let messages: Vec<Message> = TryFromLLM::try_from(output_items)
             .map_err(|e: ConvertError| TransformError::ToUniversalFailed(e.to_string()))?;
+        let messages = merge_responses_output_parts(messages);
 
         let has_actionable_tool_calls = messages.iter().any(|m| {
             if let Message::Assistant {
