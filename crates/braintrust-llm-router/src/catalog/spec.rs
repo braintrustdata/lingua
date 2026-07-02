@@ -54,16 +54,18 @@ fn default_true() -> bool {
 
 pub fn model_requires_responses_api(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
-    let gpt5_minor = lower
+    // Bedrock namespaces OpenAI models as `openai.<model>` (e.g. `openai.gpt-5.4`).
+    let normalized = lower.strip_prefix("openai.").unwrap_or(lower.as_str());
+    let gpt5_minor = normalized
         .strip_prefix("gpt-5.")
         .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
         .and_then(|minor| (!minor.is_empty()).then_some(minor))
         .and_then(|minor| minor.parse::<u32>().ok());
-    lower.starts_with("o1-pro")
-        || lower.starts_with("o3-pro")
-        || lower.starts_with("gpt-5-pro")
+    normalized.starts_with("o1-pro")
+        || normalized.starts_with("o3-pro")
+        || normalized.starts_with("gpt-5-pro")
         || gpt5_minor.is_some_and(|minor| minor >= 3)
-        || (lower.starts_with("gpt-5") && lower.contains("-codex"))
+        || (normalized.starts_with("gpt-5") && normalized.contains("-codex"))
 }
 
 impl ModelSpec {
@@ -90,6 +92,8 @@ mod tests {
             "gpt-5-codex",
             "gpt-5.1-codex",
             "gpt-5.1-codex-mini",
+            "openai.gpt-5.4",
+            "openai.gpt-5.5",
         ];
         for model in required {
             assert!(
@@ -108,6 +112,8 @@ mod tests {
             "gpt-5.2-chat-latest",
             "gpt-4o",
             "claude-sonnet-4",
+            "openai.gpt-oss-120b",
+            "openai.gpt-oss-safeguard-120b",
         ];
         for model in not_required {
             assert!(
