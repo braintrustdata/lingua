@@ -185,7 +185,7 @@ fn generate_openai_types_with_quicktype(
     let quicktype_output = match output {
         Ok(output) => {
             if output.status.success() {
-                String::from_utf8(output.stdout)?
+                strip_quicktype_preamble(&String::from_utf8(output.stdout)?)
             } else {
                 return Err(format!(
                     "quicktype failed: {}",
@@ -481,7 +481,7 @@ fn generate_anthropic_types_with_quicktype(
     let quicktype_output = match output {
         Ok(output) => {
             if output.status.success() {
-                String::from_utf8(output.stdout)?
+                strip_quicktype_preamble(&String::from_utf8(output.stdout)?)
             } else {
                 return Err(format!(
                     "quicktype failed: {}",
@@ -869,6 +869,23 @@ fn ensure_serde_json_imports(content: &str) -> String {
     }
 
     new_lines.join("\n")
+}
+
+fn strip_quicktype_preamble(raw_output: &str) -> String {
+    let lines: Vec<&str> = raw_output.lines().collect();
+    let first_rust_line = lines
+        .iter()
+        .position(|line| {
+            let trimmed = line.trim();
+            trimmed.starts_with("//")
+                || trimmed.starts_with("extern")
+                || trimmed.starts_with("use ")
+                || trimmed.starts_with("#[")
+                || trimmed.starts_with("#![")
+                || trimmed.starts_with("pub ")
+        })
+        .unwrap_or(0);
+    lines[first_rust_line..].join("\n")
 }
 
 fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String {
@@ -1360,7 +1377,9 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
     let quicktype_output = match output {
         Ok(output) => {
             if output.status.success() {
-                String::from_utf8(output.stdout).expect("Invalid UTF-8 from quicktype")
+                strip_quicktype_preamble(
+                    &String::from_utf8(output.stdout).expect("Invalid UTF-8 from quicktype"),
+                )
             } else {
                 println!(
                     "❌ quicktype failed: {}",

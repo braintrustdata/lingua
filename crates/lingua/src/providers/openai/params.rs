@@ -5,7 +5,9 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
+use crate::providers::openai::generated::{
+    ChatCompletionRequestMessage, Context as ReasoningContext, Instructions, Summary,
+};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -221,8 +223,12 @@ pub enum OpenAIReasoningEffort {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OpenAIReasoning {
     pub effort: Option<OpenAIReasoningEffort>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<ReasoningContext>,
 }
 
 #[cfg(test)]
