@@ -167,7 +167,9 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_anthropic_request_accepts_tool_search_tool() {
+    fn test_validate_anthropic_request_rejects_bare_tool_search_tool() {
+        // tool_search_tool_* variants were removed from the generated Tool enum.
+        // Bare tool_search entries (no input_schema) fail CustomTool fallback.
         let json = r#"{
             "model": "claude-3-5-sonnet-20241022",
             "messages": [
@@ -181,6 +183,52 @@ mod tests {
                 {
                     "name": "tool_search_tool_regex",
                     "type": "tool_search_tool_regex_20251119"
+                }
+            ]
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_web_search_tool() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "tools": [
+                {
+                    "name": "web_search",
+                    "type": "web_search_20260318"
+                }
+            ]
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_web_fetch_tool() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "tools": [
+                {
+                    "name": "web_fetch",
+                    "type": "web_fetch_20260318"
                 }
             ]
         }"#;

@@ -560,7 +560,10 @@ mod tests {
     }
 
     #[test]
-    fn test_try_parse_anthropic_with_tool_search_tool() {
+    fn test_try_parse_anthropic_with_tool_search_tool_no_longer_in_tool_union() {
+        // tool_search_tool_* variants were removed from the generated Tool enum.
+        // Bare tool_search entries (no input_schema) no longer deserialize as
+        // CreateMessageParams because the CustomTool fallback requires input_schema.
         let payload = json!({
             "model": "claude-3-5-sonnet-20241022",
             "max_tokens": 1024,
@@ -571,6 +574,44 @@ mod tests {
                 {
                     "name": "tool_search_tool_regex",
                     "type": "tool_search_tool_regex_20251119"
+                }
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_with_web_search_tool() {
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ],
+            "tools": [
+                {
+                    "name": "web_search",
+                    "type": "web_search_20260318"
+                }
+            ]
+        });
+
+        assert!(try_parse_anthropic(&payload).is_ok());
+    }
+
+    #[test]
+    fn test_try_parse_anthropic_with_web_fetch_tool() {
+        let payload = json!({
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1024,
+            "messages": [
+                {"role": "user", "content": "Hello"}
+            ],
+            "tools": [
+                {
+                    "name": "web_fetch",
+                    "type": "web_fetch_20260318"
                 }
             ]
         });

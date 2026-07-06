@@ -225,6 +225,10 @@ fn {test_fn_name}() {{
     fs::write(&dest_path, generated_tests).unwrap();
 }
 
+// Snapshots whose request.json can no longer deserialize as CreateMessageParams
+// after the Tool enum update (tool_search_tool_* variants removed).
+const ANTHROPIC_ROUNDTRIP_SKIP_CASES: &[&str] = &["responsesToolSearchInputParam"];
+
 fn generate_anthropic_test_cases(workspace: &Path, generate_snapshot_tests: bool) {
     let snapshots_dir = workspace.join("payloads/snapshots");
 
@@ -268,6 +272,10 @@ fn generate_anthropic_test_cases(workspace: &Path, generate_snapshot_tests: bool
 
             // Skip hidden directories and cache files
             if test_case_name.starts_with('.') {
+                continue;
+            }
+
+            if ANTHROPIC_ROUNDTRIP_SKIP_CASES.contains(&test_case_name) {
                 continue;
             }
 

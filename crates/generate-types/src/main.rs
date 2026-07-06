@@ -147,6 +147,17 @@ fn generate_openai_specific_types(openai_spec: &str) {
     }
 }
 
+fn strip_quicktype_noise(output: &str) -> String {
+    output
+        .lines()
+        .filter(|line| {
+            let trimmed = line.trim();
+            !(trimmed.starts_with("===") && trimmed.ends_with("==="))
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn generate_openai_types_with_quicktype(
     openapi_spec: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -196,6 +207,7 @@ fn generate_openai_types_with_quicktype(
         }
         Err(e) => return Err(format!("Failed to run quicktype: {}", e).into()),
     };
+    let quicktype_output = strip_quicktype_noise(&quicktype_output);
 
     // Clean up temp file
     let _ = std::fs::remove_file(&temp_schema_path);
@@ -492,6 +504,7 @@ fn generate_anthropic_types_with_quicktype(
         }
         Err(e) => return Err(format!("Failed to run quicktype: {}", e).into()),
     };
+    let quicktype_output = strip_quicktype_noise(&quicktype_output);
 
     // Clean up temp file
     let _ = std::fs::remove_file(&temp_schema_path);
@@ -1382,6 +1395,7 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
             return;
         }
     };
+    let quicktype_output = strip_quicktype_noise(&quicktype_output);
 
     let _ = std::fs::remove_file(&temp_schema_path);
 
