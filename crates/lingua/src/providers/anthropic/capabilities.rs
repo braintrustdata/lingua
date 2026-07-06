@@ -8,9 +8,9 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
+        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
     )
-    .expect("valid Opus 4.7+ or Fable model regex")
+    .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
 });
 static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.:])|^claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.])")
@@ -18,7 +18,7 @@ static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
 });
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
-/// Only Opus 4.5+ models support this. All models support `thinking` as fallback.
+/// Opus 4.5+ and Sonnet 5+ models support this. All models support `thinking` as fallback.
 pub fn supports_output_config_effort(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     // Bedrock/Vertex model IDs wrap the Anthropic model token with provider-specific
@@ -148,6 +148,17 @@ mod tests {
         assert!(supports_output_config_effort(
             "anthropic/claude-opus-5-0@20260701"
         ));
+        assert!(supports_output_config_effort("claude-sonnet-5"));
+        assert!(supports_output_config_effort("claude-sonnet-5-20260701"));
+        assert!(supports_output_config_effort("CLAUDE-SONNET-5"));
+        assert!(supports_output_config_effort(
+            "us.anthropic.claude-sonnet-5-v1:0"
+        ));
+        assert!(supports_output_config_effort(
+            "anthropic/claude-sonnet-5@20260701"
+        ));
+        assert!(supports_output_config_effort("claude-sonnet-5.0"));
+        assert!(supports_output_config_effort("claude-sonnet-5-1-20260715"));
 
         // Other models do not
         assert!(!supports_output_config_effort("claude-opus-4-4"));
@@ -178,6 +189,12 @@ mod tests {
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
             "anthropic/claude-opus-5-0@20260701",
+            "claude-sonnet-5",
+            "claude-sonnet-5-20260701",
+            "CLAUDE-SONNET-5",
+            "us.anthropic.claude-sonnet-5-v1:0",
+            "anthropic/claude-sonnet-5@20260701",
+            "claude-sonnet-5.0",
         ];
         let legacy_models = [
             "claude-opus-4-20250514",
@@ -282,6 +299,19 @@ mod tests {
                 "anthropic/claude-opus-5-0@20260701",
                 &[StripSamplingParams][..],
             ),
+            ("claude-sonnet-5", &[StripSamplingParams][..]),
+            ("claude-sonnet-5-20260701", &[StripSamplingParams][..]),
+            ("CLAUDE-SONNET-5", &[StripSamplingParams][..]),
+            (
+                "us.anthropic.claude-sonnet-5-v1:0",
+                &[StripSamplingParams][..],
+            ),
+            (
+                "anthropic/claude-sonnet-5@20260701",
+                &[StripSamplingParams][..],
+            ),
+            ("claude-sonnet-5.0", &[StripSamplingParams][..]),
+            ("claude-sonnet-5-1-20260715", &[StripSamplingParams][..]),
             ("claude-fable-5", &[StripSamplingParams][..]),
             ("claude-fable-5-20260601", &[StripSamplingParams][..]),
             ("CLAUDE-FABLE-5", &[StripSamplingParams][..]),
@@ -319,6 +349,12 @@ mod tests {
             "claude-opus-5-0",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
+            "claude-sonnet-5",
+            "claude-sonnet-5-20260701",
+            "CLAUDE-SONNET-5",
+            "us.anthropic.claude-sonnet-5-v1:0",
+            "anthropic/claude-sonnet-5@20260701",
+            "claude-sonnet-5.0",
             "claude-fable-5",
             "claude-fable-5-20260601",
             "CLAUDE-FABLE-5",
@@ -359,6 +395,12 @@ mod tests {
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
             "anthropic/claude-opus-5-0@20260701",
+            "claude-sonnet-5",
+            "claude-sonnet-5-20260701",
+            "CLAUDE-SONNET-5",
+            "us.anthropic.claude-sonnet-5-v1:0",
+            "anthropic/claude-sonnet-5@20260701",
+            "claude-sonnet-5.0",
         ];
         let preserve_models = [
             "claude-opus-4-20250514",
@@ -412,6 +454,46 @@ mod tests {
             );
             assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
             assert!(!obj.contains_key("top_k"), "{} should strip top_k", model);
+        }
+    }
+
+    #[test]
+    fn test_sonnet_5_strips_sampling_params() {
+        for model in [
+            "claude-sonnet-5",
+            "claude-sonnet-5-20260701",
+            "CLAUDE-SONNET-5",
+            "claude-sonnet-5.0",
+            "claude-sonnet-5-1-20260715",
+            "us.anthropic.claude-sonnet-5-v1:0",
+            "anthropic/claude-sonnet-5@20260701",
+        ] {
+            let mut obj = object_with_sampling_params();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("temperature"),
+                "{} should strip temperature",
+                model
+            );
+            assert!(!obj.contains_key("top_p"), "{} should strip top_p", model);
+            assert!(!obj.contains_key("top_k"), "{} should strip top_k", model);
+        }
+
+        // Sonnet 4 and earlier must keep sampling params.
+        for model in [
+            "claude-sonnet-4-5-20250929",
+            "claude-sonnet-4-20250514",
+            "claude-3-5-sonnet-20241022",
+        ] {
+            let mut obj = object_with_sampling_params();
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                obj.contains_key("temperature"),
+                "{} should preserve temperature",
+                model
+            );
+            assert!(obj.contains_key("top_p"), "{} should preserve top_p", model);
+            assert!(obj.contains_key("top_k"), "{} should preserve top_k", model);
         }
     }
 }

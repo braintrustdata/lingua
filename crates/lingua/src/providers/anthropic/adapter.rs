@@ -145,6 +145,10 @@ fn reasoning_is_enabled(config: &ReasoningConfig) -> bool {
             || config.budget_tokens.is_some())
 }
 
+fn reasoning_is_disabled(config: &ReasoningConfig) -> bool {
+    config.effort == Some(ReasoningEffort::None) || config.enabled == Some(false)
+}
+
 fn reasoning_effort_level(
     config: Option<&ReasoningConfig>,
     max_tokens: Option<i64>,
@@ -438,6 +442,7 @@ impl ProviderAdapter for AnthropicAdapter {
         // - All other cases → thinking object (legacy, broad model support)
         // Both branches use output_config.format for structured output (never output_format).
         let reasoning_config = req.params.reasoning.as_ref();
+        let reasoning_is_disabled = reasoning_config.is_some_and(reasoning_is_disabled);
         let use_adaptive_thinking = capabilities::supports_adaptive_thinking(model)
             && reasoning_config.is_some_and(reasoning_is_enabled);
         let use_effort = capabilities::supports_output_config_effort(model)
@@ -455,7 +460,20 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
             )
         } else if use_effort {
-            None
+            // These models think by default when `thinking` is omitted, so an explicit
+            // opt-out (effort=none / enabled=false) must emit `thinking: {type: "disabled"}`.
+            if reasoning_is_disabled {
+                Some(
+                    serde_json::to_value(&Thinking {
+                        budget_tokens: None,
+                        display: None,
+                        thinking_type: ThinkingType::Disabled,
+                    })
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                )
+            } else {
+                None
+            }
         } else {
             req.params.reasoning_for(ProviderFormat::Anthropic)
         };
@@ -1877,6 +1895,87 @@ mod tests {
             .output_config
             .expect("output_config should be present");
         assert_eq!(output_config.effort, Some(EffortLevel::Medium));
+    }
+
+    #[test]
+    fn test_anthropic_emits_disabled_thinking_for_effort_none() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::ReasoningConfig;
+
+        // These models think by default when `thinking` is omitted, so a cross-provider
+        // `reasoning_effort: "none"` (universal ReasoningEffort::None) must be translated
+        // to `thinking: {type: "disabled"}` rather than dropped.
+        for model in ["claude-sonnet-5", "claude-opus-4-7", "claude-opus-4-8"] {
+            let adapter = AnthropicAdapter;
+
+            let req = UniversalRequest {
+                model: Some(model.to_string()),
+                messages: vec![Message::User {
+                    content: UserContent::String("What is 2+2?".to_string()),
+                }],
+                params: UniversalParams {
+                    reasoning: Some(ReasoningConfig {
+                        effort: Some(ReasoningEffort::None),
+                        canonical: Some(ReasoningCanonical::Effort),
+                        ..Default::default()
+                    }),
+                    token_budget: Some(TokenBudget::OutputTokens(4096)),
+                    ..Default::default()
+                },
+            };
+
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+            let thinking = result.thinking.expect("thinking should be disabled");
+            assert_eq!(
+                thinking.thinking_type,
+                ThinkingType::Disabled,
+                "{model} should emit disabled thinking for effort=none"
+            );
+            assert!(
+                result
+                    .output_config
+                    .as_ref()
+                    .and_then(|c| c.effort.clone())
+                    .is_none(),
+                "{model} should not set output_config.effort for effort=none"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_cross_provider_reasoning_effort_none_emits_disabled() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // OpenAI `reasoning_effort: "none"` flowing into a Sonnet 5 / Opus 4.7+ target
+        // must arrive as `thinking: {type: "disabled"}` so thinking doesn't run by default.
+        for model in ["claude-sonnet-5", "claude-opus-4-7", "claude-opus-4-8"] {
+            let openai_adapter = OpenAIAdapter;
+            let anthropic_adapter = AnthropicAdapter;
+
+            let openai_payload = json!({
+                "model": "gpt-5",
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "reasoning_effort": "none"
+            });
+
+            let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+            universal.model = Some(model.to_string());
+
+            let anthropic_payload = anthropic_adapter
+                .request_from_universal(&universal)
+                .unwrap();
+            let thinking = anthropic_payload
+                .get("thinking")
+                .expect("thinking should be emitted for reasoning_effort none");
+            assert_eq!(
+                thinking.get("type").and_then(Value::as_str),
+                Some("disabled"),
+                "{model}: reasoning_effort=none must produce thinking.type=disabled"
+            );
+        }
     }
 
     #[test]
