@@ -563,7 +563,10 @@ impl ProviderAdapter for AnthropicAdapter {
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
         // Build output_config (always used for structured output format, and for effort on Opus 4.5+)
-        let effort_level = if use_effort {
+        // Forced tool_choice is incompatible with active thinking. The thinking guard below
+        // drops the `thinking` object in that case; drop `effort` too so the request does not
+        // ask for reasoning the guard just disabled. `format` is independent of thinking.
+        let effort_level = if use_effort && !forced_tool_choice {
             reasoning_effort_level(reasoning_config, Some(max_tokens))
         } else {
             None
@@ -587,6 +590,11 @@ impl ProviderAdapter for AnthropicAdapter {
             // reconstruct when there is no raw output_config.
             if let Some(raw_output_config) = raw_output_config {
                 let mut output_config = raw_output_config.clone();
+                if forced_tool_choice {
+                    if let Some(obj) = output_config.as_object_mut() {
+                        obj.remove("effort");
+                    }
+                }
                 if let Some(format) = format {
                     let format_value = serde_json::to_value(&format)
                         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
@@ -2066,6 +2074,137 @@ mod tests {
             effort,
             Some("xhigh"),
             "reasoning_effort=xhigh must map to output_config.effort=xhigh, not max"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_drops_effort_for_forced_tool_choice_on_sonnet_5() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // Forced tool_choice is incompatible with active thinking. The adapter drops the
+        // `thinking` object in that case; output_config.effort must also be dropped so the
+        // request does not request reasoning the guard just disabled.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Tool),
+                    tool_name: Some("calc".to_string()),
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        // thinking is dropped by the forced-tool guard
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for forced tool_choice"
+        );
+        // effort is dropped too
+        let effort = result
+            .output_config
+            .as_ref()
+            .and_then(|c| c.effort.as_ref().map(|e| serde_json::to_value(e).unwrap()));
+        assert!(
+            effort.is_none(),
+            "output_config.effort should be dropped for forced tool_choice, got {effort:?}"
+        );
+        // tool_choice is still emitted
+        assert!(
+            result.tool_choice.is_some(),
+            "tool_choice should be emitted"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_effort_when_tool_choice_not_forced() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // Auto tool_choice is not forced, so effort and adaptive thinking are preserved.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Auto),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        let thinking = result.thinking.expect("thinking should be present");
+        assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(output_config.effort, Some(EffortLevel::High));
+    }
+
+    #[test]
+    fn test_anthropic_drops_raw_effort_for_forced_tool_choice_round_trip() {
+        // Same-provider Anthropic round-trip: raw output_config.effort must be dropped when
+        // tool_choice is forced, while an attached format is retained.
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-sonnet-5",
+            "max_tokens": 2048,
+            "tool_choice": {"type": "tool", "name": "calc"},
+            "tools": [{"name": "calc", "description": "calc", "input_schema": {"type": "object", "properties": {"x": {"type": "number"}}, "required": ["x"]}}],
+            "output_config": {
+                "effort": "xhigh",
+                "format": {"type": "json_schema", "schema": {"type": "object", "properties": {}, "additionalProperties": false}}
+            },
+            "messages": [{"role": "user", "content": "Use calc x=2"}]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for forced tool_choice"
+        );
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert!(
+            output_config.effort.is_none(),
+            "raw output_config.effort should be dropped for forced tool_choice"
+        );
+        assert!(
+            output_config.format.is_some(),
+            "output_config.format should be retained for forced tool_choice"
         );
     }
 
