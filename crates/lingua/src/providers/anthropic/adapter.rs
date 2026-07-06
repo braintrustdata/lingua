@@ -165,7 +165,7 @@ fn reasoning_effort_level(
         ReasoningEffort::Minimal | ReasoningEffort::Low => Some(EffortLevel::Low),
         ReasoningEffort::Medium => Some(EffortLevel::Medium),
         ReasoningEffort::High => Some(EffortLevel::High),
-        ReasoningEffort::Xhigh => Some(EffortLevel::Max),
+        ReasoningEffort::Xhigh => Some(EffortLevel::Xhigh),
     }
 }
 
@@ -581,7 +581,27 @@ impl ProviderAdapter for AnthropicAdapter {
         let raw_thinking = anthropic_extras_view.thinking.as_ref();
 
         if use_adaptive_thinking {
-            if effort_level.is_some() || format.is_some() {
+            // Same-provider Anthropic round-trips carry the original `output_config` in
+            // extras. Prefer it verbatim so distinct effort values (e.g. "xhigh" vs "max",
+            // which the universal ReasoningEffort enum collapses) survive unchanged. Only
+            // reconstruct when there is no raw output_config.
+            if let Some(raw_output_config) = raw_output_config {
+                let mut output_config = raw_output_config.clone();
+                if let Some(format) = format {
+                    let format_value = serde_json::to_value(&format)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    output_config
+                        .as_object_mut()
+                        .ok_or_else(|| {
+                            TransformError::FromUniversalFailed(
+                                "output_config extras is not an object".to_string(),
+                            )
+                        })?
+                        .entry("format")
+                        .or_insert(format_value);
+                }
+                obj.insert("output_config".into(), output_config);
+            } else if effort_level.is_some() || format.is_some() {
                 let output_config = OutputConfig {
                     effort: effort_level,
                     format,
@@ -1976,6 +1996,77 @@ mod tests {
                 "{model}: reasoning_effort=none must produce thinking.type=disabled"
             );
         }
+    }
+
+    #[test]
+    fn test_anthropic_preserves_raw_output_config_effort_for_sonnet_5() {
+        // Same-provider Anthropic round-trip: a raw `output_config.effort` of "xhigh"
+        // must survive verbatim and not collapse to "max" through the universal enum.
+        for (model, effort) in [
+            ("claude-sonnet-5", "xhigh"),
+            ("claude-sonnet-5", "max"),
+            ("claude-opus-4-7", "xhigh"),
+        ] {
+            let adapter = AnthropicAdapter;
+            let payload = json!({
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "output_config": {"effort": effort}
+            });
+
+            let universal = adapter.request_to_universal(payload).unwrap();
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&universal).unwrap())
+                    .unwrap();
+
+            let output_config = result
+                .output_config
+                .expect("output_config should be present");
+            let result_effort = output_config
+                .effort
+                .as_ref()
+                .map(|e| serde_json::to_value(e).unwrap())
+                .map(|v| v.as_str().unwrap_or_default().to_string());
+            assert_eq!(
+                result_effort.as_deref(),
+                Some(effort),
+                "{model}: output_config.effort should round-trip {effort}, got {result_effort:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_cross_provider_reasoning_effort_xhigh_not_collapsed_to_max() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // OpenAI `reasoning_effort: "xhigh"` flowing into Sonnet 5 must map to `xhigh`,
+        // not collapse to `max`.
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        let openai_payload = json!({
+            "model": "gpt-5",
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "reasoning_effort": "xhigh"
+        });
+
+        let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        universal.model = Some("claude-sonnet-5".to_string());
+
+        let anthropic_payload = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+        let effort = anthropic_payload
+            .get("output_config")
+            .and_then(|oc| oc.get("effort"))
+            .and_then(Value::as_str);
+        assert_eq!(
+            effort,
+            Some("xhigh"),
+            "reasoning_effort=xhigh must map to output_config.effort=xhigh, not max"
+        );
     }
 
     #[test]
