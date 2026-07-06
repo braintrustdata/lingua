@@ -1385,6 +1385,7 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
 
     let _ = std::fs::remove_file(&temp_schema_path);
 
+    let quicktype_output = strip_quicktype_preamble(&quicktype_output);
     let processed_output = post_process_quicktype_output_for_google(&quicktype_output);
 
     let dest_path = "crates/lingua/src/providers/google/generated.rs";
@@ -1645,6 +1646,27 @@ fn add_default_derive_to_structs(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+/// Strip non-Rust preamble lines from quicktype stdout.
+/// CI environments or quicktype itself may emit diagnostic text before the
+/// actual generated Rust code. We skip forward to the first line that looks
+/// like valid Rust source (comments, use/extern statements, attributes, etc.).
+fn strip_quicktype_preamble(output: &str) -> String {
+    let lines: Vec<&str> = output.lines().collect();
+    let start = lines
+        .iter()
+        .position(|line| {
+            let trimmed = line.trim();
+            trimmed.is_empty()
+                || trimmed.starts_with("//")
+                || trimmed.starts_with("use ")
+                || trimmed.starts_with("extern ")
+                || trimmed.starts_with("#[")
+                || trimmed.starts_with("pub ")
+        })
+        .unwrap_or(0);
+    lines[start..].join("\n")
 }
 
 fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
