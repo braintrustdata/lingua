@@ -119,13 +119,16 @@ fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), T
 
 fn is_forced_tool_choice(value: &Value) -> bool {
     let parsed: Result<ToolChoice, _> = serde_json::from_value(value.clone());
-    parsed.ok().is_some_and(|tool_choice| {
-        tool_choice.tool_choice_type == ToolChoiceType::Tool
-            && tool_choice
+    parsed
+        .ok()
+        .is_some_and(|tool_choice| match tool_choice.tool_choice_type {
+            ToolChoiceType::Any => true,
+            ToolChoiceType::Tool => tool_choice
                 .name
                 .as_ref()
-                .is_some_and(|name| !name.is_empty())
-    })
+                .is_some_and(|name| !name.is_empty()),
+            ToolChoiceType::Auto | ToolChoiceType::None => false,
+        })
 }
 
 fn is_enabled_thinking(value: &Value) -> bool {
@@ -2125,6 +2128,96 @@ mod tests {
         assert!(
             result.tool_choice.is_some(),
             "tool_choice should be emitted"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_drops_effort_and_thinking_for_any_tool_choice_on_sonnet_5() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // tool_choice {"type":"any"} (universal Required) also forces tool use, so it is
+        // incompatible with active thinking just like {"type":"tool"}. Effort and thinking
+        // must both be dropped; otherwise the emitted thinking object 400s on Sonnet 5.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Required),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for tool_choice any/required"
+        );
+        assert!(
+            result
+                .output_config
+                .as_ref()
+                .and_then(|c| c.effort.as_ref())
+                .is_none(),
+            "output_config.effort should be dropped for tool_choice any/required"
+        );
+        // tool_choice round-trips back to {"type":"any"}
+        let tc: ToolChoice = serde_json::from_value(
+            serde_json::to_value(result.tool_choice.as_ref().unwrap()).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(tc.tool_choice_type, ToolChoiceType::Any);
+    }
+
+    #[test]
+    fn test_anthropic_drops_enabled_thinking_for_any_tool_choice_legacy() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // On a legacy non-adaptive model, tool_choice any/required with enabled thinking would
+        // emit thinking.type=enabled and 400 ("Thinking may not be enabled when tool_choice
+        // forces tool use"). The forced-tool guard must drop it.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Required),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for tool_choice any/required + enabled thinking"
         );
     }
 
