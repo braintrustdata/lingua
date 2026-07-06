@@ -464,8 +464,10 @@ impl ProviderAdapter for AnthropicAdapter {
             )
         } else if use_effort {
             // These models think by default when `thinking` is omitted, so an explicit
-            // opt-out (effort=none / enabled=false) must emit `thinking: {type: "disabled"}`.
-            if reasoning_is_disabled {
+            // opt-out (effort=none / enabled=false) emits `thinking: {type: "disabled"}`.
+            // Fable 5 / Mythos 5 reject `disabled` (thinking is always on), so for those
+            // models omit `thinking` instead and preserve the always-on adaptive default.
+            if reasoning_is_disabled && capabilities::supports_disabling_thinking(model) {
                 Some(
                     serde_json::to_value(&Thinking {
                         budget_tokens: None,
@@ -2008,6 +2010,36 @@ mod tests {
                 "{model}: reasoning_effort=none must produce thinking.type=disabled"
             );
         }
+    }
+
+    #[test]
+    fn test_anthropic_omits_thinking_for_effort_none_on_fable_5() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // Fable 5 keeps adaptive thinking always on and rejects `thinking: {type: "disabled"}`,
+        // so a cross-provider `reasoning_effort: "none"` must omit `thinking` rather than emit
+        // disabled (verified live: claude-fable-5 returns 400 for thinking.type=disabled).
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        let openai_payload = json!({
+            "model": "gpt-5",
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "reasoning_effort": "none"
+        });
+
+        let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        universal.model = Some("claude-fable-5".to_string());
+
+        let anthropic_payload = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+        let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+        assert!(
+            result.thinking.is_none(),
+            "Fable 5 must omit thinking (not disabled) for reasoning_effort none"
+        );
     }
 
     #[test]

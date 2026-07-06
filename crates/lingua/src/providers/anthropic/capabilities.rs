@@ -16,6 +16,15 @@ static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.:])|^claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.])")
         .expect("valid Opus 4.8+ / Fable model regex")
 });
+
+// Fable 5 and Mythos 5 keep adaptive thinking always on; `thinking: {type: "disabled"}`
+// is rejected, so a reasoning opt-out must omit `thinking` instead of emitting disabled.
+static ALWAYS_ON_THINKING_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(^|[./:@])claude-(fable-[a-z0-9][a-z0-9.-]*|mythos-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
+    )
+    .expect("valid always-on thinking model regex")
+});
 /// Check if a model supports `output_config.effort` (vs legacy `thinking`).
 ///
 /// Opus 4.5+ and Sonnet 5+ models support this. All models support `thinking` as fallback.
@@ -42,6 +51,15 @@ pub fn supports_adaptive_thinking(model: &str) -> bool {
     is_opus_4_7_or_later(&lower)
 }
 
+/// Check if a model accepts `thinking: {type: "disabled"}`.
+///
+/// Fable 5 / Mythos 5 keep adaptive thinking always on and reject `disabled`, so an
+/// explicit reasoning opt-out on those models must omit `thinking` instead of emitting it.
+pub fn supports_disabling_thinking(model: &str) -> bool {
+    let lower = model.to_ascii_lowercase();
+    !is_always_on_thinking(&lower)
+}
+
 /// Check if an Anthropic model supports system-role entries in `messages`.
 ///
 /// Direct Anthropic and Bedrock Anthropic Opus 4.8+ and Fable model IDs support
@@ -64,6 +82,10 @@ const OPUS_4_7_OR_LATER_TRANSFORMS: &[ModelTransform] = &[StripSamplingParams];
 
 fn is_opus_4_7_or_later(model: &str) -> bool {
     OPUS_4_7_OR_LATER_RE.is_match(model)
+}
+
+fn is_always_on_thinking(model: &str) -> bool {
+    ALWAYS_ON_THINKING_RE.is_match(model)
 }
 
 fn is_supported_mid_conversation_system_model(model: &str) -> bool {
@@ -209,6 +231,41 @@ mod tests {
         }
         for model in legacy_models {
             assert!(!supports_adaptive_thinking(model), "model: {}", model);
+        }
+    }
+
+    #[test]
+    fn test_supports_disabling_thinking() {
+        let disableable = [
+            "claude-sonnet-5",
+            "claude-opus-4-7",
+            "claude-opus-4-8",
+            "claude-sonnet-4-5-20250929",
+            "claude-opus-4-6",
+        ];
+        let always_on = [
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-FABLE-5",
+            "claude-fable-6",
+            "us.anthropic.claude-fable-5-v1:0",
+            "anthropic/claude-fable-5@20260601",
+            "claude-mythos-5",
+            "us.anthropic.claude-mythos-5-v1:0",
+        ];
+        for model in disableable {
+            assert!(
+                supports_disabling_thinking(model),
+                "should support disabling: {}",
+                model
+            );
+        }
+        for model in always_on {
+            assert!(
+                !supports_disabling_thinking(model),
+                "should not support disabling: {}",
+                model
+            );
         }
     }
 
