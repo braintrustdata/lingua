@@ -1995,12 +1995,13 @@ mod tests {
             let anthropic_payload = anthropic_adapter
                 .request_from_universal(&universal)
                 .unwrap();
-            let thinking = anthropic_payload
-                .get("thinking")
+            let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+            let thinking = result
+                .thinking
                 .expect("thinking should be emitted for reasoning_effort none");
             assert_eq!(
-                thinking.get("type").and_then(Value::as_str),
-                Some("disabled"),
+                thinking.thinking_type,
+                ThinkingType::Disabled,
                 "{model}: reasoning_effort=none must produce thinking.type=disabled"
             );
         }
@@ -2031,15 +2032,11 @@ mod tests {
             let output_config = result
                 .output_config
                 .expect("output_config should be present");
-            let result_effort = output_config
-                .effort
-                .as_ref()
-                .map(|e| serde_json::to_value(e).unwrap())
-                .map(|v| v.as_str().unwrap_or_default().to_string());
+            let expected_effort: EffortLevel = serde_json::from_value(json!(effort)).unwrap();
             assert_eq!(
-                result_effort.as_deref(),
-                Some(effort),
-                "{model}: output_config.effort should round-trip {effort}, got {result_effort:?}"
+                output_config.effort,
+                Some(expected_effort),
+                "{model}: output_config.effort should round-trip {effort}"
             );
         }
     }
@@ -2066,13 +2063,13 @@ mod tests {
         let anthropic_payload = anthropic_adapter
             .request_from_universal(&universal)
             .unwrap();
-        let effort = anthropic_payload
-            .get("output_config")
-            .and_then(|oc| oc.get("effort"))
-            .and_then(Value::as_str);
+        let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
         assert_eq!(
-            effort,
-            Some("xhigh"),
+            output_config.effort,
+            Some(EffortLevel::Xhigh),
             "reasoning_effort=xhigh must map to output_config.effort=xhigh, not max"
         );
     }
