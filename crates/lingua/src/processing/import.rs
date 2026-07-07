@@ -354,6 +354,10 @@ struct LenientAssistantMessageCompat {
     content: Option<LenientAssistantContentCompat>,
     #[serde(default)]
     tool_calls: Vec<LenientOpenAiToolCallCompat>,
+    #[serde(default)]
+    reasoning: Option<Value>,
+    #[serde(default)]
+    reasoning_signature: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -582,7 +586,10 @@ fn parse_lenient_assistant_message_with_tool_calls(item: &Value) -> Option<Messa
     match parsed.role {
         AssistantRoleCompat::Assistant => {}
     }
-    if parsed.tool_calls.is_empty() {
+    if parsed.tool_calls.is_empty()
+        || parsed.reasoning.is_some()
+        || parsed.reasoning_signature.is_some()
+    {
         return None;
     }
 
