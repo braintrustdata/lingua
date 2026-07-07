@@ -196,6 +196,11 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
+        if let Some(message) = parse_lenient_assistant_message_with_tool_calls(item) {
+            messages.push(message);
+            continue;
+        }
+
         let mut parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
             let wrapped_item = Value::Array(vec![item.clone()]);
             try_parsers_in_order(&wrapped_item, &provider_parsers)
@@ -312,6 +317,12 @@ enum LenientAssistantContentPartCompat {
         #[serde(default)]
         encrypted_content: Option<String>,
     },
+    #[serde(rename = "thinking")]
+    Thinking {
+        thinking: String,
+        #[serde(default)]
+        signature: Option<String>,
+    },
     #[serde(rename = "tool_call", alias = "tool-call", alias = "toolCall")]
     ToolCall {
         #[serde(alias = "toolCallId")]
@@ -334,6 +345,40 @@ enum LenientAssistantContentPartCompat {
         #[serde(default)]
         output: Value,
     },
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LenientAssistantMessageCompat {
+    role: AssistantRoleCompat,
+    #[serde(default)]
+    content: Option<LenientAssistantContentCompat>,
+    #[serde(default)]
+    tool_calls: Vec<LenientOpenAiToolCallCompat>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum AssistantRoleCompat {
+    Assistant,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(untagged)]
+enum LenientAssistantContentCompat {
+    String(String),
+    Array(Vec<LenientAssistantContentPartCompat>),
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LenientOpenAiToolCallCompat {
+    id: String,
+    function: LenientOpenAiFunctionCallCompat,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LenientOpenAiFunctionCallCompat {
+    name: String,
+    arguments: Value,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -449,7 +494,15 @@ fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> 
 }
 
 fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantContentPart> {
-    match serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()? {
+    lenient_assistant_content_part_to_universal(
+        serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()?,
+    )
+}
+
+fn lenient_assistant_content_part_to_universal(
+    part: LenientAssistantContentPartCompat,
+) -> Option<AssistantContentPart> {
+    match part {
         LenientAssistantContentPartCompat::Text { text } => {
             Some(AssistantContentPart::Text(TextContentPart {
                 text,
@@ -464,6 +517,13 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
         } => Some(AssistantContentPart::Reasoning {
             text,
             encrypted_content,
+        }),
+        LenientAssistantContentPartCompat::Thinking {
+            thinking,
+            signature,
+        } => Some(AssistantContentPart::Reasoning {
+            text: thinking,
+            encrypted_content: signature,
         }),
         LenientAssistantContentPartCompat::ToolCall {
             tool_call_id,
@@ -490,6 +550,80 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
             provider_options: None,
         }),
     }
+}
+
+fn openai_tool_call_arguments(value: Value) -> ToolCallArguments {
+    match value {
+        Value::Object(map) => ToolCallArguments::Valid(map),
+        Value::String(text) => match serde_json::from_str::<Value>(&text) {
+            Ok(Value::Object(map)) => ToolCallArguments::Valid(map),
+            Ok(other) => ToolCallArguments::Invalid(other.to_string()),
+            Err(_) => ToolCallArguments::Invalid(text),
+        },
+        other => ToolCallArguments::Invalid(other.to_string()),
+    }
+}
+
+fn openai_tool_call_to_assistant_part(
+    tool_call: LenientOpenAiToolCallCompat,
+) -> AssistantContentPart {
+    AssistantContentPart::ToolCall {
+        tool_call_id: tool_call.id,
+        tool_name: tool_call.function.name,
+        arguments: openai_tool_call_arguments(tool_call.function.arguments),
+        encrypted_content: None,
+        provider_options: None,
+        provider_executed: None,
+    }
+}
+
+fn parse_lenient_assistant_message_with_tool_calls(item: &Value) -> Option<Message> {
+    let parsed = LenientAssistantMessageCompat::deserialize(item).ok()?;
+    match parsed.role {
+        AssistantRoleCompat::Assistant => {}
+    }
+    if parsed.tool_calls.is_empty() {
+        return None;
+    }
+
+    let mut parts = Vec::new();
+    if let Some(content) = parsed.content {
+        match content {
+            LenientAssistantContentCompat::String(text) => {
+                if !text.is_empty() {
+                    parts.push(AssistantContentPart::Text(TextContentPart {
+                        text,
+                        encrypted_content: None,
+                        cache_control: None,
+                        provider_options: None,
+                    }));
+                }
+            }
+            LenientAssistantContentCompat::Array(content_parts) => {
+                parts.extend(
+                    content_parts
+                        .into_iter()
+                        .filter_map(lenient_assistant_content_part_to_universal),
+                );
+            }
+        }
+    }
+
+    parts.extend(
+        parsed
+            .tool_calls
+            .into_iter()
+            .map(openai_tool_call_to_assistant_part),
+    );
+
+    if parts.is_empty() {
+        return None;
+    }
+
+    Some(Message::Assistant {
+        content: AssistantContent::Array(parts),
+        id: None,
+    })
 }
 
 fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> {

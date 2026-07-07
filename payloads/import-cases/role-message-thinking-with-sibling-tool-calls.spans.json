@@ -1,0 +1,29 @@
+[
+  {
+    "output": [
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "Need to query structured data before answering.",
+            "signature": "reasoning_signature_123"
+          }
+        ],
+        "tool_calls": [
+          {
+            "id": "call_structured_data_123",
+            "type": "function",
+            "function": {
+              "name": "StructuredDataQueryTool",
+              "arguments": {
+                "query": "select count(*) from anonymized_table",
+                "limit": 10
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
