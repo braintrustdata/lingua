@@ -39,6 +39,13 @@ export type ChatCompletionUserMessageWithCacheControl = Omit<
   >;
 };
 
+export type ChatCompletionSystemMessageWithCacheControl = Omit<
+  OpenAI.Chat.Completions.ChatCompletionSystemMessageParam,
+  "content"
+> & {
+  content: Array<ChatCompletionTextPartWithCacheControl>;
+};
+
 export type ChatCompletionAssistantMessageWithCacheControl = Omit<
   OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam,
   "content"
@@ -56,6 +63,7 @@ export type ChatCompletionCreateParams = Omit<
     | OpenAI.Chat.Completions.ChatCompletionMessageParam
     | ChatCompletionUserMessageWithCacheControl
     | ChatCompletionAssistantMessageWithCacheControl
+    | ChatCompletionSystemMessageWithCacheControl
   >;
 };
 

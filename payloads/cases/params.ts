@@ -8,6 +8,7 @@ import {
 import OpenAI from "openai";
 import {
   ChatCompletionAssistantMessageWithCacheControl,
+  ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
   ChatCompletionUserMessageWithCacheControl,
   AnthropicMessageCreateParams,
@@ -51,6 +52,11 @@ const chatCompletionAssistantCacheControlMessage = {
   role: "assistant",
   content: [chatCompletionAssistantCacheControlTextPart],
 } satisfies ChatCompletionAssistantMessageWithCacheControl;
+
+const chatCompletionSystemCacheControlMessage = {
+  role: "system",
+  content: [chatCompletionCacheControlTextPart],
+} satisfies ChatCompletionSystemMessageWithCacheControl;
 
 const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssistantMessageWithReasoningSignature =
   {
@@ -304,6 +310,31 @@ export const paramsCases: TestCaseCollection = {
           ],
         },
       ],
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsSystemCacheControlParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        chatCompletionSystemCacheControlMessage,
+        { role: "user", content: "Now summarize it." },
+      ],
+    },
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: chatCompletionCacheControlTextPart.text,
+          cache_control: { type: "ephemeral", ttl: "1h" },
+        },
+      ],
+      messages: [{ role: "user", content: "Now summarize it." }],
     },
     google: null,
     bedrock: null,

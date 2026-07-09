@@ -1,0 +1,181 @@
+[
+  {
+    "messageStart": {
+      "role": "assistant"
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "I don't see any reference text provide"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d for"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " me to summarize. Coul"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d you please share the text you'd like"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " me to summarize?"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\nOnce you provide it"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ", I'll:"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n1. Rea"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "d through"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " the content carefully"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n2. Identify the main"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " points and key ideas"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n3. Con"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "dense it into a clear"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": ", concise summary"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "\n\nPlease paste the text,"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " and I'll be"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": " happy to help"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "!"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockStop": {
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "messageStop": {
+      "stopReason": "end_turn"
+    }
+  },
+  {
+    "metadata": {
+      "usage": {
+        "inputTokens": 24,
+        "outputTokens": 84,
+        "totalTokens": 108
+      },
+      "metrics": {
+        "latencyMs": 1183
+      }
+    }
+  }
+]

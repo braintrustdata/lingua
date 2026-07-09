@@ -113,7 +113,7 @@ where
         .and_then(|value| serde_json::from_value(value).ok())
 }
 
-fn anthropic_cache_control_from_universal(
+pub(crate) fn anthropic_cache_control_from_universal(
     cache_control: Option<CacheControl>,
 ) -> Option<generated::CacheControlEphemeral> {
     cache_control

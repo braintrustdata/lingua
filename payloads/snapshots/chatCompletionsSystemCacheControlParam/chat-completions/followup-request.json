@@ -1,0 +1,32 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use this stable reference text as cacheable context.",
+          "cache_control": {
+            "type": "ephemeral",
+            "ttl": "1h"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Now summarize it."
+    },
+    {
+      "role": "assistant",
+      "content": "I don’t have the stable reference text here in this chat. To summarize it, please provide the text (paste it, upload a file, or share a link). If you want, you can also specify:\n\n- Desired length: one short paragraph, 2–3 paragraphs, or bullet-point summary.\n- Focus: main ideas, conclusions, key findings, or a high-level overview.\n- Audience or tone: plain language for general readers, or more technical for experts.\n\nOnce you share the content, I’ll produce the summary promptly.",
+      "refusal": null,
+      "annotations": []
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

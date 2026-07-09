@@ -1,0 +1,152 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_011CcrbewCxr5z3opFnA6mnH",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 323,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "Based on the context"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " provided, here are your logical next steps:\n\n## Immediate Options:\n\n### 1. **Provide"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the Actual Document Content**\n   - Upload or paste the reference text you want me to summarize\n   - I can"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " then give you a detailed, accurate summary\n\n### 2. **Clarify Your Goal**\n   - What do you need"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " this summary for?\n   - Who is the intended audience?\n   - What level of detail do you need?\n\n### 3."
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " **Specify Summary Requirements**\n   - Length (brief overview vs. detailed breakdown)\n   - Format"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " (bullet points, paragraph form, executive summary)\n   - Focus areas (technical details, high-level concepts, action"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " items)\n\n## Recommended Next Step:\n\n**Share the document content** you want summarized. You"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " can:\n- Paste the text directly\n- Upload a file\n- Provide a link (if applicable)\n- Describe the key sections"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " if it's too long\n\nOnce I have the actual content, I can provide a meaningful summary that serves"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " your needs within the 200,000 token budget you've allocated.\n\n---\n\n**What would"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " you like to do?**"
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 323,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 260
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

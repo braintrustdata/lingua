@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "I'm ready to help, but I don't see any reference text provided yet. Could you please share the text you'd like me to summarize?\n\nOnce you provide it, I'll create a concise summary for you."
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 24,
+    "outputTokens": 50,
+    "totalTokens": 74,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1200
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "b3362288-f582-4e38-90a0-eb56246efd0c",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}
