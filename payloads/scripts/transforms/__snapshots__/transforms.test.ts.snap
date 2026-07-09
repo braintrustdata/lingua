@@ -414,6 +414,60 @@ exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlPa
 }
 `;
 
+exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "max_completion_tokens": 1024,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": {
+            "ttl": "1h",
+            "type": "ephemeral",
+          },
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "text",
+        },
+      ],
+      "role": "system",
+    },
+    {
+      "content": "Now summarize it.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "I don’t have the text to summarize. Please paste the stable reference text (or share a link or title), and tell me how long you want the summary and what to focus on (main ideas, arguments, evidence, conclusions).
+
+I can provide:
+- A brief one-paragraph summary
+- A concise 3–5 bullet-point outline of key points
+- A 1–2 paragraph executive summary
+
+Let me know your preferred length and focus.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_Dzkwv1hNaCKsOKjq5wqDzvwdR11pm",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 24,
+    "output_tokens": 870,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > complexReasoningRequest > request 1`] = `
 {
   "max_completion_tokens": 20000,
@@ -2704,6 +2758,53 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
   "usage": {
     "input_tokens": 18,
     "output_tokens": 21,
+  },
+}
+`;
+
+exports[`anthropic → google > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Use this stable reference text as cacheable context.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`anthropic → google > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "It looks like the reference text was not included in your message. Please provide or paste the text you would like me to summarize, and I will be happy to assist you!",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 15,
+    "output_tokens": 804,
   },
 }
 `;
@@ -5773,6 +5874,67 @@ If you",
     "cache_read_input_tokens": 0,
     "input_tokens": 28,
     "output_tokens": 1024,
+  },
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+      "type": "message",
+    },
+    {
+      "content": "Now summarize it.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 1024,
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "I’m ready to summarize, but I don’t see the text yet. Please paste the content you want summarized (or share a link). If it’s long, you can send it in parts.
+
+Optional details to specify:
+- Desired length (one sentence, 3-5 bullets, a short paragraph, etc.)
+- Target audience or purpose
+- Focus (main ideas, arguments, data, conclusions)
+
+I can provide:
+- A one-sentence summary
+- A bullet-point outline of key points
+- A short 2–3 paragraph synopsis
+
+If you’d like, I can also reuse this content as context for future questions in this chat.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0d7911ae28e3e15a006a4fbde5388481a2beb4a631fd8304fd",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 24,
+    "output_tokens": 767,
   },
 }
 `;
@@ -11289,6 +11451,60 @@ This is my unique response to your request about using the cached assistant pref
 }
 `;
 
+exports[`chat-completions → bedrock > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "System: Use this stable reference text as cacheable context.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "I'm ready to help, but I don't see any reference text provided yet. Could you please share the text you'd like me to summarize?
+
+Once you provide it, I'll create a concise summary for you.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 50,
+    "prompt_tokens": 24,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 74,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > complexReasoningRequest > request 1`] = `
 {
   "inferenceConfig": {
@@ -14323,6 +14539,59 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
     "completion_tokens": 7,
     "prompt_tokens": 18,
     "total_tokens": 25,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Now summarize it.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "Use this stable reference text as cacheable context.",
+      },
+    ],
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "It looks like the reference text was not included in your message. 
+
+Please paste or provide the text you would like me to summarize, and I will gladly generate a summary for you!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1256,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1218,
+    },
+    "prompt_tokens": 15,
+    "total_tokens": 1271,
   },
 }
 `;
@@ -17799,6 +18068,74 @@ How to use:
       "cached_tokens": 0,
     },
     "total_tokens": 1985,
+  },
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Use this stable reference text as cacheable context.",
+          "type": "input_text",
+        },
+      ],
+      "role": "system",
+      "type": "message",
+    },
+    {
+      "content": "Now summarize it.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "reasoning": "",
+        "role": "assistant",
+      },
+    },
+    {
+      "finish_reason": "stop",
+      "index": 1,
+      "message": {
+        "annotations": [],
+        "content": "I’m ready to summarize, but I don’t have the stable reference text here. Please paste the text you want summarized (or share a link/title and any length/delivery preferences). Also tell me:
+
+- Desired length (e.g., one paragraph, 5 bullet points, short executive summary)
+- Target audience (general, technical, executives, students)
+
+Once I have the text, I’ll provide a concise summary.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-0088349d1fe45341006a4fbde56094819fac9e0750a337a8b7",
+  "model": "gpt-5-nano-2025-08-07",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 791,
+    "completion_tokens_details": {
+      "reasoning_tokens": 640,
+    },
+    "prompt_tokens": 24,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 815,
   },
 }
 `;

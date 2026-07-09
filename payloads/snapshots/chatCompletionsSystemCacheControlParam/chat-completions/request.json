@@ -1,0 +1,22 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "system",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use this stable reference text as cacheable context.",
+          "cache_control": {
+            "type": "ephemeral",
+            "ttl": "1h"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Now summarize it."
+    }
+  ]
+}
