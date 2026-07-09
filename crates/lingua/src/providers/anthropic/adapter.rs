@@ -16,8 +16,8 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::convert::{
-    anthropic_input_messages_to_universal_messages, system_to_user_content,
-    universal_messages_to_anthropic_input_messages,
+    anthropic_cache_control_from_universal, anthropic_input_messages_to_universal_messages,
+    system_to_user_content, universal_messages_to_anthropic_input_messages,
 };
 use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
@@ -31,7 +31,7 @@ use crate::providers::anthropic::tool_discovery;
 use crate::providers::anthropic::try_parse_anthropic;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{Message, UserContent, UserContentPart};
+use crate::universal::message::{CacheControl, Message, UserContent, UserContentPart};
 use crate::universal::reasoning::budget_to_effort;
 use crate::universal::request::{
     ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ToolChoiceConfig,
@@ -85,6 +85,23 @@ fn service_tier_to_string(service_tier: ServiceTierEnum) -> String {
         ServiceTierEnum::Auto => "auto".to_string(),
         ServiceTierEnum::StandardOnly => "standard_only".to_string(),
     }
+}
+
+fn anthropic_system_text_block(
+    text: String,
+    cache_control: Option<CacheControl>,
+) -> Result<Value, TransformError> {
+    let mut block = Map::new();
+    block.insert("type".into(), Value::String("text".into()));
+    block.insert("text".into(), Value::String(text));
+    if let Some(cache_control) = anthropic_cache_control_from_universal(cache_control) {
+        block.insert(
+            "cache_control".into(),
+            serde_json::to_value(cache_control)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+        );
+    }
+    Ok(Value::Object(block))
 }
 
 fn extract_leading_system_messages(messages: &mut Vec<Message>) -> Vec<UserContent> {
@@ -404,25 +421,54 @@ impl ProviderAdapter for AnthropicAdapter {
         if let Some(raw_system) = anthropic_extras_view.system.as_ref() {
             obj.insert("system".into(), raw_system.clone());
         } else if !system_contents.is_empty() {
-            let system_text: String = system_contents
-                .into_iter()
-                .map(|c| match c {
-                    UserContent::String(s) => s,
-                    UserContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| {
-                            if let UserContentPart::Text(t) = p {
-                                Some(t.text)
-                            } else {
-                                None
+            let has_cache_control = system_contents.iter().any(|c| match c {
+                UserContent::Array(parts) => parts
+                    .iter()
+                    .any(|p| matches!(p, UserContentPart::Text(t) if t.cache_control.is_some())),
+                UserContent::String(_) => false,
+            });
+
+            if has_cache_control {
+                let mut blocks: Vec<Value> = Vec::new();
+                for content in system_contents {
+                    match content {
+                        UserContent::String(s) => {
+                            blocks.push(anthropic_system_text_block(s, None)?)
+                        }
+                        UserContent::Array(parts) => {
+                            for part in parts {
+                                if let UserContentPart::Text(t) = part {
+                                    blocks.push(anthropic_system_text_block(
+                                        t.text,
+                                        t.cache_control,
+                                    )?);
+                                }
                             }
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                })
-                .collect::<Vec<_>>()
-                .join("\n\n");
-            obj.insert("system".into(), Value::String(system_text));
+                        }
+                    }
+                }
+                obj.insert("system".into(), Value::Array(blocks));
+            } else {
+                let system_text: String = system_contents
+                    .into_iter()
+                    .map(|c| match c {
+                        UserContent::String(s) => s,
+                        UserContent::Array(parts) => parts
+                            .into_iter()
+                            .filter_map(|p| {
+                                if let UserContentPart::Text(t) = p {
+                                    Some(t.text)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<_>>()
+                            .join("\n"),
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n\n");
+                obj.insert("system".into(), Value::String(system_text));
+            }
         }
 
         // max_tokens is required for Anthropic - use the value from params or default
@@ -1488,6 +1534,76 @@ mod tests {
             "claude-3-5-sonnet-20241022"
         );
         assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_anthropic_system_cache_control_preserved() {
+        use crate::universal::message::{CacheControl, CacheControlType, TextContentPart};
+
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-haiku-4-5".to_string()),
+            messages: vec![
+                Message::System {
+                    content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                        text: "You are a presenter.".to_string(),
+                        encrypted_content: None,
+                        cache_control: Some(CacheControl {
+                            cache_control_type: CacheControlType::Ephemeral,
+                            ttl: None,
+                        }),
+                        provider_options: None,
+                    })]),
+                },
+                Message::User {
+                    content: UserContent::String("say ok".to_string()),
+                },
+            ],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(8)),
+                ..Default::default()
+            },
+        };
+
+        let out = adapter.request_from_universal(&req).unwrap();
+        let system = out.get("system").expect("system field present");
+        let blocks = system
+            .as_array()
+            .expect("system must be an array to carry cache_control breakpoints");
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].get("type").unwrap(), "text");
+        assert_eq!(blocks[0].get("text").unwrap(), "You are a presenter.");
+        assert_eq!(
+            blocks[0]
+                .get("cache_control")
+                .expect("cache_control must be forwarded on the system block")
+                .get("type")
+                .unwrap(),
+            "ephemeral"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_system_without_cache_control_stays_string() {
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-haiku-4-5".to_string()),
+            messages: vec![
+                Message::System {
+                    content: UserContent::String("You are a presenter.".to_string()),
+                },
+                Message::User {
+                    content: UserContent::String("say ok".to_string()),
+                },
+            ],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(8)),
+                ..Default::default()
+            },
+        };
+
+        let out = adapter.request_from_universal(&req).unwrap();
+        assert_eq!(out.get("system").unwrap(), "You are a presenter.");
     }
 
     #[test]
