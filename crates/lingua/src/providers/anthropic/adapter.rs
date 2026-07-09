@@ -1454,6 +1454,7 @@ fn parse_content_block_start_event(payload: &Value) -> ContentBlockStartEventVie
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::anthropic::generated::System;
     use crate::serde_json::json;
     use serde::Deserialize;
 
@@ -1566,20 +1567,18 @@ mod tests {
         };
 
         let out = adapter.request_from_universal(&req).unwrap();
-        let system = out.get("system").expect("system field present");
-        let blocks = system
-            .as_array()
-            .expect("system must be an array to carry cache_control breakpoints");
+        let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
+        let blocks = match parsed.system.expect("system field present") {
+            System::RequestTextBlockArray(blocks) => blocks,
+            System::String(s) => {
+                panic!("system must be a text-block array to carry cache_control, got: {s}")
+            }
+        };
         assert_eq!(blocks.len(), 1);
-        assert_eq!(blocks[0].get("type").unwrap(), "text");
-        assert_eq!(blocks[0].get("text").unwrap(), "You are a presenter.");
-        assert_eq!(
-            blocks[0]
-                .get("cache_control")
-                .expect("cache_control must be forwarded on the system block")
-                .get("type")
-                .unwrap(),
-            "ephemeral"
+        assert_eq!(blocks[0].text, "You are a presenter.");
+        assert!(
+            blocks[0].cache_control.is_some(),
+            "cache_control must be forwarded on the system block"
         );
     }
 
@@ -1603,7 +1602,11 @@ mod tests {
         };
 
         let out = adapter.request_from_universal(&req).unwrap();
-        assert_eq!(out.get("system").unwrap(), "You are a presenter.");
+        let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
+        assert_eq!(
+            parsed.system,
+            Some(System::String("You are a presenter.".to_string()))
+        );
     }
 
     #[test]
