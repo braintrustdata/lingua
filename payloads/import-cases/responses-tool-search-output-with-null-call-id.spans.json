@@ -1,0 +1,49 @@
+[
+  {
+    "output": [
+      {
+        "arguments": {
+          "paths": ["catalog"]
+        },
+        "call_id": null,
+        "execution": "server",
+        "id": "tsc_discover_catalog",
+        "status": "completed",
+        "type": "tool_search_call"
+      },
+      {
+        "call_id": null,
+        "execution": "server",
+        "id": "tso_discover_catalog",
+        "status": "completed",
+        "tools": [
+          {
+            "description": "List and read catalog items.",
+            "name": "catalog",
+            "tools": [
+              {
+                "defer_loading": true,
+                "description": "List catalog items.",
+                "name": "list_catalog_items",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "strict": false,
+                "type": "function"
+              }
+            ],
+            "type": "namespace"
+          }
+        ],
+        "type": "tool_search_output"
+      }
+    ]
+  }
+]

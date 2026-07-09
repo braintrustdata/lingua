@@ -17935,15 +17935,6 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "I don’t see the reference text yet. Please paste the stable reference text you want summarized. If it’s long, feel free to send it in chunks.
 
 I can return the summary in several formats (pick what you prefer):
@@ -17970,6 +17961,7 @@ Cacheable context card template (you can copy this to store and reuse):
 - Keywords:
 
 Once you provide the text, I’ll generate the summary in your chosen format and treat it as the cacheable context for this session.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18026,15 +18018,6 @@ exports[`chat-completions → responses > chatCompletionsAssistantCacheControlPa
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
 
 Here’s a compact, generic prefill you can use right away (store it and reuse):
@@ -18050,6 +18033,7 @@ Prefill (system-like):
 How to use:
 - Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
 - If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18162,15 +18146,6 @@ exports[`chat-completions → responses > complexReasoningRequest > response 1`]
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Answer (no colon counted, only digits in HHMM):
 
 - Total times: 24 hours × 60 minutes = 1440, so total digits = 1440 × 4 = 5760.
@@ -18192,6 +18167,7 @@ Most common digits: 0 and 1 (tie), each appearing 1164 times ≈ 20.21% of all d
 Rarest digits: 6, 7, 8, and 9 (tie), each appearing 264 times ≈ 4.58% of all digits.
 
 Brief note on method: counted digit occurrences separately for hour tens (H1), hour units (H2), minute tens (M1), and minute units (M2), then summed.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18256,15 +18232,6 @@ exports[`chat-completions → responses > exclusiveMinimumToolParam > response 1
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Sure. I can configure the LLM, but I need a max_tokens value to apply.
 
 Options (balanced defaults):
@@ -18274,6 +18241,7 @@ Options (balanced defaults):
 - 4096 – longer responses
 
 If you’d like, I can apply 2048 tokens right now as a balanced default. Would you like me to set max_tokens to 2048 (or choose another value)? Also, note that this configuration step only covers max_tokens; tell me if you want me to note any other preferences, and I can track them for you.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18317,16 +18285,8 @@ exports[`chat-completions → responses > fableTemperatureParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hi there! How can I help you today?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18370,16 +18330,8 @@ exports[`chat-completions → responses > frequencyPenaltyParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18447,14 +18399,6 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
       "message": {
         "annotations": [],
         "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "tool_calls",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "role": "assistant",
         "tool_calls": [
           {
@@ -18539,20 +18483,12 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "The collections in the mydb database are:
 - movies
 - users
 
 Would you like to see document counts or sample documents from any of these?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18605,16 +18541,8 @@ exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > respon
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "A cute tabby cat with striped fur is lying on a warm wooden surface, front paws crossed and head tilted, looking directly at the camera with big amber eyes. Its ears are perked and whiskers are prominent, giving a curious, relaxed expression. The background is softly blurred, suggesting an indoor setting with furniture.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18663,16 +18591,8 @@ exports[`chat-completions → responses > instructionsParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "ok",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18736,16 +18656,8 @@ exports[`chat-completions → responses > jsonSchemaFormatParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"created_at":"2026-04-14T00:00:00Z"}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18813,16 +18725,8 @@ exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > response 
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"tags":["json","api","tags"]}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18887,16 +18791,8 @@ exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > respon
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"score":0}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -18979,16 +18875,8 @@ exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > response 
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"tuple": ["gateway", 7]}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19032,16 +18920,8 @@ exports[`chat-completions → responses > logitBiasParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hello! How can I help you today?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19100,16 +18980,8 @@ exports[`chat-completions → responses > maxCompletionTokensParam > response 1`
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "ok",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19159,16 +19031,8 @@ exports[`chat-completions → responses > metadataParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19266,16 +19130,8 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > response 1
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hello.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19320,15 +19176,6 @@ exports[`chat-completions → responses > openaiPromptCacheKeyParam > response 1
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "I don’t have access to a specific “cached policy” in this chat. If you share the policy text (or a link/document), I’ll summarize it right away.
 
 If you’d like to proceed with a summary structure yourself, here’s a concise template you can use:
@@ -19346,6 +19193,7 @@ If you paste the policy text, I can provide:
 - A brief section-by-section summary (if the document is long). 
 
 Would you like to share the policy now, or tell me your preferred length and audience for the summary?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19393,16 +19241,8 @@ exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortP
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "4",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19468,14 +19308,6 @@ exports[`chat-completions → responses > parallelToolCallsDisabledParam > respo
       "message": {
         "annotations": [],
         "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "tool_calls",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "role": "assistant",
         "tool_calls": [
           {
@@ -19572,21 +19404,13 @@ exports[`chat-completions → responses > parallelToolCallsRequest > response 1`
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Here’s the current weather:
 
 - San Francisco, CA: 65°F and sunny
 - New York, NY: 45°F and cloudy
 
 Want an hourly forecast or precipitation chance for either city?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19634,15 +19458,6 @@ exports[`chat-completions → responses > predictionParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Here’s an updated version that adds basic error handling by validating inputs and guarding against division by zero. It throws descriptive errors so callers can handle them with try/catch.
 
 Code:
@@ -19676,6 +19491,7 @@ try {
 }
 
 If you prefer a non-throwing variant that returns an error object instead of throwing, tell me and I’ll adapt it.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19719,16 +19535,8 @@ exports[`chat-completions → responses > presencePenaltyParam > response 1`] = 
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19773,16 +19581,8 @@ exports[`chat-completions → responses > promptCacheKeyParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19829,16 +19629,8 @@ exports[`chat-completions → responses > reasoningEffortLowParam > response 1`]
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "4",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19882,16 +19674,8 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > response
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "2 + 2 = 4",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -19976,15 +19760,6 @@ exports[`chat-completions → responses > reasoningRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Step 1: Distance of each part
 - First part: 60 mph × 2 h = 120 miles
 - Second part: 80 mph × 1 h = 80 miles
@@ -19997,6 +19772,7 @@ Step 3: Average speed
 - Average speed = total distance / total time = 200 miles / 3 hours = 66 2/3 mph ≈ 66.67 mph
 
 Answer: 66 2/3 mph.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20088,16 +19864,8 @@ exports[`chat-completions → responses > reasoningSummaryParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "4",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20141,16 +19909,8 @@ exports[`chat-completions → responses > reasoningWithOutput > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Typically blue during a clear day. It can be red/orange/pink at sunrise or sunset, gray when it’s cloudy, and black at night. The blue color comes from the way sunlight scatters in the Earth's atmosphere. Want to know the current sky color for your location and time?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20197,16 +19957,8 @@ exports[`chat-completions → responses > safetyIdentifierParam > response 1`] =
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20250,18 +20002,10 @@ exports[`chat-completions → responses > seedParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "7
 
 Want a different range or another number?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20306,16 +20050,8 @@ exports[`chat-completions → responses > serviceTierParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "ok.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20362,16 +20098,8 @@ exports[`chat-completions → responses > simpleRequest > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Paris",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20454,16 +20182,8 @@ exports[`chat-completions → responses > stopSequencesParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20508,16 +20228,8 @@ exports[`chat-completions → responses > storeDisabledParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Okay.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20634,16 +20346,8 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > response 1
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"status": "ok"}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20781,16 +20485,8 @@ exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeG
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"explanation":"This is a meta-request: the user asks the assistant to classify the current query and respond with JSON. It falls under meta/annotation and instruction-type content.","filter":null,"match":true}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20857,16 +20553,8 @@ exports[`chat-completions → responses > textFormatJsonSchemaParam > response 1
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"age":25,"name":"John"}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20934,16 +20622,8 @@ exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionPar
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "{"age":25,"name":"John"}",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -20992,16 +20672,8 @@ exports[`chat-completions → responses > textFormatTextParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hello! 👋 How can I help you today?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -21066,14 +20738,6 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
       "message": {
         "annotations": [],
         "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "tool_calls",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "role": "assistant",
         "tool_calls": [
           {
@@ -21152,14 +20816,6 @@ exports[`chat-completions → responses > toolChoiceRequiredParam > response 1`]
       "message": {
         "annotations": [],
         "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "tool_calls",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "role": "assistant",
         "tool_calls": [
           {
@@ -21242,14 +20898,6 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
         "annotations": [],
         "reasoning": "",
         "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "tool_calls",
-      "index": 1,
-      "message": {
-        "annotations": [],
-        "role": "assistant",
         "tool_calls": [
           {
             "function": {
@@ -21302,16 +20950,8 @@ exports[`chat-completions → responses > topPParam > response 1`] = `
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hi there! How can I help you today?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -21355,16 +20995,8 @@ exports[`chat-completions → responses > topPReasoningModelParam > response 1`]
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "Hi there! How can I help today?",
+        "reasoning": "",
         "role": "assistant",
       },
     },
@@ -26629,15 +26261,6 @@ exports[`google → responses > complexReasoningRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Total digits shown over a full day (00:00 to 23:59) are 24 hours × 60 minutes × 4 digits = 5,760 digits.
 
@@ -26671,7 +26294,7 @@ So:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26727,15 +26350,6 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -26748,7 +26362,7 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26786,15 +26400,6 @@ exports[`google → responses > googleOpenAIModelTopKParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "An API gateway acts as a single entry point that handles authentication, rate limiting, and routing for backend services.",
           },
@@ -26802,7 +26407,7 @@ exports[`google → responses > googleOpenAIModelTopKParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -26935,15 +26540,6 @@ exports[`google → responses > googleThinkingJsonSchemaParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"confidence":0.0,"recommendation":"Highlight price‑performance tradeoffs between the mics and invite viewers to share their own outdoor setups to boost engagement.","topic":"Mic setup comparison and outdoor performance with audience engagement"}",
           },
@@ -26951,7 +26547,7 @@ exports[`google → responses > googleThinkingJsonSchemaParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27019,15 +26615,6 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > resp
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "The collections in mydb are:
 - movies
@@ -27039,7 +26626,7 @@ Would you like any details from these collections (e.g., document counts or samp
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27105,15 +26692,6 @@ exports[`google → responses > googleToolSchemaNumericInt64Param > response 1`]
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are the bounds the tool schema enforces:
 
@@ -27137,7 +26715,7 @@ Please provide values for index_name and tags (an array of strings), and I’ll 
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27174,15 +26752,6 @@ exports[`google → responses > imageConfigParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are a couple of simple ways to render a tiny red dot.
 
@@ -27198,7 +26767,7 @@ If you had a different size or format in mind (PNG, data URL, etc.), tell me and
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27244,15 +26813,6 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "A cute tabby cat lies stretched out on a wooden surface, facing the camera. It has striped brown-gray fur, large amber eyes, and long white whiskers. Its front paws are extended forward, and its head is slightly tilted to the side, with a soft, indoor background blurred behind it.",
           },
@@ -27260,7 +26820,7 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27297,15 +26857,6 @@ exports[`google → responses > instructionsParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! How can I help today? I can answer questions, explain concepts, draft or edit text, brainstorm ideas, help with code, translate, summarize, plan things, or analyze images. Tell me what you’d like to do or what you’re curious about.",
           },
@@ -27313,7 +26864,7 @@ exports[`google → responses > instructionsParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27619,15 +27170,6 @@ exports[`google → responses > maxCompletionTokensParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Ok.",
           },
@@ -27635,7 +27177,7 @@ exports[`google → responses > maxCompletionTokensParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27672,15 +27214,6 @@ exports[`google → responses > mediaResolutionParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I can’t see an image attached. Please upload the image or share a link, and I’ll give a brief description (1–2 sentences) focusing on the main subject, setting, and mood.",
           },
@@ -27688,7 +27221,7 @@ exports[`google → responses > mediaResolutionParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27821,15 +27354,6 @@ exports[`google → responses > parallelToolCallsRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here’s the current weather:
 
@@ -27842,7 +27366,7 @@ Want a 7-day forecast or a weather alert for either city?",
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27882,15 +27406,6 @@ exports[`google → responses > reasoningEffortLowParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "4 (in base-10 arithmetic).",
           },
@@ -27898,7 +27413,7 @@ exports[`google → responses > reasoningEffortLowParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -27935,15 +27450,6 @@ exports[`google → responses > reasoningRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Step-by-step:
 
@@ -27959,7 +27465,7 @@ Answer: 200/3 mph (about 66.67 mph)",
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28041,15 +27547,6 @@ exports[`google → responses > reasoningSummaryParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "4",
           },
@@ -28057,7 +27554,7 @@ exports[`google → responses > reasoningSummaryParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28094,15 +27591,6 @@ exports[`google → responses > reasoningWithOutput > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "On a clear day, the sky usually looks blue. This is because sunlight is scattered by the Earth's atmosphere, and blue light scatters more than other colors.
 
@@ -28116,7 +27604,7 @@ The color can change:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28153,15 +27641,6 @@ exports[`google → responses > responseModalitiesAudioParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hello! It’s wonderful to meet you.",
           },
@@ -28169,7 +27648,7 @@ exports[`google → responses > responseModalitiesAudioParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28206,15 +27685,6 @@ exports[`google → responses > seedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "7",
           },
@@ -28222,7 +27692,7 @@ exports[`google → responses > seedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28259,15 +27729,6 @@ exports[`google → responses > simpleRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Paris.",
           },
@@ -28275,7 +27736,7 @@ exports[`google → responses > simpleRequest > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28353,15 +27814,6 @@ exports[`google → responses > speechConfigParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hello! It’s wonderful to meet you.",
           },
@@ -28369,7 +27821,7 @@ exports[`google → responses > speechConfigParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28406,15 +27858,6 @@ exports[`google → responses > stopSequencesParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
           },
@@ -28422,7 +27865,7 @@ exports[`google → responses > stopSequencesParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28501,15 +27944,6 @@ exports[`google → responses > temperatureParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! 👋 How can I help today?",
           },
@@ -28517,7 +27951,7 @@ exports[`google → responses > temperatureParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28559,15 +27993,6 @@ exports[`google → responses > textFormatJsonObjectParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"status": "ok"}",
           },
@@ -28575,7 +28000,7 @@ exports[`google → responses > textFormatJsonObjectParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28634,15 +28059,6 @@ exports[`google → responses > textFormatJsonSchemaParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"age":25,"name":"John"}",
           },
@@ -28650,7 +28066,7 @@ exports[`google → responses > textFormatJsonSchemaParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28709,15 +28125,6 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "{"age":25,"name":"John"}",
           },
@@ -28725,7 +28132,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > respo
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28765,15 +28172,6 @@ exports[`google → responses > thinkingLevelParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I’m ready to help, but I don’t see the problem statement yet. Please share one of the following:
 
@@ -28797,7 +28195,7 @@ If you can’t share the problem statement, you can still describe it (in your o
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28854,15 +28252,6 @@ exports[`google → responses > toolCallRequest > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28875,7 +28264,7 @@ exports[`google → responses > toolCallRequest > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -28931,15 +28320,6 @@ exports[`google → responses > toolChoiceAnyParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -28952,7 +28332,7 @@ exports[`google → responses > toolChoiceAnyParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29008,15 +28388,6 @@ exports[`google → responses > toolChoiceAutoParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Sure—what location would you like the weather for? Please specify a city (and country if needed) or a ZIP/postal code.
 
@@ -29030,7 +28401,7 @@ If you just want the current weather for your area, share your location and I’
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29086,15 +28457,6 @@ exports[`google → responses > toolChoiceNoneParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "I can’t access live weather data right now. Tell me:
 
@@ -29108,7 +28470,7 @@ If you’d like, I can guide you to check it quickly on your phone or computer u
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29167,15 +28529,6 @@ exports[`google → responses > toolChoiceRequiredParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29188,7 +28541,7 @@ exports[`google → responses > toolChoiceRequiredParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29250,15 +28603,6 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > response 
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29271,7 +28615,7 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > response 
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29327,15 +28671,6 @@ exports[`google → responses > toolModeValidatedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29348,7 +28683,7 @@ exports[`google → responses > toolModeValidatedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29385,15 +28720,6 @@ exports[`google → responses > topKParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! How can I help you today?",
           },
@@ -29401,7 +28727,7 @@ exports[`google → responses > topKParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29438,15 +28764,6 @@ exports[`google → responses > topPParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Hi there! 👋 How can I help you today?",
           },
@@ -29454,7 +28771,7 @@ exports[`google → responses > topPParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29496,15 +28813,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29529,7 +28837,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
     {
       "content": {
@@ -29538,15 +28846,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29565,7 +28864,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 1,
     },
     {
       "content": {
@@ -29574,15 +28873,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29607,7 +28897,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 5,
+      "index": 2,
     },
     {
       "content": {
@@ -29616,15 +28906,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29643,7 +28924,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 7,
+      "index": 3,
     },
     {
       "content": {
@@ -29652,15 +28933,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 8,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29679,7 +28951,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 9,
+      "index": 4,
     },
     {
       "content": {
@@ -29688,15 +28960,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 10,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29719,7 +28982,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 11,
+      "index": 5,
     },
     {
       "content": {
@@ -29728,15 +28991,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 12,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29755,7 +29009,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 13,
+      "index": 6,
     },
     {
       "content": {
@@ -29764,15 +29018,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 14,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29795,7 +29040,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 15,
+      "index": 7,
     },
     {
       "content": {
@@ -29804,15 +29049,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 16,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29831,7 +29067,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 17,
+      "index": 8,
     },
     {
       "content": {
@@ -29840,15 +29076,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 18,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29867,7 +29094,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 19,
+      "index": 9,
     },
     {
       "content": {
@@ -29876,15 +29103,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 20,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29903,7 +29121,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 21,
+      "index": 10,
     },
     {
       "content": {
@@ -29912,15 +29130,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 22,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -29939,7 +29148,7 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 23,
+      "index": 11,
     },
     {
       "content": {
@@ -29948,15 +29157,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 24,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are some notable AI news items in early 2026 (with exact dates for clarity). Want deeper details on any item?
 
@@ -29997,7 +29197,7 @@ If you’d like, I can:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 25,
+      "index": 12,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -30039,15 +29239,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -30072,7 +29263,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 1,
+      "index": 0,
     },
     {
       "content": {
@@ -30081,15 +29272,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -30112,7 +29294,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 1,
     },
     {
       "content": {
@@ -30121,15 +29303,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "functionCall": {
               "args": {
@@ -30152,7 +29325,7 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 5,
+      "index": 2,
     },
     {
       "content": {
@@ -30161,15 +29334,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
             "text": "",
             "thought": true,
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "Here are the latest OpenAI news highlights as of today, April 7, 2026. If you want deeper details on any item, I can pull up the full article or official post.
 
@@ -30190,7 +29354,7 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 7,
+      "index": 3,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",

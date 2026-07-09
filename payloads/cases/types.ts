@@ -90,6 +90,8 @@ export interface TestCase {
   bedrock: BedrockConverseRequest | null;
   "bedrock-anthropic"?: AnthropicMessageCreateParams | null;
   "vertex-anthropic"?: AnthropicMessageCreateParams | null;
+  // Baseten serves OSS models via an OpenAI-compatible chat-completions API.
+  baseten?: ChatCompletionCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
 }

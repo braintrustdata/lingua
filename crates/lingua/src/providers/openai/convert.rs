@@ -10,8 +10,8 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
     AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
-    TextContentPart, ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent,
-    UserContentPart,
+    TextContentPart, ToolCallArguments, ToolContentPart, ToolDiscoveryResultContentPart,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 use base64::Engine;
@@ -3976,11 +3976,8 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     ToolContentPart::ToolResult(result) => {
                         tool_result_to_chat_completion_message(result)
                     }
-                    ToolContentPart::ToolDiscoveryResult(_) => {
-                        Err(ConvertError::UnsupportedMapping {
-                            from: "ToolDiscoveryResult".to_string(),
-                            to: "ChatCompletionRequestMessage",
-                        })
+                    ToolContentPart::ToolDiscoveryResult(result) => {
+                        tool_discovery_result_to_chat_completion_message(result)
                     }
                 }
             }
@@ -4000,13 +3997,17 @@ pub(crate) fn messages_to_chat_completion_messages(
     let mut result = Vec::new();
     for msg in messages {
         match msg {
-            Message::Assistant { content, .. } if assistant_content_is_discovery_only(&content) => {
-                continue;
-            }
             Message::Tool { content } => {
                 for part in content {
-                    if let ToolContentPart::ToolResult(tool_result) = part {
-                        result.push(tool_result_to_chat_completion_message(tool_result)?);
+                    match part {
+                        ToolContentPart::ToolResult(tool_result) => {
+                            result.push(tool_result_to_chat_completion_message(tool_result)?);
+                        }
+                        ToolContentPart::ToolDiscoveryResult(discovery_result) => {
+                            result.push(tool_discovery_result_to_chat_completion_message(
+                                discovery_result,
+                            )?);
+                        }
                     }
                 }
             }
@@ -4015,18 +4016,6 @@ pub(crate) fn messages_to_chat_completion_messages(
         }
     }
     Ok(result)
-}
-
-fn assistant_content_is_discovery_only(content: &AssistantContent) -> bool {
-    match content {
-        AssistantContent::String(_) => false,
-        AssistantContent::Array(parts) => {
-            !parts.is_empty()
-                && parts
-                    .iter()
-                    .all(|part| matches!(part, AssistantContentPart::ToolDiscoveryCall { .. }))
-        }
-    }
 }
 
 /// Convert a single tool result into a chat completions tool-role message.
@@ -4042,6 +4031,56 @@ pub(crate) fn tool_result_to_chat_completion_message(
             })?
         }
     };
+    Ok(ChatCompletionRequestMessageExt {
+        role: openai::ChatCompletionRequestMessageRole::Tool,
+        content: Some(ChatCompletionRequestMessageContentExt::String(
+            content_string,
+        )),
+        name: None,
+        tool_calls: None,
+        tool_call_id: Some(result.tool_call_id),
+        audio: None,
+        function_call: None,
+        refusal: None,
+        cache_control: None,
+        reasoning: None,
+        reasoning_signature: None,
+    })
+}
+
+fn tool_discovery_result_to_chat_completion_message(
+    result: ToolDiscoveryResultContentPart,
+) -> Result<ChatCompletionRequestMessageExt, ConvertError> {
+    let mut content = serde_json::Map::new();
+    content.insert(
+        "discovery_tool_name".to_string(),
+        serde_json::Value::String(result.discovery_tool_name),
+    );
+    content.insert(
+        "tools".to_string(),
+        serde_json::to_value(result.tools).map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "tool_discovery_result.tools".to_string(),
+            error: e.to_string(),
+        })?,
+    );
+    if let Some(status) = result.status {
+        content.insert("status".to_string(), serde_json::Value::String(status));
+    }
+    if let Some(execution) = result.execution {
+        content.insert(
+            "execution".to_string(),
+            serde_json::Value::String(execution),
+        );
+    }
+
+    let content_string =
+        serde_json::to_string(&serde_json::Value::Object(content)).map_err(|e| {
+            ConvertError::JsonSerializationFailed {
+                field: "tool_discovery_result_content".to_string(),
+                error: e.to_string(),
+            }
+        })?;
+
     Ok(ChatCompletionRequestMessageExt {
         role: openai::ChatCompletionRequestMessageRole::Tool,
         content: Some(ChatCompletionRequestMessageContentExt::String(
@@ -4217,6 +4256,23 @@ fn extract_content_tool_calls_and_reasoning(
                             custom: None,
                         });
                     }
+                    AssistantContentPart::ToolDiscoveryCall {
+                        tool_call_id,
+                        discovery_tool_name,
+                        query,
+                        arguments,
+                        ..
+                    } => {
+                        tool_calls.push(openai::ToolCall {
+                            id: tool_call_id,
+                            tool_call_type: openai::FluffyType::Function,
+                            function: Some(openai::PurpleFunction {
+                                name: discovery_tool_name,
+                                arguments: tool_discovery_arguments_to_string(query, arguments)?,
+                            }),
+                            custom: None,
+                        });
+                    }
                     _ => {
                         // Handle other content types if needed
                     }
@@ -4245,6 +4301,24 @@ fn extract_content_tool_calls_and_reasoning(
         reasoning,
         reasoning_signature,
     ))
+}
+
+fn tool_discovery_arguments_to_string(
+    query: Option<String>,
+    arguments: Option<serde_json::Value>,
+) -> Result<String, ConvertError> {
+    let value = arguments.unwrap_or_else(|| match query {
+        Some(query) => serde_json::json!({ "query": query }),
+        None => serde_json::json!({}),
+    });
+
+    match value {
+        serde_json::Value::String(text) => Ok(text),
+        other => serde_json::to_string(&other).map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "tool_discovery_call.arguments".to_string(),
+            error: e.to_string(),
+        }),
+    }
 }
 
 fn chat_completion_assistant_text_content(
@@ -4689,7 +4763,7 @@ mod tests {
     }
 
     #[test]
-    fn chat_messages_drop_discovery_only_history() {
+    fn chat_messages_project_tool_discovery_history() {
         let messages = vec![
             Message::Assistant {
                 content: AssistantContent::Array(vec![AssistantContentPart::ToolDiscoveryCall {
@@ -4708,7 +4782,11 @@ mod tests {
                     crate::universal::ToolDiscoveryResultContentPart {
                         tool_call_id: "call_tool_search_123".to_string(),
                         discovery_tool_name: "tool_search".to_string(),
-                        tools: vec![],
+                        tools: vec![crate::universal::ToolDiscoveryResultItem {
+                            tool_name: "search_code".to_string(),
+                            tool: None,
+                            provider_options: None,
+                        }],
                         status: Some("completed".to_string()),
                         execution: Some("server".to_string()),
                         provider_options: None,
@@ -4718,7 +4796,46 @@ mod tests {
         ];
 
         let converted = messages_to_chat_completion_messages(messages).unwrap();
-        assert!(converted.is_empty());
+        assert_eq!(converted.len(), 2);
+        assert!(matches!(
+            converted[0].role,
+            openai::ChatCompletionRequestMessageRole::Assistant
+        ));
+        assert!(converted[0].content.is_none());
+        assert_eq!(
+            converted[0]
+                .tool_calls
+                .as_ref()
+                .expect("assistant discovery call should become a tool call")[0]
+                .id,
+            "call_tool_search_123"
+        );
+        assert_eq!(
+            converted[0]
+                .tool_calls
+                .as_ref()
+                .expect("assistant discovery call should become a tool call")[0]
+                .function
+                .as_ref()
+                .expect("tool call should be a function")
+                .name,
+            "tool_search"
+        );
+        assert!(matches!(
+            converted[1].role,
+            openai::ChatCompletionRequestMessageRole::Tool
+        ));
+        assert_eq!(
+            converted[1].tool_call_id.as_deref(),
+            Some("call_tool_search_123")
+        );
+        let Some(ChatCompletionRequestMessageContentExt::String(content)) =
+            converted[1].content.as_ref()
+        else {
+            panic!("discovery result should become string tool content");
+        };
+        assert!(content.contains("tool_search"));
+        assert!(content.contains("search_code"));
     }
 
     #[test]
@@ -4750,7 +4867,14 @@ mod tests {
             converted[0].content,
             Some(ChatCompletionRequestMessageContentExt::String(ref text)) if text == "done"
         ));
-        assert!(converted[0].tool_calls.is_none());
+        assert_eq!(
+            converted[0]
+                .tool_calls
+                .as_ref()
+                .expect("discovery call should become a tool call")[0]
+                .id,
+            "call_tool_search_123"
+        );
     }
 
     #[test]

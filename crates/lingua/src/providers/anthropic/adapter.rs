@@ -136,13 +136,16 @@ fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), T
 
 fn is_forced_tool_choice(value: &Value) -> bool {
     let parsed: Result<ToolChoice, _> = serde_json::from_value(value.clone());
-    parsed.ok().is_some_and(|tool_choice| {
-        tool_choice.tool_choice_type == ToolChoiceType::Tool
-            && tool_choice
+    parsed
+        .ok()
+        .is_some_and(|tool_choice| match tool_choice.tool_choice_type {
+            ToolChoiceType::Any => true,
+            ToolChoiceType::Tool => tool_choice
                 .name
                 .as_ref()
-                .is_some_and(|name| !name.is_empty())
-    })
+                .is_some_and(|name| !name.is_empty()),
+            ToolChoiceType::Auto | ToolChoiceType::None => false,
+        })
 }
 
 fn is_enabled_thinking(value: &Value) -> bool {
@@ -162,6 +165,10 @@ fn reasoning_is_enabled(config: &ReasoningConfig) -> bool {
             || config.budget_tokens.is_some())
 }
 
+fn reasoning_is_disabled(config: &ReasoningConfig) -> bool {
+    config.effort == Some(ReasoningEffort::None) || config.enabled == Some(false)
+}
+
 fn reasoning_effort_level(
     config: Option<&ReasoningConfig>,
     max_tokens: Option<i64>,
@@ -178,7 +185,7 @@ fn reasoning_effort_level(
         ReasoningEffort::Minimal | ReasoningEffort::Low => Some(EffortLevel::Low),
         ReasoningEffort::Medium => Some(EffortLevel::Medium),
         ReasoningEffort::High => Some(EffortLevel::High),
-        ReasoningEffort::Xhigh => Some(EffortLevel::Max),
+        ReasoningEffort::Xhigh => Some(EffortLevel::Xhigh),
     }
 }
 
@@ -484,6 +491,7 @@ impl ProviderAdapter for AnthropicAdapter {
         // - All other cases → thinking object (legacy, broad model support)
         // Both branches use output_config.format for structured output (never output_format).
         let reasoning_config = req.params.reasoning.as_ref();
+        let reasoning_is_disabled = reasoning_config.is_some_and(reasoning_is_disabled);
         let use_adaptive_thinking = capabilities::supports_adaptive_thinking(model)
             && reasoning_config.is_some_and(reasoning_is_enabled);
         let use_effort = capabilities::supports_output_config_effort(model)
@@ -501,7 +509,22 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
             )
         } else if use_effort {
-            None
+            // These models think by default when `thinking` is omitted, so an explicit
+            // opt-out (effort=none / enabled=false) emits `thinking: {type: "disabled"}`.
+            // Fable 5 / Mythos 5 reject `disabled` (thinking is always on), so for those
+            // models omit `thinking` instead and preserve the always-on adaptive default.
+            if reasoning_is_disabled && capabilities::supports_disabling_thinking(model) {
+                Some(
+                    serde_json::to_value(&Thinking {
+                        budget_tokens: None,
+                        display: None,
+                        thinking_type: ThinkingType::Disabled,
+                    })
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                )
+            } else {
+                None
+            }
         } else {
             req.params.reasoning_for(ProviderFormat::Anthropic)
         };
@@ -591,7 +614,10 @@ impl ProviderAdapter for AnthropicAdapter {
         insert_opt_bool(&mut obj, "stream", req.params.stream);
 
         // Build output_config (always used for structured output format, and for effort on Opus 4.5+)
-        let effort_level = if use_effort {
+        // Forced tool_choice is incompatible with active thinking. The thinking guard below
+        // drops the `thinking` object in that case; drop `effort` too so the request does not
+        // ask for reasoning the guard just disabled. `format` is independent of thinking.
+        let effort_level = if use_effort && !forced_tool_choice {
             reasoning_effort_level(reasoning_config, Some(max_tokens))
         } else {
             None
@@ -609,7 +635,32 @@ impl ProviderAdapter for AnthropicAdapter {
         let raw_thinking = anthropic_extras_view.thinking.as_ref();
 
         if use_adaptive_thinking {
-            if effort_level.is_some() || format.is_some() {
+            // Same-provider Anthropic round-trips carry the original `output_config` in
+            // extras. Prefer it verbatim so distinct effort values (e.g. "xhigh" vs "max",
+            // which the universal ReasoningEffort enum collapses) survive unchanged. Only
+            // reconstruct when there is no raw output_config.
+            if let Some(raw_output_config) = raw_output_config {
+                let mut output_config = raw_output_config.clone();
+                if forced_tool_choice {
+                    if let Some(obj) = output_config.as_object_mut() {
+                        obj.remove("effort");
+                    }
+                }
+                if let Some(format) = format {
+                    let format_value = serde_json::to_value(&format)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    output_config
+                        .as_object_mut()
+                        .ok_or_else(|| {
+                            TransformError::FromUniversalFailed(
+                                "output_config extras is not an object".to_string(),
+                            )
+                        })?
+                        .entry("format")
+                        .or_insert(format_value);
+                }
+                obj.insert("output_config".into(), output_config);
+            } else if effort_level.is_some() || format.is_some() {
                 let output_config = OutputConfig {
                     effort: effort_level,
                     format,
@@ -1233,7 +1284,21 @@ impl ProviderAdapter for AnthropicAdapter {
                 obj_map.insert("usage".into(), usage_value);
             }
 
-            return Ok(obj);
+            // Some providers (e.g. GLM/zai) place the final tool-argument fragment in the
+            // same delta that carries finish_reason. Re-emit any tool events before the
+            // terminating message_delta so those arguments are not dropped.
+            let tool_events = chunk
+                .choices
+                .first()
+                .and_then(|choice| choice.delta_view().map(|view| (choice.index, view)))
+                .map(|(index, view)| anthropic_tool_call_stream_events(&view, index))
+                .unwrap_or_default();
+            if tool_events.is_empty() {
+                return Ok(obj);
+            }
+            let mut events = tool_events;
+            events.push(obj);
+            return Ok(Value::Array(events));
         }
 
         // Content deltas
@@ -1274,40 +1339,29 @@ impl ProviderAdapter for AnthropicAdapter {
             }
 
             if let Some(delta_view) = choice.delta_view() {
-                // Tool calls
-                if let Some(tool_call) = delta_view.tool_calls.first() {
-                    let tool_index = tool_call.index.unwrap_or(choice.index);
-                    let function = tool_call.function.clone().unwrap_or_default();
-                    let tool_name = function.name.unwrap_or_default();
-                    let tool_id = tool_call.id.clone().unwrap_or_default();
-                    let arguments = function.arguments.unwrap_or_default();
-
-                    if !tool_name.is_empty() || !tool_id.is_empty() {
-                        let input = serde_json::from_str::<Value>(&arguments)
-                            .ok()
-                            .filter(Value::is_object)
-                            .unwrap_or_else(|| serde_json::json!({}));
-                        let content_block_start = serde_json::json!({
-                            "type": "content_block_start",
-                            "index": tool_index,
-                            "content_block": {
-                                "type": "tool_use",
-                                "id": tool_id,
-                                "name": tool_name,
-                                "input": input
+                // Tool calls. A single delta may carry assistant text and/or the opening
+                // of a tool call (some OSS providers bundle the final text fragment onto
+                // the tool-call chunk), and a tool-call delta may itself expand into
+                // multiple Anthropic events. Emit any text first so it is never dropped,
+                // then the tool events, returning an array when there is more than one.
+                if !delta_view.tool_calls.is_empty() {
+                    let mut events = Vec::new();
+                    if let Some(content) = delta_view.content.as_deref().filter(|c| !c.is_empty()) {
+                        events.push(serde_json::json!({
+                            "type": "content_block_delta",
+                            "index": choice.index,
+                            "delta": {
+                                "type": "text_delta",
+                                "text": content
                             }
-                        });
-                        return Ok(content_block_start);
+                        }));
                     }
-
-                    return Ok(serde_json::json!({
-                        "type": "content_block_delta",
-                        "index": tool_index,
-                        "delta": {
-                            "type": "input_json_delta",
-                            "partial_json": arguments
-                        }
-                    }));
+                    events.extend(anthropic_tool_call_stream_events(&delta_view, choice.index));
+                    return Ok(if events.len() == 1 {
+                        events.remove(0)
+                    } else {
+                        Value::Array(events)
+                    });
                 }
 
                 // Text content delta
@@ -1375,6 +1429,66 @@ fn tool_input_to_arguments(input: &Value) -> String {
         return String::new();
     }
     serde_json::to_string(input).unwrap_or_else(|_| "{}".to_string())
+}
+
+/// Build the Anthropic streaming events for the tool calls in a single delta.
+///
+/// Maps OpenAI-style streaming tool-call deltas to Anthropic events. The presence of
+/// `function.name` (which only appears on the opening delta of a tool call) decides when
+/// to open a `tool_use` block — `id` is not used because some OpenAI-compatible providers
+/// (e.g. GLM/zai) repeat it on every continuation delta. Argument fragments are always
+/// re-emitted as `input_json_delta`, including a fragment bundled into the opening delta,
+/// so none are dropped.
+fn anthropic_tool_call_stream_events(
+    delta_view: &UniversalStreamDelta,
+    fallback_index: u32,
+) -> Vec<Value> {
+    let mut events = Vec::new();
+    for tool_call in &delta_view.tool_calls {
+        let tool_index = tool_call.index.unwrap_or(fallback_index);
+        let function = tool_call.function.clone().unwrap_or_default();
+        let tool_name = function.name.unwrap_or_default();
+        if tool_name.is_empty() {
+            // Continuation delta: stream the argument fragment. Empty fragments are
+            // preserved so providers that emit an initial empty input_json_delta
+            // round-trip losslessly.
+            let arguments = function.arguments.unwrap_or_default();
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+            continue;
+        }
+
+        // Opening delta: open the tool_use block.
+        events.push(serde_json::json!({
+            "type": "content_block_start",
+            "index": tool_index,
+            "content_block": {
+                "type": "tool_use",
+                "id": tool_call.id.clone().unwrap_or_default(),
+                "name": tool_name,
+                "input": {}
+            }
+        }));
+        // Some providers bundle the first argument fragment into the opening delta;
+        // re-emit it so it is not lost.
+        if let Some(arguments) = function.arguments.filter(|arguments| !arguments.is_empty()) {
+            events.push(serde_json::json!({
+                "type": "content_block_delta",
+                "index": tool_index,
+                "delta": {
+                    "type": "input_json_delta",
+                    "partial_json": arguments
+                }
+            }));
+        }
+    }
+    events
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -1933,6 +2047,406 @@ mod tests {
             .output_config
             .expect("output_config should be present");
         assert_eq!(output_config.effort, Some(EffortLevel::Medium));
+    }
+
+    #[test]
+    fn test_anthropic_emits_disabled_thinking_for_effort_none() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::ReasoningConfig;
+
+        // These models think by default when `thinking` is omitted, so a cross-provider
+        // `reasoning_effort: "none"` (universal ReasoningEffort::None) must be translated
+        // to `thinking: {type: "disabled"}` rather than dropped.
+        for model in ["claude-sonnet-5", "claude-opus-4-7", "claude-opus-4-8"] {
+            let adapter = AnthropicAdapter;
+
+            let req = UniversalRequest {
+                model: Some(model.to_string()),
+                messages: vec![Message::User {
+                    content: UserContent::String("What is 2+2?".to_string()),
+                }],
+                params: UniversalParams {
+                    reasoning: Some(ReasoningConfig {
+                        effort: Some(ReasoningEffort::None),
+                        canonical: Some(ReasoningCanonical::Effort),
+                        ..Default::default()
+                    }),
+                    token_budget: Some(TokenBudget::OutputTokens(4096)),
+                    ..Default::default()
+                },
+            };
+
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+            let thinking = result.thinking.expect("thinking should be disabled");
+            assert_eq!(
+                thinking.thinking_type,
+                ThinkingType::Disabled,
+                "{model} should emit disabled thinking for effort=none"
+            );
+            assert!(
+                result
+                    .output_config
+                    .as_ref()
+                    .and_then(|c| c.effort.clone())
+                    .is_none(),
+                "{model} should not set output_config.effort for effort=none"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_cross_provider_reasoning_effort_none_emits_disabled() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // OpenAI `reasoning_effort: "none"` flowing into a Sonnet 5 / Opus 4.7+ target
+        // must arrive as `thinking: {type: "disabled"}` so thinking doesn't run by default.
+        for model in ["claude-sonnet-5", "claude-opus-4-7", "claude-opus-4-8"] {
+            let openai_adapter = OpenAIAdapter;
+            let anthropic_adapter = AnthropicAdapter;
+
+            let openai_payload = json!({
+                "model": "gpt-5",
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "reasoning_effort": "none"
+            });
+
+            let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+            universal.model = Some(model.to_string());
+
+            let anthropic_payload = anthropic_adapter
+                .request_from_universal(&universal)
+                .unwrap();
+            let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+            let thinking = result
+                .thinking
+                .expect("thinking should be emitted for reasoning_effort none");
+            assert_eq!(
+                thinking.thinking_type,
+                ThinkingType::Disabled,
+                "{model}: reasoning_effort=none must produce thinking.type=disabled"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_omits_thinking_for_effort_none_on_fable_5() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // Fable 5 keeps adaptive thinking always on and rejects `thinking: {type: "disabled"}`,
+        // so a cross-provider `reasoning_effort: "none"` must omit `thinking` rather than emit
+        // disabled (verified live: claude-fable-5 returns 400 for thinking.type=disabled).
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        let openai_payload = json!({
+            "model": "gpt-5",
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "reasoning_effort": "none"
+        });
+
+        let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        universal.model = Some("claude-fable-5".to_string());
+
+        let anthropic_payload = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+        let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+        assert!(
+            result.thinking.is_none(),
+            "Fable 5 must omit thinking (not disabled) for reasoning_effort none"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_raw_output_config_effort_for_sonnet_5() {
+        // Same-provider Anthropic round-trip: a raw `output_config.effort` of "xhigh"
+        // must survive verbatim and not collapse to "max" through the universal enum.
+        for (model, effort) in [
+            ("claude-sonnet-5", "xhigh"),
+            ("claude-sonnet-5", "max"),
+            ("claude-opus-4-7", "xhigh"),
+        ] {
+            let adapter = AnthropicAdapter;
+            let payload = json!({
+                "model": model,
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": "What is 2+2?"}],
+                "output_config": {"effort": effort}
+            });
+
+            let universal = adapter.request_to_universal(payload).unwrap();
+            let result: CreateMessageParams =
+                serde_json::from_value(adapter.request_from_universal(&universal).unwrap())
+                    .unwrap();
+
+            let output_config = result
+                .output_config
+                .expect("output_config should be present");
+            let expected_effort: EffortLevel = serde_json::from_value(json!(effort)).unwrap();
+            assert_eq!(
+                output_config.effort,
+                Some(expected_effort),
+                "{model}: output_config.effort should round-trip {effort}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_cross_provider_reasoning_effort_xhigh_not_collapsed_to_max() {
+        use crate::processing::adapters::ProviderAdapter;
+        use crate::providers::openai::adapter::OpenAIAdapter;
+
+        // OpenAI `reasoning_effort: "xhigh"` flowing into Sonnet 5 must map to `xhigh`,
+        // not collapse to `max`.
+        let openai_adapter = OpenAIAdapter;
+        let anthropic_adapter = AnthropicAdapter;
+
+        let openai_payload = json!({
+            "model": "gpt-5",
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "reasoning_effort": "xhigh"
+        });
+
+        let mut universal = openai_adapter.request_to_universal(openai_payload).unwrap();
+        universal.model = Some("claude-sonnet-5".to_string());
+
+        let anthropic_payload = anthropic_adapter
+            .request_from_universal(&universal)
+            .unwrap();
+        let result: CreateMessageParams = serde_json::from_value(anthropic_payload).unwrap();
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(
+            output_config.effort,
+            Some(EffortLevel::Xhigh),
+            "reasoning_effort=xhigh must map to output_config.effort=xhigh, not max"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_drops_effort_for_forced_tool_choice_on_sonnet_5() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // Forced tool_choice is incompatible with active thinking. The adapter drops the
+        // `thinking` object in that case; output_config.effort must also be dropped so the
+        // request does not request reasoning the guard just disabled.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Tool),
+                    tool_name: Some("calc".to_string()),
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        // thinking is dropped by the forced-tool guard
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for forced tool_choice"
+        );
+        // effort is dropped too
+        let effort = result
+            .output_config
+            .as_ref()
+            .and_then(|c| c.effort.as_ref().map(|e| serde_json::to_value(e).unwrap()));
+        assert!(
+            effort.is_none(),
+            "output_config.effort should be dropped for forced tool_choice, got {effort:?}"
+        );
+        // tool_choice is still emitted
+        assert!(
+            result.tool_choice.is_some(),
+            "tool_choice should be emitted"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_drops_effort_and_thinking_for_any_tool_choice_on_sonnet_5() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // tool_choice {"type":"any"} (universal Required) also forces tool use, so it is
+        // incompatible with active thinking just like {"type":"tool"}. Effort and thinking
+        // must both be dropped; otherwise the emitted thinking object 400s on Sonnet 5.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Required),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for tool_choice any/required"
+        );
+        assert!(
+            result
+                .output_config
+                .as_ref()
+                .and_then(|c| c.effort.as_ref())
+                .is_none(),
+            "output_config.effort should be dropped for tool_choice any/required"
+        );
+        // tool_choice round-trips back to {"type":"any"}
+        let tc: ToolChoice = serde_json::from_value(
+            serde_json::to_value(result.tool_choice.as_ref().unwrap()).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(tc.tool_choice_type, ToolChoiceType::Any);
+    }
+
+    #[test]
+    fn test_anthropic_drops_enabled_thinking_for_any_tool_choice_legacy() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // On a legacy non-adaptive model, tool_choice any/required with enabled thinking would
+        // emit thinking.type=enabled and 400 ("Thinking may not be enabled when tool_choice
+        // forces tool use"). The forced-tool guard must drop it.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    budget_tokens: Some(2048),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Required),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for tool_choice any/required + enabled thinking"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_preserves_effort_when_tool_choice_not_forced() {
+        use crate::universal::message::UserContent;
+        use crate::universal::request::{ReasoningConfig, ToolChoiceConfig, ToolChoiceMode};
+
+        // Auto tool_choice is not forced, so effort and adaptive thinking are preserved.
+        let adapter = AnthropicAdapter;
+        let req = UniversalRequest {
+            model: Some("claude-sonnet-5".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Use calc with x=2".to_string()),
+            }],
+            params: UniversalParams {
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                reasoning: Some(ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(ReasoningEffort::High),
+                    canonical: Some(ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                tool_choice: Some(ToolChoiceConfig {
+                    mode: Some(ToolChoiceMode::Auto),
+                    tool_name: None,
+                }),
+                ..Default::default()
+            },
+        };
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        let thinking = result.thinking.expect("thinking should be present");
+        assert_eq!(thinking.thinking_type, ThinkingType::Adaptive);
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert_eq!(output_config.effort, Some(EffortLevel::High));
+    }
+
+    #[test]
+    fn test_anthropic_drops_raw_effort_for_forced_tool_choice_round_trip() {
+        // Same-provider Anthropic round-trip: raw output_config.effort must be dropped when
+        // tool_choice is forced, while an attached format is retained.
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-sonnet-5",
+            "max_tokens": 2048,
+            "tool_choice": {"type": "tool", "name": "calc"},
+            "tools": [{"name": "calc", "description": "calc", "input_schema": {"type": "object", "properties": {"x": {"type": "number"}}, "required": ["x"]}}],
+            "output_config": {
+                "effort": "xhigh",
+                "format": {"type": "json_schema", "schema": {"type": "object", "properties": {}, "additionalProperties": false}}
+            },
+            "messages": [{"role": "user", "content": "Use calc x=2"}]
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+
+        assert!(
+            result.thinking.is_none(),
+            "thinking should be dropped for forced tool_choice"
+        );
+        let output_config = result
+            .output_config
+            .expect("output_config should be present");
+        assert!(
+            output_config.effort.is_none(),
+            "raw output_config.effort should be dropped for forced tool_choice"
+        );
+        assert!(
+            output_config.format.is_some(),
+            "output_config.format should be retained for forced tool_choice"
+        );
     }
 
     #[test]

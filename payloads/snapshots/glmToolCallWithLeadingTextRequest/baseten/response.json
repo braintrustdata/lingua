@@ -1,0 +1,42 @@
+{
+  "id": "chatcmpl-d0b5981f0a5c4e57b5d74531925c02d6",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "content": "I'm about to look up the weather for San Francisco, CA.",
+        "tool_calls": [
+          {
+            "id": "chatcmpl-tool-4b8dd01b191c422896d832037529d23e",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"location\": \"San Francisco, CA\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "finish_reason": "tool_calls",
+      "stop_reason": 154829
+    }
+  ],
+  "created": 1782324314,
+  "model": "zai-org/GLM-5.2",
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 201,
+    "completion_tokens": 27,
+    "total_tokens": 228,
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 32
+    },
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  }
+}

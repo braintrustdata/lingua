@@ -242,7 +242,10 @@
       "source": "Responses",
       "target": "ChatCompletions",
       "fields": [
-        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery transcript blocks, so discovery-only messages are dropped" }
+        { "pattern": "messages[*].content[*].type", "reason": "ChatCompletions has no tool-discovery types, so tool_discovery_call/tool_discovery_result project to generic tool_call/tool_result and cannot be re-tagged as discovery on reparse" },
+        { "pattern": "messages[*].content[*].tools", "reason": "ChatCompletions tool results carry no structured tools list; discovered tools are serialized into the tool message content/output instead" },
+        { "pattern": "messages[*].content[*].output", "reason": "The discovery result payload is serialized into the ChatCompletions tool message output string" },
+        { "pattern": "messages[*].content[*].arguments", "reason": "ChatCompletions tool-call arguments round-trip as a JSON string wrapped in the universal valid/invalid arguments envelope" }
       ]
     },
     {
@@ -250,7 +253,12 @@
       "source": "Anthropic",
       "target": "ChatCompletions",
       "fields": [
-        { "pattern": "messages.length", "reason": "ChatCompletions has no dynamic tool discovery transcript blocks, so discovery-only messages are dropped" }
+        { "pattern": "messages[*].content[*].type", "reason": "ChatCompletions has no tool-discovery types, so tool_discovery_call/tool_discovery_result project to generic tool_call/tool_result and cannot be re-tagged as discovery on reparse" },
+        { "pattern": "messages[*].content[*].tools", "reason": "ChatCompletions tool results carry no structured tools list; discovered tools are serialized into the tool message content/output instead" },
+        { "pattern": "messages[*].content[*].output", "reason": "The discovery result payload is serialized into the ChatCompletions tool message output string" },
+        { "pattern": "messages[*].content[*].arguments", "reason": "ChatCompletions tool-call arguments round-trip as a JSON string wrapped in the universal valid/invalid arguments envelope" },
+        { "pattern": "messages[*].content[*].discovery_tool_name", "reason": "ChatCompletions identifies the discovery call by its function name (tool_name); discovery_tool_name is not preserved as a separate field" },
+        { "pattern": "messages[*].content[*].tool_name", "reason": "Discovery call/result names round-trip as the ChatCompletions function/tool name" }
       ]
     },
     {
