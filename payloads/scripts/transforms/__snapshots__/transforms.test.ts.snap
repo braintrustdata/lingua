@@ -18087,21 +18087,13 @@ exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam
       "index": 0,
       "message": {
         "annotations": [],
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": "I’m ready to summarize, but I don’t have the stable reference text here. Please paste the text you want summarized (or share a link/title and any length/delivery preferences). Also tell me:
 
 - Desired length (e.g., one paragraph, 5 bullet points, short executive summary)
 - Target audience (general, technical, executives, students)
 
 Once I have the text, I’ll provide a concise summary.",
+        "reasoning": "",
         "role": "assistant",
       },
     },
