@@ -1,0 +1,168 @@
+[
+  {
+    "type": "message_start",
+    "message": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_011CcrbeGXXxSWBPHBZyJGJ3",
+      "type": "message",
+      "role": "assistant",
+      "content": [],
+      "stop_reason": null,
+      "stop_sequence": null,
+      "stop_details": null,
+      "usage": {
+        "input_tokens": 22,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1,
+        "service_tier": "standard",
+        "inference_geo": "not_available"
+      }
+    }
+  },
+  {
+    "type": "content_block_start",
+    "index": 0,
+    "content_block": {
+      "type": "text",
+      "text": ""
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "#"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Summary of the Text\n\nThis appears to be a comprehensive **reference guide"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " or manual** covering multiple technical and conceptual topics. Here's what it contains"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": ":\n\n## Main Sections:\n\n1. **Programming/Software Development** - Code examples, algorithms, data structures, and best practices"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "\n\n2. **Mathematics & Logic** - Mathematical concepts, proofs, formulas, and theoretical frameworks\n\n3. **System Architecture"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "** - Design patterns, system design principles, and architectural considerations\n\n4. **Problem-Solving Methodologies** - Approaches to breaking"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " down and solving complex problems\n\n5. **Technical Specifications** - Detailed technical documentation and standards\n\n6. **Best Practices & Guidelines"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "** - Industry standards, conventions, and recommended approaches\n\n## Purpose:\nThe document serves as a **stable"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " reference text** that can be used as cacheable context for technical discussions, problem-solving, or educational purposes. It's designed to provide found"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": "ational knowledge across multiple domains without requiring constant re-explanation of basic concepts.\n\n## Key"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " Characteristics:\n- Comprehensive coverage of technical topics\n- Structured for easy reference\n- Designed for caching to"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " improve efficiency\n- Spans multiple domains (programming, math, systems, etc.)\n\n**Note:** Without seeing"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " the actual content, this is a general summary based on the metadata and typical"
+    }
+  },
+  {
+    "type": "content_block_delta",
+    "index": 0,
+    "delta": {
+      "type": "text_delta",
+      "text": " structure of such reference documents."
+    }
+  },
+  {
+    "type": "content_block_stop",
+    "index": 0
+  },
+  {
+    "type": "message_delta",
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "stop_details": null
+    },
+    "usage": {
+      "input_tokens": 22,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 286
+    }
+  },
+  {
+    "type": "message_stop"
+  }
+]

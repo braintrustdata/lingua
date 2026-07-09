@@ -8190,6 +8190,89 @@ I'm ready to help you! Since you mentioned using the cached assistant prefill, I
 }
 `;
 
+exports[`chat-completions → anthropic > chatCompletionsSystemCacheControlParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Now summarize it.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "system": [
+    {
+      "cache_control": {
+        "ttl": "1h",
+        "type": "ephemeral",
+      },
+      "text": "Use this stable reference text as cacheable context.",
+      "type": "text",
+    },
+  ],
+}
+`;
+
+exports[`chat-completions → anthropic > chatCompletionsSystemCacheControlParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "# Summary of DPO (Direct Preference Optimization)
+
+## Core Innovation
+DPO is a simpler alternative to RLHF (Reinforcement Learning from Human Feedback) that directly optimizes language models using preference data, eliminating the need for a separate reward model and complex RL training.
+
+## Key Features
+
+**Main Advantage**: Bypasses the traditional three-stage RLHF pipeline by:
+- Skipping explicit reward model training
+- Avoiding reinforcement learning altogether
+- Directly optimizing policy using a classification-style loss on preference pairs
+
+**How It Works**:
+1. Uses a mathematical reparameterization that converts the RL objective into a simple loss function
+2. Trains on pairs of responses (preferred vs. dispreferred) from the same prompt
+3. Increases likelihood of preferred responses while decreasing likelihood of rejected ones
+4. Maintains proximity to a reference model to prevent mode collapse
+
+**Loss Function**:
+\`\`\`
+L = -log σ(β log(π_θ/π_ref)(y_w) - β log(π_θ/π_ref)(y_l))
+\`\`\`
+Where preferred responses (y_w) are pushed up and dispreferred responses (y_l) pushed down.
+
+## Benefits
+- **Simpler**: Single-stage training process
+- **More stable**: No RL instability issues
+- **Computationally efficient**: Less memory and compute required
+- **Comparable performance**: Matches or exceeds RLHF results
+- **Easier to implement**: Standard supervised learning setup
+
+## Applications
+Effective for aligning models with human preferences in tasks like summarization, dialogue, and general instruction-following.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011Ccrbfb7G8NoeWxnPgarif",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 383,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 405,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,
