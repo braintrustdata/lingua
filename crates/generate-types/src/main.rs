@@ -1112,6 +1112,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
     );
     processed = processed.replace(
+        "pub enum ToolType {\n    #[serde(rename = \"apply_patch\")]",
+        "pub enum ToolType {\n    #[serde(rename = \"programmatic_tool_calling\")]\n    ProgrammaticToolCalling,\n    #[serde(rename = \"apply_patch\")]",
+    );
+    processed = processed.replace(
         "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,",
         "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub fingerprint: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub caller: Option<ToolCaller>,",
     );

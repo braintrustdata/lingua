@@ -31462,6 +31462,50 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > responsesProgrammaticToolCallingContinuationParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Compare inventory and demand for sku_123.",
+      "role": "user",
+    },
+    {
+      "content": [],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "id": "call_inventory_123",
+          "input": {
+            "sku": "sku_123",
+          },
+          "name": "get_inventory",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "{"available_units":42,"sku":"sku_123"}",
+          "tool_use_id": "call_inventory_123",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
 exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -35228,6 +35272,53 @@ Here are the key points:
     },
     "total_tokens": 3973,
   },
+}
+`;
+
+exports[`responses → google > responsesProgrammaticToolCallingContinuationParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Compare inventory and demand for sku_123.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "sku": "sku_123",
+            },
+            "name": "get_inventory",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_inventory",
+            "response": {
+              "available_units": 42,
+              "sku": "sku_123",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "role": "model",
+    },
+  ],
+  "model": "gemini-3.5-flash",
 }
 `;
 

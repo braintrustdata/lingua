@@ -17,7 +17,6 @@ use crate::util::media::parse_base64_data_url;
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
     match arguments {
@@ -99,6 +98,22 @@ fn input_item_output_to_output(output: Option<openai::Output>) -> Option<openai:
             }
         }
     })
+}
+
+fn function_call_item_status_to_string(
+    status: openai::FunctionCallItemStatus,
+    field: &str,
+) -> Result<String, ConvertError> {
+    match serde_json::to_value(status).map_err(|e| ConvertError::JsonSerializationFailed {
+        field: field.to_string(),
+        error: e.to_string(),
+    })? {
+        serde_json::Value::String(value) => Ok(value),
+        value => Err(ConvertError::InvalidEnumValue {
+            type_name: "FunctionCallItemStatus",
+            value: value.to_string(),
+        }),
+    }
 }
 
 fn merge_reasoning_signature(
@@ -566,6 +581,7 @@ struct ResponsesToolCallInfo {
     tool_name: String,
     arguments: ToolCallArguments,
     namespace: Option<String>,
+    caller: Option<ToolCaller>,
     provider_executed: Option<bool>,
 }
 
@@ -581,85 +597,19 @@ struct ResponsesDiscoveryCallInfo {
 enum ResponsesSequencedInputItem {
     ToolCall(ResponsesToolCallInfo),
     DiscoveryCall(ResponsesDiscoveryCallInfo),
-    Item(openai::InputItem),
-}
-
-fn collect_responses_callers_by_call_id(messages: &[Message]) -> HashMap<String, ToolCaller> {
-    let mut callers = HashMap::new();
-    for message in messages {
-        match message {
-            Message::Assistant {
-                content: AssistantContent::Array(parts),
-                ..
-            } => {
-                for part in parts {
-                    match part {
-                        AssistantContentPart::ToolCall {
-                            tool_call_id,
-                            caller: Some(caller),
-                            ..
-                        }
-                        | AssistantContentPart::ToolResult {
-                            tool_call_id,
-                            caller: Some(caller),
-                            ..
-                        } => {
-                            callers.insert(tool_call_id.clone(), caller.clone());
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Message::Tool { content } => {
-                for part in content {
-                    if let ToolContentPart::ToolResult(ToolResultContentPart {
-                        tool_call_id,
-                        caller: Some(caller),
-                        ..
-                    }) = part
-                    {
-                        callers.insert(tool_call_id.clone(), caller.clone());
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
-    callers
-}
-
-fn responses_caller_for_call_id<'a>(
-    callers: &'a HashMap<String, ToolCaller>,
-    call_id: Option<&String>,
-) -> Option<&'a ToolCaller> {
-    let call_id = call_id?;
-    callers
-        .iter()
-        .find_map(|(candidate, caller)| (candidate == call_id).then_some(caller))
-}
-
-#[derive(Serialize)]
-struct ResponsesItemWithCaller<'a, T> {
-    #[serde(flatten)]
-    item: &'a T,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    caller: Option<&'a ToolCaller>,
+    Item(Box<openai::InputItem>),
 }
 
 pub(crate) fn responses_input_values_from_universal_context(
     input_items: &[openai::InputItem],
-    messages: &[Message],
+    _messages: &[Message],
 ) -> Result<Vec<serde_json::Value>, ConvertError> {
-    let callers = collect_responses_callers_by_call_id(messages);
     let mut values = Vec::with_capacity(input_items.len());
     for item in input_items {
-        let caller = responses_caller_for_call_id(&callers, item.call_id.as_ref());
         let value =
-            serde_json::to_value(ResponsesItemWithCaller { item, caller }).map_err(|e| {
-                ConvertError::JsonSerializationFailed {
-                    field: "Responses input item".to_string(),
-                    error: e.to_string(),
-                }
+            serde_json::to_value(item).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "Responses input item".to_string(),
+                error: e.to_string(),
             })?;
         values.push(value);
     }
@@ -668,18 +618,14 @@ pub(crate) fn responses_input_values_from_universal_context(
 
 pub(crate) fn responses_output_values_from_universal_context(
     output_items: &[openai::OutputItem],
-    messages: &[Message],
+    _messages: &[Message],
 ) -> Result<Vec<serde_json::Value>, ConvertError> {
-    let callers = collect_responses_callers_by_call_id(messages);
     let mut values = Vec::with_capacity(output_items.len());
     for item in output_items {
-        let caller = responses_caller_for_call_id(&callers, item.call_id.as_ref());
         let value =
-            serde_json::to_value(ResponsesItemWithCaller { item, caller }).map_err(|e| {
-                ConvertError::JsonSerializationFailed {
-                    field: "Responses output item".to_string(),
-                    error: e.to_string(),
-                }
+            serde_json::to_value(item).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "Responses output item".to_string(),
+                error: e.to_string(),
             })?;
         values.push(value);
     }
@@ -1258,14 +1204,12 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                                 status: input
                                     .status
                                     .map(|status| {
-                                        serde_json::to_value(status).ok().and_then(|value| {
-                                            match value {
-                                                serde_json::Value::String(value) => Some(value),
-                                                _ => None,
-                                            }
-                                        })
+                                        function_call_item_status_to_string(
+                                            status,
+                                            "program_output status",
+                                        )
                                     })
-                                    .flatten()
+                                    .transpose()?
                                     .ok_or_else(|| ConvertError::MissingRequiredField {
                                         field: "program_output status".to_string(),
                                     })?,
@@ -1929,7 +1873,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
-                                    caller: _,
+                                    caller,
                                     encrypted_content: _,
                                     provider_options,
                                     provider_executed,
@@ -1942,6 +1886,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             &provider_options,
                                         )
                                         .and_then(|opts| opts.namespace),
+                                        caller,
                                         provider_executed,
                                     });
                                 }
@@ -2153,6 +2098,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             arguments: Some(openai_arguments_from_string(
                                                 tool_call.arguments.to_string(),
                                             )),
+                                            caller: tool_call.caller,
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -2180,6 +2126,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     arguments: Some(openai_arguments_from_string(
                                         tool_call.arguments.to_string(),
                                     )),
+                                    caller: tool_call.caller,
                                     status: Some(openai::FunctionCallItemStatus::Completed),
                                     ..Default::default()
                                 };
@@ -2231,6 +2178,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
+                                caller: tool_result.caller.clone(),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2277,6 +2225,7 @@ fn create_function_call_input_item(
     name: &str,
     arguments: &ToolCallArguments,
     namespace: Option<String>,
+    caller: Option<ToolCaller>,
     provider_executed: Option<bool>,
     id: Option<String>,
 ) -> Result<openai::InputItem, ConvertError> {
@@ -2399,6 +2348,7 @@ fn create_function_call_input_item(
                     call_id: Some(call_id.to_string()),
                     name: Some(name.to_string()),
                     namespace,
+                    caller,
                     arguments: Some(openai_arguments_from_string(arguments.to_string())),
                     status: Some(openai::FunctionCallItemStatus::Completed),
                     ..Default::default()
@@ -2409,6 +2359,7 @@ fn create_function_call_input_item(
         // Set common fields
         item.id = id;
         item.input_item_type = Some(input_item_type);
+        item.caller = caller;
         item.status = args_value
             .get("status")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
@@ -2423,6 +2374,7 @@ fn create_function_call_input_item(
             call_id: Some(call_id.to_string()),
             name: Some(name.to_string()),
             namespace,
+            caller,
             input: Some(input.clone()),
             status: Some(openai::FunctionCallItemStatus::Completed),
             ..Default::default()
@@ -2436,6 +2388,7 @@ fn create_function_call_input_item(
             call_id: Some(call_id.to_string()),
             name: Some(name.to_string()),
             namespace,
+            caller,
             arguments: Some(openai_arguments_from_string(arguments.to_string())),
             status: Some(openai::FunctionCallItemStatus::Completed),
             ..Default::default()
@@ -2491,6 +2444,7 @@ pub fn universal_to_responses_input(
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
+                                caller: tool_result.caller.clone(),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2548,7 +2502,7 @@ pub fn universal_to_responses_input(
                                     tool_call_id,
                                     tool_name,
                                     arguments,
-                                    caller: _,
+                                    caller,
                                     encrypted_content: _,
                                     provider_options,
                                     provider_executed,
@@ -2562,6 +2516,7 @@ pub fn universal_to_responses_input(
                                                 provider_options,
                                             )
                                             .and_then(|opts| opts.namespace),
+                                            caller: caller.clone(),
                                             provider_executed: *provider_executed,
                                         },
                                     ));
@@ -2594,14 +2549,14 @@ pub fn universal_to_responses_input(
                                     id,
                                 } => {
                                     sequenced_items.push(ResponsesSequencedInputItem::Item(
-                                        openai::InputItem {
+                                        Box::new(openai::InputItem {
                                             input_item_type: Some(openai::InputItemType::Program),
                                             id: id.clone(),
                                             call_id: Some(call_id.clone()),
                                             code: Some(code.clone()),
                                             fingerprint: fingerprint.clone(),
                                             ..Default::default()
-                                        },
+                                        }),
                                     ));
                                 }
                                 AssistantContentPart::ProgramOutput {
@@ -2611,7 +2566,7 @@ pub fn universal_to_responses_input(
                                     id,
                                 } => {
                                     sequenced_items.push(ResponsesSequencedInputItem::Item(
-                                        openai::InputItem {
+                                        Box::new(openai::InputItem {
                                             input_item_type: Some(
                                                 openai::InputItemType::ProgramOutput,
                                             ),
@@ -2628,7 +2583,7 @@ pub fn universal_to_responses_input(
                                                 })?,
                                             ),
                                             ..Default::default()
-                                        },
+                                        }),
                                     ));
                                 }
                                 other_part => {
@@ -2674,6 +2629,7 @@ pub fn universal_to_responses_input(
                                         &tool_call.tool_name,
                                         &tool_call.arguments,
                                         tool_call.namespace,
+                                        tool_call.caller,
                                         tool_call.provider_executed,
                                         id.clone(),
                                     )?);
@@ -2688,7 +2644,7 @@ pub fn universal_to_responses_input(
                                         id.clone(),
                                     ));
                                 }
-                                ResponsesSequencedInputItem::Item(item) => result.push(item),
+                                ResponsesSequencedInputItem::Item(item) => result.push(*item),
                             }
                         }
                     }
@@ -3169,14 +3125,9 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         status: item
                             .status
                             .map(|status| {
-                                serde_json::to_value(status)
-                                    .ok()
-                                    .and_then(|value| match value {
-                                        serde_json::Value::String(value) => Some(value),
-                                        _ => None,
-                                    })
+                                function_call_item_status_to_string(status, "program_output status")
                             })
-                            .flatten()
+                            .transpose()?
                             .ok_or_else(|| ConvertError::MissingRequiredField {
                                 field: "program_output status".to_string(),
                             })?,

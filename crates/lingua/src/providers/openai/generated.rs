@@ -4424,6 +4424,8 @@ pub enum McpToolApprovalSetting {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum ToolType {
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling,
     #[serde(rename = "apply_patch")]
     ApplyPatch,
     #[serde(rename = "code_interpreter")]
@@ -5140,9 +5142,16 @@ pub struct WebSearchPreviewTool {
 pub struct ApplyPatchToolParam {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ProgrammaticToolCallingToolParam {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
 #[ts(export_to = "openai/")]
 pub enum Tool {
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling(ProgrammaticToolCallingToolParam),
+
     #[serde(rename = "file_search")]
     FileSearch(FileSearchTool),
 
