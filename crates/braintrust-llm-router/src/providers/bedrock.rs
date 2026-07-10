@@ -63,10 +63,12 @@ pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bo
     )
 }
 
-// xAI/Grok on Bedrock is served only on the `bedrock-mantle` host, not
-// `bedrock-runtime`.
+// Some Bedrock models are served only on the `bedrock-mantle` host, not
+// `bedrock-runtime`: xAI/Grok (`xai.`) and Google Gemma 4 (`google.gemma-4`).
+// Gemma 3 is excluded on purpose — it is served on `bedrock-runtime` and uses a
+// different mantle OpenAI path (`/v1` rather than `/openai/v1`).
 fn is_bedrock_mantle_only_model(model: &str) -> bool {
-    model.starts_with("xai.")
+    model.starts_with("xai.") || model.starts_with("google.gemma-4")
 }
 
 /// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
@@ -769,6 +771,36 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-east-1.api.aws/openai/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_routes_gemma_models_to_mantle() {
+        let provider = provider();
+        for model in [
+            "google.gemma-4-e2b",
+            "google.gemma-4-31b",
+            "google.gemma-4-26b-a4b",
+        ] {
+            let url = provider.chat_completions_url(model).unwrap();
+            assert_eq!(
+                url.as_str(),
+                "https://bedrock-mantle.us-east-1.api.aws/openai/v1/chat/completions",
+                "model {model} should route to the bedrock-mantle host"
+            );
+        }
+    }
+
+    #[test]
+    fn chat_completions_url_keeps_gemma_3_on_bedrock_runtime() {
+        let provider = provider();
+        let url = provider
+            .chat_completions_url("google.gemma-3-27b-it")
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions",
+            "Gemma 3 is served on bedrock-runtime, not the mantle host"
         );
     }
 
