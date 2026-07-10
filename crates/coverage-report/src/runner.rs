@@ -210,7 +210,7 @@ pub fn test_request_transformation(
         Err(e) => {
             let error_msg = format!("Conversion from universal format failed: {}", e);
             let context = CompareContext::for_cross_provider(
-                TestCategory::Responses,
+                TestCategory::Requests,
                 source_adapter,
                 target_adapter,
                 test_case,

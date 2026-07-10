@@ -17,6 +17,7 @@
 // }
 
 use crate::serde_json;
+use crate::universal::message::ToolCaller;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
@@ -2331,6 +2332,10 @@ pub struct InputItem {
     pub result: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<ToolCaller>,
     /// The ID of the container used to run the code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_id: Option<String>,
@@ -3122,6 +3127,10 @@ pub enum ToolSearchExecutionType {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum InputItemType {
+    #[serde(rename = "program")]
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     #[serde(rename = "additional_tools")]
     AdditionalTools,
     #[serde(rename = "apply_patch_call")]
@@ -5842,6 +5851,10 @@ pub struct OutputItem {
     pub result: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<ToolCaller>,
     /// The ID of the container used to run the code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_id: Option<String>,
@@ -6287,6 +6300,10 @@ pub struct FluffyShellCallOutcome {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum OutputItemType {
+    #[serde(rename = "program")]
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     #[serde(rename = "additional_tools")]
     AdditionalTools,
     #[serde(rename = "apply_patch_call")]

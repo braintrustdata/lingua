@@ -229,10 +229,15 @@ pub enum OpenAIReasoningEffort {
 /// Typed OpenAI Responses reasoning parameter view.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OpenAIReasoning {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<OpenAIReasoningEffort>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
 }
 

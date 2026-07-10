@@ -404,6 +404,28 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(text) = typed_params.text {
             extras_map.insert("text".into(), text);
         }
+        if let Some(include) = typed_params.include {
+            extras_map.insert("include".into(), include);
+        }
+        if let Some(reasoning) = typed_params.reasoning {
+            extras_map.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning)
+                    .map_err(|error| TransformError::SerializationFailed(error.to_string()))?,
+            );
+        }
+        if let Some(previous_response_id) = typed_params.previous_response_id {
+            extras_map.insert(
+                "previous_response_id".into(),
+                Value::String(previous_response_id),
+            );
+        }
+        if let Some(prompt_cache_options) = typed_params.prompt_cache_options {
+            extras_map.insert("prompt_cache_options".into(), prompt_cache_options);
+        }
+        if let Some(prompt_cache_retention) = typed_params.prompt_cache_retention {
+            extras_map.insert("prompt_cache_retention".into(), prompt_cache_retention);
+        }
         if let Some(truncation) = typed_params.truncation {
             extras_map.insert("truncation".into(), truncation);
         }
@@ -1330,6 +1352,75 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_preserves_gpt56_request_controls_in_extras() {
+        #[derive(Debug, Deserialize)]
+        struct PreservedResponsesExtras {
+            include: Value,
+            reasoning: Value,
+            previous_response_id: String,
+            prompt_cache_options: Value,
+            prompt_cache_retention: Value,
+        }
+
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{"role": "user", "content": "Hello"}],
+            "include": ["reasoning.encrypted_content"],
+            "reasoning": {
+                "effort": "max",
+                "mode": "pro",
+                "context": "all_turns"
+            },
+            "previous_response_id": "resp_123",
+            "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
+            "prompt_cache_retention": "24h"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let responses_extras = universal
+            .params
+            .extras
+            .clone()
+            .into_iter()
+            .find(|(format, _)| *format == ProviderFormat::Responses)
+            .map(|(_, extras)| extras)
+            .expect("Responses extras should be preserved");
+        let extras: PreservedResponsesExtras =
+            serde_json::from_value(serde_json::to_value(responses_extras).unwrap()).unwrap();
+
+        assert_eq!(extras.include, json!(["reasoning.encrypted_content"]));
+        assert_eq!(
+            extras.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(extras.previous_response_id, "resp_123");
+        assert_eq!(
+            extras.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(extras.prompt_cache_retention, json!("24h"));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: PreservedResponsesExtras =
+            serde_json::from_value(reconstructed).unwrap();
+        assert_eq!(
+            reconstructed.include,
+            json!(["reasoning.encrypted_content"])
+        );
+        assert_eq!(
+            reconstructed.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(reconstructed.previous_response_id, "resp_123");
+        assert_eq!(
+            reconstructed.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(reconstructed.prompt_cache_retention, json!("24h"));
+    }
+
+    #[test]
     fn responses_programmatic_items_and_callers_export_to_input_json() {
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
@@ -1435,6 +1526,91 @@ mod tests {
                     "caller_id": "call_prog_123"
                 }
             })));
+    }
+
+    #[test]
+    fn responses_programmatic_output_items_convert_to_universal() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_123",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": "Done.",
+                            "annotations": []
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+
+        let Message::Assistant {
+            content: AssistantContent::Array(program_parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("program item should become assistant message");
+        };
+        let AssistantContentPart::Program {
+            call_id,
+            code,
+            fingerprint,
+            ..
+        } = &program_parts[0]
+        else {
+            panic!("expected program part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(
+            code,
+            "const result = await get_inventory({ sku: \"sku_123\" });"
+        );
+        assert_eq!(fingerprint.as_deref(), Some("opaque_state"));
+
+        let Message::Assistant {
+            content: AssistantContent::Array(output_parts),
+            ..
+        } = &universal.messages[1]
+        else {
+            panic!("program_output item should become assistant message");
+        };
+        let AssistantContentPart::ProgramOutput {
+            call_id,
+            result,
+            status,
+            ..
+        } = &output_parts[0]
+        else {
+            panic!("expected program_output part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(result, "{\"done\":true}");
+        assert_eq!(status, "completed");
     }
 
     #[test]

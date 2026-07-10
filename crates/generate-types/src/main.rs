@@ -1088,11 +1088,32 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    processed = processed.replace(
+        "use crate::serde_json;\n",
+        "use crate::serde_json;\nuse crate::universal::message::ToolCaller;\n",
+    );
+
     // The local OpenAI spec can lag model-specific reasoning efforts. Keep
     // generated request validation aligned with the compatibility params view.
     processed = processed.replace(
         "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
         "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
+    );
+
+    // GPT-5.6 programmatic tool output items are not yet in the local spec.
+    // Patch the generated Responses output item model so the typed adapter can
+    // deserialize and convert them without a raw-JSON fallback.
+    processed = processed.replace(
+        "pub enum OutputItemType {\n    #[serde(rename = \"additional_tools\")]",
+        "pub enum OutputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
+    );
+    processed = processed.replace(
+        "pub enum InputItemType {\n    #[serde(rename = \"additional_tools\")]",
+        "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
+    );
+    processed = processed.replace(
+        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,",
+        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub fingerprint: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub caller: Option<ToolCaller>,",
     );
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
