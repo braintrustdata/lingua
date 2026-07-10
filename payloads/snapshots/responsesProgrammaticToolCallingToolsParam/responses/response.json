@@ -1,0 +1,151 @@
+{
+  "id": "resp_08654f7ea0984a5d006a511249fd68819db3ed0f1cd82ba15f",
+  "object": "response",
+  "created_at": 1783697994,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1783697995,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_08654f7ea0984a5d006a51124a85b0819dab216c2d84eb5ae9",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "cm_08654f7ea0984a5d006a51124b10d4819db0485af12c6fd84f",
+      "type": "program",
+      "call_id": "call_gNuW13yPOQKLZftJRC6OVUh8",
+      "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
+      "fingerprint": "gAAAAABqURJLOyYuUjgUv48rmHLpTBiRPu1kq4o2BQXU6OrJgF9L2nXmSjhTYPySA6TNVkGYmF9QJoqojh9BoBEKgjifi74jsdh7FWmM1i8l5kanm6v0_ttQiHomAHJ3TjemnO-BosiLwUB5iJIIZsE3kRuG7jEZd8IgO1TCLcIpvolfGHFiBCVgex5YHXmNLlO-v9_bL7AbDUKx5GXEXrdYCmMd_BMRylyvJxZjefAGFbJNp6lcDHDtsKNpUI6zPWqwl7A0a8GknMFYcX3BGCYvdmKWZ4dyxNlT3cnBT-dh2YKZHcgkSk59oVGWnpy8jGMW3PsGr0Lc"
+    },
+    {
+      "id": "fc_08654f7ea0984a5d006a51124b2168819da2a6558e2a5ceca9",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "{\"sku\":\"sku_123\"}",
+      "call_id": "call_gb053cRZ2jjGQ8TFYtVXILLZ",
+      "caller": {
+        "type": "program",
+        "caller_id": "call_gNuW13yPOQKLZftJRC6OVUh8"
+      },
+      "name": "get_inventory"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [
+    {
+      "type": "programmatic_tool_calling"
+    },
+    {
+      "type": "function",
+      "description": "Return inventory details for a SKU.",
+      "name": "get_inventory",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "available_units": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "available_units"
+        ],
+        "additionalProperties": false
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "custom",
+      "description": "Write a compact plain-text note.",
+      "format": {
+        "type": "text"
+      },
+      "name": "write_short_note"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 600,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 55,
+    "output_tokens_details": {
+      "reasoning_tokens": 25
+    },
+    "total_tokens": 655
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": ""
+}

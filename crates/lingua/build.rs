@@ -41,6 +41,10 @@ fn main() {
 const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] = &[
     "responsesFunctionCallOutputWithoutThoughtSignatureParam",
     "responsesAdditionalToolsParam",
+    "responsesGpt56PromptCacheOptionsParam",
+    "responsesGpt56ReasoningMaxProContextParam",
+    "responsesProgrammaticToolCallingContinuationParam",
+    "responsesProgrammaticToolCallingToolsParam",
 ];
 
 fn generate_test_cases(workspace: &Path, generate_snapshot_tests: bool) {

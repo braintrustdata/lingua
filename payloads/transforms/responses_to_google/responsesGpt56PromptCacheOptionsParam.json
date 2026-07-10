@@ -1,0 +1,17 @@
+{
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Use the stable policy prefix when answering."
+          }
+        ],
+        "role": "user"
+      }
+    ],
+    "model": "gemini-3.5-flash"
+  },
+  "error": "Google API error (403): {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Your project has been denied access. Please contact support.\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+  "name": "Error"
+}

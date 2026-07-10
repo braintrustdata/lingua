@@ -19,7 +19,7 @@ use crate::universal::request::{
 };
 use crate::universal::response_format::normalize_response_schema_for_strict_target;
 use crate::universal::tools::{
-    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolType,
+    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolCaller, UniversalToolType,
 };
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
@@ -61,6 +61,34 @@ fn anthropic_tool_use_provider_options_from_caller(
     let mut options = serde_json::Map::new();
     options.insert("caller".into(), value);
     Some(ProviderOptions { options })
+}
+
+fn anthropic_allowed_callers_from_universal(
+    callers: &Option<Vec<UniversalToolCaller>>,
+) -> Result<Option<Vec<generated::AllowedCaller>>, ConvertError> {
+    callers
+        .as_ref()
+        .map(|callers| {
+            serde_json::from_value(serde_json::to_value(callers).map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "Anthropic tool allowed_callers".to_string(),
+                    error: e.to_string(),
+                }
+            })?)
+            .map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "Anthropic tool allowed_callers".to_string(),
+                error: e.to_string(),
+            })
+        })
+        .transpose()
+}
+
+fn universal_allowed_callers_from_anthropic(
+    callers: Option<Vec<generated::AllowedCaller>>,
+) -> Option<Vec<UniversalToolCaller>> {
+    callers
+        .and_then(|callers| serde_json::to_value(callers).ok())
+        .and_then(|value| serde_json::from_value(value).ok())
 }
 
 fn anthropic_tool_use_caller_from_provider_options(
@@ -466,6 +494,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 tool_name: String::new(), // Anthropic doesn't provide tool name in results
                                                 output,
                                                 custom_tool_call: None,
+                                                caller: None,
                                                 provider_options: None,
                                             },
                                         ));
@@ -710,6 +739,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 .into(),
                                             encrypted_content: None,
                                             provider_options,
+                                            caller: None,
                                             provider_executed: None,
                                         });
                                     }
@@ -752,6 +782,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                     .into(),
                                                 encrypted_content: None,
                                                 provider_options,
+                                                caller: None,
                                                 provider_executed: Some(true), // Mark as server-executed
                                             });
                                         }
@@ -777,6 +808,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                             tool_call_id: id.clone(),
                                             tool_name: "web_search".to_string(), // Server-executed web search tool
                                             output: serde_json::Value::Object(output),
+                                            caller: None,
                                             provider_options: None,
                                         });
                                     }
@@ -1864,6 +1896,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                 .into(),
                             encrypted_content: None,
                             provider_options,
+                            caller: None,
                             provider_executed: None,
                         });
                     }
@@ -1901,6 +1934,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                     .into(),
                                 encrypted_content: None,
                                 provider_options,
+                                caller: None,
                                 provider_executed: Some(true), // Mark as server-executed
                             });
                         }
@@ -1925,6 +1959,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                             tool_call_id: id,
                             tool_name: "web_search".to_string(),
                             output: serde_json::Value::Object(output),
+                            caller: None,
                             provider_options: None,
                         });
                     }
@@ -2330,7 +2365,7 @@ impl TryFrom<&UniversalTool> for CustomTool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(CustomTool {
-                allowed_callers: None,
+                allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers)?,
                 name: tool.name.clone(),
                 description: tool.description.clone(),
                 defer_loading: (tool.availability == ToolAvailability::Deferred).then_some(true),
@@ -2369,6 +2404,8 @@ impl From<&Tool> for UniversalTool {
                 if ct.defer_loading == Some(true) {
                     tool.availability = ToolAvailability::Deferred;
                 }
+                tool.allowed_callers =
+                    universal_allowed_callers_from_anthropic(ct.allowed_callers.clone());
                 tool
             }
             other => {
@@ -2671,6 +2708,7 @@ mod tests {
                     tool_name: String::new(),
                     output: json!({"records": [{"id": "record_1", "status": "ok"}]}),
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 })],
             },
@@ -2720,6 +2758,7 @@ mod tests {
                     tool_name: String::new(),
                     output: json!("result"),
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 })],
             },
@@ -2984,6 +3023,7 @@ mod tests {
                         arguments: ToolCallArguments::from("{}".to_string()),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: None,
                     },
                 ]),
@@ -2996,6 +3036,7 @@ mod tests {
                         tool_name: "get_weather".to_string(),
                         output: json!("sunny"),
                         custom_tool_call: None,
+                        caller: None,
                         provider_options: None,
                     }),
                     ToolContentPart::ToolDiscoveryResult(
@@ -3058,6 +3099,7 @@ mod tests {
                     tool_name: "get_weather".to_string(),
                     output: json!("sunny"),
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 }),
                 ToolContentPart::ToolDiscoveryResult(

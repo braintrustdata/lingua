@@ -16,6 +16,9 @@ use crate::providers::openai::adapter::parse_openai_chat_extras;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
 };
+use crate::providers::openai::convert::{
+    responses_input_values_from_universal_context, responses_output_values_from_universal_context,
+};
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
@@ -480,8 +483,38 @@ impl ProviderAdapter for ResponsesAdapter {
         } else {
             obj.insert(
                 "input".into(),
-                serde_json::to_value(input_items)
+                Value::Array(
+                    responses_input_values_from_universal_context(
+                        &input_items,
+                        &messages_for_input,
+                    )
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                ),
+            );
+        }
+        if let Some(raw_include) = responses_extras_view.include.as_ref() {
+            obj.insert("include".into(), raw_include.clone());
+        }
+        if let Some(raw_previous_response_id) = responses_extras_view.previous_response_id.as_ref()
+        {
+            obj.insert(
+                "previous_response_id".into(),
+                raw_previous_response_id.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_options) = responses_extras_view.prompt_cache_options.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_options".into(),
+                raw_prompt_cache_options.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_retention) =
+            responses_extras_view.prompt_cache_retention.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_retention".into(),
+                raw_prompt_cache_retention.clone(),
             );
         }
 
@@ -700,16 +733,13 @@ impl ProviderAdapter for ResponsesAdapter {
             .map_err(|e: ConvertError| TransformError::FromUniversalFailed(e.to_string()))?;
 
         // Serialize OutputItems to JSON values
-        let output: Vec<Value> = output_items
-            .iter()
-            .map(serde_json::to_value)
-            .collect::<Result<_, _>>()
-            .map_err(|e| {
-                TransformError::SerializationFailed(format!(
-                    "Failed to serialize output item: {}",
-                    e
-                ))
-            })?;
+        let output: Vec<Value> = responses_output_values_from_universal_context(
+            &output_items,
+            &resp.messages,
+        )
+        .map_err(|e| {
+            TransformError::SerializationFailed(format!("Failed to serialize output item: {}", e))
+        })?;
 
         // Calculate output_text (concatenate text from all message-type items)
         let output_text = output_items
@@ -1225,7 +1255,10 @@ mod tests {
     use crate::providers::openai::generated::{Arguments, InputParam};
     use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
-    use crate::universal::{AssistantContentPart, ToolContentPart};
+    use crate::universal::{
+        AssistantContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
+        ToolResultContentPart,
+    };
     use bytes::Bytes;
 
     #[test]
@@ -1294,6 +1327,107 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[test]
+    fn responses_programmatic_items_and_callers_export_to_input_json() {
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: "call_prog_123".to_string(),
+        };
+        let req = UniversalRequest {
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("Check inventory.".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::Program {
+                            call_id: "call_prog_123".to_string(),
+                            code: "const result = await get_inventory({ sku: \"sku_123\" });"
+                                .to_string(),
+                            fingerprint: Some("opaque_state".to_string()),
+                            id: Some("prog_123".to_string()),
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_inventory_123".to_string(),
+                            tool_name: "get_inventory".to_string(),
+                            arguments: ToolCallArguments::from("{\"sku\":\"sku_123\"}".to_string()),
+                            caller: Some(caller.clone()),
+                            encrypted_content: None,
+                            provider_options: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                    id: None,
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: "call_inventory_123".to_string(),
+                        tool_name: "get_inventory".to_string(),
+                        output: json!({"sku": "sku_123", "available_units": 42}),
+                        custom_tool_call: None,
+                        caller: Some(caller),
+                        provider_options: None,
+                    })],
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
+                        call_id: "call_prog_123".to_string(),
+                        result: "{\"done\":true}".to_string(),
+                        status: "completed".to_string(),
+                        id: Some("prog_out_123".to_string()),
+                    }]),
+                    id: None,
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let value = adapter.request_from_universal(&req).unwrap();
+        let input = value["input"].as_array().unwrap();
+
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program",
+                "id": "prog_123",
+                "call_id": "call_prog_123",
+                "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                "fingerprint": "opaque_state"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program_output",
+                "id": "prog_out_123",
+                "call_id": "call_prog_123",
+                "result": "{\"done\":true}",
+                "status": "completed"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "arguments": "{\"sku\":\"sku_123\"}",
+                "status": "completed",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call_output",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "output": "{\"available_units\":42,\"sku\":\"sku_123\"}",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
     }
 
     #[test]
@@ -1515,6 +1649,7 @@ mod tests {
                     arguments: r#"{"query":"weather"}"#.to_string().into(),
                     encrypted_content: None,
                     provider_options: None,
+                    caller: None,
                     provider_executed: None,
                 }]),
                 id: None,

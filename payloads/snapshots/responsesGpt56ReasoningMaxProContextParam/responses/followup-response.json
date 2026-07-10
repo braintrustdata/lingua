@@ -1,0 +1,101 @@
+{
+  "id": "resp_0d58e5ae0053f6b4006a51125452f4819e85dc773eb68080c5",
+  "object": "response",
+  "created_at": 1783698004,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1783698062,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0d58e5ae0053f6b4006a51128e2230819eaa027cc4ce2b90f9",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0d58e5ae0053f6b4006a51128e2508819e9faa71a313e78c07",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Your next step is to **share the actual rollout checklist**—paste it here or upload it—so I can assess the real risks rather than guess.\n\nBefore sharing, remove or redact passwords, API keys, customer data, internal IPs, and other secrets. Include any notes attached to the checklist, especially around migrations, infrastructure, authentication, and rollback.\n\nUse this format if it helps:\n\n```text\nChange summary:\n- What is being deployed?\n- Which services, regions, customers, or traffic percentage are affected?\n\nDeployment plan:\n- Rollout stages / timing:\n- Owners:\n- On-call / incident commander:\n\nData and infrastructure:\n- Database/schema/data migrations:\n- Backups and restore validation:\n- Infrastructure/configuration changes:\n- Third-party dependencies:\n\nSafety controls:\n- Rollback procedure:\n- Has rollback been tested? When?\n- Go/no-go criteria:\n- Metrics/alerts to monitor:\n- Conditions that trigger rollback:\n```\n\nUntil that review is complete, the most important thing to verify is:\n\n> **Can the team safely and quickly roll back—or recover data—if the rollout causes harm?**\n\nIf the change includes an irreversible database migration, destructive operation, authentication/authorization change, or broad production traffic cutover, do not proceed without a documented recovery path, named owner, and explicit stop/rollback thresholds."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "max",
+    "mode": "pro",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "high"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 4627,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 7204,
+    "output_tokens_details": {
+      "reasoning_tokens": 6167
+    },
+    "total_tokens": 11831
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Your next step is to **share the actual rollout checklist**—paste it here or upload it—so I can assess the real risks rather than guess.\n\nBefore sharing, remove or redact passwords, API keys, customer data, internal IPs, and other secrets. Include any notes attached to the checklist, especially around migrations, infrastructure, authentication, and rollback.\n\nUse this format if it helps:\n\n```text\nChange summary:\n- What is being deployed?\n- Which services, regions, customers, or traffic percentage are affected?\n\nDeployment plan:\n- Rollout stages / timing:\n- Owners:\n- On-call / incident commander:\n\nData and infrastructure:\n- Database/schema/data migrations:\n- Backups and restore validation:\n- Infrastructure/configuration changes:\n- Third-party dependencies:\n\nSafety controls:\n- Rollback procedure:\n- Has rollback been tested? When?\n- Go/no-go criteria:\n- Metrics/alerts to monitor:\n- Conditions that trigger rollback:\n```\n\nUntil that review is complete, the most important thing to verify is:\n\n> **Can the team safely and quickly roll back—or recover data—if the rollout causes harm?**\n\nIf the change includes an irreversible database migration, destructive operation, authentication/authorization change, or broad production traffic cutover, do not proceed without a documented recovery path, named owner, and explicit stop/rollback thresholds."
+}

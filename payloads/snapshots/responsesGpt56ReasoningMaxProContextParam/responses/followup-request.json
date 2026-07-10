@@ -1,0 +1,42 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Review this rollout checklist for the highest-risk issue."
+    },
+    {
+      "id": "rs_0d58e5ae0053f6b4006a511253dd7c819e9c794f6ebb21cbb4",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0d58e5ae0053f6b4006a511253def8819ea21d7736131f99d6",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Please paste or upload the rollout checklist. I’ll identify the single highest-risk issue, explain why it has the greatest potential impact/blast radius, and recommend the concrete mitigation or go/no-go gate.\n\nI’ll prioritize risks such as:\n\n- No tested rollback or rollback decision criteria\n- Irreversible data migrations or destructive changes\n- Missing backups/restore validation\n- Broad production access, secrets exposure, or authentication/authorization changes\n- Lack of staged rollout, monitoring, alerting, or success/failure thresholds\n- Unclear ownership or incident-response coverage during deployment\n- Dependencies on unvalidated third parties or infrastructure changes"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "max",
+    "mode": "pro",
+    "context": "all_turns"
+  },
+  "text": {
+    "verbosity": "high"
+  }
+}

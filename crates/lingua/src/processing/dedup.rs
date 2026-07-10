@@ -209,6 +209,30 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         tool_name.hash(hasher);
                         output.hash(hasher);
                     }
+                    AssistantContentPart::Program {
+                        call_id,
+                        code,
+                        fingerprint,
+                        id,
+                    } => {
+                        "program".hash(hasher);
+                        call_id.hash(hasher);
+                        code.hash(hasher);
+                        fingerprint.hash(hasher);
+                        id.hash(hasher);
+                    }
+                    AssistantContentPart::ProgramOutput {
+                        call_id,
+                        result,
+                        status,
+                        id,
+                    } => {
+                        "program_output".hash(hasher);
+                        call_id.hash(hasher);
+                        result.hash(hasher);
+                        status.hash(hasher);
+                        id.hash(hasher);
+                    }
                 }
             }
         }
@@ -283,6 +307,8 @@ fn hash_universal_tool(tool: &UniversalTool, hasher: &mut DefaultHasher) {
     tool.parameters.hash(hasher);
     tool.strict.hash(hasher);
     hash_tool_availability(tool.availability, hasher);
+    tool.allowed_callers.hash(hasher);
+    tool.output_schema.hash(hasher);
 
     match &tool.tool_type {
         UniversalToolType::Function => "function".hash(hasher),

@@ -10,13 +10,14 @@ use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT};
 use crate::universal::{
     AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
-    TextContentPart, ToolCallArguments, ToolContentPart, ToolDiscoveryResultContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
+    ToolDiscoveryResultContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
     match arguments {
@@ -386,6 +387,10 @@ enum ResponsesImportKnownType {
     CustomToolCall,
     #[serde(rename = "image_generation_call")]
     ImageGenerationCall,
+    #[serde(rename = "program")]
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -413,6 +418,10 @@ struct ResponsesImportCompatItem {
         skip_serializing_if = "Option::is_none"
     )]
     result: Option<String>,
+    code: Option<String>,
+    fingerprint: Option<String>,
+    status: Option<String>,
+    caller: Option<OpenAIProgramCaller>,
     #[serde(flatten)]
     extra: serde_json::Map<String, serde_json::Value>,
 }
@@ -504,6 +513,140 @@ struct OpenAIToolCallProviderOptionsView {
     namespace: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+struct OpenAIProgramCaller {
+    #[serde(rename = "type")]
+    caller_type: OpenAIProgramCallerType,
+    caller_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum OpenAIProgramCallerType {
+    Program,
+}
+
+impl From<OpenAIProgramCaller> for ToolCaller {
+    fn from(caller: OpenAIProgramCaller) -> Self {
+        let caller_type = match caller.caller_type {
+            OpenAIProgramCallerType::Program => ToolCallerType::Program,
+        };
+        Self {
+            caller_type,
+            caller_id: caller.caller_id,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAIResponsesProgramCompatItem {
+    #[serde(rename = "type")]
+    item_type: String,
+    id: Option<String>,
+    call_id: Option<String>,
+    code: Option<String>,
+    fingerprint: Option<String>,
+    result: Option<String>,
+    status: Option<String>,
+    caller: Option<OpenAIProgramCaller>,
+    name: Option<String>,
+    namespace: Option<String>,
+    #[serde(deserialize_with = "deserialize_optional_json_as_string")]
+    arguments: Option<String>,
+    #[serde(deserialize_with = "deserialize_optional_json_as_string")]
+    output: Option<String>,
+    input: Option<String>,
+}
+
+fn try_messages_from_responses_program_compat_items(
+    data: &serde_json::Value,
+) -> Option<Vec<Message>> {
+    let wrapped;
+    let candidate = if data.is_object() {
+        wrapped = serde_json::Value::Array(vec![data.clone()]);
+        &wrapped
+    } else {
+        data
+    };
+    let items =
+        serde_json::from_value::<Vec<OpenAIResponsesProgramCompatItem>>(candidate.clone()).ok()?;
+    if !items
+        .iter()
+        .any(|item| matches!(item.item_type.as_str(), "program" | "program_output"))
+    {
+        return None;
+    }
+
+    let mut messages = Vec::new();
+    for item in items {
+        match item.item_type.as_str() {
+            "program" => messages.push(Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::Program {
+                    id: item.id.clone(),
+                    call_id: item.call_id?,
+                    code: item.code?,
+                    fingerprint: item.fingerprint,
+                }]),
+                id: item.id,
+            }),
+            "program_output" => messages.push(Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
+                    id: item.id.clone(),
+                    call_id: item.call_id?,
+                    result: item.result?,
+                    status: item.status?,
+                }]),
+                id: item.id,
+            }),
+            "function_call" | "custom_tool_call" => {
+                let tool_call_id = item.call_id?;
+                let tool_name = item.name?;
+                let arguments = if item.item_type == "custom_tool_call" {
+                    ToolCallArguments::Invalid(item.input?)
+                } else {
+                    item.arguments
+                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string())
+                        .into()
+                };
+                messages.push(Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                        tool_call_id,
+                        tool_name,
+                        arguments,
+                        caller: item.caller.map(Into::into),
+                        encrypted_content: None,
+                        provider_options: provider_options_from_openai_namespace(item.namespace),
+                        provider_executed: None,
+                    }]),
+                    id: item.id,
+                });
+            }
+            "function_call_output" | "function_call_result" | "custom_tool_call_output" => {
+                let output = item.output?;
+                let output_value = match serde_json::from_str(&output) {
+                    Ok(value) => value,
+                    Err(_) => serde_json::Value::String(output),
+                };
+                messages.push(Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: item.call_id?,
+                        tool_name: item.name.unwrap_or_default(),
+                        output: output_value,
+                        custom_tool_call: (item.item_type == "custom_tool_call_output")
+                            .then_some(true),
+                        caller: item.caller.map(Into::into),
+                        provider_options: None,
+                    })],
+                });
+            }
+            _ => {}
+        }
+    }
+    non_empty_messages(messages)
+}
+
 fn openai_tool_call_provider_options_view(
     provider_options: &Option<ProviderOptions>,
 ) -> Option<OpenAIToolCallProviderOptionsView> {
@@ -541,6 +684,199 @@ struct ResponsesDiscoveryCallInfo {
     arguments: Option<serde_json::Value>,
     status: Option<String>,
     execution: Option<String>,
+}
+
+fn collect_responses_callers_by_call_id(messages: &[Message]) -> HashMap<String, ToolCaller> {
+    let mut callers = HashMap::new();
+    for message in messages {
+        match message {
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => {
+                for part in parts {
+                    match part {
+                        AssistantContentPart::ToolCall {
+                            tool_call_id,
+                            caller: Some(caller),
+                            ..
+                        }
+                        | AssistantContentPart::ToolResult {
+                            tool_call_id,
+                            caller: Some(caller),
+                            ..
+                        } => {
+                            callers.insert(tool_call_id.clone(), caller.clone());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            Message::Tool { content } => {
+                for part in content {
+                    if let ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id,
+                        caller: Some(caller),
+                        ..
+                    }) = part
+                    {
+                        callers.insert(tool_call_id.clone(), caller.clone());
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    callers
+}
+
+fn responses_caller_for_call_id<'a>(
+    callers: &'a HashMap<String, ToolCaller>,
+    call_id: Option<&String>,
+) -> Option<&'a ToolCaller> {
+    let call_id = call_id?;
+    callers
+        .iter()
+        .find_map(|(candidate, caller)| (candidate == call_id).then_some(caller))
+}
+
+#[derive(Serialize)]
+struct ResponsesItemWithCaller<'a, T> {
+    #[serde(flatten)]
+    item: &'a T,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    caller: Option<&'a ToolCaller>,
+}
+
+#[derive(Serialize)]
+struct ResponsesProgramItemValue<'a> {
+    #[serde(rename = "type")]
+    item_type: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<&'a String>,
+    call_id: &'a str,
+    code: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    fingerprint: Option<&'a String>,
+}
+
+#[derive(Serialize)]
+struct ResponsesProgramOutputItemValue<'a> {
+    #[serde(rename = "type")]
+    item_type: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<&'a String>,
+    call_id: &'a str,
+    result: &'a str,
+    status: &'a str,
+}
+
+fn responses_program_item_values_from_messages(
+    messages: &[Message],
+) -> Result<Vec<serde_json::Value>, ConvertError> {
+    let mut values = Vec::new();
+    for message in messages {
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        else {
+            continue;
+        };
+
+        for part in parts {
+            match part {
+                AssistantContentPart::Program {
+                    call_id,
+                    code,
+                    fingerprint,
+                    id,
+                } => {
+                    values.push(
+                        serde_json::to_value(ResponsesProgramItemValue {
+                            item_type: "program",
+                            id: id.as_ref(),
+                            call_id,
+                            code,
+                            fingerprint: fingerprint.as_ref(),
+                        })
+                        .map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "Responses program item".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                AssistantContentPart::ProgramOutput {
+                    call_id,
+                    result,
+                    status,
+                    id,
+                } => {
+                    values.push(
+                        serde_json::to_value(ResponsesProgramOutputItemValue {
+                            item_type: "program_output",
+                            id: id.as_ref(),
+                            call_id,
+                            result,
+                            status,
+                        })
+                        .map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: "Responses program_output item".to_string(),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                _ => {}
+            }
+        }
+    }
+    Ok(values)
+}
+
+pub(crate) fn responses_input_values_from_universal_context(
+    input_items: &[openai::InputItem],
+    messages: &[Message],
+) -> Result<Vec<serde_json::Value>, ConvertError> {
+    let callers = collect_responses_callers_by_call_id(messages);
+    let mut values = Vec::with_capacity(input_items.len());
+    for item in input_items {
+        let caller = responses_caller_for_call_id(&callers, item.call_id.as_ref());
+        let value =
+            serde_json::to_value(ResponsesItemWithCaller { item, caller }).map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "Responses input item".to_string(),
+                    error: e.to_string(),
+                }
+            })?;
+        values.push(value);
+    }
+    values.extend(responses_program_item_values_from_messages(messages)?);
+    Ok(values)
+}
+
+pub(crate) fn responses_output_values_from_universal_context(
+    output_items: &[openai::OutputItem],
+    messages: &[Message],
+) -> Result<Vec<serde_json::Value>, ConvertError> {
+    let callers = collect_responses_callers_by_call_id(messages);
+    let mut values = Vec::with_capacity(output_items.len());
+    for item in output_items {
+        let caller = responses_caller_for_call_id(&callers, item.call_id.as_ref());
+        let value =
+            serde_json::to_value(ResponsesItemWithCaller { item, caller }).map_err(|e| {
+                ConvertError::JsonSerializationFailed {
+                    field: "Responses output item".to_string(),
+                    error: e.to_string(),
+                }
+            })?;
+        values.push(value);
+    }
+    values.extend(responses_program_item_values_from_messages(messages)?);
+    Ok(values)
 }
 
 fn openai_media_type_from_reference(filename: Option<&str>, file_url: Option<&str>) -> String {
@@ -774,6 +1110,10 @@ fn try_from_responses_items_candidate(candidate: &serde_json::Value) -> Option<V
 pub(crate) fn try_parse_responses_items_for_import(
     data: &serde_json::Value,
 ) -> Option<Vec<Message>> {
+    if let Some(messages) = try_messages_from_responses_program_compat_items(data) {
+        return Some(messages);
+    }
+
     if let Some(messages) = try_from_responses_items_candidate(data) {
         return Some(messages);
     }
@@ -872,6 +1212,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -891,6 +1232,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -909,6 +1251,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -926,6 +1269,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -943,6 +1287,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -960,6 +1305,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -977,6 +1323,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -995,6 +1342,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1011,6 +1359,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1105,6 +1454,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         arguments,
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_namespace(input.namespace),
+                        caller: None,
                         provider_executed: None,
                     };
 
@@ -1138,6 +1488,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         custom_tool_call: (item_type
                             == Some(openai::InputItemType::CustomToolCallOutput))
                         .then_some(true),
+                        caller: None,
                         provider_options: None,
                     };
 
@@ -1487,6 +1838,11 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                     type_info: "AssistantContentPart::ToolDiscoveryCall must be converted as a Responses input item".to_string(),
                 })
             }
+            AssistantContentPart::Program { .. } | AssistantContentPart::ProgramOutput { .. } => {
+                return Err(ConvertError::UnsupportedInputType {
+                    type_info: "Programmatic tool calling items must be converted as Responses input items".to_string(),
+                })
+            }
             AssistantContentPart::Reasoning {
                 text,
                 encrypted_content: _,
@@ -1714,6 +2070,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    caller: _,
                                     encrypted_content: _,
                                     provider_options,
                                     provider_executed,
@@ -2333,6 +2690,7 @@ pub fn universal_to_responses_input(
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    caller: _,
                                     encrypted_content: _,
                                     provider_options,
                                     provider_executed,
@@ -2365,6 +2723,8 @@ pub fn universal_to_responses_input(
                                         execution: execution.clone(),
                                     });
                                 }
+                                AssistantContentPart::Program { .. }
+                                | AssistantContentPart::ProgramOutput { .. } => {}
                                 other_part => {
                                     normal_parts.push(TryFromLLM::try_from(other_part.clone())?);
                                 }
@@ -2893,6 +3253,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         arguments,
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_namespace(item.namespace),
+                        caller: None,
                         provider_executed: None,
                     }]
                 }
@@ -2915,6 +3276,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2929,6 +3291,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2943,6 +3306,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2956,6 +3320,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2969,6 +3334,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2982,6 +3348,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -2995,6 +3362,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -3009,6 +3377,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -3021,6 +3390,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        caller: None,
                         provider_executed: Some(true),
                     }]
                 }
@@ -3516,6 +3886,26 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             });
                                         }
                                     }
+                                    AssistantContentPart::Program { .. } => {
+                                        flush_reasoning(
+                                            &mut result,
+                                            &mut pending_reasoning_summaries,
+                                            &mut pending_encrypted_content,
+                                            &mut has_pending_reasoning,
+                                            &mut id_used,
+                                            &id,
+                                        );
+                                    }
+                                    AssistantContentPart::ProgramOutput { .. } => {
+                                        flush_reasoning(
+                                            &mut result,
+                                            &mut pending_reasoning_summaries,
+                                            &mut pending_encrypted_content,
+                                            &mut has_pending_reasoning,
+                                            &mut id_used,
+                                            &id,
+                                        );
+                                    }
                                     AssistantContentPart::ToolDiscoveryCall {
                                         tool_call_id,
                                         discovery_tool_name: _,
@@ -3772,6 +4162,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                 arguments: function.arguments.into(),
                                 encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
+                                caller: None,
                                 provider_executed: None,
                             });
                         }
@@ -3832,6 +4223,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     tool_name: String::new(), // OpenAI doesn't provide tool name in tool messages
                     output: output_value,
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 };
 
@@ -3859,6 +4251,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                         tool_name: name,
                         output: serde_json::Value::String(content_text),
                         custom_tool_call: None,
+                        caller: None,
                         provider_options: None,
                     })],
                 })
@@ -4516,6 +4909,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                                 arguments: function.arguments.clone().into(),
                                 encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
+                                caller: None,
                                 provider_executed: None,
                             });
                         }
@@ -4940,6 +5334,7 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"database":"mydb"}"#.to_string()),
                 encrypted_content: Some("dGhvdWdodF9zaWduYXR1cmVfMTIz".to_string()),
                 provider_options: None,
+                caller: None,
                 provider_executed: None,
             }]),
             id: None,
@@ -5092,6 +5487,7 @@ mod tests {
                     arguments: ToolCallArguments::from("{}".to_string()),
                     encrypted_content: Some("signature_one".to_string()),
                     provider_options: None,
+                    caller: None,
                     provider_executed: None,
                 },
                 AssistantContentPart::ToolCall {
@@ -5100,6 +5496,7 @@ mod tests {
                     arguments: ToolCallArguments::from("{}".to_string()),
                     encrypted_content: Some("signature_two".to_string()),
                     provider_options: None,
+                    caller: None,
                     provider_executed: None,
                 },
             ]),
@@ -5342,6 +5739,127 @@ mod tests {
             vec!["developer", "user", "tool"],
             "item_reference items should be silently dropped; function_call_output should become a tool message"
         );
+    }
+
+    #[test]
+    fn responses_program_items_import_to_universal() {
+        let messages = try_parse_responses_items_for_import(&json!([
+            {
+                "type": "program",
+                "id": "prog_123",
+                "call_id": "call_prog_123",
+                "code": "text(JSON.stringify({ ok: true }));",
+                "fingerprint": "opaque_state"
+            },
+            {
+                "type": "program_output",
+                "id": "prog_out_123",
+                "call_id": "call_prog_123",
+                "result": "{\"ok\":true}",
+                "status": "completed"
+            },
+            {
+                "type": "function_call",
+                "id": "fc_123",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "arguments": "{\"sku\":\"sku_123\"}",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            },
+            {
+                "type": "function_call_output",
+                "call_id": "call_inventory_123",
+                "output": "{\"sku\":\"sku_123\",\"available_units\":42}",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            }
+        ]))
+        .expect("program items should import");
+
+        assert_eq!(messages.len(), 4);
+
+        let Message::Assistant { content, id } = &messages[0] else {
+            panic!("program should become assistant message");
+        };
+        assert_eq!(id.as_deref(), Some("prog_123"));
+        let AssistantContent::Array(parts) = content else {
+            panic!("program content should be array");
+        };
+        let AssistantContentPart::Program {
+            call_id,
+            code,
+            fingerprint,
+            id,
+        } = &parts[0]
+        else {
+            panic!("expected program part");
+        };
+        assert_eq!(id.as_deref(), Some("prog_123"));
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(code, "text(JSON.stringify({ ok: true }));");
+        assert_eq!(fingerprint.as_deref(), Some("opaque_state"));
+
+        let Message::Assistant { content, id } = &messages[1] else {
+            panic!("program_output should become assistant message");
+        };
+        assert_eq!(id.as_deref(), Some("prog_out_123"));
+        let AssistantContent::Array(parts) = content else {
+            panic!("program_output content should be array");
+        };
+        let AssistantContentPart::ProgramOutput {
+            call_id,
+            result,
+            status,
+            id,
+        } = &parts[0]
+        else {
+            panic!("expected program_output part");
+        };
+        assert_eq!(id.as_deref(), Some("prog_out_123"));
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(result, "{\"ok\":true}");
+        assert_eq!(status, "completed");
+
+        let Message::Assistant { content, id } = &messages[2] else {
+            panic!("function_call should become assistant message");
+        };
+        assert_eq!(id.as_deref(), Some("fc_123"));
+        let AssistantContent::Array(parts) = content else {
+            panic!("function_call content should be array");
+        };
+        let AssistantContentPart::ToolCall {
+            tool_call_id,
+            tool_name,
+            caller,
+            ..
+        } = &parts[0]
+        else {
+            panic!("expected tool call part");
+        };
+        assert_eq!(tool_call_id, "call_inventory_123");
+        assert_eq!(tool_name, "get_inventory");
+        let caller = caller.as_ref().expect("caller should be preserved");
+        assert_eq!(caller.caller_type, ToolCallerType::Program);
+        assert_eq!(caller.caller_id, "call_prog_123");
+
+        let Message::Tool { content } = &messages[3] else {
+            panic!("function_call_output should become tool message");
+        };
+        let ToolContentPart::ToolResult(tool_result) = &content[0] else {
+            panic!("expected tool result part");
+        };
+        assert_eq!(tool_result.tool_call_id, "call_inventory_123");
+        let caller = tool_result
+            .caller
+            .as_ref()
+            .expect("tool result caller should be preserved");
+        assert_eq!(caller.caller_type, ToolCallerType::Program);
+        assert_eq!(caller.caller_id, "call_prog_123");
     }
 
     #[test]

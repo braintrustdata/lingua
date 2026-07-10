@@ -1,0 +1,28 @@
+{
+  "request": {
+    "max_tokens": 4096,
+    "messages": [
+      {
+        "content": "Continue from the previous deployment analysis.",
+        "role": "user"
+      },
+      {
+        "content": [
+          {
+            "signature": "encrypted_reasoning_payload_123",
+            "thinking": "",
+            "type": "thinking"
+          }
+        ],
+        "role": "assistant"
+      }
+    ],
+    "model": "claude-sonnet-4-5-20250929",
+    "thinking": {
+      "budget_tokens": 1024,
+      "type": "enabled"
+    }
+  },
+  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.1: The final block in an assistant message cannot be `thinking`.\"},\"request_id\":\"req_011CctdWPyGpEPKm9xQ3q2Rz\"}",
+  "name": "Error"
+}

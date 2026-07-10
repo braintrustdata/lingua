@@ -397,6 +397,7 @@ fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Mes
             tool_name,
             output,
             custom_tool_call: None,
+            caller: None,
             provider_options: None,
         })],
     })
@@ -476,6 +477,7 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
             tool_call_id,
             tool_name,
             arguments: parse_tool_call_arguments(arguments)?,
+            caller: None,
             encrypted_content,
             provider_options: None,
             provider_executed,
@@ -488,6 +490,7 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
             tool_call_id,
             tool_name,
             output,
+            caller: None,
             provider_options: None,
         }),
     }
@@ -504,6 +507,7 @@ fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> 
             tool_name,
             output,
             custom_tool_call: None,
+            caller: None,
             provider_options: None,
         })),
     }

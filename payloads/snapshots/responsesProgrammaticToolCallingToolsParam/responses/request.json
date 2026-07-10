@@ -1,0 +1,57 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": "Compare inventory and demand for sku_123.",
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_inventory",
+      "description": "Return inventory details for a SKU.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku"
+        ],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "available_units": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "available_units"
+        ],
+        "additionalProperties": false
+      },
+      "allowed_callers": [
+        "programmatic"
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "write_short_note",
+      "description": "Write a compact plain-text note.",
+      "format": {
+        "type": "text"
+      },
+      "allowed_callers": [
+        "direct",
+        "programmatic"
+      ]
+    },
+    {
+      "type": "programmatic_tool_calling"
+    }
+  ]
+}

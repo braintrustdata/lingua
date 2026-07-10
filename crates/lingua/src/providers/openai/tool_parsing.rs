@@ -1,6 +1,7 @@
-use crate::providers::openai::generated as openai;
 use crate::serde_json::{self, Value};
-use crate::universal::tools::{BuiltinToolProvider, ToolAvailability, UniversalTool};
+use crate::universal::tools::{
+    BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolCaller,
+};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -21,7 +22,7 @@ struct OpenAIChatCustomWire {
 #[derive(Debug, Deserialize)]
 struct OpenAIResponsesToolHeader {
     #[serde(rename = "type")]
-    tool_type: openai::ToolType,
+    tool_type: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,6 +32,8 @@ struct OpenAIResponsesFunctionWire {
     parameters: Option<Value>,
     strict: Option<bool>,
     defer_loading: Option<bool>,
+    allowed_callers: Option<Vec<UniversalToolCaller>>,
+    output_schema: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -39,6 +42,8 @@ struct OpenAIResponsesCustomWire {
     description: Option<String>,
     format: Option<Value>,
     defer_loading: Option<bool>,
+    allowed_callers: Option<Vec<UniversalToolCaller>>,
+    output_schema: Option<Value>,
 }
 
 fn parse_tool_array(tools: &Value) -> Vec<Value> {
@@ -90,8 +95,8 @@ fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
     let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
 
-    match header.tool_type {
-        openai::ToolType::Function => {
+    match header.tool_type.as_str() {
+        "function" => {
             let function: OpenAIResponsesFunctionWire =
                 serde_json::from_value(value.clone()).ok()?;
             let mut tool = UniversalTool::function(
@@ -103,18 +108,22 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
             if function.defer_loading == Some(true) {
                 tool.availability = ToolAvailability::Deferred;
             }
+            tool.allowed_callers = function.allowed_callers;
+            tool.output_schema = function.output_schema;
             Some(tool)
         }
-        openai::ToolType::Custom => {
+        "custom" => {
             let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
             let mut tool = UniversalTool::custom(custom.name, custom.description, custom.format);
             if custom.defer_loading == Some(true) {
                 tool.availability = ToolAvailability::Deferred;
             }
+            tool.allowed_callers = custom.allowed_callers;
+            tool.output_schema = custom.output_schema;
             Some(tool)
         }
-        tool_type => {
-            let tool_type_name = generated_tool_type_name(tool_type)?;
+        tool_type_name => {
+            let tool_type_name = tool_type_name.to_string();
             Some(UniversalTool::builtin(
                 tool_type_name.clone(),
                 BuiltinToolProvider::Responses,
@@ -122,13 +131,6 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
                 Some(value.clone()),
             ))
         }
-    }
-}
-
-fn generated_tool_type_name(tool_type: openai::ToolType) -> Option<String> {
-    match serde_json::to_value(tool_type).ok()? {
-        Value::String(tool_type) => Some(tool_type),
-        _ => None,
     }
 }
 
@@ -221,6 +223,46 @@ mod tests {
         assert_eq!(
             tools[0].builtin_provider(),
             Some(BuiltinToolProvider::Responses)
+        );
+    }
+
+    #[test]
+    fn test_parse_responses_programmatic_tool_calling_builtin() {
+        let tools = parse_openai_responses_tools_array(&json!([{
+            "type": "programmatic_tool_calling"
+        }]));
+
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "programmatic_tool_calling");
+        assert!(tools[0].is_builtin());
+        assert_eq!(
+            tools[0].builtin_provider(),
+            Some(BuiltinToolProvider::Responses)
+        );
+    }
+
+    #[test]
+    fn test_parse_responses_ptc_function_fields() {
+        let tools = parse_openai_responses_tools_array(&json!([{
+            "type": "function",
+            "name": "get_inventory",
+            "description": "Return inventory for a SKU.",
+            "parameters": {"type": "object"},
+            "output_schema": {"type": "object", "properties": {"sku": {"type": "string"}}},
+            "allowed_callers": ["programmatic"]
+        }]));
+
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "get_inventory");
+        assert_eq!(
+            tools[0].allowed_callers,
+            Some(vec![
+                crate::universal::tools::UniversalToolCaller::Programmatic
+            ])
+        );
+        assert_eq!(
+            tools[0].output_schema,
+            Some(json!({"type": "object", "properties": {"sku": {"type": "string"}}}))
         );
     }
 

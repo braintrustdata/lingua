@@ -620,6 +620,168 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesGpt56ReasoningMaxProContextParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Review this rollout checklist for the highest-risk issue.",
+      reasoning: {
+        effort: "max",
+        mode: "pro",
+        context: "all_turns",
+      },
+      text: {
+        verbosity: "high",
+      },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PersistedReasoningParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      store: false,
+      previous_response_id: "resp_previous_gpt56_reasoning",
+      include: ["reasoning.encrypted_content"],
+      reasoning: {
+        effort: "low",
+        context: "all_turns",
+      },
+      input: [
+        {
+          role: "user",
+          content: "Continue from the previous deployment analysis.",
+        },
+        {
+          type: "reasoning",
+          id: "rs_previous_gpt56_reasoning",
+          encrypted_content: "encrypted_reasoning_payload_123",
+          summary: [],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PromptCacheOptionsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Use the stable policy prefix when answering.",
+      prompt_cache_options: {
+        mode: "explicit",
+        ttl: "30m",
+      },
+      prompt_cache_retention: "24h",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesProgrammaticToolCallingToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Compare inventory and demand for sku_123.",
+      tools: [
+        {
+          type: "function",
+          name: "get_inventory",
+          description: "Return inventory details for a SKU.",
+          parameters: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+            },
+            required: ["sku"],
+            additionalProperties: false,
+          },
+          strict: true,
+          output_schema: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+              available_units: { type: "number" },
+            },
+            required: ["sku", "available_units"],
+            additionalProperties: false,
+          },
+          allowed_callers: ["programmatic"],
+        },
+        {
+          type: "custom",
+          name: "write_short_note",
+          description: "Write a compact plain-text note.",
+          format: { type: "text" },
+          allowed_callers: ["direct", "programmatic"],
+        },
+        {
+          type: "programmatic_tool_calling",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesProgrammaticToolCallingContinuationParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      store: false,
+      input: [
+        {
+          role: "user",
+          content: "Compare inventory and demand for sku_123.",
+        },
+        {
+          type: "program",
+          id: "prog_123",
+          call_id: "call_prog_123",
+          code: "const stock = await tools.get_inventory({ sku: 'sku_123' }); text(JSON.stringify(stock));",
+          fingerprint: "program_fingerprint_123",
+        },
+        {
+          type: "function_call",
+          id: "fc_123",
+          call_id: "call_inventory_123",
+          name: "get_inventory",
+          arguments: '{"sku":"sku_123"}',
+          caller: {
+            type: "program",
+            caller_id: "call_prog_123",
+          },
+        },
+        {
+          type: "function_call_output",
+          call_id: "call_inventory_123",
+          output: '{"sku":"sku_123","available_units":42}',
+          caller: {
+            type: "program",
+            caller_id: "call_prog_123",
+          },
+        },
+        {
+          type: "program_output",
+          id: "prog_out_123",
+          call_id: "call_prog_123",
+          result: '{"sku":"sku_123","available_units":42}',
+          status: "completed",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

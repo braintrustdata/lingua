@@ -1101,6 +1101,22 @@
       "errors": [
         { "pattern": "Message::AdditionalTools", "reason": "Responses additional_tools has a universal representation, but non-Responses providers cannot represent mid-conversation tool definition items losslessly" }
       ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingContinuationParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "data did not match any variant of untagged enum InputParam", "reason": "Generated Programmatic Tool Calling continuation input includes new Responses item shapes not covered by generated InputParam yet" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "unknown variant `programmatic`", "reason": "Anthropic allowed_callers only supports direct/code-execution callers; OpenAI programmatic callers have no Anthropic equivalent yet" }
+      ]
     }
   ]
 }

@@ -5932,6 +5932,7 @@ If you’d like, I can also reuse this content as context for future questions i
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
+    "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "input_tokens": 24,
     "output_tokens": 767,
@@ -6837,48 +6838,6 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 34,
-  },
-}
-`;
-
-exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "What is 2+2?",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 16000,
-  "model": "gpt-5.6-terra",
-  "reasoning": {
-    "effort": "xhigh",
-  },
-}
-`;
-
-exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "4",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0978d02eafae56350069f4578baec081a1bd040365f2cec1e1",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 13,
-    "output_tokens": 351,
   },
 }
 `;
@@ -19653,7 +19612,7 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > request 
   ],
   "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "minimal",
+    "effort": "low",
   },
 }
 `;
@@ -31143,6 +31102,99 @@ These are the standard system databases that come with a MongoDB installation. T
 }
 `;
 
+exports[`responses → anthropic > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Continue from the previous deployment analysis.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "signature": "encrypted_reasoning_payload_123",
+          "thinking": "",
+          "type": "thinking",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Use the stable policy prefix when answering.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CctdWRbzoCfpFTeRnvf4w",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about. 
+
+Could you please clarify:
+- What type of policy are you referring to? (e.g., reinforcement learning, organizational policy, software versioning, etc.)
+- What specific information do you need about stable policy prefixes?
+
+This will help me provide you with the most accurate and relevant information.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about. 
+
+Could you please clarify:
+- What type of policy are you referring to? (e.g., reinforcement learning, organizational policy, software versioning, etc.)
+- What specific information do you need about stable policy prefixes?
+
+This will help me provide you with the most accurate and relevant information.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 98,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 114,
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesInputFileUrlParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -34904,6 +34956,55 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
     },
     "total_tokens": 152,
   },
+}
+`;
+
+exports[`responses → google > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Continue from the previous deployment analysis.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "text": "",
+          "thought": true,
+          "thoughtSignature": "encrypted_reasoning_payload_123",
+        },
+      ],
+      "role": "model",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "LOW",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the stable policy prefix when answering.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
 }
 `;
 

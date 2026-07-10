@@ -1,0 +1,34 @@
+{
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Continue from the previous deployment analysis."
+          }
+        ],
+        "role": "user"
+      },
+      {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+            "thoughtSignature": "encrypted_reasoning_payload_123"
+          }
+        ],
+        "role": "model"
+      }
+    ],
+    "generationConfig": {
+      "responseSchema": null,
+      "thinkingConfig": {
+        "includeThoughts": true,
+        "thinkingLevel": "LOW"
+      }
+    },
+    "model": "gemini-3.5-flash"
+  },
+  "error": "Google API error (400): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Invalid value at 'contents[1].parts[0].thought_signature' (TYPE_BYTES), Base64 decoding failed for \\\"encrypted_reasoning_payload_123\\\"\",\n    \"status\": \"INVALID_ARGUMENT\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.BadRequest\",\n        \"fieldViolations\": [\n          {\n            \"field\": \"contents[1].parts[0].thought_signature\",\n            \"description\": \"Invalid value at 'contents[1].parts[0].thought_signature' (TYPE_BYTES), Base64 decoding failed for \\\"encrypted_reasoning_payload_123\\\"\"\n          }\n        ]\n      }\n    ]\n  }\n}\n",
+  "name": "Error"
+}

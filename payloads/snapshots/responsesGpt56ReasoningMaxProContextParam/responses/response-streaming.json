@@ -1,0 +1,339 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_047fe2f2747766a3006a511249c3b8819cbeca26cd01ff5aa7",
+      "object": "response",
+      "created_at": 1783697993,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_047fe2f2747766a3006a511249c3b8819cbeca26cd01ff5aa7",
+      "object": "response",
+      "created_at": 1783697993,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_047fe2f2747766a3006a51124f0364819cb6a6d042e5d34056",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_047fe2f2747766a3006a51124f0364819cb6a6d042e5d34056",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+      "type": "message",
+      "status": "completed",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "I don’t see the rollout checklist attached or pasted. Please share it, and I’ll identify the single highest-risk issue—not just a list of concerns—based on:\n\n- **Blast radius** if it fails\n- **Irreversibility** of the change or data impact\n- **Likelihood of escaping detection**\n- **Quality of rollback and recovery procedures**\n- **Security, access, and compliance exposure**\n- **Dependencies and operational readiness**\n\nIf relevant, also include the system type (for example: database migration, customer-facing app deploy, infrastructure change, payments, etc.) and rollout scale, since those can materially change what is highest risk.",
+    "item_id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+    "logprobs": [],
+    "obfuscation": "",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 7,
+    "text": "I don’t see the rollout checklist attached or pasted. Please share it, and I’ll identify the single highest-risk issue—not just a list of concerns—based on:\n\n- **Blast radius** if it fails\n- **Irreversibility** of the change or data impact\n- **Likelihood of escaping detection**\n- **Quality of rollback and recovery procedures**\n- **Security, access, and compliance exposure**\n- **Dependencies and operational readiness**\n\nIf relevant, also include the system type (for example: database migration, customer-facing app deploy, infrastructure change, payments, etc.) and rollout scale, since those can materially change what is highest risk."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "I don’t see the rollout checklist attached or pasted. Please share it, and I’ll identify the single highest-risk issue—not just a list of concerns—based on:\n\n- **Blast radius** if it fails\n- **Irreversibility** of the change or data impact\n- **Likelihood of escaping detection**\n- **Quality of rollback and recovery procedures**\n- **Security, access, and compliance exposure**\n- **Dependencies and operational readiness**\n\nIf relevant, also include the system type (for example: database migration, customer-facing app deploy, infrastructure change, payments, etc.) and rollout scale, since those can materially change what is highest risk."
+    },
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t see the rollout checklist attached or pasted. Please share it, and I’ll identify the single highest-risk issue—not just a list of concerns—based on:\n\n- **Blast radius** if it fails\n- **Irreversibility** of the change or data impact\n- **Likelihood of escaping detection**\n- **Quality of rollback and recovery procedures**\n- **Security, access, and compliance exposure**\n- **Dependencies and operational readiness**\n\nIf relevant, also include the system type (for example: database migration, customer-facing app deploy, infrastructure change, payments, etc.) and rollout scale, since those can materially change what is highest risk."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_047fe2f2747766a3006a511249c3b8819cbeca26cd01ff5aa7",
+      "object": "response",
+      "created_at": 1783697993,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1783697999,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_047fe2f2747766a3006a51124f0364819cb6a6d042e5d34056",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "msg_047fe2f2747766a3006a51124f06cc819c9686f32daf58d4a7",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "I don’t see the rollout checklist attached or pasted. Please share it, and I’ll identify the single highest-risk issue—not just a list of concerns—based on:\n\n- **Blast radius** if it fails\n- **Irreversibility** of the change or data impact\n- **Likelihood of escaping detection**\n- **Quality of rollback and recovery procedures**\n- **Security, access, and compliance exposure**\n- **Dependencies and operational readiness**\n\nIf relevant, also include the system type (for example: database migration, customer-facing app deploy, infrastructure change, payments, etc.) and rollout scale, since those can materially change what is highest risk."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 2062,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 695,
+        "output_tokens_details": {
+          "reasoning_tokens": 457
+        },
+        "total_tokens": 2757
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 10
+  }
+]

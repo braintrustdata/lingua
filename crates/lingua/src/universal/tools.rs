@@ -76,9 +76,33 @@ pub struct UniversalTool {
     #[serde(default, skip_serializing_if = "ToolAvailability::is_immediate")]
     pub availability: ToolAvailability,
 
+    /// Which execution environments may call this tool.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<UniversalToolCaller>>,
+
+    /// Schema for the tool result shape.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "Record<string, unknown> | null")]
+    pub output_schema: Option<Value>,
+
     /// Tool type classification
     #[serde(flatten)]
     pub tool_type: UniversalToolType,
+}
+
+/// A caller that may invoke a tool.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "snake_case")]
+pub enum UniversalToolCaller {
+    Direct,
+    Programmatic,
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825,
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120,
+    #[serde(rename = "code_execution_20260521")]
+    CodeExecution20260521,
 }
 
 /// Availability of a tool definition in the model context.
@@ -175,6 +199,8 @@ impl UniversalTool {
             parameters,
             strict,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Function,
         }
     }
@@ -191,6 +217,8 @@ impl UniversalTool {
             parameters: None,
             strict: None,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Custom { format },
         }
     }
@@ -208,6 +236,8 @@ impl UniversalTool {
             parameters: None,
             strict: None,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Builtin {
                 provider,
                 builtin_type: builtin_type.into(),
@@ -484,6 +514,20 @@ impl UniversalTool {
                 if self.availability == ToolAvailability::Deferred {
                     obj.insert("defer_loading".into(), Value::Bool(true));
                 }
+                if let Some(allowed_callers) = &self.allowed_callers {
+                    obj.insert(
+                        "allowed_callers".into(),
+                        serde_json::to_value(allowed_callers).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!("Responses tool allowed_callers '{}'", self.name),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                if let Some(output_schema) = &self.output_schema {
+                    obj.insert("output_schema".into(), output_schema.clone());
+                }
 
                 Ok(Value::Object(obj))
             }
@@ -501,6 +545,23 @@ impl UniversalTool {
                 }
                 if self.availability == ToolAvailability::Deferred {
                     obj.insert("defer_loading".into(), Value::Bool(true));
+                }
+                if let Some(allowed_callers) = &self.allowed_callers {
+                    obj.insert(
+                        "allowed_callers".into(),
+                        serde_json::to_value(allowed_callers).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!(
+                                    "Responses custom tool allowed_callers '{}'",
+                                    self.name
+                                ),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                if let Some(output_schema) = &self.output_schema {
+                    obj.insert("output_schema".into(), output_schema.clone());
                 }
 
                 Ok(Value::Object(obj))

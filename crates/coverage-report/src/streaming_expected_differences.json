@@ -195,6 +195,27 @@
         { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
         { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
       ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "Responses additional_tools streaming events are provider-specific and do not round-trip through universal streaming deltas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by non-Responses streaming formats"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by universal streaming deltas yet"
     }
   ]
 }

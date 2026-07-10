@@ -540,6 +540,27 @@
         { "pattern": "messages[*].content", "reason": "Empty assistant content (no parts) from truncated Gemini response gains a placeholder empty text part when roundtripped through other providers" },
         { "pattern": "messages.length", "reason": "Empty assistant content from truncated Gemini response may change message count when roundtripped through providers that split/merge messages" }
       ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
     }
   ]
 }
