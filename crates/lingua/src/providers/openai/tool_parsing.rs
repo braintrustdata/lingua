@@ -2,7 +2,7 @@ use crate::serde_json::{self, Value};
 use crate::universal::tools::{
     BuiltinToolProvider, ToolAvailability, UniversalTool, UniversalToolCaller,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
 struct OpenAIChatFunctionWire {
@@ -22,7 +22,30 @@ struct OpenAIChatCustomWire {
 #[derive(Debug, Deserialize)]
 struct OpenAIResponsesToolHeader {
     #[serde(rename = "type")]
-    tool_type: String,
+    tool_type: OpenAIResponsesToolType,
+}
+
+#[derive(Debug)]
+enum OpenAIResponsesToolType {
+    Function,
+    Custom,
+    Builtin(String),
+}
+
+impl<'de> Deserialize<'de> for OpenAIResponsesToolType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Ok(if value == "function" {
+            Self::Function
+        } else if value == "custom" {
+            Self::Custom
+        } else {
+            Self::Builtin(value)
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -95,8 +118,8 @@ fn parse_openai_chat_tool(value: &Value) -> Option<UniversalTool> {
 fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
     let header: OpenAIResponsesToolHeader = serde_json::from_value(value.clone()).ok()?;
 
-    match header.tool_type.as_str() {
-        "function" => {
+    match header.tool_type {
+        OpenAIResponsesToolType::Function => {
             let function: OpenAIResponsesFunctionWire =
                 serde_json::from_value(value.clone()).ok()?;
             let mut tool = UniversalTool::function(
@@ -112,7 +135,7 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
             tool.output_schema = function.output_schema;
             Some(tool)
         }
-        "custom" => {
+        OpenAIResponsesToolType::Custom => {
             let custom: OpenAIResponsesCustomWire = serde_json::from_value(value.clone()).ok()?;
             let mut tool = UniversalTool::custom(custom.name, custom.description, custom.format);
             if custom.defer_loading == Some(true) {
@@ -122,15 +145,12 @@ fn parse_openai_responses_tool(value: &Value) -> Option<UniversalTool> {
             tool.output_schema = custom.output_schema;
             Some(tool)
         }
-        tool_type_name => {
-            let tool_type_name = tool_type_name.to_string();
-            Some(UniversalTool::builtin(
-                tool_type_name.clone(),
-                BuiltinToolProvider::Responses,
-                tool_type_name,
-                Some(value.clone()),
-            ))
-        }
+        OpenAIResponsesToolType::Builtin(tool_type_name) => Some(UniversalTool::builtin(
+            tool_type_name.clone(),
+            BuiltinToolProvider::Responses,
+            tool_type_name,
+            Some(value.clone()),
+        )),
     }
 }
 

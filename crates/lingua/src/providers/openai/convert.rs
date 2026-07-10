@@ -543,7 +543,7 @@ impl From<OpenAIProgramCaller> for ToolCaller {
 #[serde(default)]
 struct OpenAIResponsesProgramCompatItem {
     #[serde(rename = "type")]
-    item_type: String,
+    item_type: OpenAIResponsesProgramCompatItemType,
     id: Option<String>,
     call_id: Option<String>,
     code: Option<String>,
@@ -560,6 +560,45 @@ struct OpenAIResponsesProgramCompatItem {
     input: Option<String>,
 }
 
+#[derive(Debug, Clone, Default)]
+enum OpenAIResponsesProgramCompatItemType {
+    Program,
+    ProgramOutput,
+    FunctionCall,
+    FunctionCallOutput,
+    FunctionCallResult,
+    CustomToolCall,
+    CustomToolCallOutput,
+    #[default]
+    Other,
+}
+
+impl<'de> Deserialize<'de> for OpenAIResponsesProgramCompatItemType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Ok(if value == "program" {
+            Self::Program
+        } else if value == "program_output" {
+            Self::ProgramOutput
+        } else if value == "function_call" {
+            Self::FunctionCall
+        } else if value == "function_call_output" {
+            Self::FunctionCallOutput
+        } else if value == "function_call_result" {
+            Self::FunctionCallResult
+        } else if value == "custom_tool_call" {
+            Self::CustomToolCall
+        } else if value == "custom_tool_call_output" {
+            Self::CustomToolCallOutput
+        } else {
+            Self::Other
+        })
+    }
+}
+
 fn try_messages_from_responses_program_compat_items(
     data: &serde_json::Value,
 ) -> Option<Vec<Message>> {
@@ -572,17 +611,20 @@ fn try_messages_from_responses_program_compat_items(
     };
     let items =
         serde_json::from_value::<Vec<OpenAIResponsesProgramCompatItem>>(candidate.clone()).ok()?;
-    if !items
-        .iter()
-        .any(|item| matches!(item.item_type.as_str(), "program" | "program_output"))
-    {
+    if !items.iter().any(|item| {
+        matches!(
+            item.item_type,
+            OpenAIResponsesProgramCompatItemType::Program
+                | OpenAIResponsesProgramCompatItemType::ProgramOutput
+        )
+    }) {
         return None;
     }
 
     let mut messages = Vec::new();
     for item in items {
-        match item.item_type.as_str() {
-            "program" => messages.push(Message::Assistant {
+        match item.item_type {
+            OpenAIResponsesProgramCompatItemType::Program => messages.push(Message::Assistant {
                 content: AssistantContent::Array(vec![AssistantContentPart::Program {
                     id: item.id.clone(),
                     call_id: item.call_id?,
@@ -591,19 +633,25 @@ fn try_messages_from_responses_program_compat_items(
                 }]),
                 id: item.id,
             }),
-            "program_output" => messages.push(Message::Assistant {
-                content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
-                    id: item.id.clone(),
-                    call_id: item.call_id?,
-                    result: item.result?,
-                    status: item.status?,
-                }]),
-                id: item.id,
-            }),
-            "function_call" | "custom_tool_call" => {
+            OpenAIResponsesProgramCompatItemType::ProgramOutput => {
+                messages.push(Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
+                        id: item.id.clone(),
+                        call_id: item.call_id?,
+                        result: item.result?,
+                        status: item.status?,
+                    }]),
+                    id: item.id,
+                })
+            }
+            item_type @ (OpenAIResponsesProgramCompatItemType::FunctionCall
+            | OpenAIResponsesProgramCompatItemType::CustomToolCall) => {
                 let tool_call_id = item.call_id?;
                 let tool_name = item.name?;
-                let arguments = if item.item_type == "custom_tool_call" {
+                let arguments = if matches!(
+                    item_type,
+                    OpenAIResponsesProgramCompatItemType::CustomToolCall
+                ) {
                     ToolCallArguments::Invalid(item.input?)
                 } else {
                     item.arguments
@@ -623,7 +671,9 @@ fn try_messages_from_responses_program_compat_items(
                     id: item.id,
                 });
             }
-            "function_call_output" | "function_call_result" | "custom_tool_call_output" => {
+            item_type @ (OpenAIResponsesProgramCompatItemType::FunctionCallOutput
+            | OpenAIResponsesProgramCompatItemType::FunctionCallResult
+            | OpenAIResponsesProgramCompatItemType::CustomToolCallOutput) => {
                 let output = item.output?;
                 let output_value = match serde_json::from_str(&output) {
                     Ok(value) => value,
@@ -634,8 +684,11 @@ fn try_messages_from_responses_program_compat_items(
                         tool_call_id: item.call_id?,
                         tool_name: item.name.unwrap_or_default(),
                         output: output_value,
-                        custom_tool_call: (item.item_type == "custom_tool_call_output")
-                            .then_some(true),
+                        custom_tool_call: matches!(
+                            item_type,
+                            OpenAIResponsesProgramCompatItemType::CustomToolCallOutput
+                        )
+                        .then_some(true),
                         caller: item.caller.map(Into::into),
                         provider_options: None,
                     })],

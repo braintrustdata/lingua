@@ -1386,8 +1386,15 @@ mod tests {
             params: UniversalParams::default(),
         };
 
+        #[derive(Debug, Deserialize)]
+        struct RequestInputView {
+            input: Vec<Value>,
+        }
+
         let value = adapter.request_from_universal(&req).unwrap();
-        let input = value["input"].as_array().unwrap();
+        let input = serde_json::from_value::<RequestInputView>(value)
+            .unwrap()
+            .input;
 
         assert!(input.iter().any(|item| item
             == &json!({
