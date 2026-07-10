@@ -130,7 +130,9 @@ where
             Message::System { content }
             | Message::Developer { content }
             | Message::User { content } => content,
-            Message::Assistant { .. } | Message::Tool { .. } => continue,
+            Message::Assistant { .. } | Message::Tool { .. } | Message::AdditionalTools { .. } => {
+                continue;
+            }
         };
 
         let UserContent::Array(parts) = content else {
@@ -964,6 +966,34 @@ mod tests {
                 .and_then(|v| v.as_str()),
             Some("jpeg")
         );
+    }
+
+    #[tokio::test]
+    async fn inline_remote_image_urls_skips_additional_tools_messages() {
+        let mut request = lingua::UniversalRequest {
+            model: Some("test-model".to_string()),
+            messages: vec![Message::AdditionalTools {
+                tools: Vec::new(),
+                id: Some("tools-1".to_string()),
+            }],
+            params: Default::default(),
+        };
+
+        inline_remote_image_urls_with_fetch(&mut request, |_url| {
+            Box::pin(async {
+                panic!("fetch should not be called for additional_tools messages");
+            })
+        })
+        .await
+        .unwrap();
+
+        assert!(matches!(
+            request.messages.as_slice(),
+            [Message::AdditionalTools {
+                id: Some(id),
+                tools
+            }] if id == "tools-1" && tools.is_empty()
+        ));
     }
 
     #[tokio::test]

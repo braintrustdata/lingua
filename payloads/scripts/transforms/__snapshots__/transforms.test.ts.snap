@@ -1223,7 +1223,7 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > request 1`] 
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "low",
 }
 `;
@@ -1367,7 +1367,7 @@ exports[`anthropic → chat-completions > reasoningSummaryParam > request 1`] = 
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "medium",
 }
 `;
@@ -5476,7 +5476,7 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
     },
   ],
   "max_output_tokens": 32000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -5562,7 +5562,7 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > reque
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5619,7 +5619,7 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > request 1`
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "name": "search_records",
@@ -5681,7 +5681,7 @@ exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5738,7 +5738,7 @@ exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5786,7 +5786,7 @@ exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > r
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5847,7 +5847,7 @@ exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > r
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5898,7 +5898,7 @@ exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > requ
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5949,7 +5949,7 @@ exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6022,7 +6022,7 @@ exports[`anthropic → responses > documentContentParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6069,7 +6069,7 @@ exports[`anthropic → responses > fableTemperatureParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6117,7 +6117,7 @@ exports[`anthropic → responses > imageContentParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6161,7 +6161,7 @@ exports[`anthropic → responses > instructionsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6200,7 +6200,7 @@ exports[`anthropic → responses > jsonSchemaFormatParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6258,7 +6258,7 @@ exports[`anthropic → responses > maxCompletionTokensParam > request 1`] = `
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6300,7 +6300,7 @@ exports[`anthropic → responses > metadataParam > request 1`] = `
   "metadata": {
     "user_id": "user-12345",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6348,7 +6348,7 @@ exports[`anthropic → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6383,7 +6383,7 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
     },
   ],
   "max_output_tokens": 4096,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -6425,7 +6425,7 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > reque
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -6489,7 +6489,7 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6550,7 +6550,7 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6611,7 +6611,7 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > request 1`] 
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "parallel_tool_calls": false,
   "tool_choice": "auto",
   "tools": [
@@ -6698,7 +6698,7 @@ exports[`anthropic → responses > parallelToolCallsRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -6770,7 +6770,7 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6809,7 +6809,7 @@ exports[`anthropic → responses > reasoningEffortLowParam > request 1`] = `
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -6851,9 +6851,9 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > req
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "high",
+    "effort": "xhigh",
   },
 }
 `;
@@ -6893,7 +6893,7 @@ exports[`anthropic → responses > reasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6943,7 +6943,7 @@ exports[`anthropic → responses > reasoningRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6978,7 +6978,7 @@ exports[`anthropic → responses > reasoningSummaryParam > request 1`] = `
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -7020,7 +7020,7 @@ exports[`anthropic → responses > reasoningWithOutput > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7152,7 +7152,7 @@ exports[`anthropic → responses > safetyIdentifierParam > request 1`] = `
   "metadata": {
     "user_id": "hashed-user-id-abc123",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7191,7 +7191,7 @@ exports[`anthropic → responses > serviceTierParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "service_tier": "auto",
 }
 `;
@@ -7231,7 +7231,7 @@ exports[`anthropic → responses > simpleRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7270,7 +7270,7 @@ exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7305,7 +7305,7 @@ exports[`anthropic → responses > stopSequencesParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7363,7 +7363,7 @@ exports[`anthropic → responses > streamParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "stream": true,
 }
 `;
@@ -7388,7 +7388,7 @@ exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7423,7 +7423,7 @@ exports[`anthropic → responses > temperatureParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7437,7 +7437,7 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -7498,7 +7498,7 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -7559,7 +7559,7 @@ exports[`anthropic → responses > thinkingDisabledParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7598,7 +7598,7 @@ exports[`anthropic → responses > toolCallRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -7661,7 +7661,7 @@ exports[`anthropic → responses > toolChoiceAnyParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -7723,7 +7723,7 @@ exports[`anthropic → responses > toolChoiceAutoParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -7786,7 +7786,7 @@ exports[`anthropic → responses > toolChoiceNoneParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "none",
   "tools": [
     {
@@ -7844,7 +7844,7 @@ exports[`anthropic → responses > toolChoiceRequiredParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -7909,7 +7909,7 @@ exports[`anthropic → responses > topKParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7948,7 +7948,7 @@ exports[`anthropic → responses > topPParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7987,7 +7987,7 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "filters": {
@@ -8054,7 +8054,7 @@ exports[`anthropic → responses > webSearchToolParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -8195,7 +8195,7 @@ exports[`anthropic → responses > webSearchUserLocationParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -17923,7 +17923,7 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18006,7 +18006,7 @@ exports[`chat-completions → responses > chatCompletionsAssistantCacheControlPa
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18075,7 +18075,7 @@ exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18126,7 +18126,7 @@ exports[`chat-completions → responses > complexReasoningRequest > request 1`] 
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18191,7 +18191,7 @@ exports[`chat-completions → responses > exclusiveMinimumToolParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Configure LLM generation parameters",
@@ -18265,7 +18265,7 @@ exports[`chat-completions → responses > fableTemperatureParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18310,7 +18310,7 @@ exports[`chat-completions → responses > frequencyPenaltyParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18444,7 +18444,7 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -18521,7 +18521,7 @@ exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > reques
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18571,7 +18571,7 @@ exports[`chat-completions → responses > instructionsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18616,7 +18616,7 @@ exports[`chat-completions → responses > jsonSchemaFormatParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "timestamp_response",
@@ -18681,7 +18681,7 @@ exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "tag_list",
@@ -18750,7 +18750,7 @@ exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > reques
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "bounded_score",
@@ -18816,7 +18816,7 @@ exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "tuple_response",
@@ -18900,7 +18900,7 @@ exports[`chat-completions → responses > logitBiasParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18945,7 +18945,7 @@ exports[`chat-completions → responses > logprobsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "top_logprobs": 2,
 }
 `;
@@ -18960,7 +18960,7 @@ exports[`chat-completions → responses > maxCompletionTokensParam > request 1`]
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19010,7 +19010,7 @@ exports[`chat-completions → responses > metadataParam > request 1`] = `
     "request_id": "req-12345",
     "user_tier": "premium",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "store": true,
 }
 `;
@@ -19066,7 +19066,7 @@ exports[`chat-completions → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19110,7 +19110,7 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19155,7 +19155,7 @@ exports[`chat-completions → responses > openaiPromptCacheKeyParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "prompt_cache_key": "policy-cache-v1",
 }
 `;
@@ -19218,7 +19218,7 @@ exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortP
     },
   ],
   "max_output_tokens": 4096,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -19266,7 +19266,7 @@ exports[`chat-completions → responses > parallelToolCallsDisabledParam > reque
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "parallel_tool_calls": false,
   "tools": [
     {
@@ -19365,7 +19365,7 @@ exports[`chat-completions → responses > parallelToolCallsRequest > request 1`]
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -19438,7 +19438,7 @@ function divide(a, b) {
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19515,7 +19515,7 @@ exports[`chat-completions → responses > presencePenaltyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19560,7 +19560,7 @@ exports[`chat-completions → responses > promptCacheKeyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "prompt_cache_key": "user-123-ml-explanation",
 }
 `;
@@ -19606,7 +19606,7 @@ exports[`chat-completions → responses > reasoningEffortLowParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -19651,7 +19651,7 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > request 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "minimal",
   },
@@ -19740,7 +19740,7 @@ exports[`chat-completions → responses > reasoningRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19797,7 +19797,7 @@ exports[`chat-completions → responses > reasoningRequestTruncated > request 1`
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19841,7 +19841,7 @@ exports[`chat-completions → responses > reasoningSummaryParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -19889,7 +19889,7 @@ exports[`chat-completions → responses > reasoningWithOutput > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19937,7 +19937,7 @@ exports[`chat-completions → responses > safetyIdentifierParam > request 1`] = 
   "metadata": {
     "user_id": "hashed-user-id-abc123",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19982,7 +19982,7 @@ exports[`chat-completions → responses > seedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20029,7 +20029,7 @@ exports[`chat-completions → responses > serviceTierParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "service_tier": "default",
 }
 `;
@@ -20075,7 +20075,7 @@ exports[`chat-completions → responses > simpleRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -20121,7 +20121,7 @@ exports[`chat-completions → responses > simpleRequestTruncated > request 1`] =
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20162,7 +20162,7 @@ exports[`chat-completions → responses > stopSequencesParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20207,7 +20207,7 @@ exports[`chat-completions → responses > storeDisabledParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "store": false,
 }
 `;
@@ -20264,7 +20264,7 @@ exports[`chat-completions → responses > systemMessageArrayContent > request 1`
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20308,7 +20308,7 @@ exports[`chat-completions → responses > temperatureParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20321,7 +20321,7 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "json_object",
@@ -20435,7 +20435,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeG
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "query_result",
@@ -20510,7 +20510,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "person_info",
@@ -20578,7 +20578,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionPar
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "description": "Extract person information from text",
@@ -20647,7 +20647,7 @@ exports[`chat-completions → responses > textFormatTextParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "text",
@@ -20697,7 +20697,7 @@ exports[`chat-completions → responses > toolCallRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -20771,7 +20771,7 @@ exports[`chat-completions → responses > toolChoiceRequiredParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -20849,7 +20849,7 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -20930,7 +20930,7 @@ exports[`chat-completions → responses > topPParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20975,7 +20975,7 @@ exports[`chat-completions → responses > topPReasoningModelParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -24831,7 +24831,7 @@ exports[`google → chat-completions > reasoningEffortLowParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "high",
 }
 `;
@@ -24963,7 +24963,7 @@ exports[`google → chat-completions > reasoningSummaryParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "high",
 }
 `;
@@ -26239,7 +26239,7 @@ exports[`google → responses > complexReasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26309,7 +26309,7 @@ exports[`google → responses > exclusiveMinimumToolParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Configure LLM generation parameters",
@@ -26378,7 +26378,7 @@ exports[`google → responses > googleOpenAIModelTopKParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26423,7 +26423,7 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > requ
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -26489,7 +26489,7 @@ Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
     },
   ],
   "max_output_tokens": 2048,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -26575,7 +26575,7 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > requ
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "List the collections in a MongoDB database.",
@@ -26641,7 +26641,7 @@ exports[`google → responses > googleToolSchemaNumericInt64Param > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Validate bounded string and array inputs.",
@@ -26730,7 +26730,7 @@ exports[`google → responses > imageConfigParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26791,7 +26791,7 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26835,7 +26835,7 @@ exports[`google → responses > instructionsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26880,7 +26880,7 @@ exports[`google → responses > jsonSchemaFormatParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -26941,7 +26941,7 @@ exports[`google → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27006,7 +27006,7 @@ exports[`google → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27068,7 +27068,7 @@ exports[`google → responses > jsonSchemaPrefixItemsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27148,7 +27148,7 @@ exports[`google → responses > maxCompletionTokensParam > request 1`] = `
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27192,7 +27192,7 @@ exports[`google → responses > mediaResolutionParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27246,7 +27246,7 @@ exports[`google → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27313,7 +27313,7 @@ exports[`google → responses > parallelToolCallsRequest > request 1`] = `
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -27381,7 +27381,7 @@ exports[`google → responses > reasoningEffortLowParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -27428,7 +27428,7 @@ exports[`google → responses > reasoningRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27481,7 +27481,7 @@ exports[`google → responses > reasoningRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27522,7 +27522,7 @@ exports[`google → responses > reasoningSummaryParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -27569,7 +27569,7 @@ exports[`google → responses > reasoningWithOutput > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27619,7 +27619,7 @@ exports[`google → responses > responseModalitiesAudioParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27663,7 +27663,7 @@ exports[`google → responses > seedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27707,7 +27707,7 @@ exports[`google → responses > simpleRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27752,7 +27752,7 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27792,7 +27792,7 @@ exports[`google → responses > speechConfigParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27836,7 +27836,7 @@ exports[`google → responses > stopSequencesParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27881,7 +27881,7 @@ exports[`google → responses > systemMessageArrayContent > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27922,7 +27922,7 @@ exports[`google → responses > temperatureParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27966,7 +27966,7 @@ exports[`google → responses > textFormatJsonObjectParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "json_object",
@@ -28015,7 +28015,7 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -28081,7 +28081,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -28147,7 +28147,7 @@ exports[`google → responses > thinkingLevelParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -28210,7 +28210,7 @@ exports[`google → responses > toolCallRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -28279,7 +28279,7 @@ exports[`google → responses > toolChoiceAnyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -28347,7 +28347,7 @@ exports[`google → responses > toolChoiceAutoParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -28416,7 +28416,7 @@ exports[`google → responses > toolChoiceNoneParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "none",
   "tools": [
     {
@@ -28485,7 +28485,7 @@ exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -28556,7 +28556,7 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -28630,7 +28630,7 @@ exports[`google → responses > toolModeValidatedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -28698,7 +28698,7 @@ exports[`google → responses > topKParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28742,7 +28742,7 @@ exports[`google → responses > topPParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28786,7 +28786,7 @@ exports[`google → responses > webSearchToolAdvancedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -29212,7 +29212,7 @@ exports[`google → responses > webSearchToolParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",

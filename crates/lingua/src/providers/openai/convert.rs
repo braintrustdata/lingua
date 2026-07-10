@@ -1069,8 +1069,8 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         id: input.id,
                     });
                 }
-                Some(openai::InputItemType::FunctionCall)
-                | Some(openai::InputItemType::CustomToolCall) => {
+                item_type @ (Some(openai::InputItemType::FunctionCall)
+                | Some(openai::InputItemType::CustomToolCall)) => {
                     // Function calls are converted to tool calls in assistant messages
                     let tool_call_id =
                         input
@@ -1084,15 +1084,25 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .ok_or_else(|| ConvertError::MissingRequiredField {
                                 field: "function call name".to_string(),
                             })?;
-                    let arguments_str = input
-                        .arguments
-                        .map(openai_arguments_to_string)
-                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
+                    let arguments = match item_type {
+                        Some(openai::InputItemType::CustomToolCall) => {
+                            ToolCallArguments::Invalid(input.input.ok_or_else(|| {
+                                ConvertError::MissingRequiredField {
+                                    field: "custom tool call input".to_string(),
+                                }
+                            })?)
+                        }
+                        _ => input
+                            .arguments
+                            .map(openai_arguments_to_string)
+                            .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string())
+                            .into(),
+                    };
 
                     let tool_call_part = AssistantContentPart::ToolCall {
                         tool_call_id,
                         tool_name,
-                        arguments: arguments_str.into(),
+                        arguments,
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_namespace(input.namespace),
                         provider_executed: None,
@@ -2178,19 +2188,35 @@ fn create_function_call_input_item(
 
         Ok(item)
     } else {
-        // Regular function call (not provider-executed)
-        Ok(openai::InputItem {
-            role: None, // Preserve original role state - request context function calls don't have roles
-            content: None,
-            input_item_type: Some(openai::InputItemType::FunctionCall),
-            id,
-            call_id: Some(call_id.to_string()),
-            name: Some(name.to_string()),
-            namespace,
-            arguments: Some(openai_arguments_from_string(arguments.to_string())),
-            status: Some(openai::FunctionCallItemStatus::Completed),
-            ..Default::default()
-        })
+        match arguments {
+            ToolCallArguments::Invalid(input) => Ok(openai::InputItem {
+                role: None, // Preserve original role state - request context tool calls don't have roles
+                content: None,
+                input_item_type: Some(openai::InputItemType::CustomToolCall),
+                id,
+                call_id: Some(call_id.to_string()),
+                name: Some(name.to_string()),
+                namespace,
+                input: Some(input.clone()),
+                status: Some(openai::FunctionCallItemStatus::Completed),
+                ..Default::default()
+            }),
+            arguments => {
+                // Regular function call (not provider-executed)
+                Ok(openai::InputItem {
+                    role: None, // Preserve original role state - request context function calls don't have roles
+                    content: None,
+                    input_item_type: Some(openai::InputItemType::FunctionCall),
+                    id,
+                    call_id: Some(call_id.to_string()),
+                    name: Some(name.to_string()),
+                    namespace,
+                    arguments: Some(openai_arguments_from_string(arguments.to_string())),
+                    status: Some(openai::FunctionCallItemStatus::Completed),
+                    ..Default::default()
+                })
+            }
+        }
     }
 }
 
@@ -2816,29 +2842,42 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                     }
                     reasoning_parts
                 }
-                Some(openai::OutputItemType::FunctionCall) => {
+                item_type @ (Some(openai::OutputItemType::FunctionCall)
+                | Some(openai::OutputItemType::CustomToolCall)) => {
                     let tool_call_id =
                         item.call_id
                             .ok_or_else(|| ConvertError::MissingRequiredField {
-                                field: "function call call_id".to_string(),
+                                field: "tool call call_id".to_string(),
                             })?;
                     let tool_name =
                         item.name
                             .ok_or_else(|| ConvertError::MissingRequiredField {
-                                field: "function call name".to_string(),
+                                field: "tool call name".to_string(),
                             })?;
-                    let arguments_str = item
-                        .arguments
-                        .map(|value| match value {
-                            serde_json::Value::String(value) => value,
-                            value => value.to_string(),
-                        })
-                        .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
+                    let arguments = match item_type {
+                        Some(openai::OutputItemType::CustomToolCall) => {
+                            ToolCallArguments::Invalid(item.input.ok_or_else(|| {
+                                ConvertError::MissingRequiredField {
+                                    field: "custom tool call input".to_string(),
+                                }
+                            })?)
+                        }
+                        _ => {
+                            let arguments_str = item
+                                .arguments
+                                .map(|value| match value {
+                                    serde_json::Value::String(value) => value,
+                                    value => value.to_string(),
+                                })
+                                .unwrap_or_else(|| EMPTY_OBJECT_STR.to_string());
+                            arguments_str.into()
+                        }
+                    };
 
                     vec![AssistantContentPart::ToolCall {
                         tool_call_id,
                         tool_name,
-                        arguments: arguments_str.into(),
+                        arguments,
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_namespace(item.namespace),
                         provider_executed: None,
@@ -3424,23 +3463,43 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             };
                                             result.push(item);
                                         } else {
-                                            // Regular function call
-                                            result.push(openai::OutputItem {
-                                                output_item_type: Some(
-                                                    openai::OutputItemType::FunctionCall,
-                                                ),
-                                                id: use_id(&mut id_used, &id),
-                                                call_id: Some(tool_call_id),
-                                                name: Some(tool_name),
-                                                namespace,
-                                                arguments: Some(serde_json::Value::String(
-                                                    arguments.to_string(),
-                                                )),
-                                                status: Some(
-                                                    openai::FunctionCallItemStatus::Completed,
-                                                ),
-                                                ..Default::default()
-                                            });
+                                            match arguments {
+                                                ToolCallArguments::Invalid(input) => {
+                                                    result.push(openai::OutputItem {
+                                                        output_item_type: Some(
+                                                            openai::OutputItemType::CustomToolCall,
+                                                        ),
+                                                        id: use_id(&mut id_used, &id),
+                                                        call_id: Some(tool_call_id),
+                                                        name: Some(tool_name),
+                                                        namespace,
+                                                        input: Some(input),
+                                                        status: Some(
+                                                            openai::FunctionCallItemStatus::Completed,
+                                                        ),
+                                                        ..Default::default()
+                                                    });
+                                                }
+                                                arguments => {
+                                                    // Regular function call
+                                                    result.push(openai::OutputItem {
+                                                        output_item_type: Some(
+                                                            openai::OutputItemType::FunctionCall,
+                                                        ),
+                                                        id: use_id(&mut id_used, &id),
+                                                        call_id: Some(tool_call_id),
+                                                        name: Some(tool_name),
+                                                        namespace,
+                                                        arguments: Some(serde_json::Value::String(
+                                                            arguments.to_string(),
+                                                        )),
+                                                        status: Some(
+                                                            openai::FunctionCallItemStatus::Completed,
+                                                        ),
+                                                        ..Default::default()
+                                                    });
+                                                }
+                                            }
                                         }
                                     }
                                     AssistantContentPart::ToolDiscoveryCall {
