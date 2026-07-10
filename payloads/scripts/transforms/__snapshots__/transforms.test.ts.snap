@@ -31617,6 +31617,92 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > responsesProgrammaticToolCallingContinuationParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Compare inventory and demand for sku_123.",
+      "role": "user",
+    },
+    {
+      "content": [],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "id": "call_inventory_123",
+          "input": {
+            "sku": "sku_123",
+          },
+          "name": "get_inventory",
+          "type": "tool_use",
+        },
+      ],
+      "role": "assistant",
+    },
+    {
+      "content": [
+        {
+          "content": "{"available_units":42,"sku":"sku_123"}",
+          "tool_use_id": "call_inventory_123",
+          "type": "tool_result",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesProgrammaticToolCallingContinuationParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CcuBB1EEtXDYh8TCoDCZ8",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 102,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 8,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 110,
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -35687,6 +35773,89 @@ Here are the key points:
       "reasoning_tokens": 2733,
     },
     "total_tokens": 3973,
+  },
+}
+`;
+
+exports[`responses → google > responsesProgrammaticToolCallingContinuationParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Compare inventory and demand for sku_123.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "parts": [
+        {
+          "functionCall": {
+            "args": {
+              "sku": "sku_123",
+            },
+            "name": "get_inventory",
+          },
+          "thoughtSignature": "skip_thought_signature_validator",
+        },
+      ],
+      "role": "model",
+    },
+    {
+      "parts": [
+        {
+          "functionResponse": {
+            "name": "get_inventory",
+            "response": {
+              "available_units": 42,
+              "sku": "sku_123",
+            },
+          },
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "role": "model",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesProgrammaticToolCallingContinuationParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "arguments": "{"sku":"sku_123"}",
+      "call_id": "fsm2mi4j",
+      "id": "msg_transformed_item_0",
+      "name": "get_demand",
+      "status": "completed",
+      "type": "function_call",
+    },
+  ],
+  "output_text": "",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 58,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 307,
+    "output_tokens_details": {
+      "reasoning_tokens": 287,
+    },
+    "total_tokens": 365,
   },
 }
 `;

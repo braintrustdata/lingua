@@ -1640,6 +1640,7 @@ mod tests {
                     "id": "fc_123",
                     "call_id": "call_inventory_123",
                     "name": "get_inventory",
+                    "status": "in_progress",
                     "arguments": "{\"sku\":\"sku_123\"}",
                     "caller": {
                         "type": "program",
@@ -1667,6 +1668,10 @@ mod tests {
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
             .expect("function_call output item should be exported");
         assert_eq!(function_call.caller.as_ref(), Some(&caller));
+        assert_eq!(
+            function_call.status,
+            Some(crate::providers::openai::generated::Status::InProgress)
+        );
 
         let tool_result_resp = UniversalResponse {
             id: Some("resp_programmatic_tool_result".to_string()),

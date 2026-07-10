@@ -527,6 +527,8 @@ fn openai_filename_for_file(
 #[serde(default)]
 struct OpenAIToolCallProviderOptionsView {
     namespace: Option<String>,
+    #[serde(rename = "_output_item_status")]
+    output_item_status: Option<openai::FunctionCallItemStatus>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -566,14 +568,31 @@ fn openai_tool_call_provider_options_view(
     })
 }
 
-fn provider_options_from_openai_namespace(namespace: Option<String>) -> Option<ProviderOptions> {
-    let namespace = namespace?;
+fn provider_options_from_openai_tool_call(
+    namespace: Option<String>,
+    status: Option<openai::FunctionCallItemStatus>,
+) -> Result<Option<ProviderOptions>, ConvertError> {
+    if namespace.is_none() && status.is_none() {
+        return Ok(None);
+    }
+
     let mut options = serde_json::Map::new();
-    options.insert(
-        "namespace".to_string(),
-        serde_json::Value::String(namespace),
-    );
-    Some(ProviderOptions { options })
+    if let Some(namespace) = namespace {
+        options.insert(
+            "namespace".to_string(),
+            serde_json::Value::String(namespace),
+        );
+    }
+    if let Some(status) = status {
+        options.insert(
+            "_output_item_status".to_string(),
+            serde_json::to_value(status).map_err(|e| ConvertError::JsonSerializationFailed {
+                field: "Responses function call status".to_string(),
+                error: e.to_string(),
+            })?,
+        );
+    }
+    Ok(Some(ProviderOptions { options }))
 }
 
 #[derive(Debug, Clone)]
@@ -1344,7 +1363,10 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         tool_name,
                         arguments,
                         encrypted_content: None,
-                        provider_options: provider_options_from_openai_namespace(input.namespace),
+                        provider_options: provider_options_from_openai_tool_call(
+                            input.namespace,
+                            None,
+                        )?,
                         caller,
                         provider_executed: None,
                     };
@@ -3260,7 +3282,10 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         tool_name,
                         arguments,
                         encrypted_content: None,
-                        provider_options: provider_options_from_openai_namespace(item.namespace),
+                        provider_options: provider_options_from_openai_tool_call(
+                            item.namespace,
+                            item.status,
+                        )?,
                         caller: item.caller,
                         provider_executed: None,
                     }]
@@ -3650,10 +3675,16 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                             &mut id_used,
                                             &id,
                                         );
-                                        let namespace = openai_tool_call_provider_options_view(
-                                            &provider_options,
-                                        )
-                                        .and_then(|opts| opts.namespace);
+                                        let provider_options_view =
+                                            openai_tool_call_provider_options_view(
+                                                &provider_options,
+                                            );
+                                        let namespace = provider_options_view
+                                            .as_ref()
+                                            .and_then(|opts| opts.namespace.clone());
+                                        let output_item_status = provider_options_view
+                                            .and_then(|opts| opts.output_item_status)
+                                            .unwrap_or(openai::FunctionCallItemStatus::Completed);
 
                                         if provider_executed == Some(true) {
                                             // Built-in tool: convert to appropriate OutputItem type
@@ -3844,21 +3875,19 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 _ => {
                                                     // Unknown provider-executed tool - fall back to FunctionCall
                                                     openai::OutputItem {
-                                                    output_item_type: Some(
-                                                        openai::OutputItemType::FunctionCall,
-                                                    ),
-                                                    call_id: Some(tool_call_id),
-                                                    name: Some(tool_name),
-                                                    namespace,
-                                                    caller,
-                                                    arguments: Some(serde_json::Value::String(
-                                                        arguments.to_string(),
-                                                    )),
-                                                    status: Some(
-                                                        openai::FunctionCallItemStatus::Completed,
-                                                    ),
-                                                    ..Default::default()
-                                                }
+                                                        output_item_type: Some(
+                                                            openai::OutputItemType::FunctionCall,
+                                                        ),
+                                                        call_id: Some(tool_call_id),
+                                                        name: Some(tool_name),
+                                                        namespace,
+                                                        caller,
+                                                        arguments: Some(serde_json::Value::String(
+                                                            arguments.to_string(),
+                                                        )),
+                                                        status: Some(output_item_status),
+                                                        ..Default::default()
+                                                    }
                                                 }
                                             };
                                             result.push(item);
@@ -3873,9 +3902,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 namespace,
                                                 caller,
                                                 input: Some(input),
-                                                status: Some(
-                                                    openai::FunctionCallItemStatus::Completed,
-                                                ),
+                                                status: Some(output_item_status),
                                                 ..Default::default()
                                             });
                                         } else {
@@ -3892,9 +3919,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 arguments: Some(serde_json::Value::String(
                                                     arguments.to_string(),
                                                 )),
-                                                status: Some(
-                                                    openai::FunctionCallItemStatus::Completed,
-                                                ),
+                                                status: Some(output_item_status),
                                                 ..Default::default()
                                             });
                                         }
