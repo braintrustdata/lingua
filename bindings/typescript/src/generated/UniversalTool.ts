@@ -17,15 +17,15 @@ name: string,
 /**
  * Tool description
  */
-description: string | null, 
+description?: string, 
 /**
  * Parameters/input schema (JSON Schema)
  */
-parameters: Record<string, unknown> | null, 
+parameters?: Record<string, unknown> | null, 
 /**
  * Whether to enforce strict schema validation (OpenAI Responses API)
  */
-strict: boolean | null, 
+strict?: boolean, 
 /**
  * Whether the tool is immediately available or deferred until discovered.
  */
@@ -33,15 +33,15 @@ availability?: ToolAvailability,
 /**
  * Which execution environments may call this tool.
  */
-allowed_callers: Array<UniversalToolCaller> | null, 
+allowed_callers?: Array<UniversalToolCaller>, 
 /**
  * Schema for the tool result shape.
  */
-output_schema: Record<string, unknown> | null, } & ({ "kind": "function" } | { "kind": "custom", 
+output_schema?: Record<string, unknown> | null, } & ({ "kind": "function" } | { "kind": "custom", 
 /**
  * Optional input format for custom tools (e.g. text/grammar config)
  */
-format: Record<string, unknown> | null, } | { "kind": "builtin", 
+format?: Record<string, unknown> | null, } | { "kind": "builtin", 
 /**
  * Provider identifier for built-in tool provenance
  */
@@ -53,4 +53,4 @@ builtin_type: string,
 /**
  * Provider-specific configuration
  */
-config: Record<string, unknown> | null, });
+config?: Record<string, unknown> | null, });

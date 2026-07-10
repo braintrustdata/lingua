@@ -227,9 +227,44 @@
     {
       "testCase": "responsesProgrammaticToolCallingToolsParam",
       "source": "Responses",
-      "target": "*",
+      "target": "ChatCompletions",
       "skip": true,
-      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by universal streaming deltas yet"
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by ChatCompletions streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Google streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Anthropic streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Bedrock streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Bedrock Anthropic streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Vertex Anthropic streaming deltas yet"
     }
   ]
 }

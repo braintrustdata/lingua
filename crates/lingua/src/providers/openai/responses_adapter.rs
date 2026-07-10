@@ -1614,6 +1614,89 @@ mod tests {
     }
 
     #[test]
+    fn responses_programmatic_callers_roundtrip_through_response_export() {
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: "call_prog_123".to_string(),
+        };
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "function_call",
+                    "id": "fc_123",
+                    "call_id": "call_inventory_123",
+                    "name": "get_inventory",
+                    "arguments": "{\"sku\":\"sku_123\"}",
+                    "caller": {
+                        "type": "program",
+                        "caller_id": "call_prog_123"
+                    }
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        let exported = adapter.response_from_universal(&universal).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported response should deserialize as TheResponseObject");
+
+        let function_call = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
+            .expect("function_call output item should be exported");
+        assert_eq!(function_call.caller.as_ref(), Some(&caller));
+
+        let tool_result_resp = UniversalResponse {
+            id: Some("resp_programmatic_tool_result".to_string()),
+            id_format: Some(ProviderFormat::Responses),
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    output: json!({"sku": "sku_123", "available_units": 42}),
+                    custom_tool_call: None,
+                    caller: Some(caller.clone()),
+                    provider_options: None,
+                })],
+            }],
+            usage: None,
+            finish_reason: None,
+        };
+        let exported = adapter.response_from_universal(&tool_result_resp).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported tool result should deserialize as TheResponseObject");
+        let function_call_output = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
+            .expect("function_call_output item should be exported");
+        assert_eq!(function_call_output.caller.as_ref(), Some(&caller));
+    }
+
+    #[test]
     fn responses_tool_search_input_items_convert_to_universal() {
         let adapter = ResponsesAdapter;
         let payload = json!({

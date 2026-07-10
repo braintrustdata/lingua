@@ -3377,6 +3377,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     call_id: Some(tool_result.tool_call_id),
                                     name: (!tool_result.tool_name.is_empty())
                                         .then_some(tool_result.tool_name),
+                                    caller: tool_result.caller,
                                     output: input_item_output_to_output(Some(
                                         openai_output_from_string(output_string),
                                     )),
@@ -3547,6 +3548,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         arguments,
                                         provider_options,
                                         provider_executed,
+                                        caller,
                                         ..
                                     } => {
                                         // Flush any pending reasoning before tool call
@@ -3758,6 +3760,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                     call_id: Some(tool_call_id),
                                                     name: Some(tool_name),
                                                     namespace,
+                                                    caller,
                                                     arguments: Some(serde_json::Value::String(
                                                         arguments.to_string(),
                                                     )),
@@ -3778,6 +3781,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
+                                                caller,
                                                 input: Some(input),
                                                 status: Some(
                                                     openai::FunctionCallItemStatus::Completed,
@@ -3794,6 +3798,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
+                                                caller,
                                                 arguments: Some(serde_json::Value::String(
                                                     arguments.to_string(),
                                                 )),

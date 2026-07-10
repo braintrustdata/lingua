@@ -61,15 +61,18 @@ pub struct UniversalTool {
 
     /// Tool description
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub description: Option<String>,
 
     /// Parameters/input schema (JSON Schema)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     #[ts(type = "Record<string, unknown> | null")]
     pub parameters: Option<Value>,
 
     /// Whether to enforce strict schema validation (OpenAI Responses API)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub strict: Option<bool>,
 
     /// Whether the tool is immediately available or deferred until discovered.
@@ -78,10 +81,12 @@ pub struct UniversalTool {
 
     /// Which execution environments may call this tool.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub allowed_callers: Option<Vec<UniversalToolCaller>>,
 
     /// Schema for the tool result shape.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     #[ts(type = "Record<string, unknown> | null")]
     pub output_schema: Option<Value>,
 
@@ -152,6 +157,7 @@ pub enum UniversalToolType {
     Custom {
         /// Optional input format for custom tools (e.g. text/grammar config)
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         #[ts(type = "Record<string, unknown> | null")]
         format: Option<Value>,
     },
@@ -165,6 +171,7 @@ pub enum UniversalToolType {
         builtin_type: String,
         /// Provider-specific configuration
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         #[ts(type = "Record<string, unknown> | null")]
         config: Option<Value>,
     },
