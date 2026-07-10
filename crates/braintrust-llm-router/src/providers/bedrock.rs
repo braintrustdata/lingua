@@ -35,6 +35,21 @@ fn is_remote_image_url(value: &str) -> bool {
     value.starts_with("http://") || value.starts_with("https://")
 }
 
+/// Percent-encode a Bedrock model identifier for use as a single URL path
+/// segment.
+///
+/// Application inference profile ARNs
+/// (`arn:aws:bedrock:...:application-inference-profile/<id>`) contain both `:`
+/// and `/`. Interpolated raw, the embedded `/` splits the path so the request
+/// becomes `model/arn:...:application-inference-profile/<id>/converse`, which
+/// Bedrock cannot route: it returns an opaque HTTP 200 `UnknownOperationException`
+/// body that the router then fails to detect, surfacing as a 500. Encoding the
+/// id (matching the AWS SDK's `extendedEncodeURIComponent`, i.e. everything
+/// except the unreserved set `A-Za-z0-9-_.~`) keeps it in a single segment.
+fn encode_bedrock_model_id(model: &str) -> String {
+    urlencoding::encode(model).into_owned()
+}
+
 async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
     lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
         .await
@@ -245,6 +260,7 @@ impl BedrockProvider {
     }
 
     fn converse_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let model = encode_bedrock_model_id(model);
         let path = if stream {
             format!("model/{model}/converse-stream")
         } else {
@@ -257,6 +273,7 @@ impl BedrockProvider {
     }
 
     fn invoke_model_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let model = encode_bedrock_model_id(model);
         let path = if stream {
             format!("model/{model}/invoke-with-response-stream")
         } else {
@@ -680,6 +697,57 @@ mod tests {
             }
             other => panic!("expected Error::Auth, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn converse_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.converse_url(arn, false).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/converse"
+        );
+    }
+
+    #[test]
+    fn converse_stream_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.converse_url(arn, true).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/converse-stream"
+        );
+    }
+
+    #[test]
+    fn invoke_model_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.invoke_model_url(arn, false).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/invoke"
+        );
+    }
+
+    #[test]
+    fn converse_url_percent_encodes_foundation_model_version_colon() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-haiku-20240307-v1%3A0/converse"
+        );
     }
 
     #[test]
