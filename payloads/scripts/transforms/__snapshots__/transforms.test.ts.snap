@@ -6842,6 +6842,48 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
 }
 `;
 
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "",
+      "type": "thinking",
+    },
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0978d02eafae56350069f4578baec081a1bd040365f2cec1e1",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 351,
+  },
+}
+`;
+
 exports[`anthropic → responses > reasoningRequest > request 1`] = `
 {
   "input": [
@@ -31195,6 +31237,23 @@ This will help me provide you with the most accurate and relevant information.",
 }
 `;
 
+exports[`responses → anthropic > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Review this rollout checklist for the highest-risk issue.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 4096,
+    "type": "enabled",
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesInputFileUrlParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -35004,6 +35063,29 @@ exports[`responses → google > responsesGpt56PromptCacheOptionsParam > request 
       "role": "user",
     },
   ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Review this rollout checklist for the highest-risk issue.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
   "model": "gemini-3.5-flash",
 }
 `;

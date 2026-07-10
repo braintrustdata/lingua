@@ -1088,6 +1088,13 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    // The local OpenAI spec can lag model-specific reasoning efforts. Keep
+    // generated request validation aligned with the compatibility params view.
+    processed = processed.replace(
+        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
+        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
+    );
+
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
     processed = processed.replace(

@@ -786,6 +786,7 @@ pub enum ReasoningEffort {
     Minimal,
     None,
     Xhigh,
+    Max,
 }
 
 /// An object specifying the format that the model must output.

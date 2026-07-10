@@ -198,6 +198,7 @@ impl From<&GeneratedOpenAIReasoningEffort> for ReasoningEffort {
             GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
             GeneratedOpenAIReasoningEffort::None => ReasoningEffort::None,
             GeneratedOpenAIReasoningEffort::Xhigh => ReasoningEffort::Xhigh,
+            GeneratedOpenAIReasoningEffort::Max => ReasoningEffort::Max,
         }
     }
 }
