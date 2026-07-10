@@ -11,7 +11,8 @@ use crate::universal::defaults::{EMPTY_OBJECT_STR, PLACEHOLDER_ID, REFUSAL_TEXT}
 use crate::universal::{
     AssistantContent, AssistantContentPart, CacheControl, Message, ProviderOptions,
     TextContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
-    ToolDiscoveryResultContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
+    UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 use base64::Engine;
@@ -600,17 +601,87 @@ enum ResponsesSequencedInputItem {
     Item(Box<openai::InputItem>),
 }
 
+fn responses_tool_values_from_universal_tools(
+    tools: &[crate::universal::UniversalTool],
+) -> Result<Vec<serde_json::Value>, ConvertError> {
+    tools.iter().map(|tool| tool.to_responses_value()).collect()
+}
+
+fn responses_tool_values_from_discovery_items(
+    tools: &[ToolDiscoveryResultItem],
+) -> Result<Vec<serde_json::Value>, ConvertError> {
+    tools
+        .iter()
+        .map(|item| {
+            if let Some(tool) = &item.tool {
+                tool.to_responses_value()
+            } else {
+                Ok(serde_json::json!({
+                    "type": "function",
+                    "name": item.tool_name,
+                    "parameters": {"type": "object"}
+                }))
+            }
+        })
+        .collect()
+}
+
+fn additional_tools_messages(messages: &[Message]) -> Vec<&[crate::universal::UniversalTool]> {
+    messages
+        .iter()
+        .filter_map(|message| match message {
+            Message::AdditionalTools { tools, .. } => Some(tools.as_slice()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn tool_discovery_results(messages: &[Message]) -> Vec<&ToolDiscoveryResultContentPart> {
+    messages
+        .iter()
+        .flat_map(|message| match message {
+            Message::Tool { content } => content
+                .iter()
+                .filter_map(|part| match part {
+                    ToolContentPart::ToolDiscoveryResult(result) => Some(result),
+                    _ => None,
+                })
+                .collect::<Vec<_>>(),
+            _ => Vec::new(),
+        })
+        .collect()
+}
+
 pub(crate) fn responses_input_values_from_universal_context(
     input_items: &[openai::InputItem],
-    _messages: &[Message],
+    messages: &[Message],
 ) -> Result<Vec<serde_json::Value>, ConvertError> {
     let mut values = Vec::with_capacity(input_items.len());
+    let mut additional_tools = additional_tools_messages(messages).into_iter();
+    let mut discovery_results = tool_discovery_results(messages).into_iter();
     for item in input_items {
-        let value =
+        let mut value =
             serde_json::to_value(item).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: "Responses input item".to_string(),
                 error: e.to_string(),
             })?;
+        match item.input_item_type {
+            Some(openai::InputItemType::AdditionalTools) => {
+                if let Some(tools) = additional_tools.next() {
+                    value["tools"] = serde_json::Value::Array(
+                        responses_tool_values_from_universal_tools(tools)?,
+                    );
+                }
+            }
+            Some(openai::InputItemType::ToolSearchOutput) => {
+                if let Some(result) = discovery_results.next() {
+                    value["tools"] = serde_json::Value::Array(
+                        responses_tool_values_from_discovery_items(&result.tools)?,
+                    );
+                }
+            }
+            _ => {}
+        }
         values.push(value);
     }
     Ok(values)
@@ -618,15 +689,34 @@ pub(crate) fn responses_input_values_from_universal_context(
 
 pub(crate) fn responses_output_values_from_universal_context(
     output_items: &[openai::OutputItem],
-    _messages: &[Message],
+    messages: &[Message],
 ) -> Result<Vec<serde_json::Value>, ConvertError> {
     let mut values = Vec::with_capacity(output_items.len());
+    let mut additional_tools = additional_tools_messages(messages).into_iter();
+    let mut discovery_results = tool_discovery_results(messages).into_iter();
     for item in output_items {
-        let value =
+        let mut value =
             serde_json::to_value(item).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: "Responses output item".to_string(),
                 error: e.to_string(),
             })?;
+        match item.output_item_type {
+            Some(openai::OutputItemType::AdditionalTools) => {
+                if let Some(tools) = additional_tools.next() {
+                    value["tools"] = serde_json::Value::Array(
+                        responses_tool_values_from_universal_tools(tools)?,
+                    );
+                }
+            }
+            Some(openai::OutputItemType::ToolSearchOutput) => {
+                if let Some(result) = discovery_results.next() {
+                    value["tools"] = serde_json::Value::Array(
+                        responses_tool_values_from_discovery_items(&result.tools)?,
+                    );
+                }
+            }
+            _ => {}
+        }
         values.push(value);
     }
     Ok(values)
@@ -6129,6 +6219,157 @@ mod tests {
         let tools = item.tools.as_ref().expect("tools should be present");
         assert_eq!(tools.len(), 1);
         assert_eq!(tools[0].name.as_deref(), Some("lookup_policy"));
+    }
+
+    #[test]
+    fn additional_tools_serialized_json_preserves_programmatic_tool_fields() {
+        let mut tool = crate::universal::UniversalTool::function(
+            "lookup_policy",
+            Some("Look up a policy".to_string()),
+            Some(crate::serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "topic": {"type": "string"}
+                },
+                "required": ["topic"],
+                "additionalProperties": false
+            })),
+            Some(true),
+        );
+        tool.allowed_callers = Some(vec![
+            crate::universal::tools::UniversalToolCaller::Programmatic,
+        ]);
+        tool.output_schema = Some(crate::serde_json::json!({
+            "type": "object",
+            "properties": {
+                "policy": {"type": "string"}
+            },
+            "required": ["policy"],
+            "additionalProperties": false
+        }));
+
+        let messages = vec![Message::AdditionalTools {
+            tools: vec![tool],
+            id: Some("at_programmatic".to_string()),
+        }];
+        let input_items =
+            universal_to_responses_input(&messages).expect("AdditionalTools should convert");
+        let values = responses_input_values_from_universal_context(&input_items, &messages)
+            .expect("AdditionalTools should serialize");
+
+        let serialized_tool = &values[0]["tools"][0];
+        assert_eq!(serialized_tool["allowed_callers"], json!(["programmatic"]));
+        assert_eq!(
+            serialized_tool["output_schema"],
+            json!({
+                "type": "object",
+                "properties": {
+                    "policy": {"type": "string"}
+                },
+                "required": ["policy"],
+                "additionalProperties": false
+            })
+        );
+
+        let output_items =
+            <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages.clone())
+                .expect("AdditionalTools should convert to output items");
+        let values = responses_output_values_from_universal_context(&output_items, &messages)
+            .expect("AdditionalTools output should serialize");
+        let serialized_tool = &values[0]["tools"][0];
+        assert_eq!(serialized_tool["allowed_callers"], json!(["programmatic"]));
+        assert_eq!(
+            serialized_tool["output_schema"],
+            json!({
+                "type": "object",
+                "properties": {
+                    "policy": {"type": "string"}
+                },
+                "required": ["policy"],
+                "additionalProperties": false
+            })
+        );
+    }
+
+    #[test]
+    fn tool_discovery_serialized_json_preserves_programmatic_tool_fields() {
+        let mut tool = crate::universal::UniversalTool::custom(
+            "write_short_note",
+            Some("Write a compact note".to_string()),
+            Some(crate::serde_json::json!({"type": "text"})),
+        );
+        tool.allowed_callers = Some(vec![
+            crate::universal::tools::UniversalToolCaller::Direct,
+            crate::universal::tools::UniversalToolCaller::Programmatic,
+        ]);
+        tool.output_schema = Some(crate::serde_json::json!({
+            "type": "object",
+            "properties": {
+                "note": {"type": "string"}
+            },
+            "required": ["note"],
+            "additionalProperties": false
+        }));
+
+        let messages = vec![Message::Tool {
+            content: vec![ToolContentPart::ToolDiscoveryResult(
+                ToolDiscoveryResultContentPart {
+                    tool_call_id: "call_tool_search_123".to_string(),
+                    discovery_tool_name: "tool_search".to_string(),
+                    tools: vec![ToolDiscoveryResultItem {
+                        tool_name: "write_short_note".to_string(),
+                        tool: Some(tool),
+                        provider_options: None,
+                    }],
+                    status: Some("completed".to_string()),
+                    execution: Some("client".to_string()),
+                    provider_options: None,
+                },
+            )],
+        }];
+
+        let input_items =
+            universal_to_responses_input(&messages).expect("tool discovery should convert");
+        let values = responses_input_values_from_universal_context(&input_items, &messages)
+            .expect("tool discovery should serialize");
+        let serialized_tool = &values[0]["tools"][0];
+        assert_eq!(
+            serialized_tool["allowed_callers"],
+            json!(["direct", "programmatic"])
+        );
+        assert_eq!(
+            serialized_tool["output_schema"],
+            json!({
+                "type": "object",
+                "properties": {
+                    "note": {"type": "string"}
+                },
+                "required": ["note"],
+                "additionalProperties": false
+            })
+        );
+
+        let output_items =
+            <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages.clone())
+                .expect("tool discovery should convert to output items");
+        let values = responses_output_values_from_universal_context(&output_items, &messages)
+            .expect("tool discovery output should serialize");
+        let serialized_tool = &values[0]["tools"][0];
+        assert_eq!(
+            serialized_tool["allowed_callers"],
+            json!(["direct", "programmatic"])
+        );
+        assert_eq!(
+            serialized_tool["output_schema"],
+            json!({
+                "type": "object",
+                "properties": {
+                    "note": {"type": "string"}
+                },
+                "required": ["note"],
+                "additionalProperties": false
+            })
+        );
     }
 
     #[test]

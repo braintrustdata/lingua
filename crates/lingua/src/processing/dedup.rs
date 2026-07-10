@@ -160,11 +160,13 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         tool_call_id,
                         tool_name,
                         arguments,
+                        caller,
                         ..
                     } => {
                         "tool_call".hash(hasher);
                         tool_call_id.hash(hasher);
                         tool_name.hash(hasher);
+                        caller.hash(hasher);
                         // ToolCallArguments doesn't derive Hash, so handle each variant
                         match arguments {
                             crate::universal::ToolCallArguments::Valid(map) => {
@@ -202,12 +204,14 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         tool_call_id,
                         tool_name,
                         output,
+                        caller,
                         ..
                     } => {
                         "tool_result".hash(hasher);
                         tool_call_id.hash(hasher);
                         tool_name.hash(hasher);
                         output.hash(hasher);
+                        caller.hash(hasher);
                     }
                     AssistantContentPart::Program {
                         call_id,
@@ -275,6 +279,7 @@ fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
                 result.tool_call_id.hash(hasher);
                 result.tool_name.hash(hasher);
                 result.output.hash(hasher);
+                result.caller.hash(hasher);
             }
             crate::universal::ToolContentPart::ToolDiscoveryResult(result) => {
                 "tool_discovery_result".hash(hasher);
@@ -764,6 +769,100 @@ mod tests {
                         }],
                         status: Some("completed".to_string()),
                         execution: Some("client".to_string()),
+                        provider_options: None,
+                    },
+                )],
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_dedup_preserves_tool_calls_with_different_callers() {
+        let caller_a = crate::universal::ToolCaller {
+            caller_type: crate::universal::ToolCallerType::Program,
+            caller_id: "call_prog_a".to_string(),
+        };
+        let caller_b = crate::universal::ToolCaller {
+            caller_type: crate::universal::ToolCallerType::Program,
+            caller_id: "call_prog_b".to_string(),
+        };
+
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    arguments: crate::universal::ToolCallArguments::from(
+                        "{\"sku\":\"sku_123\"}".to_string(),
+                    ),
+                    caller: Some(caller_a),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    arguments: crate::universal::ToolCallArguments::from(
+                        "{\"sku\":\"sku_123\"}".to_string(),
+                    ),
+                    caller: Some(caller_b),
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_dedup_preserves_tool_results_with_different_callers() {
+        let caller_a = crate::universal::ToolCaller {
+            caller_type: crate::universal::ToolCallerType::Program,
+            caller_id: "call_prog_a".to_string(),
+        };
+        let caller_b = crate::universal::ToolCaller {
+            caller_type: crate::universal::ToolCallerType::Program,
+            caller_id: "call_prog_b".to_string(),
+        };
+
+        let messages = vec![
+            Message::Tool {
+                content: vec![crate::universal::ToolContentPart::ToolResult(
+                    crate::universal::ToolResultContentPart {
+                        tool_call_id: "call_inventory_123".to_string(),
+                        tool_name: "get_inventory".to_string(),
+                        output: crate::serde_json::json!({
+                            "sku": "sku_123",
+                            "available_units": 42
+                        }),
+                        custom_tool_call: None,
+                        caller: Some(caller_a),
+                        provider_options: None,
+                    },
+                )],
+            },
+            Message::Tool {
+                content: vec![crate::universal::ToolContentPart::ToolResult(
+                    crate::universal::ToolResultContentPart {
+                        tool_call_id: "call_inventory_123".to_string(),
+                        tool_name: "get_inventory".to_string(),
+                        output: crate::serde_json::json!({
+                            "sku": "sku_123",
+                            "available_units": 42
+                        }),
+                        custom_tool_call: None,
+                        caller: Some(caller_b),
                         provider_options: None,
                     },
                 )],
