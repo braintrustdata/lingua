@@ -574,6 +574,52 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesAdditionalToolsMultipleToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Use the extra policy and note tools once the developer makes them available.",
+        },
+        {
+          id: "at_payload_123",
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+            {
+              type: "custom",
+              name: "write_release_note",
+              description: "Draft a release note in plain text.",
+              format: {
+                type: "text",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

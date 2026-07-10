@@ -27,6 +27,13 @@ pub enum Message {
     Tool {
         content: ToolContent,
     },
+    #[serde(rename = "additional_tools")]
+    #[ts(rename = "additional_tools")]
+    AdditionalTools {
+        tools: Vec<UniversalTool>,
+        #[ts(optional)]
+        id: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

@@ -260,6 +260,12 @@ impl TryFromLLM<Message> for BedrockMessage {
                 let blocks = tool_result_blocks_from_content(content)?;
                 (BedrockConversationRole::User, blocks)
             }
+            Message::AdditionalTools { .. } => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Message::AdditionalTools".to_string(),
+                    to: "Bedrock Message",
+                });
+            }
         };
 
         Ok(BedrockMessage { role, content })

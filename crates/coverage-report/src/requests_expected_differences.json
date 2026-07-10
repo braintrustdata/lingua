@@ -1091,7 +1091,15 @@
       "source": "Responses",
       "target": "*",
       "errors": [
-        { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
+        { "pattern": "Message::AdditionalTools", "reason": "Responses additional_tools has a universal representation, but non-Responses providers cannot represent mid-conversation tool definition items losslessly" }
+      ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "Message::AdditionalTools", "reason": "Responses additional_tools has a universal representation, but non-Responses providers cannot represent mid-conversation tool definition items losslessly" }
       ]
     }
   ]

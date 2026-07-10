@@ -141,6 +141,7 @@ fn message_role(message: &Message) -> &'static str {
         Message::Developer { .. } => "developer",
         Message::Assistant { .. } => "assistant",
         Message::Tool { .. } => "tool",
+        Message::AdditionalTools { .. } => "additional_tools",
     }
 }
 

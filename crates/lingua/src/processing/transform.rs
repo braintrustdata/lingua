@@ -731,7 +731,8 @@ fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk
             Message::System { .. }
             | Message::Developer { .. }
             | Message::User { .. }
-            | Message::Tool { .. } => None,
+            | Message::Tool { .. }
+            | Message::AdditionalTools { .. } => None,
         })
         .collect();
 

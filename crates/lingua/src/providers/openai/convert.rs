@@ -1034,10 +1034,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     continue;
                 }
                 Some(openai::InputItemType::AdditionalTools) => {
-                    return Err(ConvertError::UnsupportedMapping {
-                        from: "InputItemType::AdditionalTools".to_string(),
-                        to: "universal Message",
-                    });
+                    result.push(tool_discovery::message_from_input_additional_tools(input)?);
                 }
                 Some(openai::InputItemType::Reasoning) => {
                     let mut summaries = vec![];
@@ -2022,6 +2019,16 @@ impl TryFromLLM<Message> for openai::InputItem {
                     }
                 })
             }
+            Message::AdditionalTools { tools, id } => Ok(openai::InputItem {
+                role: Some(openai::InputItemRole::Developer),
+                content: None,
+                input_item_type: Some(openai::InputItemType::AdditionalTools),
+                id,
+                tools: Some(tool_discovery::input_item_tools_from_universal_tools(
+                    &tools,
+                )?),
+                ..Default::default()
+            }),
         }
     }
 }
@@ -2377,6 +2384,18 @@ pub fn universal_to_responses_input(
                         }
                     }
                 }
+            }
+            Message::AdditionalTools { tools, id } => {
+                result.push(openai::InputItem {
+                    role: Some(openai::InputItemRole::Developer),
+                    content: None,
+                    input_item_type: Some(openai::InputItemType::AdditionalTools),
+                    id: id.clone(),
+                    tools: Some(tool_discovery::input_item_tools_from_universal_tools(
+                        tools,
+                    )?),
+                    ..Default::default()
+                });
             }
             other => {
                 // For all other message types, use the standard conversion
@@ -2954,10 +2973,8 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                     }]
                 }
                 Some(openai::OutputItemType::AdditionalTools) => {
-                    return Err(ConvertError::UnsupportedMapping {
-                        from: "OutputItemType::AdditionalTools".to_string(),
-                        to: "universal Message",
-                    });
+                    messages.push(tool_discovery::message_from_output_additional_tools(item)?);
+                    continue;
                 }
                 _ => {
                     // Skip unknown output item types
@@ -3023,6 +3040,23 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                             }
                         }
                     }
+                }
+                Message::AdditionalTools { tools, id } => {
+                    let input_tools =
+                        tool_discovery::input_item_tools_from_universal_tools(&tools)?;
+                    let output_tools = serde_json::to_value(input_tools)
+                        .and_then(serde_json::from_value)
+                        .map_err(|e| ConvertError::JsonSerializationFailed {
+                            field: "Responses additional_tools output tools".to_string(),
+                            error: e.to_string(),
+                        })?;
+                    result.push(openai::OutputItem {
+                        output_item_type: Some(openai::OutputItemType::AdditionalTools),
+                        role: Some(openai::RoleEnum::Developer),
+                        id,
+                        tools: Some(output_tools),
+                        ..Default::default()
+                    });
                 }
                 Message::Assistant { content, id } => {
                     match content {
@@ -3981,6 +4015,10 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     }
                 }
             }
+            Message::AdditionalTools { .. } => Err(ConvertError::UnsupportedMapping {
+                from: "Message::AdditionalTools".to_string(),
+                to: "ChatCompletionRequestMessage",
+            }),
         }
     }
 }
@@ -5128,6 +5166,7 @@ mod tests {
                 Message::Tool { .. } => "tool",
                 Message::Assistant { .. } => "assistant",
                 Message::System { .. } => "system",
+                Message::AdditionalTools { .. } => "additional_tools",
             })
             .collect();
 
@@ -5299,51 +5338,101 @@ mod tests {
     }
 
     // =========================================================================
-    // AdditionalTools item type error tests
+    // AdditionalTools item type tests
     // =========================================================================
 
-    #[test]
-    fn additional_tools_input_item_errors_on_universal_conversion() {
-        let input_item = openai::InputItem {
-            input_item_type: Some(openai::InputItemType::AdditionalTools),
-            role: Some(openai::InputItemRole::Developer),
-            tools: Some(vec![]),
-            ..Default::default()
-        };
-
-        let result =
-            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item]);
-        assert!(
-            result.is_err(),
-            "AdditionalTools should fail conversion to universal"
-        );
-        let err = result.unwrap_err().to_string();
-        assert!(
-            err.contains("AdditionalTools"),
-            "Error should mention AdditionalTools, got: {err}"
-        );
+    fn additional_tools_function_tool() -> openai::InputItemTool {
+        serde_json::from_value(crate::serde_json::json!({
+            "type": "function",
+            "name": "lookup_policy",
+            "description": "Look up a policy",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {"type": "string"}
+                },
+                "required": ["topic"],
+                "additionalProperties": false
+            },
+            "strict": true
+        }))
+        .expect("valid input item tool")
     }
 
     #[test]
-    fn additional_tools_output_item_errors_on_universal_conversion() {
-        let output_item = openai::OutputItem {
-            output_item_type: Some(openai::OutputItemType::AdditionalTools),
-            role: Some(openai::RoleEnum::Developer),
-            tools: Some(vec![]),
+    fn additional_tools_input_item_converts_to_universal() {
+        let input_item = openai::InputItem {
+            id: Some("at_123".to_string()),
+            input_item_type: Some(openai::InputItemType::AdditionalTools),
+            role: Some(openai::InputItemRole::Developer),
+            tools: Some(vec![additional_tools_function_tool()]),
             ..Default::default()
         };
 
-        let result =
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![input_item]);
+        let messages = messages.expect("AdditionalTools should convert to universal");
+        assert_eq!(messages.len(), 1);
+        let Message::AdditionalTools { tools, id } = &messages[0] else {
+            panic!("expected AdditionalTools message");
+        };
+        assert_eq!(id.as_deref(), Some("at_123"));
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "lookup_policy");
+        assert_eq!(tools[0].strict, Some(true));
+    }
+
+    #[test]
+    fn additional_tools_output_item_converts_to_universal() {
+        let output_tool = serde_json::to_value(additional_tools_function_tool())
+            .and_then(serde_json::from_value)
+            .expect("valid output item tool");
+        let output_item = openai::OutputItem {
+            id: Some("at_456".to_string()),
+            output_item_type: Some(openai::OutputItemType::AdditionalTools),
+            role: Some(openai::RoleEnum::Developer),
+            tools: Some(vec![output_tool]),
+            ..Default::default()
+        };
+
+        let messages =
             <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(vec![output_item]);
-        assert!(
-            result.is_err(),
-            "AdditionalTools should fail conversion to universal"
+        let messages = messages.expect("AdditionalTools should convert to universal");
+        assert_eq!(messages.len(), 1);
+        let Message::AdditionalTools { tools, id } = &messages[0] else {
+            panic!("expected AdditionalTools message");
+        };
+        assert_eq!(id.as_deref(), Some("at_456"));
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name, "lookup_policy");
+    }
+
+    #[test]
+    fn additional_tools_universal_converts_to_responses_input_item() {
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(vec![
+            openai::InputItem {
+                id: Some("at_789".to_string()),
+                input_item_type: Some(openai::InputItemType::AdditionalTools),
+                role: Some(openai::InputItemRole::Developer),
+                tools: Some(vec![additional_tools_function_tool()]),
+                ..Default::default()
+            },
+        ])
+        .expect("AdditionalTools should convert to universal");
+
+        let input_items =
+            universal_to_responses_input(&messages).expect("AdditionalTools should roundtrip");
+        assert_eq!(input_items.len(), 1);
+        let item = &input_items[0];
+        assert_eq!(item.id.as_deref(), Some("at_789"));
+        assert_eq!(
+            item.input_item_type,
+            Some(openai::InputItemType::AdditionalTools)
         );
-        let err = result.unwrap_err().to_string();
-        assert!(
-            err.contains("AdditionalTools"),
-            "Error should mention AdditionalTools, got: {err}"
-        );
+        assert_eq!(item.role, Some(openai::InputItemRole::Developer));
+        let tools = item.tools.as_ref().expect("tools should be present");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0].name.as_deref(), Some("lookup_policy"));
     }
 
     #[test]

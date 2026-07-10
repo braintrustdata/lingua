@@ -679,6 +679,12 @@ impl TryFromLLM<Message> for GoogleContent {
                     .collect::<Result<Vec<_>, ConvertError>>()?;
                 ("user".to_string(), parts)
             }
+            Message::AdditionalTools { .. } => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Message::AdditionalTools".to_string(),
+                    to: "Google Content",
+                });
+            }
         };
 
         Ok(GoogleContent {

@@ -60,7 +60,7 @@ fn normalize_message_content(message: &mut Message) {
         Message::Assistant { content, .. } => {
             normalize_assistant_content(content);
         }
-        Message::Tool { .. } => {}
+        Message::Tool { .. } | Message::AdditionalTools { .. } => {}
     }
 }
 

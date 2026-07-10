@@ -1349,6 +1349,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     type_info: "Non-leading system/developer messages are not supported in Anthropic InputMessage; use the top-level system parameter for leading instructions".to_string(),
                 })
             }
+            Message::AdditionalTools { .. } => Err(ConvertError::UnsupportedMapping {
+                from: "Message::AdditionalTools".to_string(),
+                to: "Anthropic InputMessage",
+            }),
         }
     }
 }
