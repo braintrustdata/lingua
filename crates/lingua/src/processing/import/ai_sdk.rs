@@ -310,6 +310,7 @@ fn parse_tool_content(value: Value) -> Option<Vec<ToolContentPart>> {
                 tool_call_id,
                 tool_name,
                 output: parse_tool_result_output(output),
+                custom_tool_call: None,
                 provider_options: None,
             }));
         }
@@ -341,6 +342,7 @@ fn parse_message(message: AISDKMessageCompat) -> Option<Message> {
                     tool_call_id,
                     tool_name: message.name.unwrap_or_default(),
                     output: Value::Null,
+                    custom_tool_call: None,
                     provider_options: None,
                 })])
             })?;

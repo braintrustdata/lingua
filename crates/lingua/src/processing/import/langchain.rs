@@ -465,6 +465,7 @@ fn parse_tool_message_content(
             tool_call_id,
             tool_name,
             output,
+            custom_tool_call: None,
             provider_options: None,
         })],
     })

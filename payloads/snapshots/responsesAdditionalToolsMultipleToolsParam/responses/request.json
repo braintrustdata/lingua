@@ -1,0 +1,42 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Use the extra policy and note tools once the developer makes them available."
+    },
+    {
+      "id": "at_payload_123",
+      "type": "additional_tools",
+      "role": "developer",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup_policy",
+          "description": "Look up an internal policy by slug.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "custom",
+          "name": "write_release_note",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          }
+        }
+      ]
+    }
+  ]
+}

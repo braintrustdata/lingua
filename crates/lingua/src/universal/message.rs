@@ -27,6 +27,13 @@ pub enum Message {
     Tool {
         content: ToolContent,
     },
+    #[serde(rename = "additional_tools")]
+    #[ts(rename = "additional_tools")]
+    AdditionalTools {
+        tools: Vec<UniversalTool>,
+        #[ts(optional)]
+        id: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -137,6 +144,7 @@ pub enum AssistantContentPart {
 pub enum ToolCallArguments {
     Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),
+    Custom(String),
 }
 
 impl From<String> for ToolCallArguments {
@@ -156,7 +164,7 @@ impl std::fmt::Display for ToolCallArguments {
                 "{}",
                 serde_json::to_string(map).map_err(|_| std::fmt::Error)?
             ),
-            ToolCallArguments::Invalid(s) => write!(f, "{}", s),
+            ToolCallArguments::Invalid(s) | ToolCallArguments::Custom(s) => write!(f, "{}", s),
         }
     }
 }
@@ -173,6 +181,7 @@ pub struct ToolResultContentPart {
     pub tool_name: String,
     #[ts(type = "any")]
     pub output: serde_json::Value,
+    pub custom_tool_call: Option<bool>,
     pub provider_options: Option<ProviderOptions>,
 }
 

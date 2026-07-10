@@ -8,7 +8,6 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
-#[cfg(test)]
 use crate::serde_json;
 
 /// Stable deduplication key for a message based on its role and normalized content.
@@ -47,6 +46,13 @@ fn hash_message(msg: &Message) -> u64 {
         Message::Tool { content } => {
             "tool".hash(&mut hasher);
             hash_tool_content(content, &mut hasher);
+        }
+        Message::AdditionalTools { tools, id } => {
+            "additional_tools".hash(&mut hasher);
+            id.hash(&mut hasher);
+            serde_json::to_string(tools)
+                .unwrap_or_default()
+                .hash(&mut hasher);
         }
     }
 
@@ -167,6 +173,10 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                             }
                             crate::universal::ToolCallArguments::Invalid(s) => {
                                 "invalid".hash(hasher);
+                                s.hash(hasher);
+                            }
+                            crate::universal::ToolCallArguments::Custom(s) => {
+                                "custom".hash(hasher);
                                 s.hash(hasher);
                             }
                         }
