@@ -465,6 +465,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 tool_call_id: tool_use_id,
                                                 tool_name: String::new(), // Anthropic doesn't provide tool name in results
                                                 output,
+                                                custom_tool_call: None,
                                                 provider_options: None,
                                             },
                                         ));
@@ -1144,7 +1145,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 // Convert ToolCallArguments to serde_json::Map
                                 let input_map = match &arguments {
                                     ToolCallArguments::Valid(map) => Some(map.clone()),
-                                    ToolCallArguments::Invalid(_) => None,
+                                    ToolCallArguments::Invalid(_) | ToolCallArguments::Custom(_) => None,
                                 };
 
                                 // Use ServerToolUse for provider-executed tools
@@ -2062,7 +2063,8 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                     // Convert ToolCallArguments to serde_json::Map for response generation
                                     let input_map = match &arguments {
                                         ToolCallArguments::Valid(map) => Some(map.clone()),
-                                        ToolCallArguments::Invalid(_) => None,
+                                        ToolCallArguments::Invalid(_)
+                                        | ToolCallArguments::Custom(_) => None,
                                     };
 
                                     // Use ServerToolUse if provider_executed is true
@@ -2668,6 +2670,7 @@ mod tests {
                     tool_call_id: "call_repro_123".to_string(),
                     tool_name: String::new(),
                     output: json!({"records": [{"id": "record_1", "status": "ok"}]}),
+                    custom_tool_call: None,
                     provider_options: None,
                 })],
             },
@@ -2716,6 +2719,7 @@ mod tests {
                     tool_call_id: "call_repro_123".to_string(),
                     tool_name: String::new(),
                     output: json!("result"),
+                    custom_tool_call: None,
                     provider_options: None,
                 })],
             },
@@ -2991,6 +2995,7 @@ mod tests {
                         tool_call_id: "call_normal_123".to_string(),
                         tool_name: "get_weather".to_string(),
                         output: json!("sunny"),
+                        custom_tool_call: None,
                         provider_options: None,
                     }),
                     ToolContentPart::ToolDiscoveryResult(
@@ -3052,6 +3057,7 @@ mod tests {
                     tool_call_id: "call_normal_123".to_string(),
                     tool_name: "get_weather".to_string(),
                     output: json!("sunny"),
+                    custom_tool_call: None,
                     provider_options: None,
                 }),
                 ToolContentPart::ToolDiscoveryResult(

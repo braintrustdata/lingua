@@ -4,4 +4,4 @@ import type { ProviderOptions } from "./ProviderOptions";
 /**
  * Reusable tool result content part for tagged unions
  */
-export type ToolResultContentPart = { tool_call_id: string, tool_name: string, output: any, provider_options?: ProviderOptions, };
+export type ToolResultContentPart = { tool_call_id: string, tool_name: string, output: any, custom_tool_call?: boolean, provider_options?: ProviderOptions, };

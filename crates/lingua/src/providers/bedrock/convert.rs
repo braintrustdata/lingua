@@ -63,6 +63,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 tool_call_id: tool_result.tool_use_id,
                                 tool_name: String::new(),
                                 output,
+                                custom_tool_call: None,
                                 provider_options: None,
                             }));
                         }
@@ -239,7 +240,8 @@ impl TryFromLLM<Message> for BedrockMessage {
                                 let input: Value = match arguments {
                                     ToolCallArguments::Valid(map) => serde_json::to_value(map)
                                         .unwrap_or(Value::Object(Default::default())),
-                                    ToolCallArguments::Invalid(s) => serde_json::from_str(&s)
+                                    ToolCallArguments::Invalid(s)
+                                    | ToolCallArguments::Custom(s) => serde_json::from_str(&s)
                                         .unwrap_or(Value::Object(Default::default())),
                                 };
                                 Some(BedrockContentBlock::ToolUse {
@@ -598,7 +600,8 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
                                 let input: Value = match arguments {
                                     ToolCallArguments::Valid(map) => serde_json::to_value(map)
                                         .unwrap_or(Value::Object(Default::default())),
-                                    ToolCallArguments::Invalid(s) => serde_json::from_str(&s)
+                                    ToolCallArguments::Invalid(s)
+                                    | ToolCallArguments::Custom(s) => serde_json::from_str(&s)
                                         .unwrap_or(Value::Object(Default::default())),
                                 };
                                 Some(BedrockOutputContentBlock::ToolUse {
@@ -1010,6 +1013,7 @@ mod tests {
                     tool_call_id: "call_sf".to_string(),
                     tool_name: "get_weather".to_string(),
                     output: Value::String("65°F and sunny.".to_string()),
+                    custom_tool_call: None,
                     provider_options: None,
                 })],
             },
@@ -1018,6 +1022,7 @@ mod tests {
                     tool_call_id: "call_nyc".to_string(),
                     tool_name: "get_weather".to_string(),
                     output: Value::String("45°F and cloudy.".to_string()),
+                    custom_tool_call: None,
                     provider_options: None,
                 })],
             },

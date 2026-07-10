@@ -315,6 +315,7 @@ fn convert_message_parts(
                         tool_call_id: part.tool_call_id?,
                         tool_name: part.tool_name.unwrap_or_default(),
                         output: parse_tool_result_output(part.content),
+                        custom_tool_call: None,
                         provider_options: None,
                     })],
                 });

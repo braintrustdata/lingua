@@ -396,6 +396,7 @@ fn parse_lenient_tool_message(item: &Value, content_value: &Value) -> Option<Mes
             tool_call_id,
             tool_name,
             output,
+            custom_tool_call: None,
             provider_options: None,
         })],
     })
@@ -502,6 +503,7 @@ fn try_parse_lenient_tool_content_part(item: &Value) -> Option<ToolContentPart> 
             tool_call_id,
             tool_name,
             output,
+            custom_tool_call: None,
             provider_options: None,
         })),
     }

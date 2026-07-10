@@ -410,6 +410,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 tool_call_id,
                                 tool_name: tool_name.clone(),
                                 output,
+                                custom_tool_call: None,
                                 provider_options: None,
                             }));
                         }
@@ -598,7 +599,8 @@ impl TryFromLLM<Message> for GoogleContent {
                                 } => {
                                     let value = match arguments {
                                         ToolCallArguments::Valid(map) => Some(Value::Object(map)),
-                                        ToolCallArguments::Invalid(s) => {
+                                        ToolCallArguments::Invalid(s)
+                                        | ToolCallArguments::Custom(s) => {
                                             serde_json::from_str(&s).ok()
                                         }
                                     };

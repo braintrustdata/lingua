@@ -175,6 +175,10 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                                 "invalid".hash(hasher);
                                 s.hash(hasher);
                             }
+                            crate::universal::ToolCallArguments::Custom(s) => {
+                                "custom".hash(hasher);
+                                s.hash(hasher);
+                            }
                         }
                     }
                     AssistantContentPart::ToolDiscoveryCall {
