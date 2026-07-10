@@ -3,7 +3,7 @@
   "input": "Use the stable policy prefix when answering.",
   "prompt_cache_options": {
     "mode": "explicit",
-    "ttl": "1h"
+    "ttl": "30m"
   },
   "prompt_cache_retention": "24h"
 }

@@ -95,6 +95,20 @@
       ]
     },
     {
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; ChatCompletions streaming has no cache-write token field" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; Google streaming has no cache-write token field" }
+      ]
+    },
+    {
       "source": "ChatCompletions",
       "target": "*",
       "fields": [

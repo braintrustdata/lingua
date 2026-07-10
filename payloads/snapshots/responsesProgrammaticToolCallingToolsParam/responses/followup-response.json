@@ -1,13 +1,13 @@
 {
-  "id": "resp_072cedf0ba9a2aca006a515adadc9881a2877ca6307274300a",
+  "id": "resp_072cedf0ba9a2aca006a515adc4d8081a2b6167068738fd20f",
   "object": "response",
-  "created_at": 1783716570,
+  "created_at": 1783716572,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1783716572,
+  "completed_at": 1783716573,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,27 +18,21 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_072cedf0ba9a2aca006a515adb5bc881a2a98f4856c0409b5f",
-      "type": "reasoning",
-      "content": [],
-      "summary": []
-    },
-    {
-      "id": "cm_072cedf0ba9a2aca006a515adbe54081a29e4d51316e3ededd",
+      "id": "cm_072cedf0ba9a2aca006a515add1e1c81a2acdda6b2ff8d63f8",
       "type": "program",
-      "call_id": "call_4DEyilA0eOIRmtXTIZkd1XaU",
-      "code": "const r = await tools.get_inventory({sku:\"sku_123\"}); text(r);",
-      "fingerprint": "gAAAAABqUVrcBfVNr207Yp22GyIh7Hz3KxaV8wNsn05TgLpT-OXZBwy4W82KdjTdLrkFZzPMJFYgTpqIyz-eajzAyCCHseOt-FtunuEThBaJxGiG_Yn3wlu_yeFdRvyQtXFpgochLZBK_sQ5i-4g5NOvfMnIwI70W-97tBv4IZEJvSwVmI_GNAEf17dWr_zW2ET_LrZA_j9U7_7-3AarcqtGwshJAXFIUcwMEvwQzOalfB_YlzhpTyHDkacAZ8dv2nJaZH08DkHnXy0wKzxIcKCUA1a1_0ZPKvi9AArte-MBO7SCMbAhlW0="
+      "call_id": "call_cBShHma4G4sNYAZkZgWqDtZa",
+      "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
+      "fingerprint": "gAAAAABqUVrdvHKacp1QJMtLxdU6zEnrOKEobnJtqEKHDjcdEmoO2F7SHMhI95k0ZxjSjyMRXZwu78QXcivx_v8eCmBsHs-_XddVbP-A13RJYRaqjO6y2M3WrruqfEC8m47ClA5ZP24GxkmHCRFFHs2ZmRRx2SyMh85TzcecK0v4bfLUZ80PkJyTW9S436vJBVCiR07sa03GaUUMVvLloS6vejn8U2oFNveh__dbKXVVKsm9YlFiyxzxO-CpIX_qzWQ9oNBQUVS4lQD2hjjZ4cj8uLKk4s6roQdTEUHbdqnJWM0xmJTIDI1DV5gKLgK9cdtMA8o4oo6c"
     },
     {
-      "id": "fc_072cedf0ba9a2aca006a515adbf2cc81a2be96cbdc50a9803a",
+      "id": "fc_072cedf0ba9a2aca006a515add29ec81a28e546921b9875043",
       "type": "function_call",
       "status": "in_progress",
       "arguments": "{\"sku\":\"sku_123\"}",
-      "call_id": "call_yYVWBFYd09iK63x998TOYEyf",
+      "call_id": "call_hQGuTqkc8PYN5QV8r7MtXHpa",
       "caller": {
         "type": "program",
-        "caller_id": "call_4DEyilA0eOIRmtXTIZkd1XaU"
+        "caller_id": "call_cBShHma4G4sNYAZkZgWqDtZa"
       },
       "name": "get_inventory"
     }
@@ -141,14 +135,14 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 600,
+    "input_tokens": 622,
     "input_tokens_details": {
       "cache_write_tokens": 0,
       "cached_tokens": 0
     },
-    "output_tokens": 50,
+    "output_tokens": 28,
     "output_tokens_details": {
-      "reasoning_tokens": 20
+      "reasoning_tokens": 0
     },
     "total_tokens": 650
   },

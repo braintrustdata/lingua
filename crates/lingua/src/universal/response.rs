@@ -591,10 +591,13 @@ impl UniversalUsage {
                 );
 
                 let cached = self.prompt_cached_tokens.unwrap_or(0);
-                map.insert(
-                    "input_tokens_details".into(),
-                    serde_json::json!({ "cached_tokens": cached }),
-                );
+                let mut input_details = serde_json::Map::new();
+                input_details.insert("cached_tokens".into(), serde_json::json!(cached));
+                if let Some(cache_write) = self.prompt_cache_creation_tokens {
+                    input_details
+                        .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
+                }
+                map.insert("input_tokens_details".into(), Value::Object(input_details));
 
                 let reasoning = self.completion_reasoning_tokens.unwrap_or(0);
                 map.insert(
@@ -779,6 +782,7 @@ mod tests {
         assert_eq!(responses["input_tokens"], 60);
         assert_eq!(responses["output_tokens"], 5);
         assert_eq!(responses["total_tokens"], 65);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 30);
     }
 
     #[test]
@@ -885,5 +889,9 @@ mod tests {
         assert_eq!(usage.prompt_cached_tokens, Some(40));
         assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
         assert_eq!(usage.completion_reasoning_tokens, Some(5));
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens_details"]["cached_tokens"], 40);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 15);
     }
 }

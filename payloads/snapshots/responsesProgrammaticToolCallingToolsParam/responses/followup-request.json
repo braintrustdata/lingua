@@ -6,27 +6,27 @@
       "content": "Compare inventory and demand for sku_123."
     },
     {
-      "id": "rs_08654f7ea0984a5d006a51124a85b0819dab216c2d84eb5ae9",
+      "id": "rs_072cedf0ba9a2aca006a515adb5bc881a2a98f4856c0409b5f",
       "type": "reasoning",
       "content": [],
       "summary": []
     },
     {
-      "id": "fc_08654f7ea0984a5d006a51124b2168819da2a6558e2a5ceca9",
+      "id": "fc_072cedf0ba9a2aca006a515adbf2cc81a2be96cbdc50a9803a",
       "type": "function_call",
       "status": "in_progress",
       "arguments": "{\"sku\":\"sku_123\"}",
-      "call_id": "call_gb053cRZ2jjGQ8TFYtVXILLZ",
+      "call_id": "call_yYVWBFYd09iK63x998TOYEyf",
       "caller": {
         "type": "program",
-        "caller_id": "call_gNuW13yPOQKLZftJRC6OVUh8"
+        "caller_id": "call_4DEyilA0eOIRmtXTIZkd1XaU"
       },
       "name": "get_inventory"
     },
     {
       "type": "function_call_output",
-      "call_id": "call_gb053cRZ2jjGQ8TFYtVXILLZ",
-      "output": "71 degrees"
+      "call_id": "call_yYVWBFYd09iK63x998TOYEyf",
+      "output": "{\"sku\":\"sku_123\",\"available_units\":42}"
     }
   ],
   "tools": [
@@ -46,6 +46,7 @@
         ],
         "additionalProperties": false
       },
+      "strict": true,
       "output_schema": {
         "type": "object",
         "properties": {

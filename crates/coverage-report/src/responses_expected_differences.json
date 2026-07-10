@@ -20,7 +20,15 @@
       "target": "Google",
       "fields": [
         { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no Google equivalent" },
-        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" }
+        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" },
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Google usage equivalent" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Chat Completions usage equivalent" }
       ]
     },
     {

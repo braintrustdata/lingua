@@ -200,11 +200,18 @@ export async function executeOpenAIResponses(
       for (const message of assistantMessages) {
         if (message.type === "function_call") {
           hasToolCalls = true;
+          const tool = payload.tools?.find(
+            (tool) => "name" in tool && tool.name === message.name
+          );
+          const output =
+            tool && "output_schema" in tool && tool.output_schema
+              ? JSON.stringify({ sku: "sku_123", available_units: 42 })
+              : "71 degrees";
           // Add tool call output for OpenAI Responses API format
           followUpInput.push({
             type: "function_call_output",
             call_id: message.call_id,
-            output: "71 degrees",
+            output,
           });
         }
       }

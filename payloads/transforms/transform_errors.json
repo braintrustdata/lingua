@@ -13,17 +13,12 @@
     "codeInterpreterToolParam": "Expected: OpenAI Responses code_interpreter is provider-specific and is not a lossless equivalent of Anthropic bash",
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",
     "responsesAdditionalToolsMultipleToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no Anthropic equivalent",
-    "responsesGpt56PersistedReasoningParam": "Anthropic rejected transformed persisted reasoning because the final assistant block cannot be thinking",
-    "responsesGpt56ReasoningMaxProContextParam": "Expected: generated GPT-5.6 reasoning/context response shape is not detected as a transformable Responses request yet",
-    "responsesProgrammaticToolCallingContinuationParam": "Expected: generated Programmatic Tool Calling continuation shape is not detected as a transformable Responses request yet"
+    "responsesGpt56ReasoningMaxProContextParam": "Anthropic requires max_tokens > thinking.budget_tokens; transformed GPT-5.6 max reasoning maps to an equal 4096 token budget",
+    "responsesProgrammaticToolCallingToolsParam": "Anthropic allowed_callers only supports direct/code-execution callers; OpenAI programmatic callers have no Anthropic equivalent"
   },
   "responses_to_google": {
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",
-    "responsesAdditionalToolsMultipleToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no Google equivalent",
-    "responsesGpt56PersistedReasoningParam": "Google rejected transformed persisted reasoning because the synthetic thought signature is not valid base64",
-    "responsesGpt56PromptCacheOptionsParam": "Google rejected transformed prompt-cache-options request because the project lacks access",
-    "responsesGpt56ReasoningMaxProContextParam": "Expected: generated GPT-5.6 reasoning/context response shape is not detected as a transformable Responses request yet",
-    "responsesProgrammaticToolCallingContinuationParam": "Expected: generated Programmatic Tool Calling continuation shape is not detected as a transformable Responses request yet"
+    "responsesAdditionalToolsMultipleToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no Google equivalent"
   },
   "anthropic_to_chat-completions": {
     "codeInterpreterToolParam": "Expected: Anthropic bash is provider-specific and is not supported by OpenAI Chat Completions",

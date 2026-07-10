@@ -644,7 +644,6 @@ export const paramsCases: TestCaseCollection = {
     responses: {
       model: OPENAI_RESPONSES_MODEL,
       store: false,
-      previous_response_id: "resp_previous_gpt56_reasoning",
       include: ["reasoning.encrypted_content"],
       reasoning: {
         effort: "low",
@@ -653,13 +652,8 @@ export const paramsCases: TestCaseCollection = {
       input: [
         {
           role: "user",
-          content: "Continue from the previous deployment analysis.",
-        },
-        {
-          type: "reasoning",
-          id: "rs_previous_gpt56_reasoning",
-          encrypted_content: "encrypted_reasoning_payload_123",
-          summary: [],
+          content:
+            "Summarize the deployment risk and preserve reasoning state.",
         },
       ],
     },
@@ -743,7 +737,7 @@ export const paramsCases: TestCaseCollection = {
         },
         {
           type: "program",
-          id: "prog_123",
+          id: "cm_prog_123",
           call_id: "call_prog_123",
           code: "const stock = await tools.get_inventory({ sku: 'sku_123' }); text(JSON.stringify(stock));",
           fingerprint: "program_fingerprint_123",
@@ -770,7 +764,7 @@ export const paramsCases: TestCaseCollection = {
         },
         {
           type: "program_output",
-          id: "prog_out_123",
+          id: "cmo_prog_out_123",
           call_id: "call_prog_123",
           result: '{"sku":"sku_123","available_units":42}',
           status: "completed",

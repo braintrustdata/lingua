@@ -18,6 +18,7 @@
         ],
         "additionalProperties": false
       },
+      "strict": true,
       "output_schema": {
         "type": "object",
         "properties": {

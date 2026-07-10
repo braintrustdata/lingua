@@ -1,17 +1,32 @@
 {
-  "request": {
-    "contents": [
-      {
+  "candidates": [
+    {
+      "content": {
         "parts": [
           {
-            "text": "Use the stable policy prefix when answering."
+            "text": "In accordance with stable policy guidelines: \n\nI am ready to assist you. Please let me know how I can help you today.",
+            "thoughtSignature": "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"
           }
         ],
-        "role": "user"
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 9,
+    "candidatesTokenCount": 27,
+    "totalTokenCount": 866,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 9
       }
     ],
-    "model": "gemini-3.5-flash"
+    "thoughtsTokenCount": 830,
+    "serviceTier": "standard"
   },
-  "error": "Google API error (403): {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Your project has been denied access. Please contact support.\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
-  "name": "Error"
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "B1tRap_jHIGPjrEPvryVuAk"
 }

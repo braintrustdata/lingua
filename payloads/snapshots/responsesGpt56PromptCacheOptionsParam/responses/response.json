@@ -1,5 +1,5 @@
 {
-  "id": "resp_0e903b86e7e03ec5006a515adae660819eb4f6ddc99993b26d",
+  "id": "resp_0a2ca1c1e334976d006a515adaed60819e8bdfc96fa7e11dc4",
   "object": "response",
   "created_at": 1783716570,
   "status": "completed",
@@ -7,7 +7,7 @@
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1783716585,
+  "completed_at": 1783716571,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,13 +18,13 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0e903b86e7e03ec5006a515ae9890c819e87682384f612e262",
+      "id": "rs_0a2ca1c1e334976d006a515adb4814819e8e2287fb938f4d91",
       "type": "reasoning",
       "content": [],
       "summary": []
     },
     {
-      "id": "msg_0e903b86e7e03ec5006a515ae98aa4819eb6b1a3475e223630",
+      "id": "msg_0a2ca1c1e334976d006a515adbb56c819e9563ef6e0334d670",
       "type": "message",
       "status": "completed",
       "content": [
@@ -32,7 +32,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Please paste or upload the rollout checklist. I don’t see it in your message.\n\nI’ll identify the single highest-risk gap based on factors such as:\n\n- irreversible or poorly tested data migrations\n- missing rollback/restore path\n- lack of staged rollout or blast-radius controls\n- unverified monitoring, alerting, and ownership\n- authentication/authorization or security-impacting changes\n- dependency, capacity, or failover assumptions\n- unclear go/no-go and incident-response criteria\n\nIf relevant, include the system type, expected traffic/blast radius, and whether the release includes schema or data changes."
+          "text": "Please provide the exact stable policy prefix you want me to use."
         }
       ],
       "phase": "final_answer",
@@ -43,11 +43,15 @@
   "presence_penalty": 0,
   "previous_response_id": null,
   "prompt_cache_key": null,
+  "prompt_cache_options": {
+    "mode": "explicit",
+    "ttl": "30m"
+  },
   "prompt_cache_retention": "24h",
   "reasoning": {
     "context": "all_turns",
-    "effort": "max",
-    "mode": "pro",
+    "effort": "medium",
+    "mode": "standard",
     "summary": null
   },
   "safety_identifier": null,
@@ -58,7 +62,7 @@
     "format": {
       "type": "text"
     },
-    "verbosity": "high"
+    "verbosity": "medium"
   },
   "tool_choice": "auto",
   "tool_usage": {
@@ -84,18 +88,18 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 2152,
+    "input_tokens": 14,
     "input_tokens_details": {
       "cache_write_tokens": 0,
       "cached_tokens": 0
     },
-    "output_tokens": 1711,
+    "output_tokens": 72,
     "output_tokens_details": {
-      "reasoning_tokens": 1443
+      "reasoning_tokens": 53
     },
-    "total_tokens": 3863
+    "total_tokens": 86
   },
   "user": null,
   "metadata": {},
-  "output_text": "Please paste or upload the rollout checklist. I don’t see it in your message.\n\nI’ll identify the single highest-risk gap based on factors such as:\n\n- irreversible or poorly tested data migrations\n- missing rollback/restore path\n- lack of staged rollout or blast-radius controls\n- unverified monitoring, alerting, and ownership\n- authentication/authorization or security-impacting changes\n- dependency, capacity, or failover assumptions\n- unclear go/no-go and incident-response criteria\n\nIf relevant, include the system type, expected traffic/blast radius, and whether the release includes schema or data changes."
+  "output_text": "Please provide the exact stable policy prefix you want me to use."
 }

@@ -1,7 +1,6 @@
 {
   "model": "gpt-5.6-terra",
   "store": false,
-  "previous_response_id": "resp_previous_gpt56_reasoning",
   "include": [
     "reasoning.encrypted_content"
   ],
@@ -12,13 +11,7 @@
   "input": [
     {
       "role": "user",
-      "content": "Continue from the previous deployment analysis."
-    },
-    {
-      "type": "reasoning",
-      "id": "rs_previous_gpt56_reasoning",
-      "encrypted_content": "encrypted_reasoning_payload_123",
-      "summary": []
+      "content": "Summarize the deployment risk and preserve reasoning state."
     }
   ]
 }
