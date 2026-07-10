@@ -3497,27 +3497,23 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 ..Default::default()
                                             });
                                         } else {
-                                            match arguments {
-                                                arguments => {
-                                                    // Regular function call
-                                                    result.push(openai::OutputItem {
-                                                        output_item_type: Some(
-                                                            openai::OutputItemType::FunctionCall,
-                                                        ),
-                                                        id: use_id(&mut id_used, &id),
-                                                        call_id: Some(tool_call_id),
-                                                        name: Some(tool_name),
-                                                        namespace,
-                                                        arguments: Some(serde_json::Value::String(
-                                                            arguments.to_string(),
-                                                        )),
-                                                        status: Some(
-                                                            openai::FunctionCallItemStatus::Completed,
-                                                        ),
-                                                        ..Default::default()
-                                                    });
-                                                }
-                                            }
+                                            // Regular function call
+                                            result.push(openai::OutputItem {
+                                                output_item_type: Some(
+                                                    openai::OutputItemType::FunctionCall,
+                                                ),
+                                                id: use_id(&mut id_used, &id),
+                                                call_id: Some(tool_call_id),
+                                                name: Some(tool_name),
+                                                namespace,
+                                                arguments: Some(serde_json::Value::String(
+                                                    arguments.to_string(),
+                                                )),
+                                                status: Some(
+                                                    openai::FunctionCallItemStatus::Completed,
+                                                ),
+                                                ..Default::default()
+                                            });
                                         }
                                     }
                                     AssistantContentPart::ToolDiscoveryCall {
