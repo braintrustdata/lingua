@@ -298,9 +298,7 @@ impl ProviderAdapter for ResponsesAdapter {
         // Single parse: typed params now includes typed input via #[serde(flatten)]
         let typed_params: OpenAIResponsesParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
-        let extras_map = typed_params
-            .provider_only_extras()
-            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+        let mut extras_map: Map<String, Value> = typed_params.extras_map();
 
         // Extract input items from typed_params.input (partial move - other fields remain accessible)
         let input_items: Vec<InputItem> = match typed_params.input {
@@ -410,6 +408,29 @@ impl ProviderAdapter for ResponsesAdapter {
             top_logprobs: typed_params.top_logprobs,
             extras: Default::default(),
         };
+
+        // Collect provider-specific extras for round-trip preservation.
+        if let Some(instructions) = typed_params.instructions {
+            extras_map.insert("instructions".into(), Value::String(instructions));
+        }
+        if let Some(text) = typed_params.text {
+            extras_map.insert("text".into(), text);
+        }
+        if let Some(truncation) = typed_params.truncation {
+            extras_map.insert("truncation".into(), truncation);
+        }
+        if let Some(user) = typed_params.user {
+            extras_map.insert("user".into(), Value::String(user));
+        }
+        if let Some(safety_identifier) = typed_params.safety_identifier {
+            extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
+        }
+        if let Some(v) = typed_params.max_output_tokens {
+            extras_map.insert("max_output_tokens".into(), Value::Number(v.into()));
+        }
+        if let Some(moderation) = typed_params.moderation {
+            extras_map.insert("moderation".into(), moderation);
+        }
 
         if !extras_map.is_empty() {
             params.extras.insert(ProviderFormat::Responses, extras_map);

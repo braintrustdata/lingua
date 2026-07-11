@@ -6,7 +6,7 @@ eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
 use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
-use crate::serde_json::{self, Map, Value};
+use crate::serde_json::{Map, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -146,41 +146,25 @@ pub struct OpenAIResponsesParams {
     pub extras: BTreeMap<String, Value>,
 }
 
-const RESPONSES_RECONSTRUCTED_FIELDS: &[&str] = &[
-    "input",
-    "metadata",
-    "model",
-    "parallel_tool_calls",
-    "prompt_cache_key",
-    "reasoning",
-    "service_tier",
-    "store",
-    "stream",
-    "temperature",
-    "tool_choice",
-    "tools",
-    "top_logprobs",
-    "top_p",
-];
-
 impl OpenAIResponsesParams {
-    pub(crate) fn provider_only_extras(&self) -> Result<Map<String, Value>, serde_json::Error> {
-        let mut extras = serialize_object(self)?;
-        for field in RESPONSES_RECONSTRUCTED_FIELDS {
-            extras.remove(*field);
-        }
-
-        if let Some(reasoning) = self
-            .reasoning
+    pub(crate) fn provider_only_reasoning(&self) -> Option<Value> {
+        self.reasoning
             .as_ref()
-            .map(OpenAIReasoning::provider_only_value)
-            .transpose()?
-            .flatten()
-        {
+            .and_then(OpenAIReasoning::provider_only_value)
+    }
+
+    pub(crate) fn extras_map(&self) -> Map<String, Value> {
+        let mut extras = self
+            .extras
+            .iter()
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect::<Map<String, Value>>();
+
+        if let Some(reasoning) = self.provider_only_reasoning() {
             extras.insert("reasoning".into(), reasoning);
         }
 
-        Ok(extras)
+        extras
     }
 }
 
@@ -270,35 +254,27 @@ pub struct OpenAIReasoning {
     pub extras: BTreeMap<String, Value>,
 }
 
-const RESPONSES_REASONING_RECONSTRUCTED_FIELDS: &[&str] =
-    &["effort", "summary", "generate_summary"];
-
 impl OpenAIReasoning {
     pub(crate) fn has_reconstructed_fields(&self) -> bool {
         self.effort.is_some() || self.summary.is_some() || self.generate_summary.is_some()
     }
 
-    fn provider_only_value(&self) -> Result<Option<Value>, serde_json::Error> {
-        let mut provider_only = serialize_object(self)?;
-        for field in RESPONSES_REASONING_RECONSTRUCTED_FIELDS {
-            provider_only.remove(*field);
+    fn provider_only_value(&self) -> Option<Value> {
+        let mut provider_only = self
+            .extras
+            .iter()
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect::<Map<String, Value>>();
+
+        if let Some(context) = self.context.as_ref() {
+            provider_only.insert("context".into(), Value::String(context.clone()));
         }
 
         if provider_only.is_empty() {
-            return Ok(None);
+            return None;
         }
 
-        Ok(Some(Value::Object(provider_only)))
-    }
-}
-
-fn serialize_object<T: Serialize>(value: &T) -> Result<Map<String, Value>, serde_json::Error> {
-    match serde_json::to_value(value)? {
-        Value::Object(mut map) => {
-            map.retain(|_, value| !value.is_null());
-            Ok(map)
-        }
-        _ => Ok(Map::new()),
+        Some(Value::Object(provider_only))
     }
 }
 
