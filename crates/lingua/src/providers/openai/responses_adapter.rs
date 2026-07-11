@@ -259,6 +259,24 @@ pub(crate) fn parse_responses_extras(
         .map(|v: Option<OpenAIResponsesExtrasView>| v.unwrap_or_default())
 }
 
+fn merge_reasoning_values(
+    canonical: Option<Value>,
+    provider_only: Option<&Value>,
+) -> Option<Value> {
+    match (canonical, provider_only) {
+        (Some(Value::Object(mut canonical)), Some(Value::Object(provider_only))) => {
+            for (key, value) in provider_only {
+                canonical.insert(key.clone(), value.clone());
+            }
+            Some(Value::Object(canonical))
+        }
+        (Some(_), Some(provider_only)) => Some(provider_only.clone()),
+        (None, Some(provider_only)) => Some(provider_only.clone()),
+        (Some(canonical), None) => Some(canonical),
+        (None, None) => None,
+    }
+}
+
 impl ProviderAdapter for ResponsesAdapter {
     fn format(&self) -> ProviderFormat {
         ProviderFormat::Responses
@@ -280,6 +298,9 @@ impl ProviderAdapter for ResponsesAdapter {
         // Single parse: typed params now includes typed input via #[serde(flatten)]
         let typed_params: OpenAIResponsesParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let extras_map = typed_params
+            .provider_only_extras()
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
         // Extract input items from typed_params.input (partial move - other fields remain accessible)
         let input_items: Vec<InputItem> = match typed_params.input {
@@ -344,6 +365,7 @@ impl ProviderAdapter for ResponsesAdapter {
         let reasoning = typed_params
             .reasoning
             .as_ref()
+            .filter(|r| r.has_reconstructed_fields())
             .map(|r| (r, max_tokens).into());
 
         let canonical_metadata = typed_params.metadata.clone().or_else(|| {
@@ -388,34 +410,6 @@ impl ProviderAdapter for ResponsesAdapter {
             top_logprobs: typed_params.top_logprobs,
             extras: Default::default(),
         };
-
-        // Collect provider-specific extras for round-trip preservation
-        // This includes both unknown fields (from serde flatten) and known Responses API fields
-        // that aren't part of UniversalParams
-        let mut extras_map: Map<String, Value> = typed_params.extras.into_iter().collect();
-
-        // Add Responses API specific known fields that aren't in UniversalParams
-        if let Some(instructions) = typed_params.instructions {
-            extras_map.insert("instructions".into(), Value::String(instructions));
-        }
-        if let Some(text) = typed_params.text {
-            extras_map.insert("text".into(), text);
-        }
-        if let Some(truncation) = typed_params.truncation {
-            extras_map.insert("truncation".into(), truncation);
-        }
-        if let Some(user) = typed_params.user {
-            extras_map.insert("user".into(), Value::String(user));
-        }
-        if let Some(safety_identifier) = typed_params.safety_identifier {
-            extras_map.insert("safety_identifier".into(), Value::String(safety_identifier));
-        }
-        if let Some(v) = typed_params.max_output_tokens {
-            extras_map.insert("max_output_tokens".into(), Value::Number(v.into()));
-        }
-        if let Some(moderation) = typed_params.moderation {
-            extras_map.insert("moderation".into(), moderation);
-        }
 
         if !extras_map.is_empty() {
             params.extras.insert(ProviderFormat::Responses, extras_map);
@@ -545,21 +539,24 @@ impl ProviderAdapter for ResponsesAdapter {
             obj.insert("text".into(), text_val);
         }
 
-        // Add reasoning from canonical params
-        if let Some(raw_reasoning) = responses_extras_view.reasoning.as_ref() {
-            obj.insert("reasoning".into(), raw_reasoning.clone());
-        } else if let Some(reasoning) = req.params.reasoning.as_ref() {
+        // Add reasoning from canonical params and merge provider-only Responses fields.
+        let canonical_reasoning = if let Some(reasoning) = req.params.reasoning.as_ref() {
             let mut reasoning = reasoning.clone();
             if let Some(effort) = reasoning.effort {
                 reasoning.effort = Some(clamp_reasoning_effort_for_model(model, effort));
             }
-            if let Some(reasoning_val) = reasoning
+            reasoning
                 .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
                 .ok()
                 .flatten()
-            {
-                obj.insert("reasoning".into(), reasoning_val);
-            }
+        } else {
+            None
+        };
+        if let Some(reasoning) = merge_reasoning_values(
+            canonical_reasoning,
+            responses_extras_view.reasoning.as_ref(),
+        ) {
+            obj.insert("reasoning".into(), reasoning);
         }
         if let Some(raw_moderation) = responses_extras_view
             .moderation

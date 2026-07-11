@@ -1,0 +1,17 @@
+{
+  "model": "gpt-5.6-sol",
+  "input": [
+    {
+      "type": "message",
+      "role": "user",
+      "content": "Use the available project tools."
+    }
+  ],
+  "reasoning": {
+    "effort": "medium",
+    "context": "all_turns",
+    "provider_roundtrip_marker": {
+      "preserve": true
+    }
+  }
+}
