@@ -1,0 +1,60 @@
+diff --git a/dist/esm/rewrites/FlattenUnions.js b/dist/esm/rewrites/FlattenUnions.js
+index 858f7e3683dbc95913b217b19dd730a59578d7a5..d51541d56e374157365687e62bda19f0a09526c5 100644
+--- a/dist/esm/rewrites/FlattenUnions.js
++++ b/dist/esm/rewrites/FlattenUnions.js
+@@ -40,6 +40,16 @@ export function flattenUnions(graph, stringTypeMapping, conflateNumbers, makeObj
+             .sort((a, b) => a - b)
+             .join(",");
+     }
++    function containsIntersection(t, seen) {
++        if (seen.has(t.index))
++            return false;
++        seen.add(t.index);
++        if (t instanceof IntersectionType)
++            return true;
++        if (!(t instanceof UnionType))
++            return false;
++        return iterableSome(t.members, (m) => containsIntersection(m, seen));
++    }
+     function replace(types, builder, forwardingRef) {
+         unionKeyToRef.set(unionKeyForTypes(types), forwardingRef);
+         let unionBuilder;
+@@ -50,7 +60,7 @@ export function flattenUnions(graph, stringTypeMapping, conflateNumbers, makeObj
+                 return maybeReconstituted;
+             }
+             const typesToUnify = new Set(trefs.map((tref) => derefTypeRef(tref, graph)));
+-            if (iterableSome(typesToUnify, (t) => t instanceof IntersectionType)) {
++            if (iterableSome(typesToUnify, (t) => containsIntersection(t, new Set()))) {
+                 trefs = trefs.map((tref) => builder.reconstituteType(derefTypeRef(tref, graph)));
+                 if (trefs.length === 1) {
+                     return trefs[0];
+diff --git a/dist/rewrites/FlattenUnions.js b/dist/rewrites/FlattenUnions.js
+index c01efce41e37f017876e17dfe324b7bc7d8f5851..090b25d478714c74fa83dc90701514023e12015c 100644
+--- a/dist/rewrites/FlattenUnions.js
++++ b/dist/rewrites/FlattenUnions.js
+@@ -43,6 +43,16 @@ function flattenUnions(graph, stringTypeMapping, conflateNumbers, makeObjectType
+             .sort((a, b) => a - b)
+             .join(",");
+     }
++    function containsIntersection(t, seen) {
++        if (seen.has(t.index))
++            return false;
++        seen.add(t.index);
++        if (t instanceof Type_js_1.IntersectionType)
++            return true;
++        if (!(t instanceof Type_js_1.UnionType))
++            return false;
++        return (0, collection_utils_1.iterableSome)(t.members, (m) => containsIntersection(m, seen));
++    }
+     function replace(types, builder, forwardingRef) {
+         unionKeyToRef.set(unionKeyForTypes(types), forwardingRef);
+         let unionBuilder;
+@@ -53,7 +63,7 @@ function flattenUnions(graph, stringTypeMapping, conflateNumbers, makeObjectType
+                 return maybeReconstituted;
+             }
+             const typesToUnify = new Set(trefs.map((tref) => (0, TypeRef_js_1.derefTypeRef)(tref, graph)));
+-            if ((0, collection_utils_1.iterableSome)(typesToUnify, (t) => t instanceof Type_js_1.IntersectionType)) {
++            if ((0, collection_utils_1.iterableSome)(typesToUnify, (t) => containsIntersection(t, new Set()))) {
+                 trefs = trefs.map((tref) => builder.reconstituteType((0, TypeRef_js_1.derefTypeRef)(tref, graph)));
+                 if (trefs.length === 1) {
+                     return trefs[0];

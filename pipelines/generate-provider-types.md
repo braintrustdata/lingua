@@ -28,7 +28,7 @@ Run `pnpm install` once after cloning. Lingua pins quicktype in `tools/quicktype
 
 OpenAI types are generated with quicktype from `specs/openai/openapi.yml`.
 
-Before invoking quicktype, the generator normalizes the `InputItem` and `OutputItem` schema unions into object schemas. Stainless expresses these unions with intersections and nested references that quicktype cannot consume directly. The normalization:
+Before invoking quicktype, the generator normalizes the `InputItem` and `OutputItem` schema unions into stable object schemas. The pinned quicktype patch can process the raw Stainless intersections, but doing so produces substantially different generated unions and arbitrary type names that break Lingua's typed adapters. The compatibility shaping:
 
 - resolves object references and object-only `allOf` branches
 - merges compatible properties
