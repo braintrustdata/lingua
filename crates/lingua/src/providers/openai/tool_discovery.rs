@@ -140,6 +140,23 @@ fn input_item_tool_from_universal_tool(
             if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
                 obj.insert("defer_loading".to_string(), Value::Bool(true));
             }
+            if let Some(allowed_callers) = &tool.allowed_callers {
+                obj.insert(
+                    "allowed_callers".to_string(),
+                    serde_json::to_value(allowed_callers).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: format!(
+                                "Responses discovery function tool allowed_callers '{}'",
+                                tool.name
+                            ),
+                            error: e.to_string(),
+                        }
+                    })?,
+                );
+            }
+            if let Some(output_schema) = &tool.output_schema {
+                obj.insert("output_schema".to_string(), output_schema.clone());
+            }
             serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: format!("Responses discovery function tool '{}'", tool.name),
                 error: e.to_string(),
@@ -164,6 +181,23 @@ fn input_item_tool_from_universal_tool(
             }
             if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
                 obj.insert("defer_loading".to_string(), Value::Bool(true));
+            }
+            if let Some(allowed_callers) = &tool.allowed_callers {
+                obj.insert(
+                    "allowed_callers".to_string(),
+                    serde_json::to_value(allowed_callers).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: format!(
+                                "Responses discovery custom tool allowed_callers '{}'",
+                                tool.name
+                            ),
+                            error: e.to_string(),
+                        }
+                    })?,
+                );
+            }
+            if let Some(output_schema) = &tool.output_schema {
+                obj.insert("output_schema".to_string(), output_schema.clone());
             }
             serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: format!("Responses discovery custom tool '{}'", tool.name),

@@ -689,6 +689,8 @@ mod tests {
     fn test_from_openai_responses_reasoning() {
         let reasoning = OpenAIReasoning {
             effort: Some(OpenAIReasoningEffortParam::High),
+            mode: None,
+            context: None,
             summary: Some(OpenAISummary::Detailed),
             generate_summary: None,
             ..Default::default()

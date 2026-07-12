@@ -5991,6 +5991,7 @@ If you’d like, I can also reuse this content as context for future questions i
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
+    "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "input_tokens": 24,
     "output_tokens": 767,
@@ -7147,6 +7148,7 @@ exports[`anthropic → responses > responsesReasoningEffortMaxParam > response 1
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
+    "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 11,
@@ -19750,7 +19752,7 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > request 
   ],
   "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "minimal",
+    "effort": "low",
   },
 }
 `;
@@ -29643,6 +29645,7 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
   "usage": {
     "input_tokens": 109,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 2889,
@@ -29734,6 +29737,7 @@ For context, common values might be:
   "usage": {
     "input_tokens": 596,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 127,
@@ -29818,6 +29822,7 @@ exports[`responses → anthropic > functionToolsWithReasoningEffortParam > respo
   "usage": {
     "input_tokens": 592,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 100,
@@ -29873,6 +29878,7 @@ exports[`responses → anthropic > instructionsParam > response 1`] = `
   "usage": {
     "input_tokens": 11,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -29945,6 +29951,7 @@ exports[`responses → anthropic > jsonSchemaFormatParam > response 1`] = `
   "usage": {
     "input_tokens": 177,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 22,
@@ -30019,6 +30026,7 @@ exports[`responses → anthropic > jsonSchemaMinMaxItemsParam > response 1`] = `
   "usage": {
     "input_tokens": 182,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 16,
@@ -30090,6 +30098,7 @@ exports[`responses → anthropic > jsonSchemaMinimumMaximumParam > response 1`] 
   "usage": {
     "input_tokens": 163,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 9,
@@ -30171,6 +30180,7 @@ exports[`responses → anthropic > jsonSchemaPrefixItemsParam > response 1`] = `
   "usage": {
     "input_tokens": 208,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30225,6 +30235,7 @@ exports[`responses → anthropic > metadataParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30291,6 +30302,7 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
   "usage": {
     "input_tokens": 278,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 131,
@@ -30345,6 +30357,7 @@ exports[`responses → anthropic > openaiPromptCacheKeyParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30430,6 +30443,7 @@ exports[`responses → anthropic > parallelToolCallsDisabledParam > response 1`]
   "usage": {
     "input_tokens": 356,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 62,
@@ -30555,6 +30569,7 @@ exports[`responses → anthropic > parallelToolCallsRequest > response 1`] = `
   "usage": {
     "input_tokens": 757,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 37,
@@ -30609,6 +30624,7 @@ exports[`responses → anthropic > promptCacheKeyParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30678,6 +30694,7 @@ exports[`responses → anthropic > reasoningEffortLowParam > response 1`] = `
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 22,
@@ -30748,6 +30765,7 @@ exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = 
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 36,
@@ -30805,6 +30823,7 @@ exports[`responses → anthropic > reasoningEffortNoneParam > response 1`] = `
   "usage": {
     "input_tokens": 14,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 13,
@@ -30946,6 +30965,7 @@ Note: Average speed is not the same as the average of the speeds (which would be
   "usage": {
     "input_tokens": 74,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 464,
@@ -31032,6 +31052,7 @@ exports[`responses → anthropic > reasoningSummaryParam > response 1`] = `
   "usage": {
     "input_tokens": 40,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 15,
@@ -31122,6 +31143,7 @@ However, the sky can appear different colors depending on conditions:
   "usage": {
     "input_tokens": 42,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 251,
@@ -31229,6 +31251,7 @@ These are the standard system databases that come with a MongoDB installation. T
   "usage": {
     "input_tokens": 642,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 89,
@@ -31236,6 +31259,249 @@ These are the standard system databases that come with a MongoDB installation. T
       "reasoning_tokens": 0,
     },
     "total_tokens": 731,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Summarize the deployment risk and preserve reasoning state.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PersistedReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Ccu45pwQvb96ySAKU7JwK",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "encrypted_content": "EvMGCpQBCA8YAipAHGFgx9UuQVXyYaLIjDf+TYKbssbF2LHKF5UpYNBmSWqafE7hKg1uGYiiPD64vyN+hw8C/KozqKboLww3S/OU3DIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMT6H6rBrn9EUiR56fGgwfsVoGDptwvdQGBssiMHsrQ81QHdxPbeKII3oO2qqdnpFh6cY7nfFQU66akcQY7w4Ze4pwLlUyoJhUA2cTQSqLBYZv3ejEkUQLo9qRVYsfUV2tUxb312eZVILzQzkqh7Cj3FdqpFqkkoBAefsbSkvRAz9/a52rwJAdefL/Ao9pFGlePCsXZok44PdGXt8j8j3Q4hoVe3S//xsOSzWaOssGKRtV4XH7nmEtdY/v+AYXOrxIjUb+R8WDccwv/R4TmocPH0h2De9cVZLUAFUW1G7dD/Trh+6Nx51bp6+AJvEC6V2NpRT/+PV0iRcjIxYE2EBvIXetZ/SbJc+0mPzX7xhiU2Jrr2ibgZYQ/X4Xf/bpJ1f9Bl9mW1A4vcyZ8+DXBNSHa4OXOtc+LjeLHVK0JbP29u+Rl+opQAr/40tglMAZTyWdJ7XyYAQ7nsk2Nmkg1B5PzOv4dlMWq7thn57fbyerc1CT0w999Qnrs0q6Cg1TszDd1zFroq2vNzz5a0ir3o9Ax5ABnkWSqQKzFx1wx1UPO0mIy0+cnvFJ69fDHc6mkLHJeIIf04DzpRVTL/y1KK4lkgBYVnwqQgJUtAU4e1tNuK1RAJqChqNdQZa0RbC6IgfsOME5cj4+NTXSyI07tZ9z6Mzl3v4SDQ5I0/l66Utao/gPAFYkAxCAQxwwsAhxbFLuB4XY6AnNmsEOrMP4AOftuKEy2FX4lar3KF7HUcT66WCiXJf7wK4Tj+HcRfTR/JSjgiiu6nARepQxNO3c8RRY9iOJ4VquH++N5qtRb4XDrMRsaIAeYz3sRX0MItpu4FDzF5OEun3QrhdqkRy9j3qbQGd+9neyhzdwwNeR0LGuAHlgdEqUHop4aGYCyXDxRgP+rSN+RmZkg43gW/xzEYAm6lLm4Urjhhwr6RO5RBx5BYAC0LUGgYl3AMjfXyJBUVXJNeJqYhkRCY6MAhgB",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "This request is asking me to summarize deployment risk and preserve reasoning state. However, I don't have any prior context about what specific deployment we're discussing or what reasoning state needs to be preserved.
+
+This seems like it might be:
+1. A test prompt to see how I respond to vague instructions
+2. Part of a conversation where context was lost
+3. A request related to software deployment or AI system deployment
+
+Without more context, I should:
+- Acknowledge the lack of context
+- Explain what I would need to provide a meaningful response
+- Offer a general framework for thinking about deployment risk if that's helpful",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "# Deployment Risk Summary
+
+I don't have prior context about a specific deployment to summarize. To provide a meaningful risk assessment, I would need information about:
+
+## What I'd Need:
+- **System/product being deployed**
+- **Deployment environment** (production, staging, etc.)
+- **Changes or features** being introduced
+- **Previous reasoning or decisions** made
+
+## General Deployment Risk Framework:
+
+**High Risk Factors:**
+- Database schema changes
+- Authentication/security modifications
+- Breaking API changes
+- Insufficient testing/rollback plans
+
+**Medium Risk Factors:**
+- Feature flags not tested
+- Third-party dependency updates
+- Configuration changes
+
+**Low Risk Factors:**
+- UI copy changes
+- Logging improvements
+- Non-critical bug fixes
+
+## Reasoning State Preservation:
+To preserve reasoning state, I would document:
+- Decision rationale
+- Assumptions made
+- Trade-offs considered
+- Rollback criteria
+
+**Could you provide the specific deployment context you'd like me to analyze?**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "# Deployment Risk Summary
+
+I don't have prior context about a specific deployment to summarize. To provide a meaningful risk assessment, I would need information about:
+
+## What I'd Need:
+- **System/product being deployed**
+- **Deployment environment** (production, staging, etc.)
+- **Changes or features** being introduced
+- **Previous reasoning or decisions** made
+
+## General Deployment Risk Framework:
+
+**High Risk Factors:**
+- Database schema changes
+- Authentication/security modifications
+- Breaking API changes
+- Insufficient testing/rollback plans
+
+**Medium Risk Factors:**
+- Feature flags not tested
+- Third-party dependency updates
+- Configuration changes
+
+**Low Risk Factors:**
+- UI copy changes
+- Logging improvements
+- Non-critical bug fixes
+
+## Reasoning State Preservation:
+To preserve reasoning state, I would document:
+- Decision rationale
+- Assumptions made
+- Trade-offs considered
+- Rollback criteria
+
+**Could you provide the specific deployment context you'd like me to analyze?**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 47,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 369,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 416,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Use the stable policy prefix when answering.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Ccu35hDhWijFvTbgG4BgR",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about.
+
+Could you please clarify what kind of stable policy you're referring to? For example:
+
+- **Software/API versioning** - stable release policies
+- **Economic policy** - stable fiscal or monetary policies
+- **Reinforcement learning** - stable policy optimization
+- **Organization/company policies** - established stable guidelines
+- **System administration** - stable branch policies
+
+Once you provide more details about your specific area of interest, I can give you a more targeted and helpful response using the appropriate stable policy framework.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about.
+
+Could you please clarify what kind of stable policy you're referring to? For example:
+
+- **Software/API versioning** - stable release policies
+- **Economic policy** - stable fiscal or monetary policies
+- **Reinforcement learning** - stable policy optimization
+- **Organization/company policies** - established stable guidelines
+- **System administration** - stable branch policies
+
+Once you provide more details about your specific area of interest, I can give you a more targeted and helpful response using the appropriate stable policy framework.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 140,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 156,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Review this rollout checklist for the highest-risk issue.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 4096,
+    "type": "enabled",
   },
 }
 `;
@@ -31437,6 +31703,7 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
   "usage": {
     "input_tokens": 32901,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 1050,
@@ -31494,6 +31761,7 @@ exports[`responses → anthropic > responsesReasoningEffortMaxParam > response 1
   "usage": {
     "input_tokens": 14,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 14,
@@ -31601,6 +31869,7 @@ exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] 
   "usage": {
     "input_tokens": 837,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 48,
@@ -31658,6 +31927,7 @@ exports[`responses → anthropic > safetyIdentifierParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -31713,6 +31983,7 @@ exports[`responses → anthropic > serviceTierParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -31783,6 +32054,7 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 50,
@@ -31837,6 +32109,7 @@ exports[`responses → anthropic > simpleRequestTruncated > response 1`] = `
   "usage": {
     "input_tokens": 16,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 1,
@@ -31891,6 +32164,7 @@ exports[`responses → anthropic > storeDisabledParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32002,6 +32276,7 @@ Would you like me to modify the query for a different time range, or can you sha
   "usage": {
     "input_tokens": 33,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 246,
@@ -32069,6 +32344,7 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
   "usage": {
     "input_tokens": 637,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 37,
@@ -32143,6 +32419,7 @@ exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyPa
   "usage": {
     "input_tokens": 172,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 46,
@@ -32218,6 +32495,7 @@ exports[`responses → anthropic > textFormatJsonSchemaParam > response 1`] = `
   "usage": {
     "input_tokens": 178,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32293,6 +32571,7 @@ exports[`responses → anthropic > textFormatJsonSchemaWithDescriptionParam > re
   "usage": {
     "input_tokens": 178,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32347,6 +32626,7 @@ exports[`responses → anthropic > textFormatTextParam > response 1`] = `
   "usage": {
     "input_tokens": 10,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32418,6 +32698,7 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
   "usage": {
     "input_tokens": 677,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 41,
@@ -32490,6 +32771,7 @@ exports[`responses → anthropic > toolChoiceRequiredParam > response 1`] = `
   "usage": {
     "input_tokens": 659,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 33,
@@ -32545,6 +32827,7 @@ exports[`responses → anthropic > topPReasoningModelParam > response 1`] = `
   "usage": {
     "input_tokens": 10,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 16,
@@ -32599,6 +32882,7 @@ exports[`responses → anthropic > truncationAutoParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -35057,6 +35341,367 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
       "reasoning_tokens": 36,
     },
     "total_tokens": 152,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Summarize the deployment risk and preserve reasoning state.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "LOW",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56PersistedReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of Deployment Risk**
+
+Okay, so I've been asked to summarize "deployment risk," and the prompt specifically wants me to show my thought process. That’s good; I'm happy to walk through my methodology for this. Since no specific text is provided, I'll need to deliver a thorough, high-level overview suitable for a system or software engineering expert.
+
+Here's how I'm approaching this:
+
+1.  **Understanding the Scope:** "Deployment risk" implies potential problems during the rollout of new software, configurations, or infrastructure. This is about preventing failure or disruption when we make changes to a live environment. The request to "preserve reasoning state" is key. I'll need to be explicit about the assumptions and framework I use to structure this summary.
+
+2.  **Structuring the Response:** To meet the "reasoning state" constraint, I'll present this in two main sections: a "Reasoning State" section that explains my approach, followed by the actual "Summary of Deployment Risk."
+
+3.  **My Reasoning State:**
+
+    *   *Premise:* My core assumption is that "deployment risk" covers any potential for a negative outcome during, or immediately following, the transition of updates into a production environment. I need to be inclusive to make this useful.
+    *   *Categorization:* To avoid a simple, unstructured list, I'll categorize the risks. I think a good framework for this encompasses: Technical/Operational risks (things related to the code, infrastructure, and performance), Security/Compliance risks (vulnerabilities, regulatory violations), Business/Financial risks (impact on the company, users, and the bottom line), and Human/Organizational risks (process issues, people-related problems).
+    *   *Mitigation Linkage:* This isn't just about listing risks. A good risk summary also needs to *hint* at mitigation strategies. Think Continuous Integration/Continuous Delivery, canary deployments, rollbacks, etc. to give a fuller picture.
+
+4.  **Summary of Deployment Risk:**
+
+    *   **Definition:** "Deployment risk" refers to the probability and the potential impact of adverse events that might happen during, or immediately following, the introduction of changes to a live system.
+
+    *   **Key Risk Categories and Examples:**
+        *   *Technical/Infrastructure:* This encompasses issues such as system downtime, data loss or corruption, performance degradation (e.g., slow response times, high latency), failing dependencies, and the dreaded inability to successfully roll back to a previous state.
+        *   *Security/Compliance:* This is huge. Think about the introduction of new vulnerabilities, misconfigurations in the deployed system, and potential violations of compliance regulations like GDPR or HIPAA.
+        *   *Business/Operational:* Here, we're talking about things like disrupted user experience (frustrated users!), direct financial loss (downtime costing money!), and reputational damage (bad press, loss of customer trust).
+        *   *Process/People:* This covers things like inadequate training of teams to handle the new deployment, communication silos between teams leading to misunderstandings, and insufficient or poorly executed testing prior to deployment.
+
+    *   **Mitigation Strategies (in Brief):** We mitigate these risks with things like automated testing at various levels, Blue-Green or Canary deployments for controlled rollouts, feature flags to decouple releases from enablement, comprehensive monitoring and observability to detect issues quickly, and well-defined rollback plans to revert to a stable state if needed.
+
+5.  **Final Check:** Did I summarize deployment risk? Absolutely. Did I preserve my reasoning state? I think so. I've been explicit about the framework and the assumptions that guided my thinking. This gives you a clear understanding of the lens I used to analyze this topic.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "### Reasoning State Preservation
+
+To construct an accurate and comprehensive summary of deployment risk, the following analytical framework and reasoning steps were applied:
+
+1. **Definition of Domain:** "Deployment risk" is defined within the context of software engineering, IT operations, and systems release. It represents the probability and impact of negative outcomes occurring during or immediately after transitioning new code, configurations, or infrastructure to a production environment.
+2. **Taxonomy Generation (Categorization):** To ensure a holistic summary, risks cannot be treated as a monolith. They are categorized into four distinct dimensions:
+   * *Technical/Systemic* (the software/hardware itself)
+   * *Operational/Process* (how the deployment is executed)
+   * *Security/Compliance* (vulnerabilities and regulatory issues)
+   * *Business/Financial* (the impact on customers and revenue)
+3. **Synthesis of Mitigations:** A risk summary is incomplete without acknowledging how these risks are managed. Therefore, industry-standard mitigation patterns (e.g., CI/CD pipelines, progressive delivery) are synthesized as the counter-balance to the risks.
+4. **Logical Flow:** 
+   * *Definition* $\\rightarrow$ *Core Categories of Risk* $\\rightarrow$ *Primary Causes* $\\rightarrow$ *Mitigation Strategies*.
+
+---
+
+### Summary of Deployment Risk
+
+**Deployment Risk** is the potential for system instability, service degradation, data loss, or business interruption resulting from releasing changes (software updates, configuration adjustments, or infrastructure modifications) to a live production environment. 
+
+#### 1. Core Risk Categories
+* **Technical & Performance Risks:** 
+  * **System Downtime:** Unexpected outages caused by resource exhaustion, software bugs, or incompatible dependencies.
+  * **Data Corruption/Loss:** Faulty database migrations or schema changes that corrupt user data.
+  * **Performance Degradation:** Latency spikes, memory leaks, or CPU throttling under production-level traffic.
+* **Security & Compliance Risks:**
+  * **Vulnerabilities:** Introducing insecure code, outdated libraries, or misconfigured access controls (IAM).
+  * **Compliance Violations:** Accidentally exposing sensitive data (PII/PHI), violating regulatory standards like GDPR, HIPAA, or PCI-DSS.
+* **Operational & Process Risks:**
+  * **Rollback Failure:** The inability to quickly revert to a previous stable state when a deployment fails.
+  * **Configuration Drift:** Discrepancies between staging and production environments causing unexpected behavior.
+* **Business & Reputational Risks:**
+  * **Negative User Experience:** Broken features or degraded UI/UX leading to customer frustration and churn.
+  * **Financial Loss:** Transaction failures, SLA breach penalties, or lost productivity.
+
+#### 2. Primary Drivers of Deployment Risk
+* **High Change Volume:** Shipping massive, monolithic updates rather than small, incremental changes.
+* **Lack of Automation:** Relying on manual intervention for testing, provisioning, or deployment steps, which introduces human error.
+* **Inadequate Testing:** Failing to test under realistic, production-like loads or neglecting edge cases.
+* **Poor Observability:** Lacking the telemetry (logs, metrics, traces) needed to detect failures immediately after a release.
+
+#### 3. Standard Mitigation Frameworks
+To minimize deployment risk, modern engineering teams employ several safety-net strategies:
+* **Progressive Delivery:** Utilizing **Canary Releases** (deploying to a small percentage of users first) or **Blue-Green Deployments** (switching traffic between two identical environments).
+* **Feature Flags:** Decoupling code deployment from feature activation, allowing instant deactivation of buggy code without a full rollback.
+* **Automated CI/CD Pipelines:** Ensuring rigorous automated testing, vulnerability scanning, and syntax checks before code reaches production.
+* **Automated Rollbacks:** Configuring monitoring tools to trigger automatic reverts if error rates cross a defined threshold post-deployment.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "### Reasoning State Preservation
+
+To construct an accurate and comprehensive summary of deployment risk, the following analytical framework and reasoning steps were applied:
+
+1. **Definition of Domain:** "Deployment risk" is defined within the context of software engineering, IT operations, and systems release. It represents the probability and impact of negative outcomes occurring during or immediately after transitioning new code, configurations, or infrastructure to a production environment.
+2. **Taxonomy Generation (Categorization):** To ensure a holistic summary, risks cannot be treated as a monolith. They are categorized into four distinct dimensions:
+   * *Technical/Systemic* (the software/hardware itself)
+   * *Operational/Process* (how the deployment is executed)
+   * *Security/Compliance* (vulnerabilities and regulatory issues)
+   * *Business/Financial* (the impact on customers and revenue)
+3. **Synthesis of Mitigations:** A risk summary is incomplete without acknowledging how these risks are managed. Therefore, industry-standard mitigation patterns (e.g., CI/CD pipelines, progressive delivery) are synthesized as the counter-balance to the risks.
+4. **Logical Flow:** 
+   * *Definition* $\\rightarrow$ *Core Categories of Risk* $\\rightarrow$ *Primary Causes* $\\rightarrow$ *Mitigation Strategies*.
+
+---
+
+### Summary of Deployment Risk
+
+**Deployment Risk** is the potential for system instability, service degradation, data loss, or business interruption resulting from releasing changes (software updates, configuration adjustments, or infrastructure modifications) to a live production environment. 
+
+#### 1. Core Risk Categories
+* **Technical & Performance Risks:** 
+  * **System Downtime:** Unexpected outages caused by resource exhaustion, software bugs, or incompatible dependencies.
+  * **Data Corruption/Loss:** Faulty database migrations or schema changes that corrupt user data.
+  * **Performance Degradation:** Latency spikes, memory leaks, or CPU throttling under production-level traffic.
+* **Security & Compliance Risks:**
+  * **Vulnerabilities:** Introducing insecure code, outdated libraries, or misconfigured access controls (IAM).
+  * **Compliance Violations:** Accidentally exposing sensitive data (PII/PHI), violating regulatory standards like GDPR, HIPAA, or PCI-DSS.
+* **Operational & Process Risks:**
+  * **Rollback Failure:** The inability to quickly revert to a previous stable state when a deployment fails.
+  * **Configuration Drift:** Discrepancies between staging and production environments causing unexpected behavior.
+* **Business & Reputational Risks:**
+  * **Negative User Experience:** Broken features or degraded UI/UX leading to customer frustration and churn.
+  * **Financial Loss:** Transaction failures, SLA breach penalties, or lost productivity.
+
+#### 2. Primary Drivers of Deployment Risk
+* **High Change Volume:** Shipping massive, monolithic updates rather than small, incremental changes.
+* **Lack of Automation:** Relying on manual intervention for testing, provisioning, or deployment steps, which introduces human error.
+* **Inadequate Testing:** Failing to test under realistic, production-like loads or neglecting edge cases.
+* **Poor Observability:** Lacking the telemetry (logs, metrics, traces) needed to detect failures immediately after a release.
+
+#### 3. Standard Mitigation Frameworks
+To minimize deployment risk, modern engineering teams employ several safety-net strategies:
+* **Progressive Delivery:** Utilizing **Canary Releases** (deploying to a small percentage of users first) or **Blue-Green Deployments** (switching traffic between two identical environments).
+* **Feature Flags:** Decoupling code deployment from feature activation, allowing instant deactivation of buggy code without a full rollback.
+* **Automated CI/CD Pipelines:** Ensuring rigorous automated testing, vulnerability scanning, and syntax checks before code reaches production.
+* **Automated Rollbacks:** Configuring monitoring tools to trigger automatic reverts if error rates cross a defined threshold post-deployment.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 1327,
+    "output_tokens_details": {
+      "reasoning_tokens": 511,
+    },
+    "total_tokens": 1338,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the stable policy prefix when answering.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56PromptCacheOptionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "In accordance with stable policy guidelines: 
+
+I am ready to assist you. Please let me know how I can help you today.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "In accordance with stable policy guidelines: 
+
+I am ready to assist you. Please let me know how I can help you today.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 9,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 857,
+    "output_tokens_details": {
+      "reasoning_tokens": 830,
+    },
+    "total_tokens": 866,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Review this rollout checklist for the highest-risk issue.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of the Rollout Checklist Request**
+
+Okay, here's how I'm approaching this. The user wants me to review a rollout checklist, specifically focusing on the "highest-risk issue." First things first, the user hasn't actually given me the checklist yet, so that's where I need to start. My immediate action is to request the checklist from the user. I'll need it to do anything meaningful.
+
+Once I have it, my process will kick in. I'll be meticulously examining the checklist, keeping a keen eye out for potential single points of failure, which could cripple the rollout. I'll also be rigorously checking for robust rollback plans; lack of these are major red flags. Then, I will look for any data migration risks, any obvious dependency issues that could derail things, timing or scheduling conflicts that might cause chaos, and deficiencies in monitoring strategies. Showing the user my thought process will help them and will show I am in expert.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Please provide or paste the rollout checklist! 
+
+Once you share it, I will analyze it and identify the highest-risk areas, focusing on common deployment pitfalls such as:
+*   **Rollback gaps** (lack of clear, tested revert procedures)
+*   **Data integrity risks** (destructive migrations, lack of backups)
+*   **Single points of failure** or tight coupling
+*   **Inadequate monitoring/observability** (how you'll know if it failed)
+*   **Timing and dependency issues** (ordering of steps)
+*   **Security or permission bottlenecks**
+
+Whenever you're ready, paste the list and any brief context (e.g., tech stack, user impact level) below!",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Please provide or paste the rollout checklist! 
+
+Once you share it, I will analyze it and identify the highest-risk areas, focusing on common deployment pitfalls such as:
+*   **Rollback gaps** (lack of clear, tested revert procedures)
+*   **Data integrity risks** (destructive migrations, lack of backups)
+*   **Single points of failure** or tight coupling
+*   **Inadequate monitoring/observability** (how you'll know if it failed)
+*   **Timing and dependency issues** (ordering of steps)
+*   **Security or permission bottlenecks**
+
+Whenever you're ready, paste the list and any brief context (e.g., tech stack, user impact level) below!",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 12,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 336,
+    "output_tokens_details": {
+      "reasoning_tokens": 184,
+    },
+    "total_tokens": 348,
   },
 }
 `;

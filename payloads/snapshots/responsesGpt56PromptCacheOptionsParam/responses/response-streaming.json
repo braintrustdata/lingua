@@ -1,0 +1,691 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_03e975ce38acdb58006a515adad39c81a0baffa193853f399d",
+      "object": "response",
+      "created_at": 1783716570,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_options": {
+        "mode": "explicit",
+        "ttl": "30m"
+      },
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_03e975ce38acdb58006a515adad39c81a0baffa193853f399d",
+      "object": "response",
+      "created_at": 1783716570,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_options": {
+        "mode": "explicit",
+        "ttl": "30m"
+      },
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_03e975ce38acdb58006a515adb47f881a091dfb5ca357cb88d",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_03e975ce38acdb58006a515adb47f881a091dfb5ca357cb88d",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "I",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "ntzYN3mDycZ1qM1",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " don",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "Nk9U9U0Pyrx0",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’t",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "emPaFq8Bs2jDSZ",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " have",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "AJTYRWay78Z",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "ppCaZEqfwKBzB2",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " “",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "Eb8LJgaULi776q",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "stable",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "LtWjI5jOsk",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " policy",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "0iGQ3gFKe",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " prefix",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "HyhGtdlLq",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "”",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "4fAgA3fX7C66uFz",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " defined",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "cba4dm2I",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " in",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "mKRieqB9oyxmk",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " this",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "e0xiBuZkyG1",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " conversation",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "OTT",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "TVd5vE10l2jgkEq",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " Please",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "8MU6xMODs",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " provide",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "04CUBR4m",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "lgwrQ4M7yPi0",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " exact",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "7Vet70CgZD",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " prefix",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "VjPbkYKNX",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "vRjot2QFnGOH",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " want",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "v847NkYYx8J",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " me",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "Uv1dFpyQf0YQc",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " to",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "1HYFDolWR3FOD",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " use",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "5PfVVLbmXiEI",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "lwXCibJjiNOXbbk",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "Zz6bvqt3bviN",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " I",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "n5MtGT605VY2Wp",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’ll",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "jnoHiUrJFR4VU",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " include",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "14HIjNIk",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " it",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "m39cV5v64ptZe",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " in",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "NTak3xqXoAuLf",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " subsequent",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "ZfLGH",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " answers",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "xEoMdH2O",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "obfuscation": "5tpnsgGtvYdP9W7",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 41,
+    "text": "I don’t have a “stable policy prefix” defined in this conversation. Please provide the exact prefix you want me to use, and I’ll include it in subsequent answers."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "I don’t have a “stable policy prefix” defined in this conversation. Please provide the exact prefix you want me to use, and I’ll include it in subsequent answers."
+    },
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t have a “stable policy prefix” defined in this conversation. Please provide the exact prefix you want me to use, and I’ll include it in subsequent answers."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_03e975ce38acdb58006a515adad39c81a0baffa193853f399d",
+      "object": "response",
+      "created_at": 1783716570,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1783716572,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_03e975ce38acdb58006a515adb47f881a091dfb5ca357cb88d",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "msg_03e975ce38acdb58006a515adbd0b081a08b5308c3aac28da0",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "I don’t have a “stable policy prefix” defined in this conversation. Please provide the exact prefix you want me to use, and I’ll include it in subsequent answers."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_options": {
+        "mode": "explicit",
+        "ttl": "30m"
+      },
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 14,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 104,
+        "output_tokens_details": {
+          "reasoning_tokens": 63
+        },
+        "total_tokens": 118
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 44
+  }
+]

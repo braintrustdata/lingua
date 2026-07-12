@@ -71,6 +71,7 @@ pub fn model_needs_transforms(model: &str) -> bool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EffortFamily {
     NoneLowMediumHighXhigh,
+    NoneLowMediumHighXhighMax,
     LowMediumHighXhigh,
     NoneLowMediumHigh,
     LowMediumHigh,
@@ -87,6 +88,15 @@ impl EffortFamily {
                     | ReasoningEffort::Medium
                     | ReasoningEffort::High
                     | ReasoningEffort::Xhigh
+            ),
+            EffortFamily::NoneLowMediumHighXhighMax => matches!(
+                effort,
+                ReasoningEffort::None
+                    | ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+                    | ReasoningEffort::Xhigh
+                    | ReasoningEffort::Max
             ),
             EffortFamily::LowMediumHighXhigh => matches!(
                 effort,
@@ -129,7 +139,9 @@ fn normalize_openai_model_name(model: &str) -> String {
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
     let model = normalize_openai_model_name(model);
 
-    if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
+    if model.starts_with("gpt-5.6") {
+        Some(EffortFamily::NoneLowMediumHighXhighMax)
+    } else if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
         if model.starts_with("gpt-5.2-codex") {
             Some(EffortFamily::LowMediumHighXhigh)
         } else {
@@ -169,6 +181,10 @@ pub fn clamp_reasoning_effort_for_model(model: &str, effort: ReasoningEffort) ->
         EffortFamily::NoneLowMediumHighXhigh => match effort {
             ReasoningEffort::Minimal => ReasoningEffort::Low,
             ReasoningEffort::Max => ReasoningEffort::Xhigh,
+            _ => effort,
+        },
+        EffortFamily::NoneLowMediumHighXhighMax => match effort {
+            ReasoningEffort::Minimal => ReasoningEffort::Low,
             _ => effort,
         },
         EffortFamily::LowMediumHighXhigh => match effort {
@@ -287,6 +303,17 @@ mod tests {
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
             ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
+            (
+                "gpt-5.6-terra",
+                ReasoningEffort::None,
+                ReasoningEffort::None,
+            ),
+            (
+                "gpt-5.6-terra",
+                ReasoningEffort::Xhigh,
+                ReasoningEffort::Xhigh,
+            ),
+            ("gpt-5.6-terra", ReasoningEffort::Max, ReasoningEffort::Max),
             ("gpt-5.3-codex", ReasoningEffort::None, ReasoningEffort::Low),
             (
                 "gpt-5.2-codex",

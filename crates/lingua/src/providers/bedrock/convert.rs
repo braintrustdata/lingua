@@ -64,6 +64,7 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 tool_name: String::new(),
                                 output,
                                 custom_tool_call: None,
+                                caller: None,
                                 provider_options: None,
                             }));
                         }
@@ -111,6 +112,8 @@ impl TryFromLLM<BedrockMessage> for Message {
                                 ),
                                 encrypted_content: None,
                                 provider_options: None,
+                                status: None,
+                                caller: None,
                                 provider_executed: None,
                             });
                         }
@@ -529,6 +532,8 @@ impl TryFromLLM<BedrockOutputMessage> for Message {
                         ),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
+                        caller: None,
                         provider_executed: None,
                     });
                 }
@@ -755,6 +760,8 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
                 encrypted_content: None,
                 provider_options: None,
+                status: None,
+                caller: None,
                 provider_executed: None,
             }]),
             id: None,
@@ -873,6 +880,8 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
                 encrypted_content: None,
                 provider_options: None,
+                status: None,
+                caller: None,
                 provider_executed: None,
             }]),
             id: None,
@@ -993,6 +1002,8 @@ mod tests {
                         ),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
+                        caller: None,
                         provider_executed: None,
                     },
                     AssistantContentPart::ToolCall {
@@ -1003,6 +1014,8 @@ mod tests {
                         ),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
+                        caller: None,
                         provider_executed: None,
                     },
                 ]),
@@ -1014,6 +1027,7 @@ mod tests {
                     tool_name: "get_weather".to_string(),
                     output: Value::String("65°F and sunny.".to_string()),
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 })],
             },
@@ -1023,6 +1037,7 @@ mod tests {
                     tool_name: "get_weather".to_string(),
                     output: Value::String("45°F and cloudy.".to_string()),
                     custom_tool_call: None,
+                    caller: None,
                     provider_options: None,
                 })],
             },
