@@ -14,7 +14,7 @@
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",
     "responsesAdditionalToolsMultipleToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no Anthropic equivalent",
     "responsesGpt56ReasoningMaxProContextParam": "Anthropic requires max_tokens > thinking.budget_tokens; transformed GPT-5.6 max reasoning maps to an equal 4096 token budget",
-    "responsesProgrammaticToolCallingToolsParam": "Tool 'programmatic_tool_calling' of type 'programmatic_tool_calling' is not supported by anthropic"
+    "responsesProgrammaticToolCallingToolsParam": "Tool 'allowed_callers' of type 'programmatic caller restriction' is not supported by anthropic"
   },
   "responses_to_google": {
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",

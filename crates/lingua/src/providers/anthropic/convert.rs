@@ -65,26 +65,39 @@ fn anthropic_tool_use_provider_options_from_caller(
 
 fn anthropic_allowed_callers_from_universal(
     callers: &Option<Vec<UniversalToolCaller>>,
-) -> Option<Vec<generated::AllowedCaller>> {
-    let callers = callers.as_ref()?;
+) -> Result<Option<Vec<generated::AllowedCaller>>, ConvertError> {
+    let Some(callers) = callers.as_ref() else {
+        return Ok(None);
+    };
+
+    if callers.contains(&UniversalToolCaller::Programmatic) {
+        return Err(ConvertError::UnsupportedToolType {
+            tool_name: "allowed_callers".to_string(),
+            tool_type: "programmatic caller restriction".to_string(),
+            target_provider: ProviderFormat::Anthropic,
+        });
+    }
+
     let mapped_callers = callers
         .iter()
-        .filter_map(|caller| match caller {
-            UniversalToolCaller::Direct => Some(generated::AllowedCaller::Direct),
+        .map(|caller| match caller {
+            UniversalToolCaller::Direct => generated::AllowedCaller::Direct,
             UniversalToolCaller::CodeExecution20250825 => {
-                Some(generated::AllowedCaller::CodeExecution20250825)
+                generated::AllowedCaller::CodeExecution20250825
             }
             UniversalToolCaller::CodeExecution20260120 => {
-                Some(generated::AllowedCaller::CodeExecution20260120)
+                generated::AllowedCaller::CodeExecution20260120
             }
             UniversalToolCaller::CodeExecution20260521 => {
-                Some(generated::AllowedCaller::CodeExecution20260521)
+                generated::AllowedCaller::CodeExecution20260521
             }
-            UniversalToolCaller::Programmatic => None,
+            UniversalToolCaller::Programmatic => {
+                unreachable!("programmatic callers are rejected above")
+            }
         })
         .collect::<Vec<_>>();
 
-    (!mapped_callers.is_empty()).then_some(mapped_callers)
+    Ok((!mapped_callers.is_empty()).then_some(mapped_callers))
 }
 
 fn universal_allowed_callers_from_anthropic(
@@ -2369,7 +2382,7 @@ impl TryFrom<&UniversalTool> for CustomTool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(CustomTool {
-                allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers),
+                allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers)?,
                 name: tool.name.clone(),
                 description: tool.description.clone(),
                 defer_loading: (tool.availability == ToolAvailability::Deferred).then_some(true),
@@ -3549,7 +3562,7 @@ mod tests {
     }
 
     #[test]
-    fn test_custom_tool_filters_unsupported_allowed_callers() {
+    fn test_custom_tool_rejects_programmatic_allowed_callers() {
         let mut tool = UniversalTool::function(
             "get_weather",
             Some("Get weather".to_string()),
@@ -3565,6 +3578,30 @@ mod tests {
         );
         tool.allowed_callers = Some(vec![
             UniversalToolCaller::Programmatic,
+            UniversalToolCaller::Direct,
+        ]);
+
+        let err = CustomTool::try_from(&tool).expect_err("programmatic caller should fail");
+        assert!(matches!(err, ConvertError::UnsupportedToolType { .. }));
+        assert!(err.to_string().contains("programmatic caller restriction"));
+    }
+
+    #[test]
+    fn test_custom_tool_preserves_supported_allowed_callers() {
+        let mut tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "type": "object",
+                "properties": {
+                    "location": { "type": "string" }
+                },
+                "required": ["location"],
+                "additionalProperties": false
+            })),
+            None,
+        );
+        tool.allowed_callers = Some(vec![
             UniversalToolCaller::Direct,
             UniversalToolCaller::CodeExecution20260521,
         ]);

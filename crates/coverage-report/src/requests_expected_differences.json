@@ -1107,7 +1107,7 @@
       "source": "Responses",
       "target": "Anthropic",
       "errors": [
-        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Anthropic request conversion cannot represent OpenAI Responses custom tools" }
+        { "pattern": "Tool 'allowed_callers' of type 'programmatic caller restriction' is not supported by anthropic", "reason": "Anthropic request conversion cannot preserve OpenAI Responses programmatic-only caller restrictions" }
       ]
     },
     {
@@ -1115,7 +1115,7 @@
       "source": "Responses",
       "target": "Bedrock Anthropic",
       "errors": [
-        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Bedrock Anthropic request conversion cannot represent OpenAI Responses custom tools" }
+        { "pattern": "Tool 'allowed_callers' of type 'programmatic caller restriction' is not supported by anthropic", "reason": "Bedrock Anthropic request conversion cannot preserve OpenAI Responses programmatic-only caller restrictions" }
       ]
     },
     {
@@ -1123,7 +1123,7 @@
       "source": "Responses",
       "target": "Vertex Anthropic",
       "errors": [
-        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Vertex Anthropic request conversion cannot represent OpenAI Responses custom tools" }
+        { "pattern": "Tool 'allowed_callers' of type 'programmatic caller restriction' is not supported by anthropic", "reason": "Vertex Anthropic request conversion cannot preserve OpenAI Responses programmatic-only caller restrictions" }
       ]
     }
   ]
