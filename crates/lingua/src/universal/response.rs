@@ -593,7 +593,7 @@ impl UniversalUsage {
                 let cached = self.prompt_cached_tokens.unwrap_or(0);
                 let mut input_details = serde_json::Map::new();
                 input_details.insert("cached_tokens".into(), serde_json::json!(cached));
-                if let Some(cache_write) = self.prompt_cache_creation_tokens {
+                if let Some(cache_write) = self.prompt_cache_creation_tokens_for_prompt_math() {
                     input_details
                         .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
                 }
@@ -797,6 +797,23 @@ mod tests {
         };
 
         assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
+    }
+
+    #[test]
+    fn test_responses_cache_write_tokens_uses_split_ttl_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_5m_tokens: Some(30),
+            prompt_cache_creation_1h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+
+        assert_eq!(responses["input_tokens"], 100);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 70);
     }
 
     #[test]

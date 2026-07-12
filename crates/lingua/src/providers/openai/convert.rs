@@ -602,6 +602,7 @@ struct ResponsesToolCallInfo {
     tool_name: String,
     arguments: ToolCallArguments,
     namespace: Option<String>,
+    status: Option<openai::FunctionCallItemStatus>,
     caller: Option<ToolCaller>,
     provider_executed: Option<bool>,
 }
@@ -1366,7 +1367,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_tool_call(
                             input.namespace,
-                            None,
+                            input.status,
                         )?,
                         caller,
                         provider_executed: None,
@@ -1999,6 +2000,10 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             &provider_options,
                                         )
                                         .and_then(|opts| opts.namespace),
+                                        status: openai_tool_call_provider_options_view(
+                                            &provider_options,
+                                        )
+                                        .and_then(|opts| opts.output_item_status),
                                         caller,
                                         provider_executed,
                                     });
@@ -2227,6 +2232,9 @@ impl TryFromLLM<Message> for openai::InputItem {
 
                                 Ok(item)
                             } else {
+                                let output_item_status = tool_call
+                                    .status
+                                    .unwrap_or(openai::FunctionCallItemStatus::Completed);
                                 // Regular function call (not provider-executed)
                                 let function_call_item = openai::InputItem {
                                     role: None, // Preserve original role state - request context function calls don't have roles
@@ -2240,7 +2248,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                         tool_call.arguments.to_string(),
                                     )),
                                     caller: tool_call.caller,
-                                    status: Some(openai::FunctionCallItemStatus::Completed),
+                                    status: Some(output_item_status),
                                     ..Default::default()
                                 };
                                 Ok(function_call_item)
@@ -2338,10 +2346,13 @@ fn create_function_call_input_item(
     name: &str,
     arguments: &ToolCallArguments,
     namespace: Option<String>,
+    status: Option<openai::FunctionCallItemStatus>,
     caller: Option<ToolCaller>,
     provider_executed: Option<bool>,
     id: Option<String>,
 ) -> Result<openai::InputItem, ConvertError> {
+    let output_item_status = status.unwrap_or(openai::FunctionCallItemStatus::Completed);
+
     // Check if this is a provider-executed built-in tool
     if provider_executed == Some(true) {
         // Convert back to the appropriate built-in tool type based on tool_name
@@ -2463,7 +2474,7 @@ fn create_function_call_input_item(
                     namespace,
                     caller,
                     arguments: Some(openai_arguments_from_string(arguments.to_string())),
-                    status: Some(openai::FunctionCallItemStatus::Completed),
+                    status: Some(output_item_status),
                     ..Default::default()
                 });
             }
@@ -2489,7 +2500,7 @@ fn create_function_call_input_item(
             namespace,
             caller,
             input: Some(input.clone()),
-            status: Some(openai::FunctionCallItemStatus::Completed),
+            status: Some(output_item_status),
             ..Default::default()
         })
     } else {
@@ -2503,7 +2514,7 @@ fn create_function_call_input_item(
             namespace,
             caller,
             arguments: Some(openai_arguments_from_string(arguments.to_string())),
-            status: Some(openai::FunctionCallItemStatus::Completed),
+            status: Some(output_item_status),
             ..Default::default()
         })
     }
@@ -2629,6 +2640,10 @@ pub fn universal_to_responses_input(
                                                 provider_options,
                                             )
                                             .and_then(|opts| opts.namespace),
+                                            status: openai_tool_call_provider_options_view(
+                                                provider_options,
+                                            )
+                                            .and_then(|opts| opts.output_item_status),
                                             caller: caller.clone(),
                                             provider_executed: *provider_executed,
                                         },
@@ -2742,6 +2757,7 @@ pub fn universal_to_responses_input(
                                         &tool_call.tool_name,
                                         &tool_call.arguments,
                                         tool_call.namespace,
+                                        tool_call.status,
                                         tool_call.caller,
                                         tool_call.provider_executed,
                                         id.clone(),
@@ -5199,6 +5215,71 @@ mod tests {
             roundtrip[1].input_item_type,
             Some(openai::InputItemType::CustomToolCallOutput)
         );
+    }
+
+    #[test]
+    fn responses_function_call_input_preserves_non_completed_status() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "function_call",
+                "call_id": "call_pending",
+                "name": "get_weather",
+                "arguments": "{}",
+                "status": "in_progress"
+            }
+        ]))
+        .expect("input item should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect("input item should convert to universal");
+
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("function call should convert to assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("assistant content should be array");
+        };
+        let AssistantContentPart::ToolCall {
+            provider_options, ..
+        } = &parts[0]
+        else {
+            panic!("content part should be a tool call");
+        };
+        assert!(provider_options.is_some());
+
+        let roundtrip = universal_to_responses_input(&messages)
+            .expect("universal messages should convert back to Responses input");
+        assert_eq!(
+            roundtrip[0].input_item_type,
+            Some(openai::InputItemType::FunctionCall)
+        );
+        assert_eq!(roundtrip[0].status, Some(openai::Status::InProgress));
+    }
+
+    #[test]
+    fn responses_custom_tool_call_input_preserves_non_completed_status() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "custom_tool_call",
+                "call_id": "call_custom_pending",
+                "name": "run_raw",
+                "input": "raw custom input",
+                "status": "in_progress"
+            }
+        ]))
+        .expect("input item should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect("input item should convert to universal");
+
+        let roundtrip = universal_to_responses_input(&messages)
+            .expect("universal messages should convert back to Responses input");
+        assert_eq!(
+            roundtrip[0].input_item_type,
+            Some(openai::InputItemType::CustomToolCall)
+        );
+        assert_eq!(roundtrip[0].status, Some(openai::Status::InProgress));
+        assert_eq!(roundtrip[0].input.as_deref(), Some("raw custom input"));
     }
 
     #[test]
