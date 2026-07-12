@@ -9,6 +9,13 @@ mod schema_converter;
 mod tool_generator;
 
 fn main() {
+    if let Err(error) = run() {
+        eprintln!("❌ Type generation failed: {}", error);
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
 
     let provider = if args.len() > 1 {
@@ -22,64 +29,46 @@ fn main() {
     println!("🔄 Generating types for provider: {}", provider);
 
     match provider.as_str() {
-        "openai" => generate_openai_types(),
+        "openai" => generate_openai_types()?,
         "anthropic" => generate_anthropic_types(),
         "google" => generate_google_discovery_types(),
         "all" => {
-            generate_openai_types();
+            generate_openai_types()?;
             generate_anthropic_types();
             generate_google_discovery_types();
         }
         _ => {
-            println!("❌ Unknown provider: {}", provider);
-            println!("Available providers: openai, anthropic, google, all");
-            std::process::exit(1);
+            return Err(format!(
+                "Unknown provider '{}'. Available providers: openai, anthropic, google, all",
+                provider
+            )
+            .into());
         }
     }
 
     println!("✅ Type generation completed successfully!");
+    Ok(())
 }
 
-fn generate_openai_types() {
+fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating OpenAI types from OpenAPI spec using quicktype...");
 
     let spec_file_path = "specs/openai/openapi.yml";
-
-    let openai_spec = match std::fs::read_to_string(spec_file_path) {
-        Ok(content) => content,
-        Err(e) => {
-            println!(
-                "❌ Failed to read OpenAPI spec at {}: {}",
-                spec_file_path, e
-            );
-            println!(
-                "Run './pipelines/generate-provider-types.sh openai' to download the spec first"
-            );
-            return;
-        }
-    };
+    let openai_spec = std::fs::read_to_string(spec_file_path)?;
 
     println!("🔍 Parsing YAML OpenAPI spec...");
-
-    let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
-        Ok(value) => value,
-        Err(e) => {
-            println!("❌ Failed to parse OpenAPI spec as YAML: {}", e);
-            return;
-        }
-    };
+    let schema: serde_json::Value = serde_yaml::from_str(&openai_spec)?;
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
 
-    if let Some(_schemas) = schemas {
-        println!("✅ Found OpenAI components/schemas section");
-
-        // Generate essential OpenAI types for chat completion APIs using quicktype
-        println!("🏗️  Generating essential OpenAI types for chat completions");
-        generate_openai_specific_types(&openai_spec);
-    } else {
-        println!("❌ No components/schemas section found in OpenAPI spec");
+    if schemas.is_none() {
+        return Err("No components/schemas section found in OpenAI spec".into());
     }
+
+    println!("✅ Found OpenAI components/schemas section");
+    println!("🏗️  Generating essential OpenAI types for chat completions");
+    generate_openai_specific_types(&openai_spec)?;
+    Ok(())
 }
 
 fn generate_anthropic_types() {
@@ -124,27 +113,13 @@ fn generate_anthropic_types() {
     }
 }
 
-fn generate_openai_specific_types(openai_spec: &str) {
+fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Using quicktype for OpenAI type generation...");
 
-    // Extract OpenAI OpenAPI spec
-    let full_spec: serde_json::Value =
-        serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
-
-    // Generate types using quicktype approach
-    match generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec).unwrap()) {
-        Ok(()) => {
-            println!("✅ OpenAI types generated successfully with quicktype");
-        }
-        Err(e) => {
-            println!("❌ Quicktype generation failed for OpenAI: {}", e);
-            println!("📝 Falling back to minimal types");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/openai/generated.rs",
-                "// Quicktype generation failed",
-            );
-        }
-    }
+    let full_spec: serde_json::Value = serde_yaml::from_str(openai_spec)?;
+    generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
+    println!("✅ OpenAI types generated successfully with quicktype");
+    Ok(())
 }
 
 fn generate_openai_types_with_quicktype(
@@ -155,7 +130,8 @@ fn generate_openai_types_with_quicktype(
     let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential OpenAI schemas for chat completions
-    let essential_schemas = create_essential_openai_schemas(&spec);
+    let mut essential_schemas = create_essential_openai_schemas(&spec);
+    normalize_openai_schema_for_quicktype(&mut essential_schemas);
 
     println!("🏗️  Generating OpenAI types with quicktype...");
 
@@ -182,6 +158,8 @@ fn generate_openai_types_with_quicktype(
         .arg(&temp_schema_path)
         .output();
 
+    let _ = std::fs::remove_file(&temp_schema_path);
+
     let quicktype_output = match output {
         Ok(output) => {
             if output.status.success() {
@@ -196,9 +174,6 @@ fn generate_openai_types_with_quicktype(
         }
         Err(e) => return Err(format!("Failed to run quicktype: {}", e).into()),
     };
-
-    // Clean up temp file
-    let _ = std::fs::remove_file(&temp_schema_path);
 
     // Post-process the quicktype output
     let mut processed_output = post_process_quicktype_output_for_openai(&quicktype_output);
@@ -317,6 +292,117 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     });
 
     root_schema
+}
+
+fn normalize_openai_schema_for_quicktype(schema: &mut serde_json::Value) {
+    let Some(definitions) = schema
+        .get("definitions")
+        .and_then(serde_json::Value::as_object)
+    else {
+        return;
+    };
+    let normalized = ["InputItem", "OutputItem"]
+        .into_iter()
+        .filter_map(|name| {
+            let item = definitions.get(name)?;
+            item.get("oneOf").and_then(serde_json::Value::as_array)?;
+            let properties = collect_openai_object_union_properties(
+                item,
+                definitions,
+                &mut std::collections::HashSet::new(),
+            );
+            (!properties.is_empty()).then_some((name, properties))
+        })
+        .collect::<Vec<_>>();
+
+    let Some(definitions) = schema
+        .get_mut("definitions")
+        .and_then(serde_json::Value::as_object_mut)
+    else {
+        return;
+    };
+    for (name, properties) in normalized {
+        definitions.insert(
+            name.to_string(),
+            serde_json::json!({
+                "type": "object",
+                "properties": properties,
+            }),
+        );
+    }
+}
+
+fn collect_openai_object_union_properties(
+    schema: &serde_json::Value,
+    definitions: &serde_json::Map<String, serde_json::Value>,
+    visited: &mut std::collections::HashSet<String>,
+) -> serde_json::Map<String, serde_json::Value> {
+    if let Some(reference) = schema.get("$ref").and_then(serde_json::Value::as_str) {
+        let Some(name) = extract_type_name_from_ref(reference) else {
+            return serde_json::Map::new();
+        };
+        if !visited.insert(name.clone()) {
+            return serde_json::Map::new();
+        }
+        let properties = definitions
+            .get(&name)
+            .map(|definition| {
+                collect_openai_object_union_properties(definition, definitions, visited)
+            })
+            .unwrap_or_default();
+        visited.remove(&name);
+        return properties;
+    }
+
+    let mut properties = schema
+        .get("properties")
+        .and_then(serde_json::Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+
+    for union_key in ["allOf", "oneOf", "anyOf"] {
+        let Some(branches) = schema.get(union_key).and_then(serde_json::Value::as_array) else {
+            continue;
+        };
+        for branch in branches {
+            for (name, candidate) in
+                collect_openai_object_union_properties(branch, definitions, visited)
+            {
+                match properties.remove(&name) {
+                    Some(existing) => {
+                        properties.insert(name, merge_openai_property_schemas(existing, candidate));
+                    }
+                    None => {
+                        properties.insert(name, candidate);
+                    }
+                }
+            }
+        }
+    }
+
+    properties
+}
+
+fn merge_openai_property_schemas(
+    existing: serde_json::Value,
+    candidate: serde_json::Value,
+) -> serde_json::Value {
+    if existing == candidate {
+        return existing;
+    }
+
+    let mut alternatives = match &existing {
+        serde_json::Value::Object(object) if object.len() == 1 => object
+            .get("anyOf")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_else(|| vec![existing]),
+        _ => vec![existing],
+    };
+    if !alternatives.contains(&candidate) {
+        alternatives.push(candidate);
+    }
+    serde_json::json!({"anyOf": alternatives})
 }
 
 fn add_openai_schema_with_dependencies(
@@ -1071,6 +1157,86 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[ts(type = \"Record<string, unknown>\")]\n    AnythingMap(serde_json::Map<String, serde_json::Value>)",
     );
 
+    for (generated, stable) in [
+        (
+            "PurpleContentPart",
+            "ChatCompletionRequestMessageContentPart",
+        ),
+        ("InputItemListAction", "InputItemAction"),
+        ("InputItemListContent", "InputItemContent"),
+        ("InputItemContentListElement", "ContentOutputContentList"),
+        (
+            "InputItemListLocalEnvironmentParam",
+            "InputItemLocalEnvironmentParam",
+        ),
+        ("InputItemListOutput", "Output"),
+        ("InputItemListResult", "Result"),
+        ("InputItemListRole", "InputItemRole"),
+        ("InputItemListTool", "InputItemTool"),
+        ("InputItemListType", "InputItemType"),
+        ("OutputAction", "OutputItemAction"),
+        ("OutputOutput", "OutputUnion"),
+        ("MagentaType", "OutputItemType"),
+    ] {
+        processed = processed.replace(generated, stable);
+    }
+
+    processed = replace_in_type_definition(
+        &processed,
+        "TheResponseObject",
+        &[("Option<Status>", "Option<StatusEnum>")],
+    );
+    processed = replace_in_type_definition(
+        &processed,
+        "Status",
+        &[("pub enum Status {", "pub enum StatusEnum {")],
+    );
+    processed = processed.replace("FunctionCallItemStatus", "Status");
+
+    processed = replace_in_type_definition(
+        &processed,
+        "ChatCompletionRequestMessageContent",
+        &[("PurpleString", "String")],
+    );
+    processed = replace_in_type_definition(
+        &processed,
+        "ChatCompletionRequestMessageContentPart",
+        &[(
+            "pub content_part_type: PurpleType,",
+            "pub chat_completion_request_message_content_part_type: PurpleType,",
+        )],
+    );
+    for type_name in [
+        "Arguments",
+        "InputParam",
+        "InputItemContent",
+        "Output",
+        "OutputUnion",
+    ] {
+        processed =
+            replace_in_type_definition(&processed, type_name, &[("PurpleString", "String")]);
+    }
+    processed = replace_in_type_definition(
+        &processed,
+        "ReasoningEffort",
+        &[("ReasoningEffortNone", "None")],
+    );
+    processed = replace_in_type_definition(
+        &processed,
+        "OutputItem",
+        &[("Vec<OutputResult>", "Vec<Result>")],
+    );
+    processed = replace_in_type_definition(
+        &processed,
+        "InputTokensDetails",
+        &[(
+            "pub cache_write_tokens: i64,",
+            "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub cache_write_tokens: Option<i64>,",
+        )],
+    );
+    processed = append_optional_value_field(&processed, "InputItem", "request_id");
+    processed = append_optional_value_field(&processed, "OutputItem", "request_id");
+
     // Only export entry point types that are actually used in our public API
     // ts-rs will automatically export their transitive dependencies to the same directory
     let entry_points = vec![
@@ -1134,18 +1300,63 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     let content_list_type_name = find_enum_with_variants(&processed, &["InputText", "OutputText"])
         .expect("quicktype output did not contain an enum with InputText and OutputText variants");
 
-    processed.push_str(&format!(
-        r#"
-
-// Compatibility aliases for names used by Lingua's hand-written adapters.
-pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = {content_list_type_name};
-pub type FunctionCallItemStatus = Status;
-"#,
-    ));
+    processed.push_str(
+        "\n\n// Compatibility aliases for names used by Lingua's hand-written adapters.\n",
+    );
+    processed.push_str("pub type Instructions = InputParam;\n");
+    processed.push_str("pub type InputContent = ContentOutputContentList;\n");
+    processed.push_str("pub type FunctionCallItemStatus = Status;\n");
+    processed.push_str("pub type OutputItemTool = InputItemTool;\n");
+    if content_list_type_name != "InputItemContentListType" {
+        processed.push_str(&format!(
+            "pub type InputItemContentListType = {content_list_type_name};\n"
+        ));
+    }
 
     processed
+}
+
+fn replace_in_type_definition(
+    content: &str,
+    type_name: &str,
+    replacements: &[(&str, &str)],
+) -> String {
+    let declarations = [
+        format!("pub struct {type_name} {{"),
+        format!("pub enum {type_name} {{"),
+    ];
+    let Some(start) = declarations
+        .iter()
+        .filter_map(|declaration| content.find(declaration))
+        .min()
+    else {
+        return content.to_string();
+    };
+    let Some(relative_end) = content[start..].find("\n}") else {
+        return content.to_string();
+    };
+    let end = start + relative_end + 2;
+    let mut definition = content[start..end].to_string();
+    for (from, to) in replacements {
+        definition = definition.replace(from, to);
+    }
+
+    format!("{}{}{}", &content[..start], definition, &content[end..])
+}
+
+fn append_optional_value_field(content: &str, type_name: &str, field_name: &str) -> String {
+    let declaration = format!("pub struct {type_name} {{");
+    let Some(start) = content.find(&declaration) else {
+        return content.to_string();
+    };
+    let Some(relative_end) = content[start..].find("\n}") else {
+        return content.to_string();
+    };
+    let end = start + relative_end;
+    let field = format!(
+        "\n    #[ts(type = \"unknown\")]\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub {field_name}: Option<serde_json::Value>,"
+    );
+    format!("{}{}{}", &content[..end], field, &content[end..])
 }
 
 /// Add #[ts(export_to = "...")] to all TS-enabled type definitions
@@ -1917,4 +2128,71 @@ where
     }
 
     result_lines.join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_only_openai_input_and_output_item_unions() {
+        let mut schema = serde_json::json!({
+            "definitions": {
+                "InputItem": {
+                    "oneOf": [
+                        {"$ref": "#/definitions/InputMessage"},
+                        {"$ref": "#/definitions/FunctionCall"}
+                    ]
+                },
+                "OutputItem": {
+                    "oneOf": [
+                        {"$ref": "#/definitions/OutputMessage"},
+                        {"$ref": "#/definitions/FunctionCall"}
+                    ]
+                },
+                "UnrelatedItem": {
+                    "oneOf": [
+                        {"$ref": "#/definitions/InputMessage"},
+                        {"$ref": "#/definitions/OutputMessage"}
+                    ]
+                },
+                "InputMessage": {
+                    "type": "object",
+                    "properties": {
+                        "content": {"type": "string"},
+                        "type": {"type": "string", "enum": ["message"]}
+                    },
+                    "required": ["content"]
+                },
+                "OutputMessage": {
+                    "type": "object",
+                    "properties": {
+                        "content": {"type": "array"},
+                        "type": {"type": "string", "enum": ["message"]}
+                    },
+                    "required": ["content", "type"]
+                },
+                "FunctionCall": {
+                    "type": "object",
+                    "properties": {
+                        "arguments": {"type": "string"},
+                        "type": {"type": "string", "enum": ["function_call"]}
+                    },
+                    "required": ["arguments", "type"]
+                }
+            }
+        });
+
+        let unrelated = schema["definitions"]["UnrelatedItem"].clone();
+        normalize_openai_schema_for_quicktype(&mut schema);
+
+        for name in ["InputItem", "OutputItem"] {
+            let item = &schema["definitions"][name];
+            assert_eq!(item["type"], "object");
+            assert!(item.get("oneOf").is_none());
+            assert!(item.get("required").is_none());
+            assert!(item["properties"]["type"]["anyOf"].is_array());
+        }
+        assert_eq!(schema["definitions"]["UnrelatedItem"], unrelated);
+    }
 }

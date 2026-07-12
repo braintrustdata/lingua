@@ -7,13 +7,10 @@
  *
  * The type of the input item. Always `input_file`.
  *
- * The type of the input item. Always `input_audio`.
- *
- *
  * The type of the output text. Always `output_text`.
  *
  * The type of the refusal. Always `refusal`.
  *
  * The type of the reasoning text. Always `reasoning_text`.
  */
-export type InputItemContentListType = "input_audio" | "input_file" | "input_image" | "input_text" | "output_text" | "reasoning_text" | "refusal";
+export type InputItemContentListType = "input_file" | "input_image" | "input_audio" | "input_text" | "output_text" | "reasoning_text" | "refusal";

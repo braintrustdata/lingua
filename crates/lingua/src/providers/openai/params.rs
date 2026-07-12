@@ -215,6 +215,7 @@ pub enum OpenAIReasoningEffort {
     Medium,
     High,
     Xhigh,
+    Max,
 }
 
 /// Typed OpenAI Responses reasoning parameter view.

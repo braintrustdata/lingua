@@ -1423,6 +1423,7 @@ impl Default for openai::InputContent {
             annotations: None,
             logprobs: None,
             refusal: None,
+            prompt_cache_breakpoint: None,
         }
     }
 }
@@ -1649,6 +1650,8 @@ impl Default for openai::InputItem {
             input: None,
             error: None,
             outputs: None,
+            caller: None,
+            fingerprint: None,
         }
     }
 }
@@ -3648,6 +3651,8 @@ impl Default for openai::OutputItem {
             reason: None,
             request_id: None,
             input: None,
+            caller: None,
+            fingerprint: None,
         }
     }
 }
@@ -4252,6 +4257,7 @@ fn convert_user_content_part_to_chat_completion_part(
             input_audio: None,
             file: None,
             refusal: None,
+            prompt_cache_breakpoint: None,
         }),
         UserContentPart::Image {
             image,
@@ -4290,6 +4296,7 @@ fn convert_user_content_part_to_chat_completion_part(
                 input_audio: None,
                 file: None,
                 refusal: None,
+                prompt_cache_breakpoint: None,
             })
         }
         UserContentPart::File {
@@ -4469,6 +4476,7 @@ fn chat_completion_assistant_text_content(
                     input_audio: None,
                     file: None,
                     refusal: None,
+                    prompt_cache_breakpoint: None,
                 },
             })
             .collect(),
@@ -5412,6 +5420,7 @@ mod tests {
                 filename: Some("Doc.txt".to_string()),
             }),
             refusal: None,
+            prompt_cache_breakpoint: None,
         };
 
         let converted = <UserContentPart as TryFromLLM<

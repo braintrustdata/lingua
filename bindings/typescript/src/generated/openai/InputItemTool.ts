@@ -2,6 +2,7 @@
 import type { AllowedToolsUnion } from "./AllowedToolsUnion";
 import type { ApproximateLocation } from "./ApproximateLocation";
 import type { Background } from "./Background";
+import type { CallableToolAllowedCaller } from "./CallableToolAllowedCaller";
 import type { CompFilter } from "./CompFilter";
 import type { ConnectorId } from "./ConnectorId";
 import type { Container } from "./Container";
@@ -15,34 +16,13 @@ import type { OutputFormat } from "./OutputFormat";
 import type { Quality } from "./Quality";
 import type { RankingOptions } from "./RankingOptions";
 import type { RequireApproval } from "./RequireApproval";
+import type { SearchContextSize } from "./SearchContextSize";
 import type { TType } from "./TType";
 import type { ToolFormat } from "./ToolFormat";
 import type { ToolSearchExecutionType } from "./ToolSearchExecutionType";
 import type { ToolType } from "./ToolType";
-import type { WebSearchContextSize } from "./WebSearchContextSize";
 
 /**
- * An array of tools the model may call while generating a response. You
- * can specify which tool to use by setting the `tool_choice` parameter.
- *
- * We support the following categories of tools:
- * - **Built-in tools**: Tools that are provided by OpenAI that extend the
- * model's capabilities, like [web search](/docs/guides/tools-web-search)
- * or [file search](/docs/guides/tools-file-search). Learn more about
- * [built-in tools](/docs/guides/tools).
- * - **MCP Tools**: Integrations with third-party systems via custom MCP servers
- * or predefined connectors such as Google Drive and SharePoint. Learn more about
- * [MCP Tools](/docs/guides/tools-connectors-mcp).
- * - **Function calls (custom tools)**: Functions that are defined by you,
- * enabling the model to call your own code with strongly typed arguments
- * and outputs. Learn more about
- * [function calling](/docs/guides/function-calling). You can also use
- * custom tools to call your own code.
- *
- *
- * A tool that can be used to generate a response.
- *
- *
  * Defines a function in your own code the model can choose to call. Learn more about
  * [function calling](https://platform.openai.com/docs/guides/function-calling).
  *
@@ -82,9 +62,12 @@ import type { WebSearchContextSize } from "./WebSearchContextSize";
  *
  * Allows the assistant to create, delete, or update files using unified diffs.
  *
+ * The tools available on the server.
+ *
+ *
  * A tool available on an MCP server.
  */
-export type InputItemTool = { 
+export type InputItemTool = { allowed_callers: Array<CallableToolAllowedCaller> | null, 
 /**
  * Whether this function is deferred and loaded via tool search.
  *
@@ -109,7 +92,7 @@ description: string | null,
  *
  * The name of the tool.
  */
-name: string | null, parameters: unknown, strict: boolean | null, 
+name: string | null, output_schema: unknown, parameters: unknown, strict: boolean | null, 
 /**
  * The type of the function tool. Always `function`.
  *
@@ -125,6 +108,8 @@ name: string | null, parameters: unknown, strict: boolean | null,
  *
  * The type of the code interpreter tool. Always `code_interpreter`.
  *
+ *
+ * The type of the tool. Always `programmatic_tool_calling`.
  *
  * The type of the image generation tool. Always `image_generation`.
  *
@@ -173,7 +158,7 @@ environment: Environment | null,
  * High level guidance for the amount of context window space to use for the search. One of
  * `low`, `medium`, or `high`. `medium` is the default.
  */
-search_context_size: WebSearchContextSize | null, user_location: ApproximateLocation | null, allowed_tools: AllowedToolsUnion | null, 
+search_context_size: SearchContextSize | null, user_location: ApproximateLocation | null, allowed_tools: AllowedToolsUnion | null, 
 /**
  * An OAuth access token that can be used with a remote MCP server, either
  * with a custom MCP server URL or a service connector. Your application
@@ -182,8 +167,8 @@ search_context_size: WebSearchContextSize | null, user_location: ApproximateLoca
 authorization: string | null, 
 /**
  * Identifier for service connectors, like those available in ChatGPT. One of
- * `server_url` or `connector_id` must be provided. Learn more about service
- * connectors [here](/docs/guides/tools-remote-mcp#connectors).
+ * `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+ * about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
  *
  * Currently supported `connector_id` values are:
  *
@@ -206,10 +191,15 @@ server_description: string | null,
  */
 server_label: string | null, 
 /**
- * The URL for the MCP server. One of `server_url` or `connector_id` must be
- * provided.
+ * The URL for the MCP server. One of `server_url`, `connector_id`, or
+ * `tunnel_id` must be provided.
  */
 server_url: string | null, 
+/**
+ * The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+ * `server_url`, `connector_id`, or `tunnel_id` must be provided.
+ */
+tunnel_id: string | null, 
 /**
  * The code interpreter container. Can be a container ID or an object that
  * specifies uploaded file IDs to make available to your code, along with an
