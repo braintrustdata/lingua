@@ -694,7 +694,6 @@ mod tests {
             context: None,
             summary: Some(OpenAISummary::Detailed),
             generate_summary: None,
-            extras: Default::default(),
         };
 
         // Test fallback conversion (uses DEFAULT_MAX_TOKENS)

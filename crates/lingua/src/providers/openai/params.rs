@@ -6,7 +6,7 @@ eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
 use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
-use crate::serde_json::{Map, Value};
+use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -150,28 +150,6 @@ pub struct OpenAIResponsesParams {
     pub extras: BTreeMap<String, Value>,
 }
 
-impl OpenAIResponsesParams {
-    pub(crate) fn provider_only_reasoning(&self) -> Option<Value> {
-        self.reasoning
-            .as_ref()
-            .and_then(OpenAIReasoning::provider_only_value)
-    }
-
-    pub(crate) fn extras_map(&self) -> Map<String, Value> {
-        let mut extras = self
-            .extras
-            .iter()
-            .map(|(key, value)| (key.clone(), value.clone()))
-            .collect::<Map<String, Value>>();
-
-        if let Some(reasoning) = self.provider_only_reasoning() {
-            extras.insert("reasoning".into(), reasoning);
-        }
-
-        extras
-    }
-}
-
 /// Typed view over `UniversalParams.extras[ChatCompletions]` used during
 /// universal -> OpenAI Chat reconstruction.
 ///
@@ -261,35 +239,6 @@ pub struct OpenAIReasoning {
     pub summary: Option<Summary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
-    #[serde(flatten)]
-    pub extras: BTreeMap<String, Value>,
-}
-
-impl OpenAIReasoning {
-    pub(crate) fn has_reconstructed_fields(&self) -> bool {
-        self.effort.is_some() || self.summary.is_some() || self.generate_summary.is_some()
-    }
-
-    fn provider_only_value(&self) -> Option<Value> {
-        let mut provider_only = self
-            .extras
-            .iter()
-            .map(|(key, value)| (key.clone(), value.clone()))
-            .collect::<Map<String, Value>>();
-
-        if let Some(mode) = self.mode.as_ref() {
-            provider_only.insert("mode".into(), mode.clone());
-        }
-        if let Some(context) = self.context.as_ref() {
-            provider_only.insert("context".into(), context.clone());
-        }
-
-        if provider_only.is_empty() {
-            return None;
-        }
-
-        Some(Value::Object(provider_only))
-    }
 }
 
 #[cfg(test)]
