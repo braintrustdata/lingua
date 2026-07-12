@@ -65,22 +65,26 @@ fn anthropic_tool_use_provider_options_from_caller(
 
 fn anthropic_allowed_callers_from_universal(
     callers: &Option<Vec<UniversalToolCaller>>,
-) -> Result<Option<Vec<generated::AllowedCaller>>, ConvertError> {
-    callers
-        .as_ref()
-        .map(|callers| {
-            serde_json::from_value(serde_json::to_value(callers).map_err(|e| {
-                ConvertError::JsonSerializationFailed {
-                    field: "Anthropic tool allowed_callers".to_string(),
-                    error: e.to_string(),
-                }
-            })?)
-            .map_err(|e| ConvertError::JsonSerializationFailed {
-                field: "Anthropic tool allowed_callers".to_string(),
-                error: e.to_string(),
-            })
+) -> Option<Vec<generated::AllowedCaller>> {
+    let callers = callers.as_ref()?;
+    let mapped_callers = callers
+        .iter()
+        .filter_map(|caller| match caller {
+            UniversalToolCaller::Direct => Some(generated::AllowedCaller::Direct),
+            UniversalToolCaller::CodeExecution20250825 => {
+                Some(generated::AllowedCaller::CodeExecution20250825)
+            }
+            UniversalToolCaller::CodeExecution20260120 => {
+                Some(generated::AllowedCaller::CodeExecution20260120)
+            }
+            UniversalToolCaller::CodeExecution20260521 => {
+                Some(generated::AllowedCaller::CodeExecution20260521)
+            }
+            UniversalToolCaller::Programmatic => None,
         })
-        .transpose()
+        .collect::<Vec<_>>();
+
+    (!mapped_callers.is_empty()).then_some(mapped_callers)
 }
 
 fn universal_allowed_callers_from_anthropic(
@@ -2365,7 +2369,7 @@ impl TryFrom<&UniversalTool> for CustomTool {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => Ok(CustomTool {
-                allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers)?,
+                allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers),
                 name: tool.name.clone(),
                 description: tool.description.clone(),
                 defer_loading: (tool.availability == ToolAvailability::Deferred).then_some(true),
@@ -3542,6 +3546,38 @@ mod tests {
             .expect("location should be present");
         assert_eq!(location.schema_type.as_deref(), Some("string"));
         assert!(location.items.is_none());
+    }
+
+    #[test]
+    fn test_custom_tool_filters_unsupported_allowed_callers() {
+        let mut tool = UniversalTool::function(
+            "get_weather",
+            Some("Get weather".to_string()),
+            Some(json!({
+                "type": "object",
+                "properties": {
+                    "location": { "type": "string" }
+                },
+                "required": ["location"],
+                "additionalProperties": false
+            })),
+            None,
+        );
+        tool.allowed_callers = Some(vec![
+            UniversalToolCaller::Programmatic,
+            UniversalToolCaller::Direct,
+            UniversalToolCaller::CodeExecution20260521,
+        ]);
+
+        let custom_tool = CustomTool::try_from(&tool).expect("tool should convert");
+
+        assert_eq!(
+            custom_tool.allowed_callers,
+            Some(vec![
+                generated::AllowedCaller::Direct,
+                generated::AllowedCaller::CodeExecution20260521,
+            ])
+        );
     }
 
     #[test]

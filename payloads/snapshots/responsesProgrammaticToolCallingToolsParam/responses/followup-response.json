@@ -1,13 +1,13 @@
 {
-  "id": "resp_072cedf0ba9a2aca006a515adc4d8081a2b6167068738fd20f",
+  "id": "resp_04d845086bc20e96006a531b33eda08191aeff0752035409de",
   "object": "response",
-  "created_at": 1783716572,
+  "created_at": 1783831347,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1783716573,
+  "completed_at": 1783831353,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,23 +18,26 @@
   "moderation": null,
   "output": [
     {
-      "id": "cm_072cedf0ba9a2aca006a515add1e1c81a2acdda6b2ff8d63f8",
-      "type": "program",
-      "call_id": "call_cBShHma4G4sNYAZkZgWqDtZa",
-      "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
-      "fingerprint": "gAAAAABqUVrdvHKacp1QJMtLxdU6zEnrOKEobnJtqEKHDjcdEmoO2F7SHMhI95k0ZxjSjyMRXZwu78QXcivx_v8eCmBsHs-_XddVbP-A13RJYRaqjO6y2M3WrruqfEC8m47ClA5ZP24GxkmHCRFFHs2ZmRRx2SyMh85TzcecK0v4bfLUZ80PkJyTW9S436vJBVCiR07sa03GaUUMVvLloS6vejn8U2oFNveh__dbKXVVKsm9YlFiyxzxO-CpIX_qzWQ9oNBQUVS4lQD2hjjZ4cj8uLKk4s6roQdTEUHbdqnJWM0xmJTIDI1DV5gKLgK9cdtMA8o4oo6c"
+      "id": "cmo_04d845086bc20e96006a531b361b0881919ec11345a8b780ec",
+      "type": "program_output",
+      "status": "completed",
+      "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+      "result": "{\"available_units\":42,\"sku\":\"sku_123\"}"
     },
     {
-      "id": "fc_072cedf0ba9a2aca006a515add29ec81a28e546921b9875043",
-      "type": "function_call",
-      "status": "in_progress",
-      "arguments": "{\"sku\":\"sku_123\"}",
-      "call_id": "call_hQGuTqkc8PYN5QV8r7MtXHpa",
-      "caller": {
-        "type": "program",
-        "caller_id": "call_cBShHma4G4sNYAZkZgWqDtZa"
-      },
-      "name": "get_inventory"
+      "id": "msg_04d845086bc20e96006a531b385694819195e970cd84f198b1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data available to compare against inventory. Share the demand figure or forecast (and its time period), and I can assess coverage or potential stock risk."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
     }
   ],
   "parallel_tool_calls": true,
@@ -135,18 +138,18 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 622,
+    "input_tokens": 674,
     "input_tokens_details": {
       "cache_write_tokens": 0,
       "cached_tokens": 0
     },
-    "output_tokens": 28,
+    "output_tokens": 51,
     "output_tokens_details": {
       "reasoning_tokens": 0
     },
-    "total_tokens": 650
+    "total_tokens": 725
   },
   "user": null,
   "metadata": {},
-  "output_text": ""
+  "output_text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data available to compare against inventory. Share the demand figure or forecast (and its time period), and I can assess coverage or potential stock risk."
 }

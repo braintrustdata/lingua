@@ -725,57 +725,6 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
-  responsesProgrammaticToolCallingContinuationParam: {
-    "chat-completions": null,
-    responses: {
-      model: OPENAI_RESPONSES_MODEL,
-      store: false,
-      input: [
-        {
-          role: "user",
-          content: "Compare inventory and demand for sku_123.",
-        },
-        {
-          type: "program",
-          id: "cm_prog_123",
-          call_id: "call_prog_123",
-          code: "const stock = await tools.get_inventory({ sku: 'sku_123' }); text(JSON.stringify(stock));",
-          fingerprint: "program_fingerprint_123",
-        },
-        {
-          type: "function_call",
-          id: "fc_123",
-          call_id: "call_inventory_123",
-          name: "get_inventory",
-          arguments: '{"sku":"sku_123"}',
-          caller: {
-            type: "program",
-            caller_id: "call_prog_123",
-          },
-        },
-        {
-          type: "function_call_output",
-          call_id: "call_inventory_123",
-          output: '{"sku":"sku_123","available_units":42}',
-          caller: {
-            type: "program",
-            caller_id: "call_prog_123",
-          },
-        },
-        {
-          type: "program_output",
-          id: "cmo_prog_out_123",
-          call_id: "call_prog_123",
-          result: '{"sku":"sku_123","available_units":42}',
-          status: "completed",
-        },
-      ],
-    },
-    anthropic: null,
-    google: null,
-    bedrock: null,
-  },
-
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

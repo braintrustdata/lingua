@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_072cedf0ba9a2aca006a515adc4d3481a2ababf8fa19d468f7",
+      "id": "resp_04d845086bc20e96006a531b33f07c8191a2480fe1a9529428",
       "object": "response",
-      "created_at": 1783716572,
+      "created_at": 1783831347,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -123,9 +123,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_072cedf0ba9a2aca006a515adc4d3481a2ababf8fa19d468f7",
+      "id": "resp_04d845086bc20e96006a531b33f07c8191a2480fe1a9529428",
       "object": "response",
-      "created_at": 1783716572,
+      "created_at": 1783831347,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -244,11 +244,11 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "cm_072cedf0ba9a2aca006a515add074881a291c72791adccc8ae",
-      "type": "program",
-      "call_id": "call_mg79oA32jG8UQk3iNJDceKfI",
-      "code": "",
-      "fingerprint": "gAAAAABqUVrd0zlPmM3kDAPrOc_bAYNWK7htI0eUd6H8YilqzOcG5ikPQJEA3Zw59DhSRNbl3h3v33CAkMFlhMoZ5KqzyQlD-7QM-z_z9h7qQLTY6JmSnsMx2xuB0HSYbh1pcJIwUtcL9FLhCDp6Tc58UlvvR6G8XBj8VTya5B_W6T1aoGcBDtwXSNxk54_eu0aJAiL94fhFkkRQyl5cIK4wKrHTdQU8NA=="
+      "id": "cmo_04d845086bc20e96006a531b3622d48191a8350d56555751d3",
+      "type": "program_output",
+      "status": "completed",
+      "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+      "result": ""
     },
     "output_index": 0,
     "sequence_number": 2
@@ -256,11 +256,11 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "cm_072cedf0ba9a2aca006a515add074881a291c72791adccc8ae",
-      "type": "program",
-      "call_id": "call_mg79oA32jG8UQk3iNJDceKfI",
-      "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
-      "fingerprint": "gAAAAABqUVrdQ3o3VXeJp-PZfXfxfBuiYtKoZsdUe-fmw9n2kiIshRPWq85H3uE5ggKo8v0lLhlRMzoH7KcoIzcLNHQjQa4z1LcPK6bWg8ToEPnHuzJ94D_fHUm80w0U-0kb5QCYaT3tb4C_b44jiRycVYuNNuvc_GAvDLObEIzs5hbG9WHLy0b9VGPWhfU6I0cNn4xYlm30bl6leuUOHUrPwJheY0AxPoBWh3xnsroo9WBwYwvgUThoKZVrtrqPckaA8yGnqk-vUPDi7m73ZIff2_pENuBTQPZSa-efI-1j0j6XHPFEeooTVJvzVOjuFygc5uukoYrU"
+      "id": "cmo_04d845086bc20e96006a531b3622d48191a8350d56555751d3",
+      "type": "program_output",
+      "status": "completed",
+      "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+      "result": "{\"available_units\":42,\"sku\":\"sku_123\"}"
     },
     "output_index": 0,
     "sequence_number": 3
@@ -268,61 +268,430 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "fc_072cedf0ba9a2aca006a515add186481a292f8d3b74cc1dd7d",
-      "type": "function_call",
+      "id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+      "type": "message",
       "status": "in_progress",
-      "arguments": "",
-      "call_id": "call_7k4o1lMW6jG1lIeS5k5NRFah",
-      "caller": {
-        "type": "program",
-        "caller_id": "call_mg79oA32jG8UQk3iNJDceKfI"
-      },
-      "name": "get_inventory"
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
     },
     "output_index": 1,
     "sequence_number": 4
   },
   {
-    "type": "response.function_call_arguments.delta",
-    "delta": "{\"sku\":\"sku_123\"}",
-    "item_id": "fc_072cedf0ba9a2aca006a515add186481a292f8d3b74cc1dd7d",
-    "obfuscation": "epVhkInLjUmn2jk",
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
     "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
     "sequence_number": 5
   },
   {
-    "type": "response.function_call_arguments.done",
-    "arguments": "{\"sku\":\"sku_123\"}",
-    "item_id": "fc_072cedf0ba9a2aca006a515add186481a292f8d3b74cc1dd7d",
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "SKU",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "l58xHmImD8jo0",
     "output_index": 1,
     "sequence_number": 6
   },
   {
-    "type": "response.output_item.done",
-    "item": {
-      "id": "fc_072cedf0ba9a2aca006a515add186481a292f8d3b74cc1dd7d",
-      "type": "function_call",
-      "status": "in_progress",
-      "arguments": "{\"sku\":\"sku_123\"}",
-      "call_id": "call_7k4o1lMW6jG1lIeS5k5NRFah",
-      "caller": {
-        "type": "program",
-        "caller_id": "call_mg79oA32jG8UQk3iNJDceKfI"
-      },
-      "name": "get_inventory"
-    },
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " `",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "n2RoJk3xvpZqTs",
     "output_index": 1,
     "sequence_number": 7
   },
   {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "sku",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "jU5i6MDtAzhv7",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "_",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "M1SaFA518jw3jIp",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "123",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "UFFzsfCECscDp",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "`",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "WCeLcqljKtH0Laq",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " has",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "X6WElfgJtAog",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " **",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "gT2cedLjvKT2X",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "42",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "eMb39ninTcVI1q",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " units",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "I9H5OTn00j",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " available",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "J0fFlg",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "**",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "qQ8Ls6fubos15p",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".\n\n",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "Btc1DTHmUbAw9",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "I",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "ttkqJH4t9sUiqPR",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " don",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "1FJRzm5abnkA",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’t",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "gniKbmXua98uLS",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " have",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "IzhOPdh3JPO",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " demand",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "dfwqUJIKK",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " data",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "nntmCYKR4h3",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " for",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "61XBVjCkEGki",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " this",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "tTzAbFtFGFN",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " SKU",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "CB5u6JAKFo6R",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "auNhXqLazv7CPgm",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " so",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "rWvFQry42PY4u",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " I",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "L8R4YWkznWDEYg",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " can",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "giuWmPPKVwE1",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’t",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "UMLew9JG5Mb6RL",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " complete",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "4GJ9ldS",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " a",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "MxXX4IPOSQScYd",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " supply",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "sgjyNA1Je",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-vers",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "8ohLOTf0vwr",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "us",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "WlRvKHRCPWusql",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "-demand",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "Q34PHgpIv",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " comparison",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "zywfr",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "obfuscation": "5jMEk58MJi3Ttf7",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 41,
+    "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data for this SKU, so I can’t complete a supply-versus-demand comparison."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data for this SKU, so I can’t complete a supply-versus-demand comparison."
+    },
+    "sequence_number": 42
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data for this SKU, so I can’t complete a supply-versus-demand comparison."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
     "type": "response.completed",
     "response": {
-      "id": "resp_072cedf0ba9a2aca006a515adc4d3481a2ababf8fa19d468f7",
+      "id": "resp_04d845086bc20e96006a531b33f07c8191a2480fe1a9529428",
       "object": "response",
-      "created_at": 1783716572,
+      "created_at": 1783831347,
       "status": "completed",
       "background": false,
-      "completed_at": 1783716573,
+      "completed_at": 1783831350,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -333,23 +702,26 @@
       "moderation": null,
       "output": [
         {
-          "id": "cm_072cedf0ba9a2aca006a515add074881a291c72791adccc8ae",
-          "type": "program",
-          "call_id": "call_mg79oA32jG8UQk3iNJDceKfI",
-          "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
-          "fingerprint": "gAAAAABqUVrdo9DM5bKOPPa2_lX6ZujPfentMDFG2vHDWKYRENDJ3rlBtX1AeH3cFLoW1IuuMSjGmMHOG6VuawZeMg8mNhS6_o3KOSjQCyKZPGN8Ca9LabOUhMc6mbUXdDzO92MVoLdCJfpjO7HPCBg8xuiDie4dQEj3Uxq0ZIQzgcXFQ52uLZLrBJETxz_TM037Cze67Hst_g4-RTIyGwpi2kcnWBaAnDryOkEC2EmuIPXTtzOB9yxl61MJkaFgMmmFG2bvHlM7F2A84dYi8cNPTyOQJdsIdz9xPDxuKfNK24Yh1GTbCJMV1sYstQeZQcqi6XN6nsTe"
+          "id": "cmo_04d845086bc20e96006a531b3622d48191a8350d56555751d3",
+          "type": "program_output",
+          "status": "completed",
+          "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+          "result": "{\"available_units\":42,\"sku\":\"sku_123\"}"
         },
         {
-          "id": "fc_072cedf0ba9a2aca006a515add186481a292f8d3b74cc1dd7d",
-          "type": "function_call",
-          "status": "in_progress",
-          "arguments": "{\"sku\":\"sku_123\"}",
-          "call_id": "call_7k4o1lMW6jG1lIeS5k5NRFah",
-          "caller": {
-            "type": "program",
-            "caller_id": "call_mg79oA32jG8UQk3iNJDceKfI"
-          },
-          "name": "get_inventory"
+          "id": "msg_04d845086bc20e96006a531b369ba0819196da80f5ca68dd28",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data for this SKU, so I can’t complete a supply-versus-demand comparison."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
         }
       ],
       "parallel_tool_calls": true,
@@ -450,20 +822,20 @@
       "top_p": 0.98,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 622,
+        "input_tokens": 674,
         "input_tokens_details": {
           "cache_write_tokens": 0,
           "cached_tokens": 0
         },
-        "output_tokens": 28,
+        "output_tokens": 39,
         "output_tokens_details": {
           "reasoning_tokens": 0
         },
-        "total_tokens": 650
+        "total_tokens": 713
       },
       "user": null,
       "metadata": {}
     },
-    "sequence_number": 8
+    "sequence_number": 44
   }
 ]

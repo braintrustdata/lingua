@@ -572,6 +572,7 @@ fn provider_options_from_openai_tool_call(
     namespace: Option<String>,
     status: Option<openai::FunctionCallItemStatus>,
 ) -> Result<Option<ProviderOptions>, ConvertError> {
+    let status = status.filter(|status| *status != openai::FunctionCallItemStatus::Completed);
     if namespace.is_none() && status.is_none() {
         return Ok(None);
     }

@@ -55,6 +55,8 @@ function isReplayableResponseOutputItem(
     case "computer_call":
     case "web_search_call":
     case "function_call":
+    case "program":
+    case "program_output":
     case "reasoning":
     case "code_interpreter_call":
     case "local_shell_call":
@@ -212,6 +214,7 @@ export async function executeOpenAIResponses(
             type: "function_call_output",
             call_id: message.call_id,
             output,
+            ...(message.caller ? { caller: message.caller } : {}),
           });
         }
       }

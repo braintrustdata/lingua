@@ -1103,27 +1103,27 @@
       ]
     },
     {
-      "testCase": "responsesProgrammaticToolCallingContinuationParam",
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
       "source": "Responses",
-      "target": "*",
-      "fields": [
-        { "pattern": "messages[*].content[*].code", "reason": "OpenAI Responses program items have no non-Responses provider equivalent and degrade to text" },
-        { "pattern": "messages[*].content[*].id", "reason": "OpenAI Responses program item ids have no non-Responses provider equivalent" },
-        { "pattern": "messages[*].content[*].fingerprint", "reason": "OpenAI Responses program fingerprints have no non-Responses provider equivalent" },
-        { "pattern": "messages[*].content[*].call_id", "reason": "OpenAI Responses program call ids have no non-Responses provider equivalent" },
-        { "pattern": "messages[*].content[*].caller", "reason": "OpenAI Responses programmatic tool callers have no non-Responses provider equivalent" },
-        { "pattern": "messages[*].content[*].status", "reason": "OpenAI Responses program output status has no non-Responses provider equivalent" },
-        { "pattern": "messages[*].content[*].result", "reason": "OpenAI Responses program output result is represented as provider text outside Responses" },
-        { "pattern": "messages[*].content[*].text", "reason": "OpenAI Responses program/program_output items degrade to text outside Responses" },
-        { "pattern": "messages[*].content[*].type", "reason": "OpenAI Responses program/program_output item types degrade to text outside Responses" }
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Anthropic request conversion cannot represent OpenAI Responses custom tools" }
       ]
     },
     {
       "testCase": "responsesProgrammaticToolCallingToolsParam",
       "source": "Responses",
-      "target": "Anthropic",
+      "target": "Bedrock Anthropic",
       "errors": [
-        { "pattern": "unknown variant `programmatic`", "reason": "Anthropic allowed_callers only supports direct/code-execution callers; OpenAI programmatic callers have no Anthropic equivalent yet" }
+        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Bedrock Anthropic request conversion cannot represent OpenAI Responses custom tools" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "errors": [
+        { "pattern": "Tool 'write_short_note' of type 'custom' is not supported by anthropic", "reason": "Vertex Anthropic request conversion cannot represent OpenAI Responses custom tools" }
       ]
     }
   ]

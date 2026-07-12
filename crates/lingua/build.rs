@@ -43,7 +43,6 @@ const RESPONSES_ROUNDTRIP_SKIP_CASES: &[&str] = &[
     "responsesAdditionalToolsParam",
     "responsesGpt56PromptCacheOptionsParam",
     "responsesGpt56ReasoningMaxProContextParam",
-    "responsesProgrammaticToolCallingContinuationParam",
     "responsesProgrammaticToolCallingToolsParam",
 ];
 
