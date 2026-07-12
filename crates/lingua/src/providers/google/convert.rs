@@ -316,6 +316,8 @@ impl TryFromLLM<GoogleContent> for Message {
                                 arguments: ToolCallArguments::from(args_string),
                                 encrypted_content,
                                 provider_options: None,
+                                status: None,
+                                caller: None,
                                 provider_executed: None,
                             });
                         }
@@ -411,6 +413,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 tool_name: tool_name.clone(),
                                 output,
                                 custom_tool_call: None,
+                                caller: None,
                                 provider_options: None,
                             }));
                         }
@@ -878,6 +881,20 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => {
+                if tool.allowed_callers.is_some() {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: tool.name.clone(),
+                        tool_type: "allowed_callers".to_string(),
+                        target_provider: ProviderFormat::Google,
+                    });
+                }
+                if tool.output_schema.is_some() {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: tool.name.clone(),
+                        tool_type: "output_schema".to_string(),
+                        target_provider: ProviderFormat::Google,
+                    });
+                }
                 // Strip JSON Schema keywords unsupported by Google's Schema proto (e.g.
                 // `exclusiveMinimum`) before embedding the schema in the declaration.
                 let parameters_json_schema = tool.parameters.clone().map(|mut p| {
@@ -1537,6 +1554,8 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
                 encrypted_content: None,
                 provider_options: None,
+                status: None,
+                caller: None,
                 provider_executed: None,
             }]),
             id: None,
@@ -1689,6 +1708,41 @@ mod tests {
         assert_eq!(decl.name, Some("get_weather".to_string()));
         assert_eq!(decl.description, Some("Get weather info".to_string()));
         assert!(decl.parameters_json_schema.is_some());
+    }
+
+    #[test]
+    fn test_function_declaration_rejects_responses_tool_metadata() {
+        let mut tool = UniversalTool::function(
+            "get_inventory",
+            Some("Get inventory".to_string()),
+            Some(json!({"type": "object", "properties": {}})),
+            None,
+        );
+        tool.allowed_callers = Some(vec![
+            crate::universal::tools::UniversalToolCaller::Programmatic,
+        ]);
+
+        let err = FunctionDeclaration::try_from(&tool).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::Google,
+                ..
+            } if tool_type == "allowed_callers"
+        ));
+
+        tool.allowed_callers = None;
+        tool.output_schema = Some(json!({"type": "object"}));
+        let err = FunctionDeclaration::try_from(&tool).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::Google,
+                ..
+            } if tool_type == "output_schema"
+        ));
     }
 
     #[test]

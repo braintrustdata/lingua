@@ -114,6 +114,7 @@ pub struct OpenAIResponsesParams {
     // === Output control ===
     pub max_output_tokens: Option<i64>,
     pub top_logprobs: Option<i64>,
+    pub include: Option<Value>,
 
     // === Tools and function calling ===
     pub tools: Option<Value>,
@@ -131,6 +132,9 @@ pub struct OpenAIResponsesParams {
 
     // === Context management ===
     pub truncation: Option<Value>,
+    pub previous_response_id: Option<String>,
+    pub prompt_cache_options: Option<Value>,
+    pub prompt_cache_retention: Option<Value>,
 
     // === Metadata and identification ===
     pub metadata: Option<Value>,
@@ -186,6 +190,7 @@ pub enum OpenAICompletionPrompt {
 pub struct OpenAIResponsesExtrasView {
     pub instructions: Option<String>,
     pub input: Option<Value>,
+    pub include: Option<Value>,
     pub temperature: Option<Value>,
     pub top_p: Option<Value>,
     pub max_output_tokens: Option<Value>,
@@ -197,6 +202,9 @@ pub struct OpenAIResponsesExtrasView {
     pub reasoning: Option<Value>,
     pub parallel_tool_calls: Option<Value>,
     pub metadata: Option<Value>,
+    pub previous_response_id: Option<Value>,
+    pub prompt_cache_options: Option<Value>,
+    pub prompt_cache_retention: Option<Value>,
     pub store: Option<Value>,
     pub service_tier: Option<Value>,
     pub moderation: Option<Value>,
@@ -215,13 +223,21 @@ pub enum OpenAIReasoningEffort {
     Medium,
     High,
     Xhigh,
+    Max,
 }
 
 /// Typed OpenAI Responses reasoning parameter view.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OpenAIReasoning {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<OpenAIReasoningEffort>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
 }
 
@@ -344,6 +360,28 @@ mod tests {
             params.reasoning.and_then(|r| r.effort),
             Some(OpenAIReasoningEffort::None)
         );
+
+        let responses = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {"effort": "max", "mode": "pro", "context": "all_turns"},
+            "include": ["reasoning.encrypted_content"],
+            "previous_response_id": "resp_123",
+            "prompt_cache_options": {"mode": "explicit", "ttl": "1h"},
+            "prompt_cache_retention": "24h"
+        });
+        let params: OpenAIResponsesParams = serde_json::from_value(responses).unwrap();
+        let reasoning = params.reasoning.unwrap();
+        assert_eq!(reasoning.effort, Some(OpenAIReasoningEffort::Max));
+        assert_eq!(reasoning.mode, Some(json!("pro")));
+        assert_eq!(reasoning.context, Some(json!("all_turns")));
+        assert_eq!(params.include, Some(json!(["reasoning.encrypted_content"])));
+        assert_eq!(params.previous_response_id, Some("resp_123".to_string()));
+        assert_eq!(
+            params.prompt_cache_options,
+            Some(json!({"mode": "explicit", "ttl": "1h"}))
+        );
+        assert_eq!(params.prompt_cache_retention, Some(json!("24h")));
     }
 
     #[test]

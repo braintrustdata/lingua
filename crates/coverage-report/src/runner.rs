@@ -207,12 +207,36 @@ pub fn test_request_transformation(
             );
             diff_to_transform_result(roundtrip_result)
         }
-        Err(e) => TransformResult {
-            level: ValidationLevel::Fail,
-            error: Some(format!("Conversion from universal format failed: {}", e)),
-            diff: None,
-            limitation_reason: None,
-        },
+        Err(e) => {
+            let error_msg = format!("Conversion from universal format failed: {}", e);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Requests,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
+            });
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
+            };
+
+            TransformResult {
+                level,
+                error: Some(error_msg),
+                diff: None,
+                limitation_reason: reason.map(|r| r.to_string()),
+            }
+        }
     }
 }
 
@@ -249,14 +273,35 @@ pub fn test_response_transformation(
     let expected_universal = match source_adapter.response_to_universal(payload_value) {
         Ok(u) => u,
         Err(e) => {
+            let error_msg =
+                truncate_error(format!("Conversion to universal format failed: {}", e), 500);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Responses,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
+            });
+
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
+            };
+
             return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(truncate_error(
-                    format!("Conversion to universal format failed: {}", e),
-                    500,
-                )),
+                level,
+                error: Some(error_msg),
                 diff: None,
-                limitation_reason: None,
+                limitation_reason: reason.map(|r| r.to_string()),
             };
         }
     };
@@ -273,16 +318,14 @@ pub fn test_response_transformation(
                 target_adapter,
                 test_case,
             );
-            let reason = context.as_ref().and_then(|ctx| {
-                ctx.is_test_case_limitation().or_else(|| {
-                    is_expected_error(
-                        ctx.category,
-                        ctx.source,
-                        ctx.target,
-                        Some(ctx.test_case),
-                        &error_msg,
-                    )
-                })
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
             });
 
             let level = if reason.is_some() {
@@ -324,16 +367,41 @@ pub fn test_response_transformation(
             let roundtrip_result = compare_values(
                 &expected_universal_value,
                 &target_universal_value,
-                context.as_ref(),
+                Some(&context),
             );
             diff_to_transform_result(roundtrip_result)
         }
-        Err(e) => TransformResult {
-            level: ValidationLevel::Fail,
-            error: Some(format!("Conversion from universal format failed: {}", e)),
-            diff: None,
-            limitation_reason: None,
-        },
+        Err(e) => {
+            let error_msg = format!("Conversion from universal format failed: {}", e);
+            let context = CompareContext::for_cross_provider(
+                TestCategory::Responses,
+                source_adapter,
+                target_adapter,
+                test_case,
+            );
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
+            });
+
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
+            };
+
+            TransformResult {
+                level,
+                error: Some(error_msg),
+                diff: None,
+                limitation_reason: reason.map(|r| r.to_string()),
+            }
+        }
     }
 }
 
@@ -414,18 +482,39 @@ fn test_single_stream_event(
     target_adapter: &dyn ProviderAdapter,
     test_case: &str,
 ) -> TransformResult {
+    let context = CompareContext::for_cross_provider(
+        TestCategory::Streaming,
+        source_adapter,
+        target_adapter,
+        test_case,
+    );
+
     let source_universal = match source_adapter.stream_to_universal(event.clone()) {
         Ok(u) => u,
         Err(e) => {
+            let error_msg =
+                truncate_error(format!("Conversion to universal format failed: {}", e), 500);
+            let reason = context.is_test_case_limitation().or_else(|| {
+                is_expected_error(
+                    context.category,
+                    context.source,
+                    context.target,
+                    Some(context.test_case),
+                    &error_msg,
+                )
+            });
+            let level = if reason.is_some() {
+                ValidationLevel::Limitation
+            } else {
+                ValidationLevel::Fail
+            };
+
             return TransformResult {
-                level: ValidationLevel::Fail,
-                error: Some(truncate_error(
-                    format!("Conversion to universal format failed: {}", e),
-                    500,
-                )),
+                level,
+                error: Some(error_msg),
                 diff: None,
-                limitation_reason: None,
-            }
+                limitation_reason: reason.map(|r| r.to_string()),
+            };
         }
     };
 
@@ -434,11 +523,27 @@ fn test_single_stream_event(
             let provider_value = match target_adapter.stream_from_universal(chunk) {
                 Ok(v) => v,
                 Err(e) => {
+                    let error_msg = format!("Conversion from universal failed: {}", e);
+                    let reason = context.is_test_case_limitation().or_else(|| {
+                        is_expected_error(
+                            context.category,
+                            context.source,
+                            context.target,
+                            Some(context.test_case),
+                            &error_msg,
+                        )
+                    });
+                    let level = if reason.is_some() {
+                        ValidationLevel::Limitation
+                    } else {
+                        ValidationLevel::Fail
+                    };
+
                     return TransformResult {
-                        level: ValidationLevel::Fail,
-                        error: Some(format!("Conversion from universal failed: {}", e)),
+                        level,
+                        error: Some(error_msg),
                         diff: None,
-                        limitation_reason: None,
+                        limitation_reason: reason.map(|r| r.to_string()),
                     };
                 }
             };
@@ -465,11 +570,27 @@ fn test_single_stream_event(
                     Ok(Some(chunk)) => target_chunks.push(chunk),
                     Ok(None) => {}
                     Err(e) => {
+                        let error_msg = format!("Conversion from universal format failed: {}", e);
+                        let reason = context.is_test_case_limitation().or_else(|| {
+                            is_expected_error(
+                                context.category,
+                                context.source,
+                                context.target,
+                                Some(context.test_case),
+                                &error_msg,
+                            )
+                        });
+                        let level = if reason.is_some() {
+                            ValidationLevel::Limitation
+                        } else {
+                            ValidationLevel::Fail
+                        };
+
                         return TransformResult {
-                            level: ValidationLevel::Fail,
-                            error: Some(format!("Conversion from universal format failed: {}", e)),
+                            level,
+                            error: Some(error_msg),
                             diff: None,
-                            limitation_reason: None,
+                            limitation_reason: reason.map(|r| r.to_string()),
                         };
                     }
                 }
@@ -482,13 +603,6 @@ fn test_single_stream_event(
         }
     };
 
-    let context = CompareContext::for_cross_provider(
-        TestCategory::Streaming,
-        source_adapter,
-        target_adapter,
-        test_case,
-    );
-
     match (source_universal, target_universal) {
         (None, None) => TransformResult {
             level: ValidationLevel::Pass,
@@ -499,7 +613,7 @@ fn test_single_stream_event(
         (Some(source_chunk), Some(target_chunk)) => {
             let source_value = universal_stream_to_value(&source_chunk);
             let target_value = universal_stream_to_value(&target_chunk);
-            let roundtrip_result = compare_values(&source_value, &target_value, context.as_ref());
+            let roundtrip_result = compare_values(&source_value, &target_value, Some(&context));
             diff_to_transform_result(roundtrip_result)
         }
         (source, target) => {
@@ -511,7 +625,7 @@ fn test_single_stream_event(
                 .as_ref()
                 .map(universal_stream_to_value)
                 .unwrap_or(Value::Null);
-            let roundtrip_result = compare_values(&source_value, &target_value, context.as_ref());
+            let roundtrip_result = compare_values(&source_value, &target_value, Some(&context));
             diff_to_transform_result(roundtrip_result)
         }
     }
@@ -981,26 +1095,24 @@ impl<'a> CompareContext<'a> {
         )
     }
 
-    /// Create context for cross-provider comparison, or None for roundtrip tests.
-    /// Roundtrip tests (source == target) don't use expected differences because
-    /// any data loss in Format→Universal→Format is a real bug, not a "limitation".
+    /// Create context for cross-provider comparison. Same-provider roundtrips
+    /// only use narrow per-test-case rules, not broad global expected
+    /// differences.
     fn for_cross_provider(
         category: TestCategory,
         source_adapter: &'a dyn ProviderAdapter,
         target_adapter: &'a dyn ProviderAdapter,
         test_case: &'a str,
-    ) -> Option<Self> {
-        if source_adapter.format() == target_adapter.format() {
-            None
-        } else {
-            Some(Self::new(
-                category,
-                source_adapter.display_name(),
-                target_adapter.display_name(),
-                test_case,
-                true,
-            ))
-        }
+    ) -> Self {
+        let include_global_expected_differences =
+            source_adapter.format() != target_adapter.format();
+        Self::new(
+            category,
+            source_adapter.display_name(),
+            target_adapter.display_name(),
+            test_case,
+            include_global_expected_differences,
+        )
     }
 
     /// Check if this entire test case is an expected limitation.

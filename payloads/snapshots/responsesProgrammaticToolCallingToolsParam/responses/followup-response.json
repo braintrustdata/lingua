@@ -1,0 +1,155 @@
+{
+  "id": "resp_04d845086bc20e96006a531b33eda08191aeff0752035409de",
+  "object": "response",
+  "created_at": 1783831347,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1783831353,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "cmo_04d845086bc20e96006a531b361b0881919ec11345a8b780ec",
+      "type": "program_output",
+      "status": "completed",
+      "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+      "result": "{\"available_units\":42,\"sku\":\"sku_123\"}"
+    },
+    {
+      "id": "msg_04d845086bc20e96006a531b385694819195e970cd84f198b1",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data available to compare against inventory. Share the demand figure or forecast (and its time period), and I can assess coverage or potential stock risk."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [
+    {
+      "type": "programmatic_tool_calling"
+    },
+    {
+      "type": "function",
+      "allowed_callers": [
+        "programmatic"
+      ],
+      "description": "Return inventory details for a SKU.",
+      "name": "get_inventory",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "available_units": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "available_units"
+        ],
+        "additionalProperties": false
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "type": "custom",
+      "allowed_callers": [
+        "direct",
+        "programmatic"
+      ],
+      "description": "Write a compact plain-text note.",
+      "format": {
+        "type": "text"
+      },
+      "name": "write_short_note"
+    }
+  ],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 674,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 51,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 725
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "SKU `sku_123` has **42 units available**.\n\nI don’t have demand data available to compare against inventory. Share the demand figure or forecast (and its time period), and I can assess coverage or potential stock risk."
+}

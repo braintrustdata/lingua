@@ -1,0 +1,42 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Review this rollout checklist for the highest-risk issue."
+    },
+    {
+      "id": "rs_0e903b86e7e03ec5006a515ae9890c819e87682384f612e262",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0e903b86e7e03ec5006a515ae98aa4819eb6b1a3475e223630",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Please paste or upload the rollout checklist. I don’t see it in your message.\n\nI’ll identify the single highest-risk gap based on factors such as:\n\n- irreversible or poorly tested data migrations\n- missing rollback/restore path\n- lack of staged rollout or blast-radius controls\n- unverified monitoring, alerting, and ownership\n- authentication/authorization or security-impacting changes\n- dependency, capacity, or failover assumptions\n- unclear go/no-go and incident-response criteria\n\nIf relevant, include the system type, expected traffic/blast radius, and whether the release includes schema or data changes."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "max",
+    "mode": "pro",
+    "context": "all_turns"
+  },
+  "text": {
+    "verbosity": "high"
+  }
+}
