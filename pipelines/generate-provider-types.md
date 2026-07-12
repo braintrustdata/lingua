@@ -22,6 +22,8 @@ Use `--headless` in automation:
 
 The script downloads the current specification, runs `generate-types`, formats the generated Rust, and verifies that the workspace builds.
 
+Run `pnpm install` once after cloning. Lingua pins quicktype in `tools/quicktype/package.json` and applies the temporary upstream fix from `patches/quicktype-core@24.0.2.patch`; no global quicktype installation is used.
+
 ## OpenAI generation
 
 OpenAI types are generated with quicktype from `specs/openai/openapi.yml`.

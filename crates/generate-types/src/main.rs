@@ -3,10 +3,36 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 
 use big_serde_json as serde_json;
+use std::path::PathBuf;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
 mod schema_converter;
 mod tool_generator;
+
+fn quicktype_binary() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    if let Some(binary) = std::env::var_os("LINGUA_QUICKTYPE_BIN") {
+        return Ok(PathBuf::from(binary));
+    }
+
+    let binary_name = if cfg!(windows) {
+        "quicktype.cmd"
+    } else {
+        "quicktype"
+    };
+    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../tools/quicktype/node_modules/.bin")
+        .join(binary_name);
+
+    if binary.is_file() {
+        return Ok(binary);
+    }
+
+    Err(format!(
+        "Lingua's pinned quicktype binary is missing at {}. Run `pnpm install` from the repository root",
+        binary.display()
+    )
+    .into())
+}
 
 fn main() {
     if let Err(error) = run() {
@@ -146,7 +172,6 @@ fn generate_openai_types_with_quicktype(
     // Extract essential OpenAI schemas for chat completions
     let mut essential_schemas = create_essential_openai_schemas(&spec);
     normalize_openai_schemas_for_quicktype(&mut essential_schemas)?;
-
     println!("🏗️  Generating OpenAI types with quicktype...");
 
     // Create a temporary JSON schema file for quicktype
@@ -157,7 +182,7 @@ fn generate_openai_types_with_quicktype(
     )?;
 
     // Use quicktype to generate types
-    let output = std::process::Command::new("quicktype")
+    let output = std::process::Command::new(quicktype_binary()?)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
@@ -744,7 +769,7 @@ fn generate_anthropic_types_with_quicktype(
     std::fs::write(&temp_schema_path, &schema_json)?;
 
     // Use quicktype to generate types - specify just one main type to avoid merging
-    let output = std::process::Command::new("quicktype")
+    let output = std::process::Command::new(quicktype_binary()?)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
@@ -1917,7 +1942,14 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
         serde_json::to_string_pretty(&essential_schemas).expect("Failed to serialize schemas");
     std::fs::write(&temp_schema_path, &schema_json).expect("Failed to write temp schema");
 
-    let output = std::process::Command::new("quicktype")
+    let quicktype = match quicktype_binary() {
+        Ok(binary) => binary,
+        Err(error) => {
+            println!("❌ Failed to locate quicktype: {error}");
+            return;
+        }
+    };
+    let output = std::process::Command::new(quicktype)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
