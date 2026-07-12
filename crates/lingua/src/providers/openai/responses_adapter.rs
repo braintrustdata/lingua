@@ -34,7 +34,8 @@ use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
     ConversationReference, ConversationReferenceType, FinishReason, TokenBudget, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
+    PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -248,7 +249,7 @@ struct ResponsesOutputItemAddedEvent {
     output_index: Option<u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[serde(tag = "type")]
 enum ResponsesOutputItemAddedItem {
     #[serde(rename = "function_call")]
@@ -262,13 +263,8 @@ enum ResponsesOutputItemAddedItem {
         name: Option<String>,
     },
     #[serde(other)]
+    #[default]
     Other,
-}
-
-impl Default for ResponsesOutputItemAddedItem {
-    fn default() -> Self {
-        Self::Other
-    }
 }
 
 impl ResponsesOutputItemAddedItem {
@@ -315,15 +311,15 @@ fn responses_tool_call_start_chunk(
             delta: Some(serde_json::json!({
                 "role": "assistant",
                 "content": Value::Null,
-                "tool_calls": [{
-                    "index": output_index,
-                    "id": call_id,
-                    "type": "function",
-                    "custom_tool_call": custom_tool_call,
-                    "function": {
-                        "name": name,
-                        "arguments": ""
-                    }
+                "tool_calls": [UniversalToolCallDelta {
+                    index: Some(output_index),
+                    id: Some(call_id.to_string()),
+                    call_type: Some("function".to_string()),
+                    custom_tool_call: custom_tool_call.then_some(true),
+                    function: Some(UniversalToolFunctionDelta {
+                        name: Some(name.to_string()),
+                        arguments: Some(String::new()),
+                    }),
                 }]
             })),
             finish_reason: None,
@@ -344,12 +340,15 @@ fn responses_tool_call_arguments_delta_chunk(
         vec![UniversalStreamChoice {
             index: 0,
             delta: Some(serde_json::json!({
-                "tool_calls": [{
-                    "index": output_index,
-                    "custom_tool_call": custom_tool_call,
-                    "function": {
-                        "arguments": arguments
-                    }
+                "tool_calls": [UniversalToolCallDelta {
+                    index: Some(output_index),
+                    id: None,
+                    call_type: None,
+                    custom_tool_call: custom_tool_call.then_some(true),
+                    function: Some(UniversalToolFunctionDelta {
+                        name: None,
+                        arguments: Some(arguments),
+                    }),
                 }]
             })),
             finish_reason: None,
