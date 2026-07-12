@@ -756,6 +756,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                 .into(),
                                             encrypted_content: None,
                                             provider_options,
+                                            status: None,
                                             caller: None,
                                             provider_executed: None,
                                         });
@@ -799,6 +800,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                     .into(),
                                                 encrypted_content: None,
                                                 provider_options,
+                                                status: None,
                                                 caller: None,
                                                 provider_executed: Some(true), // Mark as server-executed
                                             });
@@ -1913,6 +1915,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                 .into(),
                             encrypted_content: None,
                             provider_options,
+                            status: None,
                             caller: None,
                             provider_executed: None,
                         });
@@ -1951,6 +1954,7 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
                                     .into(),
                                 encrypted_content: None,
                                 provider_options,
+                                status: None,
                                 caller: None,
                                 provider_executed: Some(true), // Mark as server-executed
                             });
@@ -3048,6 +3052,7 @@ mod tests {
                         arguments: ToolCallArguments::from("{}".to_string()),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: None,
                     },

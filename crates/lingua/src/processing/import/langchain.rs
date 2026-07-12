@@ -326,6 +326,7 @@ fn convert_tool_call(tool_call: LangChainToolCallCompat) -> AssistantContentPart
             caller: None,
             encrypted_content: None,
             provider_options: None,
+            status: None,
             provider_executed: None,
         },
         LangChainToolCallCompat::OpenAi(openai) => AssistantContentPart::ToolCall {
@@ -335,6 +336,7 @@ fn convert_tool_call(tool_call: LangChainToolCallCompat) -> AssistantContentPart
             caller: None,
             encrypted_content: None,
             provider_options: None,
+            status: None,
             provider_executed: None,
         },
     }
@@ -371,6 +373,7 @@ fn parse_assistant_content(
                                 caller: None,
                                 encrypted_content: None,
                                 provider_options: None,
+                                status: None,
                                 provider_executed: None,
                             });
                         }

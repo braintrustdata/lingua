@@ -160,12 +160,14 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         tool_call_id,
                         tool_name,
                         arguments,
+                        status,
                         caller,
                         ..
                     } => {
                         "tool_call".hash(hasher);
                         tool_call_id.hash(hasher);
                         tool_name.hash(hasher);
+                        status.hash(hasher);
                         caller.hash(hasher);
                         // ToolCallArguments doesn't derive Hash, so handle each variant
                         match arguments {
@@ -801,6 +803,7 @@ mod tests {
                     caller: Some(caller_a),
                     encrypted_content: None,
                     provider_options: None,
+                    status: None,
                     provider_executed: None,
                 }]),
                 id: None,
@@ -813,6 +816,46 @@ mod tests {
                         "{\"sku\":\"sku_123\"}".to_string(),
                     ),
                     caller: Some(caller_b),
+                    encrypted_content: None,
+                    provider_options: None,
+                    status: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            },
+        ];
+
+        let result = deduplicate_messages(messages);
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_dedup_preserves_tool_calls_with_different_statuses() {
+        let messages = vec![
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    arguments: crate::universal::ToolCallArguments::from(
+                        "{\"sku\":\"sku_123\"}".to_string(),
+                    ),
+                    status: Some("in_progress".to_string()),
+                    caller: None,
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+                id: None,
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    arguments: crate::universal::ToolCallArguments::from(
+                        "{\"sku\":\"sku_123\"}".to_string(),
+                    ),
+                    status: Some("completed".to_string()),
+                    caller: None,
                     encrypted_content: None,
                     provider_options: None,
                     provider_executed: None,

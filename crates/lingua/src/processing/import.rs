@@ -480,6 +480,7 @@ fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantCon
             caller: None,
             encrypted_content,
             provider_options: None,
+            status: None,
             provider_executed,
         }),
         LenientAssistantContentPartCompat::ToolResult {

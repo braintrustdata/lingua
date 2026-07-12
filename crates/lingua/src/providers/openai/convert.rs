@@ -527,8 +527,6 @@ fn openai_filename_for_file(
 #[serde(default)]
 struct OpenAIToolCallProviderOptionsView {
     namespace: Option<String>,
-    #[serde(rename = "_output_item_status")]
-    output_item_status: Option<openai::FunctionCallItemStatus>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -568,14 +566,8 @@ fn openai_tool_call_provider_options_view(
     })
 }
 
-fn provider_options_from_openai_tool_call(
-    namespace: Option<String>,
-    status: Option<openai::FunctionCallItemStatus>,
-) -> Result<Option<ProviderOptions>, ConvertError> {
-    let status = status.filter(|status| *status != openai::FunctionCallItemStatus::Completed);
-    if namespace.is_none() && status.is_none() {
-        return Ok(None);
-    }
+fn provider_options_from_openai_tool_call(namespace: Option<String>) -> Option<ProviderOptions> {
+    namespace.as_ref()?;
 
     let mut options = serde_json::Map::new();
     if let Some(namespace) = namespace {
@@ -584,16 +576,30 @@ fn provider_options_from_openai_tool_call(
             serde_json::Value::String(namespace),
         );
     }
-    if let Some(status) = status {
-        options.insert(
-            "_output_item_status".to_string(),
-            serde_json::to_value(status).map_err(|e| ConvertError::JsonSerializationFailed {
-                field: "Responses function call status".to_string(),
-                error: e.to_string(),
-            })?,
-        );
-    }
-    Ok(Some(ProviderOptions { options }))
+    Some(ProviderOptions { options })
+}
+
+fn non_completed_function_call_status_to_string(
+    status: Option<openai::FunctionCallItemStatus>,
+    field: &str,
+) -> Result<Option<String>, ConvertError> {
+    status
+        .filter(|status| *status != openai::FunctionCallItemStatus::Completed)
+        .map(|status| function_call_item_status_to_string(status, field))
+        .transpose()
+}
+
+fn function_call_item_status_from_string(
+    status: &str,
+    field: &str,
+) -> Result<openai::FunctionCallItemStatus, ConvertError> {
+    serde_json::from_value::<openai::FunctionCallItemStatus>(serde_json::Value::String(
+        status.to_string(),
+    ))
+    .map_err(|_| ConvertError::InvalidEnumValue {
+        type_name: "FunctionCallItemStatus",
+        value: format!("{field}: {status}"),
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -602,7 +608,7 @@ struct ResponsesToolCallInfo {
     tool_name: String,
     arguments: ToolCallArguments,
     namespace: Option<String>,
-    status: Option<openai::FunctionCallItemStatus>,
+    status: Option<String>,
     caller: Option<ToolCaller>,
     provider_executed: Option<bool>,
 }
@@ -1072,6 +1078,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: input.caller,
                         provider_executed: Some(true),
                     };
@@ -1092,6 +1099,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: input.caller,
                         provider_executed: Some(true),
                     };
@@ -1111,6 +1119,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: input.caller,
                         provider_executed: Some(true),
                     };
@@ -1129,6 +1138,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1147,6 +1157,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1165,6 +1176,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1183,6 +1195,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1202,6 +1215,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1219,6 +1233,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     };
@@ -1360,15 +1375,17 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                     };
 
                     let caller = input.caller;
+                    let status = non_completed_function_call_status_to_string(
+                        input.status,
+                        "Responses function call status",
+                    )?;
                     let tool_call_part = AssistantContentPart::ToolCall {
                         tool_call_id,
                         tool_name,
                         arguments,
                         encrypted_content: None,
-                        provider_options: provider_options_from_openai_tool_call(
-                            input.namespace,
-                            input.status,
-                        )?,
+                        provider_options: provider_options_from_openai_tool_call(input.namespace),
+                        status,
                         caller,
                         provider_executed: None,
                     };
@@ -1987,6 +2004,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    status,
                                     caller,
                                     encrypted_content: _,
                                     provider_options,
@@ -2000,10 +2018,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             &provider_options,
                                         )
                                         .and_then(|opts| opts.namespace),
-                                        status: openai_tool_call_provider_options_view(
-                                            &provider_options,
-                                        )
-                                        .and_then(|opts| opts.output_item_status),
+                                        status,
                                         caller,
                                         provider_executed,
                                     });
@@ -2234,6 +2249,14 @@ impl TryFromLLM<Message> for openai::InputItem {
                             } else {
                                 let output_item_status = tool_call
                                     .status
+                                    .as_deref()
+                                    .map(|status| {
+                                        function_call_item_status_from_string(
+                                            status,
+                                            "Responses function call status",
+                                        )
+                                    })
+                                    .transpose()?
                                     .unwrap_or(openai::FunctionCallItemStatus::Completed);
                                 // Regular function call (not provider-executed)
                                 let function_call_item = openai::InputItem {
@@ -2347,7 +2370,11 @@ fn create_function_call_input_item(
 ) -> Result<openai::InputItem, ConvertError> {
     let output_item_status = tool_call
         .status
-        .clone()
+        .as_deref()
+        .map(|status| {
+            function_call_item_status_from_string(status, "Responses function call status")
+        })
+        .transpose()?
         .unwrap_or(openai::FunctionCallItemStatus::Completed);
 
     // Check if this is a provider-executed built-in tool
@@ -2627,6 +2654,7 @@ pub fn universal_to_responses_input(
                                     tool_call_id,
                                     tool_name,
                                     arguments,
+                                    status,
                                     caller,
                                     encrypted_content: _,
                                     provider_options,
@@ -2641,10 +2669,7 @@ pub fn universal_to_responses_input(
                                                 provider_options,
                                             )
                                             .and_then(|opts| opts.namespace),
-                                            status: openai_tool_call_provider_options_view(
-                                                provider_options,
-                                            )
-                                            .and_then(|opts| opts.output_item_status),
+                                            status: status.clone(),
                                             caller: caller.clone(),
                                             provider_executed: *provider_executed,
                                         },
@@ -3294,9 +3319,10 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         tool_name,
                         arguments,
                         encrypted_content: None,
-                        provider_options: provider_options_from_openai_tool_call(
-                            item.namespace,
+                        provider_options: provider_options_from_openai_tool_call(item.namespace),
+                        status: non_completed_function_call_status_to_string(
                             item.status,
+                            "Responses output function call status",
                         )?,
                         caller: item.caller,
                         provider_executed: None,
@@ -3321,6 +3347,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3336,6 +3363,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3351,6 +3379,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3365,6 +3394,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3379,6 +3409,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3393,6 +3424,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3407,6 +3439,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3422,6 +3455,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3435,6 +3469,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                         })),
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         caller: None,
                         provider_executed: Some(true),
                     }]
@@ -3673,10 +3708,11 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         tool_call_id,
                                         tool_name,
                                         arguments,
+                                        status,
                                         provider_options,
                                         provider_executed,
                                         caller,
-                                        ..
+                                        encrypted_content: _,
                                     } => {
                                         // Flush any pending reasoning before tool call
                                         flush_reasoning(
@@ -3694,8 +3730,15 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         let namespace = provider_options_view
                                             .as_ref()
                                             .and_then(|opts| opts.namespace.clone());
-                                        let output_item_status = provider_options_view
-                                            .and_then(|opts| opts.output_item_status)
+                                        let output_item_status = status
+                                            .as_deref()
+                                            .map(|status| {
+                                                function_call_item_status_from_string(
+                                                    status,
+                                                    "Responses function call status",
+                                                )
+                                            })
+                                            .transpose()?
                                             .unwrap_or(openai::FunctionCallItemStatus::Completed);
 
                                         if provider_executed == Some(true) {
@@ -4250,6 +4293,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                 arguments: function.arguments.into(),
                                 encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
+                                status: None,
                                 caller: None,
                                 provider_executed: None,
                             });
@@ -4997,6 +5041,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                                 arguments: function.arguments.clone().into(),
                                 encrypted_content: msg.reasoning_signature.clone(),
                                 provider_options: None,
+                                status: None,
                                 caller: None,
                                 provider_executed: None,
                             });
@@ -5235,12 +5280,15 @@ mod tests {
             panic!("assistant content should be array");
         };
         let AssistantContentPart::ToolCall {
-            provider_options, ..
+            provider_options,
+            status,
+            ..
         } = &parts[0]
         else {
             panic!("content part should be a tool call");
         };
-        assert!(provider_options.is_some());
+        assert!(provider_options.is_none());
+        assert_eq!(status.as_deref(), Some("in_progress"));
 
         let roundtrip = universal_to_responses_input(&messages)
             .expect("universal messages should convert back to Responses input");
@@ -5487,6 +5535,7 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"database":"mydb"}"#.to_string()),
                 encrypted_content: Some("dGhvdWdodF9zaWduYXR1cmVfMTIz".to_string()),
                 provider_options: None,
+                status: None,
                 caller: None,
                 provider_executed: None,
             }]),
@@ -5640,6 +5689,7 @@ mod tests {
                     arguments: ToolCallArguments::from("{}".to_string()),
                     encrypted_content: Some("signature_one".to_string()),
                     provider_options: None,
+                    status: None,
                     caller: None,
                     provider_executed: None,
                 },
@@ -5649,6 +5699,7 @@ mod tests {
                     arguments: ToolCallArguments::from("{}".to_string()),
                     encrypted_content: Some("signature_two".to_string()),
                     provider_options: None,
+                    status: None,
                     caller: None,
                     provider_executed: None,
                 },

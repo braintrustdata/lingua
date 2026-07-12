@@ -229,6 +229,7 @@ fn tool_call_part(part: PydanticAIPartCompat) -> Option<AssistantContentPart> {
         caller: None,
         encrypted_content: None,
         provider_options: None,
+        status: None,
         provider_executed: None,
     })
 }

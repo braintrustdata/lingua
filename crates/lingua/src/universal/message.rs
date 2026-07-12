@@ -106,6 +106,8 @@ pub enum AssistantContentPart {
         tool_name: String,
         arguments: ToolCallArguments,
         #[ts(optional)]
+        status: Option<String>,
+        #[ts(optional)]
         caller: Option<ToolCaller>,
         #[ts(optional)]
         encrypted_content: Option<String>,

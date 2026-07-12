@@ -251,6 +251,7 @@ fn parse_assistant_parts(parts: Vec<Value>) -> Vec<AssistantContentPart> {
                     caller: None,
                     encrypted_content: None,
                     provider_options: None,
+                    status: None,
                     provider_executed: None,
                 });
             }
@@ -569,6 +570,7 @@ fn parse_step_message(step: &Value) -> Option<Message> {
                         caller: None,
                         encrypted_content: None,
                         provider_options: None,
+                        status: None,
                         provider_executed: None,
                     }),
                     AISDKContentPartCompat::ToolResult { .. }

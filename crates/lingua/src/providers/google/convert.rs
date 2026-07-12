@@ -316,6 +316,7 @@ impl TryFromLLM<GoogleContent> for Message {
                                 arguments: ToolCallArguments::from(args_string),
                                 encrypted_content,
                                 provider_options: None,
+                                status: None,
                                 caller: None,
                                 provider_executed: None,
                             });
@@ -1553,6 +1554,7 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
                 encrypted_content: None,
                 provider_options: None,
+                status: None,
                 caller: None,
                 provider_executed: None,
             }]),
