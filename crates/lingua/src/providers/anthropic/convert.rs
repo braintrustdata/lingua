@@ -2380,6 +2380,14 @@ impl TryFrom<&UniversalTool> for CustomTool {
     type Error = ConvertError;
 
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
+        if tool.output_schema.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: tool.name.clone(),
+                tool_type: "output_schema".to_string(),
+                target_provider: ProviderFormat::Anthropic,
+            });
+        }
+
         match &tool.tool_type {
             UniversalToolType::Function => Ok(CustomTool {
                 allowed_callers: anthropic_allowed_callers_from_universal(&tool.allowed_callers)?,

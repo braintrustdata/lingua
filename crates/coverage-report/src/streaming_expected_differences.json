@@ -220,9 +220,44 @@
     {
       "testCase": "responsesGpt56ReasoningMaxProContextParam",
       "source": "Responses",
-      "target": "*",
+      "target": "ChatCompletions",
       "skip": true,
-      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by non-Responses streaming formats"
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by ChatCompletions streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Bedrock streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Bedrock Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Vertex Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Google streaming format"
     },
     {
       "testCase": "responsesProgrammaticToolCallingToolsParam",

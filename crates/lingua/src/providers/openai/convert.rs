@@ -2342,28 +2342,25 @@ impl TryFromLLM<Message> for openai::InputItem {
 /// This helper extracts the logic for converting a universal tool call to an OpenAI InputItem,
 /// handling both provider-executed built-in tools and regular function calls.
 fn create_function_call_input_item(
-    call_id: &str,
-    name: &str,
-    arguments: &ToolCallArguments,
-    namespace: Option<String>,
-    status: Option<openai::FunctionCallItemStatus>,
-    caller: Option<ToolCaller>,
-    provider_executed: Option<bool>,
+    tool_call: &ResponsesToolCallInfo,
     id: Option<String>,
 ) -> Result<openai::InputItem, ConvertError> {
-    let output_item_status = status.unwrap_or(openai::FunctionCallItemStatus::Completed);
+    let output_item_status = tool_call
+        .status
+        .clone()
+        .unwrap_or(openai::FunctionCallItemStatus::Completed);
 
     // Check if this is a provider-executed built-in tool
-    if provider_executed == Some(true) {
+    if tool_call.provider_executed == Some(true) {
         // Convert back to the appropriate built-in tool type based on tool_name
-        let args_value = match &arguments {
+        let args_value = match &tool_call.arguments {
             ToolCallArguments::Valid(map) => serde_json::Value::Object(map.clone()),
             ToolCallArguments::Invalid(s) | ToolCallArguments::Custom(s) => {
                 serde_json::Value::String(s.clone())
             }
         };
 
-        let (input_item_type, mut item) = match name {
+        let (input_item_type, mut item) = match &tool_call.tool_name[..] {
             "web_search" => (
                 openai::InputItemType::WebSearchCall,
                 openai::InputItem {
@@ -2469,11 +2466,13 @@ fn create_function_call_input_item(
                     content: None,
                     input_item_type: Some(openai::InputItemType::FunctionCall),
                     id,
-                    call_id: Some(call_id.to_string()),
-                    name: Some(name.to_string()),
-                    namespace,
-                    caller,
-                    arguments: Some(openai_arguments_from_string(arguments.to_string())),
+                    call_id: Some(tool_call.tool_call_id.clone()),
+                    name: Some(tool_call.tool_name.clone()),
+                    namespace: tool_call.namespace.clone(),
+                    caller: tool_call.caller.clone(),
+                    arguments: Some(openai_arguments_from_string(
+                        tool_call.arguments.to_string(),
+                    )),
                     status: Some(output_item_status),
                     ..Default::default()
                 });
@@ -2483,22 +2482,22 @@ fn create_function_call_input_item(
         // Set common fields
         item.id = id;
         item.input_item_type = Some(input_item_type);
-        item.caller = caller;
+        item.caller = tool_call.caller.clone();
         item.status = args_value
             .get("status")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
 
         Ok(item)
-    } else if let ToolCallArguments::Custom(input) = arguments {
+    } else if let ToolCallArguments::Custom(input) = &tool_call.arguments {
         Ok(openai::InputItem {
             role: None,
             content: None,
             input_item_type: Some(openai::InputItemType::CustomToolCall),
             id,
-            call_id: Some(call_id.to_string()),
-            name: Some(name.to_string()),
-            namespace,
-            caller,
+            call_id: Some(tool_call.tool_call_id.clone()),
+            name: Some(tool_call.tool_name.clone()),
+            namespace: tool_call.namespace.clone(),
+            caller: tool_call.caller.clone(),
             input: Some(input.clone()),
             status: Some(output_item_status),
             ..Default::default()
@@ -2509,11 +2508,13 @@ fn create_function_call_input_item(
             content: None,
             input_item_type: Some(openai::InputItemType::FunctionCall),
             id,
-            call_id: Some(call_id.to_string()),
-            name: Some(name.to_string()),
-            namespace,
-            caller,
-            arguments: Some(openai_arguments_from_string(arguments.to_string())),
+            call_id: Some(tool_call.tool_call_id.clone()),
+            name: Some(tool_call.tool_name.clone()),
+            namespace: tool_call.namespace.clone(),
+            caller: tool_call.caller.clone(),
+            arguments: Some(openai_arguments_from_string(
+                tool_call.arguments.to_string(),
+            )),
             status: Some(output_item_status),
             ..Default::default()
         })
@@ -2753,13 +2754,7 @@ pub fn universal_to_responses_input(
                             match sequenced_item {
                                 ResponsesSequencedInputItem::ToolCall(tool_call) => {
                                     result.push(create_function_call_input_item(
-                                        &tool_call.tool_call_id,
-                                        &tool_call.tool_name,
-                                        &tool_call.arguments,
-                                        tool_call.namespace,
-                                        tool_call.status,
-                                        tool_call.caller,
-                                        tool_call.provider_executed,
+                                        &tool_call,
                                         id.clone(),
                                     )?);
                                 }

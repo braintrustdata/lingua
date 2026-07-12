@@ -393,6 +393,8 @@ impl UniversalTool {
     ///
     /// Returns an error if the tool is a builtin from a different provider.
     pub fn to_openai_chat_value(&self) -> Result<Value, ConvertError> {
+        self.assert_no_responses_tool_metadata(ProviderFormat::ChatCompletions)?;
+
         match &self.tool_type {
             UniversalToolType::Function => {
                 let mut func = Map::new();
@@ -495,6 +497,27 @@ impl UniversalTool {
                 }),
             },
         }
+    }
+
+    pub fn assert_no_responses_tool_metadata(
+        &self,
+        target_provider: ProviderFormat,
+    ) -> Result<(), ConvertError> {
+        if self.allowed_callers.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "allowed_callers".to_string(),
+                target_provider,
+            });
+        }
+        if self.output_schema.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "output_schema".to_string(),
+                target_provider,
+            });
+        }
+        Ok(())
     }
 
     /// Convert to OpenAI Responses API format (JSON Value).
@@ -1038,6 +1061,28 @@ mod tests {
 
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["function"]["name"], "tool1");
+    }
+
+    #[test]
+    fn test_openai_chat_rejects_responses_tool_metadata() {
+        let mut tool = UniversalTool::function(
+            "get_inventory",
+            Some("Get inventory".to_string()),
+            Some(json!({"type": "object", "properties": {}})),
+            None,
+        );
+        tool.allowed_callers = Some(vec![UniversalToolCaller::Programmatic]);
+        tool.output_schema = Some(json!({"type": "object"}));
+
+        let error = tool.to_openai_chat_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            } if tool_type == "allowed_callers"
+        ));
     }
 
     #[test]
