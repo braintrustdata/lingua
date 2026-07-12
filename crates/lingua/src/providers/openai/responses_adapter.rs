@@ -291,10 +291,14 @@ struct ResponsesFunctionCallArgumentsDeltaEvent {
     output_index: Option<u32>,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize)]
 struct ResponsesCustomToolCallInputDeltaEvent {
-    delta: Option<String>,
-    output_index: Option<u32>,
+    delta: String,
+    output_index: u32,
+    #[serde(rename = "item_id")]
+    _item_id: String,
+    #[serde(rename = "sequence_number")]
+    _sequence_number: u32,
 }
 
 fn responses_tool_call_start_chunk(
@@ -1205,13 +1209,16 @@ impl ProviderAdapter for ResponsesAdapter {
                 let parsed = serde_json::from_value::<ResponsesCustomToolCallInputDeltaEvent>(
                     payload.clone(),
                 )
-                .unwrap_or_default();
-                let arguments = parsed.delta.unwrap_or_default();
-                let output_index = parsed.output_index.unwrap_or(0);
+                .map_err(|e| {
+                    TransformError::DeserializationFailed(format!(
+                        "Responses custom tool call input delta event: {}",
+                        e
+                    ))
+                })?;
 
                 Ok(Some(responses_tool_call_arguments_delta_chunk(
-                    arguments,
-                    output_index,
+                    parsed.delta,
+                    parsed.output_index,
                     true,
                 )))
             }
@@ -2998,6 +3005,8 @@ mod tests {
         let custom_tool_delta = json!({
             "type": "response.custom_tool_call_input.delta",
             "delta": "await tools.exec_command({cmd: \"true\"});",
+            "item_id": "ctc_exec",
+            "sequence_number": 8,
             "output_index": 7
         });
         let delta_chunk = adapter
@@ -3024,10 +3033,31 @@ mod tests {
                 .and_then(|function| function.arguments.as_deref()),
             Some("await tools.exec_command({cmd: \"true\"});")
         );
+        let expected_custom_tool_delta = json!({
+            "type": "response.custom_tool_call_input.delta",
+            "delta": "await tools.exec_command({cmd: \"true\"});",
+            "output_index": 7
+        });
         assert_eq!(
             responses_stream_events_from_universal(&delta_chunk),
-            vec![custom_tool_delta]
+            vec![expected_custom_tool_delta]
         );
+    }
+
+    #[test]
+    fn test_responses_stream_custom_tool_call_delta_rejects_missing_required_fields() {
+        let adapter = ResponsesAdapter;
+        let err = adapter
+            .stream_to_universal(json!({
+                "type": "response.custom_tool_call_input.delta",
+                "delta": "malformed"
+            }))
+            .expect_err("malformed custom tool input delta should fail");
+
+        assert!(matches!(err, TransformError::DeserializationFailed(_)));
+        assert!(err
+            .to_string()
+            .contains("Responses custom tool call input delta event"));
     }
 
     #[test]
