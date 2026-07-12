@@ -17,6 +17,7 @@
 // }
 
 use crate::serde_json;
+use crate::universal::message::ToolCaller;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
@@ -786,6 +787,7 @@ pub enum ReasoningEffort {
     Minimal,
     None,
     Xhigh,
+    Max,
 }
 
 /// An object specifying the format that the model must output.
@@ -2330,6 +2332,10 @@ pub struct InputItem {
     pub result: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<ToolCaller>,
     /// The ID of the container used to run the code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_id: Option<String>,
@@ -3121,6 +3127,10 @@ pub enum ToolSearchExecutionType {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum InputItemType {
+    #[serde(rename = "program")]
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     #[serde(rename = "additional_tools")]
     AdditionalTools,
     #[serde(rename = "apply_patch_call")]
@@ -4414,6 +4424,8 @@ pub enum McpToolApprovalSetting {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum ToolType {
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling,
     #[serde(rename = "apply_patch")]
     ApplyPatch,
     #[serde(rename = "code_interpreter")]
@@ -5130,9 +5142,16 @@ pub struct WebSearchPreviewTool {
 pub struct ApplyPatchToolParam {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ProgrammaticToolCallingToolParam {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
 #[ts(export_to = "openai/")]
 pub enum Tool {
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling(ProgrammaticToolCallingToolParam),
+
     #[serde(rename = "file_search")]
     FileSearch(FileSearchTool),
 
@@ -5841,6 +5860,10 @@ pub struct OutputItem {
     pub result: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<ToolCaller>,
     /// The ID of the container used to run the code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_id: Option<String>,
@@ -6286,6 +6309,10 @@ pub struct FluffyShellCallOutcome {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum OutputItemType {
+    #[serde(rename = "program")]
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     #[serde(rename = "additional_tools")]
     AdditionalTools,
     #[serde(rename = "apply_patch_call")]

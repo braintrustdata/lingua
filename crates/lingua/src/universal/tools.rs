@@ -61,24 +61,53 @@ pub struct UniversalTool {
 
     /// Tool description
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub description: Option<String>,
 
     /// Parameters/input schema (JSON Schema)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     #[ts(type = "Record<string, unknown> | null")]
     pub parameters: Option<Value>,
 
     /// Whether to enforce strict schema validation (OpenAI Responses API)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub strict: Option<bool>,
 
     /// Whether the tool is immediately available or deferred until discovered.
     #[serde(default, skip_serializing_if = "ToolAvailability::is_immediate")]
     pub availability: ToolAvailability,
 
+    /// Which execution environments may call this tool.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub allowed_callers: Option<Vec<UniversalToolCaller>>,
+
+    /// Schema for the tool result shape.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    #[ts(type = "Record<string, unknown> | null")]
+    pub output_schema: Option<Value>,
+
     /// Tool type classification
     #[serde(flatten)]
     pub tool_type: UniversalToolType,
+}
+
+/// A caller that may invoke a tool.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "snake_case")]
+pub enum UniversalToolCaller {
+    Direct,
+    Programmatic,
+    #[serde(rename = "code_execution_20250825")]
+    CodeExecution20250825,
+    #[serde(rename = "code_execution_20260120")]
+    CodeExecution20260120,
+    #[serde(rename = "code_execution_20260521")]
+    CodeExecution20260521,
 }
 
 /// Availability of a tool definition in the model context.
@@ -128,6 +157,7 @@ pub enum UniversalToolType {
     Custom {
         /// Optional input format for custom tools (e.g. text/grammar config)
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         #[ts(type = "Record<string, unknown> | null")]
         format: Option<Value>,
     },
@@ -141,6 +171,7 @@ pub enum UniversalToolType {
         builtin_type: String,
         /// Provider-specific configuration
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ts(optional)]
         #[ts(type = "Record<string, unknown> | null")]
         config: Option<Value>,
     },
@@ -175,6 +206,8 @@ impl UniversalTool {
             parameters,
             strict,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Function,
         }
     }
@@ -191,6 +224,8 @@ impl UniversalTool {
             parameters: None,
             strict: None,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Custom { format },
         }
     }
@@ -208,6 +243,8 @@ impl UniversalTool {
             parameters: None,
             strict: None,
             availability: ToolAvailability::Immediate,
+            allowed_callers: None,
+            output_schema: None,
             tool_type: UniversalToolType::Builtin {
                 provider,
                 builtin_type: builtin_type.into(),
@@ -356,6 +393,8 @@ impl UniversalTool {
     ///
     /// Returns an error if the tool is a builtin from a different provider.
     pub fn to_openai_chat_value(&self) -> Result<Value, ConvertError> {
+        self.assert_no_responses_tool_metadata(ProviderFormat::ChatCompletions)?;
+
         match &self.tool_type {
             UniversalToolType::Function => {
                 let mut func = Map::new();
@@ -460,6 +499,27 @@ impl UniversalTool {
         }
     }
 
+    pub fn assert_no_responses_tool_metadata(
+        &self,
+        target_provider: ProviderFormat,
+    ) -> Result<(), ConvertError> {
+        if self.allowed_callers.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "allowed_callers".to_string(),
+                target_provider,
+            });
+        }
+        if self.output_schema.is_some() {
+            return Err(ConvertError::UnsupportedToolType {
+                tool_name: self.name.clone(),
+                tool_type: "output_schema".to_string(),
+                target_provider,
+            });
+        }
+        Ok(())
+    }
+
     /// Convert to OpenAI Responses API format (JSON Value).
     ///
     /// Returns an error if the tool is a builtin from a different provider.
@@ -484,6 +544,20 @@ impl UniversalTool {
                 if self.availability == ToolAvailability::Deferred {
                     obj.insert("defer_loading".into(), Value::Bool(true));
                 }
+                if let Some(allowed_callers) = &self.allowed_callers {
+                    obj.insert(
+                        "allowed_callers".into(),
+                        serde_json::to_value(allowed_callers).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!("Responses tool allowed_callers '{}'", self.name),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                if let Some(output_schema) = &self.output_schema {
+                    obj.insert("output_schema".into(), output_schema.clone());
+                }
 
                 Ok(Value::Object(obj))
             }
@@ -501,6 +575,23 @@ impl UniversalTool {
                 }
                 if self.availability == ToolAvailability::Deferred {
                     obj.insert("defer_loading".into(), Value::Bool(true));
+                }
+                if let Some(allowed_callers) = &self.allowed_callers {
+                    obj.insert(
+                        "allowed_callers".into(),
+                        serde_json::to_value(allowed_callers).map_err(|e| {
+                            ConvertError::JsonSerializationFailed {
+                                field: format!(
+                                    "Responses custom tool allowed_callers '{}'",
+                                    self.name
+                                ),
+                                error: e.to_string(),
+                            }
+                        })?,
+                    );
+                }
+                if let Some(output_schema) = &self.output_schema {
+                    obj.insert("output_schema".into(), output_schema.clone());
                 }
 
                 Ok(Value::Object(obj))
@@ -970,6 +1061,28 @@ mod tests {
 
         assert_eq!(arr.len(), 2);
         assert_eq!(arr[0]["function"]["name"], "tool1");
+    }
+
+    #[test]
+    fn test_openai_chat_rejects_responses_tool_metadata() {
+        let mut tool = UniversalTool::function(
+            "get_inventory",
+            Some("Get inventory".to_string()),
+            Some(json!({"type": "object", "properties": {}})),
+            None,
+        );
+        tool.allowed_callers = Some(vec![UniversalToolCaller::Programmatic]);
+        tool.output_schema = Some(json!({"type": "object"}));
+
+        let error = tool.to_openai_chat_value().unwrap_err();
+        assert!(matches!(
+            error,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::ChatCompletions,
+                ..
+            } if tool_type == "allowed_callers"
+        ));
     }
 
     #[test]

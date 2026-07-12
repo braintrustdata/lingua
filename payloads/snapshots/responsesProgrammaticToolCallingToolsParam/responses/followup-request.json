@@ -1,0 +1,97 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Compare inventory and demand for sku_123."
+    },
+    {
+      "id": "rs_04d845086bc20e96006a531b331b7c819196ec4d4c6b3cd96c",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "cm_04d845086bc20e96006a531b336be08191b36acd6cbe0525a2",
+      "type": "program",
+      "call_id": "call_ZggswGcryTkdT4RGDDnD2I3O",
+      "code": "const inv = await tools.get_inventory({sku:\"sku_123\"}); text(inv);",
+      "fingerprint": "gAAAAABqUxszEra5wIXgdqVWu1Qncpxx_rYO7uxC0Z2bPIUrYefTmjFQKs5SALcWFYdyQ1trFLkG2yKDeBV1riWtg54d0o0HO1mhhisStWx0_PmqrD-hLUcLSr4w4sq7idD81X84KaDR95uJ4xnh6mRh34BEWMDO04wAv3WDLuQWqGeNBD7L-bzyYF-mVmPlI9XtNSfvNCQSGiwLyV8pxan2Ap25VDYwjj_IvmmKI5qesxBrWrQxmzj_lQPKxYI-PA_fJAd_h-9xEXRrlRXa_79ggp4L4SiD_PBlQavaOTHmgDrU-a1rCMpEPZ_9VgEk6-uK9WOI_Q__"
+    },
+    {
+      "id": "fc_04d845086bc20e96006a531b3376208191a390b3f533076583",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "{\"sku\":\"sku_123\"}",
+      "call_id": "call_to4vAVCCY10HFIlqwIIMCMI6",
+      "caller": {
+        "type": "program",
+        "caller_id": "call_ZggswGcryTkdT4RGDDnD2I3O"
+      },
+      "name": "get_inventory"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_to4vAVCCY10HFIlqwIIMCMI6",
+      "output": "{\"sku\":\"sku_123\",\"available_units\":42}",
+      "caller": {
+        "type": "program",
+        "caller_id": "call_ZggswGcryTkdT4RGDDnD2I3O"
+      }
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "name": "get_inventory",
+      "description": "Return inventory details for a SKU.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true,
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "available_units": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "available_units"
+        ],
+        "additionalProperties": false
+      },
+      "allowed_callers": [
+        "programmatic"
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "write_short_note",
+      "description": "Write a compact plain-text note.",
+      "format": {
+        "type": "text"
+      },
+      "allowed_callers": [
+        "direct",
+        "programmatic"
+      ]
+    },
+    {
+      "type": "programmatic_tool_calling"
+    }
+  ]
+}

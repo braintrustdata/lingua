@@ -27,6 +27,13 @@ pub enum Message {
     Tool {
         content: ToolContent,
     },
+    #[serde(rename = "additional_tools")]
+    #[ts(rename = "additional_tools")]
+    AdditionalTools {
+        tools: Vec<UniversalTool>,
+        #[ts(optional)]
+        id: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -99,11 +106,30 @@ pub enum AssistantContentPart {
         tool_name: String,
         arguments: ToolCallArguments,
         #[ts(optional)]
+        status: Option<String>,
+        #[ts(optional)]
+        caller: Option<ToolCaller>,
+        #[ts(optional)]
         encrypted_content: Option<String>,
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
         #[ts(optional)]
         provider_executed: Option<bool>,
+    },
+    Program {
+        call_id: String,
+        code: String,
+        #[ts(optional)]
+        fingerprint: Option<String>,
+        #[ts(optional)]
+        id: Option<String>,
+    },
+    ProgramOutput {
+        call_id: String,
+        result: String,
+        status: String,
+        #[ts(optional)]
+        id: Option<String>,
     },
     ToolDiscoveryCall {
         tool_call_id: String,
@@ -126,8 +152,26 @@ pub enum AssistantContentPart {
         #[ts(type = "unknown")]
         output: serde_json::Value,
         #[ts(optional)]
+        caller: Option<ToolCaller>,
+        #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub struct ToolCaller {
+    #[serde(rename = "type")]
+    pub caller_type: ToolCallerType,
+    pub caller_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum ToolCallerType {
+    Program,
 }
 
 #[skip_serializing_none]
@@ -137,6 +181,7 @@ pub enum AssistantContentPart {
 pub enum ToolCallArguments {
     Valid(#[ts(type = "Record<string, unknown>")] serde_json::Map<String, serde_json::Value>),
     Invalid(String),
+    Custom(String),
 }
 
 impl From<String> for ToolCallArguments {
@@ -156,7 +201,7 @@ impl std::fmt::Display for ToolCallArguments {
                 "{}",
                 serde_json::to_string(map).map_err(|_| std::fmt::Error)?
             ),
-            ToolCallArguments::Invalid(s) => write!(f, "{}", s),
+            ToolCallArguments::Invalid(s) | ToolCallArguments::Custom(s) => write!(f, "{}", s),
         }
     }
 }
@@ -173,6 +218,8 @@ pub struct ToolResultContentPart {
     pub tool_name: String,
     #[ts(type = "any")]
     pub output: serde_json::Value,
+    pub custom_tool_call: Option<bool>,
+    pub caller: Option<ToolCaller>,
     pub provider_options: Option<ProviderOptions>,
 }
 

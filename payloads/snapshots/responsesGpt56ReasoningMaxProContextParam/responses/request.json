@@ -1,0 +1,12 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": "Review this rollout checklist for the highest-risk issue.",
+  "reasoning": {
+    "effort": "max",
+    "mode": "pro",
+    "context": "all_turns"
+  },
+  "text": {
+    "verbosity": "high"
+  }
+}

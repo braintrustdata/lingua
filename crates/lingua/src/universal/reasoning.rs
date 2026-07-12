@@ -120,6 +120,7 @@ pub fn effort_to_budget(effort: ReasoningEffort, max_tokens: Option<i64>) -> i64
         ReasoningEffort::Medium => EFFORT_MEDIUM_MULTIPLIER,
         ReasoningEffort::High => EFFORT_HIGH_MULTIPLIER,
         ReasoningEffort::Xhigh => EFFORT_XHIGH_MULTIPLIER,
+        ReasoningEffort::Max => EFFORT_XHIGH_MULTIPLIER,
     };
     let budget = (max as f64 * multiplier).floor() as i64;
     budget.max(MIN_THINKING_BUDGET)
@@ -197,6 +198,7 @@ impl From<&GeneratedOpenAIReasoningEffort> for ReasoningEffort {
             GeneratedOpenAIReasoningEffort::High => ReasoningEffort::High,
             GeneratedOpenAIReasoningEffort::None => ReasoningEffort::None,
             GeneratedOpenAIReasoningEffort::Xhigh => ReasoningEffort::Xhigh,
+            GeneratedOpenAIReasoningEffort::Max => ReasoningEffort::Max,
         }
     }
 }
@@ -216,6 +218,7 @@ impl From<OpenAIReasoningEffortParam> for ReasoningEffort {
             OpenAIReasoningEffortParam::Medium => ReasoningEffort::Medium,
             OpenAIReasoningEffortParam::High => ReasoningEffort::High,
             OpenAIReasoningEffortParam::Xhigh => ReasoningEffort::Xhigh,
+            OpenAIReasoningEffortParam::Max => ReasoningEffort::Max,
         }
     }
 }
@@ -687,6 +690,8 @@ mod tests {
     fn test_from_openai_responses_reasoning() {
         let reasoning = OpenAIReasoning {
             effort: Some(OpenAIReasoningEffortParam::High),
+            mode: None,
+            context: None,
             summary: Some(OpenAISummary::Detailed),
             generate_summary: None,
         };

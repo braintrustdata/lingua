@@ -574,6 +574,157 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesAdditionalToolsMultipleToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Use the extra policy and note tools once the developer makes them available.",
+        },
+        {
+          id: "at_payload_123",
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+            {
+              type: "custom",
+              name: "write_release_note",
+              description: "Draft a release note in plain text.",
+              format: {
+                type: "text",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56ReasoningMaxProContextParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Review this rollout checklist for the highest-risk issue.",
+      reasoning: {
+        effort: "max",
+        mode: "pro",
+        context: "all_turns",
+      },
+      text: {
+        verbosity: "high",
+      },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PersistedReasoningParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      store: false,
+      include: ["reasoning.encrypted_content"],
+      reasoning: {
+        effort: "low",
+        context: "all_turns",
+      },
+      input: [
+        {
+          role: "user",
+          content:
+            "Summarize the deployment risk and preserve reasoning state.",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PromptCacheOptionsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Use the stable policy prefix when answering.",
+      prompt_cache_options: {
+        mode: "explicit",
+        ttl: "30m",
+      },
+      prompt_cache_retention: "24h",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesProgrammaticToolCallingToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Compare inventory and demand for sku_123.",
+      tools: [
+        {
+          type: "function",
+          name: "get_inventory",
+          description: "Return inventory details for a SKU.",
+          parameters: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+            },
+            required: ["sku"],
+            additionalProperties: false,
+          },
+          strict: true,
+          output_schema: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+              available_units: { type: "number" },
+            },
+            required: ["sku", "available_units"],
+            additionalProperties: false,
+          },
+          allowed_callers: ["programmatic"],
+        },
+        {
+          type: "custom",
+          name: "write_short_note",
+          description: "Write a compact plain-text note.",
+          format: { type: "text" },
+          allowed_callers: ["direct", "programmatic"],
+        },
+        {
+          type: "programmatic_tool_calling",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   imageUrlMimeTypeFallbackParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

@@ -702,7 +702,9 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                     }
                     AssistantContentPart::File { .. }
                     | AssistantContentPart::ToolResult { .. }
-                    | AssistantContentPart::ToolDiscoveryCall { .. } => {}
+                    | AssistantContentPart::ToolDiscoveryCall { .. }
+                    | AssistantContentPart::Program { .. }
+                    | AssistantContentPart::ProgramOutput { .. } => {}
                 }
             }
 
@@ -731,7 +733,8 @@ fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk
             Message::System { .. }
             | Message::Developer { .. }
             | Message::User { .. }
-            | Message::Tool { .. } => None,
+            | Message::Tool { .. }
+            | Message::AdditionalTools { .. } => None,
         })
         .collect();
 
