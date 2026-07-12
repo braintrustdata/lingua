@@ -17,7 +17,6 @@
 // }
 
 use crate::serde_json;
-use crate::universal::message::ToolCaller;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ts_rs::TS;
@@ -2410,7 +2409,7 @@ pub struct InputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<Arguments>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub caller: Option<ToolCaller>,
+    pub caller: Option<InputItemDirectToolCallCaller>,
     /// The name of the function to run.
     ///
     ///
@@ -6028,7 +6027,7 @@ pub struct OutputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub caller: Option<ToolCaller>,
+    pub caller: Option<OutputItemDirectToolCallCaller>,
     /// The name of the function to run.
     ///
     ///

@@ -4222,6 +4222,43 @@ exports[`anthropic → google > responsesReasoningEffortMaxParam > request 1`] =
 }
 `;
 
+exports[`anthropic → google > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "**My Mental Calculation for a Simple Question**
+
+Okay, so I've received a very straightforward request – someone wants to know what 2 + 2 equals. Let's break this down.
+
+First, I quickly **analyze the input**. It's a fundamental addition problem. There's no ambiguity or hidden context. It's as direct as it gets.
+
+Next, I need to **determine the answer**. My knowledge base tells me that 2 added to 2 results in 4. This is a basic mathematical fact, firmly established in my core understanding.
+
+Finally, I **formulate the response**. Given the simplicity of the question, the best approach is to keep the answer concise, accurate, and unambiguous. No need for complex explanations or hedging. So, I will confidently respond with the answer.
+
+Therefore, my final output, based on my analysis and the desired user experience, will be: "2 + 2 is 4."
+
+
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 is 4.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 105,
+  },
+}
+`;
+
 exports[`anthropic → google > responsesToolSearchInputParam > request 1`] = `
 {
   "contents": [
@@ -35867,6 +35904,67 @@ exports[`responses → google > responsesReasoningEffortMaxParam > request 1`] =
     },
   },
   "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of a Simple Calculation**
+
+Okay, so the prompt is essentially asking me to summarize a ridiculously straightforward thought process: how to answer "What is 2 + 2?". It's a fundamental arithmetic problem, right? The initial step, I suppose, is recognizing the core question – "What is 2+2?" – that's the starting point.
+
+Next, I need to arrive at the answer. This is a matter of recalling a basic mathematical fact: the sum of two and two. No need for complex algorithms here, it's simply a matter of knowing that 2 + 2 equals 4.
+
+Finally, I have to formulate the response. The solution calls for efficiency and accuracy. No need for any extra fluff. My reply will be direct, factual, and devoid of unnecessary verbiage: "2 + 2 is 4." Job done.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 is 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 is 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 80,
+    "output_tokens_details": {
+      "reasoning_tokens": 72,
+    },
+    "total_tokens": 88,
+  },
 }
 `;
 

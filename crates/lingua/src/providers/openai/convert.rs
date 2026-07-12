@@ -550,6 +550,60 @@ impl From<OpenAIProgramCaller> for ToolCaller {
         };
         Self {
             caller_type,
+            caller_id: Some(caller.caller_id),
+        }
+    }
+}
+
+impl From<openai::DirectToolCallCallerType> for ToolCallerType {
+    fn from(caller_type: openai::DirectToolCallCallerType) -> Self {
+        match caller_type {
+            openai::DirectToolCallCallerType::Direct => ToolCallerType::Direct,
+            openai::DirectToolCallCallerType::Program => ToolCallerType::Program,
+        }
+    }
+}
+
+impl From<ToolCallerType> for openai::DirectToolCallCallerType {
+    fn from(caller_type: ToolCallerType) -> Self {
+        match caller_type {
+            ToolCallerType::Direct => openai::DirectToolCallCallerType::Direct,
+            ToolCallerType::Program => openai::DirectToolCallCallerType::Program,
+        }
+    }
+}
+
+impl From<openai::InputItemDirectToolCallCaller> for ToolCaller {
+    fn from(caller: openai::InputItemDirectToolCallCaller) -> Self {
+        Self {
+            caller_type: caller.direct_tool_call_caller_type.into(),
+            caller_id: caller.caller_id,
+        }
+    }
+}
+
+impl From<openai::OutputItemDirectToolCallCaller> for ToolCaller {
+    fn from(caller: openai::OutputItemDirectToolCallCaller) -> Self {
+        Self {
+            caller_type: caller.direct_tool_call_caller_type.into(),
+            caller_id: caller.caller_id,
+        }
+    }
+}
+
+impl From<ToolCaller> for openai::InputItemDirectToolCallCaller {
+    fn from(caller: ToolCaller) -> Self {
+        Self {
+            direct_tool_call_caller_type: caller.caller_type.into(),
+            caller_id: caller.caller_id,
+        }
+    }
+}
+
+impl From<ToolCaller> for openai::OutputItemDirectToolCallCaller {
+    fn from(caller: ToolCaller) -> Self {
+        Self {
+            direct_tool_call_caller_type: caller.caller_type.into(),
             caller_id: caller.caller_id,
         }
     }
@@ -1095,7 +1149,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: input.caller.map(Into::into),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1116,7 +1170,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: input.caller.map(Into::into),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1136,7 +1190,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: input.caller.map(Into::into),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1402,7 +1456,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: provider_options_from_openai_tool_call(input.namespace),
                         status,
-                        caller,
+                        caller: caller.map(Into::into),
                         provider_executed: None,
                     };
 
@@ -1436,7 +1490,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         custom_tool_call: (item_type
                             == Some(openai::InputItemType::CustomToolCallOutput))
                         .then_some(true),
-                        caller: input.caller,
+                        caller: input.caller.map(Into::into),
                         provider_options: None,
                     };
 
@@ -2323,7 +2377,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             arguments: Some(openai_arguments_from_string(
                                                 tool_call.arguments.to_string(),
                                             )),
-                                            caller: tool_call.caller,
+                                            caller: tool_call.caller.map(Into::into),
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -2362,7 +2416,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     arguments: Some(openai_arguments_from_string(
                                         tool_call.arguments.to_string(),
                                     )),
-                                    caller: tool_call.caller,
+                                    caller: tool_call.caller.map(Into::into),
                                     status: Some(output_item_status),
                                     ..Default::default()
                                 };
@@ -2415,7 +2469,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_result.caller.clone().map(Into::into),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2589,7 +2643,7 @@ fn create_function_call_input_item(
                     call_id: Some(tool_call.tool_call_id.clone()),
                     name: Some(tool_call.tool_name.clone()),
                     namespace: tool_call.namespace.clone(),
-                    caller: tool_call.caller.clone(),
+                    caller: tool_call.caller.clone().map(Into::into),
                     arguments: Some(openai_arguments_from_string(
                         tool_call.arguments.to_string(),
                     )),
@@ -2602,7 +2656,7 @@ fn create_function_call_input_item(
         // Set common fields
         item.id = id;
         item.input_item_type = Some(input_item_type);
-        item.caller = tool_call.caller.clone();
+        item.caller = tool_call.caller.clone().map(Into::into);
         item.status = args_value
             .get("status")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
@@ -2617,7 +2671,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_call.caller.clone().map(Into::into),
             input: Some(input.clone()),
             status: Some(output_item_status),
             ..Default::default()
@@ -2631,7 +2685,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_call.caller.clone().map(Into::into),
             arguments: Some(openai_arguments_from_string(
                 tool_call.arguments.to_string(),
             )),
@@ -2689,7 +2743,7 @@ pub fn universal_to_responses_input(
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_result.caller.clone().map(Into::into),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -3099,7 +3153,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             result: output_item.result,
             code: output_item.code,
             fingerprint: output_item.fingerprint,
-            caller: output_item.caller,
+            caller: output_item.caller.map(ToolCaller::from).map(Into::into),
             container_id: output_item.container_id,
             outputs: output_item.outputs,
             execution: output_item.execution,
@@ -3228,7 +3282,7 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             result: input_item.result,
             code: input_item.code,
             fingerprint: input_item.fingerprint,
-            caller: input_item.caller,
+            caller: input_item.caller.map(ToolCaller::from).map(Into::into),
             container_id: input_item.container_id,
             outputs: input_item.outputs,
             execution: input_item.execution,
@@ -3439,7 +3493,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             item.status,
                             "Responses output function call status",
                         )?,
-                        caller: item.caller,
+                        caller: item.caller.map(Into::into),
                         provider_executed: None,
                     }]
                 }
@@ -3654,7 +3708,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     call_id: Some(tool_result.tool_call_id),
                                     name: (!tool_result.tool_name.is_empty())
                                         .then_some(tool_result.tool_name),
-                                    caller: tool_result.caller,
+                                    caller: tool_result.caller.map(Into::into),
                                     output: input_item_output_to_output(Some(
                                         openai_output_from_string(output_string),
                                     )),
@@ -4050,7 +4104,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                         call_id: Some(tool_call_id),
                                                         name: Some(tool_name),
                                                         namespace,
-                                                        caller,
+                                                        caller: caller.map(Into::into),
                                                         arguments: Some(serde_json::Value::String(
                                                             arguments.to_string(),
                                                         )),
@@ -4069,7 +4123,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: caller.map(Into::into),
                                                 input: Some(input),
                                                 status: Some(output_item_status),
                                                 ..Default::default()
@@ -4084,7 +4138,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: caller.map(Into::into),
                                                 arguments: Some(serde_json::Value::String(
                                                     arguments.to_string(),
                                                 )),
@@ -6166,7 +6220,7 @@ mod tests {
         assert_eq!(tool_name, "get_inventory");
         let caller = caller.as_ref().expect("caller should be preserved");
         assert_eq!(caller.caller_type, ToolCallerType::Program);
-        assert_eq!(caller.caller_id, "call_prog_123");
+        assert_eq!(caller.caller_id.as_deref(), Some("call_prog_123"));
 
         let Message::Tool { content } = &messages[3] else {
             panic!("function_call_output should become tool message");
@@ -6180,7 +6234,7 @@ mod tests {
             .as_ref()
             .expect("tool result caller should be preserved");
         assert_eq!(caller.caller_type, ToolCallerType::Program);
-        assert_eq!(caller.caller_id, "call_prog_123");
+        assert_eq!(caller.caller_id.as_deref(), Some("call_prog_123"));
     }
 
     #[test]

@@ -349,6 +349,11 @@ impl ProviderAdapter for ResponsesAdapter {
         let reasoning = typed_params
             .reasoning
             .as_ref()
+            .filter(|reasoning| {
+                reasoning.effort.is_some()
+                    || reasoning.summary.is_some()
+                    || reasoning.generate_summary.is_some()
+            })
             .map(|r| (r, max_tokens).into());
 
         let canonical_metadata = typed_params.metadata.clone().or_else(|| {
@@ -610,7 +615,12 @@ impl ProviderAdapter for ResponsesAdapter {
             if let Some(reasoning) = req.params.reasoning.as_ref() {
                 let mut reasoning = reasoning.clone();
                 if let Some(effort) = reasoning.effort {
-                    reasoning.effort = Some(if effort == crate::universal::ReasoningEffort::Max {
+                    let has_raw_responses_effort = responses_extras_view
+                        .reasoning
+                        .as_ref()
+                        .and_then(|reasoning| reasoning.effort)
+                        .is_some();
+                    reasoning.effort = Some(if has_raw_responses_effort {
                         effort
                     } else {
                         clamp_reasoning_effort_for_model(model, effort)
@@ -1468,7 +1478,7 @@ mod tests {
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
             caller_type: ToolCallerType::Program,
-            caller_id: "call_prog_123".to_string(),
+            caller_id: Some("call_prog_123".to_string()),
         };
         let req = UniversalRequest {
             model: Some("gpt-5.6-terra".to_string()),
@@ -1664,7 +1674,7 @@ mod tests {
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
             caller_type: ToolCallerType::Program,
-            caller_id: "call_prog_123".to_string(),
+            caller_id: Some("call_prog_123".to_string()),
         };
         let payload = json!({
             "id": "resp_programmatic",
@@ -1711,7 +1721,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
             .expect("function_call output item should be exported");
-        assert_eq!(function_call.caller.as_ref(), Some(&caller));
+        assert_eq!(function_call.caller, Some(caller.clone().into()));
         assert_eq!(
             function_call.status,
             Some(crate::providers::openai::generated::Status::InProgress)
@@ -1742,7 +1752,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
             .expect("function_call_output item should be exported");
-        assert_eq!(function_call_output.caller.as_ref(), Some(&caller));
+        assert_eq!(function_call_output.caller, Some(caller.into()));
     }
 
     #[test]
@@ -2742,6 +2752,98 @@ mod tests {
             typed.reasoning.and_then(|r| r.effort),
             Some(crate::providers::openai::params::OpenAIReasoningEffort::High)
         );
+    }
+
+    #[test]
+    fn test_responses_clamps_synthesized_max_reasoning_effort_for_target_model() {
+        let req = UniversalRequest {
+            model: Some("gpt-5.4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(crate::universal::ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(crate::universal::ReasoningEffort::Max),
+                    canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(
+            typed.reasoning.and_then(|reasoning| reasoning.effort),
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::Xhigh)
+        );
+    }
+
+    #[test]
+    fn test_responses_provider_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "context": "all_turns",
+                "mode": "persistent"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert!(universal.params.reasoning.is_none());
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/reasoning/context"),
+            Some(&json!("all_turns"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/mode"),
+            Some(&json!("persistent"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_direct_caller_without_id() {
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{
+                "type": "function_call",
+                "call_id": "call_direct_123",
+                "name": "get_weather",
+                "arguments": "{}",
+                "caller": {"type": "direct"}
+            }]
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("function call should become an assistant message");
+        };
+        let AssistantContentPart::ToolCall { caller, .. } = &parts[0] else {
+            panic!("assistant message should contain a tool call");
+        };
+        let caller = caller.as_ref().expect("caller should be preserved");
+        assert_eq!(caller.caller_type, ToolCallerType::Direct);
+        assert_eq!(caller.caller_id, None);
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/input/0/caller/type"),
+            Some(&json!("direct"))
+        );
+        assert_eq!(roundtrip.pointer("/input/0/caller/caller_id"), None);
     }
 
     #[test]

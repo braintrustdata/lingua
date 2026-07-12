@@ -164,13 +164,15 @@ pub enum AssistantContentPart {
 pub struct ToolCaller {
     #[serde(rename = "type")]
     pub caller_type: ToolCallerType,
-    pub caller_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ToolCallerType {
+    Direct,
     Program,
 }
 
