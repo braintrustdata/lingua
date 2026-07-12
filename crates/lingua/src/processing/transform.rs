@@ -694,6 +694,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             index: Some(tool_call_index),
                             id: Some(tool_call_id.clone()),
                             call_type: Some("function".to_string()),
+                            custom_tool_call: None,
                             function: Some(UniversalToolFunctionDelta {
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
