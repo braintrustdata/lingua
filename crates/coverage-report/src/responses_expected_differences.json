@@ -20,7 +20,15 @@
       "target": "Google",
       "fields": [
         { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no Google equivalent" },
-        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" }
+        { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" },
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Google usage equivalent" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Chat Completions usage equivalent" }
       ]
     },
     {
@@ -540,6 +548,132 @@
         { "pattern": "messages[*].content", "reason": "Empty assistant content (no parts) from truncated Gemini response gains a placeholder empty text part when roundtripped through other providers" },
         { "pattern": "messages.length", "reason": "Empty assistant content from truncated Gemini response may change message count when roundtripped through providers that split/merge messages" }
       ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "Responses additional_tools response/context items do not roundtrip through non-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "GPT-5.6 pro/context response metadata is provider-specific and not fully preserved by cross-provider response schemas"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
     }
   ]
 }

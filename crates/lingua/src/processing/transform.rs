@@ -703,7 +703,9 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                     }
                     AssistantContentPart::File { .. }
                     | AssistantContentPart::ToolResult { .. }
-                    | AssistantContentPart::ToolDiscoveryCall { .. } => {}
+                    | AssistantContentPart::ToolDiscoveryCall { .. }
+                    | AssistantContentPart::Program { .. }
+                    | AssistantContentPart::ProgramOutput { .. } => {}
                 }
             }
 

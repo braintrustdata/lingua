@@ -381,6 +381,25 @@ fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
     serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
 }
 
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIResponsesUsageDetailsView {
+    cached_tokens: Option<i64>,
+    cache_write_tokens: Option<i64>,
+    reasoning_tokens: Option<i64>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIResponsesUsageView {
+    input_tokens: Option<i64>,
+    output_tokens: Option<i64>,
+    input_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
+    output_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
+}
+
+fn openai_responses_usage_view(usage: &Value) -> OpenAIResponsesUsageView {
+    serde_json::from_value::<OpenAIResponsesUsageView>(usage.clone()).unwrap_or_default()
+}
+
 impl UniversalUsage {
     /// Parse usage from provider-specific JSON value.
     ///
@@ -414,25 +433,23 @@ impl UniversalUsage {
                         .filter(|&v| v > 0),
                 }
             }
-            ProviderFormat::Responses => Self {
-                prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage
-                    .get("input_tokens_details")
-                    .and_then(|d| d.get("cached_tokens"))
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_tokens: None,
-                prompt_cache_creation_5m_tokens: None,
-                prompt_cache_creation_1h_tokens: None,
-                // OpenAI's input_tokens already includes cached tokens
-                prompt_tokens_exclude_cache: false,
-                // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
-                completion_reasoning_tokens: usage
-                    .get("output_tokens_details")
-                    .and_then(|d| d.get("reasoning_tokens"))
-                    .and_then(Value::as_i64)
-                    .filter(|&v| v > 0),
-            },
+            ProviderFormat::Responses => {
+                let usage = openai_responses_usage_view(usage);
+                let input_details = usage.input_tokens_details.unwrap_or_default();
+                let output_details = usage.output_tokens_details.unwrap_or_default();
+                Self {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    prompt_cached_tokens: input_details.cached_tokens,
+                    prompt_cache_creation_tokens: input_details.cache_write_tokens,
+                    prompt_cache_creation_5m_tokens: None,
+                    prompt_cache_creation_1h_tokens: None,
+                    // OpenAI's input_tokens already includes cached tokens
+                    prompt_tokens_exclude_cache: false,
+                    // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
+                    completion_reasoning_tokens: output_details.reasoning_tokens.filter(|&v| v > 0),
+                }
+            }
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {
@@ -574,10 +591,13 @@ impl UniversalUsage {
                 );
 
                 let cached = self.prompt_cached_tokens.unwrap_or(0);
-                map.insert(
-                    "input_tokens_details".into(),
-                    serde_json::json!({ "cached_tokens": cached }),
-                );
+                let mut input_details = serde_json::Map::new();
+                input_details.insert("cached_tokens".into(), serde_json::json!(cached));
+                if let Some(cache_write) = self.prompt_cache_creation_tokens_for_prompt_math() {
+                    input_details
+                        .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
+                }
+                map.insert("input_tokens_details".into(), Value::Object(input_details));
 
                 let reasoning = self.completion_reasoning_tokens.unwrap_or(0);
                 map.insert(
@@ -762,6 +782,7 @@ mod tests {
         assert_eq!(responses["input_tokens"], 60);
         assert_eq!(responses["output_tokens"], 5);
         assert_eq!(responses["total_tokens"], 65);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 30);
     }
 
     #[test]
@@ -776,6 +797,23 @@ mod tests {
         };
 
         assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
+    }
+
+    #[test]
+    fn test_responses_cache_write_tokens_uses_split_ttl_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_5m_tokens: Some(30),
+            prompt_cache_creation_1h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+
+        assert_eq!(responses["input_tokens"], 100);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 70);
     }
 
     #[test]
@@ -845,5 +883,32 @@ mod tests {
         assert_eq!(usage.prompt_cache_creation_tokens, Some(30));
         assert_eq!(usage.prompt_cache_creation_5m_tokens, None);
         assert_eq!(usage.prompt_cache_creation_1h_tokens, None);
+    }
+
+    #[test]
+    fn test_openai_responses_cache_write_tokens() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "input_tokens_details": {
+                "cached_tokens": 40,
+                "cache_write_tokens": 15
+            },
+            "output_tokens_details": {
+                "reasoning_tokens": 5
+            }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_tokens, Some(100));
+        assert_eq!(usage.completion_tokens, Some(25));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.completion_reasoning_tokens, Some(5));
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens_details"]["cached_tokens"], 40);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 15);
     }
 }

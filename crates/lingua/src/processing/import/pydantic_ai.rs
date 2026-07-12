@@ -226,8 +226,10 @@ fn tool_call_part(part: PydanticAIPartCompat) -> Option<AssistantContentPart> {
         tool_call_id: part.tool_call_id?,
         tool_name: part.tool_name.unwrap_or_default(),
         arguments: parse_tool_call_arguments(part.args),
+        caller: None,
         encrypted_content: None,
         provider_options: None,
+        status: None,
         provider_executed: None,
     })
 }
@@ -316,6 +318,7 @@ fn convert_message_parts(
                         tool_name: part.tool_name.unwrap_or_default(),
                         output: parse_tool_result_output(part.content),
                         custom_tool_call: None,
+                        caller: None,
                         provider_options: None,
                     })],
                 });
