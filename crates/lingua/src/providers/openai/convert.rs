@@ -515,6 +515,25 @@ fn openai_tool_call_provider_options_view(
     })
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(default)]
+struct OpenAITextProviderOptionsView {
+    phase: Option<openai::MessagePhase>,
+}
+
+fn openai_text_provider_options_view(
+    provider_options: &Option<ProviderOptions>,
+) -> Result<OpenAITextProviderOptionsView, ConvertError> {
+    let Some(provider_options) = provider_options else {
+        return Ok(OpenAITextProviderOptionsView::default());
+    };
+    serde_json::from_value(serde_json::Value::Object(provider_options.options.clone())).map_err(
+        |error| ConvertError::ContentConversionFailed {
+            reason: format!("invalid OpenAI text provider options: {error}"),
+        },
+    )
+}
+
 fn provider_options_from_openai_namespace(namespace: Option<String>) -> Option<ProviderOptions> {
     let namespace = namespace?;
     let mut options = serde_json::Map::new();
@@ -1169,16 +1188,71 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         openai::InputItemRole::User => Message::User {
                             content: TryFromLLM::try_from(content)?,
                         },
-                        openai::InputItemRole::Assistant => Message::Assistant {
-                            id: input.id,
-                            content: TryFromLLM::try_from(content)?,
-                        },
+                        openai::InputItemRole::Assistant => {
+                            let content = preserve_responses_message_phase(
+                                TryFromLLM::try_from(content)?,
+                                input.phase,
+                            )?;
+                            Message::Assistant {
+                                id: input.id,
+                                content,
+                            }
+                        }
                     });
                 }
             };
         }
 
         Ok(result)
+    }
+}
+
+fn preserve_responses_message_phase(
+    content: AssistantContent,
+    phase: Option<openai::MessagePhase>,
+) -> Result<AssistantContent, ConvertError> {
+    let Some(phase) = phase else {
+        return Ok(content);
+    };
+    let phase =
+        serde_json::to_value(phase).map_err(|error| ConvertError::JsonSerializationFailed {
+            field: "phase".to_string(),
+            error: error.to_string(),
+        })?;
+
+    match content {
+        AssistantContent::String(text) => {
+            let mut options = serde_json::Map::new();
+            options.insert("phase".to_string(), phase);
+            Ok(AssistantContent::Array(vec![AssistantContentPart::Text(
+                TextContentPart {
+                    text,
+                    encrypted_content: None,
+                    cache_control: None,
+                    provider_options: Some(ProviderOptions { options }),
+                },
+            )]))
+        }
+        AssistantContent::Array(mut parts) => {
+            let text_part = parts
+                .iter_mut()
+                .find_map(|part| match part {
+                    AssistantContentPart::Text(text_part) => Some(text_part),
+                    _ => None,
+                })
+                .ok_or_else(|| ConvertError::UnsupportedMapping {
+                    from: "Responses message phase without text content".to_string(),
+                    to: "universal assistant content",
+                })?;
+            text_part
+                .provider_options
+                .get_or_insert_with(|| ProviderOptions {
+                    options: serde_json::Map::new(),
+                })
+                .options
+                .insert("phase".to_string(), phase);
+            Ok(AssistantContent::Array(parts))
+        }
     }
 }
 
@@ -1412,6 +1486,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 impl Default for openai::InputContent {
     fn default() -> Self {
         Self {
+            prompt_cache_breakpoint: None,
             text: None,
             input_content_type: openai::InputItemContentListType::InputText,
             detail: None,
@@ -1645,10 +1720,11 @@ impl Default for openai::InputItem {
             approval_request_id: None,
             approve: None,
             reason: None,
-            request_id: None,
             input: None,
             error: None,
             outputs: None,
+            caller: None,
+            fingerprint: None,
         }
     }
 }
@@ -1694,6 +1770,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut tool_call_info: Option<ResponsesToolCallInfo> = None;
                         let mut discovery_call_info: Option<ResponsesDiscoveryCallInfo> = None;
+                        let mut message_phase: Option<openai::MessagePhase> = None;
 
                         for part in parts {
                             match part {
@@ -1746,8 +1823,27 @@ impl TryFromLLM<Message> for openai::InputItem {
                                         execution,
                                     });
                                 }
-                                _ => {
-                                    normal_parts.push(TryFromLLM::try_from(part)?);
+                                other_part => {
+                                    if let AssistantContentPart::Text(text_part) = &other_part {
+                                        if let Some(phase) = openai_text_provider_options_view(
+                                            &text_part.provider_options,
+                                        )?
+                                        .phase
+                                        {
+                                            if message_phase
+                                                .as_ref()
+                                                .is_some_and(|current| current != &phase)
+                                            {
+                                                return Err(ConvertError::UnsupportedMapping {
+                                                    from: "conflicting Responses message phases"
+                                                        .to_string(),
+                                                    to: "OpenAI Responses input item",
+                                                });
+                                            }
+                                            message_phase = Some(phase);
+                                        }
+                                    }
+                                    normal_parts.push(TryFromLLM::try_from(other_part)?);
                                 }
                             }
                         }
@@ -1979,6 +2075,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(openai::InputItemType::Message),
                                 id,
                                 status: Some(openai::FunctionCallItemStatus::Completed),
+                                phase: message_phase,
                                 ..Default::default()
                             })
                         }
@@ -2313,6 +2410,7 @@ pub fn universal_to_responses_input(
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut tool_calls: Vec<ResponsesToolCallInfo> = vec![];
                         let mut discovery_calls: Vec<ResponsesDiscoveryCallInfo> = vec![];
+                        let mut message_phase: Option<openai::MessagePhase> = None;
 
                         for part in parts {
                             match part {
@@ -2366,6 +2464,25 @@ pub fn universal_to_responses_input(
                                     });
                                 }
                                 other_part => {
+                                    if let AssistantContentPart::Text(text_part) = other_part {
+                                        if let Some(phase) = openai_text_provider_options_view(
+                                            &text_part.provider_options,
+                                        )?
+                                        .phase
+                                        {
+                                            if message_phase
+                                                .as_ref()
+                                                .is_some_and(|current| current != &phase)
+                                            {
+                                                return Err(ConvertError::UnsupportedMapping {
+                                                    from: "conflicting Responses message phases"
+                                                        .to_string(),
+                                                    to: "OpenAI Responses input item",
+                                                });
+                                            }
+                                            message_phase = Some(phase);
+                                        }
+                                    }
                                     normal_parts.push(TryFromLLM::try_from(other_part.clone())?);
                                 }
                             }
@@ -2395,6 +2512,7 @@ pub fn universal_to_responses_input(
                                 // Only clear id if reasoning was emitted (it used the id)
                                 id: if has_reasoning { None } else { id.clone() },
                                 status: Some(openai::FunctionCallItemStatus::Completed),
+                                phase: message_phase,
                                 ..Default::default()
                             });
                         }
@@ -2593,7 +2711,18 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
             call_id: output_item.call_id,
-            results: output_item.results,
+            results: output_item.results.map(|results| {
+                results
+                    .into_iter()
+                    .map(|result| openai::InputItemListResult {
+                        attributes: result.attributes,
+                        file_id: result.file_id,
+                        filename: result.filename,
+                        score: result.score,
+                        text: result.text,
+                    })
+                    .collect()
+            }),
             action: output_item.action.and_then(|action| {
                 serde_json::to_value(action)
                     .and_then(serde_json::from_value)
@@ -2618,8 +2747,9 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             approval_request_id: None,
             approve: None,
             reason: None,
-            request_id: None,
             input: output_item.input,
+            caller: output_item.caller,
+            fingerprint: output_item.fingerprint,
             ..Default::default()
         })
     }
@@ -2718,7 +2848,18 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             namespace: input_item.namespace,
             queries: input_item.queries,
             call_id: input_item.call_id,
-            results: input_item.results,
+            results: input_item.results.map(|results| {
+                results
+                    .into_iter()
+                    .map(|result| openai::OutputResult {
+                        attributes: result.attributes,
+                        file_id: result.file_id,
+                        filename: result.filename,
+                        score: result.score,
+                        text: result.text,
+                    })
+                    .collect()
+            }),
             action: input_item.action.and_then(|action| {
                 serde_json::to_value(action)
                     .and_then(serde_json::from_value)
@@ -2740,6 +2881,8 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
                     .ok()
             }),
             input: input_item.input,
+            caller: input_item.caller,
+            fingerprint: input_item.fingerprint,
             ..Default::default()
         })
     }
@@ -2782,7 +2925,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                 Some(openai::OutputItemType::Message) => {
                     // Extract text content from message output items.
                     // `phase` is a message-level field (not content-level); it is stored in
-                    // the first text part's provider_options under "_output_item_phase" so
+                    // the first text part's provider_options under the typed `phase` field so
                     // it survives the OutputItem → Message → OutputItem roundtrip.
                     let item_phase = item.phase.take();
                     let mut text_parts = Vec::new();
@@ -2811,7 +2954,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                                     phase_stored = true;
                                     if let Some(ref phase) = item_phase {
                                         if let Ok(value) = serde_json::to_value(phase) {
-                                            options.insert("_output_item_phase".to_string(), value);
+                                            options.insert("phase".to_string(), value);
                                         }
                                     }
                                 }
@@ -3201,7 +3344,6 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         struct TextPartProviderOpts {
                                             annotations: Option<Vec<openai::Annotation>>,
                                             logprobs: Option<Vec<openai::LogProbability>>,
-                                            #[serde(rename = "_output_item_phase")]
                                             phase: Option<openai::MessagePhase>,
                                         }
                                         let (annotations, logprobs, phase) = if let Some(ref opts) =
@@ -3646,8 +3788,9 @@ impl Default for openai::OutputItem {
             approval_request_id: None,
             approve: None,
             reason: None,
-            request_id: None,
             input: None,
+            caller: None,
+            fingerprint: None,
         }
     }
 }
@@ -4246,6 +4389,7 @@ fn convert_user_content_part_to_chat_completion_part(
 ) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
     match part {
         UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
+            prompt_cache_breakpoint: None,
             text: Some(text_part.text),
             chat_completion_request_message_content_part_type: openai::PurpleType::Text,
             image_url: None,
@@ -4284,6 +4428,7 @@ fn convert_user_content_part_to_chat_completion_part(
             };
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
+                prompt_cache_breakpoint: None,
                 text: None,
                 chat_completion_request_message_content_part_type: openai::PurpleType::ImageUrl,
                 image_url: Some(openai::ImageUrl { url, detail: None }),
@@ -4463,6 +4608,7 @@ fn chat_completion_assistant_text_content(
             .map(|text_part| ChatCompletionRequestMessageContentPartExt {
                 cache_control: cache_control_to_value(text_part.cache_control),
                 base: openai::ChatCompletionRequestMessageContentPart {
+                    prompt_cache_breakpoint: None,
                     text: Some(text_part.text),
                     chat_completion_request_message_content_part_type: openai::PurpleType::Text,
                     image_url: None,
@@ -5402,6 +5548,7 @@ mod tests {
     #[test]
     fn chat_completions_file_imports_back_to_text_file() {
         let input = openai::ChatCompletionRequestMessageContentPart {
+            prompt_cache_breakpoint: None,
             text: None,
             chat_completion_request_message_content_part_type: openai::PurpleType::File,
             image_url: None,

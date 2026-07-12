@@ -466,6 +466,23 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesReasoningEffortMaxParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "max" },
+    },
+    anthropic: {
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {

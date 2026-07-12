@@ -9,6 +9,13 @@ mod schema_converter;
 mod tool_generator;
 
 fn main() {
+    if let Err(error) = run() {
+        eprintln!("❌ Type generation failed: {error}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
 
     let provider = if args.len() > 1 {
@@ -22,11 +29,11 @@ fn main() {
     println!("🔄 Generating types for provider: {}", provider);
 
     match provider.as_str() {
-        "openai" => generate_openai_types(),
+        "openai" => generate_openai_types()?,
         "anthropic" => generate_anthropic_types(),
         "google" => generate_google_discovery_types(),
         "all" => {
-            generate_openai_types();
+            generate_openai_types()?;
             generate_anthropic_types();
             generate_google_discovery_types();
         }
@@ -38,9 +45,10 @@ fn main() {
     }
 
     println!("✅ Type generation completed successfully!");
+    Ok(())
 }
 
-fn generate_openai_types() {
+fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating OpenAI types from OpenAPI spec using quicktype...");
 
     let spec_file_path = "specs/openai/openapi.yml";
@@ -48,14 +56,7 @@ fn generate_openai_types() {
     let openai_spec = match std::fs::read_to_string(spec_file_path) {
         Ok(content) => content,
         Err(e) => {
-            println!(
-                "❌ Failed to read OpenAPI spec at {}: {}",
-                spec_file_path, e
-            );
-            println!(
-                "Run './pipelines/generate-provider-types.sh openai' to download the spec first"
-            );
-            return;
+            return Err(format!("failed to read OpenAPI spec at {spec_file_path}: {e}").into())
         }
     };
 
@@ -63,10 +64,7 @@ fn generate_openai_types() {
 
     let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
         Ok(value) => value,
-        Err(e) => {
-            println!("❌ Failed to parse OpenAPI spec as YAML: {}", e);
-            return;
-        }
+        Err(e) => return Err(format!("failed to parse OpenAPI spec as YAML: {e}").into()),
     };
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
@@ -76,10 +74,12 @@ fn generate_openai_types() {
 
         // Generate essential OpenAI types for chat completion APIs using quicktype
         println!("🏗️  Generating essential OpenAI types for chat completions");
-        generate_openai_specific_types(&openai_spec);
+        generate_openai_specific_types(&openai_spec)?;
     } else {
-        println!("❌ No components/schemas section found in OpenAPI spec");
+        return Err("no components/schemas section found in OpenAPI spec".into());
     }
+
+    Ok(())
 }
 
 fn generate_anthropic_types() {
@@ -124,27 +124,16 @@ fn generate_anthropic_types() {
     }
 }
 
-fn generate_openai_specific_types(openai_spec: &str) {
+fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Using quicktype for OpenAI type generation...");
 
     // Extract OpenAI OpenAPI spec
     let full_spec: serde_json::Value =
         serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
-    // Generate types using quicktype approach
-    match generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec).unwrap()) {
-        Ok(()) => {
-            println!("✅ OpenAI types generated successfully with quicktype");
-        }
-        Err(e) => {
-            println!("❌ Quicktype generation failed for OpenAI: {}", e);
-            println!("📝 Falling back to minimal types");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/openai/generated.rs",
-                "// Quicktype generation failed",
-            );
-        }
-    }
+    generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
+    println!("✅ OpenAI types generated successfully with quicktype");
+    Ok(())
 }
 
 fn generate_openai_types_with_quicktype(
@@ -155,7 +144,8 @@ fn generate_openai_types_with_quicktype(
     let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential OpenAI schemas for chat completions
-    let essential_schemas = create_essential_openai_schemas(&spec);
+    let mut essential_schemas = create_essential_openai_schemas(&spec);
+    normalize_openai_schemas_for_quicktype(&mut essential_schemas)?;
 
     println!("🏗️  Generating OpenAI types with quicktype...");
 
@@ -317,6 +307,297 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     });
 
     root_schema
+}
+
+fn normalize_openai_schemas_for_quicktype(
+    root_schema: &mut serde_json::Value,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let definitions = root_schema
+        .get("definitions")
+        .and_then(serde_json::Value::as_object)
+        .ok_or("OpenAI quicktype schema is missing definitions")?
+        .clone();
+    let mutable_definitions = root_schema
+        .get_mut("definitions")
+        .and_then(serde_json::Value::as_object_mut)
+        .ok_or("OpenAI quicktype schema is missing mutable definitions")?;
+
+    for schema_name in ["InputItem", "OutputItem"] {
+        let Some(schema) = definitions.get(schema_name) else {
+            continue;
+        };
+        let mut normalized = merge_openai_object_union(schema, &definitions, &mut Vec::new())?;
+        normalized
+            .as_object_mut()
+            .ok_or("normalized OpenAI object union is not an object")?
+            .insert(
+                "title".to_string(),
+                serde_json::Value::String(schema_name.to_string()),
+            );
+        mutable_definitions.insert(schema_name.to_string(), normalized);
+    }
+
+    Ok(())
+}
+
+fn merge_openai_object_union(
+    schema: &serde_json::Value,
+    definitions: &serde_json::Map<String, serde_json::Value>,
+    reference_stack: &mut Vec<String>,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    let variants = collect_openai_object_variants(schema, definitions, reference_stack)?;
+    if variants.is_empty() {
+        return Err("OpenAI object union did not contain any variants".into());
+    }
+
+    let mut merged_properties = serde_json::Map::new();
+    let mut required_intersection: Option<std::collections::HashSet<String>> = None;
+
+    for variant in &variants {
+        let properties = variant
+            .get("properties")
+            .and_then(serde_json::Value::as_object)
+            .ok_or("OpenAI object union variant is missing properties")?;
+
+        for (property_name, property_schema) in properties {
+            if let Some(existing) = merged_properties.get_mut(property_name) {
+                *existing = merge_openai_property_schemas(existing, property_schema);
+            } else {
+                merged_properties.insert(property_name.clone(), property_schema.clone());
+            }
+        }
+
+        let required = variant
+            .get("required")
+            .and_then(serde_json::Value::as_array)
+            .map(|fields| {
+                fields
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::to_string)
+                    .collect::<std::collections::HashSet<_>>()
+            })
+            .unwrap_or_default();
+
+        required_intersection = Some(match required_intersection {
+            Some(current) => current.intersection(&required).cloned().collect(),
+            None => required,
+        });
+    }
+
+    let mut normalized = serde_json::Map::new();
+    normalized.insert(
+        "type".to_string(),
+        serde_json::Value::String("object".to_string()),
+    );
+    normalized.insert(
+        "properties".to_string(),
+        serde_json::Value::Object(merged_properties),
+    );
+
+    let mut required = required_intersection
+        .unwrap_or_default()
+        .into_iter()
+        .collect::<Vec<_>>();
+    required.sort();
+    if !required.is_empty() {
+        normalized.insert(
+            "required".to_string(),
+            serde_json::Value::Array(
+                required
+                    .into_iter()
+                    .map(serde_json::Value::String)
+                    .collect(),
+            ),
+        );
+    }
+
+    if let Some(description) = schema.get("description") {
+        normalized.insert("description".to_string(), description.clone());
+    }
+    if let Some(title) = schema.get("title") {
+        normalized.insert("title".to_string(), title.clone());
+    }
+
+    Ok(serde_json::Value::Object(normalized))
+}
+
+fn collect_openai_object_variants(
+    schema: &serde_json::Value,
+    definitions: &serde_json::Map<String, serde_json::Value>,
+    reference_stack: &mut Vec<String>,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    if let Some(reference) = schema.get("$ref").and_then(serde_json::Value::as_str) {
+        let name = reference
+            .strip_prefix("#/definitions/")
+            .ok_or_else(|| format!("unsupported OpenAI schema reference: {reference}"))?;
+        if reference_stack.iter().any(|entry| entry == name) {
+            return Err(format!("recursive OpenAI object union reference: {name}").into());
+        }
+        let referenced_schema = definitions
+            .get(name)
+            .ok_or_else(|| format!("missing OpenAI schema definition: {name}"))?;
+        reference_stack.push(name.to_string());
+        let variants =
+            collect_openai_object_variants(referenced_schema, definitions, reference_stack);
+        reference_stack.pop();
+        return variants;
+    }
+
+    if let Some(union) = schema
+        .get("oneOf")
+        .or_else(|| schema.get("anyOf"))
+        .and_then(serde_json::Value::as_array)
+    {
+        let mut variants = Vec::new();
+        for branch in union {
+            variants.extend(collect_openai_object_variants(
+                branch,
+                definitions,
+                reference_stack,
+            )?);
+        }
+        return Ok(variants);
+    }
+
+    if let Some(all_of) = schema.get("allOf").and_then(serde_json::Value::as_array) {
+        let mut components = Vec::new();
+        for branch in all_of {
+            let branch_variants =
+                collect_openai_object_variants(branch, definitions, reference_stack)?;
+            if branch_variants.len() != 1 {
+                return Err("OpenAI allOf branch expanded to multiple object variants".into());
+            }
+            components.extend(branch_variants);
+        }
+        return Ok(vec![merge_openai_all_of_components(&components)?]);
+    }
+
+    if schema.get("type").and_then(serde_json::Value::as_str) == Some("object")
+        || schema.get("properties").is_some()
+    {
+        return Ok(vec![schema.clone()]);
+    }
+
+    Err("OpenAI InputItem contains a non-object union branch".into())
+}
+
+fn merge_openai_all_of_components(
+    components: &[serde_json::Value],
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    let mut properties = serde_json::Map::new();
+    let mut required = std::collections::HashSet::new();
+
+    for component in components {
+        if let Some(component_properties) = component
+            .get("properties")
+            .and_then(serde_json::Value::as_object)
+        {
+            for (property_name, property_schema) in component_properties {
+                if let Some(existing) = properties.get_mut(property_name) {
+                    *existing = merge_openai_property_schemas(existing, property_schema);
+                } else {
+                    properties.insert(property_name.clone(), property_schema.clone());
+                }
+            }
+        }
+
+        if let Some(component_required) = component
+            .get("required")
+            .and_then(serde_json::Value::as_array)
+        {
+            required.extend(
+                component_required
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::to_string),
+            );
+        }
+    }
+
+    let mut merged = serde_json::Map::new();
+    merged.insert(
+        "type".to_string(),
+        serde_json::Value::String("object".to_string()),
+    );
+    merged.insert(
+        "properties".to_string(),
+        serde_json::Value::Object(properties),
+    );
+    if !required.is_empty() {
+        let mut required = required.into_iter().collect::<Vec<_>>();
+        required.sort();
+        merged.insert(
+            "required".to_string(),
+            serde_json::Value::Array(
+                required
+                    .into_iter()
+                    .map(serde_json::Value::String)
+                    .collect(),
+            ),
+        );
+    }
+
+    Ok(serde_json::Value::Object(merged))
+}
+
+fn merge_openai_property_schemas(
+    existing: &serde_json::Value,
+    incoming: &serde_json::Value,
+) -> serde_json::Value {
+    if existing == incoming {
+        return existing.clone();
+    }
+
+    if openai_schema_is_string_enum(existing) && openai_schema_is_string_enum(incoming) {
+        let mut values = Vec::new();
+        collect_openai_string_enum_values(existing, &mut values);
+        collect_openai_string_enum_values(incoming, &mut values);
+        values.dedup();
+        return serde_json::json!({
+            "type": "string",
+            "enum": values,
+        });
+    }
+
+    let mut variants = Vec::new();
+    append_unique_openai_schema_variants(existing, &mut variants);
+    append_unique_openai_schema_variants(incoming, &mut variants);
+    serde_json::json!({ "anyOf": variants })
+}
+
+fn openai_schema_is_string_enum(schema: &serde_json::Value) -> bool {
+    schema
+        .get("enum")
+        .and_then(serde_json::Value::as_array)
+        .is_some()
+        && schema
+            .get("type")
+            .and_then(serde_json::Value::as_str)
+            .is_none_or(|schema_type| schema_type == "string")
+}
+
+fn collect_openai_string_enum_values(schema: &serde_json::Value, values: &mut Vec<String>) {
+    if let Some(enum_values) = schema.get("enum").and_then(serde_json::Value::as_array) {
+        for value in enum_values.iter().filter_map(serde_json::Value::as_str) {
+            if !values.iter().any(|existing| existing == value) {
+                values.push(value.to_string());
+            }
+        }
+    }
+}
+
+fn append_unique_openai_schema_variants(
+    schema: &serde_json::Value,
+    variants: &mut Vec<serde_json::Value>,
+) {
+    if let Some(any_of) = schema.get("anyOf").and_then(serde_json::Value::as_array) {
+        for variant in any_of {
+            append_unique_openai_schema_variants(variant, variants);
+        }
+    } else if !variants.iter().any(|variant| variant == schema) {
+        variants.push(schema.clone());
+    }
 }
 
 fn add_openai_schema_with_dependencies(
@@ -1127,25 +1408,319 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
 
-    // Dynamically find the enum that quicktype generated for content list types.
-    // Quicktype assigns arbitrary names (IndecentType, HilariousType, etc.) that shift
-    // when the spec changes, so we search for the enum containing both InputText and
-    // OutputText variants.
-    let content_list_type_name = find_enum_with_variants(&processed, &["InputText", "OutputText"])
-        .expect("quicktype output did not contain an enum with InputText and OutputText variants");
+    processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
+    processed = rename_enum_variant(
+        &processed,
+        "ChatCompletionRequestMessageContent",
+        "PurpleContentPartArray",
+        "ChatCompletionRequestMessageContentPartArray",
+    );
+    processed = rename_enum_variant(
+        &processed,
+        "ChatCompletionRequestMessageContent",
+        "PurpleString",
+        "String",
+    );
+    processed = rename_enum_variant(
+        &processed,
+        "InputItemListContent",
+        "InputItemContentListElementArray",
+        "InputContentArray",
+    );
+    processed = rename_enum_variant(&processed, "InputItemListContent", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "InputItemListOutput", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "OutputOutput", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "ReasoningEffort", "ReasoningEffortNone", "None");
+    processed = rename_struct_field(
+        &processed,
+        "PurpleContentPart",
+        "content_part_type",
+        "chat_completion_request_message_content_part_type",
+    );
+    processed = make_struct_field_optional(&processed, "OutputItem", "output_item_type");
+    processed = make_struct_field_optional(&processed, "InputTokensDetails", "cache_write_tokens");
 
-    processed.push_str(&format!(
-        r#"
-
-// Compatibility aliases for names used by Lingua's hand-written adapters.
-pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = {content_list_type_name};
-pub type FunctionCallItemStatus = Status;
-"#,
-    ));
+    processed = add_openai_compatibility_aliases(&processed);
 
     processed
+}
+
+fn add_openai_compatibility_aliases(processed: &str) -> String {
+    let mut aliases = Vec::new();
+
+    let compatibility_aliases = [
+        (
+            "ChatCompletionRequestMessageContentPart",
+            "PurpleContentPart",
+        ),
+        ("ContentPart", "FluffyContentPart"),
+        ("ContentOutputContentList", "InputItemContentListElement"),
+        ("InputItemAction", "InputItemListAction"),
+        ("InputItemContent", "InputItemListContent"),
+        (
+            "InputItemLocalEnvironmentParam",
+            "InputItemListLocalEnvironmentParam",
+        ),
+        ("InputItemRole", "InputItemListRole"),
+        ("InputItemTool", "InputItemListTool"),
+        ("InputItemType", "InputItemListType"),
+        ("Output", "InputItemListOutput"),
+        ("OutputItemAction", "OutputAction"),
+        ("OutputItemTool", "InputItemListTool"),
+        ("OutputUnion", "OutputOutput"),
+        ("Result", "InputItemListResult"),
+        ("WebSearchContextSize", "SearchContextSize"),
+    ];
+
+    for (alias, target) in compatibility_aliases {
+        if !contains_rust_type_definition(processed, alias)
+            && contains_rust_type_definition(processed, target)
+        {
+            aliases.push(format!("pub type {alias} = {target};"));
+        }
+    }
+
+    if !contains_rust_type_definition(processed, "OutputItemType") {
+        if let Some(output_item_type) =
+            find_struct_field_type(processed, "OutputItem", "output_item_type")
+        {
+            aliases.push(format!(
+                "pub type OutputItemType = {};",
+                strip_option_type(&output_item_type)
+            ));
+        }
+    }
+
+    if !contains_rust_type_definition(processed, "Instructions") {
+        aliases.push("pub type Instructions = InputParam;".to_string());
+    }
+    if !contains_rust_type_definition(processed, "InputContent") {
+        aliases.push("pub type InputContent = ContentOutputContentList;".to_string());
+    }
+    if !contains_rust_type_definition(processed, "InputItemContentListType") {
+        if let Some(content_list_type_name) =
+            find_enum_with_variants(processed, &["InputText", "OutputText"])
+        {
+            aliases.push(format!(
+                "pub type InputItemContentListType = {content_list_type_name};"
+            ));
+        }
+    }
+    if !contains_rust_type_definition(processed, "FunctionCallItemStatus") {
+        aliases.push("pub type FunctionCallItemStatus = Status;".to_string());
+    }
+
+    if aliases.is_empty() {
+        return processed.to_string();
+    }
+
+    format!(
+        "{processed}\n\n// Compatibility aliases for names used by Lingua's hand-written adapters.\n{}\n",
+        aliases.join("\n")
+    )
+}
+
+fn contains_rust_type_definition(source: &str, type_name: &str) -> bool {
+    source.lines().any(|line| {
+        let trimmed = line.trim_start();
+        ["pub struct ", "pub enum ", "pub type "]
+            .iter()
+            .any(|prefix| {
+                trimmed.strip_prefix(prefix).is_some_and(|rest| {
+                    rest.starts_with(type_name) && type_name_boundary(rest, type_name)
+                })
+            })
+    })
+}
+
+fn type_name_boundary(rest: &str, type_name: &str) -> bool {
+    rest[type_name.len()..]
+        .chars()
+        .next()
+        .is_none_or(|character| {
+            character == ' ' || character == '{' || character == '=' || character == '<'
+        })
+}
+
+fn rename_enum_variant(
+    source: &str,
+    enum_name: &str,
+    current_variant: &str,
+    compatibility_variant: &str,
+) -> String {
+    let mut output = Vec::new();
+    let mut in_target_enum = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub enum {enum_name} ")) {
+            in_target_enum = true;
+            brace_depth = trimmed.matches('{').count();
+            output.push(line.to_string());
+            continue;
+        }
+
+        if in_target_enum {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+            let renamed = line.replacen(current_variant, compatibility_variant, 1);
+            output.push(renamed);
+            if brace_depth == 0 {
+                in_target_enum = false;
+            }
+        } else {
+            output.push(line.to_string());
+        }
+    }
+
+    output.join("\n")
+}
+
+fn rename_struct_field(
+    source: &str,
+    struct_name: &str,
+    current_field: &str,
+    compatibility_field: &str,
+) -> String {
+    transform_struct_field(source, struct_name, current_field, |line, field_type| {
+        line.replace(
+            &format!("pub {current_field}: {field_type},"),
+            &format!("pub {compatibility_field}: {field_type},"),
+        )
+    })
+}
+
+fn make_struct_field_optional(source: &str, struct_name: &str, field_name: &str) -> String {
+    let mut output = Vec::new();
+    let mut in_target_struct = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
+            in_target_struct = true;
+            brace_depth = trimmed.matches('{').count();
+            output.push(line.to_string());
+            continue;
+        }
+
+        if in_target_struct {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+            if let Some(field_type) = rust_field_type(trimmed, field_name) {
+                let indent = line.len() - line.trim_start().len();
+                if !output
+                    .last()
+                    .is_some_and(|previous: &String| previous.contains("skip_serializing_if"))
+                {
+                    output.push(format!(
+                        "{}#[serde(skip_serializing_if = \"Option::is_none\")]",
+                        " ".repeat(indent)
+                    ));
+                }
+                if field_type.starts_with("Option<") {
+                    output.push(line.to_string());
+                } else {
+                    output.push(line.replace(
+                        &format!("pub {field_name}: {field_type},"),
+                        &format!("pub {field_name}: Option<{field_type}>,"),
+                    ));
+                }
+            } else {
+                output.push(line.to_string());
+            }
+            if brace_depth == 0 {
+                in_target_struct = false;
+            }
+        } else {
+            output.push(line.to_string());
+        }
+    }
+
+    output.join("\n")
+}
+
+fn transform_struct_field<F>(
+    source: &str,
+    struct_name: &str,
+    field_name: &str,
+    transform: F,
+) -> String
+where
+    F: Fn(&str, &str) -> String,
+{
+    let mut output = Vec::new();
+    let mut in_target_struct = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
+            in_target_struct = true;
+            brace_depth = trimmed.matches('{').count();
+            output.push(line.to_string());
+            continue;
+        }
+
+        if in_target_struct {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+            if let Some(field_type) = rust_field_type(trimmed, field_name) {
+                output.push(transform(line, field_type));
+            } else {
+                output.push(line.to_string());
+            }
+            if brace_depth == 0 {
+                in_target_struct = false;
+            }
+        } else {
+            output.push(line.to_string());
+        }
+    }
+
+    output.join("\n")
+}
+
+fn find_struct_field_type(source: &str, struct_name: &str, field_name: &str) -> Option<String> {
+    let mut in_target_struct = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
+            in_target_struct = true;
+            brace_depth = trimmed.matches('{').count();
+            continue;
+        }
+        if !in_target_struct {
+            continue;
+        }
+
+        brace_depth += trimmed.matches('{').count();
+        brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+        if let Some(field_type) = rust_field_type(trimmed, field_name) {
+            return Some(field_type.to_string());
+        }
+        if brace_depth == 0 {
+            return None;
+        }
+    }
+
+    None
+}
+
+fn rust_field_type<'a>(line: &'a str, field_name: &str) -> Option<&'a str> {
+    line.strip_prefix(&format!("pub {field_name}: "))
+        .and_then(|field_type| field_type.strip_suffix(','))
+}
+
+fn strip_option_type(field_type: &str) -> &str {
+    field_type
+        .strip_prefix("Option<")
+        .and_then(|inner| inner.strip_suffix('>'))
+        .unwrap_or(field_type)
 }
 
 /// Add #[ts(export_to = "...")] to all TS-enabled type definitions
@@ -1917,4 +2492,125 @@ where
     }
 
     result_lines.join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn openai_input_item_union_is_normalized_to_optional_field_object() {
+        let mut schema = serde_json::json!({
+            "definitions": {
+                "InputItem": {
+                    "oneOf": [
+                        {"$ref": "#/definitions/UserMessage"},
+                        {"$ref": "#/definitions/ToolResult"}
+                    ]
+                },
+                "UserMessage": {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "enum": ["message"]},
+                        "content": {"type": "string"},
+                        "shared": {"type": "string"}
+                    },
+                    "required": ["type", "content", "shared"]
+                },
+                "ToolResult": {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "enum": ["tool_result"]},
+                        "output": {"type": "number"},
+                        "shared": {"type": "string"}
+                    },
+                    "required": ["type", "output", "shared"]
+                }
+            }
+        });
+
+        normalize_openai_schemas_for_quicktype(&mut schema).unwrap();
+
+        let input_item = schema.pointer("/definitions/InputItem").unwrap();
+        assert_eq!(input_item.get("type"), Some(&serde_json::json!("object")));
+        assert!(input_item.get("oneOf").is_none());
+        assert_eq!(
+            input_item.pointer("/properties/type/enum"),
+            Some(&serde_json::json!(["message", "tool_result"]))
+        );
+        assert_eq!(
+            input_item.get("required"),
+            Some(&serde_json::json!(["shared", "type"]))
+        );
+        assert!(input_item.pointer("/properties/content").is_some());
+        assert!(input_item.pointer("/properties/output").is_some());
+    }
+
+    #[test]
+    fn openai_input_item_conflicting_properties_become_any_of() {
+        let mut schema = serde_json::json!({
+            "definitions": {
+                "InputItem": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {"value": {"type": "string"}}
+                        },
+                        {
+                            "type": "object",
+                            "properties": {"value": {"type": "number"}}
+                        }
+                    ]
+                }
+            }
+        });
+
+        normalize_openai_schemas_for_quicktype(&mut schema).unwrap();
+
+        assert_eq!(
+            schema.pointer("/definitions/InputItem/properties/value/anyOf"),
+            Some(&serde_json::json!([
+                {"type": "string"},
+                {"type": "number"}
+            ]))
+        );
+        assert!(schema.pointer("/definitions/InputItem/required").is_none());
+    }
+
+    #[test]
+    fn openai_compatibility_aliases_skip_generated_name_collisions() {
+        let source = r#"pub struct Instructions {}
+pub enum InputItemContentListType {
+    InputText,
+    OutputText,
+}
+pub enum HilariousType {
+    InputText,
+    OutputText,
+}
+pub struct Status {}
+"#;
+
+        let processed = add_openai_compatibility_aliases(source);
+
+        assert!(!processed.contains("pub type Instructions ="));
+        assert!(!processed.contains("pub type InputItemContentListType ="));
+        assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
+        assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
+    }
+
+    #[test]
+    fn openai_response_cache_write_tokens_remains_backward_compatible() {
+        let source = r#"pub struct InputTokensDetails {
+    pub cache_write_tokens: i64,
+    pub cached_tokens: i64,
+}"#;
+
+        let processed =
+            make_struct_field_optional(source, "InputTokensDetails", "cache_write_tokens");
+
+        assert!(processed.contains("#[serde(skip_serializing_if = \"Option::is_none\")]"));
+        assert!(processed.contains("pub cache_write_tokens: Option<i64>,"));
+        assert!(processed.contains("pub cached_tokens: i64,"));
+    }
 }

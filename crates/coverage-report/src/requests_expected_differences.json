@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "*",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
       "testCase": "googleThinkingJsonSchemaParam",
       "source": "Google",
       "target": "Responses",

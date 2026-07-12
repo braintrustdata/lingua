@@ -168,25 +168,27 @@ pub fn clamp_reasoning_effort_for_model(model: &str, effort: ReasoningEffort) ->
     match family {
         EffortFamily::NoneLowMediumHighXhigh => match effort {
             ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Max => ReasoningEffort::Xhigh,
             _ => effort,
         },
         EffortFamily::LowMediumHighXhigh => match effort {
             ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Max => ReasoningEffort::Xhigh,
             _ => effort,
         },
         EffortFamily::NoneLowMediumHigh => match effort {
             ReasoningEffort::Minimal => ReasoningEffort::Low,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
         EffortFamily::LowMediumHigh => match effort {
             ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
         EffortFamily::MinimalLowMediumHigh => match effort {
             ReasoningEffort::None => ReasoningEffort::Minimal,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
     }
@@ -284,6 +286,7 @@ mod tests {
                 ReasoningEffort::Low,
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
             ("gpt-5.3-codex", ReasoningEffort::None, ReasoningEffort::Low),
             (
                 "gpt-5.2-codex",
@@ -299,6 +302,7 @@ mod tests {
             ),
             ("gpt-5", ReasoningEffort::None, ReasoningEffort::Minimal),
             ("gpt-5-mini", ReasoningEffort::Xhigh, ReasoningEffort::High),
+            ("gpt-5-nano", ReasoningEffort::Max, ReasoningEffort::High),
             (
                 "gpt-5-nano",
                 ReasoningEffort::Minimal,

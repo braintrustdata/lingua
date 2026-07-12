@@ -96,6 +96,7 @@ pub fn effort_to_thinking_level(effort: ReasoningEffort) -> ThinkingLevel {
         ReasoningEffort::Medium => ThinkingLevel::Medium,
         ReasoningEffort::High => ThinkingLevel::High,
         ReasoningEffort::Xhigh => ThinkingLevel::High,
+        ReasoningEffort::Max => ThinkingLevel::High,
     }
 }
 

@@ -1427,6 +1427,41 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
 }
 `;
 
+exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_E0cMLnbSWJ1EUMM8jphc3qK1w8PEe",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 906,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > responsesToolSearchInputParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -4163,6 +4198,30 @@ However, the sky can also appear in many other colors depending on the time of d
 }
 `;
 
+exports[`anthropic → google > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
 exports[`anthropic → google > responsesToolSearchInputParam > request 1`] = `
 {
   "contents": [
@@ -6853,7 +6912,7 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > req
   "max_output_tokens": 16000,
   "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "xhigh",
+    "effort": "max",
   },
 }
 `;
@@ -7053,6 +7112,44 @@ If you tell me the time and location, I can describe what the sky would look lik
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 528,
+  },
+}
+`;
+
+exports[`anthropic → responses > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`anthropic → responses > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0134ce6a18475cb0006a52dde9eaa4819a9fea4e9a36824aec",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 11,
   },
 }
 `;
@@ -31351,6 +31448,63 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CcwCxgmtiRfJ45U8dM7vz",
+  "incomplete_details": null,
+  "model": "claude-opus-4-6",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = **4**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = **4**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 14,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 28,
+  },
+}
+`;
+
 exports[`responses → anthropic > responsesToolSearchInputParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -35045,6 +35199,29 @@ Here are the key points:
     },
     "total_tokens": 3973,
   },
+}
+`;
+
+exports[`responses → google > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
 }
 `;
 
