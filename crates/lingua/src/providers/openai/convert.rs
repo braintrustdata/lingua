@@ -1725,6 +1725,7 @@ impl Default for openai::InputItem {
             outputs: None,
             caller: None,
             fingerprint: None,
+            request_id: None,
         }
     }
 }
@@ -2711,18 +2712,7 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             // Set other fields to None/default - many OutputItem fields don't have InputItem equivalents
             queries: output_item.queries,
             call_id: output_item.call_id,
-            results: output_item.results.map(|results| {
-                results
-                    .into_iter()
-                    .map(|result| openai::InputItemListResult {
-                        attributes: result.attributes,
-                        file_id: result.file_id,
-                        filename: result.filename,
-                        score: result.score,
-                        text: result.text,
-                    })
-                    .collect()
-            }),
+            results: output_item.results,
             action: output_item.action.and_then(|action| {
                 serde_json::to_value(action)
                     .and_then(serde_json::from_value)
@@ -2748,8 +2738,14 @@ impl TryFromLLM<openai::OutputItem> for openai::InputItem {
             approve: None,
             reason: None,
             input: output_item.input,
-            caller: output_item.caller,
+            caller: output_item
+                .caller
+                .map(|caller| openai::InputItemDirectToolCallCaller {
+                    direct_tool_call_caller_type: caller.direct_tool_call_caller_type,
+                    caller_id: caller.caller_id,
+                }),
             fingerprint: output_item.fingerprint,
+            request_id: output_item.request_id,
             ..Default::default()
         })
     }
@@ -2848,18 +2844,7 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
             namespace: input_item.namespace,
             queries: input_item.queries,
             call_id: input_item.call_id,
-            results: input_item.results.map(|results| {
-                results
-                    .into_iter()
-                    .map(|result| openai::OutputResult {
-                        attributes: result.attributes,
-                        file_id: result.file_id,
-                        filename: result.filename,
-                        score: result.score,
-                        text: result.text,
-                    })
-                    .collect()
-            }),
+            results: input_item.results,
             action: input_item.action.and_then(|action| {
                 serde_json::to_value(action)
                     .and_then(serde_json::from_value)
@@ -2881,8 +2866,14 @@ impl TryFromLLM<openai::InputItem> for openai::OutputItem {
                     .ok()
             }),
             input: input_item.input,
-            caller: input_item.caller,
+            caller: input_item
+                .caller
+                .map(|caller| openai::OutputItemDirectToolCallCaller {
+                    direct_tool_call_caller_type: caller.direct_tool_call_caller_type,
+                    caller_id: caller.caller_id,
+                }),
             fingerprint: input_item.fingerprint,
+            request_id: input_item.request_id,
             ..Default::default()
         })
     }
@@ -3791,6 +3782,7 @@ impl Default for openai::OutputItem {
             input: None,
             caller: None,
             fingerprint: None,
+            request_id: None,
         }
     }
 }

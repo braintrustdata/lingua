@@ -170,8 +170,7 @@ fn generate_openai_types_with_quicktype(
     let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential OpenAI schemas for chat completions
-    let mut essential_schemas = create_essential_openai_schemas(&spec);
-    normalize_openai_schemas_for_quicktype(&mut essential_schemas)?;
+    let essential_schemas = create_essential_openai_schemas(&spec);
     println!("🏗️  Generating OpenAI types with quicktype...");
 
     // Create a temporary JSON schema file for quicktype
@@ -334,297 +333,6 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
     root_schema
 }
 
-fn normalize_openai_schemas_for_quicktype(
-    root_schema: &mut serde_json::Value,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let definitions = root_schema
-        .get("definitions")
-        .and_then(serde_json::Value::as_object)
-        .ok_or("OpenAI quicktype schema is missing definitions")?
-        .clone();
-    let mutable_definitions = root_schema
-        .get_mut("definitions")
-        .and_then(serde_json::Value::as_object_mut)
-        .ok_or("OpenAI quicktype schema is missing mutable definitions")?;
-
-    for schema_name in ["InputItem", "OutputItem"] {
-        let Some(schema) = definitions.get(schema_name) else {
-            continue;
-        };
-        let mut normalized = merge_openai_object_union(schema, &definitions, &mut Vec::new())?;
-        normalized
-            .as_object_mut()
-            .ok_or("normalized OpenAI object union is not an object")?
-            .insert(
-                "title".to_string(),
-                serde_json::Value::String(schema_name.to_string()),
-            );
-        mutable_definitions.insert(schema_name.to_string(), normalized);
-    }
-
-    Ok(())
-}
-
-fn merge_openai_object_union(
-    schema: &serde_json::Value,
-    definitions: &serde_json::Map<String, serde_json::Value>,
-    reference_stack: &mut Vec<String>,
-) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-    let variants = collect_openai_object_variants(schema, definitions, reference_stack)?;
-    if variants.is_empty() {
-        return Err("OpenAI object union did not contain any variants".into());
-    }
-
-    let mut merged_properties = serde_json::Map::new();
-    let mut required_intersection: Option<std::collections::HashSet<String>> = None;
-
-    for variant in &variants {
-        let properties = variant
-            .get("properties")
-            .and_then(serde_json::Value::as_object)
-            .ok_or("OpenAI object union variant is missing properties")?;
-
-        for (property_name, property_schema) in properties {
-            if let Some(existing) = merged_properties.get_mut(property_name) {
-                *existing = merge_openai_property_schemas(existing, property_schema);
-            } else {
-                merged_properties.insert(property_name.clone(), property_schema.clone());
-            }
-        }
-
-        let required = variant
-            .get("required")
-            .and_then(serde_json::Value::as_array)
-            .map(|fields| {
-                fields
-                    .iter()
-                    .filter_map(serde_json::Value::as_str)
-                    .map(str::to_string)
-                    .collect::<std::collections::HashSet<_>>()
-            })
-            .unwrap_or_default();
-
-        required_intersection = Some(match required_intersection {
-            Some(current) => current.intersection(&required).cloned().collect(),
-            None => required,
-        });
-    }
-
-    let mut normalized = serde_json::Map::new();
-    normalized.insert(
-        "type".to_string(),
-        serde_json::Value::String("object".to_string()),
-    );
-    normalized.insert(
-        "properties".to_string(),
-        serde_json::Value::Object(merged_properties),
-    );
-
-    let mut required = required_intersection
-        .unwrap_or_default()
-        .into_iter()
-        .collect::<Vec<_>>();
-    required.sort();
-    if !required.is_empty() {
-        normalized.insert(
-            "required".to_string(),
-            serde_json::Value::Array(
-                required
-                    .into_iter()
-                    .map(serde_json::Value::String)
-                    .collect(),
-            ),
-        );
-    }
-
-    if let Some(description) = schema.get("description") {
-        normalized.insert("description".to_string(), description.clone());
-    }
-    if let Some(title) = schema.get("title") {
-        normalized.insert("title".to_string(), title.clone());
-    }
-
-    Ok(serde_json::Value::Object(normalized))
-}
-
-fn collect_openai_object_variants(
-    schema: &serde_json::Value,
-    definitions: &serde_json::Map<String, serde_json::Value>,
-    reference_stack: &mut Vec<String>,
-) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    if let Some(reference) = schema.get("$ref").and_then(serde_json::Value::as_str) {
-        let name = reference
-            .strip_prefix("#/definitions/")
-            .ok_or_else(|| format!("unsupported OpenAI schema reference: {reference}"))?;
-        if reference_stack.iter().any(|entry| entry == name) {
-            return Err(format!("recursive OpenAI object union reference: {name}").into());
-        }
-        let referenced_schema = definitions
-            .get(name)
-            .ok_or_else(|| format!("missing OpenAI schema definition: {name}"))?;
-        reference_stack.push(name.to_string());
-        let variants =
-            collect_openai_object_variants(referenced_schema, definitions, reference_stack);
-        reference_stack.pop();
-        return variants;
-    }
-
-    if let Some(union) = schema
-        .get("oneOf")
-        .or_else(|| schema.get("anyOf"))
-        .and_then(serde_json::Value::as_array)
-    {
-        let mut variants = Vec::new();
-        for branch in union {
-            variants.extend(collect_openai_object_variants(
-                branch,
-                definitions,
-                reference_stack,
-            )?);
-        }
-        return Ok(variants);
-    }
-
-    if let Some(all_of) = schema.get("allOf").and_then(serde_json::Value::as_array) {
-        let mut components = Vec::new();
-        for branch in all_of {
-            let branch_variants =
-                collect_openai_object_variants(branch, definitions, reference_stack)?;
-            if branch_variants.len() != 1 {
-                return Err("OpenAI allOf branch expanded to multiple object variants".into());
-            }
-            components.extend(branch_variants);
-        }
-        return Ok(vec![merge_openai_all_of_components(&components)?]);
-    }
-
-    if schema.get("type").and_then(serde_json::Value::as_str) == Some("object")
-        || schema.get("properties").is_some()
-    {
-        return Ok(vec![schema.clone()]);
-    }
-
-    Err("OpenAI InputItem contains a non-object union branch".into())
-}
-
-fn merge_openai_all_of_components(
-    components: &[serde_json::Value],
-) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
-    let mut properties = serde_json::Map::new();
-    let mut required = std::collections::HashSet::new();
-
-    for component in components {
-        if let Some(component_properties) = component
-            .get("properties")
-            .and_then(serde_json::Value::as_object)
-        {
-            for (property_name, property_schema) in component_properties {
-                if let Some(existing) = properties.get_mut(property_name) {
-                    *existing = merge_openai_property_schemas(existing, property_schema);
-                } else {
-                    properties.insert(property_name.clone(), property_schema.clone());
-                }
-            }
-        }
-
-        if let Some(component_required) = component
-            .get("required")
-            .and_then(serde_json::Value::as_array)
-        {
-            required.extend(
-                component_required
-                    .iter()
-                    .filter_map(serde_json::Value::as_str)
-                    .map(str::to_string),
-            );
-        }
-    }
-
-    let mut merged = serde_json::Map::new();
-    merged.insert(
-        "type".to_string(),
-        serde_json::Value::String("object".to_string()),
-    );
-    merged.insert(
-        "properties".to_string(),
-        serde_json::Value::Object(properties),
-    );
-    if !required.is_empty() {
-        let mut required = required.into_iter().collect::<Vec<_>>();
-        required.sort();
-        merged.insert(
-            "required".to_string(),
-            serde_json::Value::Array(
-                required
-                    .into_iter()
-                    .map(serde_json::Value::String)
-                    .collect(),
-            ),
-        );
-    }
-
-    Ok(serde_json::Value::Object(merged))
-}
-
-fn merge_openai_property_schemas(
-    existing: &serde_json::Value,
-    incoming: &serde_json::Value,
-) -> serde_json::Value {
-    if existing == incoming {
-        return existing.clone();
-    }
-
-    if openai_schema_is_string_enum(existing) && openai_schema_is_string_enum(incoming) {
-        let mut values = Vec::new();
-        collect_openai_string_enum_values(existing, &mut values);
-        collect_openai_string_enum_values(incoming, &mut values);
-        values.dedup();
-        return serde_json::json!({
-            "type": "string",
-            "enum": values,
-        });
-    }
-
-    let mut variants = Vec::new();
-    append_unique_openai_schema_variants(existing, &mut variants);
-    append_unique_openai_schema_variants(incoming, &mut variants);
-    serde_json::json!({ "anyOf": variants })
-}
-
-fn openai_schema_is_string_enum(schema: &serde_json::Value) -> bool {
-    schema
-        .get("enum")
-        .and_then(serde_json::Value::as_array)
-        .is_some()
-        && schema
-            .get("type")
-            .and_then(serde_json::Value::as_str)
-            .is_none_or(|schema_type| schema_type == "string")
-}
-
-fn collect_openai_string_enum_values(schema: &serde_json::Value, values: &mut Vec<String>) {
-    if let Some(enum_values) = schema.get("enum").and_then(serde_json::Value::as_array) {
-        for value in enum_values.iter().filter_map(serde_json::Value::as_str) {
-            if !values.iter().any(|existing| existing == value) {
-                values.push(value.to_string());
-            }
-        }
-    }
-}
-
-fn append_unique_openai_schema_variants(
-    schema: &serde_json::Value,
-    variants: &mut Vec<serde_json::Value>,
-) {
-    if let Some(any_of) = schema.get("anyOf").and_then(serde_json::Value::as_array) {
-        for variant in any_of {
-            append_unique_openai_schema_variants(variant, variants);
-        }
-    } else if !variants.iter().any(|variant| variant == schema) {
-        variants.push(schema.clone());
-    }
-}
-
 fn add_openai_schema_with_dependencies(
     type_name: &str,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
@@ -640,7 +348,6 @@ fn add_openai_schema_with_dependencies(
     if let Some(schema) = all_schemas.get(type_name) {
         essential_schemas.insert(type_name.to_string(), schema.clone());
 
-        // Find and add referenced types
         let mut refs = std::collections::HashSet::new();
         extract_schema_refs(schema, &mut refs);
 
@@ -663,7 +370,6 @@ fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
             for (key, value) in obj {
                 if key == "$ref" {
                     if let Some(ref_str) = value.as_str() {
-                        // Fix the reference path
                         if ref_str.starts_with("#/components/schemas/") {
                             let new_ref =
                                 ref_str.replace("#/components/schemas/", "#/definitions/");
@@ -1437,6 +1143,21 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
     processed = rename_enum_variant(
         &processed,
+        "InputItemContent",
+        "ContentInputItemContentListArray",
+        "InputContentArray",
+    );
+    processed = rename_enum_variant(&processed, "InputItemContent", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "Output", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "OutputUnion", "PurpleString", "String");
+    processed = rename_enum_variant(
+        &processed,
+        "OutputUnion",
+        "OutputInputItemContentListArray",
+        "FluffyInputContentArray",
+    );
+    processed = rename_enum_variant(
+        &processed,
         "ChatCompletionRequestMessageContent",
         "PurpleContentPartArray",
         "ChatCompletionRequestMessageContentPartArray",
@@ -1495,6 +1216,8 @@ fn add_openai_compatibility_aliases(processed: &str) -> String {
         ("OutputItemTool", "InputItemListTool"),
         ("OutputUnion", "OutputOutput"),
         ("Result", "InputItemListResult"),
+        ("InputItemListResult", "ResultElement"),
+        ("OutputResult", "ResultElement"),
         ("WebSearchContextSize", "SearchContextSize"),
     ];
 
@@ -1521,7 +1244,16 @@ fn add_openai_compatibility_aliases(processed: &str) -> String {
         aliases.push("pub type Instructions = InputParam;".to_string());
     }
     if !contains_rust_type_definition(processed, "InputContent") {
-        aliases.push("pub type InputContent = ContentOutputContentList;".to_string());
+        let input_content = [
+            "InputItemContentListElement",
+            "ContentInputItemContentList",
+            "ContentOutputContentList",
+        ]
+        .into_iter()
+        .find(|name| contains_rust_type_definition(processed, name));
+        if let Some(input_content) = input_content {
+            aliases.push(format!("pub type InputContent = {input_content};"));
+        }
     }
     if !contains_rust_type_definition(processed, "InputItemContentListType") {
         if let Some(content_list_type_name) =
@@ -2531,85 +2263,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn openai_input_item_union_is_normalized_to_optional_field_object() {
-        let mut schema = serde_json::json!({
-            "definitions": {
-                "InputItem": {
-                    "oneOf": [
-                        {"$ref": "#/definitions/UserMessage"},
-                        {"$ref": "#/definitions/ToolResult"}
-                    ]
-                },
-                "UserMessage": {
-                    "type": "object",
-                    "properties": {
-                        "type": {"type": "string", "enum": ["message"]},
-                        "content": {"type": "string"},
-                        "shared": {"type": "string"}
-                    },
-                    "required": ["type", "content", "shared"]
-                },
-                "ToolResult": {
-                    "type": "object",
-                    "properties": {
-                        "type": {"type": "string", "enum": ["tool_result"]},
-                        "output": {"type": "number"},
-                        "shared": {"type": "string"}
-                    },
-                    "required": ["type", "output", "shared"]
-                }
-            }
-        });
-
-        normalize_openai_schemas_for_quicktype(&mut schema).unwrap();
-
-        let input_item = schema.pointer("/definitions/InputItem").unwrap();
-        assert_eq!(input_item.get("type"), Some(&serde_json::json!("object")));
-        assert!(input_item.get("oneOf").is_none());
-        assert_eq!(
-            input_item.pointer("/properties/type/enum"),
-            Some(&serde_json::json!(["message", "tool_result"]))
-        );
-        assert_eq!(
-            input_item.get("required"),
-            Some(&serde_json::json!(["shared", "type"]))
-        );
-        assert!(input_item.pointer("/properties/content").is_some());
-        assert!(input_item.pointer("/properties/output").is_some());
-    }
-
-    #[test]
-    fn openai_input_item_conflicting_properties_become_any_of() {
-        let mut schema = serde_json::json!({
-            "definitions": {
-                "InputItem": {
-                    "oneOf": [
-                        {
-                            "type": "object",
-                            "properties": {"value": {"type": "string"}}
-                        },
-                        {
-                            "type": "object",
-                            "properties": {"value": {"type": "number"}}
-                        }
-                    ]
-                }
-            }
-        });
-
-        normalize_openai_schemas_for_quicktype(&mut schema).unwrap();
-
-        assert_eq!(
-            schema.pointer("/definitions/InputItem/properties/value/anyOf"),
-            Some(&serde_json::json!([
-                {"type": "string"},
-                {"type": "number"}
-            ]))
-        );
-        assert!(schema.pointer("/definitions/InputItem/required").is_none());
-    }
-
-    #[test]
     fn openai_compatibility_aliases_skip_generated_name_collisions() {
         let source = r#"pub struct Instructions {}
 pub enum InputItemContentListType {
@@ -2620,6 +2273,7 @@ pub enum HilariousType {
     InputText,
     OutputText,
 }
+pub struct ContentOutputContentList {}
 pub struct Status {}
 "#;
 
