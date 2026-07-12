@@ -885,7 +885,7 @@ async fn reasoning_effort_with_tools_upgrades_format_to_responses() {
 }
 
 #[tokio::test]
-async fn responses_required_model_uses_responses_for_anthropic_messages_output() {
+async fn responses_required_model_does_not_force_responses_for_anthropic_messages_output() {
     let mut catalog = ModelCatalog::empty();
     catalog.insert(
         "gpt-5.5".into(),
@@ -931,8 +931,8 @@ async fn responses_required_model_uses_responses_for_anthropic_messages_output()
     );
     assert_eq!(
         metadata.provider_format,
-        ProviderFormat::Responses,
-        "gpt-5.5 should use Responses transport even when the caller uses /v1/messages"
+        ProviderFormat::ChatCompletions,
+        "Responses transport override should only apply to chat completions output"
     );
 }
 
