@@ -29,6 +29,7 @@ import {
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
+  BEDROCK_ANTHROPIC_MODEL,
 } from "./models";
 
 type ChatCompletionAssistantMessageWithReasoningSignature =
@@ -128,6 +129,29 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
       additionalModelResponseFieldPaths: ["/stop_sequence"],
+    },
+  },
+
+  bedrockAnthropicContextManagementParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
     },
   },
 
