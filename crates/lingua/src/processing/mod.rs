@@ -18,5 +18,6 @@ pub use stream::{
 pub use transform::{
     extract_model, parse_json, parse_json_body, parse_json_value, request_to_universal,
     response_to_universal, sanitize_payload, transform_request, transform_response,
-    transform_stream_chunk, ParsedJsonBody, TransformError, TransformResult,
+    transform_stream_chunk, ParsedJsonBody, ResponseTransformResult, TransformError,
+    TransformResult,
 };

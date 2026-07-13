@@ -24,7 +24,7 @@ use crate::streaming::{
 };
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
-use lingua::{TransformError, TransformResult};
+use lingua::{ResponseReuseSignals, TransformError, TransformResult};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
@@ -35,6 +35,7 @@ use reqwest::Url;
 pub struct CompleteResponseWithRaw {
     pub response: Bytes,
     pub raw_response: Bytes,
+    pub reuse_signals: ResponseReuseSignals,
 }
 
 use crate::providers::{
@@ -415,13 +416,13 @@ impl Router {
                 client_headers,
             )
             .await?;
-        let result = lingua::transform_response(response_bytes.clone(), output_format).map_err(
+        let transform = lingua::transform_response(response_bytes.clone(), output_format).map_err(
             |source| Error::ResponseTransform {
                 source,
                 raw_response: response_bytes.clone(),
             },
         )?;
-        let response = match result {
+        let response = match transform.result {
             TransformResult::PassThrough(bytes) => bytes,
             TransformResult::Transformed { bytes, .. } => {
                 replace_transformed_response_model(bytes, &fallback_response_model)?
@@ -430,6 +431,7 @@ impl Router {
         Ok(CompleteResponseWithRaw {
             response,
             raw_response: response_bytes,
+            reuse_signals: transform.reuse_signals,
         })
     }
 

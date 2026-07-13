@@ -429,7 +429,9 @@ pub fn transform_response(input: &str, target_format: &str) -> Result<JsValue, J
         .map_err(|_| JsValue::from_str(&format!("Unknown target format: {}", target_format)))?;
 
     let input_bytes = Bytes::from(input.to_owned());
-    let result = transform(input_bytes, target).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let result = transform(input_bytes, target)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?
+        .result;
 
     // Use JS native JSON.parse to avoid serde_wasm_bindgen serialization issues
     // (Map objects, $serde_json::private::Number from arbitrary_precision)

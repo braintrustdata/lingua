@@ -22,10 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ResponseReuseSignals, TextContentPart,
+    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -131,6 +131,12 @@ pub enum TransformResult {
         /// `Responses` when `reasoning_effort` + `tools` are present).
         actual_target_format: ProviderFormat,
     },
+}
+
+#[derive(Debug, Clone)]
+pub struct ResponseTransformResult {
+    pub result: TransformResult,
+    pub reuse_signals: ResponseReuseSignals,
 }
 
 impl TransformResult {
@@ -558,21 +564,13 @@ fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> 
 pub fn transform_response(
     input: Bytes,
     target_format: ProviderFormat,
-) -> Result<TransformResult, TransformError> {
+) -> Result<ResponseTransformResult, TransformError> {
     let parsed = parse_json_body(input)?;
     let response = parsed.value;
     let response_bytes = parsed.bytes;
 
     let source_adapter = detect_adapter(&response, DetectKind::Response)?;
-
-    if source_adapter.format() == target_format {
-        return Ok(TransformResult::PassThrough(response_bytes));
-    }
-
     let source_format = source_adapter.format();
-    let target_adapter = adapter_for_format(target_format)
-        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-
     let mut universal_resp = source_adapter.response_to_universal(response)?;
     if source_format == ProviderFormat::Responses
         && matches!(
@@ -583,15 +581,30 @@ pub fn transform_response(
         universal_resp.messages =
             merge_responses_output_parts_for_chat_completions(universal_resp.messages);
     }
+    let reuse_signals = universal_resp.reuse_signals();
+
+    if source_format == target_format {
+        return Ok(ResponseTransformResult {
+            result: TransformResult::PassThrough(response_bytes),
+            reuse_signals,
+        });
+    }
+
+    let target_adapter = adapter_for_format(target_format)
+        .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+
     let transformed = target_adapter.response_from_universal(&universal_resp)?;
 
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
-    Ok(TransformResult::Transformed {
-        bytes: Bytes::from(bytes),
-        source_format,
-        actual_target_format: target_format,
+    Ok(ResponseTransformResult {
+        result: TransformResult::Transformed {
+            bytes: Bytes::from(bytes),
+            source_format,
+            actual_target_format: target_format,
+        },
+        reuse_signals,
     })
 }
 
@@ -1922,7 +1935,9 @@ mod tests {
         let input = to_bytes(&payload);
 
         // Transform to Anthropic format
-        let result = transform_response(input, ProviderFormat::Anthropic).unwrap();
+        let result = transform_response(input, ProviderFormat::Anthropic)
+            .unwrap()
+            .result;
 
         assert!(!result.is_passthrough());
         assert_eq!(
@@ -2084,11 +2099,44 @@ mod tests {
         let input = to_bytes(&payload);
         let input_ptr = input.as_ptr();
 
-        let result = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
+        let transformed = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
+        let result = transformed.result;
 
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
+        assert!(transformed.reuse_signals.reusable_for_request(false));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_response_reuse_signals_use_every_choice() {
+        let payload = json!({
+            "id": "chatcmpl-123",
+            "object": "chat.completion",
+            "model": "gpt-4",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "{\"broken\":"},
+                    "finish_reason": "length"
+                },
+                {
+                    "index": 1,
+                    "message": {"role": "assistant", "content": "{\"ok\":true}"},
+                    "finish_reason": "stop"
+                }
+            ]
+        });
+        let input = to_bytes(&payload);
+
+        let transformed = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
+
+        assert!(!transformed.reuse_signals.complete);
+        assert!(!transformed.reuse_signals.content_is_json);
+        assert!(transformed.reuse_signals.saw_terminal_finish);
+        assert!(!transformed.reuse_signals.reusable_for_request(false));
+        assert!(!transformed.reuse_signals.reusable_for_request(true));
     }
 
     #[test]

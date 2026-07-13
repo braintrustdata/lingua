@@ -39,15 +39,15 @@ pub use processing::{
     extract_model, normalize_json_lone_surrogate_escapes, parse_json, parse_json_body,
     parse_json_value, parse_stream_event, request_to_universal, response_to_universal,
     sanitize_payload, transform_request, transform_response, transform_stream_chunk,
-    ParsedJsonBody, ParsedStreamEvent, StreamOutputChunk, StreamTransformSession, TransformError,
-    TransformResult,
+    ParsedJsonBody, ParsedStreamEvent, ResponseTransformResult, StreamOutputChunk,
+    StreamTransformSession, TransformError, TransformResult,
 };
 
 // Re-export universal types
 pub use universal::{
-    FinishReason, Message, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UniversalUsage,
+    FinishReason, Message, ResponseReuseSignals, UniversalParams, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
 
 // Re-export bedrock-anthropic model utilities for router integration

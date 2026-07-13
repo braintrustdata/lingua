@@ -41,6 +41,19 @@ pub struct UniversalResponse {
     pub finish_reasons: Vec<FinishReason>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ResponseReuseSignals {
+    pub complete: bool,
+    pub content_is_json: bool,
+    pub saw_terminal_finish: bool,
+}
+
+impl ResponseReuseSignals {
+    pub fn reusable_for_request(self, requires_json: bool) -> bool {
+        self.saw_terminal_finish && self.complete && (!requires_json || self.content_is_json)
+    }
+}
+
 /// Token usage statistics.
 #[derive(Debug, Clone, Default)]
 pub struct UniversalUsage {
@@ -324,6 +337,14 @@ impl UniversalResponse {
             }
         }
         contents
+    }
+
+    pub fn reuse_signals(&self) -> ResponseReuseSignals {
+        ResponseReuseSignals {
+            complete: self.is_complete(),
+            content_is_json: self.content_is_json(),
+            saw_terminal_finish: true,
+        }
     }
 
     pub fn id_for(&self, format: ProviderFormat) -> String {

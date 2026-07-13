@@ -1600,6 +1600,7 @@ mod tests {
             ProviderFormat::ChatCompletions,
         )
         .expect("Responses response should transform to Chat Completions")
+        .result
         .into_bytes();
 
         #[derive(serde::Deserialize)]
@@ -1832,7 +1833,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(
@@ -1893,7 +1894,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(!response.output.is_empty());
