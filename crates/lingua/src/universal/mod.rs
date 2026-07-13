@@ -26,8 +26,9 @@ pub use defaults::*;
 pub use message::*;
 pub use request::{
     parse_stop_sequences, ConversationReference, ConversationReferenceType, JsonSchemaConfig,
-    ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ResponseFormatType,
-    SummaryMode, TokenBudget, ToolChoiceConfig, ToolChoiceMode, UniversalParams, UniversalRequest,
+    ReasoningCanonical, ReasoningConfig, ReasoningEffort, RequestOutputSignals,
+    ResponseFormatConfig, ResponseFormatType, SummaryMode, TokenBudget, ToolChoiceConfig,
+    ToolChoiceMode, UniversalParams, UniversalRequest,
 };
 pub use response::{FinishReason, ResponseReuseSignals, UniversalResponse, UniversalUsage};
 pub use stream::{

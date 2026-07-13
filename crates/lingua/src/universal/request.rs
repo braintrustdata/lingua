@@ -59,6 +59,23 @@ pub struct UniversalRequest {
     pub params: UniversalParams,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct RequestOutputSignals {
+    pub requires_json_response: bool,
+}
+
+impl UniversalRequest {
+    pub fn output_signals(&self) -> RequestOutputSignals {
+        RequestOutputSignals {
+            requires_json_response: self
+                .params
+                .response_format
+                .as_ref()
+                .is_some_and(ResponseFormatConfig::requires_json_response),
+        }
+    }
+}
+
 /// Canonical token budget for request generation limits.
 ///
 /// This uses mutually-exclusive variants to avoid invalid combinations like
@@ -591,6 +608,15 @@ pub struct ResponseFormatConfig {
 
     /// JSON schema configuration (when format_type = JsonSchema)
     pub json_schema: Option<JsonSchemaConfig>,
+}
+
+impl ResponseFormatConfig {
+    pub fn requires_json_response(&self) -> bool {
+        matches!(
+            self.format_type,
+            Some(ResponseFormatType::JsonObject | ResponseFormatType::JsonSchema)
+        )
+    }
 }
 
 /// Response format type (portable across providers).

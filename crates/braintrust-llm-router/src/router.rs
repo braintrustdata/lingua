@@ -24,7 +24,7 @@ use crate::streaming::{
 };
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
-use lingua::{ResponseReuseSignals, TransformError, TransformResult};
+use lingua::{RequestOutputSignals, ResponseReuseSignals, TransformError, TransformResult};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
@@ -36,6 +36,7 @@ pub struct CompleteResponseWithRaw {
     pub response: Bytes,
     pub raw_response: Bytes,
     pub reuse_signals: ResponseReuseSignals,
+    pub output_signals: RequestOutputSignals,
 }
 
 use crate::providers::{
@@ -207,6 +208,7 @@ struct PreparedRequestInner {
     format: ProviderFormat,
     payload: Bytes,
     output_format: ProviderFormat,
+    output_signals: RequestOutputSignals,
     strategy: RetryStrategy,
 }
 
@@ -229,22 +231,42 @@ async fn prepare_provider_request(
     format: ProviderFormat,
     stream: bool,
     options: RequestPreparationOptions,
-) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
+) -> Result<(
+    Bytes,
+    Option<ProviderFormat>,
+    ProviderFormat,
+    RequestOutputSignals,
+)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format), format));
+        return Ok((bytes, Some(format), format, RequestOutputSignals::default()));
     }
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
-    let (transformed, detected_format, actual_format, maybe_rewrite_model) =
+    let (transformed, detected_format, actual_format, maybe_rewrite_model, output_signals) =
         match lingua::transform_request(body.clone(), format, model_override) {
-            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true),
-            Ok(TransformResult::Transformed {
-                bytes,
-                source_format,
-                actual_target_format,
-            }) => (bytes, Some(source_format), actual_target_format, false),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true),
+            Ok(output) => {
+                let output_signals = output.output_signals;
+                match output.result {
+                    TransformResult::PassThrough(bytes) => {
+                        (bytes, None, format, true, output_signals)
+                    }
+                    TransformResult::Transformed {
+                        bytes,
+                        source_format,
+                        actual_target_format,
+                    } => (
+                        bytes,
+                        Some(source_format),
+                        actual_target_format,
+                        false,
+                        output_signals,
+                    ),
+                }
+            }
+            Err(TransformError::UnsupportedTargetFormat(_)) => {
+                (body, None, format, true, RequestOutputSignals::default())
+            }
             Err(err) => return Err(err.into()),
         };
 
@@ -261,9 +283,10 @@ async fn prepare_provider_request(
             enable_streaming_payload(transformed, actual_format),
             detected_format,
             actual_format,
+            output_signals,
         ))
     } else {
-        Ok((transformed, detected_format, actual_format))
+        Ok((transformed, detected_format, actual_format, output_signals))
     }
 }
 
@@ -294,7 +317,7 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let (payload, detected_format, actual_format) =
+        let (payload, detected_format, actual_format, output_signals) =
             prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
                 .await?;
         Ok((
@@ -305,6 +328,7 @@ impl Router {
                 format: actual_format,
                 payload,
                 output_format,
+                output_signals,
                 strategy: self.retry_policy.strategy(),
             },
             RouterMetadata {
@@ -402,6 +426,7 @@ impl Router {
             format,
             payload,
             output_format,
+            output_signals,
             strategy,
         } = request.inner;
         let fallback_response_model = spec.model.clone();
@@ -432,6 +457,7 @@ impl Router {
             response,
             raw_response: response_bytes,
             reuse_signals: transform.reuse_signals,
+            output_signals,
         })
     }
 
@@ -531,6 +557,7 @@ impl Router {
             format,
             payload,
             output_format,
+            output_signals: _,
             strategy: _,
         } = request.inner;
         let allow_full_response_fallback = spec.supports_streaming;
@@ -1516,7 +1543,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) = prepare_provider_request(
+        let (payload, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1539,7 +1566,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) = prepare_provider_request(
+        let (payload, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1577,7 +1604,7 @@ mod tests {
             available_providers: vec!["vertex".to_string()],
         };
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::VertexAnthropic,
@@ -1617,7 +1644,7 @@ mod tests {
             available_providers: vec!["google".to_string()],
         };
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::Google,
@@ -1644,7 +1671,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1670,7 +1697,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1698,7 +1725,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, detected_format, actual_format) = prepare_provider_request(
+        let (payload, detected_format, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1746,7 +1773,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
-        let (_, _, actual_format) = prepare_provider_request(
+        let (_, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,

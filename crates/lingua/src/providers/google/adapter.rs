@@ -34,10 +34,15 @@ use crate::universal::{
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct GoogleSdkConfigExtrasView {
+    config: Option<GenerationConfig>,
+}
 
 fn is_discovery_only_message(message: &Message) -> bool {
     match message {
@@ -170,10 +175,19 @@ impl ProviderAdapter for GoogleAdapter {
             .map(ToolChoiceConfig::from);
 
         // Convert response_format from GenerationConfig
+        let sdk_config_extras: GoogleSdkConfigExtrasView =
+            serde_json::to_value(&typed_params.extras)
+                .and_then(serde_json::from_value)
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let sdk_config_response_format = sdk_config_extras
+            .config
+            .as_ref()
+            .map(crate::universal::request::ResponseFormatConfig::from);
         let response_format = typed_params
             .generation_config
             .as_ref()
             .map(crate::universal::request::ResponseFormatConfig::from)
+            .or(sdk_config_response_format)
             .filter(|rf| rf.format_type.is_some());
 
         let mut params = UniversalParams {

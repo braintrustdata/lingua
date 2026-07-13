@@ -380,7 +380,8 @@ pub fn transform_request(
 
     let input_bytes = Bytes::from(input.to_owned());
     let result = transform(input_bytes, target, model.as_deref())
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        .map_err(|e| JsValue::from_str(&e.to_string()))?
+        .result;
 
     // Use JS native JSON.parse to avoid serde_wasm_bindgen serialization issues
     // (Map objects, $serde_json::private::Number from arbitrary_precision)

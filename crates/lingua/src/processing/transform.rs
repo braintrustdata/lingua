@@ -22,10 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, ResponseReuseSignals, TextContentPart,
-    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
-    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
-    UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, RequestOutputSignals, ResponseReuseSignals,
+    TextContentPart, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -131,6 +131,30 @@ pub enum TransformResult {
         /// `Responses` when `reasoning_effort` + `tools` are present).
         actual_target_format: ProviderFormat,
     },
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestTransformResult {
+    pub result: TransformResult,
+    pub output_signals: RequestOutputSignals,
+}
+
+impl RequestTransformResult {
+    pub fn is_passthrough(&self) -> bool {
+        self.result.is_passthrough()
+    }
+
+    pub fn into_bytes(self) -> Bytes {
+        self.result.into_bytes()
+    }
+
+    pub fn as_bytes(&self) -> &Bytes {
+        self.result.as_bytes()
+    }
+
+    pub fn source_format(&self) -> Option<ProviderFormat> {
+        self.result.source_format()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -389,7 +413,7 @@ pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
     model: Option<&str>,
-) -> Result<TransformResult, TransformError> {
+) -> Result<RequestTransformResult, TransformError> {
     let parsed = parse_json_body(input)?;
     let payload = parsed.value;
     let request_bytes = parsed.bytes;
@@ -423,15 +447,18 @@ pub fn transform_request(
     let source_format = source_adapter.format();
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
+    let mut universal = source_adapter.request_to_universal(payload.clone())?;
+    let output_signals = universal.output_signals();
 
     if source_format == target_format
         && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
         && target_adapter.detect_passthrough_request(&payload)
     {
-        return Ok(TransformResult::PassThrough(request_bytes));
+        return Ok(RequestTransformResult {
+            result: TransformResult::PassThrough(request_bytes),
+            output_signals,
+        });
     }
-
-    let mut universal = source_adapter.request_to_universal(payload)?;
 
     if let Some(model) = model {
         universal.model = Some(model.to_string());
@@ -450,10 +477,13 @@ pub fn transform_request(
     let bytes = crate::serde_json::to_vec(&transformed)
         .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
 
-    Ok(TransformResult::Transformed {
-        bytes: Bytes::from(bytes),
-        source_format,
-        actual_target_format: target_format,
+    Ok(RequestTransformResult {
+        result: TransformResult::Transformed {
+            bytes: Bytes::from(bytes),
+            source_format,
+            actual_target_format: target_format,
+        },
+        output_signals,
     })
 }
 
@@ -998,6 +1028,108 @@ mod tests {
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
+    }
+
+    fn assert_requires_json_response(
+        payload: Value,
+        provider: ProviderFormat,
+        expected: bool,
+        name: &str,
+    ) {
+        let result = transform_request(to_bytes(&payload), provider, None).expect(name);
+        assert_eq!(
+            result.output_signals.requires_json_response, expected,
+            "{name}"
+        );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic", feature = "google"))]
+    fn test_transform_request_output_signals_require_json_response() {
+        assert_requires_json_response(
+            json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "hello"}],
+                "response_format": {"type": "json_object"}
+            }),
+            ProviderFormat::ChatCompletions,
+            true,
+            "openai chat json_object",
+        );
+        assert_requires_json_response(
+            json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "hello"}],
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {"name": "answer", "schema": {"type": "object"}}
+                }
+            }),
+            ProviderFormat::ChatCompletions,
+            true,
+            "openai chat json_schema",
+        );
+        assert_requires_json_response(
+            json!({
+                "model": "gpt-5-mini",
+                "input": "hello",
+                "text": {"format": {"type": "json_object"}}
+            }),
+            ProviderFormat::Responses,
+            true,
+            "responses json_object",
+        );
+        assert_requires_json_response(
+            json!({
+                "model": "claude-haiku-4-5",
+                "messages": [{"role": "user", "content": "hello"}],
+                "max_tokens": 100,
+                "output_format": {
+                    "type": "json_schema",
+                    "schema": {"type": "object"}
+                }
+            }),
+            ProviderFormat::Anthropic,
+            true,
+            "anthropic output_format json_schema",
+        );
+        assert_requires_json_response(
+            json!({
+                "contents": [{"role": "user", "parts": [{"text": "hello"}]}],
+                "generationConfig": {"responseMimeType": "application/json"}
+            }),
+            ProviderFormat::Google,
+            true,
+            "google generationConfig json",
+        );
+        assert_requires_json_response(
+            json!({
+                "contents": [{"role": "user", "parts": [{"text": "hello"}]}],
+                "config": {"responseMimeType": "application/json"}
+            }),
+            ProviderFormat::Google,
+            true,
+            "google sdk config json",
+        );
+        assert_requires_json_response(
+            json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "hello"}],
+                "response_format": {"type": "text"}
+            }),
+            ProviderFormat::ChatCompletions,
+            false,
+            "explicit text",
+        );
+        assert_requires_json_response(
+            json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "hello"}]
+            }),
+            ProviderFormat::ChatCompletions,
+            false,
+            "absent response format",
+        );
     }
 
     fn last_user_text(request: &UniversalRequest) -> Option<&str> {
@@ -2572,7 +2704,7 @@ mod tests {
 
         let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
-        match result {
+        match result.result {
             TransformResult::Transformed {
                 actual_target_format,
                 ..
@@ -2612,7 +2744,7 @@ mod tests {
 
         let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
-        match result {
+        match result.result {
             TransformResult::PassThrough(_) => {}
             TransformResult::Transformed {
                 actual_target_format,
@@ -2664,7 +2796,7 @@ mod tests {
 
         let result = transform_request(input, ProviderFormat::ChatCompletions, None).unwrap();
 
-        match result {
+        match result.result {
             TransformResult::Transformed {
                 actual_target_format,
                 ..
