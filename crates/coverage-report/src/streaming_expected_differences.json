@@ -300,6 +300,22 @@
       "target": "Vertex Anthropic",
       "skip": true,
       "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Vertex Anthropic streaming deltas yet"
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "id", "reason": "Bedrock streaming does not preserve the Responses stream's initial event ID" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "choices[*].delta.tool_calls[*].custom_tool_call", "reason": "Chat Completions streaming does not expose the OpenAI Responses custom-tool marker" }
+      ]
     }
   ]
 }
