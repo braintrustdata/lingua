@@ -5,7 +5,7 @@
         "parts": [
           {
             "text": "Hello! How can I help you today?",
-            "thoughtSignature": "EtMFCtAFARFNMg/w4y3JquLJ8xv8H9VrVmtk/HPWnq1zy596vYZBZi79MgipFEiy5w0hZLRMeEQV6herVK/HfnYDCg6IRHtUUcPr9pnK/pUHr12Iiu/jtkXnoNCVVxa/rZ+k1lCXjVj6/NB1SN7hSth8kKFNw7YbBJURO5iaPkrPv/gQzRZB8oPxEJ2Ueu11OTQ1+cvBJy8Pi9pHSCV5lz3p4zmHCC9zo2rdltTNjv1eayUJ2oaIdTzLA5T+5SPjGJu32vh80mGfZrMCu7ZVlJt7vrWlPf3QbvHHC4ArGJaa24iYwgclKm3KZj79TaIrhNUExJD8+NEiKA12Tb6yndAIQ9WID29aoS3P1sqy31ST5i5kLj2voktTKEv8WFI6RUSEidRtUjPZPSFg9TMZpzhdsjEp+HvJPa1qfOprfrpWaExKSBW21kFYcNsED2r6I5tW867ORDQgysdergABoLthj/HdIp/ND0N7MUlpGLMkPAudrD4Uii7E0goPVhy8u06SsvjxIQLusZcBbHGMsi/Cy5oY5T/Jzy6ycqxosouTllKxJCW1H+6KPlIon3d+jVJDr8DuA6t4cz+XvnqvYZIUIQfhjyTMEhW2Z/rIgba8m7quMr5qZPpKDNWKo8XeW5aK0eePPRhTFRmF1ynn4jMJop/HtIiJPoUrEnmQaLGkupJ9xqNhwfkWhlqaR1hW+vlrht3aP4eb764JRbY4+pPUONlZFmKKz9pSZWAvEWRdm/wGGdjX/ZzIXvoR2jU7qhwqO6jYlwp5JjZatx2VGBmnW5g+3WzOYnsyXK9TUaiq79zFI4ofgFO+MNMZpSf4B26Giwjbu/8Dji5MgkVH6WcYWwdzwOE0BaFAgv1FpmUSu4nr+6x+5Y2qRTu6eEN4m3tcEw5n/XyYHH6uD/dRHk7icJNxD02qvZyp+nI1hyorfFY8oAbDWhcPiXIIkMzKlXlptav9"
+            "thoughtSignature": "EsEFCr4FARFNMg8AjppyOgBmoW/G8D374d9mdduA7Xd/9nIVF2piT+oqQmWuGXdK0M1RGEkJ89eWQc59DxqL2HlnDrWR+CoEXArRKV0y2jiD7z2XqIJ3hAmpqpBVWHEHD5YbW7UfvEzyd0llzXdOudYukFbbyReguPwqy+lmYAqd4p9n/TPbrGM1dq4Ve4r1gAIK9M/izKUYfKqmApcTxtwqZiYiMGvLzOSlpoJddxvLOXrZ55TjSFSLRjucoDF0eF9tnwWZ6Tkh0Kgimk91JK3ssVEhVrUF+Z8flNrEoKNV20W/xnsjPNpMnj8sdqW1ZBXB0i7wwoXDmSNGM3HJF88fxtYI0YqbYSj8JtlIyXXhSzJpLcvEY+LmctodTTfx1a6YTtLBNRYMqBmkoiHTOSPRYy0cG8LWPlwinpodwkL1hQIs1Ht5dqKH98j4+lZ2Moc3QXrIjwUMJW3Y6HUYbFVoQp/TdjRKIm2ckFfdtH6CFdmRFfgds7nuNFbQLXx5SPiZ9/vrBDR+yaknkHJsOW0Uagh8U9NV9r7I8fAVYfb6Rbrd4DkvBJo4hFy3f12DOjnOiS36e0BtiBTsW116add9S9JniyoXPeJNJwz8s4/uEyaf0I8vqVq9c22pfO7Fc/mSHe7NWkZi1Wp67KKMgM3Ftp8XRTJrSkWCL7WbEx4hYTdQzwRbitX7lz5eBEaNO2nulSBFu+27P5batOlGhSQbAJoacPAkppn3wYt0tyMespHf2G3oIU6oLZpgzwWmcl/VL1Y3lNem7EVHP7wqGALjQa/Q28ItZZYqwwXOZuutX34Ue+ouzxctAUhy7Rf5NU50/wC1VuhLki0c2m72bIVjEQ778S+QpeSrpD3DCASywOMjU5KxmmZwZvgCsG1P+fXVMjI53QXw/eLZEeYQyPRROvETZRceAgaLTXSEJUr8HkNx"
           }
         ],
         "role": "model"
@@ -17,16 +17,16 @@
   "usageMetadata": {
     "promptTokenCount": 2,
     "candidatesTokenCount": 9,
-    "totalTokenCount": 199,
+    "totalTokenCount": 195,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 2
       }
     ],
-    "thoughtsTokenCount": 188,
+    "thoughtsTokenCount": 184,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "gDdVauHABof4jrEPj7zAsAY"
+  "responseId": "VT5VarbxMvq8sOIPwbW2iAc"
 }
