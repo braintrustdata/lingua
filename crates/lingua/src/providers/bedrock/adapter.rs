@@ -429,6 +429,7 @@ impl ProviderAdapter for BedrockAdapter {
                                         name: Some(tool_use.name),
                                         arguments: Some(String::new()),
                                     }),
+                                    ..Default::default()
                                 }],
                                 ..Default::default()
                             })),
