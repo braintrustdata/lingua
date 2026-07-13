@@ -303,6 +303,7 @@ enum ResponsesOutputItemAddedItem {
     CustomToolCall {
         call_id: String,
         name: String,
+        // Required by the Responses schema; input deltas carry its streamed content.
         #[serde(rename = "input")]
         _input: String,
     },

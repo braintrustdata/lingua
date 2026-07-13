@@ -65,6 +65,25 @@ struct ResponsesOutputIndexState {
     tool_output_index_offset: u32,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct ResponsesTerminalEvent {
+    #[serde(rename = "type")]
+    _event_type: String,
+    response: ResponsesTerminalResponse,
+    _sequence_number: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ResponsesTerminalResponse {
+    id: String,
+    object: String,
+    model: String,
+    status: String,
+    output: Vec<Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    usage: Option<Value>,
+}
+
 /// Stateful stream transformation session.
 ///
 /// This wraps the stateless `transform_stream_chunk` API with target-provider
@@ -75,6 +94,7 @@ pub struct StreamTransformSession {
     allow_full_response_fallback: bool,
     buffered_delta: Option<StreamOutputChunk>,
     buffered_stop: Option<StreamOutputChunk>,
+    buffered_responses_terminal: Option<StreamOutputChunk>,
     // Whether the target Anthropic stream has an open message. Some source
     // providers emit repeated metadata chunks; only the first should become
     // Anthropic `message_start`.
@@ -113,6 +133,7 @@ impl StreamTransformSession {
             allow_full_response_fallback,
             buffered_delta: None,
             buffered_stop: None,
+            buffered_responses_terminal: None,
             anthropic_message_started: false,
             anthropic_tool_use_started: false,
             anthropic_open_content_block_index: None,
@@ -149,6 +170,25 @@ impl StreamTransformSession {
 
         let result = self.normalize_source_stream_result(&step)?;
 
+        if self.target_format == ProviderFormat::Responses
+            && self.buffered_responses_terminal.is_some()
+            && step
+                .universal
+                .as_ref()
+                .is_some_and(|chunk| chunk.choices.is_empty() && chunk.usage.is_some())
+        {
+            return self.flush_responses_terminal(
+                step.universal
+                    .as_ref()
+                    .and_then(|chunk| chunk.usage.as_ref()),
+            );
+        }
+
+        let mut prefix = if self.target_format == ProviderFormat::Responses {
+            self.flush_responses_terminal(None)?
+        } else {
+            Vec::new()
+        };
         let chunks = build_session_chunks(
             result,
             step.source_format,
@@ -162,6 +202,26 @@ impl StreamTransformSession {
                 next_responses_sequence_number: &mut self.next_responses_sequence_number,
             },
         )?;
+        if self.target_format == ProviderFormat::Responses {
+            let mut terminal = None;
+            let chunks = chunks
+                .into_iter()
+                .filter(|chunk| {
+                    if matches!(
+                        chunk.event_type.as_deref(),
+                        Some("response.completed") | Some("response.incomplete")
+                    ) {
+                        terminal = Some(chunk.clone());
+                        false
+                    } else {
+                        true
+                    }
+                })
+                .collect();
+            prefix.extend(self.process_chunks(chunks)?);
+            self.buffered_responses_terminal = terminal;
+            return Ok(prefix);
+        }
         self.process_chunks(chunks)
     }
 
@@ -315,7 +375,9 @@ impl StreamTransformSession {
     }
 
     pub fn finish(&mut self) -> Vec<StreamOutputChunk> {
-        self.flush_buffered()
+        let mut out = self.flush_responses_terminal(None).unwrap_or_default();
+        out.extend(self.flush_buffered());
+        out
     }
 
     pub fn push_sse(&mut self, input: Bytes) -> Result<Vec<Bytes>, TransformError> {
@@ -350,6 +412,28 @@ impl StreamTransformSession {
 
     pub fn done_marker_sse(&self) -> Option<Bytes> {
         sse_done_marker(self.target_format)
+    }
+
+    fn flush_responses_terminal(
+        &mut self,
+        usage: Option<&crate::universal::UniversalUsage>,
+    ) -> Result<Vec<StreamOutputChunk>, TransformError> {
+        let Some(terminal) = self.buffered_responses_terminal.take() else {
+            return Ok(Vec::new());
+        };
+        self.responses_message_started = false;
+        let Some(usage) = usage else {
+            return Ok(vec![terminal]);
+        };
+        let mut event = crate::serde_json::from_slice::<ResponsesTerminalEvent>(&terminal.data)
+            .map_err(|e| {
+                TransformError::DeserializationFailed(format!("Responses terminal event: {e}"))
+            })?;
+        event.response.usage = Some(usage.to_provider_value(ProviderFormat::Responses));
+        Ok(vec![StreamOutputChunk {
+            data: serialize_stream_value(&event)?,
+            event_type: terminal.event_type,
+        }])
     }
 
     fn process_chunks(
