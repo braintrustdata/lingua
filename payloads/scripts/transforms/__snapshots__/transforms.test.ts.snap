@@ -35070,6 +35070,77 @@ So, while we most commonly think of the sky as **blue**, it can be a beautiful s
 }
 `;
 
+exports[`responses → google > responsesCustomToolCallStreamingParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesCustomToolCallStreamingParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "\`\`\`json
+{
+  "name": "write_release_note",
+  "arguments": {
+    "release_note": "Fixed an issue where streaming custom tools failed to transmit real-time updates correctly, ensuring smooth and immediate output delivery."
+  }
+}
+\`\`\`",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "\`\`\`json
+{
+  "name": "write_release_note",
+  "arguments": {
+    "release_note": "Fixed an issue where streaming custom tools failed to transmit real-time updates correctly, ensuring smooth and immediate output delivery."
+  }
+}
+\`\`\`",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 32,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 698,
+    "output_tokens_details": {
+      "reasoning_tokens": 638,
+    },
+    "total_tokens": 730,
+  },
+}
+`;
+
 exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatureParam > request 1`] = `
 {
   "contents": [

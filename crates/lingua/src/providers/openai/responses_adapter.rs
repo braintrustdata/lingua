@@ -64,19 +64,21 @@ fn system_text(message: &Message) -> Option<&str> {
 pub struct ResponsesAdapter;
 
 pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
-    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0)
+    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0, 0)
 }
 
 pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     chunk: &UniversalStreamChunk,
     text_output_index: Option<u32>,
     tool_output_index_offset: u32,
+    sequence_number: u64,
 ) -> Vec<Value> {
     let Some(choice) = chunk.choices.first() else {
         return Vec::new();
     };
 
     let mut events = Vec::new();
+    let mut next_sequence_number = sequence_number;
     if let Some(delta) = choice.delta_view() {
         let reasoning_output_index = choice.index;
         let base_output_index = choice.index.max(tool_output_index_offset);
@@ -90,8 +92,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.reasoning_summary_text.delta",
                 "output_index": reasoning_output_index,
                 "summary_index": 0,
-                "delta": reasoning
+                "delta": reasoning,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
         let mut next_output_index = base_output_index;
         if !reasoning.is_empty() {
@@ -105,8 +109,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.output_text.delta",
                 "output_index": output_index,
                 "content_index": 0,
-                "delta": content
+                "delta": content,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
 
         for tool_call in &delta.tool_calls {
@@ -171,13 +177,20 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     }
 
     if choice.finish_reason.is_some() {
-        events.push(responses_terminal_stream_event(chunk));
+        events.push(responses_terminal_stream_event(chunk, next_sequence_number));
     }
 
     events
 }
 
-pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStreamChunk) -> Value {
+fn custom_tool_call_item_id(output_index: u32) -> String {
+    format!("ctc_{output_index}")
+}
+
+pub(crate) fn responses_created_stream_event_from_universal(
+    chunk: &UniversalStreamChunk,
+    sequence_number: u64,
+) -> Value {
     let id = chunk
         .id
         .clone()
@@ -201,11 +214,12 @@ pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStr
 
     crate::serde_json::json!({
         "type": "response.created",
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
-fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
+fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number: u64) -> Value {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {
         Some(reason) if reason == "length" => "incomplete",
@@ -236,7 +250,8 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
 
     serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
@@ -353,6 +368,42 @@ impl ResponsesOutputItemAddedItem {
                 call_id.as_deref().unwrap_or(""),
                 name.as_deref().unwrap_or(""),
                 id.as_deref(),
+                true,
+            )),
+            Self::Other => None,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(tag = "type")]
+enum ResponsesOutputItemAddedItem {
+    #[serde(rename = "function_call")]
+    FunctionCall {
+        call_id: Option<String>,
+        name: Option<String>,
+    },
+    #[serde(rename = "custom_tool_call")]
+    CustomToolCall {
+        call_id: Option<String>,
+        name: Option<String>,
+    },
+    #[serde(other)]
+    #[default]
+    Other,
+}
+
+impl ResponsesOutputItemAddedItem {
+    fn tool_call_start(&self) -> Option<(&str, &str, bool)> {
+        match self {
+            Self::FunctionCall { call_id, name } => Some((
+                call_id.as_deref().unwrap_or(""),
+                name.as_deref().unwrap_or(""),
+                false,
+            )),
+            Self::CustomToolCall { call_id, name } => Some((
+                call_id.as_deref().unwrap_or(""),
+                name.as_deref().unwrap_or(""),
                 true,
             )),
             Self::Other => None,
@@ -1391,7 +1442,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
         if has_finish {
-            return Ok(responses_terminal_stream_event(chunk));
+            return Ok(responses_terminal_stream_event(chunk, 0));
         }
         if let Some(event) = stream_events.into_iter().next() {
             return Ok(event);
@@ -3130,6 +3181,127 @@ mod tests {
             Some("await tools.exec_command({cmd: \"true\"});")
         );
         assert_responses_stream_event_roundtrips(&adapter, custom_tool_delta);
+    }
+
+    #[test]
+    fn test_responses_stream_custom_tool_call_delta_rejects_missing_required_fields() {
+        let adapter = ResponsesAdapter;
+        let err = adapter
+            .stream_to_universal(json!({
+                "type": "response.custom_tool_call_input.delta",
+                "delta": "malformed"
+            }))
+            .expect_err("malformed custom tool input delta should fail");
+
+        assert!(matches!(err, TransformError::DeserializationFailed(_)));
+        assert!(err
+            .to_string()
+            .contains("Responses custom tool call input delta event"));
+    }
+
+    #[test]
+    fn test_responses_stream_custom_tool_call_roundtrips() {
+        let adapter = ResponsesAdapter;
+        let custom_tool_start = json!({
+            "type": "response.output_item.added",
+            "item": {
+                "type": "custom_tool_call",
+                "status": "in_progress",
+                "call_id": "call_exec",
+                "input": "",
+                "name": "exec"
+            },
+            "output_index": 7
+        });
+        let start_chunk = adapter
+            .stream_to_universal(custom_tool_start.clone())
+            .expect("custom tool start should parse")
+            .expect("custom tool start should produce a chunk");
+        assert!(!start_chunk.is_keep_alive());
+        let start_delta = start_chunk
+            .choices
+            .first()
+            .expect("custom tool start should have a choice")
+            .delta_view()
+            .expect("custom tool start delta should parse");
+        let start_tool_call = start_delta
+            .tool_calls
+            .first()
+            .expect("custom tool start should emit a tool call");
+        assert_eq!(start_tool_call.index, Some(7));
+        assert_eq!(start_tool_call.id.as_deref(), Some("call_exec"));
+        assert_eq!(start_tool_call.call_type.as_deref(), Some("function"));
+        assert_eq!(start_tool_call.custom_tool_call, Some(true));
+        assert_eq!(
+            start_tool_call
+                .function
+                .as_ref()
+                .and_then(|function| function.name.as_deref()),
+            Some("exec")
+        );
+        assert_eq!(
+            responses_stream_events_from_universal(&start_chunk),
+            vec![json!({
+                "type": "response.output_item.added",
+                "output_index": 7,
+                "item": {
+                    "id": "ctc_7",
+                    "type": "custom_tool_call",
+                    "status": "in_progress",
+                    "call_id": "call_exec",
+                    "name": "exec",
+                    "input": ""
+                },
+                "sequence_number": 0
+            })]
+        );
+
+        let custom_tool_delta = json!({
+            "type": "response.custom_tool_call_input.delta",
+            "delta": "await tools.exec_command({cmd: \"true\"});",
+            "item_id": "ctc_exec",
+            "sequence_number": 8,
+            "output_index": 7
+        });
+        let delta_chunk = adapter
+            .stream_to_universal(custom_tool_delta.clone())
+            .expect("custom tool delta should parse")
+            .expect("custom tool delta should produce a chunk");
+        assert!(!delta_chunk.is_keep_alive());
+        let delta = delta_chunk
+            .choices
+            .first()
+            .expect("custom tool delta should have a choice")
+            .delta_view()
+            .expect("custom tool delta should parse");
+        let delta_tool_call = delta
+            .tool_calls
+            .first()
+            .expect("custom tool delta should emit tool call input");
+        assert_eq!(delta_tool_call.index, Some(7));
+        assert_eq!(delta_tool_call.custom_tool_call, Some(true));
+        assert_eq!(
+            delta_tool_call
+                .function
+                .as_ref()
+                .and_then(|function| function.arguments.as_deref()),
+            Some("await tools.exec_command({cmd: \"true\"});")
+        );
+        let expected_custom_tool_delta = json!({
+            "type": "response.custom_tool_call_input.delta",
+            "delta": "await tools.exec_command({cmd: \"true\"});",
+            "item_id": "ctc_7",
+            "output_index": 7,
+            "sequence_number": 0
+        });
+        assert_eq!(
+            responses_stream_events_from_universal(&delta_chunk),
+            vec![expected_custom_tool_delta.clone()]
+        );
+
+        adapter
+            .stream_to_universal(expected_custom_tool_delta)
+            .expect("emitted custom tool delta should satisfy strict parsing");
     }
 
     #[test]

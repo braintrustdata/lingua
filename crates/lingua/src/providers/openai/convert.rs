@@ -2258,23 +2258,34 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     })
                                     .transpose()?
                                     .unwrap_or(openai::FunctionCallItemStatus::Completed);
-                                // Regular function call (not provider-executed)
-                                let function_call_item = openai::InputItem {
+                                let (input_item_type, input, arguments) = match &tool_call.arguments
+                                {
+                                    ToolCallArguments::Custom(input) => (
+                                        openai::InputItemType::CustomToolCall,
+                                        Some(input.clone()),
+                                        None,
+                                    ),
+                                    arguments => (
+                                        openai::InputItemType::FunctionCall,
+                                        None,
+                                        Some(openai_arguments_from_string(arguments.to_string())),
+                                    ),
+                                };
+                                let tool_call_item = openai::InputItem {
                                     role: None, // Preserve original role state - request context function calls don't have roles
                                     content: None,
-                                    input_item_type: Some(openai::InputItemType::FunctionCall),
+                                    input_item_type: Some(input_item_type),
                                     id: id.clone(),
                                     call_id: Some(tool_call.tool_call_id),
                                     name: Some(tool_call.tool_name),
                                     namespace: tool_call.namespace,
-                                    arguments: Some(openai_arguments_from_string(
-                                        tool_call.arguments.to_string(),
-                                    )),
+                                    input,
+                                    arguments,
                                     caller: tool_call.caller,
                                     status: Some(output_item_status),
                                     ..Default::default()
                                 };
-                                Ok(function_call_item)
+                                Ok(tool_call_item)
                             }
                         } else {
                             // Regular message - use normal conversion
@@ -5255,6 +5266,34 @@ mod tests {
             roundtrip[1].input_item_type,
             Some(openai::InputItemType::CustomToolCallOutput)
         );
+    }
+
+    #[test]
+    fn responses_custom_tool_call_output_roundtrips_as_custom_output_item() {
+        let output_items: Vec<openai::OutputItem> = serde_json::from_value(json!([
+            {
+                "id": "ctc_custom",
+                "type": "custom_tool_call",
+                "status": "completed",
+                "call_id": "call_custom",
+                "name": "run_raw",
+                "input": "raw custom input"
+            }
+        ]))
+        .expect("output items should deserialize");
+
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<openai::OutputItem>>>::try_from(output_items)
+                .expect("output items should convert to universal");
+        let roundtrip = <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+            .expect("universal messages should convert back to Responses output items");
+
+        assert_eq!(
+            roundtrip[0].output_item_type,
+            Some(openai::OutputItemType::CustomToolCall)
+        );
+        assert_eq!(roundtrip[0].input.as_deref(), Some("raw custom input"));
+        assert_eq!(roundtrip[0].arguments, None);
     }
 
     #[test]
