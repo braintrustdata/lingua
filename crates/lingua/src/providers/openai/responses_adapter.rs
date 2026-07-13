@@ -649,13 +649,7 @@ impl ProviderAdapter for ResponsesAdapter {
             responses_extras_view.reasoning.as_ref(),
             canonical_reasoning,
         ) {
-            (Some(provider_reasoning), Some(canonical_reasoning)) => {
-                let mut merged = provider_reasoning.clone();
-                merged.effort = canonical_reasoning.effort;
-                merged.summary = canonical_reasoning.summary;
-                merged.generate_summary = canonical_reasoning.generate_summary;
-                Some(merged)
-            }
+            (Some(provider_reasoning), Some(_)) => Some(provider_reasoning.clone()),
             (Some(provider_reasoning), None) => Some(provider_reasoning.clone()),
             (None, canonical_reasoning) => canonical_reasoning,
         };
@@ -2884,6 +2878,35 @@ mod tests {
             roundtrip.pointer("/reasoning/future_reasoning_field"),
             Some(&json!({"enabled": true}))
         );
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_raw_reasoning_when_canonical_is_lossy() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "summary": "concise"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(
+            universal
+                .params
+                .reasoning
+                .as_ref()
+                .and_then(|reasoning| reasoning.summary),
+            Some(crate::universal::SummaryMode::Auto)
+        );
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/reasoning/summary"),
+            Some(&json!("concise"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
     }
 
     #[test]
