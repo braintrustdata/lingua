@@ -873,10 +873,7 @@ fn request_model_needs_forced_translation(
     override_model: Option<&str>,
     target: ProviderFormat,
 ) -> bool {
-    if !matches!(
-        target,
-        ProviderFormat::ChatCompletions | ProviderFormat::Responses
-    ) {
+    if target != ProviderFormat::ChatCompletions {
         return false;
     }
 
@@ -888,8 +885,7 @@ fn request_model_needs_forced_translation(
         return true;
     }
 
-    target == ProviderFormat::ChatCompletions
-        && request_model.is_some_and(is_models_prefixed_gemini_model)
+    request_model.is_some_and(is_models_prefixed_gemini_model)
         && override_model.is_some_and(is_bare_gemini_model)
 }
 
@@ -2167,7 +2163,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
-    fn test_reasoning_responses_model_forces_translation() {
+    fn test_reasoning_responses_model_passthrough() {
         let payload = json!({
             "model": "gpt-5.1-mini",
             "input": [{"role": "user", "content": "Hello"}],
@@ -2178,12 +2174,12 @@ mod tests {
         let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
 
         assert!(
-            !result.is_passthrough(),
-            "Reasoning Responses models should force translation"
+            result.is_passthrough(),
+            "Responses requests should not force same-format translation"
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
-        assert!(output.get("top_p").is_none(), "Should not have top_p");
+        assert_eq!(output.get("top_p").and_then(Value::as_f64), Some(0.9));
     }
 
     #[test]
@@ -2210,8 +2206,8 @@ mod tests {
         let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
 
         assert!(
-            !result.is_passthrough(),
-            "Reasoning Responses models should force translation"
+            result.is_passthrough(),
+            "Responses requests should not force same-format translation"
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
