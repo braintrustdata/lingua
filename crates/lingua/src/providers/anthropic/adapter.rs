@@ -804,7 +804,8 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 

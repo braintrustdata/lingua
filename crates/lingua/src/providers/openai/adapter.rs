@@ -556,7 +556,7 @@ impl ProviderAdapter for OpenAIAdapter {
             .ok_or_else(|| TransformError::ToUniversalFailed("missing choices".to_string()))?;
 
         let mut messages = Vec::new();
-        let mut finish_reason = None;
+        let mut finish_reasons = Vec::new();
 
         for choice in choices {
             if let Some(msg_val) = choice.get("message") {
@@ -572,17 +572,23 @@ impl ProviderAdapter for OpenAIAdapter {
                 messages.push(universal);
             }
 
-            // Get finish_reason from first choice
-            if finish_reason.is_none() {
-                if let Some(reason) = choice.get("finish_reason").and_then(Value::as_str) {
-                    finish_reason =
-                        Some(reason.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                            type_name: "FinishReason",
-                            value: reason.to_string(),
-                        })?);
-                }
+            #[derive(Deserialize)]
+            struct ChoiceFinishReasonView {
+                finish_reason: Option<String>,
+            }
+            let choice_view: ChoiceFinishReasonView = serde_json::from_value(choice.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            if let Some(reason) = choice_view.finish_reason {
+                finish_reasons.push(reason.parse().map_err(|_| {
+                    ConvertError::InvalidEnumValue {
+                        type_name: "FinishReason",
+                        value: reason,
+                    }
+                })?);
             }
         }
+
+        let finish_reason = finish_reasons.first().cloned();
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -596,6 +602,7 @@ impl ProviderAdapter for OpenAIAdapter {
             messages,
             usage,
             finish_reason,
+            finish_reasons,
         })
     }
 
@@ -995,6 +1002,7 @@ mod tests {
             ],
             usage: None,
             finish_reason: None,
+            finish_reasons: Vec::new(),
         };
 
         let value = adapter.response_from_universal(&resp).unwrap();

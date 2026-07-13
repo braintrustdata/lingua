@@ -353,7 +353,8 @@ impl ProviderAdapter for BedrockAdapter {
             model: None, // Bedrock doesn't include model in response
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 

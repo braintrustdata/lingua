@@ -689,7 +689,8 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 
@@ -2024,6 +2025,7 @@ mod tests {
             }],
             usage: None,
             finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
         };
 
         let adapter = ResponsesAdapter;

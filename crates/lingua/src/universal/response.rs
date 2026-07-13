@@ -35,6 +35,10 @@ pub struct UniversalResponse {
 
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
+
+    /// Why each choice stopped generating.
+    #[serde(skip_serializing)]
+    pub finish_reasons: Vec<FinishReason>,
 }
 
 /// Token usage statistics.
@@ -191,6 +195,10 @@ impl FinishReason {
         }
     }
 
+    pub fn is_incomplete(&self) -> bool {
+        matches!(self, Self::Length | Self::ContentFilter)
+    }
+
     /// Convert a universal FinishReason to the provider-specific string representation.
     ///
     /// Each provider uses different strings for finish reasons:
@@ -287,6 +295,37 @@ impl UniversalResponse {
             .and_then(|v| v.id)
     }
 
+    pub fn content_is_json(&self) -> bool {
+        self.assistant_texts()
+            .iter()
+            .all(|content| serde_json::from_str::<Value>(content).is_ok())
+    }
+
+    pub fn is_complete(&self) -> bool {
+        !self.finish_reasons.iter().any(FinishReason::is_incomplete)
+            && !self
+                .finish_reason
+                .as_ref()
+                .is_some_and(FinishReason::is_incomplete)
+    }
+
+    pub fn assistant_texts(&self) -> Vec<String> {
+        let mut contents: Vec<String> = self
+            .messages
+            .iter()
+            .filter_map(|message| match message {
+                Message::Assistant { content, .. } => content.text(),
+                _ => None,
+            })
+            .collect();
+        if contents.is_empty() {
+            if let Some(text) = self.messages.last().and_then(message_text) {
+                contents.push(text);
+            }
+        }
+        contents
+    }
+
     pub fn id_for(&self, format: ProviderFormat) -> String {
         let prefix = match format {
             ProviderFormat::Anthropic => "msg_",
@@ -312,6 +351,16 @@ impl UniversalResponse {
             }
         }
         format!("{}{}", prefix, PLACEHOLDER_ID)
+    }
+}
+
+fn message_text(message: &Message) -> Option<String> {
+    match message {
+        Message::Assistant { content, .. } => content.text(),
+        Message::System { .. }
+        | Message::Developer { .. }
+        | Message::User { .. }
+        | Message::Tool { .. } => None,
     }
 }
 
@@ -673,6 +722,87 @@ impl UniversalUsage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::universal::message::AssistantContent;
+
+    #[test]
+    fn test_incomplete_finish_reasons() {
+        assert!(!FinishReason::Stop.is_incomplete());
+        assert!(FinishReason::Length.is_incomplete());
+        assert!(!FinishReason::ToolCalls.is_incomplete());
+        assert!(FinishReason::ContentFilter.is_incomplete());
+        assert!(!FinishReason::Other("done".to_string()).is_incomplete());
+    }
+
+    #[test]
+    fn test_response_completeness_uses_every_choice() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Length, FinishReason::Stop],
+        };
+        assert!(!response.is_complete());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop, FinishReason::ToolCalls],
+        };
+        assert!(response.is_complete());
+    }
+
+    #[test]
+    fn test_response_content_is_json_validates_every_assistant_message() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: vec![
+                Message::Assistant {
+                    content: AssistantContent::String(r#"{"ok":true}"#.to_string()),
+                    id: None,
+                },
+                Message::Assistant {
+                    content: AssistantContent::String(r#"{"broken":"#.to_string()),
+                    id: None,
+                },
+            ],
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
+        };
+        assert!(!response.content_is_json());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: vec![Message::Assistant {
+                content: AssistantContent::Array(vec![
+                    crate::universal::message::AssistantContentPart::Text(
+                        crate::universal::message::TextContentPart {
+                            text: r#"{"ok":true}"#.to_string(),
+                            encrypted_content: None,
+                            cache_control: None,
+                            provider_options: None,
+                        },
+                    ),
+                ]),
+                id: None,
+            }],
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
+        };
+        assert!(response.content_is_json());
+    }
 
     #[test]
     fn test_google_escalation_string_maps_to_content_filter() {

@@ -71,6 +71,24 @@ pub enum AssistantContent {
     Array(Vec<AssistantContentPart>),
 }
 
+impl AssistantContent {
+    pub fn text(&self) -> Option<String> {
+        match self {
+            AssistantContent::String(text) => Some(text.clone()),
+            AssistantContent::Array(parts) => {
+                let text: String = parts
+                    .iter()
+                    .filter_map(|part| match part {
+                        AssistantContentPart::Text(text_part) => Some(text_part.text.as_str()),
+                        _ => None,
+                    })
+                    .collect();
+                (!text.is_empty()).then_some(text)
+            }
+        }
+    }
+}
+
 /// Assistant content parts - text, file, reasoning, tool calls, and tool results allowed
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

@@ -473,7 +473,7 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let mut messages = Vec::new();
-        let mut finish_reason = None;
+        let mut finish_reasons = Vec::new();
 
         for candidate in response.candidates.iter().flatten() {
             if let Some(content) = &candidate.content {
@@ -482,8 +482,8 @@ impl ProviderAdapter for GoogleAdapter {
                 messages.push(universal);
             }
 
-            if finish_reason.is_none() {
-                finish_reason = candidate.finish_reason.as_ref().map(FinishReason::from);
+            if let Some(reason) = candidate.finish_reason.as_ref().map(FinishReason::from) {
+                finish_reasons.push(reason);
             }
         }
 
@@ -504,7 +504,7 @@ impl ProviderAdapter for GoogleAdapter {
         let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
-            finish_reason
+            finish_reasons.first().cloned()
         };
 
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
@@ -516,6 +516,7 @@ impl ProviderAdapter for GoogleAdapter {
             messages,
             usage,
             finish_reason,
+            finish_reasons,
         })
     }
 
