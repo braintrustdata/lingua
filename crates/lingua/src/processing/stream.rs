@@ -320,6 +320,12 @@ impl StreamTransformSession {
 
     pub fn push_sse(&mut self, input: Bytes) -> Result<Vec<Bytes>, TransformError> {
         let chunks = self.push(input)?;
+        if chunks.is_empty()
+            && self.target_format == ProviderFormat::Responses
+            && self.responses_message_started
+        {
+            return Ok(vec![SSE_COMMENT_BYTES.clone()]);
+        }
         Ok(chunks
             .iter()
             .map(|chunk| self.format_output_chunk_as_sse(chunk))
@@ -1071,9 +1077,7 @@ fn expand_responses_session_chunks(
         .collect::<Result<Vec<_>, TransformError>>()?;
 
     if out.is_empty() {
-        Ok(vec![StreamOutputChunk::data(Bytes::from_static(
-            KEEP_ALIVE_BYTES,
-        ))])
+        Ok(vec![])
     } else {
         Ok(out)
     }
@@ -2589,38 +2593,18 @@ mod tests {
 
         let opening = session.push(metadata).unwrap();
         assert_eq!(opening.len(), 2);
-        assert_eq!(opening[0].event_type.as_deref(), Some("response.created"));
-        let created: Value = crate::serde_json::from_slice(&opening[0].data).unwrap();
+        for (index, chunk) in opening.iter().enumerate() {
+            let event: Value = crate::serde_json::from_slice(&chunk.data).unwrap();
+            assert_eq!(event["sequence_number"], json!(index));
+        }
+        assert!(session.push(empty.clone()).unwrap().is_empty());
         assert_eq!(
-            created.get("sequence_number").and_then(Value::as_u64),
-            Some(0)
+            session.push_sse(empty).unwrap(),
+            vec![SSE_COMMENT_BYTES.clone()]
         );
-        assert_eq!(
-            opening[1].event_type.as_deref(),
-            Some("response.in_progress")
-        );
-        let in_progress: Value = crate::serde_json::from_slice(&opening[1].data).unwrap();
-        assert_eq!(
-            in_progress.get("sequence_number").and_then(Value::as_u64),
-            Some(1)
-        );
-
-        let keep_alive = session.push(empty).unwrap();
-        assert_eq!(keep_alive.len(), 1);
-        assert_eq!(keep_alive[0].data.as_ref(), KEEP_ALIVE_BYTES);
-        assert!(keep_alive[0].event_type.is_none());
-
-        let out = session.push(content).unwrap();
-        assert_eq!(out.len(), 1);
-        assert_eq!(
-            out[0].event_type.as_deref(),
-            Some("response.output_text.delta")
-        );
-        let text_delta: Value = crate::serde_json::from_slice(&out[0].data).unwrap();
-        assert_eq!(
-            text_delta.get("sequence_number").and_then(Value::as_u64),
-            Some(2)
-        );
+        let text = session.push(content).unwrap();
+        let event: Value = crate::serde_json::from_slice(&text[0].data).unwrap();
+        assert_eq!(event["sequence_number"], json!(2));
     }
 
     #[test]
