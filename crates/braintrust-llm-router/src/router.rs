@@ -252,7 +252,7 @@ async fn prepare_provider_request(
                 false,
                 false,
             ),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, false),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, true),
             Err(err) => return Err(err.into()),
         };
 
@@ -1530,7 +1530,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) = prepare_provider_request(
+        let (payload, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1553,7 +1553,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _) = prepare_provider_request(
+        let (payload, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1591,7 +1591,7 @@ mod tests {
             available_providers: vec!["vertex".to_string()],
         };
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::VertexAnthropic,
@@ -1631,7 +1631,7 @@ mod tests {
             available_providers: vec!["google".to_string()],
         };
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::Google,
@@ -1658,7 +1658,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1684,7 +1684,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format) = prepare_provider_request(
+        let (payload, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1712,7 +1712,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, detected_format, actual_format) = prepare_provider_request(
+        let (payload, detected_format, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1760,7 +1760,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
-        let (_, _, actual_format) = prepare_provider_request(
+        let (_, _, actual_format, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
