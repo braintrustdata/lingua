@@ -674,6 +674,63 @@
       "target": "Google",
       "skip": true,
       "reason": "Generated OpenAI response schemas do not yet model Programmatic Tool Calling program output items"
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Anthropic tool-use input cannot retain the OpenAI custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Anthropic tool-use input cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Bedrock Anthropic tool-use input cannot retain the OpenAI custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Bedrock Anthropic tool-use input cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Vertex Anthropic tool-use input cannot retain the OpenAI custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Vertex Anthropic tool-use input cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Google function-call arguments cannot retain the OpenAI custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Google function-call arguments cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Chat Completions function-call arguments cannot retain the OpenAI custom argument kind" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Bedrock tool-use input cannot retain the OpenAI custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Bedrock tool-use input cannot preserve free-form custom tool input" },
+        { "pattern": "model", "reason": "Bedrock routes the model in the endpoint rather than the request body" },
+        { "pattern": "usage.prompt_cached_tokens", "reason": "Bedrock does not expose OpenAI Responses cached prompt-token usage" },
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Bedrock does not expose OpenAI Responses cache-creation token usage" },
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Bedrock usage separates prompt tokens from cache buckets" }
+      ]
     }
   ]
 }

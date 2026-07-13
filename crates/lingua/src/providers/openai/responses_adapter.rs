@@ -64,19 +64,21 @@ fn system_text(message: &Message) -> Option<&str> {
 pub struct ResponsesAdapter;
 
 pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
-    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0)
+    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0, 0)
 }
 
 pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     chunk: &UniversalStreamChunk,
     text_output_index: Option<u32>,
     tool_output_index_offset: u32,
+    sequence_number: u64,
 ) -> Vec<Value> {
     let Some(choice) = chunk.choices.first() else {
         return Vec::new();
     };
 
     let mut events = Vec::new();
+    let mut next_sequence_number = sequence_number;
     if let Some(delta) = choice.delta_view() {
         let reasoning_output_index = choice.index;
         let base_output_index = choice.index.max(tool_output_index_offset);
@@ -90,8 +92,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.reasoning_summary_text.delta",
                 "output_index": reasoning_output_index,
                 "summary_index": 0,
-                "delta": reasoning
+                "delta": reasoning,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
         let mut next_output_index = base_output_index;
         if !reasoning.is_empty() {
@@ -105,8 +109,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.output_text.delta",
                 "output_index": output_index,
                 "content_index": 0,
-                "delta": content
+                "delta": content,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
 
         for tool_call in &delta.tool_calls {
@@ -124,17 +130,21 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 .unwrap_or("");
             if let Some(call_id) = call_id {
                 if tool_call.custom_tool_call == Some(true) {
+                    let item_id = custom_tool_call_item_id(output_index);
                     events.push(serde_json::json!({
                         "type": "response.output_item.added",
                         "output_index": output_index,
                         "item": {
+                            "id": item_id,
                             "type": "custom_tool_call",
                             "status": "in_progress",
                             "call_id": call_id,
                             "name": name,
                             "input": ""
-                        }
+                        },
+                        "sequence_number": next_sequence_number
                     }));
+                    next_sequence_number += 1;
                 } else {
                     events.push(serde_json::json!({
                         "type": "response.output_item.added",
@@ -145,8 +155,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                             "call_id": call_id,
                             "name": name,
                             "arguments": ""
-                        }
+                        },
+                        "sequence_number": next_sequence_number
                     }));
+                    next_sequence_number += 1;
                 }
             }
 
@@ -160,27 +172,39 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                     events.push(serde_json::json!({
                         "type": "response.custom_tool_call_input.delta",
                         "output_index": output_index,
-                        "delta": arguments
+                        "item_id": custom_tool_call_item_id(output_index),
+                        "delta": arguments,
+                        "sequence_number": next_sequence_number
                     }));
+                    next_sequence_number += 1;
                 } else {
                     events.push(serde_json::json!({
                         "type": "response.function_call_arguments.delta",
                         "output_index": output_index,
-                        "delta": arguments
+                        "delta": arguments,
+                        "sequence_number": next_sequence_number
                     }));
+                    next_sequence_number += 1;
                 }
             }
         }
     }
 
     if choice.finish_reason.is_some() {
-        events.push(responses_terminal_stream_event(chunk));
+        events.push(responses_terminal_stream_event(chunk, next_sequence_number));
     }
 
     events
 }
 
-pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStreamChunk) -> Value {
+fn custom_tool_call_item_id(output_index: u32) -> String {
+    format!("ctc_{output_index}")
+}
+
+pub(crate) fn responses_created_stream_event_from_universal(
+    chunk: &UniversalStreamChunk,
+    sequence_number: u64,
+) -> Value {
     let id = chunk
         .id
         .clone()
@@ -204,11 +228,12 @@ pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStr
 
     crate::serde_json::json!({
         "type": "response.created",
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
-fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
+fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number: u64) -> Value {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {
         Some(reason) if reason == "length" => "incomplete",
@@ -239,7 +264,8 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
 
     serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
@@ -1302,7 +1328,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
         if has_finish {
-            return Ok(responses_terminal_stream_event(chunk));
+            return Ok(responses_terminal_stream_event(chunk, 0));
         }
         if let Some(event) = stream_events.into_iter().next() {
             return Ok(event);
@@ -2999,7 +3025,19 @@ mod tests {
         );
         assert_eq!(
             responses_stream_events_from_universal(&start_chunk),
-            vec![custom_tool_start]
+            vec![json!({
+                "type": "response.output_item.added",
+                "output_index": 7,
+                "item": {
+                    "id": "ctc_7",
+                    "type": "custom_tool_call",
+                    "status": "in_progress",
+                    "call_id": "call_exec",
+                    "name": "exec",
+                    "input": ""
+                },
+                "sequence_number": 0
+            })]
         );
 
         let custom_tool_delta = json!({
@@ -3036,12 +3074,18 @@ mod tests {
         let expected_custom_tool_delta = json!({
             "type": "response.custom_tool_call_input.delta",
             "delta": "await tools.exec_command({cmd: \"true\"});",
-            "output_index": 7
+            "item_id": "ctc_7",
+            "output_index": 7,
+            "sequence_number": 0
         });
         assert_eq!(
             responses_stream_events_from_universal(&delta_chunk),
-            vec![expected_custom_tool_delta]
+            vec![expected_custom_tool_delta.clone()]
         );
+
+        adapter
+            .stream_to_universal(expected_custom_tool_delta)
+            .expect("emitted custom tool delta should satisfy strict parsing");
     }
 
     #[test]

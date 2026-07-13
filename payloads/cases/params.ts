@@ -620,6 +620,31 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesCustomToolCallStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response.",
+        },
+      ],
+      tools: [
+        {
+          type: "custom",
+          name: "write_release_note",
+          description: "Draft a release note in plain text.",
+          format: { type: "text" },
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   responsesGpt56ReasoningMaxProContextParam: {
     "chat-completions": null,
     responses: {
