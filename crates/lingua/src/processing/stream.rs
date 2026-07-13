@@ -10,6 +10,7 @@ use crate::processing::transform::{
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
     responses_created_stream_event_from_universal,
+    responses_in_progress_stream_event_from_universal,
     responses_stream_events_from_universal_with_output_index_offset,
 };
 use crate::serde_json::Value;
@@ -1004,8 +1005,9 @@ fn expand_responses_session_chunks(
 
     let has_metadata =
         universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
-    let may_emit_created = has_metadata && !responses_message_started;
-    let event_sequence_number = *next_responses_sequence_number + u64::from(may_emit_created);
+    let should_emit_lifecycle_events = has_metadata && !responses_message_started;
+    let event_sequence_number =
+        *next_responses_sequence_number + if should_emit_lifecycle_events { 2 } else { 0 };
     let mut events = responses_stream_events_from_universal_with_output_index_offset(
         universal,
         output_index_state.text_output_index,
@@ -1035,15 +1037,14 @@ fn expand_responses_session_chunks(
     {
         responses_output_index_states.insert(choice_index, next_output_index_state);
     }
-    if has_metadata
-        && !responses_message_started
-        && !events.is_empty()
-        && events
-            .first()
-            .and_then(|event| event.get("type"))
-            .and_then(Value::as_str)
-            != Some("response.created")
-    {
+    if should_emit_lifecycle_events {
+        events.insert(
+            0,
+            responses_in_progress_stream_event_from_universal(
+                universal,
+                *next_responses_sequence_number + 1,
+            ),
+        );
         events.insert(
             0,
             responses_created_stream_event_from_universal(
@@ -1070,7 +1071,9 @@ fn expand_responses_session_chunks(
         .collect::<Result<Vec<_>, TransformError>>()?;
 
     if out.is_empty() {
-        Ok(chunks)
+        Ok(vec![StreamOutputChunk::data(Bytes::from_static(
+            KEEP_ALIVE_BYTES,
+        ))])
     } else {
         Ok(out)
     }
@@ -2547,6 +2550,80 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_chat_metadata_only_opening_is_sequenced_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let metadata = to_bytes(&json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "created": 123,
+            "model": "gpt-4.1",
+            "choices": [{
+                "index": 0,
+                "delta": { "role": "assistant", "content": "" },
+                "finish_reason": null
+            }]
+        }));
+        let content = to_bytes(&json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "created": 123,
+            "model": "gpt-4.1",
+            "choices": [{
+                "index": 0,
+                "delta": { "content": "hello" },
+                "finish_reason": null
+            }]
+        }));
+        let empty = to_bytes(&json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "created": 123,
+            "model": "gpt-4.1",
+            "choices": [{
+                "index": 0,
+                "delta": {},
+                "finish_reason": null
+            }]
+        }));
+
+        let opening = session.push(metadata).unwrap();
+        assert_eq!(opening.len(), 2);
+        assert_eq!(opening[0].event_type.as_deref(), Some("response.created"));
+        let created: Value = crate::serde_json::from_slice(&opening[0].data).unwrap();
+        assert_eq!(
+            created.get("sequence_number").and_then(Value::as_u64),
+            Some(0)
+        );
+        assert_eq!(
+            opening[1].event_type.as_deref(),
+            Some("response.in_progress")
+        );
+        let in_progress: Value = crate::serde_json::from_slice(&opening[1].data).unwrap();
+        assert_eq!(
+            in_progress.get("sequence_number").and_then(Value::as_u64),
+            Some(1)
+        );
+
+        let keep_alive = session.push(empty).unwrap();
+        assert_eq!(keep_alive.len(), 1);
+        assert_eq!(keep_alive[0].data.as_ref(), KEEP_ALIVE_BYTES);
+        assert!(keep_alive[0].event_type.is_none());
+
+        let out = session.push(content).unwrap();
+        assert_eq!(out.len(), 1);
+        assert_eq!(
+            out[0].event_type.as_deref(),
+            Some("response.output_text.delta")
+        );
+        let text_delta: Value = crate::serde_json::from_slice(&out[0].data).unwrap();
+        assert_eq!(
+            text_delta.get("sequence_number").and_then(Value::as_u64),
+            Some(2)
+        );
+    }
+
+    #[test]
     #[cfg(all(feature = "google", feature = "openai"))]
     fn test_stream_session_google_mixed_thought_and_text_expands_to_responses_events() {
         let mut session = StreamTransformSession::new(ProviderFormat::Responses);
@@ -2584,6 +2661,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_text.delta"),
                 Some("response.completed")
@@ -2636,6 +2714,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta")
@@ -2689,6 +2768,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.reasoning_summary_text.delta")
             ]
         );
@@ -2753,6 +2833,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.reasoning_summary_text.delta")
             ]
         );
@@ -2830,11 +2911,12 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_text.delta")
             ]
         );
-        let text_delta: OutputEvent = crate::serde_json::from_slice(&first[2].data).unwrap();
+        let text_delta: OutputEvent = crate::serde_json::from_slice(&first[3].data).unwrap();
         assert_eq!(text_delta.output_index, 1);
 
         let second = session.push(tool_call).unwrap();
@@ -2885,6 +2967,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.in_progress"),
                 Some("response.output_item.added"),
                 Some("response.custom_tool_call_input.delta"),
                 Some("response.completed")
@@ -2894,10 +2977,11 @@ mod tests {
         assert_eq!(events[1]["sequence_number"], json!(1));
         assert_eq!(events[2]["sequence_number"], json!(2));
         assert_eq!(events[3]["sequence_number"], json!(3));
-        assert_eq!(events[1]["item"]["id"], json!("ctc_0"));
-        assert_eq!(events[2]["item_id"], json!("ctc_0"));
+        assert_eq!(events[4]["sequence_number"], json!(4));
+        assert_eq!(events[2]["item"]["id"], json!("ctc_0"));
+        assert_eq!(events[3]["item_id"], json!("ctc_0"));
         assert_eq!(
-            events[2]["delta"],
+            events[3]["delta"],
             json!("await tools.exec_command({cmd: true});")
         );
     }
