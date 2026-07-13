@@ -783,6 +783,8 @@ fn chat_stream_delta_from_universal(mut delta: Value) -> Value {
         for tool_call in tool_calls {
             if let Some(tool_call) = tool_call.as_object_mut() {
                 tool_call.remove("custom_tool_call");
+                tool_call.remove("item_id");
+                tool_call.remove("sequence_number");
             }
         }
     }
@@ -953,6 +955,8 @@ mod tests {
                         "id": "call_1",
                         "type": "function",
                         "custom_tool_call": true,
+                        "item_id": "ctc_1",
+                        "sequence_number": 8,
                         "function": {
                             "name": "exec",
                             "arguments": ""

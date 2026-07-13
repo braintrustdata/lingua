@@ -1051,6 +1051,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                     name: part.name,
                                     arguments: Some(arguments),
                                 }),
+                                ..Default::default()
                             }],
                             ..Default::default()
                         })
@@ -1115,6 +1116,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                         name: Some(name.to_string()),
                                         arguments: Some(String::new()),
                                     }),
+                                    ..Default::default()
                                 }],
                                 ..Default::default()
                             })),
