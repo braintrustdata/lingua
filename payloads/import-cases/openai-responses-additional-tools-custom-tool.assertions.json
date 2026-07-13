@@ -1,0 +1,15 @@
+{
+  "expectedMessageCount": 5,
+  "expectedRolesInOrder": [
+    "additional_tools",
+    "user",
+    "assistant",
+    "tool",
+    "assistant"
+  ],
+  "mustContainText": [
+    "Run a query and save the result to a file.",
+    "exec",
+    "saved /tmp/query-result.txt"
+  ]
+}

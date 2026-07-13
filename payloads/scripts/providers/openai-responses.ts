@@ -216,6 +216,15 @@ export async function executeOpenAIResponses(
             output,
             ...(message.caller ? { caller: message.caller } : {}),
           });
+        } else if (message.type === "custom_tool_call") {
+          hasToolCalls = true;
+          // Capture fixtures do not execute arbitrary custom tools, so replay
+          // the required tool output with a deterministic mock result.
+          followUpInput.push({
+            type: "custom_tool_call_output",
+            call_id: message.call_id,
+            output: "Mock custom tool output.",
+          });
         }
       }
 

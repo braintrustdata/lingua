@@ -221,6 +221,14 @@
       ]
     },
     {
+      "testCase": "bedrockAnthropicContextManagementParam",
+      "source": "Anthropic",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.extras.anthropic.context_management", "reason": "Bedrock Anthropic invoke bodies reject Anthropic context_management with Extra inputs are not permitted" }
+      ]
+    },
+    {
       "testCase": "googleThinkingJsonSchemaParam",
       "source": "Google",
       "target": "Responses",
@@ -1164,6 +1172,60 @@
       "target": "Google",
       "errors": [
         { "pattern": "Tool 'get_inventory' of type 'allowed_callers' is not supported by google", "reason": "Google request conversion cannot preserve OpenAI Responses tool caller restrictions" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Tool 'write_release_note' of type 'custom' is not supported by anthropic", "reason": "Anthropic has no equivalent for OpenAI custom tools" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "errors": [
+        { "pattern": "Tool 'write_release_note' of type 'custom' is not supported by anthropic", "reason": "Bedrock Anthropic has no equivalent for OpenAI custom tools" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "errors": [
+        { "pattern": "Tool 'write_release_note' of type 'custom' is not supported by anthropic", "reason": "Vertex Anthropic has no equivalent for OpenAI custom tools" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "params.tools", "reason": "Bedrock does not support OpenAI custom tool declarations" },
+        { "pattern": "messages[*].content[*].custom_tool_call", "reason": "Bedrock tool results do not preserve the OpenAI custom-tool marker" },
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Bedrock represents custom tool input as structured tool-use arguments" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Bedrock cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].custom_tool_call", "reason": "Chat Completions does not expose the OpenAI Responses custom-tool marker" },
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Chat Completions function-call arguments cannot retain the custom argument kind" }
+      ]
+    },
+    {
+      "testCase": "responsesCustomToolCallStreamingParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].custom_tool_call", "reason": "Google does not expose the OpenAI Responses custom-tool marker" },
+        { "pattern": "messages[*].content[*].arguments.type", "reason": "Google function-call arguments cannot retain the custom argument kind" },
+        { "pattern": "messages[*].content[*].arguments.value", "reason": "Google function-call arguments cannot preserve free-form custom tool input" }
       ]
     }
   ]
