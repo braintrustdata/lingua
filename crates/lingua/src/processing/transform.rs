@@ -22,10 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
+    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -694,6 +694,8 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             index: Some(tool_call_index),
                             id: Some(tool_call_id.clone()),
                             call_type: Some("function".to_string()),
+                            custom_tool_call: matches!(arguments, ToolCallArguments::Custom(_))
+                                .then_some(true),
                             function: Some(UniversalToolFunctionDelta {
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
@@ -2065,6 +2067,42 @@ mod tests {
                 .and_then(Value::as_str),
             Some("tool_calls")
         );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_response_to_stream_chunk_preserves_responses_custom_tool_call() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![Message::Assistant {
+                id: None,
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_custom".to_string(),
+                    tool_name: "exec".to_string(),
+                    arguments: ToolCallArguments::Custom("await tools.exec();".to_string()),
+                    status: None,
+                    caller: None,
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+            }],
+            usage: None,
+            finish_reason: None,
+        };
+
+        let chunk = response_to_stream_chunk(response);
+        let output = crate::providers::openai::responses_adapter::ResponsesAdapter
+            .stream_from_universal(&chunk)
+            .unwrap();
+
+        assert_eq!(output["type"], json!("response.output_item.added"));
+        assert_eq!(output["item"]["type"], json!("custom_tool_call"));
+        assert_eq!(output["item"]["input"], json!(""));
+        assert_eq!(output["item"]["call_id"], json!("call_custom"));
+        assert_eq!(output["item"]["name"], json!("exec"));
     }
 
     #[test]

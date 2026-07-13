@@ -29,6 +29,7 @@ import {
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
+  BEDROCK_ANTHROPIC_MODEL,
 } from "./models";
 
 type ChatCompletionAssistantMessageWithReasoningSignature =
@@ -128,6 +129,29 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
       additionalModelResponseFieldPaths: ["/stop_sequence"],
+    },
+  },
+
+  bedrockAnthropicContextManagementParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
     },
   },
 
@@ -612,6 +636,31 @@ export const paramsCases: TestCaseCollection = {
               },
             },
           ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesCustomToolCallStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response.",
+        },
+      ],
+      tools: [
+        {
+          type: "custom",
+          name: "write_release_note",
+          description: "Draft a release note in plain text.",
+          format: { type: "text" },
         },
       ],
     },
