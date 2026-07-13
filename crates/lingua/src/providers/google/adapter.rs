@@ -642,6 +642,7 @@ impl ProviderAdapter for GoogleAdapter {
                                 })
                             }),
                             call_type: Some("function".to_string()),
+                            custom_tool_call: None,
                             function: Some(UniversalToolFunctionDelta {
                                 name: function_call.name.clone(),
                                 arguments: function_call

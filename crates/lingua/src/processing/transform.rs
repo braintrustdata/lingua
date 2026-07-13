@@ -22,10 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, TextContentPart, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent,
-    UserContentPart,
+    AssistantContent, AssistantContentPart, Message, TextContentPart, ToolCallArguments,
+    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -694,6 +694,8 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             index: Some(tool_call_index),
                             id: Some(tool_call_id.clone()),
                             call_type: Some("function".to_string()),
+                            custom_tool_call: matches!(arguments, ToolCallArguments::Custom(_))
+                                .then_some(true),
                             function: Some(UniversalToolFunctionDelta {
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
@@ -871,10 +873,7 @@ fn request_model_needs_forced_translation(
     override_model: Option<&str>,
     target: ProviderFormat,
 ) -> bool {
-    if !matches!(
-        target,
-        ProviderFormat::ChatCompletions | ProviderFormat::Responses
-    ) {
+    if target != ProviderFormat::ChatCompletions {
         return false;
     }
 
@@ -886,8 +885,7 @@ fn request_model_needs_forced_translation(
         return true;
     }
 
-    target == ProviderFormat::ChatCompletions
-        && request_model.is_some_and(is_models_prefixed_gemini_model)
+    request_model.is_some_and(is_models_prefixed_gemini_model)
         && override_model.is_some_and(is_bare_gemini_model)
 }
 
@@ -2073,6 +2071,42 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
+    fn test_response_to_stream_chunk_preserves_responses_custom_tool_call() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![Message::Assistant {
+                id: None,
+                content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                    tool_call_id: "call_custom".to_string(),
+                    tool_name: "exec".to_string(),
+                    arguments: ToolCallArguments::Custom("await tools.exec();".to_string()),
+                    status: None,
+                    caller: None,
+                    encrypted_content: None,
+                    provider_options: None,
+                    provider_executed: None,
+                }]),
+            }],
+            usage: None,
+            finish_reason: None,
+        };
+
+        let chunk = response_to_stream_chunk(response);
+        let output = crate::providers::openai::responses_adapter::ResponsesAdapter
+            .stream_from_universal(&chunk)
+            .unwrap();
+
+        assert_eq!(output["type"], json!("response.output_item.added"));
+        assert_eq!(output["item"]["type"], json!("custom_tool_call"));
+        assert_eq!(output["item"]["input"], json!(""));
+        assert_eq!(output["item"]["call_id"], json!("call_custom"));
+        assert_eq!(output["item"]["name"], json!("exec"));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
     fn test_transform_response_passthrough() {
         let payload = json!({
             "id": "chatcmpl-123",
@@ -2129,7 +2163,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "openai")]
-    fn test_reasoning_responses_model_forces_translation() {
+    fn test_reasoning_responses_model_passthrough() {
         let payload = json!({
             "model": "gpt-5.1-mini",
             "input": [{"role": "user", "content": "Hello"}],
@@ -2140,12 +2174,12 @@ mod tests {
         let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
 
         assert!(
-            !result.is_passthrough(),
-            "Reasoning Responses models should force translation"
+            result.is_passthrough(),
+            "Responses requests should not force same-format translation"
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();
-        assert!(output.get("top_p").is_none(), "Should not have top_p");
+        assert_eq!(output.get("top_p").and_then(Value::as_f64), Some(0.9));
     }
 
     #[test]
@@ -2172,8 +2206,8 @@ mod tests {
         let result = transform_request(input, ProviderFormat::Responses, None).unwrap();
 
         assert!(
-            !result.is_passthrough(),
-            "Reasoning Responses models should force translation"
+            result.is_passthrough(),
+            "Responses requests should not force same-format translation"
         );
 
         let output: Value = crate::serde_json::from_slice(result.as_bytes()).unwrap();

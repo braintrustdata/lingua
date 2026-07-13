@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { appendFileSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -74,6 +75,27 @@ function workflowMetadata(extra = {}) {
   };
 }
 
+function gitOutput(...args) {
+  try {
+    return execFileSync("git", args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    return `${error.stdout ?? ""}${error.stderr ?? ""}`;
+  }
+}
+
+function repositorySnapshot() {
+  return {
+    head: gitOutput("rev-parse", "HEAD").trim(),
+    git_status: gitOutput("status", "--short"),
+    git_diff_stat: gitOutput("diff", "--stat"),
+    git_diff_names: gitOutput("diff", "--name-only"),
+    git_diff: gitOutput("diff", "--no-color", "--no-ext-diff"),
+  };
+}
+
 async function createWorkflowTrace() {
   requireEnv("BRAINTRUST_API_KEY");
   const braintrust = loadBraintrust();
@@ -86,6 +108,7 @@ async function createWorkflowTrace() {
   });
   const spanId = span.spanId || span.id;
   const rootSpanId = span.rootSpanId || span.root_span_id || spanId;
+  const snapshot = repositorySnapshot();
 
   span.log({
     input: {
@@ -93,9 +116,65 @@ async function createWorkflowTrace() {
       event: optionalEnv("GITHUB_EVENT_NAME"),
       run_id: optionalEnv("GITHUB_RUN_ID"),
       run_attempt: optionalEnv("GITHUB_RUN_ATTEMPT"),
+      head: snapshot.head,
     },
+    output: snapshot,
     metadata: workflowMetadata({
       braintrust_project: projectName,
+      root_span_id: rootSpanId,
+      span_id: spanId,
+      head: snapshot.head,
+    }),
+  });
+  span.end();
+  await flushBraintrust(braintrust);
+
+  writeGithubOutput({
+    project: projectName,
+    root_span_id: rootSpanId,
+    span_id: spanId,
+  });
+}
+
+async function createTaskTrace() {
+  requireEnv("BRAINTRUST_API_KEY");
+  const braintrust = loadBraintrust();
+  const projectName =
+    optionalEnv("BRAINTRUST_PROJECT") ||
+    optionalEnv("BRAINTRUST_CC_PROJECT") ||
+    "lingua-provider-type-updates";
+  const provider = requireEnv("PROVIDER");
+  const phase = requireEnv("TRACE_PHASE");
+  const logger = braintrust.initLogger({ projectName });
+  const parentSpanId = optionalEnv("BRAINTRUST_PARENT_SPAN_ID");
+  const parentRootSpanId = optionalEnv("BRAINTRUST_ROOT_SPAN_ID");
+  const parentSpanIds =
+    parentSpanId && parentRootSpanId
+      ? { spanId: parentSpanId, rootSpanId: parentRootSpanId }
+      : undefined;
+  const span = logger.startSpan({
+    name: `Claude ${phase}: update ${provider} provider types`,
+    parentSpanIds,
+  });
+  const spanId = span.spanId || span.id;
+  const rootSpanId = span.rootSpanId || span.root_span_id || spanId;
+  const snapshot = repositorySnapshot();
+
+  span.log({
+    input: {
+      provider,
+      phase,
+      head: snapshot.head,
+      github_run_id: optionalEnv("GITHUB_RUN_ID"),
+      github_run_attempt: optionalEnv("GITHUB_RUN_ATTEMPT"),
+      github_workflow: optionalEnv("GITHUB_WORKFLOW"),
+      github_job: optionalEnv("GITHUB_JOB"),
+    },
+    output: snapshot,
+    metadata: workflowMetadata({
+      braintrust_project: projectName,
+      phase,
+      head: snapshot.head,
       root_span_id: rootSpanId,
       span_id: spanId,
     }),
@@ -465,6 +544,8 @@ const command = process.argv[2];
 try {
   if (command === "create-workflow-trace") {
     await createWorkflowTrace();
+  } else if (command === "create-task-trace") {
+    await createTaskTrace();
   } else if (command === "emit-pr-metadata") {
     emitPrMetadata();
   } else if (command === "extract-feedback-event") {
@@ -477,7 +558,7 @@ try {
     await logCodexReview();
   } else {
     throw new Error(
-      "Usage: braintrust-provider-types.mjs create-workflow-trace|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
+      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
     );
   }
 } catch (error) {

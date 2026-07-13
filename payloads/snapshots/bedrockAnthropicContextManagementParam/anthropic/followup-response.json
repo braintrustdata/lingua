@@ -1,0 +1,30 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CczU2hjJZLhi8QXod6wdn",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have any context about your current situation or what you're working on, so I can't give you specific advice about what to do next!\n\nTo help you better, could you tell me more about:\n- What you're currently working on or thinking about?\n- What your goals are?\n- What options you're considering?\n- What area of life this relates to (work, personal project, decision-making, etc.)?\n\nFeel free to share as much or as little detail as you'd like, and I'll do my best to help!"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 29,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 121,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  },
+  "context_management": {
+    "applied_edits": []
+  }
+}
