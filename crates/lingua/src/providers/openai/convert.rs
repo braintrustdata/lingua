@@ -5387,6 +5387,70 @@ mod tests {
     }
 
     #[test]
+    fn responses_input_item_direct_tool_call_uses_arguments_or_input_by_call_type() {
+        let function_message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_function".to_string(),
+                tool_name: "get_weather".to_string(),
+                arguments: ToolCallArguments::from("{\"city\":\"Paris\"}".to_string()),
+                status: None,
+                caller: Some(ToolCaller {
+                    caller_type: ToolCallerType::Program,
+                    caller_id: Some("call_program".to_string()),
+                }),
+                encrypted_content: None,
+                provider_options: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        };
+
+        let function_item = <openai::InputItem as TryFromLLM<Message>>::try_from(function_message)
+            .expect("function call should convert to Responses input item");
+        assert_eq!(
+            function_item.input_item_type,
+            Some(openai::InputItemType::FunctionCall)
+        );
+        assert_eq!(function_item.input, None);
+        assert_eq!(
+            function_item.arguments,
+            Some(openai::Arguments::String(
+                "{\"city\":\"Paris\"}".to_string()
+            ))
+        );
+        assert_eq!(
+            function_item
+                .caller
+                .as_ref()
+                .and_then(|caller| caller.caller_id.as_deref()),
+            Some("call_program")
+        );
+
+        let custom_message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_custom".to_string(),
+                tool_name: "write_release_note".to_string(),
+                arguments: ToolCallArguments::Custom("raw custom input".to_string()),
+                status: None,
+                caller: None,
+                encrypted_content: None,
+                provider_options: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        };
+
+        let custom_item = <openai::InputItem as TryFromLLM<Message>>::try_from(custom_message)
+            .expect("custom tool call should convert to Responses input item");
+        assert_eq!(
+            custom_item.input_item_type,
+            Some(openai::InputItemType::CustomToolCall)
+        );
+        assert_eq!(custom_item.input.as_deref(), Some("raw custom input"));
+        assert_eq!(custom_item.arguments, None);
+    }
+
+    #[test]
     fn responses_custom_tool_call_and_output_preserve_item_types() {
         let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
             {
