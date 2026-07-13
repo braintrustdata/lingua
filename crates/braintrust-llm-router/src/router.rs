@@ -172,6 +172,9 @@ pub struct RouterMetadata {
     /// that was detected.
     pub detected_input_format: ProviderFormat,
 
+    /// Whether Lingua forwarded the request body without transforming it.
+    pub lingua_passthrough: bool,
+
     /// The alias of the provider that was used to execute the request.
     pub provider_alias: String,
 
@@ -228,22 +231,28 @@ async fn prepare_provider_request(
     format: ProviderFormat,
     stream: bool,
     options: RequestPreparationOptions,
-) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat)> {
+) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format), format));
+        return Ok((bytes, Some(format), format, false));
     }
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
-    let (transformed, detected_format, actual_format, maybe_rewrite_model) =
+    let (transformed, detected_format, actual_format, maybe_rewrite_model, lingua_passthrough) =
         match lingua::transform_request(body.clone(), format, model_override) {
-            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true),
+            Ok(TransformResult::PassThrough(bytes)) => (bytes, None, format, true, true),
             Ok(TransformResult::Transformed {
                 bytes,
                 source_format,
                 actual_target_format,
-            }) => (bytes, Some(source_format), actual_target_format, false),
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true),
+            }) => (
+                bytes,
+                Some(source_format),
+                actual_target_format,
+                false,
+                false,
+            ),
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, false),
             Err(err) => return Err(err.into()),
         };
 
@@ -260,9 +269,15 @@ async fn prepare_provider_request(
             enable_streaming_payload(transformed, actual_format),
             detected_format,
             actual_format,
+            lingua_passthrough,
         ))
     } else {
-        Ok((transformed, detected_format, actual_format))
+        Ok((
+            transformed,
+            detected_format,
+            actual_format,
+            lingua_passthrough,
+        ))
     }
 }
 
@@ -293,7 +308,7 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let (payload, detected_format, actual_format) =
+        let (payload, detected_format, actual_format, lingua_passthrough) =
             prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
                 .await?;
         Ok((
@@ -308,6 +323,7 @@ impl Router {
             },
             RouterMetadata {
                 detected_input_format: detected_format.unwrap_or(route.format),
+                lingua_passthrough,
                 provider_alias: route.provider_alias.clone(),
                 provider_format: actual_format,
             },
@@ -1948,6 +1964,7 @@ mod tests {
             metadata.detected_input_format,
             ProviderFormat::ChatCompletions
         );
+        assert!(!metadata.lingua_passthrough);
         assert_eq!(metadata.provider_format, ProviderFormat::Google);
         assert_eq!(request.inner.format, ProviderFormat::Google);
         assert_ne!(request.inner.payload, body);
