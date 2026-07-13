@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "bedrockAnthropicContextManagementParam",
+      "source": "Anthropic",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "params.extras.anthropic.context_management", "reason": "Bedrock Anthropic invoke bodies reject Anthropic context_management with Extra inputs are not permitted" }
+      ]
+    },
+    {
       "testCase": "googleThinkingJsonSchemaParam",
       "source": "Google",
       "target": "Responses",
