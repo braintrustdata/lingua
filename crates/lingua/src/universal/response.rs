@@ -381,7 +381,8 @@ fn message_text(message: &Message) -> Option<String> {
         Message::System { .. }
         | Message::Developer { .. }
         | Message::User { .. }
-        | Message::Tool { .. } => None,
+        | Message::Tool { .. }
+        | Message::AdditionalTools { .. } => None,
     }
 }
 

@@ -1691,6 +1691,7 @@ mod tests {
             }],
             usage: None,
             finish_reason: None,
+            finish_reasons: Vec::new(),
         };
         let exported = adapter.response_from_universal(&tool_result_resp).unwrap();
         let response: TheResponseObject = serde_json::from_value(exported)
