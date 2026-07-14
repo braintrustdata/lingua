@@ -425,6 +425,7 @@ impl ProviderAdapter for BedrockAdapter {
                                     index: Some(content_block_start.content_block_index),
                                     id: Some(tool_use.tool_use_id),
                                     call_type: Some("function".to_string()),
+                                    custom_tool_call: None,
                                     function: Some(UniversalToolFunctionDelta {
                                         name: Some(tool_use.name),
                                         arguments: Some(String::new()),

@@ -756,7 +756,10 @@ impl ProviderAdapter for OpenAIAdapter {
                 choice_map.insert("index".into(), serde_json::json!(c.index));
                 choice_map.insert(
                     "delta".into(),
-                    c.delta.clone().unwrap_or(Value::Object(Map::new())),
+                    c.delta
+                        .clone()
+                        .map(chat_stream_delta_from_universal)
+                        .unwrap_or(Value::Object(Map::new())),
                 );
                 let finish_reason_val = match &c.finish_reason {
                     Some(reason) => Value::String(reason.clone()),
@@ -792,6 +795,22 @@ impl ProviderAdapter for OpenAIAdapter {
 
         Ok(Value::Object(map))
     }
+}
+
+fn chat_stream_delta_from_universal(mut delta: Value) -> Value {
+    if let Some(tool_calls) = delta
+        .as_object_mut()
+        .and_then(|delta| delta.get_mut("tool_calls"))
+        .and_then(Value::as_array_mut)
+    {
+        for tool_call in tool_calls {
+            if let Some(tool_call) = tool_call.as_object_mut() {
+                tool_call.remove("custom_tool_call");
+            }
+        }
+    }
+
+    delta
 }
 
 // =============================================================================
@@ -939,6 +958,61 @@ mod tests {
         let value = adapter.request_from_universal(&req).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-1"));
+    }
+
+    #[test]
+    fn test_openai_stream_from_universal_omits_custom_tool_call_marker() {
+        let adapter = OpenAIAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_1",
+                        "type": "function",
+                        "custom_tool_call": true,
+                        "function": {
+                            "name": "exec",
+                            "arguments": ""
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let value = adapter.stream_from_universal(&chunk).unwrap();
+
+        assert_eq!(
+            value,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": [{
+                    "index": 0,
+                    "delta": {
+                        "role": "assistant",
+                        "content": null,
+                        "tool_calls": [{
+                            "index": 0,
+                            "id": "call_1",
+                            "type": "function",
+                            "function": {
+                                "name": "exec",
+                                "arguments": ""
+                            }
+                        }]
+                    },
+                    "finish_reason": null
+                }]
+            })
+        );
     }
 
     #[test]

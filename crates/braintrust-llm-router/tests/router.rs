@@ -152,10 +152,10 @@ async fn router_routes_to_stub_provider() {
         ]
     }));
 
-    let (request, _metadata) =
-        create_request(&router, body, model, ProviderFormat::ChatCompletions)
-            .await
-            .expect("create request");
+    let (request, metadata) = create_request(&router, body, model, ProviderFormat::ChatCompletions)
+        .await
+        .expect("create request");
+    assert!(metadata.lingua_passthrough);
     let bytes: Bytes = router
         .complete(request, &ClientHeaders::default())
         .await

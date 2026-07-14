@@ -55,6 +55,7 @@ struct SessionChunkState<'a> {
     anthropic_message_started: bool,
     responses_message_started: bool,
     responses_output_index_states: &'a mut BTreeMap<u32, ResponsesOutputIndexState>,
+    next_responses_sequence_number: &'a mut u64,
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -90,6 +91,7 @@ pub struct StreamTransformSession {
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     responses_message_started: bool,
     responses_output_index_states: BTreeMap<u32, ResponsesOutputIndexState>,
+    next_responses_sequence_number: u64,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
     bedrock_tool_call_indexes: BTreeMap<u32, u32>,
@@ -118,6 +120,7 @@ impl StreamTransformSession {
             anthropic_content_block_index_map: BTreeMap::new(),
             responses_message_started: false,
             responses_output_index_states: BTreeMap::new(),
+            next_responses_sequence_number: 0,
             responses_tool_call_indexes: BTreeMap::new(),
             next_responses_tool_call_index: 0,
             bedrock_tool_call_indexes: BTreeMap::new(),
@@ -155,6 +158,7 @@ impl StreamTransformSession {
                 anthropic_message_started: self.anthropic_message_started,
                 responses_message_started: self.responses_message_started,
                 responses_output_index_states: &mut self.responses_output_index_states,
+                next_responses_sequence_number: &mut self.next_responses_sequence_number,
             },
         )?;
         self.process_chunks(chunks)
@@ -947,6 +951,7 @@ fn build_session_chunks(
             universal,
             state.responses_message_started,
             state.responses_output_index_states,
+            state.next_responses_sequence_number,
         );
         #[cfg(not(feature = "openai"))]
         return Ok(std::mem::take(&mut chunks));
@@ -959,6 +964,7 @@ fn expand_responses_session_chunks(
     universal: Option<&UniversalStreamChunk>,
     responses_message_started: bool,
     responses_output_index_states: &mut BTreeMap<u32, ResponsesOutputIndexState>,
+    next_responses_sequence_number: &mut u64,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
         return Ok(chunks);
@@ -996,10 +1002,15 @@ fn expand_responses_session_chunks(
         .copied()
         .unwrap_or_default();
 
+    let has_metadata =
+        universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
+    let may_emit_created = has_metadata && !responses_message_started;
+    let event_sequence_number = *next_responses_sequence_number + u64::from(may_emit_created);
     let mut events = responses_stream_events_from_universal_with_output_index_offset(
         universal,
         output_index_state.text_output_index,
         output_index_state.tool_output_index_offset,
+        event_sequence_number,
     );
     let mut next_output_index_state = output_index_state;
     if has_reasoning {
@@ -1024,8 +1035,6 @@ fn expand_responses_session_chunks(
     {
         responses_output_index_states.insert(choice_index, next_output_index_state);
     }
-    let has_metadata =
-        universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
     if has_metadata
         && !responses_message_started
         && !events.is_empty()
@@ -1035,7 +1044,18 @@ fn expand_responses_session_chunks(
             .and_then(Value::as_str)
             != Some("response.created")
     {
-        events.insert(0, responses_created_stream_event_from_universal(universal));
+        events.insert(
+            0,
+            responses_created_stream_event_from_universal(
+                universal,
+                *next_responses_sequence_number,
+            ),
+        );
+    }
+
+    *next_responses_sequence_number += events.len() as u64;
+    if has_finish {
+        *next_responses_sequence_number = 0;
     }
 
     let out = events
@@ -2833,6 +2853,53 @@ mod tests {
         let tool_args: OutputEvent = crate::serde_json::from_slice(&second[1].data).unwrap();
         assert_eq!(tool_start.output_index, 2);
         assert_eq!(tool_args.output_index, 2);
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_emits_correlated_custom_tool_call_events_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let custom_tool_call = to_bytes(&json!({
+            "id": "resp_custom",
+            "object": "response",
+            "model": "gpt-5.6",
+            "status": "completed",
+            "output": [{
+                "id": "ctc_provider_123",
+                "type": "custom_tool_call",
+                "call_id": "call_exec",
+                "name": "exec",
+                "input": "await tools.exec_command({cmd: true});"
+            }]
+        }));
+
+        let out = session.push(custom_tool_call).unwrap();
+        let events = out
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.created"),
+                Some("response.output_item.added"),
+                Some("response.custom_tool_call_input.delta"),
+                Some("response.completed")
+            ]
+        );
+        assert_eq!(events[0]["sequence_number"], json!(0));
+        assert_eq!(events[1]["sequence_number"], json!(1));
+        assert_eq!(events[2]["sequence_number"], json!(2));
+        assert_eq!(events[3]["sequence_number"], json!(3));
+        assert_eq!(events[1]["item"]["id"], json!("ctc_0"));
+        assert_eq!(events[2]["item_id"], json!("ctc_0"));
+        assert_eq!(
+            events[2]["delta"],
+            json!("await tools.exec_command({cmd: true});")
+        );
     }
 
     #[test]

@@ -174,6 +174,9 @@ pub struct RouterMetadata {
     /// that was detected.
     pub detected_input_format: ProviderFormat,
 
+    /// Whether Lingua forwarded the request body without transforming it.
+    pub lingua_passthrough: bool,
+
     /// The alias of the provider that was used to execute the request.
     pub provider_alias: String,
 
@@ -231,37 +234,44 @@ async fn prepare_provider_request(
     format: ProviderFormat,
     stream: bool,
     options: RequestPreparationOptions,
-) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool)> {
+) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format), format, false));
+        return Ok((bytes, Some(format), format, false, false));
     }
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
-    let (transformed, detected_format, actual_format, maybe_rewrite_model, requires_json_response) =
-        match lingua::transform_request(body.clone(), format, model_override) {
-            Ok(output) => {
-                let requires_json_response = output.requires_json_response;
-                match output.result {
-                    TransformResult::PassThrough(bytes) => {
-                        (bytes, None, format, true, requires_json_response)
-                    }
-                    TransformResult::Transformed {
-                        bytes,
-                        source_format,
-                        actual_target_format,
-                    } => (
-                        bytes,
-                        Some(source_format),
-                        actual_target_format,
-                        false,
-                        requires_json_response,
-                    ),
+    let (
+        transformed,
+        detected_format,
+        actual_format,
+        maybe_rewrite_model,
+        requires_json_response,
+        lingua_passthrough,
+    ) = match lingua::transform_request(body.clone(), format, model_override) {
+        Ok(result) => {
+            let requires_json_response = result.requires_json_response;
+            match result.result {
+                TransformResult::PassThrough(bytes) => {
+                    (bytes, None, format, true, requires_json_response, true)
                 }
+                TransformResult::Transformed {
+                    bytes,
+                    source_format,
+                    actual_target_format,
+                } => (
+                    bytes,
+                    Some(source_format),
+                    actual_target_format,
+                    false,
+                    requires_json_response,
+                    false,
+                ),
             }
-            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, false),
-            Err(err) => return Err(err.into()),
-        };
+        }
+        Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, false, true),
+        Err(err) => return Err(err.into()),
+    };
 
     let transformed = if options.rewrite_body_model && maybe_rewrite_model {
         rewrite_body_model_if_required(transformed, actual_format, &spec.model)
@@ -277,6 +287,7 @@ async fn prepare_provider_request(
             detected_format,
             actual_format,
             requires_json_response,
+            lingua_passthrough,
         ))
     } else {
         Ok((
@@ -284,6 +295,7 @@ async fn prepare_provider_request(
             detected_format,
             actual_format,
             requires_json_response,
+            lingua_passthrough,
         ))
     }
 }
@@ -315,7 +327,7 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let (payload, detected_format, actual_format, requires_json_response) =
+        let (payload, detected_format, actual_format, requires_json_response, lingua_passthrough) =
             prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
                 .await?;
         Ok((
@@ -331,6 +343,7 @@ impl Router {
             },
             RouterMetadata {
                 detected_input_format: detected_format.unwrap_or(route.format),
+                lingua_passthrough,
                 provider_alias: route.provider_alias.clone(),
                 provider_format: actual_format,
             },
@@ -1541,7 +1554,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _, _) = prepare_provider_request(
+        let (payload, _, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1564,7 +1577,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5-mini", ModelFlavor::Chat);
 
-        let (payload, _, _, _) = prepare_provider_request(
+        let (payload, _, _, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1602,7 +1615,7 @@ mod tests {
             available_providers: vec!["vertex".to_string()],
         };
 
-        let (payload, _, actual_format, _) = prepare_provider_request(
+        let (payload, _, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::VertexAnthropic,
@@ -1642,7 +1655,7 @@ mod tests {
             available_providers: vec!["google".to_string()],
         };
 
-        let (payload, _, actual_format, _) = prepare_provider_request(
+        let (payload, _, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::Google,
@@ -1669,7 +1682,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format, _) = prepare_provider_request(
+        let (payload, _, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1695,7 +1708,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, _, actual_format, _) = prepare_provider_request(
+        let (payload, _, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1723,7 +1736,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-4o", ModelFlavor::Chat);
 
-        let (payload, detected_format, actual_format, _) = prepare_provider_request(
+        let (payload, detected_format, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1771,7 +1784,7 @@ mod tests {
         );
         let spec = openai_spec("gpt-5.4-mini", ModelFlavor::Chat);
 
-        let (_, _, actual_format, _) = prepare_provider_request(
+        let (_, _, actual_format, _, _) = prepare_provider_request(
             body,
             &spec,
             ProviderFormat::ChatCompletions,
@@ -1975,6 +1988,7 @@ mod tests {
             metadata.detected_input_format,
             ProviderFormat::ChatCompletions
         );
+        assert!(!metadata.lingua_passthrough);
         assert_eq!(metadata.provider_format, ProviderFormat::Google);
         assert_eq!(request.inner.format, ProviderFormat::Google);
         assert_ne!(request.inner.payload, body);

@@ -1061,6 +1061,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                 index: Some(0),
                                 id: part.id,
                                 call_type: Some("function".to_string()),
+                                custom_tool_call: None,
                                 function: Some(UniversalToolFunctionDelta {
                                     name: part.name,
                                     arguments: Some(arguments),
@@ -1124,6 +1125,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                     index: Some(block_index),
                                     id: Some(id.to_string()),
                                     call_type: Some("function".to_string()),
+                                    custom_tool_call: None,
                                     function: Some(UniversalToolFunctionDelta {
                                         name: Some(name.to_string()),
                                         arguments: Some(String::new()),
