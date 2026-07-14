@@ -1,0 +1,18 @@
+{
+  "request": {
+    "max_tokens": 4096,
+    "messages": [
+      {
+        "content": "Review this rollout checklist for the highest-risk issue.",
+        "role": "user"
+      }
+    ],
+    "model": "claude-sonnet-4-5-20250929",
+    "thinking": {
+      "budget_tokens": 4096,
+      "type": "enabled"
+    }
+  },
+  "error": "400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"`max_tokens` must be greater than `thinking.budget_tokens`. Please consult our documentation at https://platform.claude.com/docs/en/build-with-claude/extended-thinking#max-tokens-and-context-window-size-with-extended-thinking\"},\"request_id\":\"req_011Ccu35gjS3f6Gqz8JD5ife\"}",
+  "name": "Error"
+}

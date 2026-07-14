@@ -186,6 +186,7 @@ fn reasoning_effort_level(
         ReasoningEffort::Medium => Some(EffortLevel::Medium),
         ReasoningEffort::High => Some(EffortLevel::High),
         ReasoningEffort::Xhigh => Some(EffortLevel::Xhigh),
+        ReasoningEffort::Max => Some(EffortLevel::Max),
     }
 }
 
@@ -318,7 +319,7 @@ impl ProviderAdapter for AnthropicAdapter {
                         EffortLevel::Medium => ReasoningEffort::Medium,
                         EffortLevel::High => ReasoningEffort::High,
                         EffortLevel::Xhigh => ReasoningEffort::Xhigh,
-                        EffortLevel::Max => ReasoningEffort::Xhigh,
+                        EffortLevel::Max => ReasoningEffort::Max,
                     };
                     ReasoningConfig {
                         enabled: Some(true),

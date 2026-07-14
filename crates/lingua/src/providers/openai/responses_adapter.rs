@@ -16,6 +16,9 @@ use crate::providers::openai::adapter::parse_openai_chat_extras;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
 };
+use crate::providers::openai::convert::{
+    responses_input_values_from_universal_context, responses_output_values_from_universal_context,
+};
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
@@ -401,6 +404,28 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(text) = typed_params.text {
             extras_map.insert("text".into(), text);
         }
+        if let Some(include) = typed_params.include {
+            extras_map.insert("include".into(), include);
+        }
+        if let Some(reasoning) = typed_params.reasoning {
+            extras_map.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning)
+                    .map_err(|error| TransformError::SerializationFailed(error.to_string()))?,
+            );
+        }
+        if let Some(previous_response_id) = typed_params.previous_response_id {
+            extras_map.insert(
+                "previous_response_id".into(),
+                Value::String(previous_response_id),
+            );
+        }
+        if let Some(prompt_cache_options) = typed_params.prompt_cache_options {
+            extras_map.insert("prompt_cache_options".into(), prompt_cache_options);
+        }
+        if let Some(prompt_cache_retention) = typed_params.prompt_cache_retention {
+            extras_map.insert("prompt_cache_retention".into(), prompt_cache_retention);
+        }
         if let Some(truncation) = typed_params.truncation {
             extras_map.insert("truncation".into(), truncation);
         }
@@ -480,8 +505,38 @@ impl ProviderAdapter for ResponsesAdapter {
         } else {
             obj.insert(
                 "input".into(),
-                serde_json::to_value(input_items)
+                Value::Array(
+                    responses_input_values_from_universal_context(
+                        &input_items,
+                        &messages_for_input,
+                    )
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                ),
+            );
+        }
+        if let Some(raw_include) = responses_extras_view.include.as_ref() {
+            obj.insert("include".into(), raw_include.clone());
+        }
+        if let Some(raw_previous_response_id) = responses_extras_view.previous_response_id.as_ref()
+        {
+            obj.insert(
+                "previous_response_id".into(),
+                raw_previous_response_id.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_options) = responses_extras_view.prompt_cache_options.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_options".into(),
+                raw_prompt_cache_options.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_retention) =
+            responses_extras_view.prompt_cache_retention.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_retention".into(),
+                raw_prompt_cache_retention.clone(),
             );
         }
 
@@ -701,16 +756,13 @@ impl ProviderAdapter for ResponsesAdapter {
             .map_err(|e: ConvertError| TransformError::FromUniversalFailed(e.to_string()))?;
 
         // Serialize OutputItems to JSON values
-        let output: Vec<Value> = output_items
-            .iter()
-            .map(serde_json::to_value)
-            .collect::<Result<_, _>>()
-            .map_err(|e| {
-                TransformError::SerializationFailed(format!(
-                    "Failed to serialize output item: {}",
-                    e
-                ))
-            })?;
+        let output: Vec<Value> = responses_output_values_from_universal_context(
+            &output_items,
+            &resp.messages,
+        )
+        .map_err(|e| {
+            TransformError::SerializationFailed(format!("Failed to serialize output item: {}", e))
+        })?;
 
         // Calculate output_text (concatenate text from all message-type items)
         let output_text = output_items
@@ -1226,7 +1278,10 @@ mod tests {
     use crate::providers::openai::generated::{Arguments, InputParam};
     use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
-    use crate::universal::{AssistantContentPart, ToolContentPart};
+    use crate::universal::{
+        AssistantContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
+        ToolResultContentPart,
+    };
     use bytes::Bytes;
 
     #[test]
@@ -1295,6 +1350,357 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[test]
+    fn test_responses_preserves_gpt56_request_controls_in_extras() {
+        #[derive(Debug, Deserialize)]
+        struct PreservedResponsesExtras {
+            include: Value,
+            reasoning: Value,
+            previous_response_id: String,
+            prompt_cache_options: Value,
+            prompt_cache_retention: Value,
+        }
+
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{"role": "user", "content": "Hello"}],
+            "include": ["reasoning.encrypted_content"],
+            "reasoning": {
+                "effort": "max",
+                "mode": "pro",
+                "context": "all_turns"
+            },
+            "previous_response_id": "resp_123",
+            "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
+            "prompt_cache_retention": "24h"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let responses_extras = universal
+            .params
+            .extras
+            .clone()
+            .into_iter()
+            .find(|(format, _)| *format == ProviderFormat::Responses)
+            .map(|(_, extras)| extras)
+            .expect("Responses extras should be preserved");
+        let extras: PreservedResponsesExtras =
+            serde_json::from_value(serde_json::to_value(responses_extras).unwrap()).unwrap();
+
+        assert_eq!(extras.include, json!(["reasoning.encrypted_content"]));
+        assert_eq!(
+            extras.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(extras.previous_response_id, "resp_123");
+        assert_eq!(
+            extras.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(extras.prompt_cache_retention, json!("24h"));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: PreservedResponsesExtras =
+            serde_json::from_value(reconstructed).unwrap();
+        assert_eq!(
+            reconstructed.include,
+            json!(["reasoning.encrypted_content"])
+        );
+        assert_eq!(
+            reconstructed.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(reconstructed.previous_response_id, "resp_123");
+        assert_eq!(
+            reconstructed.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(reconstructed.prompt_cache_retention, json!("24h"));
+    }
+
+    #[test]
+    fn responses_programmatic_items_and_callers_export_to_input_json() {
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: "call_prog_123".to_string(),
+        };
+        let req = UniversalRequest {
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("Check inventory.".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::Program {
+                            call_id: "call_prog_123".to_string(),
+                            code: "const result = await get_inventory({ sku: \"sku_123\" });"
+                                .to_string(),
+                            fingerprint: Some("opaque_state".to_string()),
+                            id: Some("prog_123".to_string()),
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_inventory_123".to_string(),
+                            tool_name: "get_inventory".to_string(),
+                            arguments: ToolCallArguments::from("{\"sku\":\"sku_123\"}".to_string()),
+                            caller: Some(caller.clone()),
+                            encrypted_content: None,
+                            provider_options: None,
+                            status: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                    id: None,
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: "call_inventory_123".to_string(),
+                        tool_name: "get_inventory".to_string(),
+                        output: json!({"sku": "sku_123", "available_units": 42}),
+                        custom_tool_call: None,
+                        caller: Some(caller),
+                        provider_options: None,
+                    })],
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
+                        call_id: "call_prog_123".to_string(),
+                        result: "{\"done\":true}".to_string(),
+                        status: "completed".to_string(),
+                        id: Some("prog_out_123".to_string()),
+                    }]),
+                    id: None,
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        #[derive(Debug, Deserialize)]
+        struct RequestInputView {
+            input: Vec<Value>,
+        }
+
+        let value = adapter.request_from_universal(&req).unwrap();
+        let input = serde_json::from_value::<RequestInputView>(value)
+            .unwrap()
+            .input;
+
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program",
+                "id": "prog_123",
+                "call_id": "call_prog_123",
+                "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                "fingerprint": "opaque_state"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program_output",
+                "id": "prog_out_123",
+                "call_id": "call_prog_123",
+                "result": "{\"done\":true}",
+                "status": "completed"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "arguments": "{\"sku\":\"sku_123\"}",
+                "status": "completed",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call_output",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "output": "{\"available_units\":42,\"sku\":\"sku_123\"}",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
+    }
+
+    #[test]
+    fn responses_programmatic_output_items_convert_to_universal() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_123",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": "Done.",
+                            "annotations": []
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+
+        let Message::Assistant {
+            content: AssistantContent::Array(program_parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("program item should become assistant message");
+        };
+        let AssistantContentPart::Program {
+            call_id,
+            code,
+            fingerprint,
+            ..
+        } = &program_parts[0]
+        else {
+            panic!("expected program part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(
+            code,
+            "const result = await get_inventory({ sku: \"sku_123\" });"
+        );
+        assert_eq!(fingerprint.as_deref(), Some("opaque_state"));
+
+        let Message::Assistant {
+            content: AssistantContent::Array(output_parts),
+            ..
+        } = &universal.messages[1]
+        else {
+            panic!("program_output item should become assistant message");
+        };
+        let AssistantContentPart::ProgramOutput {
+            call_id,
+            result,
+            status,
+            ..
+        } = &output_parts[0]
+        else {
+            panic!("expected program_output part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(result, "{\"done\":true}");
+        assert_eq!(status, "completed");
+    }
+
+    #[test]
+    fn responses_programmatic_callers_roundtrip_through_response_export() {
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: "call_prog_123".to_string(),
+        };
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "function_call",
+                    "id": "fc_123",
+                    "call_id": "call_inventory_123",
+                    "name": "get_inventory",
+                    "status": "in_progress",
+                    "arguments": "{\"sku\":\"sku_123\"}",
+                    "caller": {
+                        "type": "program",
+                        "caller_id": "call_prog_123"
+                    }
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        let exported = adapter.response_from_universal(&universal).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported response should deserialize as TheResponseObject");
+
+        let function_call = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
+            .expect("function_call output item should be exported");
+        assert_eq!(function_call.caller.as_ref(), Some(&caller));
+        assert_eq!(
+            function_call.status,
+            Some(crate::providers::openai::generated::Status::InProgress)
+        );
+
+        let tool_result_resp = UniversalResponse {
+            id: Some("resp_programmatic_tool_result".to_string()),
+            id_format: Some(ProviderFormat::Responses),
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    output: json!({"sku": "sku_123", "available_units": 42}),
+                    custom_tool_call: None,
+                    caller: Some(caller.clone()),
+                    provider_options: None,
+                })],
+            }],
+            usage: None,
+            finish_reason: None,
+        };
+        let exported = adapter.response_from_universal(&tool_result_resp).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported tool result should deserialize as TheResponseObject");
+        let function_call_output = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
+            .expect("function_call_output item should be exported");
+        assert_eq!(function_call_output.caller.as_ref(), Some(&caller));
     }
 
     #[test]
@@ -1516,6 +1922,8 @@ mod tests {
                     arguments: r#"{"query":"weather"}"#.to_string().into(),
                     encrypted_content: None,
                     provider_options: None,
+                    status: None,
+                    caller: None,
                     provider_executed: None,
                 }]),
                 id: None,

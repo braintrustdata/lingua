@@ -8,7 +8,7 @@ export type UniversalToolType = { "kind": "function" } | { "kind": "custom",
 /**
  * Optional input format for custom tools (e.g. text/grammar config)
  */
-format: Record<string, unknown> | null, } | { "kind": "builtin", 
+format?: Record<string, unknown> | null, } | { "kind": "builtin", 
 /**
  * Provider identifier for built-in tool provenance
  */
@@ -20,4 +20,4 @@ builtin_type: string,
 /**
  * Provider-specific configuration
  */
-config: Record<string, unknown> | null, };
+config?: Record<string, unknown> | null, };

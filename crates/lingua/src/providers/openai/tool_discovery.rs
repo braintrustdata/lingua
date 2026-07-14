@@ -140,6 +140,23 @@ fn input_item_tool_from_universal_tool(
             if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
                 obj.insert("defer_loading".to_string(), Value::Bool(true));
             }
+            if let Some(allowed_callers) = &tool.allowed_callers {
+                obj.insert(
+                    "allowed_callers".to_string(),
+                    serde_json::to_value(allowed_callers).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: format!(
+                                "Responses discovery function tool allowed_callers '{}'",
+                                tool.name
+                            ),
+                            error: e.to_string(),
+                        }
+                    })?,
+                );
+            }
+            if let Some(output_schema) = &tool.output_schema {
+                obj.insert("output_schema".to_string(), output_schema.clone());
+            }
             serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: format!("Responses discovery function tool '{}'", tool.name),
                 error: e.to_string(),
@@ -165,6 +182,23 @@ fn input_item_tool_from_universal_tool(
             if tool.availability == crate::universal::tools::ToolAvailability::Deferred {
                 obj.insert("defer_loading".to_string(), Value::Bool(true));
             }
+            if let Some(allowed_callers) = &tool.allowed_callers {
+                obj.insert(
+                    "allowed_callers".to_string(),
+                    serde_json::to_value(allowed_callers).map_err(|e| {
+                        ConvertError::JsonSerializationFailed {
+                            field: format!(
+                                "Responses discovery custom tool allowed_callers '{}'",
+                                tool.name
+                            ),
+                            error: e.to_string(),
+                        }
+                    })?,
+                );
+            }
+            if let Some(output_schema) = &tool.output_schema {
+                obj.insert("output_schema".to_string(), output_schema.clone());
+            }
             serde_json::from_value(value).map_err(|e| ConvertError::JsonSerializationFailed {
                 field: format!("Responses discovery custom tool '{}'", tool.name),
                 error: e.to_string(),
@@ -186,6 +220,87 @@ fn input_item_tool_from_universal_tool(
             target_provider: crate::capabilities::ProviderFormat::Responses,
         }),
     }
+}
+
+pub(super) fn message_from_input_additional_tools(
+    input: openai::InputItem,
+) -> Result<Message, ConvertError> {
+    match input.role {
+        Some(openai::InputItemRole::Developer) => {}
+        Some(role) => {
+            return Err(ConvertError::UnsupportedMapping {
+                from: format!("InputItemRole::{role:?}"),
+                to: "universal AdditionalTools",
+            });
+        }
+        None => {
+            return Err(ConvertError::MissingRequiredField {
+                field: "additional_tools role".to_string(),
+            });
+        }
+    }
+
+    let tools = input
+        .tools
+        .ok_or_else(|| ConvertError::MissingRequiredField {
+            field: "additional_tools tools".to_string(),
+        })?
+        .into_iter()
+        .map(|tool| universal_tool_from_input_item_tool(&tool))
+        .collect();
+
+    Ok(Message::AdditionalTools {
+        tools,
+        id: input.id,
+    })
+}
+
+pub(super) fn message_from_output_additional_tools(
+    item: openai::OutputItem,
+) -> Result<Message, ConvertError> {
+    match item.role {
+        Some(openai::RoleEnum::Developer) => {}
+        Some(role) => {
+            return Err(ConvertError::UnsupportedMapping {
+                from: format!("RoleEnum::{role:?}"),
+                to: "universal AdditionalTools",
+            });
+        }
+        None => {
+            return Err(ConvertError::MissingRequiredField {
+                field: "additional_tools role".to_string(),
+            });
+        }
+    }
+
+    let tools = item
+        .tools
+        .ok_or_else(|| ConvertError::MissingRequiredField {
+            field: "additional_tools tools".to_string(),
+        })?;
+    let input_tools = serde_json::to_value(tools)
+        .and_then(serde_json::from_value::<Vec<openai::InputItemTool>>)
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "Responses additional_tools output tools".to_string(),
+            error: e.to_string(),
+        })?;
+
+    Ok(Message::AdditionalTools {
+        tools: input_tools
+            .into_iter()
+            .map(|tool| universal_tool_from_input_item_tool(&tool))
+            .collect(),
+        id: item.id,
+    })
+}
+
+pub(super) fn input_item_tools_from_universal_tools(
+    tools: &[UniversalTool],
+) -> Result<Vec<openai::InputItemTool>, ConvertError> {
+    tools
+        .iter()
+        .map(input_item_tool_from_universal_tool)
+        .collect()
 }
 
 fn discovery_items_from_input_tools(

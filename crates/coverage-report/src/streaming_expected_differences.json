@@ -95,6 +95,20 @@
       ]
     },
     {
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; ChatCompletions streaming has no cache-write token field" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; Google streaming has no cache-write token field" }
+      ]
+    },
+    {
       "source": "ChatCompletions",
       "target": "*",
       "fields": [
@@ -195,6 +209,97 @@
         { "pattern": "id", "reason": "Responses streaming separates metadata from content events; id lost when first chunk has tool_calls" },
         { "pattern": "model", "reason": "Responses streaming separates metadata from content events; model lost when first chunk has tool_calls" }
       ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "skip": true,
+      "reason": "Responses additional_tools streaming events are provider-specific and do not round-trip through universal streaming deltas"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by ChatCompletions streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Bedrock streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Bedrock Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Vertex Anthropic streaming format"
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "GPT-5.6 Responses reasoning/pro context streaming metadata is not represented by Google streaming format"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by ChatCompletions streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Google",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Google streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Anthropic streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Bedrock streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Bedrock Anthropic streaming deltas yet"
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "skip": true,
+      "reason": "Programmatic Tool Calling streaming program items are provider-specific and not represented by Vertex Anthropic streaming deltas yet"
     }
   ]
 }

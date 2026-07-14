@@ -1,0 +1,39 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Use the stable policy prefix when answering."
+    },
+    {
+      "id": "rs_0a2ca1c1e334976d006a515adb4814819e8e2287fb938f4d91",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0a2ca1c1e334976d006a515adbb56c819e9563ef6e0334d670",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Please provide the exact stable policy prefix you want me to use."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "prompt_cache_options": {
+    "mode": "explicit",
+    "ttl": "30m"
+  },
+  "prompt_cache_retention": "24h"
+}

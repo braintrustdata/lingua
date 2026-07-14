@@ -1091,7 +1091,55 @@
       "source": "Responses",
       "target": "*",
       "errors": [
-        { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
+        { "pattern": "Message::AdditionalTools", "reason": "Responses additional_tools has a universal representation, but non-Responses providers cannot represent mid-conversation tool definition items losslessly" }
+      ]
+    },
+    {
+      "testCase": "responsesAdditionalToolsMultipleToolsParam",
+      "source": "Responses",
+      "target": "*",
+      "errors": [
+        { "pattern": "Message::AdditionalTools", "reason": "Responses additional_tools has a universal representation, but non-Responses providers cannot represent mid-conversation tool definition items losslessly" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "Tool 'get_inventory' of type 'allowed_callers' is not supported by openai", "reason": "Chat Completions request conversion cannot preserve OpenAI Responses tool caller restrictions" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Tool 'get_inventory' of type 'output_schema' is not supported by anthropic", "reason": "Anthropic request conversion cannot preserve OpenAI Responses tool result schemas" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "errors": [
+        { "pattern": "Tool 'get_inventory' of type 'output_schema' is not supported by anthropic", "reason": "Bedrock Anthropic request conversion cannot preserve OpenAI Responses tool result schemas" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "errors": [
+        { "pattern": "Tool 'get_inventory' of type 'output_schema' is not supported by anthropic", "reason": "Vertex Anthropic request conversion cannot preserve OpenAI Responses tool result schemas" }
+      ]
+    },
+    {
+      "testCase": "responsesProgrammaticToolCallingToolsParam",
+      "source": "Responses",
+      "target": "Google",
+      "errors": [
+        { "pattern": "Tool 'get_inventory' of type 'allowed_callers' is not supported by google", "reason": "Google request conversion cannot preserve OpenAI Responses tool caller restrictions" }
       ]
     }
   ]
