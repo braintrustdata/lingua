@@ -45,9 +45,9 @@ pub use processing::{
 
 // Re-export universal types
 pub use universal::{
-    FinishReason, Message, RequestOutputSignals, ResponseReuseSignals, UniversalParams,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    FinishReason, Message, ResponseReuseSignals, UniversalParams, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
 
 // Re-export bedrock-anthropic model utilities for router integration

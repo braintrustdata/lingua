@@ -24,7 +24,7 @@ use crate::streaming::{
 };
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
-use lingua::{RequestOutputSignals, ResponseReuseSignals, TransformError, TransformResult};
+use lingua::{ResponseReuseSignals, TransformError, TransformResult};
 use serde::Deserialize;
 
 // Re-export for convenience in dependent crates
@@ -36,7 +36,7 @@ pub struct CompleteResponseWithRaw {
     pub response: Bytes,
     pub raw_response: Bytes,
     pub reuse_signals: ResponseReuseSignals,
-    pub output_signals: RequestOutputSignals,
+    pub requires_json_response: bool,
 }
 
 use crate::providers::{
@@ -208,7 +208,7 @@ struct PreparedRequestInner {
     format: ProviderFormat,
     payload: Bytes,
     output_format: ProviderFormat,
-    output_signals: RequestOutputSignals,
+    requires_json_response: bool,
     strategy: RetryStrategy,
 }
 
@@ -231,25 +231,20 @@ async fn prepare_provider_request(
     format: ProviderFormat,
     stream: bool,
     options: RequestPreparationOptions,
-) -> Result<(
-    Bytes,
-    Option<ProviderFormat>,
-    ProviderFormat,
-    RequestOutputSignals,
-)> {
+) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool)> {
     if requires_bedrock_request_preparation(format) {
         let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format), format, RequestOutputSignals::default()));
+        return Ok((bytes, Some(format), format, false));
     }
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());
-    let (transformed, detected_format, actual_format, maybe_rewrite_model, output_signals) =
+    let (transformed, detected_format, actual_format, maybe_rewrite_model, requires_json_response) =
         match lingua::transform_request(body.clone(), format, model_override) {
             Ok(output) => {
-                let output_signals = output.output_signals;
+                let requires_json_response = output.requires_json_response;
                 match output.result {
                     TransformResult::PassThrough(bytes) => {
-                        (bytes, None, format, true, output_signals)
+                        (bytes, None, format, true, requires_json_response)
                     }
                     TransformResult::Transformed {
                         bytes,
@@ -260,13 +255,11 @@ async fn prepare_provider_request(
                         Some(source_format),
                         actual_target_format,
                         false,
-                        output_signals,
+                        requires_json_response,
                     ),
                 }
             }
-            Err(TransformError::UnsupportedTargetFormat(_)) => {
-                (body, None, format, true, RequestOutputSignals::default())
-            }
+            Err(TransformError::UnsupportedTargetFormat(_)) => (body, None, format, true, false),
             Err(err) => return Err(err.into()),
         };
 
@@ -283,10 +276,15 @@ async fn prepare_provider_request(
             enable_streaming_payload(transformed, actual_format),
             detected_format,
             actual_format,
-            output_signals,
+            requires_json_response,
         ))
     } else {
-        Ok((transformed, detected_format, actual_format, output_signals))
+        Ok((
+            transformed,
+            detected_format,
+            actual_format,
+            requires_json_response,
+        ))
     }
 }
 
@@ -317,7 +315,7 @@ impl Router {
         stream: bool,
         options: RequestPreparationOptions,
     ) -> Result<(PreparedRequestInner, RouterMetadata)> {
-        let (payload, detected_format, actual_format, output_signals) =
+        let (payload, detected_format, actual_format, requires_json_response) =
             prepare_provider_request(body, route.spec.as_ref(), route.format, stream, options)
                 .await?;
         Ok((
@@ -328,7 +326,7 @@ impl Router {
                 format: actual_format,
                 payload,
                 output_format,
-                output_signals,
+                requires_json_response,
                 strategy: self.retry_policy.strategy(),
             },
             RouterMetadata {
@@ -426,7 +424,7 @@ impl Router {
             format,
             payload,
             output_format,
-            output_signals,
+            requires_json_response,
             strategy,
         } = request.inner;
         let fallback_response_model = spec.model.clone();
@@ -457,7 +455,7 @@ impl Router {
             response,
             raw_response: response_bytes,
             reuse_signals: transform.reuse_signals,
-            output_signals,
+            requires_json_response,
         })
     }
 
@@ -557,7 +555,7 @@ impl Router {
             format,
             payload,
             output_format,
-            output_signals: _,
+            requires_json_response: _,
             strategy: _,
         } = request.inner;
         let allow_full_response_fallback = spec.supports_streaming;

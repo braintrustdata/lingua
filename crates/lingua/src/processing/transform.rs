@@ -22,10 +22,10 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, RequestOutputSignals, ResponseReuseSignals,
-    TextContentPart, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, Message, ResponseReuseSignals, TextContentPart,
+    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -136,7 +136,7 @@ pub enum TransformResult {
 #[derive(Debug, Clone)]
 pub struct RequestTransformResult {
     pub result: TransformResult,
-    pub output_signals: RequestOutputSignals,
+    pub requires_json_response: bool,
 }
 
 impl RequestTransformResult {
@@ -448,7 +448,7 @@ pub fn transform_request(
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
     let mut universal = source_adapter.request_to_universal(payload.clone())?;
-    let output_signals = universal.output_signals();
+    let requires_json_response = universal.requires_json_response();
 
     if source_format == target_format
         && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
@@ -456,7 +456,7 @@ pub fn transform_request(
     {
         return Ok(RequestTransformResult {
             result: TransformResult::PassThrough(request_bytes),
-            output_signals,
+            requires_json_response,
         });
     }
 
@@ -483,7 +483,7 @@ pub fn transform_request(
             source_format,
             actual_target_format: target_format,
         },
-        output_signals,
+        requires_json_response,
     })
 }
 
@@ -1037,15 +1037,12 @@ mod tests {
         name: &str,
     ) {
         let result = transform_request(to_bytes(&payload), provider, None).expect(name);
-        assert_eq!(
-            result.output_signals.requires_json_response, expected,
-            "{name}"
-        );
+        assert_eq!(result.requires_json_response, expected, "{name}");
     }
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic", feature = "google"))]
-    fn test_transform_request_output_signals_require_json_response() {
+    fn test_transform_request_requires_json_response() {
         assert_requires_json_response(
             json!({
                 "model": "gpt-4",

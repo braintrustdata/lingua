@@ -59,20 +59,12 @@ pub struct UniversalRequest {
     pub params: UniversalParams,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct RequestOutputSignals {
-    pub requires_json_response: bool,
-}
-
 impl UniversalRequest {
-    pub fn output_signals(&self) -> RequestOutputSignals {
-        RequestOutputSignals {
-            requires_json_response: self
-                .params
-                .response_format
-                .as_ref()
-                .is_some_and(ResponseFormatConfig::requires_json_response),
-        }
+    pub fn requires_json_response(&self) -> bool {
+        self.params
+            .response_format
+            .as_ref()
+            .is_some_and(ResponseFormatConfig::requires_json_response)
     }
 }
 

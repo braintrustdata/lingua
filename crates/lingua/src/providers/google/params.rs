@@ -26,6 +26,7 @@ pub struct GoogleParams {
 
     // === Generation configuration ===
     pub generation_config: Option<GenerationConfig>,
+    pub config: Option<GenerationConfig>,
 
     // === Safety settings ===
     pub safety_settings: Option<Value>,
