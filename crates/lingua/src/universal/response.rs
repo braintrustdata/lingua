@@ -8,7 +8,7 @@ converted to/from any provider format.
 use crate::capabilities::ProviderFormat;
 use crate::serde_json::{self, Value};
 use crate::universal::defaults::PLACEHOLDER_ID;
-use crate::universal::message::Message;
+use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use serde::{Deserialize, Serialize};
 
 /// Universal response envelope for LLM API responses.
@@ -42,13 +42,13 @@ pub struct UniversalResponse {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ResponseReuseSignals {
+pub struct ParsableResponseInfo {
     pub complete: bool,
     pub content_is_json: bool,
     pub saw_terminal_finish: bool,
 }
 
-impl ResponseReuseSignals {
+impl ParsableResponseInfo {
     pub fn reusable_for_request(self, requires_json: bool) -> bool {
         self.saw_terminal_finish && self.complete && (!requires_json || self.content_is_json)
     }
@@ -327,7 +327,7 @@ impl UniversalResponse {
             .messages
             .iter()
             .filter_map(|message| match message {
-                Message::Assistant { content, .. } => content.text(),
+                Message::Assistant { content, .. } => assistant_content_text(content),
                 _ => None,
             })
             .collect();
@@ -339,8 +339,8 @@ impl UniversalResponse {
         contents
     }
 
-    pub fn reuse_signals(&self) -> ResponseReuseSignals {
-        ResponseReuseSignals {
+    pub fn parsable_info(&self) -> ParsableResponseInfo {
+        ParsableResponseInfo {
             complete: self.is_complete(),
             content_is_json: self.content_is_json(),
             saw_terminal_finish: true,
@@ -375,9 +375,25 @@ impl UniversalResponse {
     }
 }
 
+fn assistant_content_text(content: &AssistantContent) -> Option<String> {
+    match content {
+        AssistantContent::String(text) => Some(text.clone()),
+        AssistantContent::Array(parts) => {
+            let text: String = parts
+                .iter()
+                .filter_map(|part| match part {
+                    AssistantContentPart::Text(text_part) => Some(text_part.text.as_str()),
+                    _ => None,
+                })
+                .collect();
+            (!text.is_empty()).then_some(text)
+        }
+    }
+}
+
 fn message_text(message: &Message) -> Option<String> {
     match message {
-        Message::Assistant { content, .. } => content.text(),
+        Message::Assistant { content, .. } => assistant_content_text(content),
         Message::System { .. }
         | Message::Developer { .. }
         | Message::User { .. }

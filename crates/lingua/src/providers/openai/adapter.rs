@@ -182,6 +182,22 @@ impl ProviderAdapter for OpenAIAdapter {
         try_parse_openai(payload).is_ok()
     }
 
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        #[derive(serde::Deserialize)]
+        struct ResponseFormatView {
+            response_format: Option<Value>,
+        }
+
+        let view: ResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let Some(response_format) = view.response_format.as_ref() else {
+            return Ok(false);
+        };
+        let config: crate::universal::request::ResponseFormatConfig =
+            (ProviderFormat::ChatCompletions, response_format).try_into()?;
+        Ok(config.requires_json_response())
+    }
+
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         // Parse params (messages will be parsed separately to preserve reasoning field)
         let typed_params: OpenAIChatParams = match serde_json::from_value(payload.clone()) {

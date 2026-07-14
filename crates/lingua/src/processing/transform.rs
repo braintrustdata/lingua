@@ -22,7 +22,7 @@ use crate::providers::openai::model_needs_transforms;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
-    AssistantContent, AssistantContentPart, Message, ResponseReuseSignals, TextContentPart,
+    AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, TextContentPart,
     UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
     UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
     UserContent, UserContentPart,
@@ -160,7 +160,7 @@ impl RequestTransformResult {
 #[derive(Debug, Clone)]
 pub struct ResponseTransformResult {
     pub result: TransformResult,
-    pub reuse_signals: ResponseReuseSignals,
+    pub parsable_info: ParsableResponseInfo,
 }
 
 impl TransformResult {
@@ -447,8 +447,7 @@ pub fn transform_request(
     let source_format = source_adapter.format();
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
-    let mut universal = source_adapter.request_to_universal(payload.clone())?;
-    let requires_json_response = universal.requires_json_response();
+    let requires_json_response = source_adapter.request_requires_json_response(&payload)?;
 
     if source_format == target_format
         && !request_model_needs_forced_translation(request_model.as_deref(), model, target_format)
@@ -459,6 +458,8 @@ pub fn transform_request(
             requires_json_response,
         });
     }
+
+    let mut universal = source_adapter.request_to_universal(payload)?;
 
     if let Some(model) = model {
         universal.model = Some(model.to_string());
@@ -611,12 +612,12 @@ pub fn transform_response(
         universal_resp.messages =
             merge_responses_output_parts_for_chat_completions(universal_resp.messages);
     }
-    let reuse_signals = universal_resp.reuse_signals();
+    let parsable_info = universal_resp.parsable_info();
 
     if source_format == target_format {
         return Ok(ResponseTransformResult {
             result: TransformResult::PassThrough(response_bytes),
-            reuse_signals,
+            parsable_info,
         });
     }
 
@@ -634,7 +635,7 @@ pub fn transform_response(
             source_format,
             actual_target_format: target_format,
         },
-        reuse_signals,
+        parsable_info,
     })
 }
 
@@ -2237,12 +2238,12 @@ mod tests {
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
-        assert!(transformed.reuse_signals.reusable_for_request(false));
+        assert!(transformed.parsable_info.reusable_for_request(false));
     }
 
     #[test]
     #[cfg(feature = "openai")]
-    fn test_transform_response_reuse_signals_use_every_choice() {
+    fn test_transform_response_parsable_info_use_every_choice() {
         let payload = json!({
             "id": "chatcmpl-123",
             "object": "chat.completion",
@@ -2264,11 +2265,11 @@ mod tests {
 
         let transformed = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
 
-        assert!(!transformed.reuse_signals.complete);
-        assert!(!transformed.reuse_signals.content_is_json);
-        assert!(transformed.reuse_signals.saw_terminal_finish);
-        assert!(!transformed.reuse_signals.reusable_for_request(false));
-        assert!(!transformed.reuse_signals.reusable_for_request(true));
+        assert!(!transformed.parsable_info.complete);
+        assert!(!transformed.parsable_info.content_is_json);
+        assert!(transformed.parsable_info.saw_terminal_finish);
+        assert!(!transformed.parsable_info.reusable_for_request(false));
+        assert!(!transformed.parsable_info.reusable_for_request(true));
     }
 
     #[test]

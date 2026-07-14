@@ -279,6 +279,26 @@ impl ProviderAdapter for ResponsesAdapter {
         try_parse_responses(payload).is_ok()
     }
 
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        #[derive(serde::Deserialize)]
+        struct TextView {
+            format: Option<Value>,
+        }
+        #[derive(serde::Deserialize)]
+        struct ResponseFormatView {
+            text: Option<TextView>,
+        }
+
+        let view: ResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let Some(format) = view.text.as_ref().and_then(|text| text.format.as_ref()) else {
+            return Ok(false);
+        };
+        let config: crate::universal::request::ResponseFormatConfig =
+            (ProviderFormat::Responses, format).try_into()?;
+        Ok(config.requires_json_response())
+    }
+
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         // Single parse: typed params now includes typed input via #[serde(flatten)]
         let typed_params: OpenAIResponsesParams = serde_json::from_value(payload)
