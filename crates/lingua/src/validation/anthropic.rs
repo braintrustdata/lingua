@@ -167,7 +167,9 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_anthropic_request_accepts_tool_search_tool() {
+    fn test_validate_anthropic_request_rejects_removed_tool_search_tool() {
+        // tool_search_tool_* variants were removed from the generated Tool enum
+        // in the 2026-07 spec update. Validation now rejects them.
         let json = r#"{
             "model": "claude-3-5-sonnet-20241022",
             "messages": [
@@ -186,7 +188,7 @@ mod tests {
         }"#;
 
         let result = validate_anthropic_request(json);
-        assert!(result.is_ok());
+        assert!(result.is_err());
     }
 
     #[test]

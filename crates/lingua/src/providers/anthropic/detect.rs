@@ -560,7 +560,10 @@ mod tests {
     }
 
     #[test]
-    fn test_try_parse_anthropic_with_tool_search_tool() {
+    fn test_try_parse_anthropic_with_tool_search_tool_no_longer_in_tool_enum() {
+        // tool_search_tool_* variants were removed from the generated Tool enum
+        // in the 2026-07 spec update. Requests carrying them in the tools array
+        // fail deserialization because the schema no longer defines them.
         let payload = json!({
             "model": "claude-3-5-sonnet-20241022",
             "max_tokens": 1024,
@@ -575,6 +578,6 @@ mod tests {
             ]
         });
 
-        assert!(try_parse_anthropic(&payload).is_ok());
+        assert!(try_parse_anthropic(&payload).is_err());
     }
 }

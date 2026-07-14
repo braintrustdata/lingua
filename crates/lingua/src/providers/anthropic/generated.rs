@@ -50,11 +50,11 @@ pub struct CreateMessageParams {
     /// specifies the absolute maximum number of tokens to generate.
     ///
     /// Set to `0` to populate the [prompt
-    /// cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+    /// cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pre-warming-the-cache)
     /// without generating a response.
     ///
     /// Different models have different maximum values for this parameter.  See
-    /// [models](https://docs.claude.com/en/docs/models-overview) for details.
+    /// [models](https://platform.claude.com/docs/en/about-claude/models/overview) for details.
     pub max_tokens: i64,
     /// Input messages.
     ///
@@ -110,11 +110,13 @@ pub struct CreateMessageParams {
     /// {"role": "user", "content": [{"type": "text", "text": "Hello, Claude"}]}
     /// ```
     ///
-    /// See [input examples](https://docs.claude.com/en/api/messages-examples).
+    /// See [input
+    /// examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
     ///
     /// Note that if you want to include a [system
-    /// prompt](https://docs.claude.com/en/docs/system-prompts), you can use the top-level
-    /// `system` parameter — there is no `"system"` role for input messages in the Messages API.
+    /// prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+    /// you can use the top-level `system` parameter — there is no `"system"` role for input
+    /// messages in the Messages API.
     ///
     /// There is a limit of 100,000 messages in a single request.
     pub messages: Vec<InputMessage>,
@@ -129,7 +131,7 @@ pub struct CreateMessageParams {
     /// request.
     ///
     /// Anthropic offers different levels of service for your API requests. See
-    /// [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+    /// [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<ServiceTierEnum>,
     /// Custom text sequences that will cause the model to stop generating.
@@ -145,14 +147,15 @@ pub struct CreateMessageParams {
     pub stop_sequences: Option<Vec<String>>,
     /// Whether to incrementally stream the response using server-sent events.
     ///
-    /// See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
+    /// See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming) for
+    /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     /// System prompt.
     ///
     /// A system prompt is a way of providing context and instructions to Claude, such as
     /// specifying a particular goal or role. See our [guide to system
-    /// prompts](https://docs.claude.com/en/docs/system-prompts).
+    /// prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<System>,
     /// Amount of randomness injected into the response.
@@ -176,9 +179,9 @@ pub struct CreateMessageParams {
     ///
     /// There are two types of tools: **client tools** and **server tools**. The behavior
     /// described below applies to client tools. For [server
-    /// tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
-    /// see their individual documentation as each has its own behavior (e.g., the [web search
-    /// tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+    /// tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools), see
+    /// their individual documentation as each has its own behavior (e.g., the [web search
+    /// tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
     ///
     /// Each tool definition includes:
     ///
@@ -239,7 +242,8 @@ pub struct CreateMessageParams {
     /// more generally whenever you want the model to produce a particular JSON structure of
     /// output.
     ///
-    /// See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+    /// See our [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+    /// for more details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
     /// Only sample from the top K options for each subsequent token.
@@ -271,7 +275,8 @@ pub struct CacheControlEphemeral {
     /// - `1h`: 1 hour
     ///
     /// Defaults to `5m`. See [prompt caching
-    /// pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.
+    /// pricing](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) for
+    /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ttl: Option<Ttl>,
     #[serde(rename = "type")]
@@ -292,7 +297,8 @@ pub enum CacheControlEphemeralType {
 /// - `1h`: 1 hour
 ///
 /// Defaults to `5m`. See [prompt caching
-/// pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.
+/// pricing](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) for
+/// details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub enum Ttl {
@@ -314,7 +320,7 @@ pub struct InputMessage {
 #[ts(export_to = "anthropic/")]
 pub enum MessageContent {
     InputContentBlockArray(Vec<InputContentBlock>),
-    String(String),
+    PurpleString(String),
 }
 
 /// Regular text content.
@@ -354,7 +360,7 @@ pub struct InputContentBlock {
     #[serde(rename = "type")]
     pub input_content_block_type: InputContentBlockType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<Source>,
+    pub source: Option<SourceUnion>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -494,8 +500,8 @@ pub struct RequestCitationsConfig {
 #[ts(export_to = "anthropic/")]
 pub enum InputContentBlockContent {
     BlockArray(Vec<Block>),
-    RequestWebSearchToolResultError(RequestWebSearchToolResultError),
-    String(String),
+    PurpleString(String),
+    Request(Request),
 }
 
 /// Regular text content.
@@ -521,7 +527,7 @@ pub struct Block {
     #[serde(rename = "type")]
     pub block_type: WebSearchToolResultBlockItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<Source>,
+    pub source: Option<SourceUnion>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -577,32 +583,32 @@ pub enum SystemType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
-pub enum Source {
-    SourceSource(SourceSource),
-    String(String),
+pub enum SourceUnion {
+    PurpleString(String),
+    Source(Source),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct SourceSource {
+pub struct Source {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<FluffyMediaType>,
+    pub media_type: Option<Base64ImageSourceMediaType>,
     #[serde(rename = "type")]
-    pub source_type: FluffyType,
+    pub source_type: Base64ImageSourceType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<SourceContent>,
+    pub content: Option<Base64ImageSourceContent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
-pub enum SourceContent {
+pub enum Base64ImageSourceContent {
     ContentBlockSourceContentItemArray(Vec<ContentBlockSourceContentItem>),
-    String(String),
+    PurpleString(String),
 }
 
 /// Regular text content.
@@ -621,7 +627,7 @@ pub struct ContentBlockSourceContentItem {
     #[serde(rename = "type")]
     pub content_block_source_content_item_type: ContentBlockSourceContentItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<SourceSourceClass>,
+    pub source: Option<SourceSource>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -634,7 +640,7 @@ pub enum ContentBlockSourceContentItemType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct SourceSourceClass {
+pub struct SourceSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -668,7 +674,7 @@ pub enum PurpleType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub enum FluffyMediaType {
+pub enum Base64ImageSourceMediaType {
     #[serde(rename = "application/pdf")]
     ApplicationPdf,
     #[serde(rename = "image/gif")]
@@ -686,7 +692,7 @@ pub enum FluffyMediaType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum FluffyType {
+pub enum Base64ImageSourceType {
     Base64,
     Content,
     Text,
@@ -696,11 +702,11 @@ pub enum FluffyType {
 /// Code execution result with encrypted stdout for PFC + web_search results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct RequestWebSearchToolResultError {
+pub struct Request {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error_code: Option<ToolResultErrorCode>,
     #[serde(rename = "type")]
-    pub request_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
+    pub request_type: RequestWebSearchToolResultErrorType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<RequestWebSearchToolResultErrorContent>,
     /// ISO 8601 timestamp when the content was retrieved
@@ -747,9 +753,9 @@ pub struct RequestWebSearchToolResultError {
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
 pub enum RequestWebSearchToolResultErrorContent {
+    PurpleString(String),
     RequestCodeExecutionOutputBlockArray(Vec<RequestCodeExecutionOutputBlock>),
     RequestDocumentBlock(RequestDocumentBlock),
-    String(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -757,13 +763,13 @@ pub enum RequestWebSearchToolResultErrorContent {
 pub struct RequestCodeExecutionOutputBlock {
     pub file_id: String,
     #[serde(rename = "type")]
-    pub request_code_execution_output_block_type: TentacledType,
+    pub request_code_execution_output_block_type: FluffyType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum TentacledType {
+pub enum FluffyType {
     #[serde(rename = "bash_code_execution_output")]
     BashCodeExecutionOutput,
     #[serde(rename = "code_execution_output")]
@@ -782,38 +788,38 @@ pub struct RequestDocumentBlock {
     pub citations: Option<RequestCitationsConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
-    pub source: PurpleSource,
+    pub source: RequestDocumentBlockSource,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     #[serde(rename = "type")]
-    pub request_document_block_type: StickyType,
+    pub request_document_block_type: RequestDocumentBlockType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum StickyType {
+pub enum RequestDocumentBlockType {
     Document,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct PurpleSource {
+pub struct RequestDocumentBlockSource {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<TentacledMediaType>,
+    pub media_type: Option<FluffyMediaType>,
     #[serde(rename = "type")]
-    pub source_type: FluffyType,
+    pub source_type: Base64ImageSourceType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<SourceContent>,
+    pub content: Option<Base64ImageSourceContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub enum TentacledMediaType {
+pub enum FluffyMediaType {
     #[serde(rename = "application/pdf")]
     ApplicationPdf,
     #[serde(rename = "text/plain")]
@@ -1024,7 +1030,7 @@ pub enum JsonOutputFormatType {
 /// request.
 ///
 /// Anthropic offers different levels of service for your API requests. See
-/// [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+/// [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
@@ -1038,13 +1044,13 @@ pub enum ServiceTierEnum {
 ///
 /// A system prompt is a way of providing context and instructions to Claude, such as
 /// specifying a particular goal or role. See our [guide to system
-/// prompts](https://docs.claude.com/en/docs/system-prompts).
+/// prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
 pub enum System {
+    PurpleString(String),
     RequestTextBlockArray(Vec<RequestTextBlock>),
-    String(String),
 }
 
 /// Configuration for enabling Claude's extended thinking.
@@ -1054,7 +1060,7 @@ pub enum System {
 /// towards your `max_tokens` limit.
 ///
 /// See [extended
-/// thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) for
+/// thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) for
 /// details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
@@ -1066,7 +1072,7 @@ pub struct Thinking {
     /// Must be ≥1024 and less than `max_tokens`.
     ///
     /// See [extended
-    /// thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) for
+    /// thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) for
     /// details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<i64>,
@@ -1131,8 +1137,9 @@ pub struct ToolChoice {
 pub enum ToolChoiceType {
     Any,
     Auto,
-    None,
     Tool,
+    #[serde(rename = "none")]
+    TypeNone,
 }
 
 /// Code execution tool with REPL state persistence (daemon mode + gVisor checkpoint).
@@ -1503,6 +1510,49 @@ pub struct WebFetchTool20260309 {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
+pub struct WebFetchTool20260318 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// List of domains to allow fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// List of domains to block fetching from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// Citations configuration for fetched documents. Citations are disabled by default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub citations: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of tokens used by including web page text content in the context. The limit is approximate and does not apply to binary content such as PDFs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_content_tokens: Option<i64>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// How this tool's result blocks appear in the API response when the result was consumed by a completed code_execution call in the same turn. 'full' returns the complete content (default). 'excluded' drops the nested server_tool_use and result block pair entirely. Results from direct calls, or from code_execution calls that paused before completing, are always returned in full so they can be sent back on the next turn.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_inclusion: Option<String>,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+    /// Whether to use cached content. Set to false to bypass the cache and fetch fresh content. Only set to false when the user explicitly requests fresh content or when fetching rapidly-changing sources.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_cache: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct WebSearchTool20250305 {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_callers: Option<Vec<AllowedCaller>>,
@@ -1571,6 +1621,43 @@ pub struct WebSearchTool20260209 {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
+pub struct WebSearchTool20260318 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<AllowedCaller>>,
+    /// If provided, only these domains will be included in results. Cannot be used alongside `blocked_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_domains: Option<Vec<String>>,
+    /// If provided, these domains will never appear in results. Cannot be used alongside `allowed_domains`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_domains: Option<Vec<String>>,
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub cache_control: Option<serde_json::Value>,
+    /// If true, tool will not be included in initial system prompt. Only loaded when returned via tool_reference from tool search.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Maximum number of times the tool can be used in the API request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<i64>,
+    /// Name of the tool.
+    ///
+    /// This is how the tool will be called by the model and in `tool_use` blocks.
+    pub name: String,
+    /// How this tool's result blocks appear in the API response when the result was consumed by a completed code_execution call in the same turn. 'full' returns the complete content (default). 'excluded' drops the nested server_tool_use and result block pair entirely. Results from direct calls, or from code_execution calls that paused before completing, are always returned in full so they can be sent back on the next turn.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_inclusion: Option<String>,
+    /// When true, guarantees schema validation on tool names and inputs
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict: Option<bool>,
+    /// Parameters for the user's location. Used to provide more relevant search results.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub user_location: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
 pub struct ToolSearchTool {
     /// Name of the tool.
     ///
@@ -1618,23 +1705,17 @@ pub enum Tool {
     #[serde(rename = "web_fetch_20260309")]
     WebFetch20260309(WebFetchTool20260309),
 
+    #[serde(rename = "web_fetch_20260318")]
+    WebFetch20260318(WebFetchTool20260318),
+
     #[serde(rename = "web_search_20250305")]
     WebSearch20250305(WebSearchTool20250305),
 
     #[serde(rename = "web_search_20260209")]
     WebSearch20260209(WebSearchTool20260209),
 
-    #[serde(rename = "tool_search_tool_bm25")]
-    ToolSearchToolBm25(ToolSearchTool),
-
-    #[serde(rename = "tool_search_tool_bm25_20251119")]
-    ToolSearchToolBm2520251119(ToolSearchTool),
-
-    #[serde(rename = "tool_search_tool_regex")]
-    ToolSearchToolRegex(ToolSearchTool),
-
-    #[serde(rename = "tool_search_tool_regex_20251119")]
-    ToolSearchToolRegex20251119(ToolSearchTool),
+    #[serde(rename = "web_search_20260318")]
+    WebSearch20260318(WebSearchTool20260318),
 
     #[serde(untagged)]
     Custom(CustomTool),
@@ -1686,10 +1767,23 @@ pub enum InputSchemaType {
     Object,
 }
 
+/// How this tool's result blocks appear in the API response when the result was consumed by
+/// a completed code_execution call in the same turn. 'full' returns the complete content
+/// (default). 'excluded' drops the nested server_tool_use and result block pair entirely.
+/// Results from direct calls, or from code_execution calls that paused before completing,
+/// are always returned in full so they can be sent back on the next turn.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum ToolType {
+pub enum ResponseInclusion {
+    Excluded,
+    Full,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum Type {
     #[serde(rename = "bash_20250124")]
     Bash20250124,
     #[serde(rename = "code_execution_20250522")]
@@ -1723,10 +1817,14 @@ pub enum ToolType {
     WebFetch20260209,
     #[serde(rename = "web_fetch_20260309")]
     WebFetch20260309,
+    #[serde(rename = "web_fetch_20260318")]
+    WebFetch20260318,
     #[serde(rename = "web_search_20250305")]
     WebSearch20250305,
     #[serde(rename = "web_search_20260209")]
     WebSearch20260209,
+    #[serde(rename = "web_search_20260318")]
+    WebSearch20260318,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1956,8 +2054,8 @@ pub struct ResponseLocationCitation {
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
 pub enum ContentBlockContent {
+    Response(Response),
     ResponseWebSearchResultBlockArray(Vec<ResponseWebSearchResultBlock>),
-    ResponseWebSearchToolResultError(ResponseWebSearchToolResultError),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1968,14 +2066,14 @@ pub struct ResponseWebSearchResultBlock {
     pub page_age: Option<String>,
     pub title: String,
     #[serde(rename = "type")]
-    pub response_web_search_result_block_type: IndigoType,
+    pub response_web_search_result_block_type: TentacledType,
     pub url: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum IndigoType {
+pub enum TentacledType {
     #[serde(rename = "web_search_result")]
     WebSearchResult,
 }
@@ -1983,11 +2081,11 @@ pub enum IndigoType {
 /// Code execution result with encrypted stdout for PFC + web_search results.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct ResponseWebSearchToolResultError {
+pub struct Response {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error_code: Option<ToolResultErrorCode>,
     #[serde(rename = "type")]
-    pub response_web_search_tool_result_error_type: RequestWebSearchToolResultErrorType,
+    pub response_type: RequestWebSearchToolResultErrorType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<ResponseWebSearchToolResultErrorContent>,
     /// ISO 8601 timestamp when the content was retrieved
@@ -2034,9 +2132,9 @@ pub struct ResponseWebSearchToolResultError {
 #[serde(untagged)]
 #[ts(export_to = "anthropic/")]
 pub enum ResponseWebSearchToolResultErrorContent {
+    PurpleString(String),
     ResponseCodeExecutionOutputBlockArray(Vec<ResponseCodeExecutionOutputBlock>),
     ResponseDocumentBlock(ResponseDocumentBlock),
-    String(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2044,7 +2142,7 @@ pub enum ResponseWebSearchToolResultErrorContent {
 pub struct ResponseCodeExecutionOutputBlock {
     pub file_id: String,
     #[serde(rename = "type")]
-    pub response_code_execution_output_block_type: TentacledType,
+    pub response_code_execution_output_block_type: FluffyType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2053,12 +2151,12 @@ pub struct ResponseDocumentBlock {
     /// Citation configuration for the document
     #[serde(skip_serializing_if = "Option::is_none")]
     pub citations: Option<ResponseCitationsConfig>,
-    pub source: FluffySource,
+    pub source: ResponseDocumentBlockSource,
     /// The title of the document
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     #[serde(rename = "type")]
-    pub response_document_block_type: StickyType,
+    pub response_document_block_type: RequestDocumentBlockType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2069,17 +2167,17 @@ pub struct ResponseCitationsConfig {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct FluffySource {
+pub struct ResponseDocumentBlockSource {
     pub data: String,
-    pub media_type: TentacledMediaType,
+    pub media_type: FluffyMediaType,
     #[serde(rename = "type")]
-    pub source_type: IndecentType,
+    pub source_type: StickyType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub enum IndecentType {
+pub enum StickyType {
     Base64,
     Text,
 }
@@ -2162,8 +2260,6 @@ pub enum RefusalCategory {
     Cyber,
     #[serde(rename = "frontier_llm")]
     FrontierLlm,
-    #[serde(rename = "military_weapons")]
-    MilitaryWeapons,
     #[serde(rename = "reasoning_extraction")]
     ReasoningExtraction,
 }
