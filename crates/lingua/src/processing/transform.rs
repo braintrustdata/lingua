@@ -602,6 +602,14 @@ pub fn transform_response(
 
     let source_adapter = detect_adapter(&response, DetectKind::Response)?;
     let source_format = source_adapter.format();
+
+    if source_format == target_format {
+        return Ok(ResponseTransformResult {
+            result: TransformResult::PassThrough(response_bytes),
+            parsable_info: ParsableResponseInfo::valid(),
+        });
+    }
+
     let mut universal_resp = source_adapter.response_to_universal(response)?;
     if source_format == ProviderFormat::Responses
         && matches!(
@@ -613,13 +621,6 @@ pub fn transform_response(
             merge_responses_output_parts_for_chat_completions(universal_resp.messages);
     }
     let parsable_info = universal_resp.parsable_info();
-
-    if source_format == target_format {
-        return Ok(ResponseTransformResult {
-            result: TransformResult::PassThrough(response_bytes),
-            parsable_info,
-        });
-    }
 
     let target_adapter = adapter_for_format(target_format)
         .ok_or(TransformError::UnsupportedTargetFormat(target_format))?;
@@ -2274,6 +2275,29 @@ mod tests {
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
         assert!(transformed.parsable_info.reusable_for_request(false));
+        assert!(transformed.parsable_info.reusable_for_request(true));
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_response_passthrough_skips_universal_conversion() {
+        let payload = json!({
+            "id": "resp_123",
+            "object": "response",
+            "model": "gpt-5-mini",
+            "status": "completed",
+            "output": [{
+                "type": "program",
+                "id": "prog_1",
+                "call_id": "call_1"
+            }]
+        });
+        let input = to_bytes(&payload);
+
+        let transformed = transform_response(input, ProviderFormat::Responses).unwrap();
+
+        assert!(transformed.result.is_passthrough());
+        assert!(transformed.parsable_info.reusable_for_request(true));
     }
 
     #[test]
@@ -2298,7 +2322,7 @@ mod tests {
         });
         let input = to_bytes(&payload);
 
-        let transformed = transform_response(input, ProviderFormat::ChatCompletions).unwrap();
+        let transformed = transform_response(input, ProviderFormat::Responses).unwrap();
 
         assert!(!transformed.parsable_info.complete);
         assert!(!transformed.parsable_info.content_is_json);

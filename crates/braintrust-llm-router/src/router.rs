@@ -236,8 +236,14 @@ async fn prepare_provider_request(
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
     if requires_bedrock_request_preparation(format) {
-        let bytes = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((bytes, Some(format), format, false, false));
+        let prepared = prepare_bedrock_request(body, spec, format).await?;
+        return Ok((
+            prepared.bytes,
+            Some(format),
+            format,
+            prepared.requires_json_response,
+            false,
+        ));
     }
 
     let model_override = options.rewrite_body_model.then_some(spec.model.as_str());

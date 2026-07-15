@@ -71,6 +71,12 @@ fn is_bedrock_mantle_only_model(model: &str) -> bool {
     model.starts_with("xai.") || model.starts_with("google.gemma-4")
 }
 
+#[derive(Debug)]
+pub(crate) struct PreparedBedrockRequest {
+    pub(crate) bytes: Bytes,
+    pub(crate) requires_json_response: bool,
+}
+
 /// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
 ///
 /// The router still owns the Bedrock-specific fork, but the Bedrock module owns
@@ -80,7 +86,7 @@ pub(crate) async fn prepare_bedrock_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
-) -> Result<Bytes> {
+) -> Result<PreparedBedrockRequest> {
     prepare_bedrock_request_with_fetch(body, spec, format, |url| {
         Box::pin(fetch_remote_image_as_base64(url))
     })
@@ -92,12 +98,15 @@ async fn prepare_bedrock_request_with_fetch<F>(
     spec: &ModelSpec,
     format: ProviderFormat,
     fetch: F,
-) -> Result<Bytes>
+) -> Result<PreparedBedrockRequest>
 where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
     if !requires_bedrock_request_preparation(format) {
-        return Ok(body);
+        return Ok(PreparedBedrockRequest {
+            bytes: body,
+            requires_json_response: false,
+        });
     }
 
     let parsed = lingua::parse_json_body(body)?;
@@ -113,8 +122,15 @@ where
         None => return Err(TransformError::UnableToDetectRequestFormat.into()),
     };
 
+    let requires_json_response = source_adapter
+        .request_requires_json_response(&payload)
+        .map_err(Error::from)?;
+
     if source_adapter.format() == format {
-        return Ok(rewrite_body_model_if_required(body, format, &spec.model));
+        return Ok(PreparedBedrockRequest {
+            bytes: rewrite_body_model_if_required(body, format, &spec.model),
+            requires_json_response,
+        });
     }
 
     let mut request = match source_adapter.request_to_universal(payload) {
@@ -130,9 +146,13 @@ where
     target_adapter.apply_defaults(&mut request);
     let prepared = target_adapter.request_from_universal(&request)?;
 
-    lingua::serde_json::to_vec(&prepared)
+    let bytes = lingua::serde_json::to_vec(&prepared)
         .map(Bytes::from)
-        .map_err(Error::LinguaJson)
+        .map_err(Error::LinguaJson)?;
+    Ok(PreparedBedrockRequest {
+        bytes,
+        requires_json_response,
+    })
 }
 
 async fn inline_remote_image_urls_with_fetch<F>(
@@ -935,7 +955,8 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(prepared, body);
+        assert_eq!(prepared.bytes, body);
+        assert!(!prepared.requires_json_response);
     }
 
     #[tokio::test]
@@ -972,7 +993,8 @@ mod tests {
         .await
         .unwrap();
 
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
         assert_eq!(
             value.get("modelId").and_then(|v| v.as_str()),
             Some("anthropic.claude-3-haiku-20240307-v1:0")
@@ -1012,11 +1034,42 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            prepared,
+            prepared.bytes,
             Bytes::from_static(
                 br#"{"modelId":"anthropic.claude-3-haiku-20240307-v1:0","messages":[{"role":"user","content":[{"text":"bad \uFFFD text"}]}]}"#
             )
         );
+    }
+
+    #[tokio::test]
+    async fn prepare_request_tracks_json_response_requirement_for_bedrock_targets() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "messages": [{"role": "user", "content": "Return JSON."}],
+                "response_format": {"type": "json_object"}
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for text-only requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert!(prepared.requires_json_response);
+        assert!(!prepared.bytes.is_empty());
     }
 
     #[tokio::test]
@@ -1053,7 +1106,8 @@ mod tests {
         )
         .await
         .unwrap();
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
 
         let bytes = value
             .pointer("/messages/0/content/1/image/source/bytes")
@@ -1134,7 +1188,8 @@ mod tests {
         )
         .await
         .unwrap();
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
 
         assert_eq!(
             value.get("anthropic_version").and_then(|v| v.as_str()),

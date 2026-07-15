@@ -901,10 +901,10 @@ impl ProviderAdapter for ResponsesAdapter {
             Some(FinishReason::ToolCalls)
         } else {
             match payload.get("status").and_then(Value::as_str) {
-                Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                    type_name: "FinishReason",
-                    value: s.to_string(),
-                })?),
+                Some(s) => Some(FinishReason::from_provider_string(
+                    s,
+                    ProviderFormat::Responses,
+                )),
                 None => None,
             }
         };
@@ -2198,6 +2198,27 @@ mod tests {
             chat.choices[0].message.reasoning_signature.as_deref(),
             Some("encrypted-reasoning")
         );
+    }
+
+    #[test]
+    fn test_responses_status_is_incomplete_for_non_terminal_responses() {
+        let adapter = ResponsesAdapter;
+        for status in ["queued", "in_progress", "failed", "cancelled", "incomplete"] {
+            let payload = json!({
+                "id": "resp_123",
+                "object": "response",
+                "model": "gpt-5-mini",
+                "status": status,
+                "output": []
+            });
+
+            let universal = adapter.response_to_universal(payload).unwrap();
+
+            assert!(
+                !universal.parsable_info().reusable_for_request(false),
+                "{status} should not be reusable"
+            );
+        }
     }
 
     #[test]

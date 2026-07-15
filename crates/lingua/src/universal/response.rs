@@ -49,6 +49,14 @@ pub struct ParsableResponseInfo {
 }
 
 impl ParsableResponseInfo {
+    pub fn valid() -> Self {
+        Self {
+            complete: true,
+            content_is_json: true,
+            saw_terminal_finish: true,
+        }
+    }
+
     pub fn reusable_for_request(self, requires_json: bool) -> bool {
         self.saw_terminal_finish && self.complete && (!requires_json || self.content_is_json)
     }
@@ -210,6 +218,7 @@ impl FinishReason {
 
     pub fn is_incomplete(&self) -> bool {
         matches!(self, Self::Length | Self::ContentFilter)
+            || matches!(self, Self::Other(reason) if matches!(reason.as_str(), "queued" | "in_progress" | "failed" | "cancelled"))
     }
 
     /// Convert a universal FinishReason to the provider-specific string representation.
@@ -309,9 +318,11 @@ impl UniversalResponse {
     }
 
     pub fn content_is_json(&self) -> bool {
-        self.assistant_texts()
-            .iter()
-            .all(|content| serde_json::from_str::<Value>(content).is_ok())
+        let contents = self.assistant_texts();
+        !contents.is_empty()
+            && contents
+                .iter()
+                .all(|content| serde_json::from_str::<Value>(content).is_ok())
     }
 
     pub fn is_complete(&self) -> bool {
@@ -788,6 +799,10 @@ mod tests {
         assert!(FinishReason::Length.is_incomplete());
         assert!(!FinishReason::ToolCalls.is_incomplete());
         assert!(FinishReason::ContentFilter.is_incomplete());
+        assert!(FinishReason::Other("queued".to_string()).is_incomplete());
+        assert!(FinishReason::Other("in_progress".to_string()).is_incomplete());
+        assert!(FinishReason::Other("failed".to_string()).is_incomplete());
+        assert!(FinishReason::Other("cancelled".to_string()).is_incomplete());
         assert!(!FinishReason::Other("done".to_string()).is_incomplete());
     }
 
@@ -835,6 +850,17 @@ mod tests {
             usage: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
+        };
+        assert!(!response.content_is_json());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
         };
         assert!(!response.content_is_json());
 
