@@ -218,7 +218,7 @@ impl FinishReason {
 
     pub fn is_incomplete(&self) -> bool {
         matches!(self, Self::Length | Self::ContentFilter)
-            || matches!(self, Self::Other(reason) if matches!(reason.as_str(), "queued" | "in_progress" | "failed" | "cancelled"))
+            || matches!(self, Self::Other(reason) if ["queued", "in_progress", "failed", "cancelled"].contains(&reason.as_ref()))
     }
 
     /// Convert a universal FinishReason to the provider-specific string representation.
@@ -393,9 +393,10 @@ fn assistant_content_text(content: &AssistantContent) -> Option<String> {
             let text: String = parts
                 .iter()
                 .filter_map(|part| match part {
-                    AssistantContentPart::Text(text_part) => Some(text_part.text.as_str()),
+                    AssistantContentPart::Text(text_part) => Some(&text_part.text),
                     _ => None,
                 })
+                .map(String::as_str)
                 .collect();
             (!text.is_empty()).then_some(text)
         }

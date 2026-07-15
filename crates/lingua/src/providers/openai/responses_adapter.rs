@@ -270,6 +270,11 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
 }
 
 #[derive(Debug, Deserialize, Default)]
+struct ResponsesStatusView {
+    status: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
     item: Option<ResponsesOutputItemAddedItem>,
     output_index: Option<u32>,
@@ -897,16 +902,16 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         });
 
+        let response_status = serde_json::from_value::<ResponsesStatusView>(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+            .status;
+
         let finish_reason = if has_actionable_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
-            match payload.get("status").and_then(Value::as_str) {
-                Some(s) => Some(FinishReason::from_provider_string(
-                    s,
-                    ProviderFormat::Responses,
-                )),
-                None => None,
-            }
+            response_status
+                .as_deref()
+                .map(|s| FinishReason::from_provider_string(s, ProviderFormat::Responses))
         };
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
