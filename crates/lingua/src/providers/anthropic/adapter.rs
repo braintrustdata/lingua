@@ -127,7 +127,7 @@ fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), T
     {
         return Err(TransformError::ValidationFailed {
             target: ProviderFormat::Anthropic,
-            reason: "Cannot convert a non-leading system/developer message into an Anthropic request: mid-conversation system messages are only forwarded for native Anthropic requests to models that support them (e.g. Opus 4.8, Sonnet 5, Fable 5). Move the instruction to the leading position or the top-level 'system' field.".to_string(),
+            reason: "Cannot convert a non-leading system/developer message into an Anthropic request: mid-conversation system messages are only forwarded for native Anthropic requests to models that support them. Move the instruction to the leading position or the top-level 'system' field.".to_string(),
         });
     }
 

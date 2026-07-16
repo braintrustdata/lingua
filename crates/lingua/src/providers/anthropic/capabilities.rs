@@ -12,15 +12,8 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     )
     .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
 });
-// Denylist of Anthropic models that do NOT support system-role entries in
-// `messages` (the mid-conversation system messages feature). This is inverted on
-// purpose: any model not matched here is treated as supporting the feature, so
-// newly released models default to supported and we stop regressing every time
-// Anthropic ships one. Verified 2026-07-16 against the live Messages API for every
-// direct-Anthropic model in model_list.json: opus 4.1-4.7, sonnet 4.x, and haiku
-// 4.x return `role 'system' is not supported on this model`, while opus 4.8,
-// sonnet 5, and fable 5 accept it. If an unsupported model slips past this list,
-// the upstream API returns its own error rather than lingua corrupting the request.
+// Denylist of Claude models that do NOT support mid-conversation system messages.
+// Verified 2026-07-16 against the live Messages API: opus 4.1-4.7, sonnet 4.x, and haiku 4.x reject them.
 static UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(^|[./:@])claude-(?:opus-4[-.][1-7]|sonnet-4(?:[-.]\d{1,2})?|haiku-4(?:[-.]\d{1,2})?)($|[-./:@])",
@@ -71,25 +64,15 @@ pub fn supports_disabling_thinking(model: &str) -> bool {
     !is_always_on_thinking(&lower)
 }
 
-/// Check if an Anthropic model supports system-role entries in `messages`
-/// (the mid-conversation system messages feature).
+/// Check if a Claude model supports mid-conversation system messages (`role: "system"` in `messages`).
 ///
-/// This is Anthropic-only, so a non-Claude model (which reaches this code via
-/// Anthropic-shaped source detection for cross-provider routing) never supports it.
-/// Among Claude models, denylist semantics apply: only generations empirically
-/// confirmed to reject the feature are excluded (see
-/// `UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE`); every other Claude model — including
-/// future releases — defaults to supported. A Claude model that does not actually
-/// support it and slips through is rejected by the upstream Messages API with its
-/// own error, rather than lingua silently mishandling the request.
+/// Non-Claude models never support it; Claude models are supported unless listed in the denylist.
 pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     is_anthropic_claude_model(&lower) && !is_unsupported_mid_conversation_system_model(&lower)
 }
 
-/// Mid-conversation system messages are an Anthropic-only feature. Model IDs reach
-/// this check in direct (`claude-...`), Bedrock (`...anthropic.claude-...`), and
-/// Vertex (`.../anthropic/models/claude-...`) forms — all contain the `claude` token.
+/// Whether the model id refers to a Claude model, in direct, Bedrock, or Vertex form.
 fn is_anthropic_claude_model(model: &str) -> bool {
     model.contains("claude")
 }
@@ -296,13 +279,12 @@ mod tests {
 
     #[test]
     fn test_supports_mid_conversation_system_messages() {
-        // Empirically verified 2026-07-16 against the live Anthropic Messages API
-        // (every direct-Anthropic model in model_list.json). Supported => HTTP 200.
+        // Verified 2026-07-16 against the live Messages API: these accept mid-conversation system messages (HTTP 200).
         for model in [
             "claude-opus-4-8",
             "claude-opus-4-8-20260528",
             "claude-opus-4.8",
-            "claude-sonnet-5", // regression fix: the live API accepts this, older allowlist rejected it
+            "claude-sonnet-5",
             "claude-fable-5",
             "claude-fable-5-20260601",
             "CLAUDE-SONNET-5",
@@ -313,8 +295,7 @@ mod tests {
             );
         }
 
-        // Empirically verified unsupported => HTTP 400 "role 'system' is not supported
-        // on this model", across direct and provider-wrapped forms of those model IDs.
+        // Verified 2026-07-16 against the live Messages API: these reject mid-conversation system messages (HTTP 400).
         for model in [
             "claude-opus-4-1",
             "claude-opus-4-1-20250805",
@@ -337,8 +318,7 @@ mod tests {
             );
         }
 
-        // Denylist semantics: models not in the confirmed-unsupported set default to
-        // supported so future releases do not regress. Not individually verified.
+        // Models not in the denylist default to supported. Not individually verified.
         for model in [
             "claude-opus-4-10",
             "claude-opus-4-10-20260601",
@@ -356,8 +336,7 @@ mod tests {
             );
         }
 
-        // Non-Anthropic models never support this Anthropic-only feature, even though
-        // they can reach Anthropic-shaped source detection during cross-provider routing.
+        // Non-Claude models never support this Anthropic-only feature.
         for model in ["gpt-5.5", "gpt-5-mini", "gemini-2.5-pro", "grok-4"] {
             assert!(
                 !supports_mid_conversation_system_messages(model),
