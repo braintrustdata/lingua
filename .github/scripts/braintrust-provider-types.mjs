@@ -205,6 +205,10 @@ function requireStringParameter(data, name) {
   return value.trim();
 }
 
+function shellQuote(value) {
+  return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
 async function loadActionMessages() {
   requireEnv("BRAINTRUST_API_KEY");
   const braintrust = loadBraintrust();
@@ -240,7 +244,7 @@ async function loadActionMessages() {
     templateValues,
   );
 
-  writeGithubOutputValue("system_message", systemMessage);
+  writeGithubOutputValue("system_message_arg", shellQuote(systemMessage));
   writeGithubOutputValue("user_message", userMessage);
   writeGithubOutput({
     parameters_id: parameters.id,
