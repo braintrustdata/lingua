@@ -189,7 +189,7 @@ jobs:
               }
             }
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
             --max-turns 80
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
@@ -293,7 +293,7 @@ jobs:
               }
             }
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
             --max-turns 100
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
