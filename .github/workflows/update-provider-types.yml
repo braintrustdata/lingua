@@ -170,7 +170,7 @@ jobs:
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
           display_report: "true"
           plugin_marketplaces: |
@@ -180,6 +180,9 @@ jobs:
           settings: |
             {
               "env": {
+                "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
+                "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
                 "TRACE_TO_BRAINTRUST": "${{ (steps.repair_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
@@ -274,7 +277,7 @@ jobs:
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
           display_report: "true"
           plugin_marketplaces: |
@@ -284,6 +287,9 @@ jobs:
           settings: |
             {
               "env": {
+                "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
+                "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
                 "TRACE_TO_BRAINTRUST": "${{ (steps.integration_review_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
