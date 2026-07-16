@@ -280,6 +280,14 @@ fn generate_tool_enum(
     // When JSON contains {"type": "bash_20250124", ...}, serde matches the "type" value
     // against each variant's rename and deserializes into the matching one.
     for provider_tool in &tool_schemas.provider_tools {
+        // The OpenAI `programmatic_tool_calling` tool is emitted as a hardcoded
+        // variant above. Newer spec snapshots also expose it as a provider tool
+        // schema; skip it here so we don't produce a second variant with the same
+        // `#[serde(rename = "programmatic_tool_calling")]` tag (which would be an
+        // unreachable pattern under #[serde(tag = "type")]).
+        if provider == "openai" && provider_tool.tool_type == "programmatic_tool_calling" {
+            continue;
+        }
         let variant_name = schema_name_to_variant(&provider_tool.schema_name);
         let type_name = schema_name_to_rust_type(&provider_tool.schema_name);
         enum_def.push_str(&format!(

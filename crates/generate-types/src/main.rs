@@ -1003,6 +1003,25 @@ pub struct ToolSearchTool {
     )
 }
 
+/// Returns true if the named enum in `content` already declares `variant`.
+///
+/// Several OpenAI post-processing patches compensate for features that lag in
+/// the local Stainless spec snapshot by inserting enum variants. Once the
+/// upstream spec provides a variant natively, re-inserting it would produce a
+/// duplicate definition (E0428), so those patches guard on this check to stay
+/// idempotent across spec updates.
+fn openai_enum_has_variant(content: &str, enum_name: &str, variant: &str) -> bool {
+    let header = format!("pub enum {} {{", enum_name);
+    let Some(start) = content.find(&header) else {
+        return false;
+    };
+    let rest = &content[start + header.len()..];
+    let end = rest.find("\n}").unwrap_or(rest.len());
+    rest[..end]
+        .lines()
+        .any(|line| line.trim().trim_end_matches(',') == variant)
+}
+
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     let mut processed = quicktype_output.to_string();
 
@@ -1093,31 +1112,59 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "use crate::serde_json;\nuse crate::universal::message::ToolCaller;\n",
     );
 
-    // The local OpenAI spec can lag model-specific reasoning efforts. Keep
-    // generated request validation aligned with the compatibility params view.
+    // The local OpenAI spec can lag model-specific reasoning efforts, and
+    // quicktype renames the bare `none` variant to `ReasoningEffortNone` (it
+    // shadows Option::None). Ensure `Max` is present (idempotently, since the
+    // spec now provides it natively) and restore the stable `None` name the
+    // reasoning adapter matches on. The enum carries #[serde(rename_all =
+    // "snake_case")], so `None` still serializes to the `none` wire value.
+    if !openai_enum_has_variant(&processed, "ReasoningEffort", "Max") {
+        processed = processed.replace(
+            "pub enum ReasoningEffort {\n    High,\n    Low,\n",
+            "pub enum ReasoningEffort {\n    High,\n    Low,\n    Max,\n",
+        );
+    }
     processed = processed.replace(
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
+        "    #[serde(rename = \"none\")]\n    ReasoningEffortNone,",
+        "    None,",
     );
 
-    // GPT-5.6 programmatic tool output items are not yet in the local spec.
-    // Patch the generated Responses output item model so the typed adapter can
-    // deserialize and convert them without a raw-JSON fallback.
+    // GPT-5.x programmatic tool items (`program` / `program_output` item types,
+    // `programmatic_tool_calling` tool type). These once lagged the local spec;
+    // now that the snapshot provides them natively, re-inserting would duplicate
+    // the variant, so each insertion is guarded to stay idempotent.
+    if !openai_enum_has_variant(&processed, "OutputItemType", "Program") {
+        processed = processed.replace(
+            "pub enum OutputItemType {\n    #[serde(rename = \"additional_tools\")]",
+            "pub enum OutputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
+        );
+    }
+    if !openai_enum_has_variant(&processed, "InputItemType", "Program") {
+        processed = processed.replace(
+            "pub enum InputItemType {\n    #[serde(rename = \"additional_tools\")]",
+            "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
+        );
+    }
+    if !openai_enum_has_variant(&processed, "ToolType", "ProgrammaticToolCalling") {
+        processed = processed.replace(
+            "pub enum ToolType {\n    #[serde(rename = \"apply_patch\")]",
+            "pub enum ToolType {\n    #[serde(rename = \"programmatic_tool_calling\")]\n    ProgrammaticToolCalling,\n    #[serde(rename = \"apply_patch\")]",
+        );
+    }
+
+    // The Responses spec now types the programmatic-tool-call `caller` field with
+    // provider-specific structs (Input/OutputItemDirectToolCallCaller). Lingua's
+    // canonical representation is the universal ToolCaller, which convert.rs
+    // consumes uniformly across input items, output items, and universal
+    // messages. Expose the canonical caller type at the provider boundary, as the
+    // model did before the field was formalized upstream.
     processed = processed.replace(
-        "pub enum OutputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum OutputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
+        "pub caller: Option<InputItemDirectToolCallCaller>,",
+        "pub caller: Option<ToolCaller>,",
     );
     processed = processed.replace(
-        "pub enum InputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
-    );
-    processed = processed.replace(
-        "pub enum ToolType {\n    #[serde(rename = \"apply_patch\")]",
-        "pub enum ToolType {\n    #[serde(rename = \"programmatic_tool_calling\")]\n    ProgrammaticToolCalling,\n    #[serde(rename = \"apply_patch\")]",
-    );
-    processed = processed.replace(
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,",
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub fingerprint: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub caller: Option<ToolCaller>,",
+        "pub caller: Option<OutputItemDirectToolCallCaller>,",
+        "pub caller: Option<ToolCaller>,",
     );
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
@@ -1151,12 +1198,52 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
     processed = processed.replace(
-        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
-        "InputContentArray(Vec<ContentOutputContentList>),",
-    );
-    processed = processed.replace(
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
+    );
+
+    // The Responses usage `input_tokens_details.cache_write_tokens` field was
+    // added to the spec as `required`, but real captured responses (including
+    // every response produced before the field shipped) omit it. Making it a
+    // hard-required `i64` would reject those genuine provider payloads. Relax it
+    // to an optional field so historical and forward payloads both deserialize;
+    // when present it is preserved and round-trips unchanged. This mirrors the
+    // Chat Completions `PromptTokensDetails.cache_write_tokens`, which the spec
+    // types as optional.
+    processed = processed.replace(
+        "    /// The number of input tokens that were written to the cache.\n    pub cache_write_tokens: i64,",
+        "    /// The number of input tokens that were written to the cache.\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub cache_write_tokens: Option<i64>,",
+    );
+
+    // Quicktype assigns arbitrary disambiguation names to anonymous union members
+    // and helper structs (adjective prefixes like `Purple`/`Fluffy`, and
+    // structural names such as `ContentInputItemContentList`). These shift when
+    // the spec changes, so normalize the ones Lingua's typed adapters reference
+    // back to their stable names.
+    //
+    // Bare string union members (quicktype prefixes the variant, e.g.
+    // `PurpleString`); the adapters match on the `String` variant.
+    processed = processed.replace("PurpleString(String)", "String(String)");
+    // Chat Completions content-part struct and its array union member.
+    processed = processed.replace(
+        "PurpleContentPart",
+        "ChatCompletionRequestMessageContentPart",
+    );
+    // Its `type` discriminant field: quicktype names it after the anonymous
+    // struct (`content_part_type`); the adapters use the struct-qualified name.
+    processed = processed.replace(
+        "pub content_part_type: PurpleType,",
+        "pub chat_completion_request_message_content_part_type: PurpleType,",
+    );
+    // Responses input-item content-list array member.
+    processed = processed.replace(
+        "ContentInputItemContentListArray(Vec<ContentInputItemContentList>),",
+        "InputContentArray(Vec<ContentInputItemContentList>),",
+    );
+    // Responses output-union content-list array member.
+    processed = processed.replace(
+        "OutputInputItemContentListArray(Vec<OutputInputItemContentList>),",
+        "FluffyInputContentArray(Vec<OutputInputItemContentList>),",
     );
 
     // Dynamically find the enum that quicktype generated for content list types.
@@ -1171,7 +1258,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
 pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
+pub type InputContent = ContentInputItemContentList;
 pub type InputItemContentListType = {content_list_type_name};
 pub type FunctionCallItemStatus = Status;
 "#,

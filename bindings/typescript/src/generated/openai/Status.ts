@@ -61,7 +61,11 @@
  * or `failed`.
  *
  *
+ * The terminal status of the program output.
+ *
  * The status of the tool search output item that was recorded.
+ *
+ * The terminal status of the program output item.
  *
  * The status of the tool search call item that was recorded.
  *

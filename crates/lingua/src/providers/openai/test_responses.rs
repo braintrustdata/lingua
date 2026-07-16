@@ -148,4 +148,56 @@ mod tests {
     mod generated {
         include!(concat!(env!("OUT_DIR"), "/generated_tests.rs"));
     }
+
+    // The Responses `usage.input_tokens_details.cache_write_tokens` field is
+    // marked `required` in the synchronized spec, but real captured responses
+    // (every response emitted before the field shipped) omit it. The generated
+    // type relaxes it to optional so those genuine provider payloads keep
+    // deserializing. These guard that relaxation in both directions.
+    #[test]
+    fn response_usage_deserializes_without_cache_write_tokens() {
+        use crate::providers::openai::generated::ResponseUsage;
+
+        let payload = crate::serde_json::json!({
+            "input_tokens": 13,
+            "input_tokens_details": { "cached_tokens": 0 },
+            "output_tokens": 8,
+            "output_tokens_details": { "reasoning_tokens": 0 },
+            "total_tokens": 21
+        });
+
+        let usage: ResponseUsage = crate::serde_json::from_value(payload)
+            .expect("response usage without cache_write_tokens must deserialize");
+        assert_eq!(usage.input_tokens_details.cache_write_tokens, None);
+
+        // Absent input stays absent on re-serialization (no fabricated field).
+        let reserialized = crate::serde_json::to_value(&usage).unwrap();
+        assert!(reserialized["input_tokens_details"]
+            .get("cache_write_tokens")
+            .is_none());
+    }
+
+    #[test]
+    fn response_usage_preserves_cache_write_tokens_when_present() {
+        use crate::providers::openai::generated::ResponseUsage;
+
+        let payload = crate::serde_json::json!({
+            "input_tokens": 13,
+            "input_tokens_details": { "cached_tokens": 4, "cache_write_tokens": 9 },
+            "output_tokens": 8,
+            "output_tokens_details": { "reasoning_tokens": 0 },
+            "total_tokens": 21
+        });
+
+        let usage: ResponseUsage = crate::serde_json::from_value(payload.clone())
+            .expect("response usage with cache_write_tokens must deserialize");
+        assert_eq!(usage.input_tokens_details.cache_write_tokens, Some(9));
+
+        // Present value round-trips unchanged.
+        let reserialized = crate::serde_json::to_value(&usage).unwrap();
+        assert_eq!(
+            reserialized["input_tokens_details"]["cache_write_tokens"],
+            9
+        );
+    }
 }

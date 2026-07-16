@@ -1695,6 +1695,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 impl Default for openai::InputContent {
     fn default() -> Self {
         Self {
+            prompt_cache_breakpoint: None,
             text: None,
             input_content_type: openai::InputItemContentListType::InputText,
             detail: None,
@@ -4782,6 +4783,7 @@ fn convert_user_content_part_to_chat_completion_part(
 ) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
     match part {
         UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
+            prompt_cache_breakpoint: None,
             text: Some(text_part.text),
             chat_completion_request_message_content_part_type: openai::PurpleType::Text,
             image_url: None,
@@ -4820,6 +4822,7 @@ fn convert_user_content_part_to_chat_completion_part(
             };
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
+                prompt_cache_breakpoint: None,
                 text: None,
                 chat_completion_request_message_content_part_type: openai::PurpleType::ImageUrl,
                 image_url: Some(openai::ImageUrl { url, detail: None }),
@@ -4999,6 +5002,7 @@ fn chat_completion_assistant_text_content(
             .map(|text_part| ChatCompletionRequestMessageContentPartExt {
                 cache_control: cache_control_to_value(text_part.cache_control),
                 base: openai::ChatCompletionRequestMessageContentPart {
+                    prompt_cache_breakpoint: None,
                     text: Some(text_part.text),
                     chat_completion_request_message_content_part_type: openai::PurpleType::Text,
                     image_url: None,
@@ -6213,6 +6217,7 @@ mod tests {
     #[test]
     fn chat_completions_file_imports_back_to_text_file() {
         let input = openai::ChatCompletionRequestMessageContentPart {
+            prompt_cache_breakpoint: None,
             text: None,
             chat_completion_request_message_content_part_type: openai::PurpleType::File,
             image_url: None,
