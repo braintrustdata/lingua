@@ -1755,6 +1755,11 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Option fields
     processed = add_serde_skip_if_none(&processed);
 
+    // Quicktype renames variants that collide with Rust keywords or built-in types.
+    // Restore the original names so hand-written converter code can reference them
+    // and rename_all = "SCREAMING_SNAKE_CASE" maps them to the correct wire values.
+    processed = fix_google_quicktype_variant_renames(&processed);
+
     // Add lowercase serde aliases to the Type enum so it accepts both
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
@@ -1824,6 +1829,34 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+/// Fix quicktype variant renames that conflict with Rust keywords or built-in types.
+///
+/// Quicktype avoids generating variants named `None` (shadows `Option::None`) or `String`
+/// (shadows the built-in type), renaming them to `ModeNone`, `TypeString`, etc. and adding
+/// explicit `#[serde(rename = "...")]` attributes. These names are legal Rust enum variants,
+/// and the existing converter code references them by their original names. Restore them so
+/// `rename_all = "SCREAMING_SNAKE_CASE"` produces the correct wire values without explicit
+/// rename attributes.
+fn fix_google_quicktype_variant_renames(content: &str) -> String {
+    let mut processed = content.to_string();
+
+    // FunctionCallingConfigMode::ModeNone → None
+    // With rename_all = "SCREAMING_SNAKE_CASE", None → "NONE" automatically.
+    processed = processed.replace(
+        "    #[serde(rename = \"NONE\")]\n    ModeNone,",
+        "    None,",
+    );
+
+    // Type::TypeString → String
+    // With rename_all = "SCREAMING_SNAKE_CASE", String → "STRING" automatically.
+    processed = processed.replace(
+        "    #[serde(rename = \"STRING\")]\n    TypeString,",
+        "    String,",
+    );
+
+    processed
 }
 
 /// Find an enum in generated Rust source whose body contains all of the given variant names.

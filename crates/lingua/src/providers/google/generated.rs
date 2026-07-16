@@ -81,9 +81,9 @@ pub struct GenerateContentRequest {
     /// given `SafetyCategory` provided in the list, the API will use the default safety setting
     /// for that category. Harm categories HARM_CATEGORY_HATE_SPEECH,
     /// HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT,
-    /// HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY are supported. Refer to the
-    /// [guide](https://ai.google.dev/gemini-api/docs/safety-settings) for detailed information
-    /// on available safety settings. Also refer to the [Safety
+    /// HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY, HARM_CATEGORY_JAILBREAK are
+    /// supported. Refer to the [guide](https://ai.google.dev/gemini-api/docs/safety-settings)
+    /// for detailed information on available safety settings. Also refer to the [Safety
     /// guidance](https://ai.google.dev/gemini-api/docs/safety-guidance) to learn how to
     /// incorporate safety considerations in your AI applications.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -557,6 +557,9 @@ pub struct GenerationConfig {
     /// Please note that this doesn't work for previous generation models (Gemini 1.0 family)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub candidate_count: Option<i64>,
+    /// Optional. If enabled, the model will detect emotions and adapt its responses accordingly.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_affective_dialog: Option<bool>,
     /// Optional. Enables enhanced civic answers. It may not be available for all models.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_enhanced_civic_answers: Option<bool>,
@@ -1202,6 +1205,8 @@ pub enum Category {
     HarmCategoryHarassment,
     #[serde(rename = "HARM_CATEGORY_HATE_SPEECH")]
     HarmCategoryHateSpeech,
+    #[serde(rename = "HARM_CATEGORY_JAILBREAK")]
+    HarmCategoryJailbreak,
     #[serde(rename = "HARM_CATEGORY_MEDICAL")]
     HarmCategoryMedical,
     #[serde(rename = "HARM_CATEGORY_SEXUAL")]
@@ -1297,9 +1302,9 @@ pub struct FunctionCallingConfig {
 pub enum FunctionCallingConfigMode {
     Any,
     Auto,
+    None,
     #[serde(rename = "MODE_UNSPECIFIED")]
     ModeUnspecified,
-    None,
     Validated,
 }
 
@@ -1390,6 +1395,12 @@ pub struct Tool {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "google/")]
 pub struct ComputerUse {
+    /// Optional. Disabled safety policies for computer use.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled_safety_policies: Option<Vec<DisabledSafetyPolicy>>,
+    /// Optional. Whether enable the prompt injection detection check on computer-use request.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_prompt_injection_detection: Option<bool>,
     /// Required. The environment being operated.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub environment: Option<Environment>,
@@ -1401,6 +1412,28 @@ pub struct ComputerUse {
     pub excluded_predefined_functions: Option<Vec<String>>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[ts(export_to = "google/")]
+pub enum DisabledSafetyPolicy {
+    #[serde(rename = "ACCOUNT_CREATION")]
+    AccountCreation,
+    #[serde(rename = "COMMUNICATION_TOOL")]
+    CommunicationTool,
+    #[serde(rename = "DATA_MODIFICATION")]
+    DataModification,
+    #[serde(rename = "FINANCIAL_TRANSACTIONS")]
+    FinancialTransactions,
+    #[serde(rename = "LEGAL_TERMS_AND_AGREEMENTS")]
+    LegalTermsAndAgreements,
+    #[serde(rename = "SAFETY_POLICY_UNSPECIFIED")]
+    SafetyPolicyUnspecified,
+    #[serde(rename = "SENSITIVE_DATA_MODIFICATION")]
+    SensitiveDataModification,
+    #[serde(rename = "USER_CONSENT_MANAGEMENT")]
+    UserConsentManagement,
+}
+
 /// Required. The environment being operated.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -1408,6 +1441,10 @@ pub struct ComputerUse {
 pub enum Environment {
     #[serde(rename = "ENVIRONMENT_BROWSER")]
     EnvironmentBrowser,
+    #[serde(rename = "ENVIRONMENT_DESKTOP")]
+    EnvironmentDesktop,
+    #[serde(rename = "ENVIRONMENT_MOBILE")]
+    EnvironmentMobile,
     #[serde(rename = "ENVIRONMENT_UNSPECIFIED")]
     EnvironmentUnspecified,
 }

@@ -2107,4 +2107,111 @@ mod tests {
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
     }
+
+    // --- Regression tests for generated type updates ---
+
+    #[test]
+    fn test_function_calling_config_mode_none_serde_roundtrip() {
+        use crate::providers::google::generated::FunctionCallingConfigMode;
+        let mode = FunctionCallingConfigMode::None;
+        let serialized = serde_json::to_string(&mode).unwrap();
+        assert_eq!(serialized, "\"NONE\"");
+        let deserialized: FunctionCallingConfigMode = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, mode);
+    }
+
+    #[test]
+    fn test_function_calling_config_mode_all_variants_accepted() {
+        use crate::providers::google::generated::FunctionCallingConfigMode;
+        for (wire, expected) in [
+            ("\"AUTO\"", FunctionCallingConfigMode::Auto),
+            ("\"ANY\"", FunctionCallingConfigMode::Any),
+            ("\"NONE\"", FunctionCallingConfigMode::None),
+            (
+                "\"MODE_UNSPECIFIED\"",
+                FunctionCallingConfigMode::ModeUnspecified,
+            ),
+            ("\"VALIDATED\"", FunctionCallingConfigMode::Validated),
+        ] {
+            let parsed: FunctionCallingConfigMode = serde_json::from_str(wire).unwrap();
+            assert_eq!(parsed, expected, "wire value {wire} should parse correctly");
+        }
+    }
+
+    #[test]
+    fn test_type_enum_string_variant_serde_roundtrip() {
+        use crate::providers::google::generated::Type;
+        let t = Type::String;
+        let serialized = serde_json::to_string(&t).unwrap();
+        assert_eq!(serialized, "\"STRING\"");
+        let deserialized: Type = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, t);
+        let from_lowercase: Type = serde_json::from_str("\"string\"").unwrap();
+        assert_eq!(from_lowercase, Type::String);
+    }
+
+    #[test]
+    fn test_harm_category_jailbreak_serde_roundtrip() {
+        use crate::providers::google::generated::Category;
+        let cat = Category::HarmCategoryJailbreak;
+        let serialized = serde_json::to_string(&cat).unwrap();
+        assert_eq!(serialized, "\"HARM_CATEGORY_JAILBREAK\"");
+        let deserialized: Category = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, cat);
+    }
+
+    #[test]
+    fn test_environment_new_variants_serde_roundtrip() {
+        use crate::providers::google::generated::Environment;
+        for (wire, expected) in [
+            ("\"ENVIRONMENT_BROWSER\"", Environment::EnvironmentBrowser),
+            ("\"ENVIRONMENT_DESKTOP\"", Environment::EnvironmentDesktop),
+            ("\"ENVIRONMENT_MOBILE\"", Environment::EnvironmentMobile),
+            (
+                "\"ENVIRONMENT_UNSPECIFIED\"",
+                Environment::EnvironmentUnspecified,
+            ),
+        ] {
+            let parsed: Environment = serde_json::from_str(wire).unwrap();
+            assert_eq!(parsed, expected, "wire value {wire} should parse correctly");
+            let re_serialized = serde_json::to_string(&parsed).unwrap();
+            assert_eq!(re_serialized, wire);
+        }
+    }
+
+    #[test]
+    fn test_generation_config_enable_affective_dialog_accepted() {
+        let config: GenerationConfig = serde_json::from_value(json!({
+            "enableAffectiveDialog": true
+        }))
+        .unwrap();
+        assert_eq!(config.enable_affective_dialog, Some(true));
+        let serialized = serde_json::to_value(&config).unwrap();
+        assert_eq!(serialized["enableAffectiveDialog"], true);
+    }
+
+    #[test]
+    fn test_tool_choice_none_roundtrip_through_universal() {
+        let config = ToolConfig {
+            function_calling_config: Some(FunctionCallingConfig {
+                mode: Some(FunctionCallingConfigMode::None),
+                allowed_function_names: None,
+            }),
+            include_server_side_tool_invocations: None,
+            retrieval_config: None,
+        };
+
+        let universal = ToolChoiceConfig::from(&config);
+        assert_eq!(universal.mode, Some(ToolChoiceMode::None));
+
+        let back = ToolConfig::try_from(&universal).unwrap();
+        let fcc = back.function_calling_config.as_ref().unwrap();
+        assert_eq!(fcc.mode, Some(FunctionCallingConfigMode::None));
+
+        let wire = serde_json::to_value(&back).unwrap();
+        assert_eq!(
+            wire["functionCallingConfig"]["mode"],
+            serde_json::Value::String("NONE".to_string())
+        );
+    }
 }
