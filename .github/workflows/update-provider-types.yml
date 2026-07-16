@@ -99,7 +99,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
-          npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
+          npm install -g braintrust
           pnpm add -g quicktype
 
       - name: Create Braintrust workflow trace
@@ -148,12 +148,27 @@ jobs:
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
 
+      - name: Load repair messages from Braintrust
+        id: repair_messages
+        if: steps.generate.outcome == 'failure'
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          PROMPT_PHASE: repair
+          PROVIDER: ${{ matrix.provider }}
+          GENERATION_LOG_PATH: ${{ steps.generate.outputs.log_path }}
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs load-action-messages
+
       - name: Repair failed generation
         id: repair
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
         timeout-minutes: 20
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
@@ -174,43 +189,11 @@ jobs:
               }
             }
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
             --max-turns 80
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
-          prompt: |
-            # Goal
-
-            The automated Lingua provider type update failed. Make one focused repair attempt so the regenerated provider types build, then leave the repository ready for the workflow to validate and open a PR.
-
-            # Inputs
-
-            - Provider requested: `${{ matrix.provider }}`
-            - Generation/build log: `${{ steps.generate.outputs.log_path }}`
-
-            # Local files to read first
-
-            - `AGENTS.md`
-            - `Makefile`
-            - `pipelines/generate-provider-types.sh`
-            - `crates/generate-types/src/main.rs`
-            - Provider modules under `crates/lingua/src/providers/${{ matrix.provider }}/`
-
-            # Process
-
-            1. Read the log and identify whether the failure is a local Rust/type-generation/build problem.
-            2. If the failure is a transient network, provider API, package install, or external service failure, do not work around it with fake data or fallback content.
-            3. If the failure is a local generation or compile issue, fix the smallest responsible source area.
-            4. Prefer fixing generation logic in `crates/generate-types/` or typed provider adapters/converters. Do not manually edit files named `generated.rs`.
-            5. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
-            6. Do not silently coerce newly generated provider roles, actors, enum variants, or required payloads into an existing universal value just to make conversion compile. In particular, never rewrite unsupported provider roles to `user`, and never drop newly generated required payloads such as mid-conversation tool definitions.
-            7. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, prefer an explicit unsupported-mapping error or leave a concise note in `provider-type-update-notes.md`; do not hide the loss behind fallback behavior.
-            8. Rerun the relevant generation/build command if you changed generation logic so generated outputs reflect the fix.
-            9. Do not create or update GitHub issues, comments, pull requests, or branches.
-
-            # Output
-
-            Leave code changes in the working tree only. The workflow will run TypeScript type generation, formatting, build validation, and PR creation after this step.
+          prompt: ${{ steps.repair_messages.outputs.user_message }}
 
       - name: Re-run provider update after repair
         id: retry
@@ -270,12 +253,26 @@ jobs:
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
 
+      - name: Load review messages from Braintrust
+        id: review_messages
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          PROMPT_PHASE: review
+          PROVIDER: ${{ matrix.provider }}
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs load-action-messages
+
       - name: Review generated provider integration
         id: integration_review
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
@@ -296,42 +293,11 @@ jobs:
               }
             }
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
             --max-turns 100
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
-          prompt: |
-            # Goal
-
-            The automated Lingua provider type update produced changes for `${{ matrix.provider }}`. Review the generated provider type diff for semantic integration gaps, update the hand-written adapter/converter code when needed, and add focused tests for clear behavior.
-
-            This step should run even when generation, build, and clippy currently pass. A compiling generated enum or field can still require normalization code changes.
-
-            # Local files to read first
-
-            - `AGENTS.md`
-            - `Makefile`
-            - `crates/lingua/src/providers/${{ matrix.provider }}/`
-            - `crates/lingua/src/universal/`
-            - `crates/coverage-report/README.md`
-            - `payloads/README.md`
-
-            # Process
-
-            1. Inspect `git diff` for `${{ matrix.provider }}` provider type updates, especially new enum variants, renamed wire values, new required fields, and response/request shape changes.
-            2. Trace each changed generated provider type into hand-written adapter/converter code under `crates/lingua/src/providers/${{ matrix.provider }}/`.
-            3. If a new provider value clearly maps to an existing universal concept, update the typed converter/adapter and add a focused Rust test. For example, new safety/filtering finish reasons should normalize to the existing content-filter path rather than falling through to `Other`.
-            4. If the universal representation is ambiguous or cannot represent the provider feature non-lossily, do not invent a workaround. Leave the generated changes intact and add a concise note in `provider-type-update-notes.md` explaining what needs human clarification.
-            5. Do not silently coerce newly generated provider roles or actors into existing universal roles. For example, if an OpenAI Responses item role such as `critic`, `discriminator`, `tool`, or `unknown` cannot be represented by `InputItemRole`, do not rewrite it to `user`; either model it explicitly, return an explicit unsupported-mapping error, or leave a note if the canonical representation needs human clarification.
-            6. Do not silently drop newly generated required request or response payloads. For example, if a Responses input contains `additional_tools` or a similar mid-conversation tool-definition payload and universal has no representation, fail explicitly or leave a note; do not emit a conversation that omits the required tools.
-            7. Keep typed boundaries: deserialize into typed structs/enums instead of adding raw `serde_json::Value` field-plucking for provider semantics.
-            8. Do not manually edit files named `generated.rs`.
-            9. Run the most focused test or build command that validates any hand-written change you make. If the command cannot run because credentials or external services are missing, note that in `provider-type-update-notes.md`.
-            10. Do not create or update GitHub issues, comments, pull requests, or branches.
-
-            # Output
-
-            Leave code changes in the working tree only. The workflow will regenerate TypeScript bindings, format, validate, and open a PR after this step.
+          prompt: ${{ steps.review_messages.outputs.user_message }}
 
       - name: Regenerate TypeScript types after integration review
         id: post_review_ts_types

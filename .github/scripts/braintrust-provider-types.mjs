@@ -189,6 +189,65 @@ async function createTaskTrace() {
   });
 }
 
+function renderActionMessage(template, values) {
+  return Object.entries(values).reduce(
+    (message, [name, value]) =>
+      message.replaceAll(`{{${name}}}`, String(value)),
+    template,
+  );
+}
+
+function requireStringParameter(data, name) {
+  const value = data[name];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`Braintrust parameter '${name}' must be a non-empty string`);
+  }
+  return value.trim();
+}
+
+async function loadActionMessages() {
+  requireEnv("BRAINTRUST_API_KEY");
+  const braintrust = loadBraintrust();
+  const projectName =
+    optionalEnv("BRAINTRUST_PROJECT") || "lingua-provider-type-updates";
+  const slug =
+    optionalEnv("BRAINTRUST_PARAMETERS_SLUG") ||
+    "provider-type-update-messages";
+  const phase = requireEnv("PROMPT_PHASE");
+  const provider = requireEnv("PROVIDER");
+  const fieldPrefix =
+    phase === "repair" ? "repair" : phase === "review" ? "review" : undefined;
+
+  if (!fieldPrefix) {
+    throw new Error("PROMPT_PHASE must be 'repair' or 'review'");
+  }
+
+  const parameters = await braintrust.loadParameters({ projectName, slug });
+  if (!parameters.data || typeof parameters.data !== "object") {
+    throw new Error("Braintrust parameters did not contain an object data value");
+  }
+  const templateValues = {
+    provider,
+    generation_log_path:
+      fieldPrefix === "repair" ? requireEnv("GENERATION_LOG_PATH") : "",
+  };
+  const systemMessage = renderActionMessage(
+    requireStringParameter(parameters.data, `${fieldPrefix}_system_message`),
+    templateValues,
+  );
+  const userMessage = renderActionMessage(
+    requireStringParameter(parameters.data, `${fieldPrefix}_user_message`),
+    templateValues,
+  );
+
+  writeGithubOutputValue("system_message", systemMessage);
+  writeGithubOutputValue("user_message", userMessage);
+  writeGithubOutput({
+    parameters_id: parameters.id,
+    parameters_version: parameters.version,
+  });
+}
+
 function emitPrMetadata() {
   const metadata = {
     version: 1,
@@ -546,6 +605,8 @@ try {
     await createWorkflowTrace();
   } else if (command === "create-task-trace") {
     await createTaskTrace();
+  } else if (command === "load-action-messages") {
+    await loadActionMessages();
   } else if (command === "emit-pr-metadata") {
     emitPrMetadata();
   } else if (command === "extract-feedback-event") {
@@ -558,7 +619,7 @@ try {
     await logCodexReview();
   } else {
     throw new Error(
-      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
+      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|load-action-messages|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
     );
   }
 } catch (error) {
