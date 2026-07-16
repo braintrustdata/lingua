@@ -167,6 +167,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 20
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
@@ -189,7 +191,6 @@ jobs:
           claude_args: |
             --model claude-opus-4-6
             --max-turns 80
-            --append-system-prompt-file "${{ steps.repair_messages.outputs.system_message_path }}"
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: ${{ steps.repair_messages.outputs.user_message }}
@@ -270,6 +271,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}
@@ -292,7 +295,6 @@ jobs:
           claude_args: |
             --model claude-opus-4-6
             --max-turns 100
-            --append-system-prompt-file "${{ steps.review_messages.outputs.system_message_path }}"
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: ${{ steps.review_messages.outputs.user_message }}

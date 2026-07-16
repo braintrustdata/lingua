@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { join } from "node:path";
 
 const require = createRequire(import.meta.url);
 
@@ -216,7 +215,6 @@ async function loadActionMessages() {
     "provider-type-update-messages";
   const phase = requireEnv("PROMPT_PHASE");
   const provider = requireEnv("PROVIDER");
-  const runnerTemp = requireEnv("RUNNER_TEMP");
   const fieldPrefix =
     phase === "repair" ? "repair" : phase === "review" ? "review" : undefined;
 
@@ -241,15 +239,10 @@ async function loadActionMessages() {
     requireStringParameter(parameters.data, `${fieldPrefix}_user_message`),
     templateValues,
   );
-  const systemMessagePath = join(
-    runnerTemp,
-    `provider-type-update-${fieldPrefix}-system-message.md`,
-  );
 
-  writeFileSync(systemMessagePath, `${systemMessage}\n`, "utf8");
+  writeGithubOutputValue("system_message", systemMessage);
   writeGithubOutputValue("user_message", userMessage);
   writeGithubOutput({
-    system_message_path: systemMessagePath,
     parameters_id: parameters.id,
     parameters_version: parameters.version,
   });
