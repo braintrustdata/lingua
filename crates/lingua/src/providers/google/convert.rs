@@ -1080,7 +1080,7 @@ impl From<&ToolConfig> for ToolChoiceConfig {
                     ToolChoiceMode::Auto
                 }
                 FunctionCallingConfigMode::Any => ToolChoiceMode::Required,
-                FunctionCallingConfigMode::None => ToolChoiceMode::None,
+                FunctionCallingConfigMode::ModeNone => ToolChoiceMode::None,
                 FunctionCallingConfigMode::ModeUnspecified => ToolChoiceMode::Auto,
             })
         });
@@ -1114,7 +1114,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolConfig {
         let (google_mode, allowed_names) = match mode {
             ToolChoiceMode::Auto => (FunctionCallingConfigMode::Auto, None),
             ToolChoiceMode::Required => (FunctionCallingConfigMode::Any, None),
-            ToolChoiceMode::None => (FunctionCallingConfigMode::None, None),
+            ToolChoiceMode::None => (FunctionCallingConfigMode::ModeNone, None),
             ToolChoiceMode::Tool => {
                 let name = config.tool_name.clone().ok_or(())?;
                 (FunctionCallingConfigMode::Any, Some(vec![name]))
@@ -1895,7 +1895,7 @@ mod tests {
     fn test_tool_config_none_to_tool_choice() {
         let config = ToolConfig {
             function_calling_config: Some(FunctionCallingConfig {
-                mode: Some(FunctionCallingConfigMode::None),
+                mode: Some(FunctionCallingConfigMode::ModeNone),
                 allowed_function_names: None,
             }),
             include_server_side_tool_invocations: None,
@@ -2106,5 +2106,124 @@ mod tests {
         let reason = GoogleFinishReason::Escalation;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    // Regression coverage for the google generated-type update. Quicktype renamed the
+    // prelude-colliding `Type::String` and `FunctionCallingConfigMode::None` variants; these
+    // tests pin the wire format so the rename stays behaviorally transparent, and confirm the
+    // lowercase JSON Schema aliases survive the rename.
+    #[test]
+    fn test_schema_type_string_wire_compat() {
+        use crate::providers::google::generated::Type;
+
+        // SCREAMING_SNAKE_CASE wire value is preserved after the `String` -> `TypeString` rename.
+        assert_eq!(
+            serde_json::to_value(Type::TypeString).unwrap(),
+            Value::String("STRING".to_string())
+        );
+        // Google's own casing still deserializes.
+        assert_eq!(
+            serde_json::from_value::<Type>(json!("STRING")).unwrap(),
+            Type::TypeString
+        );
+        // OpenAI/JSON-Schema lowercase alias must remain accepted after the rename.
+        assert_eq!(
+            serde_json::from_value::<Type>(json!("string")).unwrap(),
+            Type::TypeString
+        );
+        // The uncommon TYPE_UNSPECIFIED value keeps both casings too.
+        assert_eq!(
+            serde_json::from_value::<Type>(json!("TYPE_UNSPECIFIED")).unwrap(),
+            Type::TypeUnspecified
+        );
+        assert_eq!(
+            serde_json::from_value::<Type>(json!("type_unspecified")).unwrap(),
+            Type::TypeUnspecified
+        );
+    }
+
+    #[test]
+    fn test_function_calling_config_mode_none_wire_compat() {
+        // The `None` -> `ModeNone` rename must keep serializing/deserializing as "NONE".
+        assert_eq!(
+            serde_json::to_value(FunctionCallingConfigMode::ModeNone).unwrap(),
+            Value::String("NONE".to_string())
+        );
+        assert_eq!(
+            serde_json::from_value::<FunctionCallingConfigMode>(json!("NONE")).unwrap(),
+            FunctionCallingConfigMode::ModeNone
+        );
+        // The other still-valid modes remain accepted.
+        for (wire, mode) in [
+            ("ANY", FunctionCallingConfigMode::Any),
+            ("AUTO", FunctionCallingConfigMode::Auto),
+            ("VALIDATED", FunctionCallingConfigMode::Validated),
+            (
+                "MODE_UNSPECIFIED",
+                FunctionCallingConfigMode::ModeUnspecified,
+            ),
+        ] {
+            assert_eq!(
+                serde_json::from_value::<FunctionCallingConfigMode>(json!(wire)).unwrap(),
+                mode
+            );
+        }
+    }
+
+    #[test]
+    fn test_new_google_enum_members_are_valid() {
+        use crate::providers::google::generated::{Category, Environment};
+
+        // Newly added spec members must deserialize into the generated enums.
+        assert_eq!(
+            serde_json::from_value::<Category>(json!("HARM_CATEGORY_JAILBREAK")).unwrap(),
+            Category::HarmCategoryJailbreak
+        );
+        assert_eq!(
+            serde_json::from_value::<Environment>(json!("ENVIRONMENT_DESKTOP")).unwrap(),
+            Environment::EnvironmentDesktop
+        );
+        assert_eq!(
+            serde_json::from_value::<Environment>(json!("ENVIRONMENT_MOBILE")).unwrap(),
+            Environment::EnvironmentMobile
+        );
+    }
+
+    #[test]
+    fn test_computer_use_disabled_safety_policies_roundtrip() {
+        use crate::providers::google::generated::{ComputerUse, DisabledSafetyPolicy, Environment};
+
+        let computer_use = ComputerUse {
+            disabled_safety_policies: Some(vec![
+                DisabledSafetyPolicy::FinancialTransactions,
+                DisabledSafetyPolicy::AccountCreation,
+            ]),
+            enable_prompt_injection_detection: Some(true),
+            environment: Some(Environment::EnvironmentBrowser),
+            excluded_predefined_functions: None,
+        };
+
+        let value = serde_json::to_value(&computer_use).unwrap();
+        assert_eq!(
+            value["disabledSafetyPolicies"],
+            json!(["FINANCIAL_TRANSACTIONS", "ACCOUNT_CREATION"])
+        );
+        assert_eq!(value["enablePromptInjectionDetection"], json!(true));
+
+        let back: ComputerUse = serde_json::from_value(value).unwrap();
+        assert_eq!(back, computer_use);
+    }
+
+    #[test]
+    fn test_generation_config_enable_affective_dialog() {
+        let config = GenerationConfig {
+            enable_affective_dialog: Some(true),
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["enableAffectiveDialog"], json!(true));
+
+        let back: GenerationConfig = serde_json::from_value(value).unwrap();
+        assert_eq!(back.enable_affective_dialog, Some(true));
     }
 }

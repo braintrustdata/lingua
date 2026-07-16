@@ -1795,6 +1795,28 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
         }
 
         if in_type_enum {
+            // Quicktype renames prelude-colliding variants (e.g. `String` -> `TypeString`)
+            // and emits an explicit `#[serde(rename = "STRING")]`. The bare-variant branch
+            // below skips anything with an existing serde attribute, so such variants would
+            // lose their lowercase JSON Schema alias (`"string"`). Add it here based on the
+            // wire (rename) value so both casings still deserialize.
+            if let Some(rename_value) = trimmed
+                .strip_prefix("#[serde(rename = \"")
+                .and_then(|rest| rest.strip_suffix("\")]"))
+            {
+                result_lines.push(line.to_string());
+                let lowercased = rename_value.to_lowercase();
+                if lowercased != rename_value {
+                    let indent = line.len() - line.trim_start().len();
+                    result_lines.push(format!(
+                        "{}#[serde(alias = \"{}\")]",
+                        " ".repeat(indent),
+                        lowercased
+                    ));
+                }
+                continue;
+            }
+
             // Match bare variant lines like "    Array," (no existing serde attribute)
             let variant_name = trimmed.trim_end_matches(',');
             let is_bare_variant = !trimmed.is_empty()
