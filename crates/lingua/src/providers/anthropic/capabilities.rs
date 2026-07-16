@@ -12,9 +12,20 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     )
     .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
 });
-static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.:])|^claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.])")
-        .expect("valid Opus 4.8+ / Fable model regex")
+// Denylist of Anthropic models that do NOT support system-role entries in
+// `messages` (the mid-conversation system messages feature). This is inverted on
+// purpose: any model not matched here is treated as supporting the feature, so
+// newly released models default to supported and we stop regressing every time
+// Anthropic ships one. Verified 2026-07-16 against the live Messages API for every
+// direct-Anthropic model in model_list.json: opus 4.1-4.7, sonnet 4.x, and haiku
+// 4.x return `role 'system' is not supported on this model`, while opus 4.8,
+// sonnet 5, and fable 5 accept it. If an unsupported model slips past this list,
+// the upstream API returns its own error rather than lingua corrupting the request.
+static UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(^|[./:@])claude-(?:opus-4[-.][1-7]|sonnet-4(?:[-.]\d{1,2})?|haiku-4(?:[-.]\d{1,2})?)($|[-./:@])",
+    )
+    .expect("valid unsupported mid-conversation system model regex")
 });
 
 // Fable 5 and Mythos 5 keep adaptive thinking always on; `thinking: {type: "disabled"}`
@@ -60,13 +71,27 @@ pub fn supports_disabling_thinking(model: &str) -> bool {
     !is_always_on_thinking(&lower)
 }
 
-/// Check if an Anthropic model supports system-role entries in `messages`.
+/// Check if an Anthropic model supports system-role entries in `messages`
+/// (the mid-conversation system messages feature).
 ///
-/// Direct Anthropic and Bedrock Anthropic Opus 4.8+ and Fable model IDs support
-/// these messages. Slash/at provider-wrapped IDs remain excluded until their
-/// provider documents the same behavior.
+/// This is Anthropic-only, so a non-Claude model (which reaches this code via
+/// Anthropic-shaped source detection for cross-provider routing) never supports it.
+/// Among Claude models, denylist semantics apply: only generations empirically
+/// confirmed to reject the feature are excluded (see
+/// `UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE`); every other Claude model — including
+/// future releases — defaults to supported. A Claude model that does not actually
+/// support it and slips through is rejected by the upstream Messages API with its
+/// own error, rather than lingua silently mishandling the request.
 pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
-    is_supported_mid_conversation_system_model(&model.to_ascii_lowercase())
+    let lower = model.to_ascii_lowercase();
+    is_anthropic_claude_model(&lower) && !is_unsupported_mid_conversation_system_model(&lower)
+}
+
+/// Mid-conversation system messages are an Anthropic-only feature. Model IDs reach
+/// this check in direct (`claude-...`), Bedrock (`...anthropic.claude-...`), and
+/// Vertex (`.../anthropic/models/claude-...`) forms — all contain the `claude` token.
+fn is_anthropic_claude_model(model: &str) -> bool {
+    model.contains("claude")
 }
 
 /// Transforms required for specific Anthropic model families.
@@ -88,8 +113,8 @@ fn is_always_on_thinking(model: &str) -> bool {
     ALWAYS_ON_THINKING_RE.is_match(model)
 }
 
-fn is_supported_mid_conversation_system_model(model: &str) -> bool {
-    OPUS_4_8_OR_LATER_RE.is_match(model)
+fn is_unsupported_mid_conversation_system_model(model: &str) -> bool {
+    UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE.is_match(model)
 }
 
 /// Get the transforms required for a model.
@@ -271,57 +296,74 @@ mod tests {
 
     #[test]
     fn test_supports_mid_conversation_system_messages() {
-        assert!(supports_mid_conversation_system_messages("claude-opus-4-8"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-8-20260528"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-opus-4.8"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-10"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-10-20260601"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-opus-5-0"));
-        assert!(supports_mid_conversation_system_messages("claude-opus-5.0"));
+        // Empirically verified 2026-07-16 against the live Anthropic Messages API
+        // (every direct-Anthropic model in model_list.json). Supported => HTTP 200.
+        for model in [
+            "claude-opus-4-8",
+            "claude-opus-4-8-20260528",
+            "claude-opus-4.8",
+            "claude-sonnet-5", // regression fix: the live API accepts this, older allowlist rejected it
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-SONNET-5",
+        ] {
+            assert!(
+                supports_mid_conversation_system_messages(model),
+                "expected supported (verified live): {model}"
+            );
+        }
 
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-opus-4-8-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "anthropic.claude-opus-4-8-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-opus-4-10-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-fable-5"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-fable-5-20260601"
-        ));
-        assert!(supports_mid_conversation_system_messages("CLAUDE-FABLE-5"));
-        assert!(supports_mid_conversation_system_messages("claude-fable-6"));
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-fable-5-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "anthropic.claude-fable-5-v1:0"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "anthropic/claude-opus-4-8@20260528"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "anthropic/claude-fable-5@20260601"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "claude-opus-4-7"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "claude-haiku-4-5-20251001"
-        ));
-        assert!(!supports_mid_conversation_system_messages("claude-fable"));
-        assert!(!supports_mid_conversation_system_messages(
-            "not-claude-fable-5"
-        ));
+        // Empirically verified unsupported => HTTP 400 "role 'system' is not supported
+        // on this model", across direct and provider-wrapped forms of those model IDs.
+        for model in [
+            "claude-opus-4-1",
+            "claude-opus-4-1-20250805",
+            "claude-opus-4-5",
+            "claude-opus-4-5-20251101",
+            "claude-opus-4-6",
+            "claude-opus-4-7",
+            "claude-sonnet-4-5",
+            "claude-sonnet-4-5-20250929",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5",
+            "claude-haiku-4-5-20251001",
+            "us.anthropic.claude-sonnet-4-5-v1:0",
+            "anthropic/claude-opus-4-7@20260401",
+            "us.anthropic.claude-haiku-4-5-v1:0",
+        ] {
+            assert!(
+                !supports_mid_conversation_system_messages(model),
+                "expected unsupported (verified live): {model}"
+            );
+        }
+
+        // Denylist semantics: models not in the confirmed-unsupported set default to
+        // supported so future releases do not regress. Not individually verified.
+        for model in [
+            "claude-opus-4-10",
+            "claude-opus-4-10-20260601",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+            "claude-sonnet-6",
+            "claude-haiku-5",
+            "claude-fable-6",
+            "us.anthropic.claude-opus-4-8-v1:0",
+            "anthropic/claude-opus-4-8@20260528",
+        ] {
+            assert!(
+                supports_mid_conversation_system_messages(model),
+                "expected default-supported (denylist miss): {model}"
+            );
+        }
+
+        // Non-Anthropic models never support this Anthropic-only feature, even though
+        // they can reach Anthropic-shaped source detection during cross-provider routing.
+        for model in ["gpt-5.5", "gpt-5-mini", "gemini-2.5-pro", "grok-4"] {
+            assert!(
+                !supports_mid_conversation_system_messages(model),
+                "expected unsupported (non-Anthropic): {model}"
+            );
+        }
     }
 
     #[test]

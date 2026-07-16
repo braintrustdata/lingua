@@ -127,7 +127,7 @@ fn validate_no_non_leading_system_messages(messages: &[Message]) -> Result<(), T
     {
         return Err(TransformError::ValidationFailed {
             target: ProviderFormat::Anthropic,
-            reason: "Anthropic generated types include system-role input messages, but the live Messages API currently rejects role 'system' for available models; non-leading system/developer messages cannot be exported to Anthropic without changing semantics".to_string(),
+            reason: "Cannot convert a non-leading system/developer message into an Anthropic request: mid-conversation system messages are only forwarded for native Anthropic requests to models that support them (e.g. Opus 4.8, Sonnet 5, Fable 5). Move the instruction to the leading position or the top-level 'system' field.".to_string(),
         });
     }
 
@@ -1785,7 +1785,7 @@ mod tests {
         };
 
         let err = adapter.request_from_universal(&req).unwrap_err();
-        assert!(format!("{err}").contains("live Messages API currently rejects"));
+        assert!(format!("{err}").contains("mid-conversation system messages"));
     }
 
     #[test]
