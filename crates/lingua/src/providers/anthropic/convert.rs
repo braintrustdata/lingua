@@ -3679,4 +3679,107 @@ mod tests {
         assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
         assert!(err.to_string().contains("root type is required"));
     }
+
+    #[test]
+    fn new_tool_variants_roundtrip_via_builtin() {
+        let web_search_json = json!({
+            "type": "web_search_20260318",
+            "name": "web_search",
+            "allowed_domains": ["example.com"]
+        });
+        let tool: Tool = serde_json::from_value(web_search_json.clone()).unwrap();
+        let universal = UniversalTool::from(&tool);
+        assert!(matches!(
+            universal.tool_type,
+            UniversalToolType::Builtin { .. }
+        ));
+        let roundtripped = Tool::try_from(&universal).unwrap();
+        let roundtripped_json = serde_json::to_value(&roundtripped).unwrap();
+        assert_eq!(roundtripped_json["type"], "web_search_20260318");
+        assert_eq!(roundtripped_json["name"], "web_search");
+
+        let web_fetch_json = json!({
+            "type": "web_fetch_20260318",
+            "name": "web_fetch",
+            "max_content_tokens": 4096
+        });
+        let tool: Tool = serde_json::from_value(web_fetch_json).unwrap();
+        let universal = UniversalTool::from(&tool);
+        let roundtripped = Tool::try_from(&universal).unwrap();
+        let roundtripped_json = serde_json::to_value(&roundtripped).unwrap();
+        assert_eq!(roundtripped_json["type"], "web_fetch_20260318");
+        assert_eq!(roundtripped_json["name"], "web_fetch");
+    }
+
+    #[test]
+    fn refusal_category_deserializes_known_variants() {
+        let categories = ["cyber", "bio", "frontier_llm", "reasoning_extraction"];
+        for category in categories {
+            let parsed: generated::RefusalCategory =
+                serde_json::from_value(json!(category)).unwrap();
+            let serialized = serde_json::to_value(&parsed).unwrap();
+            assert_eq!(serialized, json!(category));
+        }
+    }
+
+    #[test]
+    fn system_enum_deserializes_both_variants() {
+        let string_system: generated::System = serde_json::from_value(json!("hello")).unwrap();
+        assert!(matches!(string_system, generated::System::String(_)));
+
+        let array_system: generated::System = serde_json::from_value(json!([
+            {"type": "text", "text": "hello"}
+        ]))
+        .unwrap();
+        assert!(matches!(
+            array_system,
+            generated::System::RequestTextBlockArray(_)
+        ));
+    }
+
+    #[test]
+    fn source_enum_deserializes_both_variants() {
+        let string_source: generated::Source = serde_json::from_value(json!("url_ref")).unwrap();
+        assert!(matches!(string_source, generated::Source::String(_)));
+
+        let struct_source: generated::Source = serde_json::from_value(json!({
+            "type": "base64",
+            "data": "abc123",
+            "media_type": "image/png"
+        }))
+        .unwrap();
+        assert!(matches!(struct_source, generated::Source::SourceSource(_)));
+    }
+
+    #[test]
+    fn input_content_block_content_deserializes_all_variants() {
+        let string_variant: generated::InputContentBlockContent =
+            serde_json::from_value(json!("text content")).unwrap();
+        assert!(matches!(
+            string_variant,
+            generated::InputContentBlockContent::String(_)
+        ));
+
+        let array_variant: generated::InputContentBlockContent = serde_json::from_value(json!([
+            {"type": "text", "text": "hello"}
+        ]))
+        .unwrap();
+        assert!(matches!(
+            array_variant,
+            generated::InputContentBlockContent::BlockArray(_)
+        ));
+    }
+
+    #[test]
+    fn tool_choice_type_none_roundtrips() {
+        let tc = ToolChoice {
+            tool_choice_type: ToolChoiceType::None,
+            name: None,
+            disable_parallel_tool_use: None,
+        };
+        let json = serde_json::to_value(&tc).unwrap();
+        assert_eq!(json["type"], "none");
+        let parsed: ToolChoice = serde_json::from_value(json).unwrap();
+        assert_eq!(parsed.tool_choice_type, ToolChoiceType::None);
+    }
 }

@@ -927,6 +927,88 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     ];
     processed = add_ts_export_to_types(&processed, &entry_points, "anthropic/");
 
+    // === Stabilize quicktype's arbitrary type names ===
+    // Quicktype uses color-themed disambiguation (Purple, Fluffy, Tentacled, etc.) that
+    // shifts unpredictably when the input schema changes. Normalize to stable names that
+    // the consuming adapter/converter code expects.
+
+    // Phase 1: Park types whose names conflict with Phase 2 targets.
+    // ORDER MATTERS: replace TentacledType BEFORE introducing any temp name
+    // containing "TentacledType" as a substring (e.g. QTFIX_TentacledType),
+    // otherwise the second replace will match the substring inside the temp name.
+    // Current TentacledType (web_search_result) → old IndigoType
+    processed = processed.replace("TentacledType", "QTFIX_IndigoType");
+    // Current FluffyMediaType (pdf, text/plain) → old TentacledMediaType
+    processed = processed.replace("FluffyMediaType", "QTFIX_TentacledMediaType");
+    // Current FluffyType (code execution output types) → old TentacledType
+    processed = processed.replace("FluffyType", "QTFIX_TentacledType");
+    // Current StickyType (base64, text – response doc source) → old IndecentType
+    processed = processed.replace("StickyType", "QTFIX_IndecentType");
+
+    // Phase 2: Source hierarchy – inner struct first, then outer, then enum.
+    // Inner source struct: current SourceSource → old SourceSourceClass
+    processed = processed.replace("SourceSource", "SourceSourceClass");
+    // Outer source struct definition: current Source → old SourceSource
+    processed = processed.replace("pub struct Source {", "pub struct SourceSource {");
+    // Enum variant wrapping the outer source struct
+    processed = processed.replace("    Source(Source),", "    SourceSource(SourceSource),");
+    // Source enum: current SourceUnion → old Source
+    processed = processed.replace("SourceUnion", "Source");
+
+    // Phase 3: Apply primary type renames.
+    processed = processed.replace("Base64ImageSourceMediaType", "FluffyMediaType");
+    processed = processed.replace("Base64ImageSourceType", "FluffyType");
+    processed = processed.replace("Base64ImageSourceContent", "SourceContent");
+    processed = processed.replace("RequestDocumentBlockSource", "PurpleSource");
+    processed = processed.replace("RequestDocumentBlockType", "QTFIX_StickyType");
+    processed = processed.replace("ResponseDocumentBlockSource", "FluffySource");
+
+    // Phase 4: Resolve temp names.
+    processed = processed.replace("QTFIX_TentacledMediaType", "TentacledMediaType");
+    processed = processed.replace("QTFIX_TentacledType", "TentacledType");
+    processed = processed.replace("QTFIX_IndecentType", "IndecentType");
+    processed = processed.replace("QTFIX_IndigoType", "IndigoType");
+    processed = processed.replace("QTFIX_StickyType", "StickyType");
+
+    // Phase 5: Fix enum variant names.
+    // Quicktype prefixes String variants with "Purple" to disambiguate untagged unions.
+    processed = processed.replace("PurpleString(String)", "String(String)");
+    // ToolChoiceType::None was renamed to TypeNone to avoid Rust keyword clash.
+    processed = processed.replace(
+        "    #[serde(rename = \"none\")]\n    TypeNone,",
+        "    None,",
+    );
+
+    // Phase 6: Request/Response web search result error structs.
+    // Quicktype shortened these to "Request"/"Response" which are too generic.
+    processed = processed.replace(
+        "pub struct Request {",
+        "pub struct RequestWebSearchToolResultError {",
+    );
+    processed = processed.replace(
+        "    Request(Request),",
+        "    RequestWebSearchToolResultError(RequestWebSearchToolResultError),",
+    );
+    processed = processed.replace(
+        "pub request_type:",
+        "pub request_web_search_tool_result_error_type:",
+    );
+    processed = processed.replace(
+        "pub struct Response {",
+        "pub struct ResponseWebSearchToolResultError {",
+    );
+    processed = processed.replace(
+        "    Response(Response),",
+        "    ResponseWebSearchToolResultError(ResponseWebSearchToolResultError),",
+    );
+    processed = processed.replace(
+        "pub response_type:",
+        "pub response_web_search_tool_result_error_type:",
+    );
+
+    // Phase 7: Tool type enum rename.
+    processed = processed.replace("pub enum Type {", "pub enum ToolType {");
+
     // Fix HashMap to serde_json::Map for proper JavaScript object serialization
     // This ensures that JSON objects serialize to plain JS objects {} instead of Maps
     processed = processed.replace(
@@ -997,9 +1079,11 @@ pub struct ToolSearchTool {
         ),
     );
 
+    // Insert ToolSearchTool variants before the untagged Custom fallback.
+    // Anchor on the Custom variant which is always last.
     with_struct.replace(
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(untagged)]",
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]",
+        "\n    #[serde(untagged)]\n    Custom(CustomTool),",
+        "\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
 }
 

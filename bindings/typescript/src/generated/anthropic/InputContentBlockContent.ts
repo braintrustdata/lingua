@@ -2,4 +2,4 @@
 import type { Block } from "./Block";
 import type { RequestWebSearchToolResultError } from "./RequestWebSearchToolResultError";
 
-export type InputContentBlockContent = Array<Block> | RequestWebSearchToolResultError | string;
+export type InputContentBlockContent = Array<Block> | string | RequestWebSearchToolResultError;
