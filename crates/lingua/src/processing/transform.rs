@@ -1027,7 +1027,7 @@ where
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::{UserContent, UserContentPart};
+    use crate::universal::{ResponseRequirement, UserContent, UserContentPart};
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
@@ -2274,8 +2274,12 @@ mod tests {
         // Should be passthrough with same bytes
         assert!(result.is_passthrough());
         assert_eq!(result.into_bytes().as_ptr(), input_ptr);
-        assert!(transformed.parsable_info.reusable_for_request(false));
-        assert!(transformed.parsable_info.reusable_for_request(true));
+        assert!(transformed
+            .parsable_info
+            .reusable_for_request(ResponseRequirement::Any));
+        assert!(transformed
+            .parsable_info
+            .reusable_for_request(ResponseRequirement::Json));
     }
 
     #[test]
@@ -2297,7 +2301,9 @@ mod tests {
         let transformed = transform_response(input, ProviderFormat::Responses).unwrap();
 
         assert!(transformed.result.is_passthrough());
-        assert!(transformed.parsable_info.reusable_for_request(true));
+        assert!(transformed
+            .parsable_info
+            .reusable_for_request(ResponseRequirement::Json));
     }
 
     #[test]
@@ -2327,8 +2333,12 @@ mod tests {
         assert!(!transformed.parsable_info.complete);
         assert!(!transformed.parsable_info.content_is_json);
         assert!(transformed.parsable_info.saw_terminal_finish);
-        assert!(!transformed.parsable_info.reusable_for_request(false));
-        assert!(!transformed.parsable_info.reusable_for_request(true));
+        assert!(!transformed
+            .parsable_info
+            .reusable_for_request(ResponseRequirement::Any));
+        assert!(!transformed
+            .parsable_info
+            .reusable_for_request(ResponseRequirement::Json));
     }
 
     #[test]

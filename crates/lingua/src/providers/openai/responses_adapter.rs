@@ -1441,8 +1441,8 @@ mod tests {
     use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
     use crate::universal::{
-        AssistantContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
-        ToolResultContentPart,
+        AssistantContentPart, ResponseRequirement, ToolCallArguments, ToolCaller, ToolCallerType,
+        ToolContentPart, ToolResultContentPart,
     };
     use bytes::Bytes;
 
@@ -2220,7 +2220,9 @@ mod tests {
             let universal = adapter.response_to_universal(payload).unwrap();
 
             assert!(
-                !universal.parsable_info().reusable_for_request(false),
+                !universal
+                    .parsable_info()
+                    .reusable_for_request(ResponseRequirement::Any),
                 "{status} should not be reusable"
             );
         }

@@ -29,7 +29,9 @@ pub use request::{
     ReasoningCanonical, ReasoningConfig, ReasoningEffort, ResponseFormatConfig, ResponseFormatType,
     SummaryMode, TokenBudget, ToolChoiceConfig, ToolChoiceMode, UniversalParams, UniversalRequest,
 };
-pub use response::{FinishReason, ParsableResponseInfo, UniversalResponse, UniversalUsage};
+pub use response::{
+    FinishReason, ParsableResponseInfo, ResponseRequirement, UniversalResponse, UniversalUsage,
+};
 pub use stream::{
     UniversalReasoningDelta, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta,

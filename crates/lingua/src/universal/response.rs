@@ -48,6 +48,12 @@ pub struct ParsableResponseInfo {
     pub saw_terminal_finish: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResponseRequirement {
+    Any,
+    Json,
+}
+
 impl ParsableResponseInfo {
     pub fn valid() -> Self {
         Self {
@@ -57,8 +63,13 @@ impl ParsableResponseInfo {
         }
     }
 
-    pub fn reusable_for_request(self, requires_json: bool) -> bool {
-        self.saw_terminal_finish && self.complete && (!requires_json || self.content_is_json)
+    pub fn reusable_for_request(self, requirement: ResponseRequirement) -> bool {
+        let content_meets_requirement = match requirement {
+            ResponseRequirement::Any => true,
+            ResponseRequirement::Json => self.content_is_json,
+        };
+
+        self.saw_terminal_finish && self.complete && content_meets_requirement
     }
 }
 
