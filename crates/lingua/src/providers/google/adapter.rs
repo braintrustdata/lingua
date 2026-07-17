@@ -34,10 +34,27 @@ use crate::universal::{
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GoogleResponseFormatView {
+    generation_config: Option<GenerationConfig>,
+    config: Option<GenerationConfig>,
+}
+
+impl GoogleResponseFormatView {
+    fn response_format(&self) -> Option<crate::universal::request::ResponseFormatConfig> {
+        self.generation_config
+            .as_ref()
+            .or(self.config.as_ref())
+            .map(crate::universal::request::ResponseFormatConfig::from)
+            .filter(|format| format.format_type.is_some())
+    }
+}
 
 fn is_discovery_only_message(message: &Message) -> bool {
     match message {
@@ -90,7 +107,18 @@ impl ProviderAdapter for GoogleAdapter {
         try_parse_google(payload).is_ok()
     }
 
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        let view: GoogleResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        Ok(view
+            .response_format()
+            .is_some_and(|format| format.requires_json_response()))
+    }
+
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
+        let response_format_view: GoogleResponseFormatView =
+            serde_json::from_value(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
         // Single parse: typed params now includes typed contents and generation_config
         let typed_params: GoogleParams = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -169,12 +197,7 @@ impl ProviderAdapter for GoogleAdapter {
             .as_ref()
             .map(ToolChoiceConfig::from);
 
-        // Convert response_format from GenerationConfig
-        let response_format = typed_params
-            .generation_config
-            .as_ref()
-            .map(crate::universal::request::ResponseFormatConfig::from)
-            .filter(|rf| rf.format_type.is_some());
+        let response_format = response_format_view.response_format();
 
         let mut params = UniversalParams {
             temperature,
@@ -473,7 +496,7 @@ impl ProviderAdapter for GoogleAdapter {
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
         let mut messages = Vec::new();
-        let mut finish_reason = None;
+        let mut finish_reasons = Vec::new();
 
         for candidate in response.candidates.iter().flatten() {
             if let Some(content) = &candidate.content {
@@ -482,8 +505,8 @@ impl ProviderAdapter for GoogleAdapter {
                 messages.push(universal);
             }
 
-            if finish_reason.is_none() {
-                finish_reason = candidate.finish_reason.as_ref().map(FinishReason::from);
+            if let Some(reason) = candidate.finish_reason.as_ref().map(FinishReason::from) {
+                finish_reasons.push(reason);
             }
         }
 
@@ -504,7 +527,7 @@ impl ProviderAdapter for GoogleAdapter {
         let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
-            finish_reason
+            finish_reasons.first().cloned()
         };
 
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
@@ -516,6 +539,7 @@ impl ProviderAdapter for GoogleAdapter {
             messages,
             usage,
             finish_reason,
+            finish_reasons,
         })
     }
 

@@ -255,6 +255,20 @@ impl ProviderAdapter for AnthropicAdapter {
         try_parse_anthropic(payload).is_ok()
     }
 
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        let extras: AnthropicExtrasView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let typed_params: CreateMessageParams = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let response_format = typed_params
+            .output_config
+            .as_ref()
+            .and_then(|oc| oc.format.as_ref())
+            .or(extras.output_format.as_ref())
+            .map(ResponseFormatConfig::from);
+        Ok(response_format.is_some_and(|format| format.requires_json_response()))
+    }
+
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         let raw_payload_obj: Map<String, Value> = serde_json::from_value(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
@@ -805,7 +819,8 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 

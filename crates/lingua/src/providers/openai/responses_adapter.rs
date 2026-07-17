@@ -270,6 +270,11 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
 }
 
 #[derive(Debug, Deserialize, Default)]
+struct ResponsesStatusView {
+    status: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
     item: Option<ResponsesOutputItemAddedItem>,
     output_index: Option<u32>,
@@ -433,6 +438,26 @@ impl ProviderAdapter for ResponsesAdapter {
 
     fn detect_request(&self, payload: &Value) -> bool {
         try_parse_responses(payload).is_ok()
+    }
+
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        #[derive(serde::Deserialize)]
+        struct TextView {
+            format: Option<Value>,
+        }
+        #[derive(serde::Deserialize)]
+        struct ResponseFormatView {
+            text: Option<TextView>,
+        }
+
+        let view: ResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let Some(format) = view.text.as_ref().and_then(|text| text.format.as_ref()) else {
+            return Ok(false);
+        };
+        let config: crate::universal::request::ResponseFormatConfig =
+            (ProviderFormat::Responses, format).try_into()?;
+        Ok(config.requires_json_response())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -877,16 +902,16 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         });
 
+        let response_status = serde_json::from_value::<ResponsesStatusView>(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+            .status;
+
         let finish_reason = if has_actionable_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
-            match payload.get("status").and_then(Value::as_str) {
-                Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                    type_name: "FinishReason",
-                    value: s.to_string(),
-                })?),
-                None => None,
-            }
+            response_status
+                .as_deref()
+                .map(|s| FinishReason::from_provider_string(s, ProviderFormat::Responses))
         };
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
@@ -900,7 +925,8 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 
@@ -1415,8 +1441,8 @@ mod tests {
     use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
     use crate::universal::{
-        AssistantContentPart, ToolCallArguments, ToolCaller, ToolCallerType, ToolContentPart,
-        ToolResultContentPart,
+        AssistantContentPart, ResponseRequirement, ToolCallArguments, ToolCaller, ToolCallerType,
+        ToolContentPart, ToolResultContentPart,
     };
     use bytes::Bytes;
 
@@ -1827,6 +1853,7 @@ mod tests {
             }],
             usage: None,
             finish_reason: None,
+            finish_reasons: Vec::new(),
         };
         let exported = adapter.response_from_universal(&tool_result_resp).unwrap();
         let response: TheResponseObject = serde_json::from_value(exported)
@@ -2144,6 +2171,7 @@ mod tests {
             ProviderFormat::ChatCompletions,
         )
         .expect("Responses response should transform to Chat Completions")
+        .result
         .into_bytes();
 
         #[derive(serde::Deserialize)]
@@ -2175,6 +2203,29 @@ mod tests {
             chat.choices[0].message.reasoning_signature.as_deref(),
             Some("encrypted-reasoning")
         );
+    }
+
+    #[test]
+    fn test_responses_status_is_incomplete_for_non_terminal_responses() {
+        let adapter = ResponsesAdapter;
+        for status in ["queued", "in_progress", "failed", "cancelled", "incomplete"] {
+            let payload = json!({
+                "id": "resp_123",
+                "object": "response",
+                "model": "gpt-5-mini",
+                "status": status,
+                "output": []
+            });
+
+            let universal = adapter.response_to_universal(payload).unwrap();
+
+            assert!(
+                !universal
+                    .parsable_info()
+                    .reusable_for_request(ResponseRequirement::Any),
+                "{status} should not be reusable"
+            );
+        }
     }
 
     #[test]
@@ -2376,7 +2427,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(
@@ -2437,7 +2488,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(!response.output.is_empty());
@@ -2569,6 +2620,7 @@ mod tests {
             }],
             usage: None,
             finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
         };
 
         let adapter = ResponsesAdapter;
