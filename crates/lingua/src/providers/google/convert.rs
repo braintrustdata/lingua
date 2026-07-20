@@ -1080,7 +1080,7 @@ impl From<&ToolConfig> for ToolChoiceConfig {
                     ToolChoiceMode::Auto
                 }
                 FunctionCallingConfigMode::Any => ToolChoiceMode::Required,
-                FunctionCallingConfigMode::None => ToolChoiceMode::None,
+                FunctionCallingConfigMode::ModeNone => ToolChoiceMode::None,
                 FunctionCallingConfigMode::ModeUnspecified => ToolChoiceMode::Auto,
             })
         });
@@ -1114,7 +1114,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolConfig {
         let (google_mode, allowed_names) = match mode {
             ToolChoiceMode::Auto => (FunctionCallingConfigMode::Auto, None),
             ToolChoiceMode::Required => (FunctionCallingConfigMode::Any, None),
-            ToolChoiceMode::None => (FunctionCallingConfigMode::None, None),
+            ToolChoiceMode::None => (FunctionCallingConfigMode::ModeNone, None),
             ToolChoiceMode::Tool => {
                 let name = config.tool_name.clone().ok_or(())?;
                 (FunctionCallingConfigMode::Any, Some(vec![name]))
@@ -1895,7 +1895,7 @@ mod tests {
     fn test_tool_config_none_to_tool_choice() {
         let config = ToolConfig {
             function_calling_config: Some(FunctionCallingConfig {
-                mode: Some(FunctionCallingConfigMode::None),
+                mode: Some(FunctionCallingConfigMode::ModeNone),
                 allowed_function_names: None,
             }),
             include_server_side_tool_invocations: None,
@@ -2106,5 +2106,161 @@ mod tests {
         let reason = GoogleFinishReason::Escalation;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    // --- Regression tests for the regenerated google provider types ---
+    //
+    // These guard the wire format of enum variants that quicktype renamed to avoid
+    // Rust prelude collisions, and confirm newly added spec variants/fields survive a
+    // serde round trip into and out of the generated types.
+
+    use crate::providers::google::generated::{
+        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+    };
+
+    #[test]
+    fn test_schema_type_string_wire_format_and_lowercase_alias() {
+        // Renamed variant `String` -> `TypeString` must still serialize as "STRING".
+        assert_eq!(
+            serde_json::to_string(&Type::TypeString).unwrap(),
+            "\"STRING\""
+        );
+        // Google's uppercase form and the JSON Schema lowercase alias both deserialize.
+        assert_eq!(
+            serde_json::from_str::<Type>("\"STRING\"").unwrap(),
+            Type::TypeString
+        );
+        assert_eq!(
+            serde_json::from_str::<Type>("\"string\"").unwrap(),
+            Type::TypeString
+        );
+        // The composite unspecified variant never had a lowercase alias.
+        assert_eq!(
+            serde_json::to_string(&Type::TypeUnspecified).unwrap(),
+            "\"TYPE_UNSPECIFIED\""
+        );
+        assert!(serde_json::from_str::<Type>("\"type_unspecified\"").is_err());
+    }
+
+    #[test]
+    fn test_function_calling_config_mode_none_wire_format() {
+        // Renamed variant `None` -> `ModeNone` must still serialize/deserialize as "NONE".
+        assert_eq!(
+            serde_json::to_string(&FunctionCallingConfigMode::ModeNone).unwrap(),
+            "\"NONE\""
+        );
+        assert_eq!(
+            serde_json::from_str::<FunctionCallingConfigMode>("\"NONE\"").unwrap(),
+            FunctionCallingConfigMode::ModeNone
+        );
+        // The other spec modes remain accepted, including the newer VALIDATED.
+        for (wire, mode) in [
+            ("\"AUTO\"", FunctionCallingConfigMode::Auto),
+            ("\"ANY\"", FunctionCallingConfigMode::Any),
+            ("\"VALIDATED\"", FunctionCallingConfigMode::Validated),
+            (
+                "\"MODE_UNSPECIFIED\"",
+                FunctionCallingConfigMode::ModeUnspecified,
+            ),
+        ] {
+            assert_eq!(
+                serde_json::from_str::<FunctionCallingConfigMode>(wire).unwrap(),
+                mode
+            );
+        }
+    }
+
+    #[test]
+    fn test_new_harm_category_jailbreak_round_trips() {
+        assert_eq!(
+            serde_json::to_string(&Category::HarmCategoryJailbreak).unwrap(),
+            "\"HARM_CATEGORY_JAILBREAK\""
+        );
+        assert_eq!(
+            serde_json::from_str::<Category>("\"HARM_CATEGORY_JAILBREAK\"").unwrap(),
+            Category::HarmCategoryJailbreak
+        );
+    }
+
+    #[test]
+    fn test_new_environment_variants_round_trip() {
+        for (wire, env) in [
+            ("\"ENVIRONMENT_DESKTOP\"", Environment::EnvironmentDesktop),
+            ("\"ENVIRONMENT_MOBILE\"", Environment::EnvironmentMobile),
+        ] {
+            assert_eq!(serde_json::to_string(&env).unwrap(), wire);
+            assert_eq!(serde_json::from_str::<Environment>(wire).unwrap(), env);
+        }
+    }
+
+    #[test]
+    fn test_disabled_safety_policy_values_round_trip() {
+        for (wire, policy) in [
+            (
+                "\"ACCOUNT_CREATION\"",
+                DisabledSafetyPolicy::AccountCreation,
+            ),
+            (
+                "\"SENSITIVE_DATA_MODIFICATION\"",
+                DisabledSafetyPolicy::SensitiveDataModification,
+            ),
+            (
+                "\"LEGAL_TERMS_AND_AGREEMENTS\"",
+                DisabledSafetyPolicy::LegalTermsAndAgreements,
+            ),
+            (
+                "\"SAFETY_POLICY_UNSPECIFIED\"",
+                DisabledSafetyPolicy::SafetyPolicyUnspecified,
+            ),
+        ] {
+            assert_eq!(serde_json::to_string(&policy).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_str::<DisabledSafetyPolicy>(wire).unwrap(),
+                policy
+            );
+        }
+    }
+
+    #[test]
+    fn test_computer_use_new_fields_round_trip() {
+        // A provider payload exercising the newly added ComputerUse fields must
+        // deserialize into the generated type and re-serialize with the expected
+        // camelCase keys.
+        let payload = json!({
+            "environment": "ENVIRONMENT_DESKTOP",
+            "enablePromptInjectionDetection": true,
+            "disabledSafetyPolicies": ["ACCOUNT_CREATION", "DATA_MODIFICATION"]
+        });
+        let parsed: ComputerUse = serde_json::from_value(payload).unwrap();
+        assert_eq!(parsed.environment, Some(Environment::EnvironmentDesktop));
+        assert_eq!(parsed.enable_prompt_injection_detection, Some(true));
+        assert_eq!(
+            parsed.disabled_safety_policies,
+            Some(vec![
+                DisabledSafetyPolicy::AccountCreation,
+                DisabledSafetyPolicy::DataModification,
+            ])
+        );
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(reserialized["enablePromptInjectionDetection"], json!(true));
+        assert_eq!(
+            reserialized["disabledSafetyPolicies"],
+            json!(["ACCOUNT_CREATION", "DATA_MODIFICATION"])
+        );
+    }
+
+    #[test]
+    fn test_generation_config_enable_affective_dialog_round_trips() {
+        let config = GenerationConfig {
+            enable_affective_dialog: Some(true),
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["enableAffectiveDialog"], json!(true));
+
+        let parsed: GenerationConfig =
+            serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
+        assert_eq!(parsed.enable_affective_dialog, Some(true));
     }
 }

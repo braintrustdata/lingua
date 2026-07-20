@@ -1795,6 +1795,22 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
         }
 
         if in_type_enum {
+            // quicktype renames variants that collide with Rust prelude names (e.g. the
+            // `String` variant becomes `TypeString`) and emits an explicit
+            // `#[serde(rename = "STRING")]`. Those renamed lines are skipped by the
+            // bare-variant branch below, which would drop the lowercase JSON Schema alias.
+            // Re-attach it here so the enum keeps accepting both "STRING" and "string".
+            if let Some(wire) = single_word_serde_rename(trimmed) {
+                let indent = line.len() - line.trim_start().len();
+                result_lines.push(format!(
+                    "{}#[serde(rename = \"{}\", alias = \"{}\")]",
+                    " ".repeat(indent),
+                    wire,
+                    wire.to_lowercase()
+                ));
+                continue;
+            }
+
             // Match bare variant lines like "    Array," (no existing serde attribute)
             let variant_name = trimmed.trim_end_matches(',');
             let is_bare_variant = !trimmed.is_empty()
@@ -1826,7 +1842,27 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     result_lines.join("\n")
 }
 
-/// Find an enum in generated Rust source whose body contains all of the given variant names.
+/// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
+/// existing alias (e.g. `#[serde(rename = "STRING")]`), return that wire word.
+///
+/// Used to re-attach lowercase JSON Schema aliases to `Type` variants that quicktype
+/// renamed to avoid Rust prelude collisions. Composite wire names such as
+/// `TYPE_UNSPECIFIED` (which never had a lowercase alias) are intentionally excluded.
+fn single_word_serde_rename(trimmed: &str) -> Option<String> {
+    if trimmed.contains("alias") {
+        return None;
+    }
+    let inner = trimmed
+        .strip_prefix("#[serde(rename = \"")?
+        .strip_suffix("\")]")?;
+    let is_single_uppercase_word =
+        !inner.is_empty() && inner.chars().all(|c| c.is_ascii_uppercase());
+    if is_single_uppercase_word {
+        Some(inner.to_string())
+    } else {
+        None
+    }
+}
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
