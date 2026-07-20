@@ -1779,12 +1779,21 @@ mod tests {
 
     #[test]
     fn responses_programmatic_callers_roundtrip_through_response_export() {
-        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+        use crate::providers::openai::generated::{
+            DirectToolCallCallerType, InputItemDirectToolCallCaller, OutputItemType,
+            TheResponseObject,
+        };
 
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
             caller_type: ToolCallerType::Program,
             caller_id: "call_prog_123".to_string(),
+        };
+        // The universal program caller is exported through the canonical generated
+        // ToolCallCaller union (type `program` carries the originating call id).
+        let expected_caller = InputItemDirectToolCallCaller {
+            direct_tool_call_caller_type: DirectToolCallCallerType::Program,
+            caller_id: Some(caller.caller_id.clone()),
         };
         let payload = json!({
             "id": "resp_programmatic",
@@ -1831,7 +1840,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
             .expect("function_call output item should be exported");
-        assert_eq!(function_call.caller.as_ref(), Some(&caller));
+        assert_eq!(function_call.caller.as_ref(), Some(&expected_caller));
         assert_eq!(
             function_call.status,
             Some(crate::providers::openai::generated::Status::InProgress)
@@ -1863,7 +1872,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
             .expect("function_call_output item should be exported");
-        assert_eq!(function_call_output.caller.as_ref(), Some(&caller));
+        assert_eq!(function_call_output.caller.as_ref(), Some(&expected_caller));
     }
 
     #[test]

@@ -19,6 +19,38 @@ use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
+/// Bridge the canonical generated `ToolCallCaller` (direct | program) to the
+/// universal [`ToolCaller`].
+///
+/// A `program` caller carries the id of the program item that produced the tool
+/// call and maps to the universal program caller. A `direct` caller conveys no
+/// additional data (an ordinary tool call), so its universal representation is
+/// simply the absence of a caller.
+fn tool_caller_from_provider(
+    caller: Option<openai::InputItemDirectToolCallCaller>,
+) -> Option<ToolCaller> {
+    caller.and_then(|caller| match caller.direct_tool_call_caller_type {
+        openai::DirectToolCallCallerType::Program => caller.caller_id.map(|caller_id| ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id,
+        }),
+        openai::DirectToolCallCallerType::Direct => None,
+    })
+}
+
+/// Bridge the universal [`ToolCaller`] back to the canonical generated
+/// `ToolCallCaller`. The universal model only represents `program` callers.
+fn tool_caller_to_provider(
+    caller: Option<ToolCaller>,
+) -> Option<openai::InputItemDirectToolCallCaller> {
+    caller.map(|caller| openai::InputItemDirectToolCallCaller {
+        direct_tool_call_caller_type: match caller.caller_type {
+            ToolCallerType::Program => openai::DirectToolCallCallerType::Program,
+        },
+        caller_id: Some(caller.caller_id),
+    })
+}
+
 fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
     match arguments {
         openai::Arguments::String(value) => value,
@@ -1079,7 +1111,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1100,7 +1132,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1120,7 +1152,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller),
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1374,7 +1406,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .into(),
                     };
 
-                    let caller = input.caller;
+                    let caller = tool_caller_from_provider(input.caller);
                     let status = non_completed_function_call_status_to_string(
                         input.status,
                         "Responses function call status",
@@ -1420,7 +1452,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         custom_tool_call: (item_type
                             == Some(openai::InputItemType::CustomToolCallOutput))
                         .then_some(true),
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller),
                         provider_options: None,
                     };
 
@@ -1706,6 +1738,7 @@ impl Default for openai::InputContent {
             annotations: None,
             logprobs: None,
             refusal: None,
+            prompt_cache_breakpoint: None,
         }
     }
 }
@@ -2231,7 +2264,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             arguments: Some(openai_arguments_from_string(
                                                 tool_call.arguments.to_string(),
                                             )),
-                                            caller: tool_call.caller,
+                                            caller: tool_caller_to_provider(tool_call.caller),
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -2281,7 +2314,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     namespace: tool_call.namespace,
                                     input,
                                     arguments,
-                                    caller: tool_call.caller,
+                                    caller: tool_caller_to_provider(tool_call.caller),
                                     status: Some(output_item_status),
                                     ..Default::default()
                                 };
@@ -2333,7 +2366,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_caller_to_provider(tool_result.caller.clone()),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2507,7 +2540,7 @@ fn create_function_call_input_item(
                     call_id: Some(tool_call.tool_call_id.clone()),
                     name: Some(tool_call.tool_name.clone()),
                     namespace: tool_call.namespace.clone(),
-                    caller: tool_call.caller.clone(),
+                    caller: tool_caller_to_provider(tool_call.caller.clone()),
                     arguments: Some(openai_arguments_from_string(
                         tool_call.arguments.to_string(),
                     )),
@@ -2520,7 +2553,7 @@ fn create_function_call_input_item(
         // Set common fields
         item.id = id;
         item.input_item_type = Some(input_item_type);
-        item.caller = tool_call.caller.clone();
+        item.caller = tool_caller_to_provider(tool_call.caller.clone());
         item.status = args_value
             .get("status")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
@@ -2535,7 +2568,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_caller_to_provider(tool_call.caller.clone()),
             input: Some(input.clone()),
             status: Some(output_item_status),
             ..Default::default()
@@ -2549,7 +2582,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_caller_to_provider(tool_call.caller.clone()),
             arguments: Some(openai_arguments_from_string(
                 tool_call.arguments.to_string(),
             )),
@@ -2607,7 +2640,7 @@ pub fn universal_to_responses_input(
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_caller_to_provider(tool_result.caller.clone()),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -3335,7 +3368,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             item.status,
                             "Responses output function call status",
                         )?,
-                        caller: item.caller,
+                        caller: tool_caller_from_provider(item.caller),
                         provider_executed: None,
                     }]
                 }
@@ -3550,7 +3583,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     call_id: Some(tool_result.tool_call_id),
                                     name: (!tool_result.tool_name.is_empty())
                                         .then_some(tool_result.tool_name),
-                                    caller: tool_result.caller,
+                                    caller: tool_caller_to_provider(tool_result.caller),
                                     output: input_item_output_to_output(Some(
                                         openai_output_from_string(output_string),
                                     )),
@@ -3947,7 +3980,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                         call_id: Some(tool_call_id),
                                                         name: Some(tool_name),
                                                         namespace,
-                                                        caller,
+                                                        caller: tool_caller_to_provider(caller),
                                                         arguments: Some(serde_json::Value::String(
                                                             arguments.to_string(),
                                                         )),
@@ -3966,7 +3999,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: tool_caller_to_provider(caller),
                                                 input: Some(input),
                                                 status: Some(output_item_status),
                                                 ..Default::default()
@@ -3981,7 +4014,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: tool_caller_to_provider(caller),
                                                 arguments: Some(serde_json::Value::String(
                                                     arguments.to_string(),
                                                 )),
@@ -4261,32 +4294,29 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     Some(ChatCompletionRequestMessageContentExt::Parts(parts)) => {
                         let assistant_parts: Result<Vec<_>, _> = parts
                             .into_iter()
-                            .map(|part| {
-                                match part.base.chat_completion_request_message_content_part_type {
-                                    openai::PurpleType::Text => {
-                                        if let Some(text) = part.base.text {
-                                            Ok(AssistantContentPart::Text(TextContentPart {
-                                                text,
-                                                encrypted_content: None,
-                                                cache_control: cache_control_from_value(
-                                                    part.cache_control,
-                                                ),
-                                                provider_options: None,
-                                            }))
-                                        } else {
-                                            Err(ConvertError::MissingRequiredField {
-                                                field: "text".to_string(),
-                                            })
-                                        }
+                            .map(|part| match part.base.content_part_type {
+                                openai::PurpleType::Text => {
+                                    if let Some(text) = part.base.text {
+                                        Ok(AssistantContentPart::Text(TextContentPart {
+                                            text,
+                                            encrypted_content: None,
+                                            cache_control: cache_control_from_value(
+                                                part.cache_control,
+                                            ),
+                                            provider_options: None,
+                                        }))
+                                    } else {
+                                        Err(ConvertError::MissingRequiredField {
+                                            field: "text".to_string(),
+                                        })
                                     }
-                                    _ => Err(ConvertError::UnsupportedInputType {
-                                        type_info: format!(
-                                            "ChatCompletionRequestMessageContentPart type: {:?}",
-                                            part.base
-                                                .chat_completion_request_message_content_part_type
-                                        ),
-                                    }),
                                 }
+                                _ => Err(ConvertError::UnsupportedInputType {
+                                    type_info: format!(
+                                        "ChatCompletionRequestMessageContentPart type: {:?}",
+                                        part.base.content_part_type
+                                    ),
+                                }),
                             })
                             .collect();
                         content_parts.extend(assistant_parts?);
@@ -4410,7 +4440,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
     fn try_from(
         part: openai::ChatCompletionRequestMessageContentPart,
     ) -> Result<Self, Self::Error> {
-        match part.chat_completion_request_message_content_part_type {
+        match part.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.text {
                     Ok(UserContentPart::Text(TextContentPart {
@@ -4471,7 +4501,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
-                    part.chat_completion_request_message_content_part_type
+                    part.content_part_type
                 ),
             }),
         }
@@ -4482,7 +4512,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
     type Error = ConvertError;
 
     fn try_from(part: ChatCompletionRequestMessageContentPartExt) -> Result<Self, Self::Error> {
-        match part.base.chat_completion_request_message_content_part_type {
+        match part.base.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.base.text {
                     Ok(UserContentPart::Text(TextContentPart {
@@ -4541,7 +4571,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
-                    part.base.chat_completion_request_message_content_part_type
+                    part.base.content_part_type
                 ),
             }),
         }
@@ -4783,7 +4813,8 @@ fn convert_user_content_part_to_chat_completion_part(
     match part {
         UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
             text: Some(text_part.text),
-            chat_completion_request_message_content_part_type: openai::PurpleType::Text,
+            content_part_type: openai::PurpleType::Text,
+            prompt_cache_breakpoint: None,
             image_url: None,
             input_audio: None,
             file: None,
@@ -4821,7 +4852,8 @@ fn convert_user_content_part_to_chat_completion_part(
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: None,
-                chat_completion_request_message_content_part_type: openai::PurpleType::ImageUrl,
+                content_part_type: openai::PurpleType::ImageUrl,
+                prompt_cache_breakpoint: None,
                 image_url: Some(openai::ImageUrl { url, detail: None }),
                 input_audio: None,
                 file: None,
@@ -5000,7 +5032,8 @@ fn chat_completion_assistant_text_content(
                 cache_control: cache_control_to_value(text_part.cache_control),
                 base: openai::ChatCompletionRequestMessageContentPart {
                     text: Some(text_part.text),
-                    chat_completion_request_message_content_part_type: openai::PurpleType::Text,
+                    content_part_type: openai::PurpleType::Text,
+                    prompt_cache_breakpoint: None,
                     image_url: None,
                     input_audio: None,
                     file: None,
@@ -6214,7 +6247,8 @@ mod tests {
     fn chat_completions_file_imports_back_to_text_file() {
         let input = openai::ChatCompletionRequestMessageContentPart {
             text: None,
-            chat_completion_request_message_content_part_type: openai::PurpleType::File,
+            content_part_type: openai::PurpleType::File,
+            prompt_cache_breakpoint: None,
             image_url: None,
             input_audio: None,
             file: Some(openai::File {

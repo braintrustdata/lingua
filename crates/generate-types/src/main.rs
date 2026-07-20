@@ -1088,37 +1088,23 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    // quicktype renames the `none` reasoning effort to `ReasoningEffortNone` to
+    // avoid clashing with Option::None. The enum carries `#[serde(rename_all =
+    // "snake_case")]`, so restoring the stable `None` variant keeps the same wire
+    // value ("none") and the identifier the typed adapter expects. `max` is now
+    // present natively in the synchronized spec, so it no longer needs injection.
     processed = processed.replace(
-        "use crate::serde_json;\n",
-        "use crate::serde_json;\nuse crate::universal::message::ToolCaller;\n",
+        "    #[serde(rename = \"none\")]\n    ReasoningEffortNone,",
+        "    None,",
     );
 
-    // The local OpenAI spec can lag model-specific reasoning efforts. Keep
-    // generated request validation aligned with the compatibility params view.
-    processed = processed.replace(
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
-    );
-
-    // GPT-5.6 programmatic tool output items are not yet in the local spec.
-    // Patch the generated Responses output item model so the typed adapter can
-    // deserialize and convert them without a raw-JSON fallback.
-    processed = processed.replace(
-        "pub enum OutputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum OutputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
-    );
-    processed = processed.replace(
-        "pub enum InputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
-    );
-    processed = processed.replace(
-        "pub enum ToolType {\n    #[serde(rename = \"apply_patch\")]",
-        "pub enum ToolType {\n    #[serde(rename = \"programmatic_tool_calling\")]\n    ProgrammaticToolCalling,\n    #[serde(rename = \"apply_patch\")]",
-    );
-    processed = processed.replace(
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,",
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub fingerprint: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub caller: Option<ToolCaller>,",
-    );
+    // GPT-5.6 programmatic tool calling (program / program_output items and the
+    // programmatic_tool_calling tool) is now present natively in the synchronized
+    // spec, so it no longer needs manual variant injection. The spec also carries
+    // the `fingerprint` field and a native `ToolCallCaller` (direct | program)
+    // discriminated union, which quicktype emits as InputItemDirectToolCallCaller /
+    // OutputItemDirectToolCallCaller. The typed adapter in convert.rs bridges those
+    // canonical caller types to the universal ToolCaller.
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
@@ -1151,12 +1137,53 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
     processed = processed.replace(
-        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
-        "InputContentArray(Vec<ContentOutputContentList>),",
+        "ContentInputItemContentListArray(Vec<ContentInputItemContentList>),",
+        "InputContentArray(Vec<ContentInputItemContentList>),",
     );
     processed = processed.replace(
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
+    );
+
+    // quicktype assigns unstable adjective-prefixed names (Purple*, Fluffy*, etc.)
+    // to anonymous union members and their carrier structs. These names shift
+    // whenever the spec changes, but the hand-written typed adapter in convert.rs
+    // relies on stable identifiers. Re-stabilize the ones the adapter depends on.
+    // All of the affected enums are `#[serde(untagged)]`, so renaming a variant is
+    // purely cosmetic at the wire level.
+    //
+    // The `String` alternative of every untagged content union.
+    processed = processed.replace("PurpleString(String),", "String(String),");
+    // The Responses output content array carried by OutputUnion.
+    processed = processed.replace(
+        "OutputInputItemContentListArray(Vec<OutputInputItemContentList>),",
+        "FluffyInputContentArray(Vec<OutputInputItemContentList>),",
+    );
+    // The Chat Completions message content part carrier struct and its array
+    // variant. Keep a stable alias for the struct so adapter type references and
+    // struct-literal construction continue to resolve.
+    processed = processed.replace(
+        "PurpleContentPartArray(Vec<PurpleContentPart>),",
+        "ChatCompletionRequestMessageContentPartArray(Vec<PurpleContentPart>),",
+    );
+    // The spec's ToolCallCaller (direct | program) is emitted by quicktype as two
+    // structurally identical structs. Unify them so the typed adapter bridges a
+    // single canonical caller type to the universal ToolCaller.
+    processed = processed.replace(
+        "pub caller: Option<OutputItemDirectToolCallCaller>,",
+        "pub caller: Option<InputItemDirectToolCallCaller>,",
+    );
+
+    // The synchronized spec marks `cache_write_tokens` as a required member of the
+    // Responses API `input_tokens_details`, but real OpenAI responses omit it when
+    // no input tokens were written to the cache. Tolerate its absence (defaulting to
+    // 0) so genuine provider payloads keep parsing, while still emitting it on
+    // serialization so outbound payloads satisfy the spec's required constraint. The
+    // Chat Completions counterpart is already `Option<i64>`, so this only targets the
+    // required Responses `i64` field.
+    processed = processed.replace(
+        "    pub cache_write_tokens: i64,",
+        "    #[serde(default)]\n    pub cache_write_tokens: i64,",
     );
 
     // Dynamically find the enum that quicktype generated for content list types.
@@ -1171,9 +1198,10 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
 pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
+pub type InputContent = ContentInputItemContentList;
 pub type InputItemContentListType = {content_list_type_name};
 pub type FunctionCallItemStatus = Status;
+pub type ChatCompletionRequestMessageContentPart = PurpleContentPart;
 "#,
     ));
 
