@@ -10,7 +10,6 @@ import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
-  ChatCompletionUserMessageWithCacheControl,
   AnthropicMessageCreateParams,
   TestCase,
   TestCaseCollection,
@@ -270,18 +269,22 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAnthropicCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         {
           role: "user",
           content: [
-            chatCompletionCacheControlTextPart,
+            {
+              type: "text",
+              text: chatCompletionCacheControlTextPart.text,
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
             {
               type: "text",
               text: "Now summarize it.",
             },
           ],
-        } satisfies ChatCompletionUserMessageWithCacheControl,
+        },
       ],
     },
     responses: null,

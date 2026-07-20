@@ -305,6 +305,18 @@ fn cache_control_to_value(cache_control: Option<CacheControl>) -> Option<serde_j
     cache_control.and_then(|cache_control| serde_json::to_value(cache_control).ok())
 }
 
+fn cache_control_from_chat_completion_part(
+    cache_control: Option<serde_json::Value>,
+    prompt_cache_breakpoint: Option<&openai::ArrayOfContentPartPromptCacheBreakpoint>,
+) -> Option<CacheControl> {
+    cache_control_from_value(cache_control).or_else(|| {
+        prompt_cache_breakpoint.map(|_| CacheControl {
+            cache_control_type: crate::universal::CacheControlType::Ephemeral,
+            ttl: None,
+        })
+    })
+}
+
 fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> AssistantContent {
     if content_parts.is_empty() {
         AssistantContent::String(String::new())
@@ -4294,29 +4306,33 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     Some(ChatCompletionRequestMessageContentExt::Parts(parts)) => {
                         let assistant_parts: Result<Vec<_>, _> = parts
                             .into_iter()
-                            .map(|part| match part.base.content_part_type {
-                                openai::PurpleType::Text => {
-                                    if let Some(text) = part.base.text {
-                                        Ok(AssistantContentPart::Text(TextContentPart {
-                                            text,
-                                            encrypted_content: None,
-                                            cache_control: cache_control_from_value(
-                                                part.cache_control,
-                                            ),
-                                            provider_options: None,
-                                        }))
-                                    } else {
-                                        Err(ConvertError::MissingRequiredField {
-                                            field: "text".to_string(),
-                                        })
+                            .map(|part| {
+                                let cache_control = cache_control_from_chat_completion_part(
+                                    part.cache_control,
+                                    part.base.prompt_cache_breakpoint.as_ref(),
+                                );
+                                match part.base.content_part_type {
+                                    openai::PurpleType::Text => {
+                                        if let Some(text) = part.base.text {
+                                            Ok(AssistantContentPart::Text(TextContentPart {
+                                                text,
+                                                encrypted_content: None,
+                                                cache_control,
+                                                provider_options: None,
+                                            }))
+                                        } else {
+                                            Err(ConvertError::MissingRequiredField {
+                                                field: "text".to_string(),
+                                            })
+                                        }
                                     }
+                                    _ => Err(ConvertError::UnsupportedInputType {
+                                        type_info: format!(
+                                            "ChatCompletionRequestMessageContentPart type: {:?}",
+                                            part.base.content_part_type
+                                        ),
+                                    }),
                                 }
-                                _ => Err(ConvertError::UnsupportedInputType {
-                                    type_info: format!(
-                                        "ChatCompletionRequestMessageContentPart type: {:?}",
-                                        part.base.content_part_type
-                                    ),
-                                }),
                             })
                             .collect();
                         content_parts.extend(assistant_parts?);
@@ -4512,13 +4528,17 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
     type Error = ConvertError;
 
     fn try_from(part: ChatCompletionRequestMessageContentPartExt) -> Result<Self, Self::Error> {
+        let cache_control = cache_control_from_chat_completion_part(
+            part.cache_control,
+            part.base.prompt_cache_breakpoint.as_ref(),
+        );
         match part.base.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.base.text {
                     Ok(UserContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
-                        cache_control: cache_control_from_value(part.cache_control),
+                        cache_control,
                         provider_options: None,
                     }))
                 } else {
@@ -4811,15 +4831,22 @@ fn convert_user_content_part_to_chat_completion_part(
     part: UserContentPart,
 ) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
     match part {
-        UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
-            text: Some(text_part.text),
-            content_part_type: openai::PurpleType::Text,
-            prompt_cache_breakpoint: None,
-            image_url: None,
-            input_audio: None,
-            file: None,
-            refusal: None,
-        }),
+        UserContentPart::Text(text_part) => {
+            let prompt_cache_breakpoint = text_part.cache_control.as_ref().map(|_| {
+                openai::ArrayOfContentPartPromptCacheBreakpoint {
+                    mode: openai::PromptCacheBreakpointMode::Explicit,
+                }
+            });
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: Some(text_part.text),
+                content_part_type: openai::PurpleType::Text,
+                prompt_cache_breakpoint,
+                image_url: None,
+                input_audio: None,
+                file: None,
+                refusal: None,
+            })
+        }
         UserContentPart::Image {
             image,
             media_type,
@@ -5028,17 +5055,24 @@ fn chat_completion_assistant_text_content(
     Some(ChatCompletionRequestMessageContentExt::Parts(
         text_parts
             .into_iter()
-            .map(|text_part| ChatCompletionRequestMessageContentPartExt {
-                cache_control: cache_control_to_value(text_part.cache_control),
-                base: openai::ChatCompletionRequestMessageContentPart {
-                    text: Some(text_part.text),
-                    content_part_type: openai::PurpleType::Text,
-                    prompt_cache_breakpoint: None,
-                    image_url: None,
-                    input_audio: None,
-                    file: None,
-                    refusal: None,
-                },
+            .map(|text_part| {
+                let prompt_cache_breakpoint = text_part.cache_control.as_ref().map(|_| {
+                    openai::ArrayOfContentPartPromptCacheBreakpoint {
+                        mode: openai::PromptCacheBreakpointMode::Explicit,
+                    }
+                });
+                ChatCompletionRequestMessageContentPartExt {
+                    cache_control: cache_control_to_value(text_part.cache_control),
+                    base: openai::ChatCompletionRequestMessageContentPart {
+                        text: Some(text_part.text),
+                        content_part_type: openai::PurpleType::Text,
+                        prompt_cache_breakpoint,
+                        image_url: None,
+                        input_audio: None,
+                        file: None,
+                        refusal: None,
+                    },
+                }
             })
             .collect(),
     ))
@@ -5428,6 +5462,144 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[test]
+    fn chat_completions_prompt_cache_breakpoint_imports_as_cache_control() {
+        let value = json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Use the cached reference text.",
+                    "prompt_cache_breakpoint": { "mode": "explicit" }
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::User {
+            content: UserContent::Array(parts),
+        } = message
+        else {
+            panic!("expected user message with array content");
+        };
+        let UserContentPart::Text(text) = &parts[0] else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .as_ref()
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn chat_completions_assistant_prompt_cache_breakpoint_imports_as_cache_control() {
+        let value = json!({
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Cached assistant prefill.",
+                    "prompt_cache_breakpoint": { "mode": "explicit" }
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        else {
+            panic!("expected assistant message with array content");
+        };
+        let AssistantContentPart::Text(text) = &parts[0] else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .as_ref()
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn universal_user_cache_control_emits_chat_completions_prompt_cache_breakpoint() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                text: "Use the cached reference text.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: None,
+                }),
+                provider_options: None,
+            })]),
+        };
+
+        let converted = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+            .expect("message should convert");
+        let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = converted.content else {
+            panic!("expected content parts");
+        };
+        assert_eq!(
+            parts[0]
+                .base
+                .prompt_cache_breakpoint
+                .as_ref()
+                .expect("cache control should emit a breakpoint")
+                .mode,
+            openai::PromptCacheBreakpointMode::Explicit
+        );
+    }
+
+    #[test]
+    fn universal_assistant_cache_control_emits_chat_completions_prompt_cache_breakpoint() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
+                text: "Cached assistant prefill.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: None,
+                }),
+                provider_options: None,
+            })]),
+            id: None,
+        };
+
+        let converted = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+            .expect("message should convert");
+        let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = converted.content else {
+            panic!("expected content parts");
+        };
+        assert_eq!(
+            parts[0]
+                .base
+                .prompt_cache_breakpoint
+                .as_ref()
+                .expect("cache control should emit a breakpoint")
+                .mode,
+            openai::PromptCacheBreakpointMode::Explicit
+        );
     }
 
     #[cfg(feature = "anthropic")]

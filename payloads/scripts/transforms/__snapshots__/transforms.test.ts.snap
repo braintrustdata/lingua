@@ -14,6 +14,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "cache_control": {
             "type": "ephemeral",
           },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -25,6 +28,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
         {
           "cache_control": {
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "hello world",
           "type": "text",
@@ -264,6 +270,9 @@ exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
             "ttl": "1h",
             "type": "ephemeral",
           },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "text",
         },
@@ -310,6 +319,9 @@ exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
           "cache_control": {
             "ttl": "5m",
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "Be helpful.",
           "type": "text",
@@ -367,6 +379,9 @@ exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlPa
             "ttl": "1h",
             "type": "ephemeral",
           },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "text",
         },
@@ -378,7 +393,7 @@ exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlPa
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -417,6 +432,9 @@ exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlPa
           "cache_control": {
             "ttl": "1h",
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "This assistant prefill should remain cacheable.",
           "type": "text",
@@ -460,6 +478,9 @@ exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam
           "cache_control": {
             "ttl": "1h",
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "Use this stable reference text as cacheable context.",
           "type": "text",
@@ -1213,6 +1234,9 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
         {
           "cache_control": {
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "Be helpful.",
           "type": "text",
@@ -8353,7 +8377,6 @@ exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlPa
       "content": [
         {
           "cache_control": {
-            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Use this stable reference text as cacheable context.",
