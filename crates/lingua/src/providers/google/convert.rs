@@ -1080,7 +1080,7 @@ impl From<&ToolConfig> for ToolChoiceConfig {
                     ToolChoiceMode::Auto
                 }
                 FunctionCallingConfigMode::Any => ToolChoiceMode::Required,
-                FunctionCallingConfigMode::ModeNone => ToolChoiceMode::None,
+                FunctionCallingConfigMode::None => ToolChoiceMode::None,
                 FunctionCallingConfigMode::ModeUnspecified => ToolChoiceMode::Auto,
             })
         });
@@ -1114,7 +1114,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolConfig {
         let (google_mode, allowed_names) = match mode {
             ToolChoiceMode::Auto => (FunctionCallingConfigMode::Auto, None),
             ToolChoiceMode::Required => (FunctionCallingConfigMode::Any, None),
-            ToolChoiceMode::None => (FunctionCallingConfigMode::ModeNone, None),
+            ToolChoiceMode::None => (FunctionCallingConfigMode::None, None),
             ToolChoiceMode::Tool => {
                 let name = config.tool_name.clone().ok_or(())?;
                 (FunctionCallingConfigMode::Any, Some(vec![name]))
@@ -1895,7 +1895,7 @@ mod tests {
     fn test_tool_config_none_to_tool_choice() {
         let config = ToolConfig {
             function_calling_config: Some(FunctionCallingConfig {
-                mode: Some(FunctionCallingConfigMode::ModeNone),
+                mode: Some(FunctionCallingConfigMode::None),
                 allowed_function_names: None,
             }),
             include_server_side_tool_invocations: None,
@@ -2120,19 +2120,16 @@ mod tests {
 
     #[test]
     fn test_schema_type_string_wire_format_and_lowercase_alias() {
-        // Renamed variant `String` -> `TypeString` must still serialize as "STRING".
-        assert_eq!(
-            serde_json::to_string(&Type::TypeString).unwrap(),
-            "\"STRING\""
-        );
+        // The existing public `String` variant must still serialize as "STRING".
+        assert_eq!(serde_json::to_string(&Type::String).unwrap(), "\"STRING\"");
         // Google's uppercase form and the JSON Schema lowercase alias both deserialize.
         assert_eq!(
             serde_json::from_str::<Type>("\"STRING\"").unwrap(),
-            Type::TypeString
+            Type::String
         );
         assert_eq!(
             serde_json::from_str::<Type>("\"string\"").unwrap(),
-            Type::TypeString
+            Type::String
         );
         // The composite unspecified variant never had a lowercase alias.
         assert_eq!(
@@ -2144,14 +2141,14 @@ mod tests {
 
     #[test]
     fn test_function_calling_config_mode_none_wire_format() {
-        // Renamed variant `None` -> `ModeNone` must still serialize/deserialize as "NONE".
+        // The existing public `None` variant must still serialize/deserialize as "NONE".
         assert_eq!(
-            serde_json::to_string(&FunctionCallingConfigMode::ModeNone).unwrap(),
+            serde_json::to_string(&FunctionCallingConfigMode::None).unwrap(),
             "\"NONE\""
         );
         assert_eq!(
             serde_json::from_str::<FunctionCallingConfigMode>("\"NONE\"").unwrap(),
-            FunctionCallingConfigMode::ModeNone
+            FunctionCallingConfigMode::None
         );
         // The other spec modes remain accepted, including the newer VALIDATED.
         for (wire, mode) in [

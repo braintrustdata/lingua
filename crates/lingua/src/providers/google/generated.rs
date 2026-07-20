@@ -1034,8 +1034,8 @@ pub enum Type {
     Number,
     #[serde(alias = "object")]
     Object,
-    #[serde(rename = "STRING", alias = "string")]
-    TypeString,
+    #[serde(alias = "string")]
+    String,
     #[serde(rename = "TYPE_UNSPECIFIED")]
     TypeUnspecified,
 }
@@ -1302,10 +1302,9 @@ pub struct FunctionCallingConfig {
 pub enum FunctionCallingConfigMode {
     Any,
     Auto,
-    #[serde(rename = "NONE")]
-    ModeNone,
     #[serde(rename = "MODE_UNSPECIFIED")]
     ModeUnspecified,
+    None,
     Validated,
 }
 

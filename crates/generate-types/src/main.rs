@@ -1759,6 +1759,9 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
 
+    // Preserve established public Rust variant names when quicktype disambiguates them.
+    processed = preserve_google_public_enum_variant_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -1842,6 +1845,38 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     result_lines.join("\n")
 }
 
+/// Restore established public Google enum variant names that quicktype may disambiguate.
+fn preserve_google_public_enum_variant_names(content: &str) -> String {
+    let mut current_enum: Option<&str> = None;
+    let mut result_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        current_enum = match trimmed {
+            "pub enum Type {" => Some("Type"),
+            "pub enum FunctionCallingConfigMode {" => Some("FunctionCallingConfigMode"),
+            "}" => None,
+            _ => current_enum,
+        };
+
+        let preserved_variant = match (current_enum, trimmed) {
+            (Some("Type"), "TypeString,") => Some("String,"),
+            (Some("FunctionCallingConfigMode"), "ModeNone,") => Some("None,"),
+            _ => None,
+        };
+
+        if let Some(variant) = preserved_variant {
+            let indent = line.len() - line.trim_start().len();
+            result_lines.push(format!("{}{}", " ".repeat(indent), variant));
+        } else {
+            result_lines.push(line.to_string());
+        }
+    }
+
+    result_lines.join("\n")
+}
+
 /// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
 /// existing alias (e.g. `#[serde(rename = "STRING")]`), return that wire word.
 ///
@@ -1863,6 +1898,39 @@ fn single_word_serde_rename(trimmed: &str) -> Option<String> {
         None
     }
 }
+
+#[cfg(test)]
+mod google_post_process_tests {
+    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+
+    #[test]
+    fn preserves_string_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum Type {
+    #[serde(rename = "STRING")]
+    TypeString,
+}"#;
+
+        let output = add_type_enum_lowercase_aliases(input);
+        let output = preserve_google_public_enum_variant_names(&output);
+
+        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
+        assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum FunctionCallingConfigMode {
+    #[serde(rename = "NONE")]
+    ModeNone,
+}"#;
+
+        let output = preserve_google_public_enum_variant_names(input);
+
+        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
+        assert!(!output.contains("ModeNone"));
+    }
+}
+
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
