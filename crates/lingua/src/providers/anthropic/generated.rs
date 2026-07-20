@@ -1542,7 +1542,7 @@ pub struct WebFetchTool20260318 {
     pub name: String,
     /// How this tool's result blocks appear in the API response when the result was consumed by a completed code_execution call in the same turn. 'full' returns the complete content (default). 'excluded' drops the nested server_tool_use and result block pair entirely. Results from direct calls, or from code_execution calls that paused before completing, are always returned in full so they can be sent back on the next turn.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_inclusion: Option<String>,
+    pub response_inclusion: Option<ResponseInclusion>,
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
@@ -1646,7 +1646,7 @@ pub struct WebSearchTool20260318 {
     pub name: String,
     /// How this tool's result blocks appear in the API response when the result was consumed by a completed code_execution call in the same turn. 'full' returns the complete content (default). 'excluded' drops the nested server_tool_use and result block pair entirely. Results from direct calls, or from code_execution calls that paused before completing, are always returned in full so they can be sent back on the next turn.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub response_inclusion: Option<String>,
+    pub response_inclusion: Option<ResponseInclusion>,
     /// When true, guarantees schema validation on tool names and inputs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
