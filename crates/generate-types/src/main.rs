@@ -1899,38 +1899,6 @@ fn single_word_serde_rename(trimmed: &str) -> Option<String> {
     }
 }
 
-#[cfg(test)]
-mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
-
-    #[test]
-    fn preserves_string_variant_when_quicktype_renames_it() {
-        let input = r#"pub enum Type {
-    #[serde(rename = "STRING")]
-    TypeString,
-}"#;
-
-        let output = add_type_enum_lowercase_aliases(input);
-        let output = preserve_google_public_enum_variant_names(&output);
-
-        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
-        assert!(!output.contains("TypeString"));
-    }
-
-    #[test]
-    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
-        let input = r#"pub enum FunctionCallingConfigMode {
-    #[serde(rename = "NONE")]
-    ModeNone,
-}"#;
-
-        let output = preserve_google_public_enum_variant_names(input);
-
-        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
-        assert!(!output.contains("ModeNone"));
-    }
-}
-
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
@@ -2053,4 +2021,36 @@ where
     }
 
     result_lines.join("\n")
+}
+
+#[cfg(test)]
+mod google_post_process_tests {
+    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+
+    #[test]
+    fn preserves_string_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum Type {
+    #[serde(rename = "STRING")]
+    TypeString,
+}"#;
+
+        let output = add_type_enum_lowercase_aliases(input);
+        let output = preserve_google_public_enum_variant_names(&output);
+
+        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
+        assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum FunctionCallingConfigMode {
+    #[serde(rename = "NONE")]
+    ModeNone,
+}"#;
+
+        let output = preserve_google_public_enum_variant_names(input);
+
+        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
+        assert!(!output.contains("ModeNone"));
+    }
 }
