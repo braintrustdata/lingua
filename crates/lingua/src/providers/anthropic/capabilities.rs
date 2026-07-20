@@ -12,9 +12,13 @@ static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     )
     .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
 });
-static OPUS_4_8_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^(?:[a-z0-9-]+\.)?anthropic\.claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.:])|^claude-(?:opus-(4[-.]([8-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|fable-\d{1,2})($|[-.])")
-        .expect("valid Opus 4.8+ / Fable model regex")
+// Denylist of Claude models that do NOT support mid-conversation system messages.
+// Verified 2026-07-16 against the live Messages API: opus 4.1-4.7, sonnet 4.x, and haiku 4.x reject them.
+static UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(^|[./:@])claude-(?:opus-4[-.][1-7]|sonnet-4(?:[-.]\d{1,2})?|haiku-4(?:[-.]\d{1,2})?)($|[-./:@])",
+    )
+    .expect("valid unsupported mid-conversation system model regex")
 });
 
 // Fable 5 and Mythos 5 keep adaptive thinking always on; `thinking: {type: "disabled"}`
@@ -60,13 +64,17 @@ pub fn supports_disabling_thinking(model: &str) -> bool {
     !is_always_on_thinking(&lower)
 }
 
-/// Check if an Anthropic model supports system-role entries in `messages`.
+/// Check if a Claude model supports mid-conversation system messages (`role: "system"` in `messages`).
 ///
-/// Direct Anthropic and Bedrock Anthropic Opus 4.8+ and Fable model IDs support
-/// these messages. Slash/at provider-wrapped IDs remain excluded until their
-/// provider documents the same behavior.
+/// Non-Claude models never support it; Claude models are supported unless listed in the denylist.
 pub fn supports_mid_conversation_system_messages(model: &str) -> bool {
-    is_supported_mid_conversation_system_model(&model.to_ascii_lowercase())
+    let lower = model.to_ascii_lowercase();
+    is_anthropic_claude_model(&lower) && !is_unsupported_mid_conversation_system_model(&lower)
+}
+
+/// Whether the model id refers to a Claude model, in direct, Bedrock, or Vertex form.
+fn is_anthropic_claude_model(model: &str) -> bool {
+    model.contains("claude")
 }
 
 /// Transforms required for specific Anthropic model families.
@@ -88,8 +96,8 @@ fn is_always_on_thinking(model: &str) -> bool {
     ALWAYS_ON_THINKING_RE.is_match(model)
 }
 
-fn is_supported_mid_conversation_system_model(model: &str) -> bool {
-    OPUS_4_8_OR_LATER_RE.is_match(model)
+fn is_unsupported_mid_conversation_system_model(model: &str) -> bool {
+    UNSUPPORTED_MID_CONVERSATION_SYSTEM_RE.is_match(model)
 }
 
 /// Get the transforms required for a model.
@@ -271,57 +279,70 @@ mod tests {
 
     #[test]
     fn test_supports_mid_conversation_system_messages() {
-        assert!(supports_mid_conversation_system_messages("claude-opus-4-8"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-8-20260528"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-opus-4.8"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-10"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-opus-4-10-20260601"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-opus-5-0"));
-        assert!(supports_mid_conversation_system_messages("claude-opus-5.0"));
+        // Verified 2026-07-16 against the live Messages API: these accept mid-conversation system messages (HTTP 200).
+        for model in [
+            "claude-opus-4-8",
+            "claude-opus-4-8-20260528",
+            "claude-opus-4.8",
+            "claude-sonnet-5",
+            "claude-fable-5",
+            "claude-fable-5-20260601",
+            "CLAUDE-SONNET-5",
+        ] {
+            assert!(
+                supports_mid_conversation_system_messages(model),
+                "expected supported (verified live): {model}"
+            );
+        }
 
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-opus-4-8-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "anthropic.claude-opus-4-8-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-opus-4-10-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages("claude-fable-5"));
-        assert!(supports_mid_conversation_system_messages(
-            "claude-fable-5-20260601"
-        ));
-        assert!(supports_mid_conversation_system_messages("CLAUDE-FABLE-5"));
-        assert!(supports_mid_conversation_system_messages("claude-fable-6"));
-        assert!(supports_mid_conversation_system_messages(
-            "us.anthropic.claude-fable-5-v1:0"
-        ));
-        assert!(supports_mid_conversation_system_messages(
-            "anthropic.claude-fable-5-v1:0"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "anthropic/claude-opus-4-8@20260528"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "anthropic/claude-fable-5@20260601"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "claude-opus-4-7"
-        ));
-        assert!(!supports_mid_conversation_system_messages(
-            "claude-haiku-4-5-20251001"
-        ));
-        assert!(!supports_mid_conversation_system_messages("claude-fable"));
-        assert!(!supports_mid_conversation_system_messages(
-            "not-claude-fable-5"
-        ));
+        // Verified 2026-07-16 against the live Messages API: these reject mid-conversation system messages (HTTP 400).
+        for model in [
+            "claude-opus-4-1",
+            "claude-opus-4-1-20250805",
+            "claude-opus-4-5",
+            "claude-opus-4-5-20251101",
+            "claude-opus-4-6",
+            "claude-opus-4-7",
+            "claude-sonnet-4-5",
+            "claude-sonnet-4-5-20250929",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5",
+            "claude-haiku-4-5-20251001",
+            "us.anthropic.claude-sonnet-4-5-v1:0",
+            "anthropic/claude-opus-4-7@20260401",
+            "us.anthropic.claude-haiku-4-5-v1:0",
+        ] {
+            assert!(
+                !supports_mid_conversation_system_messages(model),
+                "expected unsupported (verified live): {model}"
+            );
+        }
+
+        // Models not in the denylist default to supported. Not individually verified.
+        for model in [
+            "claude-opus-4-10",
+            "claude-opus-4-10-20260601",
+            "claude-opus-5-0",
+            "claude-opus-5.0",
+            "claude-sonnet-6",
+            "claude-haiku-5",
+            "claude-fable-6",
+            "us.anthropic.claude-opus-4-8-v1:0",
+            "anthropic/claude-opus-4-8@20260528",
+        ] {
+            assert!(
+                supports_mid_conversation_system_messages(model),
+                "expected default-supported (denylist miss): {model}"
+            );
+        }
+
+        // Non-Claude models never support this Anthropic-only feature.
+        for model in ["gpt-5.5", "gpt-5-mini", "gemini-2.5-pro", "grok-4"] {
+            assert!(
+                !supports_mid_conversation_system_messages(model),
+                "expected unsupported (non-Anthropic): {model}"
+            );
+        }
     }
 
     #[test]
