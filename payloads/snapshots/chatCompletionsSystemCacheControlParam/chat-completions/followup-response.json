@@ -1,14 +1,14 @@
 {
-  "id": "chatcmpl-Dzkwm9sQxh4lZtVz3LBHdQR5pyWgV",
+  "id": "chatcmpl-E3sxHbzbWG6HrvhVTmJQvpyvFqPD2",
   "object": "chat.completion",
-  "created": 1783610844,
-  "model": "gpt-5-nano-2025-08-07",
+  "created": 1784594939,
+  "model": "gpt-5.6-terra",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Here are the next steps:\n\n- Provide the stable reference text: paste it here, upload a file (PDF, Word, text), or share a publicly accessible link.\n- Tell me your preferences: \n  - Desired length (e.g., 1 paragraph, 2–3 paragraphs, or bullet points)\n  - Focus (main ideas, conclusions, key findings, or a high-level overview)\n  - Audience or tone (plain language vs. technical)\n- If the document is long, you can share it in sections or give me an outline of the key parts you care about. I can summarize piece by piece or provide a full summary after you provide the sections.\n\nIf you can’t share the full text, you can also give:\n- the document title and purpose\n- the top three points or findings\n- any specific aspects you want emphasized\n\nTell me how you’d like to proceed, and I’ll start summarizing right away.",
+        "content": "Provide the specific task, question, or additional reference material you want help with. I’ll treat the supplied stable reference text as reusable context for the rest of the conversation.",
         "refusal": null,
         "annotations": []
       },
@@ -16,15 +16,16 @@
     }
   ],
   "usage": {
-    "prompt_tokens": 149,
-    "completion_tokens": 968,
-    "total_tokens": 1117,
+    "prompt_tokens": 56,
+    "completion_tokens": 110,
+    "total_tokens": 166,
     "prompt_tokens_details": {
       "cached_tokens": 0,
+      "cache_write_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 768,
+      "reasoning_tokens": 67,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

@@ -443,7 +443,7 @@ exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlPa
       "role": "assistant",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -493,7 +493,7 @@ exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 

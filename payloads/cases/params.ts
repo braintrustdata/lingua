@@ -40,12 +40,14 @@ const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
   cache_control: { type: "ephemeral", ttl: "1h" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlTextPart = {
   type: "text",
   text: "This assistant prefill should remain cacheable.",
   cache_control: { type: "ephemeral", ttl: "1h" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlMessage = {
@@ -277,6 +279,7 @@ export const paramsCases: TestCaseCollection = {
             {
               type: "text",
               text: chatCompletionCacheControlTextPart.text,
+              cache_control: { type: "ephemeral" },
               prompt_cache_breakpoint: { mode: "explicit" },
             },
             {
@@ -314,7 +317,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAssistantCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         { role: "user", content: "Use the cached assistant prefill." },
         chatCompletionAssistantCacheControlMessage,
@@ -344,7 +347,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsSystemCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         chatCompletionSystemCacheControlMessage,
         { role: "user", content: "Now summarize it." },

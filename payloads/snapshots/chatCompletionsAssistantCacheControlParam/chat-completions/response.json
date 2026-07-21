@@ -1,14 +1,14 @@
 {
-  "id": "chatcmpl-DoykQ1kKxDBMrXy9572g2YHrAUPuM",
+  "id": "chatcmpl-E3sxHNaM5mYG1kjm3ACSDoNdhO5ce",
   "object": "chat.completion",
-  "created": 1781042286,
-  "model": "gpt-5-nano-2025-08-07",
+  "created": 1784594939,
+  "model": "gpt-5.6-terra",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "This assistant prefill should remain cacheable.",
+        "content": "Using the cached assistant prefill.",
         "refusal": null,
         "annotations": []
       },
@@ -17,14 +17,15 @@
   ],
   "usage": {
     "prompt_tokens": 28,
-    "completion_tokens": 338,
-    "total_tokens": 366,
+    "completion_tokens": 66,
+    "total_tokens": 94,
     "prompt_tokens_details": {
       "cached_tokens": 0,
+      "cache_write_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 320,
+      "reasoning_tokens": 50,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

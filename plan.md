@@ -1,56 +1,55 @@
-# OpenAI Responses review fixes
+# Chat Completions cache round-trip fix
 
 ## Root causes
 
-- The Responses `InputContent` converters leave the newly generated
-  `prompt_cache_breakpoint` field at its default `None` and discard it during
-  import, so Lingua cache hints do not survive Responses routing.
-- `tool_caller_from_provider` returns `Option<ToolCaller>` and uses `map` on the
-  generated optional `caller_id`, silently converting an incomplete program
-  caller into a direct call.
+- The direct generated `ChatCompletionRequestMessageContentPart` converter
+  ignores `prompt_cache_breakpoint`, while the wrapper converter preserves it.
+- Chat Completions cache fixtures use either the legacy `cache_control` extension
+  or the official breakpoint alone. Conversion canonicalizes both into Lingua
+  cache control and emits both representations, so strict round-trip tests see
+  an added field.
 
 ## Target files
 
 - `payloads/cases/params.ts`
 - `crates/lingua/src/providers/openai/convert.rs`
-- Focused transform snapshots affected by Responses cache metadata
+- Focused cache-control payload snapshots and transform snapshots
 
 ## Expected behavior
 
-- Lingua user text parts with `cache_control` emit a Responses
-  `prompt_cache_breakpoint` with mode `explicit`.
-- Responses input-text breakpoints import as ephemeral Lingua cache control
-  without inventing a TTL, including on assistant-role input messages.
-- Responses `output_text` remains breakpoint-free because the OpenAI SDK does
-  not permit this field on output content.
-- A program caller without `caller_id` returns a clear missing-field conversion
-  error; direct callers and complete program callers retain their behavior.
+- Direct content-part conversion maps an explicit OpenAI breakpoint to ephemeral
+  Lingua cache control without inventing a TTL.
+- Cache fixtures include both the legacy cache metadata needed for TTL-preserving
+  cross-provider tests and the official OpenAI breakpoint.
+- Cache fixtures use a GPT-5.6 model that supports explicit breakpoints.
+- Rust, TypeScript, and Python round trips preserve the original provider shape.
 
 ## Tests
 
-- Update the GPT-5.6 prompt-cache payload case with an explicit input-text
-  breakpoint.
-- Add focused Rust tests for Responses user text round-trips, assistant-role
-  imports, and output-text schema constraints.
-- Add focused Rust tests for complete, direct, and incomplete callers.
-- Re-capture the payload case and run payload, cross-provider, TypeScript, and
-  typed-boundary checks.
+- Add a focused Rust test for direct content-part breakpoint conversion.
+- Run all generated `CacheControlParam` Rust round-trip cases.
+- Run TypeScript and Python round-trip suites.
+- Run payload, cross-provider, typed-boundary, and Clippy checks.
 
 ## Expected diff impact
 
-Responses request snapshots containing Lingua cache metadata gain
-`prompt_cache_breakpoint: { mode: "explicit" }`. No expected-difference
-exception or generated-file edit is needed.
+The three focused Chat Completions cache fixtures and their captures gain
+`prompt_cache_breakpoint: { mode: "explicit" }`; the official-breakpoint fixture
+also records the corresponding legacy ephemeral cache extension. No generated
+Rust source or broad expected-difference exception is needed.
 
 ## Validation commands
 
 ```bash
-make capture FILTER=responsesGpt56PromptCacheOptionsParam
-cargo test -p lingua responses_prompt_cache_breakpoint
-cargo test -p lingua tool_caller_from_provider
-make capture FILTER=responsesGpt56PromptCacheOptionsParam
+make capture FILTER=chatCompletionsAssistantCacheControlParam
+make capture FILTER=chatCompletionsSystemCacheControlParam
+make capture FILTER=chatCompletionsAnthropicCacheControlParam
+cargo test -p lingua CacheControlParam -- --nocapture
+make typescript
+make test-python
 make test-payloads
 cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
 make typed-boundary-check
 make typed-boundary-check-branch BASE=main
+cargo clippy --all-targets --all-features -- -D warnings
 ```

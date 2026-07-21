@@ -4493,13 +4493,15 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
     fn try_from(
         part: openai::ChatCompletionRequestMessageContentPart,
     ) -> Result<Self, Self::Error> {
+        let cache_control =
+            cache_control_from_chat_completion_part(None, part.prompt_cache_breakpoint.as_ref());
         match part.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.text {
                     Ok(UserContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
-                        cache_control: None,
+                        cache_control,
                         provider_options: None,
                     }))
                 } else {
@@ -5636,6 +5638,33 @@ mod tests {
             }
             _ => panic!("expected assistant message"),
         }
+    }
+
+    #[test]
+    fn chat_completions_direct_prompt_cache_breakpoint_imports_as_cache_control() {
+        let part: openai::ChatCompletionRequestMessageContentPart = serde_json::from_value(json!({
+            "type": "text",
+            "text": "Use the cached reference text.",
+            "prompt_cache_breakpoint": { "mode": "explicit" }
+        }))
+        .expect("content part should deserialize");
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(part)
+        .expect("content part should convert");
+
+        let UserContentPart::Text(text) = converted else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
     }
 
     #[test]

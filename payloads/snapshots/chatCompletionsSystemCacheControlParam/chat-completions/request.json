@@ -1,5 +1,5 @@
 {
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "messages": [
     {
       "role": "system",
@@ -10,6 +10,9 @@
           "cache_control": {
             "type": "ephemeral",
             "ttl": "1h"
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit"
           }
         }
       ]
