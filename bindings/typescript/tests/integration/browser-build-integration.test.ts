@@ -25,7 +25,7 @@ beforeAll(() => {
   }
   if (!fs.existsSync(wasmPath)) {
     throw new Error(
-      `Browser WASM not found at ${wasmPath}. Run 'pnpm build' in lingua-wasm first.`
+      `Browser WASM not found at ${wasmPath}. Run 'make lingua-wasm' from the Lingua repository root first.`
     );
   }
 });

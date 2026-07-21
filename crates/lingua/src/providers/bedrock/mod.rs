@@ -16,6 +16,7 @@ pub mod response;
 pub use adapter::BedrockAdapter;
 
 // Re-export commonly used AWS SDK types (note: these don't have Serde by default)
+#[cfg(not(target_arch = "wasm32"))]
 pub use aws_sdk_bedrockruntime::types::{
     ContentBlock, ConversationRole, Message, SystemContentBlock,
 };

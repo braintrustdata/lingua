@@ -31,7 +31,7 @@ generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 
 lingua-wasm: ## Build WASM package
 	@echo "Building WASM package..."
-	cd bindings/lingua-wasm && pnpm run build
+	cd bindings/lingua-wasm && pnpm run build:standalone
 
 typescript-types: generate-types ## Build TypeScript types-only package
 	@echo "Building TypeScript types-only package..."
