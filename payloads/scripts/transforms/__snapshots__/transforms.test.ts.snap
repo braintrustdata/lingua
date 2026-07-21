@@ -5552,6 +5552,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
           "type": "input_text",
         },
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "input_text",
         },
@@ -5562,6 +5565,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "hello world",
           "type": "input_text",
         },
@@ -5803,6 +5809,9 @@ exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "input_text",
         },
@@ -5860,6 +5869,9 @@ exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "input_text",
         },
@@ -5909,6 +5921,9 @@ exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > r
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -6020,6 +6035,9 @@ exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > requ
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -6893,6 +6911,9 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "input_text",
         },
@@ -18047,6 +18068,9 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -18198,6 +18222,9 @@ exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -31456,7 +31483,15 @@ exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > reque
   "max_tokens": 4096,
   "messages": [
     {
-      "content": "Use the stable policy prefix when answering.",
+      "content": [
+        {
+          "cache_control": {
+            "type": "ephemeral",
+          },
+          "text": "Use the stable policy prefix when answering.",
+          "type": "text",
+        },
+      ],
       "role": "user",
     },
   ],

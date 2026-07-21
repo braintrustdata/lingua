@@ -718,7 +718,18 @@ export const paramsCases: TestCaseCollection = {
     "chat-completions": null,
     responses: {
       model: OPENAI_RESPONSES_MODEL,
-      input: "Use the stable policy prefix when answering.",
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Use the stable policy prefix when answering.",
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
+          ],
+        },
+      ],
       prompt_cache_options: {
         mode: "explicit",
         ttl: "30m",

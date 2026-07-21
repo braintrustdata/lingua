@@ -3,16 +3,25 @@
   "input": [
     {
       "role": "user",
-      "content": "Use the stable policy prefix when answering."
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Use the stable policy prefix when answering.",
+          "prompt_cache_breakpoint": {
+            "mode": "explicit"
+          }
+        }
+      ]
     },
     {
-      "id": "rs_0a2ca1c1e334976d006a515adb4814819e8e2287fb938f4d91",
+      "id": "rs_0809724855ac8883006a5eb837e0ac819ab0546aba3a7580b1",
       "type": "reasoning",
       "content": [],
+      "encrypted_content": "gAAAAABqXrg60UzgoW74MQsbNrmkEWWqqEv3lZuPi2-1hmPEiQ6Pl4akI8EMC3Ey8v_9Ineh29fc5LF9_ZoVDxDbBbV8a-UXmbszzGu33Gw4DvoujiqJk1K-9BiGwU4n2ZrQTnyAilECevcAIK-zb6uGTDnt5_3ZVyVRCrN3mranjg-ru2tHjrbCkr2fUpjCSjxcARJXppf4y1Gpw7qchsD-k-GiBZl6iqxvVSmJG0BqwWSIwiYP2_wpU-2lWjhWM52QY9i8YAJM89jbAbNuJ25cdA-fhuVQUdhXEYFrlT6xpM5gah5_ZfqG860iT6_nylHgec6hdOAfUmxdHXQxW6lO0QZqEEVT_8cPJ2DFy50GhSmBDSF5NAESYg7dlV6HTc-OP7vGL8aBJGPk1OQ2H03AKz-VkVEKjfG-94dxlC8WhMnWdklPFKd5Hr7tkjaE7Iru3xFM_US4kgTdQBJXUchPXQD2xnp942shC-HLwP7ZEQ_1GHRxns9nz0scMBpEReMjXxIjETMC4WHXWEhqldRDk0qvK7XjSMalp7W7rqX2cbQMC-lEolRe-oI9Rk8fIALaswHlmK2Zkm_M69OVJKVTfSUnadfbtF9G99eAj1sUp6u_vnKAO5hpdbNzh9G3zz2u94cjXhv2PiqlF-QB0DWugMKTPoCxivtTH_cJdpTQofMt13virlWK3DLAxXkqhD2f10FndXcouvwSi54svgGIiasZ0rVL8D75Hs4Z2PM_MoxtXNs11oGDJDcY2fXRKbVizrOJ0lEKtvsGIHR6btICm_6JKSDQuYkPOxVVDGevHvK2NLi9ogJ3kTXL4OStuzgHiA6JqGf1os7GVi1ZfUJKWbu_s3NWrVjd35-KlK4-sEjsk3iZLND6wCxvUFvtwsRw4q9T-xJ09doXW14zAF-BOU5XYrzC2e48hoP8qUBrRQVSsaHgy1nV-axZu47Bf8tlbwdLkxxDSVSZkpudgmryvCr72-rSaX47JFSP32RsbcK_5Ci7NDoIhyg8FGP7g0AdDBDPhMAhsWCgs757_j64j1sZKjG3woao1ejK85CeaaNvdYWr9kp3IJGX7G9t4ElXGDjNP5wP03B_XFMeCOLvEJcsoYIpKQorcHdnHT1nIiIV7e92S_f-0FwhsKYV_HU_o5BC9CAhoCmCBMCg5jHRiFb8E40bPQebUe9-LlH8rvIqp_OvZca-8LP1Gl2HTCBqsK6sarJhN37MXniRLtgbhLMmKeM6Taa48HoqS61D-QplrB4wRMtXEulQq-kXby7Z2xkqylDxJ68DwEX5lM76lQCrY4eeOjJawfJNdXDvWbBWl13QBEU4hNfOhIYdkOhp1xq74IOu8kHqvnw3Hu0eLcU1xOugYxPGHEhy6osybLatNv6u9_W1-tBHXel7NuVpv_WMokUF",
       "summary": []
     },
     {
-      "id": "msg_0a2ca1c1e334976d006a515adbb56c819e9563ef6e0334d670",
+      "id": "msg_0809724855ac8883006a5eb838a7a8819ababc505bd82ece22",
       "type": "message",
       "status": "completed",
       "content": [
