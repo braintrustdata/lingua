@@ -53,8 +53,8 @@ fn anonymizes_all_strings_when_all_strings_is_enabled() {
     assert_eq!(
         result.value,
         json!({
-            "role": "anon_1",
-            "content": "anon_2",
+            "role": "anon_2",
+            "content": "anon_1",
             "type": "anon_3"
         })
     );
@@ -110,16 +110,16 @@ fn anonymizes_all_metadata_strings() {
         json!({
             "metadata": {
                 "model": "gpt-5.1-2025-11-13",
-                "trace_id": "anon_1",
-                "route": "anon_2",
+                "trace_id": "anon_5",
+                "route": "anon_1",
                 "tool_definitions": [
                     {
                         "name": "anon_3",
-                        "description": "anon_4",
+                        "description": "anon_2",
                         "parameters": {
                             "type": "object",
                             "properties": {
-                                "city": { "type": "string", "description": "anon_5" }
+                                "city": { "type": "string", "description": "anon_4" }
                             }
                         }
                     }
@@ -334,19 +334,19 @@ fn filter_sees_every_unanonymized_key_and_field_in_json() {
     assert_eq!(
         result.value,
         json!({
-            "custom_1": "custom_2",
-            "custom_3": "custom_4",
-            "custom_5": "custom_6",
-            "custom_7": "anon_1",
-            "custom_8": [
-                { "custom_9": "custom_10", "custom_11": "custom_12" },
-                { "custom_13": "custom_14", "custom_15": "custom_16" }
-            ],
-            "custom_17": {
-                "custom_18": "custom_19",
-                "custom_20": ["custom_21", "custom_22"]
+            "custom_1": "anon_1",
+            "custom_2": "custom_3",
+            "custom_4": {
+                "custom_5": "custom_6",
+                "custom_7": ["custom_8", "custom_9"]
             },
-            "custom_23": "anon_2",
+            "custom_10": "custom_11",
+            "custom_12": [
+                { "custom_13": "custom_14", "custom_15": "custom_16" },
+                { "custom_17": "custom_18", "custom_19": "custom_20" }
+            ],
+            "custom_21": "anon_2",
+            "custom_22": "custom_23",
             "custom_24": "custom_25"
         })
     );
