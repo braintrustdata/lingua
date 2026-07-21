@@ -974,7 +974,8 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 }
 
 fn add_anthropic_tool_search_tool_variants(processed: &str) -> String {
-    if processed.contains("pub struct ToolSearchTool") {
+    // Nothing to do if the tool_search variants are already wired into the Tool enum.
+    if processed.contains("ToolSearchToolBm25(ToolSearchTool)") {
         return processed.to_string();
     }
 
@@ -989,17 +990,26 @@ pub struct ToolSearchTool {
 
 "#;
 
-    let with_struct = processed.replace(
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
-        &format!(
-            "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
-            tool_search_struct
-        ),
-    );
+    // quicktype now emits its own `ToolSearchTool` struct (the spec references
+    // tool_search tools directly), so only inject our definition when it is missing
+    // to avoid producing a duplicate type.
+    let mut with_struct = processed.to_string();
+    if !with_struct.contains("pub struct ToolSearchTool") {
+        with_struct = with_struct.replace(
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
+            &format!(
+                "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
+                tool_search_struct
+            ),
+        );
+    }
 
+    // Inject the tool_search variants immediately before the untagged `Custom` fallback.
+    // Anchoring on the `Custom` variant (rather than a specific web_search version) keeps
+    // this robust as the spec keeps adding new dated server-tool variants to the enum.
     with_struct.replace(
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(untagged)]",
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]",
+        "    #[serde(untagged)]\n    Custom(CustomTool),",
+        "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
 }
 

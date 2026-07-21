@@ -2,7 +2,7 @@
 import type { CacheControlEphemeral } from "./CacheControlEphemeral";
 import type { Citations } from "./Citations";
 import type { RequestTextBlock } from "./RequestTextBlock";
-import type { Source } from "./Source";
+import type { SourceUnion } from "./SourceUnion";
 import type { WebSearchToolResultBlockItemType } from "./WebSearchToolResultBlockItemType";
 
 /**
@@ -21,4 +21,4 @@ export type Block = {
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: WebSearchToolResultBlockItemType, source: Source | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, tool_name: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };
+cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: WebSearchToolResultBlockItemType, source: SourceUnion | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, tool_name: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };

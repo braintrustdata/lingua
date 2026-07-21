@@ -144,7 +144,7 @@ fn is_forced_tool_choice(value: &Value) -> bool {
                 .name
                 .as_ref()
                 .is_some_and(|name| !name.is_empty()),
-            ToolChoiceType::Auto | ToolChoiceType::None => false,
+            ToolChoiceType::Auto | ToolChoiceType::TypeNone => false,
         })
 }
 
@@ -1702,7 +1702,7 @@ mod tests {
         let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
         let blocks = match parsed.system.expect("system field present") {
             System::RequestTextBlockArray(blocks) => blocks,
-            System::String(s) => {
+            System::PurpleString(s) => {
                 panic!("system must be a text-block array to carry cache_control, got: {s}")
             }
         };
@@ -1737,7 +1737,7 @@ mod tests {
         let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
         assert_eq!(
             parsed.system,
-            Some(System::String("You are a presenter.".to_string()))
+            Some(System::PurpleString("You are a presenter.".to_string()))
         );
     }
 

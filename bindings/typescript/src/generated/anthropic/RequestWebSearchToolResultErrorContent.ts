@@ -2,4 +2,4 @@
 import type { RequestCodeExecutionOutputBlock } from "./RequestCodeExecutionOutputBlock";
 import type { RequestDocumentBlock } from "./RequestDocumentBlock";
 
-export type RequestWebSearchToolResultErrorContent = Array<RequestCodeExecutionOutputBlock> | RequestDocumentBlock | string;
+export type RequestWebSearchToolResultErrorContent = string | Array<RequestCodeExecutionOutputBlock> | RequestDocumentBlock;
