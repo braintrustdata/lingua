@@ -4547,6 +4547,13 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
             }
             openai::PurpleType::ImageUrl => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions image_url cache metadata".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 if let Some(image_url) = part.image_url {
                     // Parse data URLs to extract raw base64, keep HTTP URLs as-is
                     let (image_data, media_type) =
@@ -4570,6 +4577,13 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
             }
             openai::PurpleType::File => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions file cache metadata".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let file = part
                     .file
                     .ok_or_else(|| ConvertError::MissingRequiredField {
@@ -4623,6 +4637,13 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
             }
             openai::PurpleType::ImageUrl => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions image_url cache metadata".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 if let Some(image_url) = part.base.image_url {
                     let (image_data, media_type) =
                         if let Some(block) = parse_base64_data_url(&image_url.url) {
@@ -4643,6 +4664,13 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
             }
             openai::PurpleType::File => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions file cache metadata".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let file = part
                     .base
                     .file
@@ -5761,6 +5789,73 @@ mod tests {
             crate::universal::CacheControlType::Ephemeral
         );
         assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn chat_completions_media_cache_breakpoints_are_rejected() {
+        let breakpoint = || openai::ArrayOfContentPartPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        };
+        let parts = [
+            (
+                openai::ChatCompletionRequestMessageContentPart {
+                    text: None,
+                    content_part_type: openai::PurpleType::ImageUrl,
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    image_url: Some(openai::ImageUrl {
+                        detail: None,
+                        url: "https://example.com/image.jpg".to_string(),
+                    }),
+                    input_audio: None,
+                    file: None,
+                    refusal: None,
+                },
+                "image_url",
+            ),
+            (
+                openai::ChatCompletionRequestMessageContentPart {
+                    text: None,
+                    content_part_type: openai::PurpleType::File,
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    image_url: None,
+                    input_audio: None,
+                    file: Some(openai::File {
+                        file_data: Some("U2FtcGxlIHRleHQu".to_string()),
+                        file_id: None,
+                        filename: Some("Doc.txt".to_string()),
+                    }),
+                    refusal: None,
+                },
+                "file",
+            ),
+        ];
+
+        for (part, content_type) in parts {
+            let direct_error = <UserContentPart as TryFromLLM<
+                openai::ChatCompletionRequestMessageContentPart,
+            >>::try_from(part.clone())
+            .expect_err("direct media breakpoint import should fail");
+            assert!(matches!(
+                direct_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(direct_error.to_string().contains(content_type));
+
+            let wrapped_error = <UserContentPart as TryFromLLM<
+                ChatCompletionRequestMessageContentPartExt,
+            >>::try_from(
+                ChatCompletionRequestMessageContentPartExt {
+                    base: part,
+                    cache_control: None,
+                },
+            )
+            .expect_err("wrapped media breakpoint import should fail");
+            assert!(matches!(
+                wrapped_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(wrapped_error.to_string().contains(content_type));
+        }
     }
 
     #[test]
