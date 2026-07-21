@@ -8,8 +8,7 @@
           "type": "text",
           "text": "Use this stable reference text as cacheable context.",
           "cache_control": {
-            "type": "ephemeral",
-            "ttl": "1h"
+            "type": "ephemeral"
           },
           "prompt_cache_breakpoint": {
             "mode": "explicit"

@@ -337,24 +337,49 @@ fn cache_control_from_responses_prompt_cache_breakpoint(
 fn responses_prompt_cache_breakpoint_from_cache_control(
     cache_control: Option<&CacheControl>,
 ) -> Result<Option<openai::InputItemContentListPromptCacheBreakpoint>, ConvertError> {
-    let Some(cache_control) = cache_control else {
-        return Ok(None);
-    };
+    validate_openai_prompt_cache_ttl(
+        cache_control,
+        "OpenAI Responses prompt_cache_options.ttl (only `30m` is supported)",
+    )?;
 
-    if let Some(ttl) = &cache_control.ttl {
+    Ok(
+        cache_control.map(|_| openai::InputItemContentListPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        }),
+    )
+}
+
+fn chat_completion_prompt_cache_breakpoint_from_cache_control(
+    cache_control: Option<&CacheControl>,
+) -> Result<Option<openai::ArrayOfContentPartPromptCacheBreakpoint>, ConvertError> {
+    validate_openai_prompt_cache_ttl(
+        cache_control,
+        "OpenAI Chat Completions prompt_cache_options.ttl (only `30m` is supported)",
+    )?;
+
+    Ok(
+        cache_control.map(|_| openai::ArrayOfContentPartPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        }),
+    )
+}
+
+fn validate_openai_prompt_cache_ttl(
+    cache_control: Option<&CacheControl>,
+    target: &'static str,
+) -> Result<(), ConvertError> {
+    if let Some(ttl) = cache_control.and_then(|cache_control| cache_control.ttl.as_ref()) {
         let ttl = match ttl {
             crate::universal::CacheControlTtl::The5M => "5m",
             crate::universal::CacheControlTtl::The1H => "1h",
         };
         return Err(ConvertError::UnsupportedMapping {
             from: format!("cache_control.ttl `{ttl}`"),
-            to: "OpenAI Responses prompt_cache_options.ttl (only `30m` is supported)",
+            to: target,
         });
     }
 
-    Ok(Some(openai::InputItemContentListPromptCacheBreakpoint {
-        mode: openai::PromptCacheBreakpointMode::Explicit,
-    }))
+    Ok(())
 }
 
 fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> AssistantContent {
@@ -4935,11 +4960,10 @@ fn convert_user_content_part_to_chat_completion_part(
 ) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
     match part {
         UserContentPart::Text(text_part) => {
-            let prompt_cache_breakpoint = text_part.cache_control.as_ref().map(|_| {
-                openai::ArrayOfContentPartPromptCacheBreakpoint {
-                    mode: openai::PromptCacheBreakpointMode::Explicit,
-                }
-            });
+            let prompt_cache_breakpoint =
+                chat_completion_prompt_cache_breakpoint_from_cache_control(
+                    text_part.cache_control.as_ref(),
+                )?;
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: Some(text_part.text),
                 content_part_type: openai::PurpleType::Text,
@@ -5092,7 +5116,7 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = chat_completion_assistant_text_content(text_parts);
+    let text_content = chat_completion_assistant_text_content(text_parts)?;
 
     let tool_calls_option = if tool_calls.is_empty() {
         None
@@ -5134,9 +5158,9 @@ fn tool_discovery_arguments_to_string(
 
 fn chat_completion_assistant_text_content(
     text_parts: Vec<TextContentPart>,
-) -> Option<ChatCompletionRequestMessageContentExt> {
+) -> Result<Option<ChatCompletionRequestMessageContentExt>, ConvertError> {
     if text_parts.is_empty() {
-        return None;
+        return Ok(None);
     }
 
     let has_metadata = text_parts.iter().any(|text_part| {
@@ -5146,39 +5170,38 @@ fn chat_completion_assistant_text_content(
     });
 
     if !has_metadata {
-        return Some(ChatCompletionRequestMessageContentExt::String(
+        return Ok(Some(ChatCompletionRequestMessageContentExt::String(
             text_parts
                 .into_iter()
                 .map(|text_part| text_part.text)
                 .collect::<Vec<_>>()
                 .join(""),
-        ));
+        )));
     }
 
-    Some(ChatCompletionRequestMessageContentExt::Parts(
-        text_parts
-            .into_iter()
-            .map(|text_part| {
-                let prompt_cache_breakpoint = text_part.cache_control.as_ref().map(|_| {
-                    openai::ArrayOfContentPartPromptCacheBreakpoint {
-                        mode: openai::PromptCacheBreakpointMode::Explicit,
-                    }
-                });
-                ChatCompletionRequestMessageContentPartExt {
-                    cache_control: cache_control_to_value(text_part.cache_control),
-                    base: openai::ChatCompletionRequestMessageContentPart {
-                        text: Some(text_part.text),
-                        content_part_type: openai::PurpleType::Text,
-                        prompt_cache_breakpoint,
-                        image_url: None,
-                        input_audio: None,
-                        file: None,
-                        refusal: None,
-                    },
-                }
+    let parts = text_parts
+        .into_iter()
+        .map(|text_part| {
+            let prompt_cache_breakpoint =
+                chat_completion_prompt_cache_breakpoint_from_cache_control(
+                    text_part.cache_control.as_ref(),
+                )?;
+            Ok(ChatCompletionRequestMessageContentPartExt {
+                cache_control: cache_control_to_value(text_part.cache_control),
+                base: openai::ChatCompletionRequestMessageContentPart {
+                    text: Some(text_part.text),
+                    content_part_type: openai::PurpleType::Text,
+                    prompt_cache_breakpoint,
+                    image_url: None,
+                    input_audio: None,
+                    file: None,
+                    refusal: None,
+                },
             })
-            .collect(),
-    ))
+        })
+        .collect::<Result<Vec<_>, ConvertError>>()?;
+
+    Ok(Some(ChatCompletionRequestMessageContentExt::Parts(parts)))
 }
 
 /// Convert ChatCompletionResponseMessageExt to universal Message
@@ -5994,6 +6017,55 @@ mod tests {
                 .mode,
             openai::PromptCacheBreakpointMode::Explicit
         );
+    }
+
+    #[test]
+    fn chat_completions_rejects_unsupported_cache_ttls() {
+        for (ttl, expected) in [
+            (crate::universal::CacheControlTtl::The5M, "5m"),
+            (crate::universal::CacheControlTtl::The1H, "1h"),
+        ] {
+            let text_part = || TextContentPart {
+                text: "Cached context.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: Some(ttl.clone()),
+                }),
+                provider_options: None,
+            };
+
+            let user_error =
+                <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(Message::User {
+                    content: UserContent::Array(vec![UserContentPart::Text(text_part())]),
+                })
+                .expect_err("Chat Completions should reject user cache TTLs it cannot preserve");
+            assert!(matches!(
+                user_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(user_error.to_string().contains(expected));
+            assert!(user_error.to_string().contains("Chat Completions"));
+
+            let assistant_error =
+                <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(
+                    Message::Assistant {
+                        content: AssistantContent::Array(vec![AssistantContentPart::Text(
+                            text_part(),
+                        )]),
+                        id: None,
+                    },
+                )
+                .expect_err(
+                    "Chat Completions should reject assistant cache TTLs it cannot preserve",
+                );
+            assert!(matches!(
+                assistant_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(assistant_error.to_string().contains(expected));
+            assert!(assistant_error.to_string().contains("Chat Completions"));
+        }
     }
 
     #[cfg(feature = "anthropic")]

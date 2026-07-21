@@ -39,14 +39,14 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
   prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlTextPart = {
   type: "text",
   text: "This assistant prefill should remain cacheable.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
   prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 

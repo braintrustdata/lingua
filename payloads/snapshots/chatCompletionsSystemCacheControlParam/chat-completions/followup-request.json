@@ -8,8 +8,7 @@
           "type": "text",
           "text": "Use this stable reference text as cacheable context.",
           "cache_control": {
-            "type": "ephemeral",
-            "ttl": "1h"
+            "type": "ephemeral"
           },
           "prompt_cache_breakpoint": {
             "mode": "explicit"
@@ -23,7 +22,7 @@
     },
     {
       "role": "assistant",
-      "content": "Use the provided stable reference text as reusable, cacheable context for future responses.",
+      "content": "The developer instructs the assistant to treat the provided text as stable reference material that may be cached for reuse.",
       "refusal": null,
       "annotations": []
     },

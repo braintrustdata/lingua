@@ -32,7 +32,12 @@
     "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
     "documentContentParam": "Anthropic document content is still unsupported in OpenAI Chat Completions because the provider expects provider-specific file payloads such as PDF data URLs, which universal File content cannot represent non-lossily",
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
-    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
+    "chatCompletionsAnthropicCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsAssistantCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsSystemCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "cacheControl5mParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 5m TTL",
+    "cacheControl1hParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL"
   },
   "anthropic_to_responses": {
     "codeInterpreterToolParam": "Expected: Anthropic bash is provider-specific and is not a lossless equivalent of OpenAI Responses code_interpreter",
