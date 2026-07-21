@@ -5803,60 +5803,6 @@ exports[`anthropic → responses > bedrockAnthropicContextManagementParam > resp
 }
 `;
 
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "This assistant prefill should remain cacheable.
-
-If you",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0592e9ab206b9682006a288c85556081a0aabd0fb3e8ba4c63",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 28,
-    "output_tokens": 1024,
-  },
-}
-`;
-
 exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
 {
   "input": [
@@ -17903,78 +17849,6 @@ Once you provide the text, I’ll generate the summary in your chosen format and
       "cached_tokens": 0,
     },
     "total_tokens": 1360,
-  },
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
-
-Here’s a compact, generic prefill you can use right away (store it and reuse):
-
-Prefill (system-like):
-- Role: Helpful assistant
-- Tone: concise, accurate, and polite
-- Scope: answers questions, provides steps, and asks clarifying questions if information is missing
-- Verification: do not fabricate facts; if unsure, say so
-- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible
-- Special cases: for code, give a minimal complete example with explanations
-
-How to use:
-- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
-- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 1957,
-    "completion_tokens_details": {
-      "reasoning_tokens": 1664,
-    },
-    "prompt_tokens": 28,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 1985,
   },
 }
 `;

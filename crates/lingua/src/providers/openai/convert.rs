@@ -1566,12 +1566,12 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
     type Error = ConvertError;
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
-        let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
-            value.prompt_cache_breakpoint.as_ref(),
-        );
         Ok(match value.input_content_type {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
+                let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
+                    value.prompt_cache_breakpoint.as_ref(),
+                );
                 UserContentPart::Text(TextContentPart {
                     text: value
                         .text
@@ -1585,6 +1585,13 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
             }
             // TODO: ToolCall and ToolResult content types - not yet implemented in generated types
             openai::InputItemContentListType::InputImage => {
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_image prompt_cache_breakpoint".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 // Extract image URL from the InputContent
                 let image_url =
                     value
@@ -1633,6 +1640,13 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 });
             }
             openai::InputItemContentListType::InputFile => {
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_file prompt_cache_breakpoint".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let (payload, filename) = universal_file_payload_from_openai(
                     value.file_data,
                     value.file_url,
@@ -1825,6 +1839,13 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
     fn try_from(part: AssistantContentPart) -> Result<Self, Self::Error> {
         Ok(match part {
             AssistantContentPart::Text(text_part) => {
+                if text_part.cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua assistant text cache_control".to_string(),
+                        to: "OpenAI Responses output_text (prompt_cache_breakpoint is unsupported)",
+                    });
+                }
+
                 // Extract annotations and logprobs from provider_options
                 let annotations = text_part
                     .provider_options
@@ -5441,7 +5462,7 @@ mod tests {
     }
 
     #[test]
-    fn responses_output_text_does_not_emit_prompt_cache_breakpoint() {
+    fn responses_output_text_rejects_cache_control() {
         let universal = AssistantContentPart::Text(TextContentPart {
             text: "Assistant context.".to_string(),
             encrypted_content: None,
@@ -5452,10 +5473,46 @@ mod tests {
             provider_options: None,
         });
 
-        let provider =
-            <openai::InputContent as TryFromLLM<AssistantContentPart>>::try_from(universal)
-                .expect("assistant text should convert");
-        assert!(provider.prompt_cache_breakpoint.is_none());
+        let error = <openai::InputContent as TryFromLLM<AssistantContentPart>>::try_from(universal)
+            .expect_err("Responses output text should reject cache control");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        assert!(error.to_string().contains("assistant text cache_control"));
+        assert!(error.to_string().contains("output_text"));
+    }
+
+    #[test]
+    fn responses_media_prompt_cache_breakpoints_are_rejected() {
+        let breakpoint = || openai::InputItemContentListPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        };
+        let values = [
+            (
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputImage,
+                    image_url: Some("https://example.com/image.jpg".to_string()),
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    ..Default::default()
+                },
+                "input_image",
+            ),
+            (
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_url: Some("https://example.com/file.pdf".to_string()),
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    ..Default::default()
+                },
+                "input_file",
+            ),
+        ];
+
+        for (value, content_type) in values {
+            let error = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(value)
+                .expect_err("Responses media cache breakpoint should be rejected");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+            assert!(error.to_string().contains(content_type));
+            assert!(error.to_string().contains("cache control is unsupported"));
+        }
     }
 
     #[test]

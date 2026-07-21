@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "chatCompletionsAssistantCacheControlParam",
+      "source": "*",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert Lingua assistant text cache_control to OpenAI Responses output_text", "reason": "Responses output_text does not support prompt_cache_breakpoint and cannot preserve assistant cache control" }
+      ]
+    },
+    {
       "testCase": "cacheControl5mParam",
       "source": "Anthropic",
       "target": "Responses",
