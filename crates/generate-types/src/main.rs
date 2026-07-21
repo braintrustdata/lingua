@@ -1769,6 +1769,9 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
 
+    // Preserve established public Rust variant names when quicktype disambiguates them.
+    processed = preserve_google_public_enum_variant_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -1805,6 +1808,22 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
         }
 
         if in_type_enum {
+            // quicktype renames variants that collide with Rust prelude names (e.g. the
+            // `String` variant becomes `TypeString`) and emits an explicit
+            // `#[serde(rename = "STRING")]`. Those renamed lines are skipped by the
+            // bare-variant branch below, which would drop the lowercase JSON Schema alias.
+            // Re-attach it here so the enum keeps accepting both "STRING" and "string".
+            if let Some(wire) = single_word_serde_rename(trimmed) {
+                let indent = line.len() - line.trim_start().len();
+                result_lines.push(format!(
+                    "{}#[serde(rename = \"{}\", alias = \"{}\")]",
+                    " ".repeat(indent),
+                    wire,
+                    wire.to_lowercase()
+                ));
+                continue;
+            }
+
             // Match bare variant lines like "    Array," (no existing serde attribute)
             let variant_name = trimmed.trim_end_matches(',');
             let is_bare_variant = !trimmed.is_empty()
@@ -1836,7 +1855,60 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     result_lines.join("\n")
 }
 
-/// Find an enum in generated Rust source whose body contains all of the given variant names.
+/// Restore established public Google enum variant names that quicktype may disambiguate.
+fn preserve_google_public_enum_variant_names(content: &str) -> String {
+    let mut current_enum: Option<&str> = None;
+    let mut result_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        current_enum = match trimmed {
+            "pub enum Type {" => Some("Type"),
+            "pub enum FunctionCallingConfigMode {" => Some("FunctionCallingConfigMode"),
+            "}" => None,
+            _ => current_enum,
+        };
+
+        let preserved_variant = match (current_enum, trimmed) {
+            (Some("Type"), "TypeString,") => Some("String,"),
+            (Some("FunctionCallingConfigMode"), "ModeNone,") => Some("None,"),
+            _ => None,
+        };
+
+        if let Some(variant) = preserved_variant {
+            let indent = line.len() - line.trim_start().len();
+            result_lines.push(format!("{}{}", " ".repeat(indent), variant));
+        } else {
+            result_lines.push(line.to_string());
+        }
+    }
+
+    result_lines.join("\n")
+}
+
+/// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
+/// existing alias (e.g. `#[serde(rename = "STRING")]`), return that wire word.
+///
+/// Used to re-attach lowercase JSON Schema aliases to `Type` variants that quicktype
+/// renamed to avoid Rust prelude collisions. Composite wire names such as
+/// `TYPE_UNSPECIFIED` (which never had a lowercase alias) are intentionally excluded.
+fn single_word_serde_rename(trimmed: &str) -> Option<String> {
+    if trimmed.contains("alias") {
+        return None;
+    }
+    let inner = trimmed
+        .strip_prefix("#[serde(rename = \"")?
+        .strip_suffix("\")]")?;
+    let is_single_uppercase_word =
+        !inner.is_empty() && inner.chars().all(|c| c.is_ascii_uppercase());
+    if is_single_uppercase_word {
+        Some(inner.to_string())
+    } else {
+        None
+    }
+}
+
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
@@ -1959,4 +2031,36 @@ where
     }
 
     result_lines.join("\n")
+}
+
+#[cfg(test)]
+mod google_post_process_tests {
+    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+
+    #[test]
+    fn preserves_string_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum Type {
+    #[serde(rename = "STRING")]
+    TypeString,
+}"#;
+
+        let output = add_type_enum_lowercase_aliases(input);
+        let output = preserve_google_public_enum_variant_names(&output);
+
+        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
+        assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum FunctionCallingConfigMode {
+    #[serde(rename = "NONE")]
+    ModeNone,
+}"#;
+
+        let output = preserve_google_public_enum_variant_names(input);
+
+        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
+        assert!(!output.contains("ModeNone"));
+    }
 }
