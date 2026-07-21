@@ -336,10 +336,25 @@ fn cache_control_from_responses_prompt_cache_breakpoint(
 
 fn responses_prompt_cache_breakpoint_from_cache_control(
     cache_control: Option<&CacheControl>,
-) -> Option<openai::InputItemContentListPromptCacheBreakpoint> {
-    cache_control.map(|_| openai::InputItemContentListPromptCacheBreakpoint {
+) -> Result<Option<openai::InputItemContentListPromptCacheBreakpoint>, ConvertError> {
+    let Some(cache_control) = cache_control else {
+        return Ok(None);
+    };
+
+    if let Some(ttl) = &cache_control.ttl {
+        let ttl = match ttl {
+            crate::universal::CacheControlTtl::The5M => "5m",
+            crate::universal::CacheControlTtl::The1H => "1h",
+        };
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!("cache_control.ttl `{ttl}`"),
+            to: "OpenAI Responses prompt_cache_options.ttl (only `30m` is supported)",
+        });
+    }
+
+    Ok(Some(openai::InputItemContentListPromptCacheBreakpoint {
         mode: openai::PromptCacheBreakpointMode::Explicit,
-    })
+    }))
 }
 
 fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> AssistantContent {
@@ -1695,7 +1710,7 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
             UserContentPart::Text(text_part) => {
                 let prompt_cache_breakpoint = responses_prompt_cache_breakpoint_from_cache_control(
                     text_part.cache_control.as_ref(),
-                );
+                )?;
                 openai::InputContent {
                     input_content_type: openai::InputItemContentListType::InputText,
                     text: Some(text_part.text),
@@ -5372,6 +5387,30 @@ mod tests {
             crate::universal::CacheControlType::Ephemeral
         );
         assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn responses_prompt_cache_breakpoint_rejects_unsupported_cache_ttls() {
+        for (ttl, expected) in [
+            (crate::universal::CacheControlTtl::The5M, "5m"),
+            (crate::universal::CacheControlTtl::The1H, "1h"),
+        ] {
+            let universal = UserContentPart::Text(TextContentPart {
+                text: "Cached user context.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: Some(ttl),
+                }),
+                provider_options: None,
+            });
+
+            let error = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(universal)
+                .expect_err("Responses should reject cache TTLs it cannot preserve");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+            assert!(error.to_string().contains(expected));
+            assert!(error.to_string().contains("only `30m` is supported"));
+        }
     }
 
     #[test]
