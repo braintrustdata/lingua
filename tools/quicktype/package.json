@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "quicktype": "24.0.2"
+    "quicktype": "25.1.0"
   }
 }

@@ -22,13 +22,13 @@ Use `--headless` in automation:
 
 The script downloads the current specification, runs `generate-types`, formats the generated Rust, and verifies that the workspace builds.
 
-Run `pnpm install` once after cloning. Lingua pins quicktype in `tools/quicktype/package.json` and applies the temporary upstream fix from `patches/quicktype-core@24.0.2.patch`; no global quicktype installation is used.
+Run `pnpm install` once after cloning. Lingua pins quicktype in `tools/quicktype/package.json`; no global quicktype installation is used.
 
 ## OpenAI generation
 
 OpenAI types are generated with quicktype from `specs/openai/openapi.yml`.
 
-The pinned quicktype patch processes Stainless schemas that contain intersections nested inside unions. The generator then applies narrow compatibility transforms for stable Rust names used by Lingua adapters. Compatibility aliases are emitted only when they do not collide with newly generated names.
+The pinned quicktype release processes Stainless schemas that contain intersections nested inside unions. The generator then applies narrow compatibility transforms for stable Rust names used by Lingua adapters. Compatibility aliases are emitted only when they do not collide with newly generated names.
 
 Generation errors return a non-zero exit code and leave the existing generated Rust file unchanged.
 

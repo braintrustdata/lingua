@@ -12,11 +12,6 @@ overrides:
   ip-address: ^10.1.1
   brace-expansion: ^5.0.6
 
-patchedDependencies:
-  quicktype-core@24.0.2:
-    hash: 2249376b8ceae174d2d3cd5d209185f15ca4a0b3f9a37d22b400412de0c44635
-    path: patches/quicktype-core@24.0.2.patch
-
 importers:
 
   bindings/lingua-wasm: {}
@@ -141,8 +136,8 @@ importers:
   tools/quicktype:
     dependencies:
       quicktype:
-        specifier: 24.0.2
-        version: 24.0.2(@swc/core@1.15.7)(@swc/wasm@1.15.7)
+        specifier: 25.1.0
+        version: 25.1.0(@swc/core@1.15.7)(@swc/wasm@1.15.7)
 
 packages:
 
@@ -2678,9 +2673,6 @@ packages:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
     engines: {node: '>=10'}
 
-  js-base64@3.8.1:
-    resolution: {integrity: sha512-5xVjhUZlHHeuO2W7w2rDFj/Kl1xLX+HjZxdOQwCsUOifl6UaoH1o1wsbsTMz+r0aeC7gCijvru02j6TfKZWzKg==}
-
   js-md4@0.3.2:
     resolution: {integrity: sha512-/GDnfQYsltsjRswQhN9fhv3EMw2sCpUdrdxyWDOUK7eyD++r3gRhzgiQgc/x4MAv2i1iuQ4lxO5mvqM3vj4bwA==}
 
@@ -3214,9 +3206,6 @@ packages:
   pako@0.2.9:
     resolution: {integrity: sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA==}
 
-  pako@1.0.11:
-    resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
-
   parseurl@1.3.3:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
@@ -3425,20 +3414,20 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  quicktype-core@24.0.2:
-    resolution: {integrity: sha512-Tv3jO/2FdYrcBVDCDC+27gOIAmXzrJv2O10KPJ1CPw5b5GKw+0MSq8zVnl0zz3byp8MZ1VEFj6+uc2VOxpY63g==}
+  quicktype-core@25.1.0:
+    resolution: {integrity: sha512-OTU8SWXmu/Hu+udnZJ54Sc3RBDM5wMJArBzy5HeqaGETerUXPl2UhMGi9L2UrHYwwvZdePhWZwBnTGFrIYTpsA==}
     engines: {node: '>=20.0.0'}
 
-  quicktype-graphql-input@24.0.2:
-    resolution: {integrity: sha512-0lNkN+EZhpP0cNQ2B07uztZkyo2UPdYx0Q17UL/ahTuYTkBjnK7ibgW99UhkatyJD9RZG00xOuYLQWC/kr/wkg==}
+  quicktype-graphql-input@25.1.0:
+    resolution: {integrity: sha512-okFYtskMmq9P6T53XLW44JdlXgi0orrjC6HOMWDgwfYXHcZ8MmWd6Fr+QTOVbOufy/CYF4EQX9oW7fLnJ/g+sw==}
     engines: {node: '>=20.0.0'}
 
-  quicktype-typescript-input@24.0.2:
-    resolution: {integrity: sha512-lr1aXOfFXwM/oBJ8Fbig5DBhHsIN/J3k/rLnksK9S6XdnZbvxgcKLrXhIKWl3cpUonKwsNU2Imr4mg0NDxpkow==}
+  quicktype-typescript-input@25.1.0:
+    resolution: {integrity: sha512-idLH4ayPuER7p9MLQuudi26YsG7mDyPdAEH0dNFAqPGBdYz8EPff8E0UFI4tdftAPbk+vVNEcxK3k7j0bOK2lQ==}
     engines: {node: '>=20.0.0'}
 
-  quicktype@24.0.2:
-    resolution: {integrity: sha512-04npRjVbNKdIG1S341EKyOU3pZWj9yZ22eC+VuKeHM4lx5FMM1GOajIxpwbpaOQ/5ZZ6Bbyz7odzXX/ZdXt3wQ==}
+  quicktype@25.1.0:
+    resolution: {integrity: sha512-InSut8O6n9z7NMChZ/McZbaPQPAH+1U6plibfFRgkVucBE0/G1EJCO4T8isJWCYG81l4QEy0XNVdPfI2jpzshQ==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -3909,11 +3898,6 @@ packages:
 
   typescript-json-schema@0.67.4:
     resolution: {integrity: sha512-BhDCVfwGtPKKt9JOBvh6ocmSbEk7ftx7dpqqIpvGNrjzYcUKm8pnYwKSFfNJwqcp/qNTfZr9sKtVyTxx4V9iRA==}
-    hasBin: true
-
-  typescript@5.8.3:
-    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
-    engines: {node: '>=14.17'}
     hasBin: true
 
   typescript@5.9.3:
@@ -5742,7 +5726,7 @@ snapshots:
   '@types/request@2.48.13':
     dependencies:
       '@types/caseless': 0.12.5
-      '@types/node': 22.19.1
+      '@types/node': 22.19.19
       '@types/tough-cookie': 4.0.5
       form-data: 2.5.5
 
@@ -6946,8 +6930,6 @@ snapshots:
 
   joycon@3.1.1: {}
 
-  js-base64@3.8.1: {}
-
   js-md4@0.3.2: {}
 
   js-yaml@4.1.1:
@@ -7514,8 +7496,6 @@ snapshots:
 
   pako@0.2.9: {}
 
-  pako@1.0.11: {}
-
   parseurl@1.3.3: {}
 
   path-browserify@1.0.1: {}
@@ -7697,7 +7677,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  quicktype-core@24.0.2(patch_hash=2249376b8ceae174d2d3cd5d209185f15ca4a0b3f9a37d22b400412de0c44635):
+  quicktype-core@25.1.0:
     dependencies:
       '@glideapps/ts-necessities': 2.2.3
       '@types/readable-stream': 4.0.10
@@ -7705,9 +7685,7 @@ snapshots:
       browser-or-node: 3.0.0
       collection-utils: 1.0.1
       is-url: 1.2.4
-      js-base64: 3.8.1
       lodash: 4.18.1
-      pako: 1.0.11
       pluralize: 8.0.0
       readable-stream: 4.5.2
       unicode-properties: 1.4.1
@@ -7715,21 +7693,22 @@ snapshots:
       wordwrap: 1.0.0
       yaml: 2.9.0
 
-  quicktype-graphql-input@24.0.2:
+  quicktype-graphql-input@25.1.0:
     dependencies:
       collection-utils: 1.0.1
       graphql: 16.14.2
-      quicktype-core: 24.0.2(patch_hash=2249376b8ceae174d2d3cd5d209185f15ca4a0b3f9a37d22b400412de0c44635)
+      quicktype-core: 25.1.0
 
-  quicktype-typescript-input@24.0.2(@swc/core@1.15.7)(@swc/wasm@1.15.7):
+  quicktype-typescript-input@25.1.0(@swc/core@1.15.7)(@swc/wasm@1.15.7):
     dependencies:
-      quicktype-core: 24.0.2(patch_hash=2249376b8ceae174d2d3cd5d209185f15ca4a0b3f9a37d22b400412de0c44635)
+      quicktype-core: 25.1.0
+      typescript: 5.9.3
       typescript-json-schema: 0.67.4(@swc/core@1.15.7)(@swc/wasm@1.15.7)
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
 
-  quicktype@24.0.2(@swc/core@1.15.7)(@swc/wasm@1.15.7):
+  quicktype@25.1.0(@swc/core@1.15.7)(@swc/wasm@1.15.7):
     dependencies:
       '@glideapps/ts-necessities': 2.4.0
       '@types/readable-stream': 4.0.10
@@ -7740,13 +7719,13 @@ snapshots:
       graphql: 16.14.2
       lodash: 4.18.1
       moment: 2.30.1
-      quicktype-core: 24.0.2(patch_hash=2249376b8ceae174d2d3cd5d209185f15ca4a0b3f9a37d22b400412de0c44635)
-      quicktype-graphql-input: 24.0.2
-      quicktype-typescript-input: 24.0.2(@swc/core@1.15.7)(@swc/wasm@1.15.7)
+      quicktype-core: 25.1.0
+      quicktype-graphql-input: 25.1.0
+      quicktype-typescript-input: 25.1.0(@swc/core@1.15.7)(@swc/wasm@1.15.7)
       readable-stream: 4.7.0
       stream-json: 1.8.0
       string-to-stream: 3.0.1
-      typescript: 5.8.3
+      wordwrap: 1.0.0
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -8362,8 +8341,6 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
-
-  typescript@5.8.3: {}
 
   typescript@5.9.3: {}
 
