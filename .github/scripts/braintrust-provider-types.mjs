@@ -18,8 +18,6 @@ const PROVIDER_TYPE_WORKFLOW_PATH =
 const PROVIDER_TYPE_WORKFLOW_NAME = "Update provider types";
 const AUTOFIX_MARKER = "provider-type-codex-autofix";
 const AUTOFIX_MAX_ATTEMPTS = 2;
-const AUTOFIX_MAX_FILES = 8;
-const AUTOFIX_MAX_CHANGED_LINES = 800;
 
 const require = createRequire(import.meta.url);
 
@@ -836,18 +834,10 @@ function isProhibitedAutofixPath(path) {
   );
 }
 
-function validateAutofixPatch({ files, changedLines, modes, hasBinary }) {
+function validateAutofixPatch({ files, modes, hasBinary }) {
   const errors = [];
   if (files.length === 0) {
     errors.push("Claude produced no patch");
-  }
-  if (files.length > AUTOFIX_MAX_FILES) {
-    errors.push(`Patch changes ${files.length} files; limit is ${AUTOFIX_MAX_FILES}`);
-  }
-  if (changedLines > AUTOFIX_MAX_CHANGED_LINES) {
-    errors.push(
-      `Patch changes ${changedLines} lines; limit is ${AUTOFIX_MAX_CHANGED_LINES}`,
-    );
   }
   const prohibited = files.filter(isProhibitedAutofixPath);
   if (prohibited.length > 0) {

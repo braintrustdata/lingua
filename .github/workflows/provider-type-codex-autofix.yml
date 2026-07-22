@@ -12,6 +12,15 @@ permissions: {}
 
 jobs:
   gate:
+    if: >-
+      github.event.review.state == 'commented' &&
+      github.event.review.user.id == 199175422 &&
+      github.event.review.user.login == 'chatgpt-codex-connector[bot]' &&
+      github.event.pull_request.user.id == 41898282 &&
+      github.event.pull_request.user.login == 'github-actions[bot]' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'auto-sync')
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -50,6 +59,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/autofix-context"
+          if ! grep -q 'inspect-codex-autofix-event' .github/scripts/braintrust-provider-types.mjs; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "reason=Trusted autofix helper is not installed on main yet" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           node .github/scripts/braintrust-provider-types.mjs inspect-codex-autofix-event
           if [ -f "$AUTOFIX_REVIEW_PATH" ]; then
             cp .github/scripts/braintrust-provider-types.mjs "$RUNNER_TEMP/autofix-context/braintrust-provider-types.mjs"

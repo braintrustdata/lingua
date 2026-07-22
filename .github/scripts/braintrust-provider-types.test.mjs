@@ -155,7 +155,7 @@ test("stops after two attempts", () => {
   assert.equal(result.exhausted, true);
 });
 
-test("rejects prohibited, binary, oversized, and unsafe-mode patches", () => {
+test("rejects prohibited, binary, and unsafe-mode patches", () => {
   const result = validateAutofixPatch({
     files: [".github/workflows/evil.yml"],
     changedLines: 801,
@@ -163,7 +163,23 @@ test("rejects prohibited, binary, oversized, and unsafe-mode patches", () => {
     hasBinary: true,
   });
   assert.equal(result.valid, false);
-  assert.equal(result.errors.length, 4);
+  assert.equal(result.errors.length, 3);
+});
+
+test("does not limit patch file count or changed lines", () => {
+  const result = validateAutofixPatch({
+    files: Array.from(
+      { length: 50 },
+      (_, index) => `crates/lingua/src/providers/openai/test_${index}.rs`,
+    ),
+    changedLines: 100_000,
+    modes: Array.from({ length: 50 }, () => ({
+      oldMode: "100644",
+      newMode: "100644",
+    })),
+    hasBinary: false,
+  });
+  assert.deepEqual(result, { valid: true, errors: [] });
 });
 
 test("accepts a small handwritten provider patch", () => {
