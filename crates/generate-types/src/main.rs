@@ -1800,6 +1800,10 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // Preserve established public Rust variant names when quicktype disambiguates them.
     processed = preserve_google_public_enum_variant_names(&processed);
 
+    // Preserve established public Rust *type* names when the Discovery schema is renamed
+    // upstream but the wire format is unchanged.
+    processed = preserve_google_public_type_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -1913,6 +1917,51 @@ fn preserve_google_public_enum_variant_names(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+/// Restore established public Google *type* names that upstream Discovery-schema renames
+/// would otherwise churn, when the wire format is unchanged.
+///
+/// The `mediaResolution` types are the concrete case. Google's Discovery spec renamed the
+/// `Part.mediaResolution` schema from `MediaResolution` to `V1mainMediaResolution` (an
+/// internal `v1main` versioning artifact) without changing its JSON shape (`{ "level": ... }`).
+/// quicktype follows the schema id, so it now emits:
+///   * `struct V1MainMediaResolution` for the `Part` wrapper (was `MediaResolution`), and
+///   * `enum MediaResolution` for the inline `GenerationConfig.mediaResolution` string enum,
+///     which now claims the freed-up name (was `MediaResolutionEnum`).
+///
+/// Both wire formats are identical to before, so per the public-API stability contract we
+/// pin the previous Rust identifiers: the wrapper struct back to `MediaResolution` and the
+/// inline enum back to `MediaResolutionEnum`. The transform is a no-op if the quicktype
+/// output does not contain these exact identifiers (e.g. a future spec revert).
+fn preserve_google_public_type_names(content: &str) -> String {
+    // Only rewrite when the churned names are actually present, so the pass stays inert
+    // against future spec changes.
+    if !content.contains("V1MainMediaResolution") || !content.contains("pub enum MediaResolution {")
+    {
+        return content.to_string();
+    }
+
+    // Step 1: rename the inline enum (currently `MediaResolution`) and its sole reference to
+    // `MediaResolutionEnum`. This must happen while the wrapper struct is still named
+    // `V1MainMediaResolution`, so the bare token `MediaResolution` is unambiguous. Both
+    // replacements target exact declaration/field strings and never touch the substring
+    // `MediaResolution` inside `V1MainMediaResolution` or enum variants like
+    // `MediaResolutionHigh`.
+    let mut processed = content
+        .replace(
+            "pub enum MediaResolution {",
+            "pub enum MediaResolutionEnum {",
+        )
+        .replace(
+            "pub media_resolution: Option<MediaResolution>,",
+            "pub media_resolution: Option<MediaResolutionEnum>,",
+        );
+
+    // Step 2: rename the wrapper struct back to `MediaResolution` (declaration + `Part` field).
+    processed = processed.replace("V1MainMediaResolution", "MediaResolution");
+
+    processed
 }
 
 /// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
@@ -2063,7 +2112,10 @@ where
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names,
+        preserve_google_public_type_names,
+    };
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {
@@ -2090,5 +2142,44 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+
+    #[test]
+    fn preserves_media_resolution_public_type_names() {
+        // quicktype output after the upstream schema rename: the Part wrapper is
+        // `V1MainMediaResolution` and the inline GenerationConfig enum claims `MediaResolution`.
+        let input = r#"pub struct Part {
+    pub media_resolution: Option<V1MainMediaResolution>,
+}
+
+pub struct V1MainMediaResolution {
+    pub level: Option<Level>,
+}
+
+pub struct GenerationConfig {
+    pub media_resolution: Option<MediaResolution>,
+}
+
+pub enum MediaResolution {
+    #[serde(rename = "MEDIA_RESOLUTION_HIGH")]
+    MediaResolutionHigh,
+}"#;
+
+        let output = preserve_google_public_type_names(input);
+
+        // Wrapper struct restored to `MediaResolution`; enum restored to `MediaResolutionEnum`.
+        assert!(output.contains("pub struct MediaResolution {"));
+        assert!(output.contains("pub enum MediaResolutionEnum {"));
+        assert!(output.contains("pub media_resolution: Option<MediaResolution>,"));
+        assert!(output.contains("pub media_resolution: Option<MediaResolutionEnum>,"));
+        // The churned names are gone; variant names untouched.
+        assert!(!output.contains("V1MainMediaResolution"));
+        assert!(output.contains("MediaResolutionHigh"));
+    }
+
+    #[test]
+    fn preserve_media_resolution_is_inert_without_churned_names() {
+        let input = "pub struct Foo {\n    pub bar: Option<Baz>,\n}";
+        assert_eq!(preserve_google_public_type_names(input), input);
     }
 }
