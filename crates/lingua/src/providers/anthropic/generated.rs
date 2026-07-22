@@ -2272,6 +2272,8 @@ pub enum RefusalCategory {
     Cyber,
     #[serde(rename = "frontier_llm")]
     FrontierLlm,
+    #[serde(rename = "general_harms")]
+    GeneralHarms,
     #[serde(rename = "reasoning_extraction")]
     ReasoningExtraction,
 }

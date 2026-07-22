@@ -77,4 +77,57 @@ mod tests {
     mod generated {
         include!(concat!(env!("OUT_DIR"), "/generated_anthropic_tests.rs"));
     }
+
+    /// Regression coverage for the `RefusalCategory` enum in the generated
+    /// Anthropic types. The spec added the `general_harms` policy category to
+    /// both the response `stop_details` refusal category and its Beta twin; this
+    /// verifies the new wire value round-trips through the generated types and
+    /// that the pre-existing categories remain accepted (guarding against an
+    /// accidental variant loss on regeneration).
+    #[test]
+    fn refusal_category_general_harms_round_trips() {
+        use crate::providers::anthropic::generated::{
+            RefusalCategory, RefusalStopDetails, RefusalStopDetailsType,
+        };
+        use crate::serde_json;
+
+        // The new value deserializes into the new variant.
+        let json = r#"{
+            "type": "refusal",
+            "category": "general_harms",
+            "explanation": "The request could be related to an area that was determined as harmful."
+        }"#;
+        let details: RefusalStopDetails =
+            serde_json::from_str(json).expect("general_harms stop_details should deserialize");
+        assert_eq!(details.category, Some(RefusalCategory::GeneralHarms));
+        assert_eq!(
+            details.refusal_stop_details_type,
+            RefusalStopDetailsType::Refusal
+        );
+
+        // And re-serializes back to the exact wire value.
+        let value = serde_json::to_value(&details).expect("serialize refusal stop_details");
+        assert_eq!(value["category"], serde_json::json!("general_harms"));
+
+        // Every category wire value the spec still lists must remain accepted.
+        for (wire, expected) in [
+            ("bio", RefusalCategory::Bio),
+            ("cyber", RefusalCategory::Cyber),
+            ("frontier_llm", RefusalCategory::FrontierLlm),
+            ("reasoning_extraction", RefusalCategory::ReasoningExtraction),
+            ("general_harms", RefusalCategory::GeneralHarms),
+        ] {
+            let parsed: RefusalCategory = serde_json::from_value(serde_json::json!(wire))
+                .unwrap_or_else(|e| panic!("category {wire:?} should deserialize: {e}"));
+            assert_eq!(
+                parsed, expected,
+                "category {wire:?} mapped to wrong variant"
+            );
+            assert_eq!(
+                serde_json::to_value(&parsed).unwrap(),
+                serde_json::json!(wire),
+                "category {wire:?} did not re-serialize to its wire value"
+            );
+        }
+    }
 }
