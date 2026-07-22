@@ -165,6 +165,7 @@ pub struct ToolCaller {
     #[serde(rename = "type")]
     pub caller_type: ToolCallerType,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
     pub caller_id: Option<String>,
 }
 
