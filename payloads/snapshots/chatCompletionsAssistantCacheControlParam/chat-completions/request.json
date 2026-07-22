@@ -1,5 +1,5 @@
 {
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "messages": [
     {
       "role": "user",
@@ -12,8 +12,10 @@
           "type": "text",
           "text": "This assistant prefill should remain cacheable.",
           "cache_control": {
-            "type": "ephemeral",
-            "ttl": "1h"
+            "type": "ephemeral"
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit"
           }
         }
       ]

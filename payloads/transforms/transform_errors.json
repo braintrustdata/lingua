@@ -1,7 +1,9 @@
 {
   "chat-completions_to_responses": {
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
-    "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models"
+    "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models",
+    "chatCompletionsSystemCacheControlParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsAssistantCacheControlParam": "Responses output_text cannot preserve assistant text cache control"
   },
   "chat-completions_to_bedrock": {
     "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
@@ -30,7 +32,12 @@
     "webSearchToolAdvancedParam": "Tool 'web_search' of type 'allowed_domains' is not supported by openai",
     "documentContentParam": "Anthropic document content is still unsupported in OpenAI Chat Completions because the provider expects provider-specific file payloads such as PDF data URLs, which universal File content cannot represent non-lossily",
     "serviceTierParam": "OpenAI rejected: 'max_tokens' is not supported with this model, use 'max_completion_tokens' instead",
-    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response"
+    "streamParam": "Streaming response cannot be deserialized as a non-streaming chat completions response",
+    "chatCompletionsAnthropicCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsAssistantCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsSystemCacheControlParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "cacheControl5mParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 5m TTL",
+    "cacheControl1hParam": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL"
   },
   "anthropic_to_responses": {
     "codeInterpreterToolParam": "Expected: Anthropic bash is provider-specific and is not a lossless equivalent of OpenAI Responses code_interpreter",
@@ -38,7 +45,12 @@
     "textEditorToolV2Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250429' is not supported by responses",
     "textEditorToolV3Param": "Tool 'str_replace_based_edit_tool' of type 'text_editor_20250728' is not supported by responses",
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
-    "streamParam": "Streaming response cannot be deserialized as a responses API response"
+    "streamParam": "Streaming response cannot be deserialized as a responses API response",
+    "chatCompletionsAnthropicCacheControlParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsSystemCacheControlParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "cacheControl5mParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 5m TTL",
+    "cacheControl1hParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
+    "chatCompletionsAssistantCacheControlParam": "Responses output_text cannot preserve assistant text cache control"
   },
   "google_to_anthropic": {
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not a lossless equivalent of Anthropic bash",

@@ -19,6 +19,46 @@ use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
 
+/// Bridge the canonical generated `ToolCallCaller` (direct | program) to the
+/// universal [`ToolCaller`].
+///
+/// A `program` caller carries the id of the program item that produced the tool
+/// call and maps to the universal program caller. A `direct` caller conveys no
+/// additional data (an ordinary tool call), so its universal representation is
+/// simply the absence of a caller.
+fn tool_caller_from_provider(
+    caller: Option<openai::InputItemDirectToolCallCaller>,
+) -> Result<Option<ToolCaller>, ConvertError> {
+    let Some(caller) = caller else {
+        return Ok(None);
+    };
+
+    match caller.direct_tool_call_caller_type {
+        openai::DirectToolCallCallerType::Program => Ok(Some(ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: caller
+                .caller_id
+                .ok_or_else(|| ConvertError::MissingRequiredField {
+                    field: "caller.caller_id".to_string(),
+                })?,
+        })),
+        openai::DirectToolCallCallerType::Direct => Ok(None),
+    }
+}
+
+/// Bridge the universal [`ToolCaller`] back to the canonical generated
+/// `ToolCallCaller`. The universal model only represents `program` callers.
+fn tool_caller_to_provider(
+    caller: Option<ToolCaller>,
+) -> Option<openai::InputItemDirectToolCallCaller> {
+    caller.map(|caller| openai::InputItemDirectToolCallCaller {
+        direct_tool_call_caller_type: match caller.caller_type {
+            ToolCallerType::Program => openai::DirectToolCallCallerType::Program,
+        },
+        caller_id: Some(caller.caller_id),
+    })
+}
+
 fn openai_arguments_to_string(arguments: openai::Arguments) -> String {
     match arguments {
         openai::Arguments::String(value) => value,
@@ -271,6 +311,75 @@ fn cache_control_from_value(cache_control: Option<serde_json::Value>) -> Option<
 
 fn cache_control_to_value(cache_control: Option<CacheControl>) -> Option<serde_json::Value> {
     cache_control.and_then(|cache_control| serde_json::to_value(cache_control).ok())
+}
+
+fn cache_control_from_chat_completion_part(
+    cache_control: Option<serde_json::Value>,
+    prompt_cache_breakpoint: Option<&openai::ArrayOfContentPartPromptCacheBreakpoint>,
+) -> Option<CacheControl> {
+    cache_control_from_value(cache_control).or_else(|| {
+        prompt_cache_breakpoint.map(|_| CacheControl {
+            cache_control_type: crate::universal::CacheControlType::Ephemeral,
+            ttl: None,
+        })
+    })
+}
+
+fn cache_control_from_responses_prompt_cache_breakpoint(
+    prompt_cache_breakpoint: Option<&openai::InputItemContentListPromptCacheBreakpoint>,
+) -> Option<CacheControl> {
+    prompt_cache_breakpoint.map(|_| CacheControl {
+        cache_control_type: crate::universal::CacheControlType::Ephemeral,
+        ttl: None,
+    })
+}
+
+fn responses_prompt_cache_breakpoint_from_cache_control(
+    cache_control: Option<&CacheControl>,
+) -> Result<Option<openai::InputItemContentListPromptCacheBreakpoint>, ConvertError> {
+    validate_openai_prompt_cache_ttl(
+        cache_control,
+        "OpenAI Responses prompt_cache_options.ttl (only `30m` is supported)",
+    )?;
+
+    Ok(
+        cache_control.map(|_| openai::InputItemContentListPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        }),
+    )
+}
+
+fn chat_completion_prompt_cache_breakpoint_from_cache_control(
+    cache_control: Option<&CacheControl>,
+) -> Result<Option<openai::ArrayOfContentPartPromptCacheBreakpoint>, ConvertError> {
+    validate_openai_prompt_cache_ttl(
+        cache_control,
+        "OpenAI Chat Completions prompt_cache_options.ttl (only `30m` is supported)",
+    )?;
+
+    Ok(
+        cache_control.map(|_| openai::ArrayOfContentPartPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        }),
+    )
+}
+
+fn validate_openai_prompt_cache_ttl(
+    cache_control: Option<&CacheControl>,
+    target: &'static str,
+) -> Result<(), ConvertError> {
+    if let Some(ttl) = cache_control.and_then(|cache_control| cache_control.ttl.as_ref()) {
+        let ttl = match ttl {
+            crate::universal::CacheControlTtl::The5M => "5m",
+            crate::universal::CacheControlTtl::The1H => "1h",
+        };
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!("cache_control.ttl `{ttl}`"),
+            to: target,
+        });
+    }
+
+    Ok(())
 }
 
 fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> AssistantContent {
@@ -1079,7 +1188,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller)?,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1100,7 +1209,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller)?,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1120,7 +1229,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         encrypted_content: None,
                         provider_options: None,
                         status: None,
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller)?,
                         provider_executed: Some(true),
                     };
                     result.push(Message::Assistant {
@@ -1374,7 +1483,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                             .into(),
                     };
 
-                    let caller = input.caller;
+                    let caller = tool_caller_from_provider(input.caller)?;
                     let status = non_completed_function_call_status_to_string(
                         input.status,
                         "Responses function call status",
@@ -1420,7 +1529,7 @@ impl TryFromLLM<Vec<openai::InputItem>> for Vec<Message> {
                         custom_tool_call: (item_type
                             == Some(openai::InputItemType::CustomToolCallOutput))
                         .then_some(true),
-                        caller: input.caller,
+                        caller: tool_caller_from_provider(input.caller)?,
                         provider_options: None,
                     };
 
@@ -1485,6 +1594,9 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
         Ok(match value.input_content_type {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
+                let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
+                    value.prompt_cache_breakpoint.as_ref(),
+                );
                 UserContentPart::Text(TextContentPart {
                     text: value
                         .text
@@ -1492,12 +1604,19 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "text".to_string(),
                         })?,
                     encrypted_content: None,
-                    cache_control: None,
+                    cache_control,
                     provider_options: None,
                 })
             }
             // TODO: ToolCall and ToolResult content types - not yet implemented in generated types
             openai::InputItemContentListType::InputImage => {
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_image prompt_cache_breakpoint".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 // Extract image URL from the InputContent
                 let image_url =
                     value
@@ -1546,6 +1665,13 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                 });
             }
             openai::InputItemContentListType::InputFile => {
+                if value.prompt_cache_breakpoint.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Responses input_file prompt_cache_breakpoint".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let (payload, filename) = universal_file_payload_from_openai(
                     value.file_data,
                     value.file_url,
@@ -1620,11 +1746,17 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 
     fn try_from(part: UserContentPart) -> Result<Self, Self::Error> {
         Ok(match part {
-            UserContentPart::Text(text_part) => openai::InputContent {
-                input_content_type: openai::InputItemContentListType::InputText,
-                text: Some(text_part.text),
-                ..Default::default()
-            },
+            UserContentPart::Text(text_part) => {
+                let prompt_cache_breakpoint = responses_prompt_cache_breakpoint_from_cache_control(
+                    text_part.cache_control.as_ref(),
+                )?;
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputText,
+                    text: Some(text_part.text),
+                    prompt_cache_breakpoint,
+                    ..Default::default()
+                }
+            }
             UserContentPart::Image {
                 image,
                 media_type,
@@ -1706,6 +1838,7 @@ impl Default for openai::InputContent {
             annotations: None,
             logprobs: None,
             refusal: None,
+            prompt_cache_breakpoint: None,
         }
     }
 }
@@ -1731,6 +1864,13 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
     fn try_from(part: AssistantContentPart) -> Result<Self, Self::Error> {
         Ok(match part {
             AssistantContentPart::Text(text_part) => {
+                if text_part.cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Lingua assistant text cache_control".to_string(),
+                        to: "OpenAI Responses output_text (prompt_cache_breakpoint is unsupported)",
+                    });
+                }
+
                 // Extract annotations and logprobs from provider_options
                 let annotations = text_part
                     .provider_options
@@ -1838,6 +1978,9 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
     type Error = ConvertError;
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
+        let cache_control = cache_control_from_responses_prompt_cache_breakpoint(
+            value.prompt_cache_breakpoint.as_ref(),
+        );
         Ok(match value.input_content_type {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
@@ -1884,7 +2027,7 @@ impl TryFromLLM<openai::InputContent> for AssistantContentPart {
                             field: "text".to_string(),
                         })?,
                     encrypted_content: None,
-                    cache_control: None,
+                    cache_control,
                     provider_options,
                 })
             }
@@ -2231,7 +2374,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                             arguments: Some(openai_arguments_from_string(
                                                 tool_call.arguments.to_string(),
                                             )),
-                                            caller: tool_call.caller,
+                                            caller: tool_caller_to_provider(tool_call.caller),
                                             status: Some(openai::FunctionCallItemStatus::Completed),
                                             ..Default::default()
                                         });
@@ -2281,7 +2424,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                     namespace: tool_call.namespace,
                                     input,
                                     arguments,
-                                    caller: tool_call.caller,
+                                    caller: tool_caller_to_provider(tool_call.caller),
                                     status: Some(output_item_status),
                                     ..Default::default()
                                 };
@@ -2333,7 +2476,7 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_caller_to_provider(tool_result.caller.clone()),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -2507,7 +2650,7 @@ fn create_function_call_input_item(
                     call_id: Some(tool_call.tool_call_id.clone()),
                     name: Some(tool_call.tool_name.clone()),
                     namespace: tool_call.namespace.clone(),
-                    caller: tool_call.caller.clone(),
+                    caller: tool_caller_to_provider(tool_call.caller.clone()),
                     arguments: Some(openai_arguments_from_string(
                         tool_call.arguments.to_string(),
                     )),
@@ -2520,7 +2663,7 @@ fn create_function_call_input_item(
         // Set common fields
         item.id = id;
         item.input_item_type = Some(input_item_type);
-        item.caller = tool_call.caller.clone();
+        item.caller = tool_caller_to_provider(tool_call.caller.clone());
         item.status = args_value
             .get("status")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
@@ -2535,7 +2678,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_caller_to_provider(tool_call.caller.clone()),
             input: Some(input.clone()),
             status: Some(output_item_status),
             ..Default::default()
@@ -2549,7 +2692,7 @@ fn create_function_call_input_item(
             call_id: Some(tool_call.tool_call_id.clone()),
             name: Some(tool_call.tool_name.clone()),
             namespace: tool_call.namespace.clone(),
-            caller: tool_call.caller.clone(),
+            caller: tool_caller_to_provider(tool_call.caller.clone()),
             arguments: Some(openai_arguments_from_string(
                 tool_call.arguments.to_string(),
             )),
@@ -2607,7 +2750,7 @@ pub fn universal_to_responses_input(
                                 input_item_type: Some(input_item_type),
                                 call_id: Some(tool_result.tool_call_id.clone()),
                                 output: Some(openai_output_from_string(output_string)),
-                                caller: tool_result.caller.clone(),
+                                caller: tool_caller_to_provider(tool_result.caller.clone()),
                                 name: if tool_result.tool_name.is_empty() {
                                     None
                                 } else {
@@ -3335,7 +3478,7 @@ impl TryFromLLM<Vec<openai::OutputItem>> for Vec<Message> {
                             item.status,
                             "Responses output function call status",
                         )?,
-                        caller: item.caller,
+                        caller: tool_caller_from_provider(item.caller)?,
                         provider_executed: None,
                     }]
                 }
@@ -3550,7 +3693,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     call_id: Some(tool_result.tool_call_id),
                                     name: (!tool_result.tool_name.is_empty())
                                         .then_some(tool_result.tool_name),
-                                    caller: tool_result.caller,
+                                    caller: tool_caller_to_provider(tool_result.caller),
                                     output: input_item_output_to_output(Some(
                                         openai_output_from_string(output_string),
                                     )),
@@ -3947,7 +4090,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                         call_id: Some(tool_call_id),
                                                         name: Some(tool_name),
                                                         namespace,
-                                                        caller,
+                                                        caller: tool_caller_to_provider(caller),
                                                         arguments: Some(serde_json::Value::String(
                                                             arguments.to_string(),
                                                         )),
@@ -3966,7 +4109,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: tool_caller_to_provider(caller),
                                                 input: Some(input),
                                                 status: Some(output_item_status),
                                                 ..Default::default()
@@ -3981,7 +4124,7 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 call_id: Some(tool_call_id),
                                                 name: Some(tool_name),
                                                 namespace,
-                                                caller,
+                                                caller: tool_caller_to_provider(caller),
                                                 arguments: Some(serde_json::Value::String(
                                                     arguments.to_string(),
                                                 )),
@@ -4262,15 +4405,17 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                         let assistant_parts: Result<Vec<_>, _> = parts
                             .into_iter()
                             .map(|part| {
-                                match part.base.chat_completion_request_message_content_part_type {
+                                let cache_control = cache_control_from_chat_completion_part(
+                                    part.cache_control,
+                                    part.base.prompt_cache_breakpoint.as_ref(),
+                                );
+                                match part.base.content_part_type {
                                     openai::PurpleType::Text => {
                                         if let Some(text) = part.base.text {
                                             Ok(AssistantContentPart::Text(TextContentPart {
                                                 text,
                                                 encrypted_content: None,
-                                                cache_control: cache_control_from_value(
-                                                    part.cache_control,
-                                                ),
+                                                cache_control,
                                                 provider_options: None,
                                             }))
                                         } else {
@@ -4282,8 +4427,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                     _ => Err(ConvertError::UnsupportedInputType {
                                         type_info: format!(
                                             "ChatCompletionRequestMessageContentPart type: {:?}",
-                                            part.base
-                                                .chat_completion_request_message_content_part_type
+                                            part.base.content_part_type
                                         ),
                                     }),
                                 }
@@ -4410,13 +4554,15 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
     fn try_from(
         part: openai::ChatCompletionRequestMessageContentPart,
     ) -> Result<Self, Self::Error> {
-        match part.chat_completion_request_message_content_part_type {
+        let cache_control =
+            cache_control_from_chat_completion_part(None, part.prompt_cache_breakpoint.as_ref());
+        match part.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.text {
                     Ok(UserContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
-                        cache_control: None,
+                        cache_control,
                         provider_options: None,
                     }))
                 } else {
@@ -4426,6 +4572,13 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
             }
             openai::PurpleType::ImageUrl => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions image_url cache metadata".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 if let Some(image_url) = part.image_url {
                     // Parse data URLs to extract raw base64, keep HTTP URLs as-is
                     let (image_data, media_type) =
@@ -4449,6 +4602,13 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
                 }
             }
             openai::PurpleType::File => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions file cache metadata".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let file = part
                     .file
                     .ok_or_else(|| ConvertError::MissingRequiredField {
@@ -4471,7 +4631,7 @@ impl TryFromLLM<openai::ChatCompletionRequestMessageContentPart> for UserContent
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
-                    part.chat_completion_request_message_content_part_type
+                    part.content_part_type
                 ),
             }),
         }
@@ -4482,13 +4642,17 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
     type Error = ConvertError;
 
     fn try_from(part: ChatCompletionRequestMessageContentPartExt) -> Result<Self, Self::Error> {
-        match part.base.chat_completion_request_message_content_part_type {
+        let cache_control = cache_control_from_chat_completion_part(
+            part.cache_control,
+            part.base.prompt_cache_breakpoint.as_ref(),
+        );
+        match part.base.content_part_type {
             openai::PurpleType::Text => {
                 if let Some(text) = part.base.text {
                     Ok(UserContentPart::Text(TextContentPart {
                         text,
                         encrypted_content: None,
-                        cache_control: cache_control_from_value(part.cache_control),
+                        cache_control,
                         provider_options: None,
                     }))
                 } else {
@@ -4498,6 +4662,13 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
             }
             openai::PurpleType::ImageUrl => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions image_url cache metadata".to_string(),
+                        to: "Lingua image content (cache control is unsupported)",
+                    });
+                }
+
                 if let Some(image_url) = part.base.image_url {
                     let (image_data, media_type) =
                         if let Some(block) = parse_base64_data_url(&image_url.url) {
@@ -4518,6 +4689,13 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
                 }
             }
             openai::PurpleType::File => {
+                if cache_control.is_some() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "OpenAI Chat Completions file cache metadata".to_string(),
+                        to: "Lingua file content (cache control is unsupported)",
+                    });
+                }
+
                 let file = part
                     .base
                     .file
@@ -4541,7 +4719,7 @@ impl TryFromLLM<ChatCompletionRequestMessageContentPartExt> for UserContentPart 
             _ => Err(ConvertError::UnsupportedInputType {
                 type_info: format!(
                     "ChatCompletionRequestMessageContentPart type: {:?}",
-                    part.base.chat_completion_request_message_content_part_type
+                    part.base.content_part_type
                 ),
             }),
         }
@@ -4781,14 +4959,21 @@ fn convert_user_content_part_to_chat_completion_part(
     part: UserContentPart,
 ) -> Result<openai::ChatCompletionRequestMessageContentPart, ConvertError> {
     match part {
-        UserContentPart::Text(text_part) => Ok(openai::ChatCompletionRequestMessageContentPart {
-            text: Some(text_part.text),
-            chat_completion_request_message_content_part_type: openai::PurpleType::Text,
-            image_url: None,
-            input_audio: None,
-            file: None,
-            refusal: None,
-        }),
+        UserContentPart::Text(text_part) => {
+            let prompt_cache_breakpoint =
+                chat_completion_prompt_cache_breakpoint_from_cache_control(
+                    text_part.cache_control.as_ref(),
+                )?;
+            Ok(openai::ChatCompletionRequestMessageContentPart {
+                text: Some(text_part.text),
+                content_part_type: openai::PurpleType::Text,
+                prompt_cache_breakpoint,
+                image_url: None,
+                input_audio: None,
+                file: None,
+                refusal: None,
+            })
+        }
         UserContentPart::Image {
             image,
             media_type,
@@ -4821,7 +5006,8 @@ fn convert_user_content_part_to_chat_completion_part(
 
             Ok(openai::ChatCompletionRequestMessageContentPart {
                 text: None,
-                chat_completion_request_message_content_part_type: openai::PurpleType::ImageUrl,
+                content_part_type: openai::PurpleType::ImageUrl,
+                prompt_cache_breakpoint: None,
                 image_url: Some(openai::ImageUrl { url, detail: None }),
                 input_audio: None,
                 file: None,
@@ -4930,7 +5116,7 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = chat_completion_assistant_text_content(text_parts);
+    let text_content = chat_completion_assistant_text_content(text_parts)?;
 
     let tool_calls_option = if tool_calls.is_empty() {
         None
@@ -4972,9 +5158,9 @@ fn tool_discovery_arguments_to_string(
 
 fn chat_completion_assistant_text_content(
     text_parts: Vec<TextContentPart>,
-) -> Option<ChatCompletionRequestMessageContentExt> {
+) -> Result<Option<ChatCompletionRequestMessageContentExt>, ConvertError> {
     if text_parts.is_empty() {
-        return None;
+        return Ok(None);
     }
 
     let has_metadata = text_parts.iter().any(|text_part| {
@@ -4984,31 +5170,38 @@ fn chat_completion_assistant_text_content(
     });
 
     if !has_metadata {
-        return Some(ChatCompletionRequestMessageContentExt::String(
+        return Ok(Some(ChatCompletionRequestMessageContentExt::String(
             text_parts
                 .into_iter()
                 .map(|text_part| text_part.text)
                 .collect::<Vec<_>>()
                 .join(""),
-        ));
+        )));
     }
 
-    Some(ChatCompletionRequestMessageContentExt::Parts(
-        text_parts
-            .into_iter()
-            .map(|text_part| ChatCompletionRequestMessageContentPartExt {
+    let parts = text_parts
+        .into_iter()
+        .map(|text_part| {
+            let prompt_cache_breakpoint =
+                chat_completion_prompt_cache_breakpoint_from_cache_control(
+                    text_part.cache_control.as_ref(),
+                )?;
+            Ok(ChatCompletionRequestMessageContentPartExt {
                 cache_control: cache_control_to_value(text_part.cache_control),
                 base: openai::ChatCompletionRequestMessageContentPart {
                     text: Some(text_part.text),
-                    chat_completion_request_message_content_part_type: openai::PurpleType::Text,
+                    content_part_type: openai::PurpleType::Text,
+                    prompt_cache_breakpoint,
                     image_url: None,
                     input_audio: None,
                     file: None,
                     refusal: None,
                 },
             })
-            .collect(),
-    ))
+        })
+        .collect::<Result<Vec<_>, ConvertError>>()?;
+
+    Ok(Some(ChatCompletionRequestMessageContentExt::Parts(parts)))
 }
 
 /// Convert ChatCompletionResponseMessageExt to universal Message
@@ -5175,6 +5368,203 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 mod tests {
     use super::*;
     use crate::serde_json::json;
+
+    #[test]
+    fn tool_caller_from_provider_rejects_program_without_caller_id() {
+        let error = tool_caller_from_provider(Some(openai::InputItemDirectToolCallCaller {
+            direct_tool_call_caller_type: openai::DirectToolCallCallerType::Program,
+            caller_id: None,
+        }))
+        .expect_err("program callers require caller_id");
+
+        assert!(matches!(
+            error,
+            ConvertError::MissingRequiredField { field } if field == "caller.caller_id"
+        ));
+    }
+
+    #[test]
+    fn tool_caller_from_provider_rejects_imported_program_without_caller_id() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "function_call",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "arguments": "{}",
+                "caller": { "type": "program" }
+            }
+        ]))
+        .expect("generated type should expose the incomplete caller shape");
+
+        let error = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect_err("incomplete program caller should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::MissingRequiredField { field } if field == "caller.caller_id"
+        ));
+    }
+
+    #[test]
+    fn tool_caller_from_provider_preserves_valid_variants() {
+        let direct = tool_caller_from_provider(Some(openai::InputItemDirectToolCallCaller {
+            direct_tool_call_caller_type: openai::DirectToolCallCallerType::Direct,
+            caller_id: None,
+        }))
+        .expect("direct caller should convert");
+        assert!(direct.is_none());
+
+        let program = tool_caller_from_provider(Some(openai::InputItemDirectToolCallCaller {
+            direct_tool_call_caller_type: openai::DirectToolCallCallerType::Program,
+            caller_id: Some("call_program_123".to_string()),
+        }))
+        .expect("program caller should convert")
+        .expect("program caller should be preserved");
+        assert_eq!(program.caller_type, ToolCallerType::Program);
+        assert_eq!(program.caller_id, "call_program_123");
+    }
+
+    #[test]
+    fn responses_prompt_cache_breakpoint_roundtrips_user_text() {
+        let universal = UserContentPart::Text(TextContentPart {
+            text: "Cached user context.".to_string(),
+            encrypted_content: None,
+            cache_control: Some(CacheControl {
+                cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                ttl: None,
+            }),
+            provider_options: None,
+        });
+
+        let provider = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(universal)
+            .expect("user text should convert");
+        assert_eq!(
+            provider
+                .prompt_cache_breakpoint
+                .as_ref()
+                .expect("cache control should emit a breakpoint")
+                .mode,
+            openai::PromptCacheBreakpointMode::Explicit
+        );
+
+        let roundtrip = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(provider)
+            .expect("Responses text should import");
+        let UserContentPart::Text(text) = roundtrip else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn responses_prompt_cache_breakpoint_rejects_unsupported_cache_ttls() {
+        for (ttl, expected) in [
+            (crate::universal::CacheControlTtl::The5M, "5m"),
+            (crate::universal::CacheControlTtl::The1H, "1h"),
+        ] {
+            let universal = UserContentPart::Text(TextContentPart {
+                text: "Cached user context.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: Some(ttl),
+                }),
+                provider_options: None,
+            });
+
+            let error = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(universal)
+                .expect_err("Responses should reject cache TTLs it cannot preserve");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+            assert!(error.to_string().contains(expected));
+            assert!(error.to_string().contains("only `30m` is supported"));
+        }
+    }
+
+    #[test]
+    fn responses_prompt_cache_breakpoint_imports_assistant_text() {
+        let provider = openai::InputContent {
+            input_content_type: openai::InputItemContentListType::InputText,
+            text: Some("Cached assistant context.".to_string()),
+            prompt_cache_breakpoint: Some(openai::InputItemContentListPromptCacheBreakpoint {
+                mode: openai::PromptCacheBreakpointMode::Explicit,
+            }),
+            ..Default::default()
+        };
+
+        let roundtrip =
+            <AssistantContentPart as TryFromLLM<openai::InputContent>>::try_from(provider)
+                .expect("Responses text should import");
+        let AssistantContentPart::Text(text) = roundtrip else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn responses_output_text_rejects_cache_control() {
+        let universal = AssistantContentPart::Text(TextContentPart {
+            text: "Assistant context.".to_string(),
+            encrypted_content: None,
+            cache_control: Some(CacheControl {
+                cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                ttl: None,
+            }),
+            provider_options: None,
+        });
+
+        let error = <openai::InputContent as TryFromLLM<AssistantContentPart>>::try_from(universal)
+            .expect_err("Responses output text should reject cache control");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        assert!(error.to_string().contains("assistant text cache_control"));
+        assert!(error.to_string().contains("output_text"));
+    }
+
+    #[test]
+    fn responses_media_prompt_cache_breakpoints_are_rejected() {
+        let breakpoint = || openai::InputItemContentListPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        };
+        let values = [
+            (
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputImage,
+                    image_url: Some("https://example.com/image.jpg".to_string()),
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    ..Default::default()
+                },
+                "input_image",
+            ),
+            (
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputFile,
+                    file_url: Some("https://example.com/file.pdf".to_string()),
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    ..Default::default()
+                },
+                "input_file",
+            ),
+        ];
+
+        for (value, content_type) in values {
+            let error = <UserContentPart as TryFromLLM<openai::InputContent>>::try_from(value)
+                .expect_err("Responses media cache breakpoint should be rejected");
+            assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+            assert!(error.to_string().contains(content_type));
+            assert!(error.to_string().contains("cache control is unsupported"));
+        }
+    }
 
     #[test]
     fn responses_function_call_invalid_arguments_stays_function_call() {
@@ -5394,6 +5784,287 @@ mod tests {
                 assert!(has_reasoning, "request reasoning should be preserved");
             }
             _ => panic!("expected assistant message"),
+        }
+    }
+
+    #[test]
+    fn chat_completions_direct_prompt_cache_breakpoint_imports_as_cache_control() {
+        let part: openai::ChatCompletionRequestMessageContentPart = serde_json::from_value(json!({
+            "type": "text",
+            "text": "Use the cached reference text.",
+            "prompt_cache_breakpoint": { "mode": "explicit" }
+        }))
+        .expect("content part should deserialize");
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(part)
+        .expect("content part should convert");
+
+        let UserContentPart::Text(text) = converted else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn chat_completions_media_cache_breakpoints_are_rejected() {
+        let breakpoint = || openai::ArrayOfContentPartPromptCacheBreakpoint {
+            mode: openai::PromptCacheBreakpointMode::Explicit,
+        };
+        let parts = [
+            (
+                openai::ChatCompletionRequestMessageContentPart {
+                    text: None,
+                    content_part_type: openai::PurpleType::ImageUrl,
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    image_url: Some(openai::ImageUrl {
+                        detail: None,
+                        url: "https://example.com/image.jpg".to_string(),
+                    }),
+                    input_audio: None,
+                    file: None,
+                    refusal: None,
+                },
+                "image_url",
+            ),
+            (
+                openai::ChatCompletionRequestMessageContentPart {
+                    text: None,
+                    content_part_type: openai::PurpleType::File,
+                    prompt_cache_breakpoint: Some(breakpoint()),
+                    image_url: None,
+                    input_audio: None,
+                    file: Some(openai::File {
+                        file_data: Some("U2FtcGxlIHRleHQu".to_string()),
+                        file_id: None,
+                        filename: Some("Doc.txt".to_string()),
+                    }),
+                    refusal: None,
+                },
+                "file",
+            ),
+        ];
+
+        for (part, content_type) in parts {
+            let direct_error = <UserContentPart as TryFromLLM<
+                openai::ChatCompletionRequestMessageContentPart,
+            >>::try_from(part.clone())
+            .expect_err("direct media breakpoint import should fail");
+            assert!(matches!(
+                direct_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(direct_error.to_string().contains(content_type));
+
+            let wrapped_error = <UserContentPart as TryFromLLM<
+                ChatCompletionRequestMessageContentPartExt,
+            >>::try_from(
+                ChatCompletionRequestMessageContentPartExt {
+                    base: part,
+                    cache_control: None,
+                },
+            )
+            .expect_err("wrapped media breakpoint import should fail");
+            assert!(matches!(
+                wrapped_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(wrapped_error.to_string().contains(content_type));
+        }
+    }
+
+    #[test]
+    fn chat_completions_prompt_cache_breakpoint_imports_as_cache_control() {
+        let value = json!({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Use the cached reference text.",
+                    "prompt_cache_breakpoint": { "mode": "explicit" }
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::User {
+            content: UserContent::Array(parts),
+        } = message
+        else {
+            panic!("expected user message with array content");
+        };
+        let UserContentPart::Text(text) = &parts[0] else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .as_ref()
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn chat_completions_assistant_prompt_cache_breakpoint_imports_as_cache_control() {
+        let value = json!({
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Cached assistant prefill.",
+                    "prompt_cache_breakpoint": { "mode": "explicit" }
+                }
+            ]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt =
+            serde_json::from_value(value).expect("message should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("message should convert");
+
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = message
+        else {
+            panic!("expected assistant message with array content");
+        };
+        let AssistantContentPart::Text(text) = &parts[0] else {
+            panic!("expected text content part");
+        };
+        let cache_control = text
+            .cache_control
+            .as_ref()
+            .expect("breakpoint should import as cache control");
+        assert_eq!(
+            cache_control.cache_control_type,
+            crate::universal::CacheControlType::Ephemeral
+        );
+        assert!(cache_control.ttl.is_none());
+    }
+
+    #[test]
+    fn universal_user_cache_control_emits_chat_completions_prompt_cache_breakpoint() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                text: "Use the cached reference text.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: None,
+                }),
+                provider_options: None,
+            })]),
+        };
+
+        let converted = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+            .expect("message should convert");
+        let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = converted.content else {
+            panic!("expected content parts");
+        };
+        assert_eq!(
+            parts[0]
+                .base
+                .prompt_cache_breakpoint
+                .as_ref()
+                .expect("cache control should emit a breakpoint")
+                .mode,
+            openai::PromptCacheBreakpointMode::Explicit
+        );
+    }
+
+    #[test]
+    fn universal_assistant_cache_control_emits_chat_completions_prompt_cache_breakpoint() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::Text(TextContentPart {
+                text: "Cached assistant prefill.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: None,
+                }),
+                provider_options: None,
+            })]),
+            id: None,
+        };
+
+        let converted = <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(message)
+            .expect("message should convert");
+        let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = converted.content else {
+            panic!("expected content parts");
+        };
+        assert_eq!(
+            parts[0]
+                .base
+                .prompt_cache_breakpoint
+                .as_ref()
+                .expect("cache control should emit a breakpoint")
+                .mode,
+            openai::PromptCacheBreakpointMode::Explicit
+        );
+    }
+
+    #[test]
+    fn chat_completions_rejects_unsupported_cache_ttls() {
+        for (ttl, expected) in [
+            (crate::universal::CacheControlTtl::The5M, "5m"),
+            (crate::universal::CacheControlTtl::The1H, "1h"),
+        ] {
+            let text_part = || TextContentPart {
+                text: "Cached context.".to_string(),
+                encrypted_content: None,
+                cache_control: Some(CacheControl {
+                    cache_control_type: crate::universal::CacheControlType::Ephemeral,
+                    ttl: Some(ttl.clone()),
+                }),
+                provider_options: None,
+            };
+
+            let user_error =
+                <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(Message::User {
+                    content: UserContent::Array(vec![UserContentPart::Text(text_part())]),
+                })
+                .expect_err("Chat Completions should reject user cache TTLs it cannot preserve");
+            assert!(matches!(
+                user_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(user_error.to_string().contains(expected));
+            assert!(user_error.to_string().contains("Chat Completions"));
+
+            let assistant_error =
+                <ChatCompletionRequestMessageExt as TryFromLLM<Message>>::try_from(
+                    Message::Assistant {
+                        content: AssistantContent::Array(vec![AssistantContentPart::Text(
+                            text_part(),
+                        )]),
+                        id: None,
+                    },
+                )
+                .expect_err(
+                    "Chat Completions should reject assistant cache TTLs it cannot preserve",
+                );
+            assert!(matches!(
+                assistant_error,
+                ConvertError::UnsupportedMapping { .. }
+            ));
+            assert!(assistant_error.to_string().contains(expected));
+            assert!(assistant_error.to_string().contains("Chat Completions"));
         }
     }
 
@@ -6214,7 +6885,8 @@ mod tests {
     fn chat_completions_file_imports_back_to_text_file() {
         let input = openai::ChatCompletionRequestMessageContentPart {
             text: None,
-            chat_completion_request_message_content_part_type: openai::PurpleType::File,
+            content_part_type: openai::PurpleType::File,
+            prompt_cache_breakpoint: None,
             image_url: None,
             input_audio: None,
             file: Some(openai::File {

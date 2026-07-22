@@ -14,6 +14,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "cache_control": {
             "type": "ephemeral",
           },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -25,6 +28,9 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
         {
           "cache_control": {
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "hello world",
           "type": "text",
@@ -249,257 +255,6 @@ What would you like to do? Tell me a topic, task, or even just a bit of context,
     "cache_read_input_tokens": 0,
     "input_tokens": 7,
     "output_tokens": 329,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Be helpful.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Hi",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "Hi there! How can I help today? Tell me what you’re looking to do—explain a concept, draft something, brainstorm ideas, code, plan something, or just chat. If you’re not sure, you can share a topic and I’ll suggest options.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DoyXcnDoLWiYmHaGyrxa5C5eTmZTh",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 320,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "5m",
-            "type": "ephemeral",
-          },
-          "text": "Be helpful.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Hi",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "Hi there! How can I help today?
-
-I can:
-- Answer questions or explain ideas
-- Help with writing, editing, or brainstorming
-- Assist with coding or math problems
-- Plan projects or study guides
-- Translate or summarize text
-
-Tell me what you’re working on or what you’d like to do, and I’ll tailor my response.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DoyXY1rhrMhp1zV6HUmXXCJP5vjlx",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 401,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "text",
-        },
-        {
-          "text": "Now summarize it.",
-          "type": "text",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DoyXQmi2ZJ3lrkHlBv2e8rFfjAV5V",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 19,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-    },
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "text",
-        },
-      ],
-      "role": "assistant",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_Doz5dqccAkf821azRvDKYMbiBoTa5",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 28,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Now summarize it.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "I don’t have the text to summarize. Please paste the stable reference text (or share a link or title), and tell me how long you want the summary and what to focus on (main ideas, arguments, evidence, conclusions).
-
-I can provide:
-- A brief one-paragraph summary
-- A concise 3–5 bullet-point outline of key points
-- A 1–2 paragraph executive summary
-
-Let me know your preferred length and focus.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_Dzkwv1hNaCKsOKjq5wqDzvwdR11pm",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 24,
-    "output_tokens": 870,
   },
 }
 `;
@@ -1213,6 +968,9 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
         {
           "cache_control": {
             "type": "ephemeral",
+          },
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
           },
           "text": "Be helpful.",
           "type": "text",
@@ -5528,6 +5286,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
           "type": "input_text",
         },
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "input_text",
         },
@@ -5538,6 +5299,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "hello world",
           "type": "input_text",
         },
@@ -5769,285 +5533,6 @@ exports[`anthropic → responses > bedrockAnthropicContextManagementParam > resp
     "cache_read_input_tokens": 0,
     "input_tokens": 7,
     "output_tokens": 11,
-  },
-}
-`;
-
-exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Be helpful.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Hi",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > cacheControl1hParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "Hi! How can I help today? I can:
-- Explain concepts or answer questions
-- Help write or edit emails, essays, or posts
-- Brainstorm ideas or plan a project
-- Solve math problems or debug code
-- Translate or summarize text
-- Plan trips, events, or study schedules
-
-Tell me what you’re aiming for, and any details you have, and I’ll get started.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_030e6e86f7b183f40069cbea92a7608196a86f979cfa8a9bc0",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 485,
-  },
-}
-`;
-
-exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Be helpful.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Hi",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > cacheControl5mParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "Hi there! How can I help today? I can answer questions, explain concepts, write or edit text, brainstorm ideas, help with coding, plan something, translate, or just chat about any topic. What would you like to do?",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0645f656c205491a0069cbea92656c8194996286bab4b5f4f9",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 381,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "input_text",
-        },
-        {
-          "text": "Now summarize it.",
-          "type": "input_text",
-        },
-      ],
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "I don’t see the stable reference text yet. Please paste the text here or upload it, and I’ll summarize it.
-
-If you want, tell me:
-- Summary length (e.g., 1 sentence, 5 bullets, or a short paragraph)
-- What to emphasize (main ideas, methods, results, dates, implications)
-- Any terms or sections to preserve verbatim
-
-Notes:
-- I’ll treat the provided text as the base context for this chat and summarize accordingly.
-- If the text is long, I can summarize in parts or provide a concise overview plus a detailed section-by-section summary.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0a27e71404f41641006a2885fe96588192a5a8d8381ede582a",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 19,
-    "output_tokens": 797,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "This assistant prefill should remain cacheable.
-
-If you",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0592e9ab206b9682006a288c85556081a0aabd0fb3e8ba4c63",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 28,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Now summarize it.",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "I’m ready to summarize, but I don’t see the text yet. Please paste the content you want summarized (or share a link). If it’s long, you can send it in parts.
-
-Optional details to specify:
-- Desired length (one sentence, 3-5 bullets, a short paragraph, etc.)
-- Target audience or purpose
-- Focus (main ideas, arguments, data, conclusions)
-
-I can provide:
-- A one-sentence summary
-- A bullet-point outline of key points
-- A short 2–3 paragraph synopsis
-
-If you’d like, I can also reuse this content as context for future questions in this chat.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0d7911ae28e3e15a006a4fbde5388481a2beb4a631fd8304fd",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_creation_input_tokens": 0,
-    "cache_read_input_tokens": 0,
-    "input_tokens": 24,
-    "output_tokens": 767,
   },
 }
 `;
@@ -6869,6 +6354,9 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "input_text",
         },
@@ -8353,7 +7841,6 @@ exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlPa
       "content": [
         {
           "cache_control": {
-            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Use this stable reference text as cacheable context.",
@@ -8421,7 +7908,6 @@ exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlPa
       "content": [
         {
           "cache_control": {
-            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "This assistant prefill should remain cacheable.",
@@ -8478,7 +7964,6 @@ exports[`chat-completions → anthropic > chatCompletionsSystemCacheControlParam
   "system": [
     {
       "cache_control": {
-        "ttl": "1h",
         "type": "ephemeral",
       },
       "text": "Use this stable reference text as cacheable context.",
@@ -18024,6 +17509,9 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -18097,84 +17585,15 @@ Once you provide the text, I’ll generate the summary in your chosen format and
 }
 `;
 
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
-
-Here’s a compact, generic prefill you can use right away (store it and reuse):
-
-Prefill (system-like):
-- Role: Helpful assistant
-- Tone: concise, accurate, and polite
-- Scope: answers questions, provides steps, and asks clarifying questions if information is missing
-- Verification: do not fabricate facts; if unsure, say so
-- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible
-- Special cases: for code, give a minimal complete example with explanations
-
-How to use:
-- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
-- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 1957,
-    "completion_tokens_details": {
-      "reasoning_tokens": 1664,
-    },
-    "prompt_tokens": 28,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 1985,
-  },
-}
-`;
-
 exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
 {
   "input": [
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -18189,43 +17608,6 @@ exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam
     },
   ],
   "model": "gpt-5.6-terra",
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "content": "I’m ready to summarize, but I don’t have the stable reference text here. Please paste the text you want summarized (or share a link/title and any length/delivery preferences). Also tell me:
-
-- Desired length (e.g., one paragraph, 5 bullet points, short executive summary)
-- Target audience (general, technical, executives, students)
-
-Once I have the text, I’ll provide a concise summary.",
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-0088349d1fe45341006a4fbde56094819fac9e0750a337a8b7",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 791,
-    "completion_tokens_details": {
-      "reasoning_tokens": 640,
-    },
-    "prompt_tokens": 24,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 815,
-  },
 }
 `;
 
@@ -31433,7 +30815,15 @@ exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > reque
   "max_tokens": 4096,
   "messages": [
     {
-      "content": "Use the stable policy prefix when answering.",
+      "content": [
+        {
+          "cache_control": {
+            "type": "ephemeral",
+          },
+          "text": "Use the stable policy prefix when answering.",
+          "type": "text",
+        },
+      ],
       "role": "user",
     },
   ],
