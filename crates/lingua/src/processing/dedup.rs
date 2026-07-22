@@ -785,11 +785,11 @@ mod tests {
     fn test_dedup_preserves_tool_calls_with_different_callers() {
         let caller_a = crate::universal::ToolCaller {
             caller_type: crate::universal::ToolCallerType::Program,
-            caller_id: "call_prog_a".to_string(),
+            caller_id: Some("call_prog_a".to_string()),
         };
         let caller_b = crate::universal::ToolCaller {
             caller_type: crate::universal::ToolCallerType::Program,
-            caller_id: "call_prog_b".to_string(),
+            caller_id: Some("call_prog_b".to_string()),
         };
 
         let messages = vec![
@@ -872,11 +872,11 @@ mod tests {
     fn test_dedup_preserves_tool_results_with_different_callers() {
         let caller_a = crate::universal::ToolCaller {
             caller_type: crate::universal::ToolCallerType::Program,
-            caller_id: "call_prog_a".to_string(),
+            caller_id: Some("call_prog_a".to_string()),
         };
         let caller_b = crate::universal::ToolCaller {
             caller_type: crate::universal::ToolCallerType::Program,
-            caller_id: "call_prog_b".to_string(),
+            caller_id: Some("call_prog_b".to_string()),
         };
 
         let messages = vec![

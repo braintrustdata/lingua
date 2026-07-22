@@ -21,30 +21,12 @@ pub fn discover_openai_responses_test_cases(
 mod tests {
     use super::*;
 
-    fn normalize_responses_defaults(value: Value) -> Value {
-        if let Ok(mut items) = crate::serde_json::from_value::<Vec<OutputItem>>(value.clone()) {
-            for item in &mut items {
-                normalize_output_item(item);
-            }
-            return match crate::serde_json::to_value(items) {
-                Ok(value) => value,
-                Err(_) => value,
-            };
-        }
-
+    fn normalize_responses_request_defaults(value: Value) -> Value {
         if let Ok(mut items) = crate::serde_json::from_value::<Vec<InputItem>>(value.clone()) {
             for item in &mut items {
                 normalize_input_item(item);
             }
             return match crate::serde_json::to_value(items) {
-                Ok(value) => value,
-                Err(_) => value,
-            };
-        }
-
-        if let Ok(mut item) = crate::serde_json::from_value::<OutputItem>(value.clone()) {
-            normalize_output_item(&mut item);
-            return match crate::serde_json::to_value(item) {
                 Ok(value) => value,
                 Err(_) => value,
             };
@@ -61,7 +43,32 @@ mod tests {
         value
     }
 
+    fn normalize_responses_response_defaults(value: Value) -> Value {
+        if let Ok(mut items) = crate::serde_json::from_value::<Vec<OutputItem>>(value.clone()) {
+            for item in &mut items {
+                normalize_output_item(item);
+            }
+            return match crate::serde_json::to_value(items) {
+                Ok(value) => value,
+                Err(_) => value,
+            };
+        }
+
+        if let Ok(mut item) = crate::serde_json::from_value::<OutputItem>(value.clone()) {
+            normalize_output_item(&mut item);
+            return match crate::serde_json::to_value(item) {
+                Ok(value) => value,
+                Err(_) => value,
+            };
+        }
+
+        value
+    }
+
     fn normalize_input_item(item: &mut InputItem) {
+        // Responses passthrough preserves the raw request, but the generic universal
+        // message model has no equivalent for this provider-only message field.
+        item.phase = None;
         if item.input_item_type.is_none() && item.role.is_some() && item.content.is_some() {
             item.input_item_type =
                 Some(crate::providers::openai::generated::InputItemType::Message);
@@ -137,8 +144,8 @@ mod tests {
                         format!("Failed to roundtrip conversion from universal: {}", e)
                     })
                 },
-                normalize_provider_message: normalize_responses_defaults,
-                normalize_response_content: normalize_responses_defaults,
+                normalize_provider_message: normalize_responses_request_defaults,
+                normalize_response_content: normalize_responses_response_defaults,
             },
         )
     }

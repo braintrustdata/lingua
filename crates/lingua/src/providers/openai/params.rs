@@ -5,8 +5,10 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::openai::generated::{ChatCompletionRequestMessage, Instructions, Summary};
-use crate::serde_json::Value;
+use crate::providers::openai::generated::{
+    ChatCompletionRequestMessage, Context, Instructions, Summary,
+};
+use crate::serde_json::{Map, Value};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -199,7 +201,7 @@ pub struct OpenAIResponsesExtrasView {
     pub tools: Option<Value>,
     pub tool_choice: Option<Value>,
     pub text: Option<Value>,
-    pub reasoning: Option<Value>,
+    pub reasoning: Option<OpenAIReasoning>,
     pub parallel_tool_calls: Option<Value>,
     pub metadata: Option<Value>,
     pub previous_response_id: Option<Value>,
@@ -232,13 +234,28 @@ pub struct OpenAIReasoning {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<OpenAIReasoningEffort>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mode: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Context>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<String>,
+    #[serde(flatten)]
+    pub extras: BTreeMap<String, Value>,
+}
+
+impl OpenAIReasoning {
+    pub fn provider_only_fields(&self) -> Result<Map<String, Value>, String> {
+        let mut provider_only = self.clone();
+        provider_only.effort = None;
+        provider_only.summary = None;
+        provider_only.generate_summary = None;
+        let value = crate::serde_json::to_value(provider_only)
+            .map_err(|error| format!("failed to serialize OpenAI reasoning: {error}"))?;
+        crate::serde_json::from_value(value)
+            .map_err(|error| format!("failed to read serialized OpenAI reasoning: {error}"))
+    }
 }
 
 #[cfg(test)]
@@ -373,8 +390,8 @@ mod tests {
         let params: OpenAIResponsesParams = serde_json::from_value(responses).unwrap();
         let reasoning = params.reasoning.unwrap();
         assert_eq!(reasoning.effort, Some(OpenAIReasoningEffort::Max));
-        assert_eq!(reasoning.mode, Some(json!("pro")));
-        assert_eq!(reasoning.context, Some(json!("all_turns")));
+        assert_eq!(reasoning.mode.as_deref(), Some("pro"));
+        assert_eq!(reasoning.context, Some(Context::AllTurns));
         assert_eq!(params.include, Some(json!(["reasoning.encrypted_content"])));
         assert_eq!(params.previous_response_id, Some("resp_123".to_string()));
         assert_eq!(
@@ -382,6 +399,37 @@ mod tests {
             Some(json!({"mode": "explicit", "ttl": "1h"}))
         );
         assert_eq!(params.prompt_cache_retention, Some(json!("24h")));
+    }
+
+    #[test]
+    fn test_responses_reasoning_preserves_provider_only_fields() {
+        let responses = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "max",
+                "context": "all_turns",
+                "mode": "persistent",
+                "future_reasoning_field": {"enabled": true}
+            }
+        });
+
+        let params: OpenAIResponsesParams = serde_json::from_value(responses).unwrap();
+        let reasoning = params.reasoning.unwrap();
+
+        assert_eq!(reasoning.effort, Some(OpenAIReasoningEffort::Max));
+        assert_eq!(reasoning.context, Some(Context::AllTurns));
+        assert_eq!(reasoning.mode.as_deref(), Some("persistent"));
+        let provider_only_fields = reasoning.provider_only_fields().unwrap();
+        assert_eq!(
+            provider_only_fields,
+            serde_json::from_value(json!({
+                "context": "all_turns",
+                "mode": "persistent",
+                "future_reasoning_field": {"enabled": true}
+            }))
+            .unwrap()
+        );
     }
 
     #[test]

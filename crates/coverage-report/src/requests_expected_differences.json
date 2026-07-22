@@ -197,6 +197,102 @@
   ],
   "perTestCase": [
     {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
       "testCase": "cacheControl5mParam",
       "source": "Anthropic",
       "target": "ChatCompletions",

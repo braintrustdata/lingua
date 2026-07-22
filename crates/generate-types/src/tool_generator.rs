@@ -60,6 +60,19 @@ pub fn generate_all_tool_code(
     let mut code_segments = Vec::new();
     let tool_structs = generate_tool_structs(provider, &tool_schemas, spec)?;
     code_segments.extend(tool_structs);
+    if provider == "openai"
+        && !tool_schemas
+            .provider_tools
+            .iter()
+            .any(|tool| tool.tool_type == "programmatic_tool_calling")
+    {
+        code_segments.push(
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n\
+#[ts(export_to = \"openai/\")]\n\
+pub struct ProgrammaticToolCallingToolParam {}\n"
+                .to_string(),
+        );
+    }
 
     let tool_enum = generate_tool_enum(provider, &tool_schemas, spec);
     code_segments.push(tool_enum);
@@ -260,7 +273,6 @@ fn generate_tool_enum(
     enum_def.push_str("#[serde(tag = \"type\")]\n");
     enum_def.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
     enum_def.push_str("pub enum Tool {\n");
-
     // Provider tools (bash, text_editor, web_search, etc.) come first and use tagged
     // deserialization via #[serde(rename = "...")]. The enum-level #[serde(tag = "type")]
     // tells serde to look for a "type" field in the JSON to determine which variant to use.
