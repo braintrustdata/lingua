@@ -99,8 +99,8 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
-          npm install -g braintrust
-          pnpm add -g quicktype
+          npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
+          pnpm install --filter @lingua/quicktype-toolchain --frozen-lockfile
 
       - name: Create Braintrust workflow trace
         id: braintrust_trace

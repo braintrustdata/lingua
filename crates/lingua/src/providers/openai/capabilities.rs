@@ -302,6 +302,7 @@ mod tests {
                 ReasoningEffort::Low,
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
             (
                 "gpt-5.6-terra",
                 ReasoningEffort::None,
@@ -328,6 +329,7 @@ mod tests {
             ),
             ("gpt-5", ReasoningEffort::None, ReasoningEffort::Minimal),
             ("gpt-5-mini", ReasoningEffort::Xhigh, ReasoningEffort::High),
+            ("gpt-5-nano", ReasoningEffort::Max, ReasoningEffort::High),
             (
                 "gpt-5-nano",
                 ReasoningEffort::Minimal,

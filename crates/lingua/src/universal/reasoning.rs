@@ -119,8 +119,7 @@ pub fn effort_to_budget(effort: ReasoningEffort, max_tokens: Option<i64>) -> i64
         ReasoningEffort::Low => EFFORT_LOW_MULTIPLIER,
         ReasoningEffort::Medium => EFFORT_MEDIUM_MULTIPLIER,
         ReasoningEffort::High => EFFORT_HIGH_MULTIPLIER,
-        ReasoningEffort::Xhigh => EFFORT_XHIGH_MULTIPLIER,
-        ReasoningEffort::Max => EFFORT_XHIGH_MULTIPLIER,
+        ReasoningEffort::Xhigh | ReasoningEffort::Max => EFFORT_XHIGH_MULTIPLIER,
     };
     let budget = (max as f64 * multiplier).floor() as i64;
     budget.max(MIN_THINKING_BUDGET)
@@ -694,6 +693,7 @@ mod tests {
             context: None,
             summary: Some(OpenAISummary::Detailed),
             generate_summary: None,
+            ..Default::default()
         };
 
         // Test fallback conversion (uses DEFAULT_MAX_TOKENS)

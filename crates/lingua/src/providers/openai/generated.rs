@@ -270,7 +270,7 @@ pub enum AudioFormat {
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum Voice {
-    String(String),
+    PurpleString(String),
     VoiceClass(VoiceClass),
 }
 
@@ -985,7 +985,7 @@ pub enum ServiceTier {
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum StopConfiguration {
-    String(String),
+    PurpleString(String),
     StringArray(Vec<String>),
 }
 
@@ -1967,7 +1967,7 @@ pub struct ContextManagementParam {
 #[ts(export_to = "openai/")]
 pub enum ConversationParam {
     ConversationObject(ConversationObject),
-    String(String),
+    PurpleString(String),
 }
 
 /// The conversation that this response belongs to.
@@ -3625,7 +3625,7 @@ pub struct ResultElement {
 pub enum VectorStoreFileAttribute {
     Bool(bool),
     Double(f64),
-    String(String),
+    PurpleString(String),
 }
 
 /// The role of the message input. One of `user`, `assistant`, `system`, or
@@ -4097,7 +4097,7 @@ pub enum ConnectorId {
 #[ts(export_to = "openai/")]
 pub enum Container {
     CodeInterpreterToolAuto(CodeInterpreterToolAuto),
-    String(String),
+    PurpleString(String),
 }
 
 /// Configuration for a code interpreter container. Optionally specify the IDs of the files
@@ -4389,7 +4389,7 @@ pub enum ComparisonFilterType {
 pub enum ComparisonFilterValue {
     Bool(bool),
     Double(f64),
-    String(String),
+    PurpleString(String),
     UnionArray(Vec<ValueElement>),
 }
 
@@ -4398,7 +4398,7 @@ pub enum ComparisonFilterValue {
 #[ts(export_to = "openai/")]
 pub enum ValueElement {
     Double(f64),
-    String(String),
+    PurpleString(String),
 }
 
 /// The input format for the custom tool. Default is unconstrained text.
@@ -4692,7 +4692,7 @@ pub struct Prompt {
 #[ts(export_to = "openai/")]
 pub enum PromptVariable {
     Input(Input),
-    String(String),
+    PurpleString(String),
 }
 
 /// A text input to the model.
@@ -6026,7 +6026,7 @@ pub struct OutputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub caller: Option<InputItemDirectToolCallCaller>,
+    pub caller: Option<OutputItemDirectToolCallCaller>,
     /// The name of the function to run.
     ///
     ///
@@ -6990,8 +6990,12 @@ pub struct OutputTokensDetails {
 }
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type ChatCompletionRequestMessageContentPart = PurpleContentPart;
+pub type ContentPart = FluffyContentPart;
+pub type InputItemListResult = ResultElement;
+pub type OutputResult = ResultElement;
+pub type WebSearchContextSize = SearchContextSize;
 pub type Instructions = InputParam;
 pub type InputContent = ContentInputItemContentList;
 pub type InputItemContentListType = HilariousType;
 pub type FunctionCallItemStatus = Status;
-pub type ChatCompletionRequestMessageContentPart = PurpleContentPart;

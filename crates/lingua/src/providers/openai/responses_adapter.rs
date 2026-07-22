@@ -22,7 +22,9 @@ use crate::providers::openai::convert::{
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
 };
-use crate::providers::openai::params::{OpenAIResponsesExtrasView, OpenAIResponsesParams};
+use crate::providers::openai::params::{
+    OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
+};
 use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
 use crate::providers::openai::{try_parse_responses, universal_to_responses_input};
 use crate::serde_json::{self, Map, Value};
@@ -528,6 +530,11 @@ impl ProviderAdapter for ResponsesAdapter {
         let reasoning = typed_params
             .reasoning
             .as_ref()
+            .filter(|reasoning| {
+                reasoning.effort.is_some()
+                    || reasoning.summary.is_some()
+                    || reasoning.generate_summary.is_some()
+            })
             .map(|r| (r, max_tokens).into());
 
         let canonical_metadata = typed_params.metadata.clone().or_else(|| {
@@ -588,13 +595,6 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(include) = typed_params.include {
             extras_map.insert("include".into(), include);
         }
-        if let Some(reasoning) = typed_params.reasoning {
-            extras_map.insert(
-                "reasoning".into(),
-                serde_json::to_value(reasoning)
-                    .map_err(|error| TransformError::SerializationFailed(error.to_string()))?,
-            );
-        }
         if let Some(previous_response_id) = typed_params.previous_response_id {
             extras_map.insert(
                 "previous_response_id".into(),
@@ -621,6 +621,16 @@ impl ProviderAdapter for ResponsesAdapter {
         }
         if let Some(moderation) = typed_params.moderation {
             extras_map.insert("moderation".into(), moderation);
+        }
+        if let Some(reasoning) = typed_params.reasoning.as_ref() {
+            extras_map.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning).map_err(|error| {
+                    TransformError::ToUniversalFailed(format!(
+                        "failed to preserve OpenAI Responses reasoning fields: {error}"
+                    ))
+                })?,
+            );
         }
 
         if !extras_map.is_empty() {
@@ -781,21 +791,72 @@ impl ProviderAdapter for ResponsesAdapter {
             obj.insert("text".into(), text_val);
         }
 
-        // Add reasoning from canonical params
-        if let Some(raw_reasoning) = responses_extras_view.reasoning.as_ref() {
-            obj.insert("reasoning".into(), raw_reasoning.clone());
-        } else if let Some(reasoning) = req.params.reasoning.as_ref() {
-            let mut reasoning = reasoning.clone();
-            if let Some(effort) = reasoning.effort {
-                reasoning.effort = Some(clamp_reasoning_effort_for_model(model, effort));
+        // Add reasoning from canonical params and merge provider-only fields preserved in extras.
+        let canonical_reasoning_has_effort = req
+            .params
+            .reasoning
+            .as_ref()
+            .and_then(|reasoning| reasoning.effort)
+            .is_some();
+        let canonical_reasoning: Option<OpenAIReasoning> =
+            if let Some(reasoning) = req.params.reasoning.as_ref() {
+                let mut reasoning = reasoning.clone();
+                if let Some(effort) = reasoning.effort {
+                    let has_raw_responses_effort = responses_extras_view
+                        .reasoning
+                        .as_ref()
+                        .and_then(|reasoning| reasoning.effort)
+                        .is_some();
+                    reasoning.effort = Some(if has_raw_responses_effort {
+                        effort
+                    } else {
+                        clamp_reasoning_effort_for_model(model, effort)
+                    });
+                }
+                let value = reasoning
+                    .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
+                    .map_err(|error| {
+                        TransformError::FromUniversalFailed(format!(
+                            "failed to convert canonical OpenAI Responses reasoning: {error}"
+                        ))
+                    })?;
+                value
+                    .map(|value| {
+                        serde_json::from_value(value).map_err(|error| {
+                            TransformError::FromUniversalFailed(format!(
+                                "failed to parse canonical OpenAI Responses reasoning: {error}"
+                            ))
+                        })
+                    })
+                    .transpose()?
+            } else {
+                None
+            };
+        let merged_reasoning = match (
+            responses_extras_view.reasoning.as_ref(),
+            canonical_reasoning,
+        ) {
+            (Some(provider_reasoning), Some(canonical_reasoning)) => {
+                let mut merged = provider_reasoning.clone();
+                if canonical_reasoning_has_effort {
+                    merged.effort = canonical_reasoning.effort;
+                }
+                merged.summary = canonical_reasoning.summary;
+                merged.generate_summary = canonical_reasoning.generate_summary;
+                Some(merged)
             }
-            if let Some(reasoning_val) = reasoning
-                .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
-                .ok()
-                .flatten()
-            {
-                obj.insert("reasoning".into(), reasoning_val);
-            }
+            (Some(provider_reasoning), None) => Some(provider_reasoning.clone()),
+            (None, canonical_reasoning) => canonical_reasoning,
+        };
+        if let Some(reasoning) = merged_reasoning {
+            obj.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning).map_err(|error| {
+                    TransformError::FromUniversalFailed(format!(
+                        "failed to serialize OpenAI Responses reasoning: {error}"
+                    ))
+                })?,
+            );
         }
         if let Some(raw_moderation) = responses_extras_view
             .moderation
@@ -1588,7 +1649,7 @@ mod tests {
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
             caller_type: ToolCallerType::Program,
-            caller_id: "call_prog_123".to_string(),
+            caller_id: Some("call_prog_123".to_string()),
         };
         let req = UniversalRequest {
             model: Some("gpt-5.6-terra".to_string()),
@@ -1779,21 +1840,12 @@ mod tests {
 
     #[test]
     fn responses_programmatic_callers_roundtrip_through_response_export() {
-        use crate::providers::openai::generated::{
-            DirectToolCallCallerType, InputItemDirectToolCallCaller, OutputItemType,
-            TheResponseObject,
-        };
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
 
         let adapter = ResponsesAdapter;
         let caller = ToolCaller {
             caller_type: ToolCallerType::Program,
-            caller_id: "call_prog_123".to_string(),
-        };
-        // The universal program caller is exported through the canonical generated
-        // ToolCallCaller union (type `program` carries the originating call id).
-        let expected_caller = InputItemDirectToolCallCaller {
-            direct_tool_call_caller_type: DirectToolCallCallerType::Program,
-            caller_id: Some(caller.caller_id.clone()),
+            caller_id: Some("call_prog_123".to_string()),
         };
         let payload = json!({
             "id": "resp_programmatic",
@@ -1840,7 +1892,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
             .expect("function_call output item should be exported");
-        assert_eq!(function_call.caller.as_ref(), Some(&expected_caller));
+        assert_eq!(function_call.caller, Some(caller.clone().into()));
         assert_eq!(
             function_call.status,
             Some(crate::providers::openai::generated::Status::InProgress)
@@ -1872,7 +1924,7 @@ mod tests {
             .iter()
             .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
             .expect("function_call_output item should be exported");
-        assert_eq!(function_call_output.caller.as_ref(), Some(&expected_caller));
+        assert_eq!(function_call_output.caller, Some(caller.into()));
     }
 
     #[test]
@@ -2896,6 +2948,188 @@ mod tests {
         assert_eq!(
             typed.reasoning.and_then(|r| r.effort),
             Some(crate::providers::openai::params::OpenAIReasoningEffort::High)
+        );
+    }
+
+    #[test]
+    fn test_responses_clamps_synthesized_max_reasoning_effort_for_target_model() {
+        let req = UniversalRequest {
+            model: Some("gpt-5.4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(crate::universal::ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(crate::universal::ReasoningEffort::Max),
+                    canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(
+            typed.reasoning.and_then(|reasoning| reasoning.effort),
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::Xhigh)
+        );
+    }
+
+    #[test]
+    fn test_responses_provider_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "context": "all_turns",
+                "mode": "persistent"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert!(universal.params.reasoning.is_none());
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/reasoning/context"),
+            Some(&json!("all_turns"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/mode"),
+            Some(&json!("persistent"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_summary_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "summary": "auto"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/reasoning/summary"),
+            Some(&json!("auto"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_prompt_cache_breakpoint() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }],
+            "prompt_cache_options": {"ttl": "24h"}
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/input/0/content/0/prompt_cache_breakpoint/mode"),
+            Some(&json!("explicit"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/prompt_cache_options/ttl"),
+            Some(&json!("24h"))
+        );
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_direct_caller_without_id() {
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{
+                "type": "function_call",
+                "call_id": "call_direct_123",
+                "name": "get_weather",
+                "arguments": "{}",
+                "caller": {"type": "direct"}
+            }]
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("function call should become an assistant message");
+        };
+        let AssistantContentPart::ToolCall { caller, .. } = &parts[0] else {
+            panic!("assistant message should contain a tool call");
+        };
+        let caller = caller.as_ref().expect("caller should be preserved");
+        assert_eq!(caller.caller_type, ToolCallerType::Direct);
+        assert_eq!(caller.caller_id, None);
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/input/0/caller/type"),
+            Some(&json!("direct"))
+        );
+        assert_eq!(roundtrip.pointer("/input/0/caller/caller_id"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_reasoning_provider_fields() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "max",
+                "context": "all_turns",
+                "mode": "persistent",
+                "future_reasoning_field": {"enabled": true}
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(
+            universal
+                .params
+                .reasoning
+                .as_ref()
+                .and_then(|reasoning| reasoning.effort),
+            Some(crate::universal::ReasoningEffort::Max)
+        );
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), Some(&json!("max")));
+        assert_eq!(
+            roundtrip.pointer("/reasoning/context"),
+            Some(&json!("all_turns"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/mode"),
+            Some(&json!("persistent"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/future_reasoning_field"),
+            Some(&json!({"enabled": true}))
         );
     }
 
