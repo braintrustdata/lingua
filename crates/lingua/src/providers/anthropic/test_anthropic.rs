@@ -77,4 +77,63 @@ mod tests {
     mod generated {
         include!(concat!(env!("OUT_DIR"), "/generated_anthropic_tests.rs"));
     }
+
+    mod refusal_category {
+        use crate::providers::anthropic::generated::{
+            RefusalCategory, RefusalStopDetails, RefusalStopDetailsType,
+        };
+        use crate::serde_json::{self, json};
+
+        /// Every wire value in the synchronized spec's `RefusalCategory` enum must
+        /// deserialize. `general_harms` was added to the spec in this update; before the
+        /// type regained the variant a response carrying it would have been rejected by
+        /// serde as an unknown variant. Guards the older values against accidental removal
+        /// at the same time.
+        #[test]
+        fn all_spec_categories_deserialize() {
+            let cases = [
+                ("bio", RefusalCategory::Bio),
+                ("cyber", RefusalCategory::Cyber),
+                ("frontier_llm", RefusalCategory::FrontierLlm),
+                ("general_harms", RefusalCategory::GeneralHarms),
+                ("reasoning_extraction", RefusalCategory::ReasoningExtraction),
+            ];
+            for (wire, expected) in cases {
+                let parsed: RefusalCategory =
+                    serde_json::from_value(json!(wire)).unwrap_or_else(|e| {
+                        panic!("RefusalCategory wire value {wire:?} should deserialize: {e}")
+                    });
+                assert_eq!(parsed, expected, "unexpected variant for {wire:?}");
+                // Round-trips back to the same wire value.
+                let reserialized = serde_json::to_value(&parsed).expect("serialize category");
+                assert_eq!(
+                    reserialized,
+                    json!(wire),
+                    "round-trip mismatch for {wire:?}"
+                );
+            }
+        }
+
+        /// A full refusal `stop_details` object carrying the new `general_harms` category
+        /// deserializes into the typed struct and round-trips without loss.
+        #[test]
+        fn stop_details_with_general_harms_roundtrips() {
+            let payload = json!({
+                "type": "refusal",
+                "category": "general_harms",
+                "explanation": "Request declined under the general harms policy.",
+            });
+
+            let details: RefusalStopDetails = serde_json::from_value(payload.clone())
+                .expect("refusal stop_details with general_harms should deserialize");
+            assert_eq!(details.category, Some(RefusalCategory::GeneralHarms));
+            assert_eq!(
+                details.refusal_stop_details_type,
+                RefusalStopDetailsType::Refusal
+            );
+
+            let reserialized = serde_json::to_value(&details).expect("serialize stop_details");
+            assert_eq!(reserialized, payload, "stop_details round-trip mismatch");
+        }
+    }
 }
