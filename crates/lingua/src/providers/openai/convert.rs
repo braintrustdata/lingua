@@ -624,6 +624,8 @@ fn openai_tool_call_provider_options_view(
 #[serde(default)]
 struct OpenAITextProviderOptionsView {
     phase: Option<openai::MessagePhase>,
+    detail: Option<openai::DetailEnum>,
+    prompt_cache_breakpoint: Option<openai::InputItemContentListPromptCacheBreakpoint>,
 }
 
 fn openai_text_provider_options_view(
@@ -637,6 +639,36 @@ fn openai_text_provider_options_view(
             reason: format!("invalid OpenAI text provider options: {error}"),
         },
     )
+}
+
+fn provider_options_from_openai_input_content(
+    prompt_cache_breakpoint: Option<openai::InputItemContentListPromptCacheBreakpoint>,
+    detail: Option<openai::DetailEnum>,
+) -> Result<Option<ProviderOptions>, ConvertError> {
+    let mut options = serde_json::Map::new();
+    if let Some(prompt_cache_breakpoint) = prompt_cache_breakpoint {
+        options.insert(
+            "prompt_cache_breakpoint".to_string(),
+            serde_json::to_value(prompt_cache_breakpoint).map_err(|error| {
+                ConvertError::JsonSerializationFailed {
+                    field: "prompt_cache_breakpoint".to_string(),
+                    error: error.to_string(),
+                }
+            })?,
+        );
+    }
+    if let Some(detail) = detail {
+        options.insert(
+            "detail".to_string(),
+            serde_json::to_value(detail).map_err(|error| {
+                ConvertError::JsonSerializationFailed {
+                    field: "detail".to_string(),
+                    error: error.to_string(),
+                }
+            })?,
+        );
+    }
+    Ok((!options.is_empty()).then_some(ProviderOptions { options }))
 }
 
 fn provider_options_from_openai_tool_call(namespace: Option<String>) -> Option<ProviderOptions> {
@@ -1607,6 +1639,7 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
     type Error = ConvertError;
 
     fn try_from(value: openai::InputContent) -> Result<Self, Self::Error> {
+        let prompt_cache_breakpoint = value.prompt_cache_breakpoint.clone();
         Ok(match value.input_content_type {
             openai::InputItemContentListType::InputText
             | openai::InputItemContentListType::OutputText => {
@@ -1618,7 +1651,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                         })?,
                     encrypted_content: None,
                     cache_control: None,
-                    provider_options: None,
+                    provider_options: provider_options_from_openai_input_content(
+                        prompt_cache_breakpoint,
+                        None,
+                    )?,
                 })
             }
             // TODO: ToolCall and ToolResult content types - not yet implemented in generated types
@@ -1631,22 +1667,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                             field: "image_url".to_string(),
                         })?;
 
-                // Preserve detail in provider_options
-                let provider_options = if let Some(detail) = &value.detail {
-                    let mut options = serde_json::Map::new();
-                    options.insert(
-                        "detail".to_string(),
-                        serde_json::to_value(detail).map_err(|e| {
-                            ConvertError::JsonSerializationFailed {
-                                field: "detail".to_string(),
-                                error: e.to_string(),
-                            }
-                        })?,
-                    );
-                    Some(crate::universal::message::ProviderOptions { options })
-                } else {
-                    None
-                };
+                let provider_options = provider_options_from_openai_input_content(
+                    prompt_cache_breakpoint,
+                    value.detail.clone(),
+                )?;
 
                 // Parse data URLs to extract raw base64, keep HTTP URLs as-is
                 let (image_data, media_type) =
@@ -1681,7 +1705,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                     data: payload.data,
                     filename,
                     media_type: payload.media_type,
-                    provider_options: None,
+                    provider_options: provider_options_from_openai_input_content(
+                        prompt_cache_breakpoint,
+                        None,
+                    )?,
                 }
             }
             openai::InputItemContentListType::ReasoningText => {
@@ -1694,7 +1721,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                         })?,
                     encrypted_content: None,
                     cache_control: None,
-                    provider_options: None,
+                    provider_options: provider_options_from_openai_input_content(
+                        prompt_cache_breakpoint,
+                        None,
+                    )?,
                 })
             }
             openai::InputItemContentListType::Refusal => {
@@ -1703,7 +1733,10 @@ impl TryFromLLM<openai::InputContent> for UserContentPart {
                     text: value.text.unwrap_or_else(|| REFUSAL_TEXT.to_string()),
                     encrypted_content: None,
                     cache_control: None,
-                    provider_options: None,
+                    provider_options: provider_options_from_openai_input_content(
+                        prompt_cache_breakpoint,
+                        None,
+                    )?,
                 })
             }
         })
@@ -1745,11 +1778,16 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
 
     fn try_from(part: UserContentPart) -> Result<Self, Self::Error> {
         Ok(match part {
-            UserContentPart::Text(text_part) => openai::InputContent {
-                input_content_type: openai::InputItemContentListType::InputText,
-                text: Some(text_part.text),
-                ..Default::default()
-            },
+            UserContentPart::Text(text_part) => {
+                let provider_options =
+                    openai_text_provider_options_view(&text_part.provider_options)?;
+                openai::InputContent {
+                    input_content_type: openai::InputItemContentListType::InputText,
+                    text: Some(text_part.text),
+                    prompt_cache_breakpoint: provider_options.prompt_cache_breakpoint,
+                    ..Default::default()
+                }
+            }
             UserContentPart::Image {
                 image,
                 media_type,
@@ -1777,15 +1815,13 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 };
 
                 // Extract detail from provider_options if present
-                let detail = provider_options
-                    .as_ref()
-                    .and_then(|opts| opts.options.get("detail"))
-                    .and_then(|detail_val| serde_json::from_value(detail_val.clone()).ok());
+                let provider_options_view = openai_text_provider_options_view(&provider_options)?;
 
                 openai::InputContent {
                     input_content_type: openai::InputItemContentListType::InputImage,
                     image_url: Some(image_url),
-                    detail,
+                    detail: provider_options_view.detail,
+                    prompt_cache_breakpoint: provider_options_view.prompt_cache_breakpoint,
                     ..Default::default()
                 }
             }
@@ -1794,25 +1830,30 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 filename,
                 media_type,
                 provider_options,
-            } => match openai_file_payload_from_data(data, &media_type)? {
-                OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
-                    input_content_type: openai::InputItemContentListType::InputFile,
-                    file_url: Some(file_url),
-                    filename,
-                    ..Default::default()
-                },
-                OpenAIFilePayload::FileData(file_data) => {
-                    let filename =
-                        openai_filename_for_file(filename, &media_type, &provider_options);
-
-                    openai::InputContent {
+            } => {
+                let provider_options_view = openai_text_provider_options_view(&provider_options)?;
+                match openai_file_payload_from_data(data, &media_type)? {
+                    OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
                         input_content_type: openai::InputItemContentListType::InputFile,
-                        file_data: Some(file_data),
+                        file_url: Some(file_url),
                         filename,
+                        prompt_cache_breakpoint: provider_options_view.prompt_cache_breakpoint,
                         ..Default::default()
+                    },
+                    OpenAIFilePayload::FileData(file_data) => {
+                        let filename =
+                            openai_filename_for_file(filename, &media_type, &provider_options);
+
+                        openai::InputContent {
+                            input_content_type: openai::InputItemContentListType::InputFile,
+                            file_data: Some(file_data),
+                            filename,
+                            prompt_cache_breakpoint: provider_options_view.prompt_cache_breakpoint,
+                            ..Default::default()
+                        }
                     }
                 }
-            },
+            }
         })
     }
 }

@@ -611,6 +611,12 @@ impl ProviderAdapter for ResponsesAdapter {
         }
 
         // Add reasoning from canonical params and merge provider-only fields preserved in extras.
+        let canonical_reasoning_has_effort = req
+            .params
+            .reasoning
+            .as_ref()
+            .and_then(|reasoning| reasoning.effort)
+            .is_some();
         let canonical_reasoning: Option<OpenAIReasoning> =
             if let Some(reasoning) = req.params.reasoning.as_ref() {
                 let mut reasoning = reasoning.clone();
@@ -651,7 +657,9 @@ impl ProviderAdapter for ResponsesAdapter {
         ) {
             (Some(provider_reasoning), Some(canonical_reasoning)) => {
                 let mut merged = provider_reasoning.clone();
-                merged.effort = canonical_reasoning.effort;
+                if canonical_reasoning_has_effort {
+                    merged.effort = canonical_reasoning.effort;
+                }
                 merged.summary = canonical_reasoning.summary;
                 merged.generate_summary = canonical_reasoning.generate_summary;
                 Some(merged)
@@ -2807,6 +2815,56 @@ mod tests {
             Some(&json!("persistent"))
         );
         assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_summary_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "summary": "auto"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/reasoning/summary"),
+            Some(&json!("auto"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_prompt_cache_breakpoint() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }],
+            "prompt_cache_options": {"ttl": "24h"}
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/input/0/content/0/prompt_cache_breakpoint/mode"),
+            Some(&json!("explicit"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/prompt_cache_options/ttl"),
+            Some(&json!("24h"))
+        );
     }
 
     #[test]
