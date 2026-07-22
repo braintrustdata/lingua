@@ -196,13 +196,21 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
+        let lenient_message = match parse_lenient_message_item(item) {
+            Some(message) if message_contains_reasoning_part(&message) => {
+                messages.push(message);
+                continue;
+            }
+            message => message,
+        };
+
         let mut parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
             let wrapped_item = Value::Array(vec![item.clone()]);
             try_parsers_in_order(&wrapped_item, &provider_parsers)
         });
 
         if parsed_messages.is_none() {
-            parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
+            parsed_messages = lenient_message.map(|message| vec![message]);
         }
 
         if let Some(mut parsed_messages) = parsed_messages {
@@ -215,6 +223,18 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     } else {
         Some(messages)
     }
+}
+
+fn message_contains_reasoning_part(message: &Message) -> bool {
+    matches!(
+        message,
+        Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } if parts
+            .iter()
+            .any(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
+    )
 }
 
 fn try_parse_provider_messages_for_import(data: &Value) -> Option<Vec<Message>> {
@@ -295,6 +315,22 @@ struct LenientToolMessageCompat {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+struct LenientMessageCompat {
+    role: LenientMessageRole,
+    content: Value,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum LenientMessageRole {
+    User,
+    System,
+    Developer,
+    Assistant,
+    Tool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 enum LenientTextContentPartCompat {
     #[serde(rename = "text", alias = "input_text", alias = "output_text")]
@@ -351,26 +387,23 @@ enum LenientToolContentPartCompat {
 }
 
 fn parse_lenient_message_item(item: &Value) -> Option<Message> {
-    let obj = item.as_object()?;
-    let role_str = obj.get("role")?.as_str()?;
-    let content_value = obj.get("content")?;
+    let message = LenientMessageCompat::deserialize(item).ok()?;
 
-    match role_str {
-        "user" => Some(Message::User {
-            content: parse_user_content(content_value)?,
+    match message.role {
+        LenientMessageRole::User => Some(Message::User {
+            content: parse_user_content(&message.content)?,
         }),
-        "system" => Some(Message::System {
-            content: parse_user_content(content_value)?,
+        LenientMessageRole::System => Some(Message::System {
+            content: parse_user_content(&message.content)?,
         }),
-        "developer" => Some(Message::Developer {
-            content: parse_user_content(content_value)?,
+        LenientMessageRole::Developer => Some(Message::Developer {
+            content: parse_user_content(&message.content)?,
         }),
-        "assistant" => Some(Message::Assistant {
-            content: parse_assistant_content(content_value)?,
+        LenientMessageRole::Assistant => Some(Message::Assistant {
+            content: parse_assistant_content(&message.content)?,
             id: None,
         }),
-        "tool" => parse_lenient_tool_message(item, content_value),
-        _ => None,
+        LenientMessageRole::Tool => parse_lenient_tool_message(item, &message.content),
     }
 }
 
@@ -665,4 +698,43 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
 pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
     let messages = import_messages_from_spans(spans);
     super::dedup::deduplicate_messages(messages)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn imports_reasoning_parts_before_provider_parsers() {
+        let messages = import_messages_from_spans(vec![Span {
+            input: Some(json!([
+                { "role": "user", "content": "question" },
+                {
+                    "role": "assistant",
+                    "content": [
+                        { "type": "reasoning", "text": "private reasoning" },
+                        { "type": "text", "text": "answer" }
+                    ]
+                }
+            ])),
+            output: None,
+            other: serde_json::Map::new(),
+        }]);
+
+        assert_eq!(messages.len(), 2);
+        assert!(matches!(
+            &messages[1],
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } if matches!(
+                parts.as_slice(),
+                [
+                    AssistantContentPart::Reasoning { text, .. },
+                    AssistantContentPart::Text(TextContentPart { text: answer, .. }),
+                ] if text == "private reasoning" && answer == "answer"
+            )
+        ));
+    }
 }
