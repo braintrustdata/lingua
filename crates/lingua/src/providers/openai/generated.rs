@@ -452,7 +452,7 @@ pub struct PurpleContentPart {
     ///
     /// The type of the content part. Always `file`.
     #[serde(rename = "type")]
-    pub chat_completion_request_message_content_part_type: PurpleType,
+    pub content_part_type: PurpleType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<ImageUrl>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -738,7 +738,7 @@ pub struct StaticContent {
 #[ts(export_to = "openai/")]
 pub enum PredictionContent {
     FluffyContentPartArray(Vec<FluffyContentPart>),
-    PurpleString(String),
+    String(String),
 }
 
 /// An array of content parts with a defined type. For developer messages, only type `text`
@@ -877,7 +877,6 @@ pub enum ReasoningEffort {
     Max,
     Medium,
     Minimal,
-    #[serde(rename = "none")]
     None,
     Xhigh,
 }
@@ -6975,8 +6974,8 @@ pub struct ResponseUsage {
 #[ts(export_to = "openai/")]
 pub struct InputTokensDetails {
     /// The number of input tokens that were written to the cache.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache_write_tokens: Option<i64>,
+    #[serde(default)]
+    pub cache_write_tokens: i64,
     /// The number of tokens that were retrieved from the cache.
     /// [More on prompt caching](/docs/guides/prompt-caching).
     pub cached_tokens: i64,

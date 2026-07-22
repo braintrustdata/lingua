@@ -352,10 +352,10 @@ fn generate_tool_struct_direct(
             }
 
             let field_name = to_rust_field_name(prop_name);
-            let rust_type = if provider == "anthropic" && prop_name == "allowed_callers" {
-                "Vec<AllowedCaller>".to_string()
-            } else {
-                schema_type_to_rust(prop_schema, all_schemas)
+            let rust_type = match (provider, prop_name.as_str()) {
+                ("anthropic", "allowed_callers") => "Vec<AllowedCaller>".to_string(),
+                ("anthropic", "response_inclusion") => "ResponseInclusion".to_string(),
+                _ => schema_type_to_rust(prop_schema, all_schemas),
             };
             let is_required = required.contains(prop_name);
 
@@ -513,4 +513,60 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
     }
 
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::generate_all_tool_code;
+    use big_serde_json as serde_json;
+
+    #[test]
+    fn anthropic_response_inclusion_uses_generated_enum() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r#"{
+                "components": {
+                    "schemas": {
+                        "WebFetchTool_20260318": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "const": "web_fetch", "type": "string" },
+                                "response_inclusion": {
+                                    "enum": ["full", "excluded"],
+                                    "title": "Response Inclusion",
+                                    "type": "string"
+                                },
+                                "type": { "const": "web_fetch_20260318", "type": "string" }
+                            },
+                            "required": ["name", "type"]
+                        },
+                        "WebSearchTool_20260318": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "const": "web_search", "type": "string" },
+                                "response_inclusion": {
+                                    "enum": ["full", "excluded"],
+                                    "title": "Response Inclusion",
+                                    "type": "string"
+                                },
+                                "type": { "const": "web_search_20260318", "type": "string" }
+                            },
+                            "required": ["name", "type"]
+                        }
+                    }
+                }
+            }"#,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        assert_eq!(
+            generated
+                .matches("pub response_inclusion: Option<ResponseInclusion>,")
+                .count(),
+            2
+        );
+        assert!(!generated.contains("pub response_inclusion: Option<String>,"));
+    }
 }

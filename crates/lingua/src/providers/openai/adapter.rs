@@ -182,6 +182,22 @@ impl ProviderAdapter for OpenAIAdapter {
         try_parse_openai(payload).is_ok()
     }
 
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        #[derive(serde::Deserialize)]
+        struct ResponseFormatView {
+            response_format: Option<Value>,
+        }
+
+        let view: ResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let Some(response_format) = view.response_format.as_ref() else {
+            return Ok(false);
+        };
+        let config: crate::universal::request::ResponseFormatConfig =
+            (ProviderFormat::ChatCompletions, response_format).try_into()?;
+        Ok(config.requires_json_response())
+    }
+
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
         // Parse params (messages will be parsed separately to preserve reasoning field)
         let typed_params: OpenAIChatParams = match serde_json::from_value(payload.clone()) {
@@ -556,7 +572,7 @@ impl ProviderAdapter for OpenAIAdapter {
             .ok_or_else(|| TransformError::ToUniversalFailed("missing choices".to_string()))?;
 
         let mut messages = Vec::new();
-        let mut finish_reason = None;
+        let mut finish_reasons = Vec::new();
 
         for choice in choices {
             if let Some(msg_val) = choice.get("message") {
@@ -572,17 +588,23 @@ impl ProviderAdapter for OpenAIAdapter {
                 messages.push(universal);
             }
 
-            // Get finish_reason from first choice
-            if finish_reason.is_none() {
-                if let Some(reason) = choice.get("finish_reason").and_then(Value::as_str) {
-                    finish_reason =
-                        Some(reason.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                            type_name: "FinishReason",
-                            value: reason.to_string(),
-                        })?);
-                }
+            #[derive(Deserialize)]
+            struct ChoiceFinishReasonView {
+                finish_reason: Option<String>,
+            }
+            let choice_view: ChoiceFinishReasonView = serde_json::from_value(choice.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+            if let Some(reason) = choice_view.finish_reason {
+                finish_reasons.push(reason.parse().map_err(|_| {
+                    ConvertError::InvalidEnumValue {
+                        type_name: "FinishReason",
+                        value: reason,
+                    }
+                })?);
             }
         }
+
+        let finish_reason = finish_reasons.first().cloned();
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -596,6 +618,7 @@ impl ProviderAdapter for OpenAIAdapter {
             messages,
             usage,
             finish_reason,
+            finish_reasons,
         })
     }
 
@@ -733,7 +756,10 @@ impl ProviderAdapter for OpenAIAdapter {
                 choice_map.insert("index".into(), serde_json::json!(c.index));
                 choice_map.insert(
                     "delta".into(),
-                    c.delta.clone().unwrap_or(Value::Object(Map::new())),
+                    c.delta
+                        .clone()
+                        .map(chat_stream_delta_from_universal)
+                        .unwrap_or(Value::Object(Map::new())),
                 );
                 let finish_reason_val = match &c.finish_reason {
                     Some(reason) => Value::String(reason.clone()),
@@ -769,6 +795,22 @@ impl ProviderAdapter for OpenAIAdapter {
 
         Ok(Value::Object(map))
     }
+}
+
+fn chat_stream_delta_from_universal(mut delta: Value) -> Value {
+    if let Some(tool_calls) = delta
+        .as_object_mut()
+        .and_then(|delta| delta.get_mut("tool_calls"))
+        .and_then(Value::as_array_mut)
+    {
+        for tool_call in tool_calls {
+            if let Some(tool_call) = tool_call.as_object_mut() {
+                tool_call.remove("custom_tool_call");
+            }
+        }
+    }
+
+    delta
 }
 
 // =============================================================================
@@ -919,6 +961,61 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_stream_from_universal_omits_custom_tool_call_marker() {
+        let adapter = OpenAIAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(json!({
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [{
+                        "index": 0,
+                        "id": "call_1",
+                        "type": "function",
+                        "custom_tool_call": true,
+                        "function": {
+                            "name": "exec",
+                            "arguments": ""
+                        }
+                    }]
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let value = adapter.stream_from_universal(&chunk).unwrap();
+
+        assert_eq!(
+            value,
+            json!({
+                "object": "chat.completion.chunk",
+                "choices": [{
+                    "index": 0,
+                    "delta": {
+                        "role": "assistant",
+                        "content": null,
+                        "tool_calls": [{
+                            "index": 0,
+                            "id": "call_1",
+                            "type": "function",
+                            "function": {
+                                "name": "exec",
+                                "arguments": ""
+                            }
+                        }]
+                    },
+                    "finish_reason": null
+                }]
+            })
+        );
+    }
+
+    #[test]
     fn test_openai_prompt_cache_key_canonical_value_overrides_stale_extra() {
         let adapter = OpenAIAdapter;
         let payload = json!({
@@ -995,6 +1092,7 @@ mod tests {
             ],
             usage: None,
             finish_reason: None,
+            finish_reasons: Vec::new(),
         };
 
         let value = adapter.response_from_universal(&resp).unwrap();

@@ -1,6 +1,19 @@
 {
   "model": "gpt-5.6-terra",
-  "input": "Use the stable policy prefix when answering.",
+  "input": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "input_text",
+          "text": "Use the stable policy prefix when answering.",
+          "prompt_cache_breakpoint": {
+            "mode": "explicit"
+          }
+        }
+      ]
+    }
+  ],
   "prompt_cache_options": {
     "mode": "explicit",
     "ttl": "30m"

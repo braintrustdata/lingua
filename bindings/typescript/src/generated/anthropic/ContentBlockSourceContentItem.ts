@@ -2,7 +2,7 @@
 import type { CacheControlEphemeral } from "./CacheControlEphemeral";
 import type { ContentBlockSourceContentItemType } from "./ContentBlockSourceContentItemType";
 import type { RequestLocationCitation } from "./RequestLocationCitation";
-import type { SourceSourceClass } from "./SourceSourceClass";
+import type { SourceSource } from "./SourceSource";
 
 /**
  * Regular text content.
@@ -13,4 +13,4 @@ export type ContentBlockSourceContentItem = {
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Array<RequestLocationCitation> | null, text: string | null, type: ContentBlockSourceContentItemType, source: SourceSourceClass | null, };
+cache_control: CacheControlEphemeral | null, citations: Array<RequestLocationCitation> | null, text: string | null, type: ContentBlockSourceContentItemType, source: SourceSource | null, };

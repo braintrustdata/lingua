@@ -986,7 +986,8 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 }
 
 fn add_anthropic_tool_search_tool_variants(processed: &str) -> String {
-    if processed.contains("pub struct ToolSearchTool") {
+    // Nothing to do if the tool_search variants are already wired into the Tool enum.
+    if processed.contains("ToolSearchToolBm25(ToolSearchTool)") {
         return processed.to_string();
     }
 
@@ -1001,17 +1002,26 @@ pub struct ToolSearchTool {
 
 "#;
 
-    let with_struct = processed.replace(
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
-        &format!(
-            "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
-            tool_search_struct
-        ),
-    );
+    // quicktype now emits its own `ToolSearchTool` struct (the spec references
+    // tool_search tools directly), so only inject our definition when it is missing
+    // to avoid producing a duplicate type.
+    let mut with_struct = processed.to_string();
+    if !with_struct.contains("pub struct ToolSearchTool") {
+        with_struct = with_struct.replace(
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
+            &format!(
+                "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
+                tool_search_struct
+            ),
+        );
+    }
 
+    // Inject the tool_search variants immediately before the untagged `Custom` fallback.
+    // Anchoring on the `Custom` variant (rather than a specific web_search version) keeps
+    // this robust as the spec keeps adding new dated server-tool variants to the enum.
     with_struct.replace(
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(untagged)]",
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]",
+        "    #[serde(untagged)]\n    Custom(CustomTool),",
+        "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
 }
 
@@ -1100,12 +1110,23 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
-    // The local OpenAI spec can lag model-specific reasoning efforts. Keep
-    // generated request validation aligned with the compatibility params view.
+    // quicktype renames the `none` reasoning effort to `ReasoningEffortNone` to
+    // avoid clashing with Option::None. The enum carries `#[serde(rename_all =
+    // "snake_case")]`, so restoring the stable `None` variant keeps the same wire
+    // value ("none") and the identifier the typed adapter expects. `max` is now
+    // present natively in the synchronized spec, so it no longer needs injection.
     processed = processed.replace(
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
+        "    #[serde(rename = \"none\")]\n    ReasoningEffortNone,",
+        "    None,",
     );
+
+    // GPT-5.6 programmatic tool calling (program / program_output items and the
+    // programmatic_tool_calling tool) is now present natively in the synchronized
+    // spec, so it no longer needs manual variant injection. The spec also carries
+    // the `fingerprint` field and a native `ToolCallCaller` (direct | program)
+    // discriminated union, which quicktype emits as InputItemDirectToolCallCaller /
+    // OutputItemDirectToolCallCaller. The typed adapter in convert.rs bridges both
+    // generated caller types to the universal ToolCaller.
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
@@ -1138,8 +1159,8 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
     processed = processed.replace(
-        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
-        "InputContentArray(Vec<ContentOutputContentList>),",
+        "ContentInputItemContentListArray(Vec<ContentInputItemContentList>),",
+        "InputContentArray(Vec<ContentInputItemContentList>),",
     );
     processed = processed.replace(
         "InputImage,\n    #[serde(rename = \"input_text\")]",
@@ -1148,6 +1169,7 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
 
     processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "PredictionContent", "PurpleString", "String");
     processed = rename_enum_variant(
         &processed,
         "InputItemContent",
@@ -1185,14 +1207,19 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     processed = rename_enum_variant(&processed, "InputItemListOutput", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "OutputOutput", "PurpleString", "String");
     processed = rename_enum_variant(&processed, "ReasoningEffort", "ReasoningEffortNone", "None");
-    processed = rename_struct_field(
-        &processed,
-        "PurpleContentPart",
-        "content_part_type",
-        "chat_completion_request_message_content_part_type",
-    );
     processed = make_struct_field_optional(&processed, "OutputItem", "output_item_type");
-    processed = make_struct_field_optional(&processed, "InputTokensDetails", "cache_write_tokens");
+
+    // The synchronized spec marks `cache_write_tokens` as a required member of the
+    // Responses API `input_tokens_details`, but real OpenAI responses omit it when
+    // no input tokens were written to the cache. Tolerate its absence (defaulting to
+    // 0) so genuine provider payloads keep parsing, while still emitting it on
+    // serialization so outbound payloads satisfy the spec's required constraint. The
+    // Chat Completions counterpart is already `Option<i64>`, so this only targets the
+    // required Responses `i64` field.
+    processed = processed.replace(
+        "    pub cache_write_tokens: i64,",
+        "    #[serde(default)]\n    pub cache_write_tokens: i64,",
+    );
 
     processed = add_openai_compatibility_aliases(&processed);
 
@@ -1342,20 +1369,6 @@ fn rename_enum_variant(
     output.join("\n")
 }
 
-fn rename_struct_field(
-    source: &str,
-    struct_name: &str,
-    current_field: &str,
-    compatibility_field: &str,
-) -> String {
-    transform_struct_field(source, struct_name, current_field, |line, field_type| {
-        line.replace(
-            &format!("pub {current_field}: {field_type},"),
-            &format!("pub {compatibility_field}: {field_type},"),
-        )
-    })
-}
-
 fn make_struct_field_optional(source: &str, struct_name: &str, field_name: &str) -> String {
     let mut output = Vec::new();
     let mut in_target_struct = false;
@@ -1392,47 +1405,6 @@ fn make_struct_field_optional(source: &str, struct_name: &str, field_name: &str)
                         &format!("pub {field_name}: Option<{field_type}>,"),
                     ));
                 }
-            } else {
-                output.push(line.to_string());
-            }
-            if brace_depth == 0 {
-                in_target_struct = false;
-            }
-        } else {
-            output.push(line.to_string());
-        }
-    }
-
-    output.join("\n")
-}
-
-fn transform_struct_field<F>(
-    source: &str,
-    struct_name: &str,
-    field_name: &str,
-    transform: F,
-) -> String
-where
-    F: Fn(&str, &str) -> String,
-{
-    let mut output = Vec::new();
-    let mut in_target_struct = false;
-    let mut brace_depth = 0usize;
-
-    for line in source.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
-            in_target_struct = true;
-            brace_depth = trimmed.matches('{').count();
-            output.push(line.to_string());
-            continue;
-        }
-
-        if in_target_struct {
-            brace_depth += trimmed.matches('{').count();
-            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
-            if let Some(field_type) = rust_field_type(trimmed, field_name) {
-                output.push(transform(line, field_type));
             } else {
                 output.push(line.to_string());
             }
@@ -2073,6 +2045,9 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
 
+    // Preserve established public Rust variant names when quicktype disambiguates them.
+    processed = preserve_google_public_enum_variant_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -2109,6 +2084,22 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
         }
 
         if in_type_enum {
+            // quicktype renames variants that collide with Rust prelude names (e.g. the
+            // `String` variant becomes `TypeString`) and emits an explicit
+            // `#[serde(rename = "STRING")]`. Those renamed lines are skipped by the
+            // bare-variant branch below, which would drop the lowercase JSON Schema alias.
+            // Re-attach it here so the enum keeps accepting both "STRING" and "string".
+            if let Some(wire) = single_word_serde_rename(trimmed) {
+                let indent = line.len() - line.trim_start().len();
+                result_lines.push(format!(
+                    "{}#[serde(rename = \"{}\", alias = \"{}\")]",
+                    " ".repeat(indent),
+                    wire,
+                    wire.to_lowercase()
+                ));
+                continue;
+            }
+
             // Match bare variant lines like "    Array," (no existing serde attribute)
             let variant_name = trimmed.trim_end_matches(',');
             let is_bare_variant = !trimmed.is_empty()
@@ -2140,7 +2131,60 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     result_lines.join("\n")
 }
 
-/// Find an enum in generated Rust source whose body contains all of the given variant names.
+/// Restore established public Google enum variant names that quicktype may disambiguate.
+fn preserve_google_public_enum_variant_names(content: &str) -> String {
+    let mut current_enum: Option<&str> = None;
+    let mut result_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        current_enum = match trimmed {
+            "pub enum Type {" => Some("Type"),
+            "pub enum FunctionCallingConfigMode {" => Some("FunctionCallingConfigMode"),
+            "}" => None,
+            _ => current_enum,
+        };
+
+        let preserved_variant = match (current_enum, trimmed) {
+            (Some("Type"), "TypeString,") => Some("String,"),
+            (Some("FunctionCallingConfigMode"), "ModeNone,") => Some("None,"),
+            _ => None,
+        };
+
+        if let Some(variant) = preserved_variant {
+            let indent = line.len() - line.trim_start().len();
+            result_lines.push(format!("{}{}", " ".repeat(indent), variant));
+        } else {
+            result_lines.push(line.to_string());
+        }
+    }
+
+    result_lines.join("\n")
+}
+
+/// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
+/// existing alias (e.g. `#[serde(rename = "STRING")]`), return that wire word.
+///
+/// Used to re-attach lowercase JSON Schema aliases to `Type` variants that quicktype
+/// renamed to avoid Rust prelude collisions. Composite wire names such as
+/// `TYPE_UNSPECIFIED` (which never had a lowercase alias) are intentionally excluded.
+fn single_word_serde_rename(trimmed: &str) -> Option<String> {
+    if trimmed.contains("alias") {
+        return None;
+    }
+    let inner = trimmed
+        .strip_prefix("#[serde(rename = \"")?
+        .strip_suffix("\")]")?;
+    let is_single_uppercase_word =
+        !inner.is_empty() && inner.chars().all(|c| c.is_ascii_uppercase());
+    if is_single_uppercase_word {
+        Some(inner.to_string())
+    } else {
+        None
+    }
+}
+
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
@@ -2291,19 +2335,36 @@ pub struct Status {}
         assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
         assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
     }
+}
+
+#[cfg(test)]
+mod google_post_process_tests {
+    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
 
     #[test]
-    fn openai_response_cache_write_tokens_remains_backward_compatible() {
-        let source = r#"pub struct InputTokensDetails {
-    pub cache_write_tokens: i64,
-    pub cached_tokens: i64,
+    fn preserves_string_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum Type {
+    #[serde(rename = "STRING")]
+    TypeString,
 }"#;
 
-        let processed =
-            make_struct_field_optional(source, "InputTokensDetails", "cache_write_tokens");
+        let output = add_type_enum_lowercase_aliases(input);
+        let output = preserve_google_public_enum_variant_names(&output);
 
-        assert!(processed.contains("#[serde(skip_serializing_if = \"Option::is_none\")]"));
-        assert!(processed.contains("pub cache_write_tokens: Option<i64>,"));
-        assert!(processed.contains("pub cached_tokens: i64,"));
+        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
+        assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum FunctionCallingConfigMode {
+    #[serde(rename = "NONE")]
+    ModeNone,
+}"#;
+
+        let output = preserve_google_public_enum_variant_names(input);
+
+        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
+        assert!(!output.contains("ModeNone"));
     }
 }

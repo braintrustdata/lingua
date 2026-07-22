@@ -244,7 +244,7 @@ fn anthropic_mid_conv_system_parts(
     parent_provider_options: Option<ProviderOptions>,
 ) -> Result<Vec<UserContentPart>, ConvertError> {
     match content {
-        generated::InputContentBlockContent::String(text) => {
+        generated::InputContentBlockContent::PurpleString(text) => {
             Ok(vec![UserContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
@@ -298,7 +298,7 @@ fn anthropic_mid_conv_system_parts(
             }
             Ok(parts)
         }
-        generated::InputContentBlockContent::RequestWebSearchToolResultError(_) => {
+        generated::InputContentBlockContent::Request(_) => {
             Err(ConvertError::ContentConversionFailed {
                 reason: "web search tool result errors cannot be used as Anthropic system content"
                     .to_string(),
@@ -311,7 +311,7 @@ fn anthropic_system_message_content(
     content: generated::MessageContent,
 ) -> Result<UserContent, ConvertError> {
     match content {
-        generated::MessageContent::String(text) => Ok(UserContent::String(text)),
+        generated::MessageContent::PurpleString(text) => Ok(UserContent::String(text)),
         generated::MessageContent::InputContentBlockArray(blocks) => {
             let mut parts = Vec::new();
             for block in blocks {
@@ -426,7 +426,7 @@ fn normalize_anthropic_tool_schema(
 /// than adapter orchestration code.
 pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
     match system {
-        generated::System::String(text) => UserContent::String(text),
+        generated::System::PurpleString(text) => UserContent::String(text),
         generated::System::RequestTextBlockArray(blocks) => UserContent::Array(
             blocks
                 .into_iter()
@@ -484,10 +484,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         (block.tool_use_id, block.content)
                                     {
                                         let output = match content {
-                                            generated::InputContentBlockContent::String(s) => {
-                                                serde_json::from_str(&s)
-                                                    .unwrap_or(serde_json::Value::String(s))
-                                            }
+                                            generated::InputContentBlockContent::PurpleString(
+                                                s,
+                                            ) => serde_json::from_str(&s)
+                                                .unwrap_or(serde_json::Value::String(s)),
                                             generated::InputContentBlockContent::BlockArray(
                                                 blocks,
                                             ) => serde_json::to_value(blocks).map_err(|e| {
@@ -496,13 +496,15 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                     error: e.to_string(),
                                                 }
                                             })?,
-                                            generated::InputContentBlockContent::RequestWebSearchToolResultError(err) => serde_json::to_value(err).map_err(|e| {
-                                                ConvertError::JsonSerializationFailed {
-                                                    field: "RequestWebSearchToolResultError"
-                                                        .to_string(),
-                                                    error: e.to_string(),
-                                                }
-                                            })?,
+                                            generated::InputContentBlockContent::Request(err) => {
+                                                serde_json::to_value(err).map_err(|e| {
+                                                    ConvertError::JsonSerializationFailed {
+                                                        field: "RequestWebSearchToolResultError"
+                                                            .to_string(),
+                                                        error: e.to_string(),
+                                                    }
+                                                })?
+                                            }
                                         };
 
                                         tool_content_parts.push(ToolContentPart::ToolResult(
@@ -548,7 +550,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
             }),
             generated::MessageRole::User => {
                 let content = match input_msg.content {
-                    generated::MessageContent::String(text) => UserContent::String(text),
+                    generated::MessageContent::PurpleString(text) => UserContent::String(text),
                     generated::MessageContent::InputContentBlockArray(blocks) => {
                         let mut content_parts = Vec::new();
 
@@ -577,15 +579,15 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     if let Some(source) = block.source {
                                         // Convert Anthropic image source to universal format
                                         match source {
-                                            generated::Source::SourceSource(purple_source) => {
+                                            generated::SourceUnion::Source(purple_source) => {
                                                 if let Some(data) = purple_source.data {
                                                     let media_type = purple_source.media_type.map(|mt| match mt {
-                                                        generated::FluffyMediaType::ImageJpeg => "image/jpeg".to_string(),
-                                                        generated::FluffyMediaType::ImagePng => "image/png".to_string(),
-                                                        generated::FluffyMediaType::ImageGif => "image/gif".to_string(),
-                                                        generated::FluffyMediaType::ImageWebp => "image/webp".to_string(),
-                                                        generated::FluffyMediaType::ApplicationPdf => "application/pdf".to_string(),
-                                                        generated::FluffyMediaType::TextPlain => "text/plain".to_string(),
+                                                        generated::Base64ImageSourceMediaType::ImageJpeg => "image/jpeg".to_string(),
+                                                        generated::Base64ImageSourceMediaType::ImagePng => "image/png".to_string(),
+                                                        generated::Base64ImageSourceMediaType::ImageGif => "image/gif".to_string(),
+                                                        generated::Base64ImageSourceMediaType::ImageWebp => "image/webp".to_string(),
+                                                        generated::Base64ImageSourceMediaType::ApplicationPdf => "application/pdf".to_string(),
+                                                        generated::Base64ImageSourceMediaType::TextPlain => "text/plain".to_string(),
                                                     });
                                                     content_parts.push(UserContentPart::Image {
                                                         image: serde_json::Value::String(data),
@@ -629,28 +631,28 @@ impl TryFromLLM<generated::InputMessage> for Message {
 
                                         // Extract data and media_type from source
                                         match source {
-                                            generated::Source::SourceSource(s) => {
+                                            generated::SourceUnion::Source(s) => {
                                                 let data = s.data.clone().or_else(|| s.url.clone());
                                                 let media_type = s
                                                     .media_type
                                                     .as_ref()
                                                     .map(|mt| match mt {
-                                                        generated::FluffyMediaType::ImageJpeg => {
+                                                        generated::Base64ImageSourceMediaType::ImageJpeg => {
                                                             "image/jpeg".to_string()
                                                         }
-                                                        generated::FluffyMediaType::ImagePng => {
+                                                        generated::Base64ImageSourceMediaType::ImagePng => {
                                                             "image/png".to_string()
                                                         }
-                                                        generated::FluffyMediaType::ImageGif => {
+                                                        generated::Base64ImageSourceMediaType::ImageGif => {
                                                             "image/gif".to_string()
                                                         }
-                                                        generated::FluffyMediaType::ImageWebp => {
+                                                        generated::Base64ImageSourceMediaType::ImageWebp => {
                                                             "image/webp".to_string()
                                                         }
-                                                        generated::FluffyMediaType::ApplicationPdf => {
+                                                        generated::Base64ImageSourceMediaType::ApplicationPdf => {
                                                             "application/pdf".to_string()
                                                         }
-                                                        generated::FluffyMediaType::TextPlain => {
+                                                        generated::Base64ImageSourceMediaType::TextPlain => {
                                                             "text/plain".to_string()
                                                         }
                                                     })
@@ -697,7 +699,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
             }
             generated::MessageRole::Assistant => {
                 let content = match input_msg.content {
-                    generated::MessageContent::String(text) => AssistantContent::String(text),
+                    generated::MessageContent::PurpleString(text) => AssistantContent::String(text),
                     generated::MessageContent::InputContentBlockArray(blocks) => {
                         let mut content_parts = Vec::new();
 
@@ -869,7 +871,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
         match msg {
             Message::User { content } => {
                 let anthropic_content = match content {
-                    UserContent::String(text) => generated::MessageContent::String(text),
+                    UserContent::String(text) => generated::MessageContent::PurpleString(text),
                     UserContent::Array(parts) => {
                         let blocks = parts
                             .into_iter()
@@ -955,7 +957,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                                         let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
                                             (
-                                                generated::FluffyType::Url,
+                                                generated::Base64ImageSourceType::Url,
                                                 Some(image_data),
                                                 None,
                                                 None,
@@ -965,25 +967,25 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             let anthropic_media_type =
                                                 media_type.as_ref().and_then(|mt| match mt.as_str() {
                                                     "image/jpeg" => {
-                                                        Some(generated::FluffyMediaType::ImageJpeg)
+                                                        Some(generated::Base64ImageSourceMediaType::ImageJpeg)
                                                     }
                                                     "image/png" => {
-                                                        Some(generated::FluffyMediaType::ImagePng)
+                                                        Some(generated::Base64ImageSourceMediaType::ImagePng)
                                                     }
                                                     "image/gif" => {
-                                                        Some(generated::FluffyMediaType::ImageGif)
+                                                        Some(generated::Base64ImageSourceMediaType::ImageGif)
                                                     }
                                                     "image/webp" => {
-                                                        Some(generated::FluffyMediaType::ImageWebp)
+                                                        Some(generated::Base64ImageSourceMediaType::ImageWebp)
                                                     }
                                                     "application/pdf" => {
-                                                        Some(generated::FluffyMediaType::ApplicationPdf)
+                                                        Some(generated::Base64ImageSourceMediaType::ApplicationPdf)
                                                     }
                                                     // Text types are handled above, shouldn't reach here
                                                     _ => None,
                                                 });
                                             (
-                                                generated::FluffyType::Base64,
+                                                generated::Base64ImageSourceType::Base64,
                                                 None,
                                                 Some(image_data),
                                                 anthropic_media_type,
@@ -992,7 +994,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                                         // Block type: only PDF uses Document, everything else is Image
                                         let block_type = match anthropic_media_type {
-                                            Some(generated::FluffyMediaType::ApplicationPdf) => {
+                                            Some(generated::Base64ImageSourceMediaType::ApplicationPdf) => {
                                                 generated::InputContentBlockType::Document
                                             }
                                             _ => generated::InputContentBlockType::Image,
@@ -1003,8 +1005,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             citations: None,
                                             text: None,
                                             input_content_block_type: block_type,
-                                            source: Some(generated::Source::SourceSource(
-                                                generated::SourceSource {
+                                            source: Some(generated::SourceUnion::Source(
+                                                generated::Source {
                                                     data: source_data,
                                                     media_type: anthropic_media_type,
                                                     source_type,
@@ -1048,18 +1050,18 @@ impl TryFromLLM<Message> for generated::InputMessage {
 
                                     let anthropic_media_type = match media_type.as_ref() {
                                         "image/jpeg" => {
-                                            Some(generated::FluffyMediaType::ImageJpeg)
+                                            Some(generated::Base64ImageSourceMediaType::ImageJpeg)
                                         }
-                                        "image/png" => Some(generated::FluffyMediaType::ImagePng),
-                                        "image/gif" => Some(generated::FluffyMediaType::ImageGif),
+                                        "image/png" => Some(generated::Base64ImageSourceMediaType::ImagePng),
+                                        "image/gif" => Some(generated::Base64ImageSourceMediaType::ImageGif),
                                         "image/webp" => {
-                                            Some(generated::FluffyMediaType::ImageWebp)
+                                            Some(generated::Base64ImageSourceMediaType::ImageWebp)
                                         }
                                         "application/pdf" => {
-                                            Some(generated::FluffyMediaType::ApplicationPdf)
+                                            Some(generated::Base64ImageSourceMediaType::ApplicationPdf)
                                         }
-                                        "text/plain" => Some(generated::FluffyMediaType::TextPlain),
-                                        _ => Some(generated::FluffyMediaType::TextPlain),
+                                        "text/plain" => Some(generated::Base64ImageSourceMediaType::TextPlain),
+                                        _ => Some(generated::Base64ImageSourceMediaType::TextPlain),
                                     };
 
                                     let data_str = match data {
@@ -1076,8 +1078,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         text: None,
                                         input_content_block_type:
                                             generated::InputContentBlockType::Document,
-                                        source: Some(generated::Source::SourceSource(
-                                            generated::SourceSource {
+                                        source: Some(generated::SourceUnion::Source(
+                                            generated::Source {
                                                 data: if is_url {
                                                     None
                                                 } else {
@@ -1089,9 +1091,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     anthropic_media_type
                                                 },
                                                 source_type: if is_url {
-                                                    generated::FluffyType::Url
+                                                    generated::Base64ImageSourceType::Url
                                                 } else {
-                                                    generated::FluffyType::Text
+                                                    generated::Base64ImageSourceType::Text
                                                 },
                                                 url: if is_url { Some(data_str) } else { None },
                                                 content: None,
@@ -1125,7 +1127,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
             }
             Message::Assistant { content, .. } => {
                 let content = match content {
-                    AssistantContent::String(text) => generated::MessageContent::String(text),
+                    AssistantContent::String(text) => generated::MessageContent::PurpleString(text),
                     AssistantContent::Array(parts) => {
                         let mut blocks = Vec::new();
                         for part in parts {
@@ -1328,9 +1330,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         ToolContentPart::ToolResult(tool_result) => {
                             let content = match &tool_result.output {
                                 serde_json::Value::String(s) => {
-                                    Some(generated::InputContentBlockContent::String(s.clone()))
+                                    Some(generated::InputContentBlockContent::PurpleString(s.clone()))
                                 }
-                                other => Some(generated::InputContentBlockContent::String(
+                                other => Some(generated::InputContentBlockContent::PurpleString(
                                     serde_json::to_string(other)
                                         .map_err(|e| ConvertError::JsonSerializationFailed {
                                             field: "tool_result_output".to_string(),
@@ -1488,7 +1490,7 @@ fn input_message_content_blocks(
     content: generated::MessageContent,
 ) -> Vec<generated::InputContentBlock> {
     match content {
-        generated::MessageContent::String(text) => vec![text_input_content_block(text)],
+        generated::MessageContent::PurpleString(text) => vec![text_input_content_block(text)],
         generated::MessageContent::InputContentBlockArray(blocks) => blocks,
     }
 }
@@ -1503,13 +1505,13 @@ fn try_merge_adjacent_user_tool_result_message(
     }
 
     let previous_is_pure_tool_result = match &previous.content {
-        generated::MessageContent::String(_) => false,
+        generated::MessageContent::PurpleString(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
         }
     };
     let current_is_pure_non_tool_result = match &current.content {
-        generated::MessageContent::String(_) => true,
+        generated::MessageContent::PurpleString(_) => true,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty()
                 && blocks
@@ -1526,7 +1528,7 @@ fn try_merge_adjacent_user_tool_result_message(
 
     let previous_content = std::mem::replace(
         &mut previous.content,
-        generated::MessageContent::String(String::new()),
+        generated::MessageContent::PurpleString(String::new()),
     );
     let mut blocks = input_message_content_blocks(previous_content);
     blocks.extend(input_message_content_blocks(current.content));
@@ -1536,7 +1538,7 @@ fn try_merge_adjacent_user_tool_result_message(
 
 fn input_message_has_tool_search_result(message: &generated::InputMessage) -> bool {
     match &message.content {
-        generated::MessageContent::String(_) => false,
+        generated::MessageContent::PurpleString(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => blocks.iter().any(|block| {
             block.input_content_block_type == generated::InputContentBlockType::ToolSearchToolResult
         }),
@@ -1545,7 +1547,7 @@ fn input_message_has_tool_search_result(message: &generated::InputMessage) -> bo
 
 fn input_message_is_pure_tool_search_result(message: &generated::InputMessage) -> bool {
     match &message.content {
-        generated::MessageContent::String(_) => false,
+        generated::MessageContent::PurpleString(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty()
                 && blocks.iter().all(|block| {
@@ -1562,7 +1564,7 @@ fn input_message_tool_search_result_ids(message: &generated::InputMessage) -> Op
     }
 
     match &message.content {
-        generated::MessageContent::String(_) => None,
+        generated::MessageContent::PurpleString(_) => None,
         generated::MessageContent::InputContentBlockArray(blocks) => Some(
             blocks
                 .iter()
@@ -1574,7 +1576,7 @@ fn input_message_tool_search_result_ids(message: &generated::InputMessage) -> Op
 
 fn input_message_tool_search_call_ids(message: &generated::InputMessage) -> Vec<String> {
     match &message.content {
-        generated::MessageContent::String(_) => Vec::new(),
+        generated::MessageContent::PurpleString(_) => Vec::new(),
         generated::MessageContent::InputContentBlockArray(blocks) => blocks
             .iter()
             .filter_map(|block| {
@@ -1638,7 +1640,7 @@ fn try_merge_adjacent_assistant_tool_discovery_message(
 
     let previous_content = std::mem::replace(
         &mut previous.content,
-        generated::MessageContent::String(String::new()),
+        generated::MessageContent::PurpleString(String::new()),
     );
     let mut blocks = input_message_content_blocks(previous_content);
     blocks.extend(input_message_content_blocks(current.content));
@@ -2270,7 +2272,7 @@ impl From<&ToolChoice> for ToolChoiceConfig {
     fn from(tc: &ToolChoice) -> Self {
         let mode = Some(match tc.tool_choice_type {
             ToolChoiceType::Auto => ToolChoiceMode::Auto,
-            ToolChoiceType::None => ToolChoiceMode::None,
+            ToolChoiceType::TypeNone => ToolChoiceMode::None,
             ToolChoiceType::Any => ToolChoiceMode::Required,
             ToolChoiceType::Tool => ToolChoiceMode::Tool,
         });
@@ -2289,7 +2291,7 @@ impl TryFrom<&ToolChoiceConfig> for ToolChoice {
         Ok(ToolChoice {
             tool_choice_type: match mode {
                 ToolChoiceMode::Auto => ToolChoiceType::Auto,
-                ToolChoiceMode::None => ToolChoiceType::None,
+                ToolChoiceMode::None => ToolChoiceType::TypeNone,
                 ToolChoiceMode::Required => ToolChoiceType::Any,
                 ToolChoiceMode::Tool => ToolChoiceType::Tool,
             },
@@ -2770,7 +2772,7 @@ mod tests {
         }
         assert_eq!(input_messages[1].role, generated::MessageRole::User);
         match &input_messages[1].content {
-            generated::MessageContent::String(text) => assert_eq!(text, "second"),
+            generated::MessageContent::PurpleString(text) => assert_eq!(text, "second"),
             other => panic!("expected second user turn to remain separate, got {other:?}"),
         }
     }
@@ -2798,7 +2800,7 @@ mod tests {
 
         assert_eq!(input_messages.len(), 2);
         match &input_messages[0].content {
-            generated::MessageContent::String(text) => assert_eq!(text, "before"),
+            generated::MessageContent::PurpleString(text) => assert_eq!(text, "before"),
             other => panic!("expected first user turn to remain separate, got {other:?}"),
         }
         match &input_messages[1].content {
@@ -3314,6 +3316,59 @@ mod tests {
     }
 
     #[test]
+    fn test_dated_server_tool_variants_deserialize_and_roundtrip() {
+        // Regression: the spec added web_search_20260318 / web_fetch_20260318 server
+        // tools. Verify the newly generated Tool enum variants deserialize from provider
+        // JSON and survive a builtin round trip (Tool -> UniversalTool -> Tool) without
+        // being downgraded to Custom or losing their discriminator.
+        let cases = [
+            (
+                crate::serde_json::json!({
+                    "type": "web_search_20260318",
+                    "name": "web_search",
+                    "max_uses": 3,
+                }),
+                "web_search_20260318",
+            ),
+            (
+                crate::serde_json::json!({
+                    "type": "web_fetch_20260318",
+                    "name": "web_fetch",
+                    "max_content_tokens": 1000,
+                }),
+                "web_fetch_20260318",
+            ),
+        ];
+
+        for (json, expected_type) in cases {
+            let tool: Tool = crate::serde_json::from_value(json.clone())
+                .unwrap_or_else(|e| panic!("{expected_type} must deserialize into Tool: {e}"));
+            assert!(
+                !matches!(tool, Tool::Custom(_)),
+                "{expected_type} must not fall back to the untagged Custom variant"
+            );
+
+            // Provider tool -> universal builtin representation.
+            let universal = UniversalTool::from(&tool);
+            match &universal.tool_type {
+                UniversalToolType::Builtin { builtin_type, .. } => {
+                    assert_eq!(builtin_type, expected_type);
+                }
+                other => panic!("expected builtin tool type for {expected_type}, got {other:?}"),
+            }
+
+            // Universal builtin -> provider tool: the typed variant is preserved exactly
+            // (Tool derives PartialEq, so this also guards the discriminator and fields).
+            let roundtripped = Tool::try_from(&universal)
+                .unwrap_or_else(|e| panic!("{expected_type} must convert back to Tool: {e}"));
+            assert_eq!(
+                tool, roundtripped,
+                "roundtrip must preserve the {expected_type} tool variant"
+            );
+        }
+    }
+
+    #[test]
     fn test_file_to_anthropic_document_with_provider_options() {
         // Create a File content part marked as a document (via provider_options)
         let mut opts = serde_json::Map::new();
@@ -3390,8 +3445,11 @@ mod tests {
                 block.input_content_block_type,
                 generated::InputContentBlockType::Document
             ));
-            if let Some(generated::Source::SourceSource(source)) = &block.source {
-                assert!(matches!(source.source_type, generated::FluffyType::Text));
+            if let Some(generated::SourceUnion::Source(source)) = &block.source {
+                assert!(matches!(
+                    source.source_type,
+                    generated::Base64ImageSourceType::Text
+                ));
                 assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
                 assert!(source.url.is_none());
             } else {
@@ -3426,8 +3484,11 @@ mod tests {
                 block.input_content_block_type,
                 generated::InputContentBlockType::Document
             ));
-            if let Some(generated::Source::SourceSource(source)) = &block.source {
-                assert!(matches!(source.source_type, generated::FluffyType::Url));
+            if let Some(generated::SourceUnion::Source(source)) = &block.source {
+                assert!(matches!(
+                    source.source_type,
+                    generated::Base64ImageSourceType::Url
+                ));
                 assert_eq!(
                     source.url.as_deref(),
                     Some("https://example.com/report.pdf")
@@ -3449,10 +3510,10 @@ mod tests {
                     citations: None,
                     text: None,
                     input_content_block_type: generated::InputContentBlockType::Document,
-                    source: Some(generated::Source::SourceSource(generated::SourceSource {
+                    source: Some(generated::SourceUnion::Source(generated::Source {
                         data: None,
                         media_type: None,
-                        source_type: generated::FluffyType::Url,
+                        source_type: generated::Base64ImageSourceType::Url,
                         url: Some("https://example.com/report.pdf".to_string()),
                         content: None,
                     })),
@@ -3526,8 +3587,11 @@ mod tests {
                 generated::InputContentBlockType::Image
             ));
             // Verify URL source type is used
-            if let Some(generated::Source::SourceSource(source)) = &block.source {
-                assert!(matches!(source.source_type, generated::FluffyType::Url));
+            if let Some(generated::SourceUnion::Source(source)) = &block.source {
+                assert!(matches!(
+                    source.source_type,
+                    generated::Base64ImageSourceType::Url
+                ));
                 assert_eq!(
                     source.url,
                     Some("https://example.com/image.jpg".to_string())

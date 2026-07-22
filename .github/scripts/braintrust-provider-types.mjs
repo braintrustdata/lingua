@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { appendFileSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -74,6 +75,27 @@ function workflowMetadata(extra = {}) {
   };
 }
 
+function gitOutput(...args) {
+  try {
+    return execFileSync("git", args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    return `${error.stdout ?? ""}${error.stderr ?? ""}`;
+  }
+}
+
+function repositorySnapshot() {
+  return {
+    head: gitOutput("rev-parse", "HEAD").trim(),
+    git_status: gitOutput("status", "--short"),
+    git_diff_stat: gitOutput("diff", "--stat"),
+    git_diff_names: gitOutput("diff", "--name-only"),
+    git_diff: gitOutput("diff", "--no-color", "--no-ext-diff"),
+  };
+}
+
 async function createWorkflowTrace() {
   requireEnv("BRAINTRUST_API_KEY");
   const braintrust = loadBraintrust();
@@ -86,6 +108,7 @@ async function createWorkflowTrace() {
   });
   const spanId = span.spanId || span.id;
   const rootSpanId = span.rootSpanId || span.root_span_id || spanId;
+  const snapshot = repositorySnapshot();
 
   span.log({
     input: {
@@ -93,9 +116,65 @@ async function createWorkflowTrace() {
       event: optionalEnv("GITHUB_EVENT_NAME"),
       run_id: optionalEnv("GITHUB_RUN_ID"),
       run_attempt: optionalEnv("GITHUB_RUN_ATTEMPT"),
+      head: snapshot.head,
     },
+    output: snapshot,
     metadata: workflowMetadata({
       braintrust_project: projectName,
+      root_span_id: rootSpanId,
+      span_id: spanId,
+      head: snapshot.head,
+    }),
+  });
+  span.end();
+  await flushBraintrust(braintrust);
+
+  writeGithubOutput({
+    project: projectName,
+    root_span_id: rootSpanId,
+    span_id: spanId,
+  });
+}
+
+async function createTaskTrace() {
+  requireEnv("BRAINTRUST_API_KEY");
+  const braintrust = loadBraintrust();
+  const projectName =
+    optionalEnv("BRAINTRUST_PROJECT") ||
+    optionalEnv("BRAINTRUST_CC_PROJECT") ||
+    "lingua-provider-type-updates";
+  const provider = requireEnv("PROVIDER");
+  const phase = requireEnv("TRACE_PHASE");
+  const logger = braintrust.initLogger({ projectName });
+  const parentSpanId = optionalEnv("BRAINTRUST_PARENT_SPAN_ID");
+  const parentRootSpanId = optionalEnv("BRAINTRUST_ROOT_SPAN_ID");
+  const parentSpanIds =
+    parentSpanId && parentRootSpanId
+      ? { spanId: parentSpanId, rootSpanId: parentRootSpanId }
+      : undefined;
+  const span = logger.startSpan({
+    name: `Claude ${phase}: update ${provider} provider types`,
+    parentSpanIds,
+  });
+  const spanId = span.spanId || span.id;
+  const rootSpanId = span.rootSpanId || span.root_span_id || spanId;
+  const snapshot = repositorySnapshot();
+
+  span.log({
+    input: {
+      provider,
+      phase,
+      head: snapshot.head,
+      github_run_id: optionalEnv("GITHUB_RUN_ID"),
+      github_run_attempt: optionalEnv("GITHUB_RUN_ATTEMPT"),
+      github_workflow: optionalEnv("GITHUB_WORKFLOW"),
+      github_job: optionalEnv("GITHUB_JOB"),
+    },
+    output: snapshot,
+    metadata: workflowMetadata({
+      braintrust_project: projectName,
+      phase,
+      head: snapshot.head,
       root_span_id: rootSpanId,
       span_id: spanId,
     }),
@@ -107,6 +186,65 @@ async function createWorkflowTrace() {
     project: projectName,
     root_span_id: rootSpanId,
     span_id: spanId,
+  });
+}
+
+function renderActionMessage(template, values) {
+  return Object.entries(values).reduce(
+    (message, [name, value]) =>
+      message.replaceAll(`{{${name}}}`, String(value)),
+    template,
+  );
+}
+
+function requireStringParameter(data, name) {
+  const value = data[name];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`Braintrust parameter '${name}' must be a non-empty string`);
+  }
+  return value.trim();
+}
+
+async function loadActionMessages() {
+  requireEnv("BRAINTRUST_API_KEY");
+  const braintrust = loadBraintrust();
+  const projectName =
+    optionalEnv("BRAINTRUST_PROJECT") || "lingua-provider-type-updates";
+  const slug =
+    optionalEnv("BRAINTRUST_PARAMETERS_SLUG") ||
+    "provider-type-update-messages";
+  const phase = requireEnv("PROMPT_PHASE");
+  const provider = requireEnv("PROVIDER");
+  const fieldPrefix =
+    phase === "repair" ? "repair" : phase === "review" ? "review" : undefined;
+
+  if (!fieldPrefix) {
+    throw new Error("PROMPT_PHASE must be 'repair' or 'review'");
+  }
+
+  const parameters = await braintrust.loadParameters({ projectName, slug });
+  if (!parameters.data || typeof parameters.data !== "object") {
+    throw new Error("Braintrust parameters did not contain an object data value");
+  }
+  const templateValues = {
+    provider,
+    generation_log_path:
+      fieldPrefix === "repair" ? requireEnv("GENERATION_LOG_PATH") : "",
+  };
+  const systemMessage = renderActionMessage(
+    requireStringParameter(parameters.data, `${fieldPrefix}_system_message`),
+    templateValues,
+  );
+  const userMessage = renderActionMessage(
+    requireStringParameter(parameters.data, `${fieldPrefix}_user_message`),
+    templateValues,
+  );
+
+  writeGithubOutputValue("system_message", systemMessage);
+  writeGithubOutputValue("user_message", userMessage);
+  writeGithubOutput({
+    parameters_id: parameters.id,
+    parameters_version: parameters.version,
   });
 }
 
@@ -465,6 +603,10 @@ const command = process.argv[2];
 try {
   if (command === "create-workflow-trace") {
     await createWorkflowTrace();
+  } else if (command === "create-task-trace") {
+    await createTaskTrace();
+  } else if (command === "load-action-messages") {
+    await loadActionMessages();
   } else if (command === "emit-pr-metadata") {
     emitPrMetadata();
   } else if (command === "extract-feedback-event") {
@@ -477,7 +619,7 @@ try {
     await logCodexReview();
   } else {
     throw new Error(
-      "Usage: braintrust-provider-types.mjs create-workflow-trace|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
+      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|load-action-messages|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|log-feedback|log-codex-review",
     );
   }
 } catch (error) {

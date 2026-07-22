@@ -84,8 +84,8 @@ pub(super) fn result_from_input_content(
     content: Option<generated::InputContentBlockContent>,
 ) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
     let tools = match content {
-        Some(generated::InputContentBlockContent::RequestWebSearchToolResultError(result)) => {
-            if result.request_web_search_tool_result_error_type
+        Some(generated::InputContentBlockContent::Request(result)) => {
+            if result.request_type
                 == generated::RequestWebSearchToolResultErrorType::ToolSearchToolResultError
             {
                 return Err(ConvertError::UnsupportedMapping {
@@ -123,44 +123,42 @@ pub(super) fn input_result_content(
     tools: Vec<ToolDiscoveryResultItem>,
 ) -> Result<generated::InputContentBlockContent, ConvertError> {
     reject_preserved_unknown_result_content(&tools, "Anthropic InputContentBlock")?;
-    Ok(
-        generated::InputContentBlockContent::RequestWebSearchToolResultError(
-            generated::RequestWebSearchToolResultError {
-                error_code: None,
-                request_web_search_tool_result_error_type:
-                    generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-                content: None,
-                retrieved_at: None,
-                url: None,
-                return_code: None,
-                stderr: None,
-                stdout: None,
-                encrypted_stdout: None,
-                error_message: None,
-                file_type: None,
-                num_lines: None,
-                start_line: None,
-                total_lines: None,
-                is_file_update: None,
-                lines: None,
-                new_lines: None,
-                new_start: None,
-                old_lines: None,
-                old_start: None,
-                tool_references: Some(
-                    tools
-                        .into_iter()
-                        .map(|item| generated::RequestToolReferenceBlock {
-                            cache_control: None,
-                            tool_name: item.tool_name,
-                            request_tool_reference_block_type:
-                                generated::ToolReferenceType::ToolReference,
-                        })
-                        .collect(),
-                ),
-            },
-        ),
-    )
+    Ok(generated::InputContentBlockContent::Request(
+        generated::Request {
+            error_code: None,
+            request_type:
+                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+            content: None,
+            retrieved_at: None,
+            url: None,
+            return_code: None,
+            stderr: None,
+            stdout: None,
+            encrypted_stdout: None,
+            error_message: None,
+            file_type: None,
+            num_lines: None,
+            start_line: None,
+            total_lines: None,
+            is_file_update: None,
+            lines: None,
+            new_lines: None,
+            new_start: None,
+            old_lines: None,
+            old_start: None,
+            tool_references: Some(
+                tools
+                    .into_iter()
+                    .map(|item| generated::RequestToolReferenceBlock {
+                        cache_control: None,
+                        tool_name: item.tool_name,
+                        request_tool_reference_block_type:
+                            generated::ToolReferenceType::ToolReference,
+                    })
+                    .collect(),
+            ),
+        },
+    ))
 }
 
 pub(super) fn result_from_response_content(
@@ -169,8 +167,8 @@ pub(super) fn result_from_response_content(
     content: Option<generated::ContentBlockContent>,
 ) -> Result<ToolDiscoveryResultContentPart, ConvertError> {
     let tools = match content {
-        Some(generated::ContentBlockContent::ResponseWebSearchToolResultError(result)) => {
-            if result.response_web_search_tool_result_error_type
+        Some(generated::ContentBlockContent::Response(result)) => {
+            if result.response_type
                 == generated::RequestWebSearchToolResultErrorType::ToolSearchToolResultError
             {
                 return Err(ConvertError::UnsupportedMapping {
@@ -208,43 +206,41 @@ pub(super) fn response_result_content(
     tools: Vec<ToolDiscoveryResultItem>,
 ) -> Result<generated::ContentBlockContent, ConvertError> {
     reject_preserved_unknown_result_content(&tools, "Anthropic ContentBlock")?;
-    Ok(
-        generated::ContentBlockContent::ResponseWebSearchToolResultError(
-            generated::ResponseWebSearchToolResultError {
-                error_code: None,
-                response_web_search_tool_result_error_type:
-                    generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
-                content: None,
-                retrieved_at: None,
-                url: None,
-                return_code: None,
-                stderr: None,
-                stdout: None,
-                encrypted_stdout: None,
-                error_message: None,
-                file_type: None,
-                num_lines: None,
-                start_line: None,
-                total_lines: None,
-                is_file_update: None,
-                lines: None,
-                new_lines: None,
-                new_start: None,
-                old_lines: None,
-                old_start: None,
-                tool_references: Some(
-                    tools
-                        .into_iter()
-                        .map(|item| generated::ResponseToolReferenceBlock {
-                            tool_name: item.tool_name,
-                            response_tool_reference_block_type:
-                                generated::ToolReferenceType::ToolReference,
-                        })
-                        .collect(),
-                ),
-            },
-        ),
-    )
+    Ok(generated::ContentBlockContent::Response(
+        generated::Response {
+            error_code: None,
+            response_type:
+                generated::RequestWebSearchToolResultErrorType::ToolSearchToolSearchResult,
+            content: None,
+            retrieved_at: None,
+            url: None,
+            return_code: None,
+            stderr: None,
+            stdout: None,
+            encrypted_stdout: None,
+            error_message: None,
+            file_type: None,
+            num_lines: None,
+            start_line: None,
+            total_lines: None,
+            is_file_update: None,
+            lines: None,
+            new_lines: None,
+            new_start: None,
+            old_lines: None,
+            old_start: None,
+            tool_references: Some(
+                tools
+                    .into_iter()
+                    .map(|item| generated::ResponseToolReferenceBlock {
+                        tool_name: item.tool_name,
+                        response_tool_reference_block_type:
+                            generated::ToolReferenceType::ToolReference,
+                    })
+                    .collect(),
+            ),
+        },
+    ))
 }
 
 fn unknown_result_items<T: serde::Serialize>(

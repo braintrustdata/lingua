@@ -144,7 +144,7 @@ fn is_forced_tool_choice(value: &Value) -> bool {
                 .name
                 .as_ref()
                 .is_some_and(|name| !name.is_empty()),
-            ToolChoiceType::Auto | ToolChoiceType::None => false,
+            ToolChoiceType::Auto | ToolChoiceType::TypeNone => false,
         })
 }
 
@@ -253,6 +253,20 @@ impl ProviderAdapter for AnthropicAdapter {
 
     fn detect_passthrough_request(&self, payload: &Value) -> bool {
         try_parse_anthropic(payload).is_ok()
+    }
+
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        let extras: AnthropicExtrasView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let typed_params: CreateMessageParams = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let response_format = typed_params
+            .output_config
+            .as_ref()
+            .and_then(|oc| oc.format.as_ref())
+            .or(extras.output_format.as_ref())
+            .map(ResponseFormatConfig::from);
+        Ok(response_format.is_some_and(|format| format.requires_json_response()))
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -805,7 +819,8 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 
@@ -1046,6 +1061,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                 index: Some(0),
                                 id: part.id,
                                 call_type: Some("function".to_string()),
+                                custom_tool_call: None,
                                 function: Some(UniversalToolFunctionDelta {
                                     name: part.name,
                                     arguments: Some(arguments),
@@ -1109,6 +1125,7 @@ impl ProviderAdapter for AnthropicAdapter {
                                     index: Some(block_index),
                                     id: Some(id.to_string()),
                                     call_type: Some("function".to_string()),
+                                    custom_tool_call: None,
                                     function: Some(UniversalToolFunctionDelta {
                                         name: Some(name.to_string()),
                                         arguments: Some(String::new()),
@@ -1685,7 +1702,7 @@ mod tests {
         let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
         let blocks = match parsed.system.expect("system field present") {
             System::RequestTextBlockArray(blocks) => blocks,
-            System::String(s) => {
+            System::PurpleString(s) => {
                 panic!("system must be a text-block array to carry cache_control, got: {s}")
             }
         };
@@ -1720,7 +1737,7 @@ mod tests {
         let parsed: CreateMessageParams = serde_json::from_value(out).unwrap();
         assert_eq!(
             parsed.system,
-            Some(System::String("You are a presenter.".to_string()))
+            Some(System::PurpleString("You are a presenter.".to_string()))
         );
     }
 
