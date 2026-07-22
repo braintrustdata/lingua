@@ -56,11 +56,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     match provider.as_str() {
         "openai" => generate_openai_types()?,
-        "anthropic" => generate_anthropic_types(),
+        "anthropic" => generate_anthropic_types()?,
         "google" => generate_google_discovery_types()?,
         "all" => {
             generate_openai_types()?;
-            generate_anthropic_types();
+            generate_anthropic_types()?;
             generate_google_discovery_types()?;
         }
         _ => {
@@ -108,34 +108,21 @@ fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn generate_anthropic_types() {
+fn generate_anthropic_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating Anthropic types from OpenAPI spec...");
 
     let spec_file_path = "specs/anthropic/openapi.yml";
 
-    let anthropic_spec = match std::fs::read_to_string(spec_file_path) {
-        Ok(content) => content,
-        Err(e) => {
-            println!(
-                "❌ Failed to read Anthropic OpenAPI spec at {}: {}",
-                spec_file_path, e
-            );
-            println!(
-                "Run './pipelines/generate-provider-types.sh anthropic' to download the spec first"
-            );
-            return;
-        }
-    };
+    let anthropic_spec = std::fs::read_to_string(spec_file_path).map_err(|error| {
+        format!(
+            "failed to read Anthropic OpenAPI spec at {spec_file_path}: {error}. Run `./pipelines/generate-provider-types.sh anthropic` to download the spec first"
+        )
+    })?;
 
     println!("🔍 Parsing JSON OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
-        Ok(value) => value,
-        Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
-            return;
-        }
-    };
+    let schema: serde_json::Value = serde_json::from_str(&anthropic_spec)
+        .map_err(|error| format!("failed to parse Anthropic OpenAPI spec as JSON: {error}"))?;
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
 
@@ -144,10 +131,12 @@ fn generate_anthropic_types() {
 
         // Generate essential Anthropic types for messages API using quicktype
         println!("🏗️  Generating essential Anthropic types for messages API");
-        generate_anthropic_specific_types(&anthropic_spec);
+        generate_anthropic_specific_types(&anthropic_spec)?;
     } else {
-        println!("❌ No components/schemas section found in Anthropic OpenAPI spec");
+        return Err("no components/schemas section found in Anthropic OpenAPI spec".into());
     }
+
+    Ok(())
 }
 
 fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -431,29 +420,17 @@ fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
         .map(|last_slash| ref_str[last_slash + 1..].to_string())
 }
 
-fn generate_anthropic_specific_types(anthropic_spec: &str) {
+fn generate_anthropic_specific_types(
+    anthropic_spec: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Using quicktype for Anthropic type generation...");
 
     // Extract Anthropic OpenAPI spec
-    let full_spec: serde_json::Value =
-        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+    let full_spec: serde_json::Value = serde_json::from_str(anthropic_spec)?;
 
-    // Generate types using quicktype approach
-    match generate_anthropic_types_with_quicktype(
-        &serde_json::to_string_pretty(&full_spec).unwrap(),
-    ) {
-        Ok(()) => {
-            println!("✅ Anthropic types generated successfully with quicktype");
-        }
-        Err(e) => {
-            println!("❌ Quicktype generation failed for Anthropic: {}", e);
-            println!("📝 Falling back to minimal types");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/anthropic/generated.rs",
-                "// Quicktype generation failed",
-            );
-        }
-    }
+    generate_anthropic_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
+    println!("✅ Anthropic types generated successfully with quicktype");
+    Ok(())
 }
 
 fn generate_anthropic_types_with_quicktype(
