@@ -9,6 +9,8 @@ pub mod generated;
 pub mod params;
 
 #[cfg(test)]
+pub mod test_generated_types;
+#[cfg(test)]
 pub mod test_google;
 
 // Re-export adapter
