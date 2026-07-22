@@ -464,6 +464,9 @@ function evaluateCodexAutofixEligibility({
   return {
     eligible: true,
     provider: metadata.provider,
+    braintrustProject: metadata.project,
+    rootSpanId: metadata.root_span_id,
+    sourceSpanId: metadata.span_id,
     prNumber: pullRequest.number,
     prUrl: pullRequest.html_url,
     headRef: pullRequest.head.ref,
@@ -737,6 +740,9 @@ async function inspectCodexAutofixEvent() {
         version: 1,
         repository,
         provider: result.provider,
+        braintrust_project: result.braintrustProject,
+        root_span_id: result.rootSpanId,
+        source_span_id: result.sourceSpanId,
         pr_number: result.prNumber,
         pr_url: result.prUrl,
         head_ref: result.headRef,
@@ -754,6 +760,8 @@ async function inspectCodexAutofixEvent() {
   writeGithubOutput({
     eligible: "true",
     provider: result.provider,
+    root_span_id: result.rootSpanId,
+    source_span_id: result.sourceSpanId,
     pr_number: result.prNumber,
     head_ref: result.headRef,
     head_sha: result.headSha,
@@ -906,6 +914,11 @@ function validateCodexAutofixPatch() {
     changedLines,
     modes,
     hasBinary,
+  });
+  writeGithubOutput({
+    patch_policy: result.valid ? "passed" : "failed",
+    patch_file_count: files.length,
+    patch_changed_lines: changedLines,
   });
   if (!result.valid) {
     throw new Error(result.errors.join("\n"));
@@ -1061,6 +1074,82 @@ async function logCodexReview() {
   await flushBraintrust(braintrust);
 }
 
+async function logCodexAutofixResult() {
+  requireEnv("BRAINTRUST_API_KEY");
+  const braintrust = loadBraintrust();
+  const projectName = requireEnv("BRAINTRUST_PROJECT");
+  const parentSpanIds = {
+    spanId: requireEnv("BRAINTRUST_PARENT_SPAN_ID"),
+    rootSpanId: requireEnv("BRAINTRUST_ROOT_SPAN_ID"),
+  };
+  const attempt = requireEnv("AUTOFIX_ATTEMPT");
+  const publishResult = requireEnv("AUTOFIX_PUBLISH_RESULT");
+  const status = publishResult === "success" ? "succeeded" : "failed";
+  const logger = braintrust.initLogger({ projectName });
+
+  await logger.traced(
+    async (span) => {
+      span.log({
+        input: {
+          provider: requireEnv("PROVIDER"),
+          pr_number: requireEnv("AUTOFIX_PR_NUMBER"),
+          review_id: requireEnv("AUTOFIX_REVIEW_ID"),
+          attempt,
+        },
+        output: {
+          status,
+          proposal: {
+            job_result: optionalEnv("AUTOFIX_PROPOSE_RESULT"),
+            patch_policy: optionalEnv("AUTOFIX_PROPOSAL_POLICY"),
+            patch_file_count: optionalEnv("AUTOFIX_PROPOSAL_FILE_COUNT"),
+            patch_changed_lines: optionalEnv(
+              "AUTOFIX_PROPOSAL_CHANGED_LINES",
+            ),
+          },
+          validation: {
+            job_result: optionalEnv("AUTOFIX_VALIDATE_RESULT"),
+            patch_policy: optionalEnv("AUTOFIX_VALIDATED_POLICY"),
+            patch_file_count: optionalEnv("AUTOFIX_VALIDATED_FILE_COUNT"),
+            patch_changed_lines: optionalEnv(
+              "AUTOFIX_VALIDATED_CHANGED_LINES",
+            ),
+            provider_tests: optionalEnv("AUTOFIX_TEST_RESULT"),
+            clippy: optionalEnv("AUTOFIX_CLIPPY_RESULT"),
+            typed_boundary: optionalEnv("AUTOFIX_TYPED_BOUNDARY_RESULT"),
+          },
+          publication: {
+            job_result: publishResult,
+            commit_sha: optionalEnv("AUTOFIX_COMMIT_SHA"),
+            rereview_requested:
+              optionalEnv("AUTOFIX_REREVIEW_RESULT") === "success",
+            rereview_result: optionalEnv("AUTOFIX_REREVIEW_RESULT"),
+          },
+        },
+        metadata: workflowMetadata({
+          provider: requireEnv("PROVIDER"),
+          phase: "codex_autofix_result",
+          autofix_status: status,
+          autofix_attempt: attempt,
+          pr_number: requireEnv("AUTOFIX_PR_NUMBER"),
+          review_id: requireEnv("AUTOFIX_REVIEW_ID"),
+          target_span_id: parentSpanIds.spanId,
+          target_root_span_id: parentSpanIds.rootSpanId,
+        }),
+      });
+    },
+    {
+      name: `Codex autofix attempt ${attempt} result`,
+      type: "task",
+      spanAttributes: {
+        purpose: "task",
+      },
+      parentSpanIds,
+    },
+  );
+
+  await flushBraintrust(braintrust);
+}
+
 async function main(command) {
   if (command === "create-workflow-trace") {
     await createWorkflowTrace();
@@ -1086,9 +1175,11 @@ async function main(command) {
     await logFeedback();
   } else if (command === "log-codex-review") {
     await logCodexReview();
+  } else if (command === "log-codex-autofix-result") {
+    await logCodexAutofixResult();
   } else {
     throw new Error(
-      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|load-action-messages|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|inspect-codex-autofix-event|validate-codex-autofix-patch|update-codex-autofix-attempt|request-codex-rereview|log-feedback|log-codex-review",
+      "Usage: braintrust-provider-types.mjs create-workflow-trace|create-task-trace|load-action-messages|emit-pr-metadata|extract-feedback-event|extract-codex-review-event|inspect-codex-autofix-event|validate-codex-autofix-patch|update-codex-autofix-attempt|request-codex-rereview|log-feedback|log-codex-review|log-codex-autofix-result",
     );
   }
 }

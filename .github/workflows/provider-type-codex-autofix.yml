@@ -21,6 +21,8 @@ jobs:
     outputs:
       eligible: ${{ steps.inspect.outputs.eligible }}
       provider: ${{ steps.inspect.outputs.provider }}
+      root_span_id: ${{ steps.inspect.outputs.root_span_id }}
+      source_span_id: ${{ steps.inspect.outputs.source_span_id }}
       pr_number: ${{ steps.inspect.outputs.pr_number }}
       head_ref: ${{ steps.inspect.outputs.head_ref }}
       head_sha: ${{ steps.inspect.outputs.head_sha }}
@@ -70,6 +72,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+    outputs:
+      trace_span_id: ${{ steps.attempt_trace.outputs.span_id }}
+      trace_root_span_id: ${{ steps.attempt_trace.outputs.root_span_id }}
+      patch_policy: ${{ steps.proposal_policy.outputs.patch_policy }}
+      patch_file_count: ${{ steps.proposal_policy.outputs.patch_file_count }}
+      patch_changed_lines: ${{ steps.proposal_policy.outputs.patch_changed_lines }}
 
     steps:
       - name: Checkout reviewed commit without credentials
@@ -97,6 +105,24 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
+
+      - name: Install Braintrust SDK
+        id: braintrust_sdk
+        continue-on-error: true
+        run: npm install -g braintrust
+
+      - name: Create Braintrust autofix attempt span
+        id: attempt_trace
+        if: steps.braintrust_sdk.outcome == 'success'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PARENT_SPAN_ID: ${{ needs.gate.outputs.source_span_id }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_ROOT_SPAN_ID: ${{ needs.gate.outputs.root_span_id }}
+          PROVIDER: ${{ needs.gate.outputs.provider }}
+          TRACE_PHASE: fix Codex review attempt ${{ needs.gate.outputs.attempt }}/2
+        run: NODE_PATH="$(npm root -g)" node "$RUNNER_TEMP/autofix-context/braintrust-provider-types.mjs" create-task-trace
 
       - name: Set up pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
@@ -131,9 +157,11 @@ jobs:
                 "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
                 "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
                 "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "TRACE_TO_BRAINTRUST": "true",
+                "TRACE_TO_BRAINTRUST": "${{ steps.attempt_trace.outputs.root_span_id != '' && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.attempt_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.attempt_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
@@ -146,6 +174,7 @@ jobs:
             Read .codex-autofix-review.json, inspect the current checkout, and address only the actionable inline comments in that file. Add focused tests where appropriate and follow every workflow requirement in AGENTS.md. Do not edit the review file. Leave the completed changes uncommitted in the worktree.
 
       - name: Validate proposed patch policy
+        id: proposal_policy
         env:
           AUTOFIX_BASE_SHA: ${{ needs.gate.outputs.head_sha }}
         run: |
@@ -174,6 +203,13 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+    outputs:
+      patch_policy: ${{ steps.validated_policy.outputs.patch_policy }}
+      patch_file_count: ${{ steps.validated_policy.outputs.patch_file_count }}
+      patch_changed_lines: ${{ steps.validated_policy.outputs.patch_changed_lines }}
+      provider_tests: ${{ steps.provider_tests.outcome }}
+      clippy: ${{ steps.clippy.outcome }}
+      typed_boundary: ${{ steps.typed_boundary.outcome }}
 
     steps:
       - name: Checkout reviewed commit without credentials
@@ -220,31 +256,59 @@ jobs:
           git add -A
 
       - name: Recheck formatted patch policy
+        id: validated_policy
         env:
           AUTOFIX_BASE_SHA: ${{ needs.gate.outputs.head_sha }}
         run: node "$RUNNER_TEMP/autofix-context/braintrust-provider-types.mjs" validate-codex-autofix-patch
 
       - name: Run focused provider tests
+        id: provider_tests
+        continue-on-error: true
         run: cargo test -p lingua "${{ needs.gate.outputs.provider }}"
 
       - name: Run Lingua clippy
+        id: clippy
+        continue-on-error: true
         run: cargo clippy -p lingua --all-targets --all-features -- -D warnings
 
       - name: Check typed boundaries
+        id: typed_boundary
+        continue-on-error: true
         run: make typed-boundary-check
 
       - name: Package validated patch
+        if: >-
+          steps.provider_tests.outcome == 'success' &&
+          steps.clippy.outcome == 'success' &&
+          steps.typed_boundary.outcome == 'success'
         env:
           AUTOFIX_BASE_SHA: ${{ needs.gate.outputs.head_sha }}
         run: git diff --binary --full-index "$AUTOFIX_BASE_SHA" -- > "$RUNNER_TEMP/validated.patch"
 
       - name: Upload validated patch
+        if: >-
+          steps.provider_tests.outcome == 'success' &&
+          steps.clippy.outcome == 'success' &&
+          steps.typed_boundary.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: codex-autofix-validated-${{ github.run_id }}
           path: ${{ runner.temp }}/validated.patch
           if-no-files-found: error
           retention-days: 1
+
+      - name: Fail if focused validation failed
+        if: >-
+          always() &&
+          steps.validated_policy.outcome == 'success' &&
+          (
+            steps.provider_tests.outcome != 'success' ||
+            steps.clippy.outcome != 'success' ||
+            steps.typed_boundary.outcome != 'success'
+          )
+        run: |
+          echo "One or more focused validation commands failed" >&2
+          exit 1
 
   publish:
     needs: [gate, validate]
@@ -298,6 +362,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    outputs:
+      rereview_result: ${{ steps.rereview.outcome }}
 
     steps:
       - name: Checkout trusted reporting code
@@ -341,9 +407,62 @@ jobs:
             node .github/scripts/braintrust-provider-types.mjs update-codex-autofix-attempt
 
       - name: Request another Codex review
+        id: rereview
         if: needs.publish.result == 'success'
         env:
           AUTOFIX_ATTEMPT: ${{ needs.gate.outputs.attempt }}
           AUTOFIX_PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/scripts/braintrust-provider-types.mjs request-codex-rereview
+
+  telemetry:
+    needs: [gate, propose, validate, publish, report]
+    if: always() && needs.gate.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout trusted telemetry code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Install Braintrust SDK
+        id: braintrust_sdk
+        continue-on-error: true
+        run: npm install -g braintrust
+
+      - name: Log autofix result to Braintrust
+        if: steps.braintrust_sdk.outcome == 'success'
+        continue-on-error: true
+        env:
+          AUTOFIX_ATTEMPT: ${{ needs.gate.outputs.attempt }}
+          AUTOFIX_CLIPPY_RESULT: ${{ needs.validate.outputs.clippy }}
+          AUTOFIX_COMMIT_SHA: ${{ needs.publish.outputs.commit_sha }}
+          AUTOFIX_PR_NUMBER: ${{ needs.gate.outputs.pr_number }}
+          AUTOFIX_PROPOSAL_CHANGED_LINES: ${{ needs.propose.outputs.patch_changed_lines }}
+          AUTOFIX_PROPOSAL_FILE_COUNT: ${{ needs.propose.outputs.patch_file_count }}
+          AUTOFIX_PROPOSAL_POLICY: ${{ needs.propose.outputs.patch_policy }}
+          AUTOFIX_PROPOSE_RESULT: ${{ needs.propose.result }}
+          AUTOFIX_PUBLISH_RESULT: ${{ needs.publish.result }}
+          AUTOFIX_REREVIEW_RESULT: ${{ needs.report.outputs.rereview_result }}
+          AUTOFIX_REVIEW_ID: ${{ needs.gate.outputs.review_id }}
+          AUTOFIX_TEST_RESULT: ${{ needs.validate.outputs.provider_tests }}
+          AUTOFIX_TYPED_BOUNDARY_RESULT: ${{ needs.validate.outputs.typed_boundary }}
+          AUTOFIX_VALIDATED_CHANGED_LINES: ${{ needs.validate.outputs.patch_changed_lines }}
+          AUTOFIX_VALIDATED_FILE_COUNT: ${{ needs.validate.outputs.patch_file_count }}
+          AUTOFIX_VALIDATED_POLICY: ${{ needs.validate.outputs.patch_policy }}
+          AUTOFIX_VALIDATE_RESULT: ${{ needs.validate.result }}
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PARENT_SPAN_ID: ${{ needs.propose.outputs.trace_span_id || needs.gate.outputs.source_span_id }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_ROOT_SPAN_ID: ${{ needs.propose.outputs.trace_root_span_id || needs.gate.outputs.root_span_id }}
+          PROVIDER: ${{ needs.gate.outputs.provider }}
+        run: NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs log-codex-autofix-result

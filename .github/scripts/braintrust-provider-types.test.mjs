@@ -84,6 +84,8 @@ test("accepts a current Codex review on a verified provider update PR", () => {
   const result = evaluateCodexAutofixEligibility(fixture());
   assert.equal(result.eligible, true);
   assert.equal(result.provider, "anthropic");
+  assert.equal(result.rootSpanId, "root");
+  assert.equal(result.sourceSpanId, "span");
   assert.equal(result.attempt, 1);
   assert.equal(result.inlineComments.length, 1);
 });
