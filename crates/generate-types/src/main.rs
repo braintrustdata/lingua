@@ -57,11 +57,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     match provider.as_str() {
         "openai" => generate_openai_types()?,
         "anthropic" => generate_anthropic_types(),
-        "google" => generate_google_discovery_types(),
+        "google" => generate_google_discovery_types()?,
         "all" => {
             generate_openai_types()?;
             generate_anthropic_types();
-            generate_google_discovery_types();
+            generate_google_discovery_types()?;
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
@@ -1609,7 +1609,7 @@ fn add_serde_skip_if_none(content: &str) -> String {
     result_lines.join("\n")
 }
 
-fn generate_google_discovery_types() {
+fn generate_google_discovery_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating Google types from Discovery JSON spec...");
 
     let spec_file_path = "specs/google/discovery.json";
@@ -1637,13 +1637,17 @@ fn generate_google_discovery_types() {
 
     if let Some(_schemas) = schemas {
         println!("✅ Found Google Discovery schemas section");
-        generate_google_types_with_quicktype(&spec);
+        generate_google_types_with_quicktype(&spec)?;
     } else {
         panic!("❌ No schemas section found in Discovery spec");
     }
+
+    Ok(())
 }
 
-fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
+fn generate_google_types_with_quicktype(
+    spec: &serde_json::Value,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
     let essential_schemas = create_essential_google_schemas(spec);
@@ -1653,13 +1657,7 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
         serde_json::to_string_pretty(&essential_schemas).expect("Failed to serialize schemas");
     std::fs::write(&temp_schema_path, &schema_json).expect("Failed to write temp schema");
 
-    let quicktype = match quicktype_binary() {
-        Ok(binary) => binary,
-        Err(error) => {
-            println!("❌ Failed to locate quicktype: {error}");
-            return;
-        }
-    };
+    let quicktype = quicktype_binary()?;
     let output = std::process::Command::new(quicktype)
         .arg("--src-lang")
         .arg("schema")
@@ -1680,24 +1678,15 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
             if output.status.success() {
                 String::from_utf8(output.stdout).expect("Invalid UTF-8 from quicktype")
             } else {
-                println!(
-                    "❌ quicktype failed: {}",
+                return Err(format!(
+                    "quicktype failed: {}",
                     String::from_utf8_lossy(&output.stderr)
-                );
-                let _ = std::fs::write(
-                    "crates/lingua/src/providers/google/generated.rs",
-                    "// Quicktype generation failed",
-                );
-                return;
+                )
+                .into());
             }
         }
         Err(e) => {
-            println!("❌ Failed to run quicktype: {}", e);
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/google/generated.rs",
-                "// Quicktype not found",
-            );
-            return;
+            return Err(format!("failed to run quicktype: {e}").into());
         }
     };
 
@@ -1719,6 +1708,7 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
 
     println!("📝 Generated Google types to: {}", dest_path);
     println!("✅ Google Discovery types generated and formatted");
+    Ok(())
 }
 
 fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
