@@ -871,6 +871,26 @@ function validateAutofixPatch({ files, changedLines, modes, hasBinary }) {
   };
 }
 
+function parseRawDiffModes(raw) {
+  const records = raw.split("\0");
+  if (records.at(-1) === "") {
+    records.pop();
+  }
+
+  const modes = [];
+  for (let index = 0; index < records.length; index += 2) {
+    const header = records[index];
+    const path = records[index + 1];
+    const match = header.match(/^:(\d{6}) (\d{6}) /);
+    modes.push({
+      oldMode: match?.[1] || "unknown",
+      newMode: match?.[2] || "unknown",
+      path: path || "unknown",
+    });
+  }
+  return modes;
+}
+
 function validateCodexAutofixPatch() {
   const baseSha = requireEnv("AUTOFIX_BASE_SHA");
   const nameList = execFileSync(
@@ -899,16 +919,7 @@ function validateCodexAutofixPatch() {
       changedLines += Number(added) + Number(deleted);
     }
   }
-  const modes = raw
-    .split("\0")
-    .filter(Boolean)
-    .map((line) => {
-      const match = line.match(/^:(\d{6}) (\d{6}) /);
-      return {
-        oldMode: match?.[1] || "unknown",
-        newMode: match?.[2] || "unknown",
-      };
-    });
+  const modes = parseRawDiffModes(raw);
   const result = validateAutofixPatch({
     files,
     changedLines,
@@ -1201,5 +1212,6 @@ export {
   evaluateCodexAutofixEligibility,
   extractAutofixMarker,
   extractHiddenMetadata,
+  parseRawDiffModes,
   validateAutofixPatch,
 };

@@ -5,6 +5,7 @@ import {
   CODEX_BOT,
   GITHUB_ACTIONS_BOT,
   evaluateCodexAutofixEligibility,
+  parseRawDiffModes,
   validateAutofixPatch,
 } from "./braintrust-provider-types.mjs";
 
@@ -173,4 +174,18 @@ test("accepts a small handwritten provider patch", () => {
     hasBinary: false,
   });
   assert.deepEqual(result, { valid: true, errors: [] });
+});
+
+test("parses raw diff headers without treating path records as modes", () => {
+  const oldSha = "a".repeat(40);
+  const newSha = "b".repeat(40);
+  const raw = `:100644 100644 ${oldSha} ${newSha} M\0crates/lingua/src/providers/openai/convert.rs\0`;
+
+  assert.deepEqual(parseRawDiffModes(raw), [
+    {
+      oldMode: "100644",
+      newMode: "100644",
+      path: "crates/lingua/src/providers/openai/convert.rs",
+    },
+  ]);
 });
