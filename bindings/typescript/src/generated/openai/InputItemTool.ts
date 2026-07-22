@@ -224,7 +224,7 @@ moderation: ModerationEnum | null,
 /**
  * Compression level for the output image. Default: 100.
  */
-output_compression: bigint | null, 
+output_compression: number | null, 
 /**
  * The output format of the generated image. One of `png`, `webp`, or
  * `jpeg`. Default: `png`.
@@ -233,7 +233,7 @@ output_format: OutputFormat | null,
 /**
  * Number of partial images to generate in streaming mode, from 0 (default value) to 3.
  */
-partial_images: bigint | null, 
+partial_images: number | null, 
 /**
  * The quality of the generated image. One of `low`, `medium`, `high`,
  * or `auto`. Default: `auto`.

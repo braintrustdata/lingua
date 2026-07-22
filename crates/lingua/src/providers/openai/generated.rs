@@ -41,18 +41,10 @@ pub struct OpenaiSchemas {
 pub struct CreateChatCompletionRequestClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,7 +63,7 @@ pub struct CreateChatCompletionRequestClass {
     /// requested.
     /// `logprobs` must be set to `true` if this parameter is used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_logprobs: Option<i64>,
+    pub top_logprobs: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
     /// This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -160,7 +152,7 @@ pub struct CreateChatCompletionRequestClass {
     /// be charged based on the number of generated tokens across all of the choices. Keep `n` as
     /// `1` to minimize costs.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub n: Option<i64>,
+    pub n: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parallel_tool_calls: Option<bool>,
     /// Configuration for a [Predicted Output](/docs/guides/predicted-outputs),
@@ -1249,7 +1241,8 @@ pub struct FunctionObject {
 
 /// Constrains the verbosity of the model's response. Lower values will result in
 /// more concise responses, while higher values will result in more verbose responses.
-/// Currently supported values are `low`, `medium`, and `high`.
+/// Currently supported values are `low`, `medium`, and `high`. The default is
+/// `medium`.
 ///
 ///
 /// High level guidance for the amount of context window space to use for the
@@ -1867,18 +1860,10 @@ pub enum ChatStreamResponseObject {
 pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1890,7 +1875,7 @@ pub struct CreateResponseClass {
     /// probability. In some cases, the number of returned tokens may be fewer than
     /// requested.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_logprobs: Option<i64>,
+    pub top_logprobs: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
     /// This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -3957,14 +3942,14 @@ pub struct InputItemTool {
     pub moderation: Option<ModerationEnum>,
     /// Compression level for the output image. Default: 100.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_compression: Option<i64>,
+    pub output_compression: Option<i32>,
     /// The output format of the generated image. One of `png`, `webp`, or
     /// `jpeg`. Default: `png`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_format: Option<OutputFormat>,
     /// Number of partial images to generate in streaming mode, from 0 (default value) to 3.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub partial_images: Option<i64>,
+    pub partial_images: Option<i32>,
     /// The quality of the generated image. One of `low`, `medium`, `high`,
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4762,6 +4747,10 @@ pub struct Reasoning {
 }
 
 /// Controls which reasoning items are rendered back to the model on later turns.
+/// If omitted or set to `auto`, the model determines the context mode. The
+/// `gpt-5.6` model family defaults to `all_turns`; earlier models default to
+/// `current_turn`.
+///
 /// When returned on a response, this is the effective reasoning context mode
 /// used for the response.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -5442,18 +5431,10 @@ pub enum Truncation {
 pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5461,7 +5442,7 @@ pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_logprobs: Option<i64>,
+    pub top_logprobs: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_p: Option<f64>,
     /// This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -5561,6 +5542,8 @@ pub struct ResponseError {
 pub enum ResponseErrorCode {
     #[serde(rename = "bio_policy")]
     BioPolicy,
+    #[serde(rename = "data_residency_mismatch")]
+    DataResidencyMismatch,
     #[serde(rename = "empty_image_file")]
     EmptyImageFile,
     #[serde(rename = "failed_to_download_image")]
@@ -6872,14 +6855,14 @@ pub struct OutputItemTool {
     pub moderation: Option<ModerationEnum>,
     /// Compression level for the output image. Default: 100.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub output_compression: Option<i64>,
+    pub output_compression: Option<i32>,
     /// The output format of the generated image. One of `png`, `webp`, or
     /// `jpeg`. Default: `png`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_format: Option<OutputFormat>,
     /// Number of partial images to generate in streaming mode, from 0 (default value) to 3.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub partial_images: Option<i64>,
+    pub partial_images: Option<i32>,
     /// The quality of the generated image. One of `low`, `medium`, `high`,
     /// or `auto`. Default: `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
