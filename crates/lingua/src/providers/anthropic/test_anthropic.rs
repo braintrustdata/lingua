@@ -77,4 +77,80 @@ mod tests {
     mod generated {
         include!(concat!(env!("OUT_DIR"), "/generated_anthropic_tests.rs"));
     }
+
+    /// Regression coverage for the `RefusalCategory` enum defined in the synchronized
+    /// Anthropic spec (`RefusalStopDetails.category`). The spec enumerates
+    /// `["cyber", "bio", "frontier_llm", "reasoning_extraction", "general_harms"]`; these
+    /// tests assert every wire value deserializes into the matching variant and round-trips
+    /// back to the same string, including the newly added `general_harms` category.
+    mod refusal_category {
+        use crate::providers::anthropic::generated::{
+            RefusalCategory, RefusalStopDetails, RefusalStopDetailsType,
+        };
+        use crate::serde_json;
+
+        #[test]
+        fn all_spec_wire_values_roundtrip() {
+            // (wire value, expected variant) — mirrors the spec enum exactly.
+            let cases = [
+                ("\"cyber\"", RefusalCategory::Cyber),
+                ("\"bio\"", RefusalCategory::Bio),
+                ("\"frontier_llm\"", RefusalCategory::FrontierLlm),
+                (
+                    "\"reasoning_extraction\"",
+                    RefusalCategory::ReasoningExtraction,
+                ),
+                ("\"general_harms\"", RefusalCategory::GeneralHarms),
+            ];
+
+            for (wire, expected) in cases {
+                let parsed: RefusalCategory = serde_json::from_str(wire)
+                    .unwrap_or_else(|e| panic!("failed to deserialize {wire}: {e}"));
+                assert_eq!(
+                    parsed, expected,
+                    "wire value {wire} mapped to wrong variant"
+                );
+
+                let reserialized = serde_json::to_string(&parsed)
+                    .unwrap_or_else(|e| panic!("failed to serialize {expected:?}: {e}"));
+                assert_eq!(reserialized, wire, "variant did not round-trip to {wire}");
+            }
+        }
+
+        #[test]
+        fn general_harms_is_the_newly_added_value() {
+            // Guards the specific value added in this provider-type update: it must be a
+            // recognized closed-enum variant, not silently rejected or treated as unknown.
+            let parsed: RefusalCategory = serde_json::from_str("\"general_harms\"").unwrap();
+            assert_eq!(parsed, RefusalCategory::GeneralHarms);
+        }
+
+        #[test]
+        fn unknown_category_is_rejected() {
+            // Closed enum: an unlisted category must fail to parse rather than be coerced.
+            let result: Result<RefusalCategory, _> = serde_json::from_str("\"nonexistent\"");
+            assert!(result.is_err(), "unknown category should not deserialize");
+        }
+
+        #[test]
+        fn refusal_stop_details_with_general_harms_roundtrips() {
+            // The category flows through the response as `RefusalStopDetails.category`, so
+            // exercise the full field wrapper end to end.
+            let wire = r#"{"category":"general_harms","explanation":"declined","type":"refusal"}"#;
+            let details: RefusalStopDetails = serde_json::from_str(wire).unwrap();
+
+            assert_eq!(details.category, Some(RefusalCategory::GeneralHarms));
+            assert_eq!(details.explanation.as_deref(), Some("declined"));
+            assert_eq!(
+                details.refusal_stop_details_type,
+                RefusalStopDetailsType::Refusal
+            );
+
+            let reserialized = serde_json::to_string(&details).unwrap();
+            assert_eq!(
+                reserialized, wire,
+                "RefusalStopDetails did not round-trip losslessly"
+            );
+        }
+    }
 }
