@@ -1,6 +1,10 @@
 /*!
 OpenAI-specific capability detection used by the transformation pipeline.
 */
+use crate::providers::openai::convert::{
+    ChatCompletionRequestMessageContentExt, ChatCompletionRequestMessageExt,
+};
+use crate::providers::openai::generated::{InputItemContent, InputParam, Prompt, PromptVariable};
 use crate::serde_json::{Map, Value};
 use crate::universal::ReasoningEffort;
 
@@ -66,6 +70,28 @@ pub fn get_model_transforms(model: &str) -> &'static [ModelTransform] {
 /// Check if a model requires any transforms.
 pub fn model_needs_transforms(model: &str) -> bool {
     !get_model_transforms(model).is_empty()
+}
+
+/// Whether a Chat Completions model accepts explicit prompt cache breakpoints.
+///
+/// OpenAI supports these for GPT-5.6 and later model families.
+pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
+    let model = normalize_openai_model_name(model);
+    let Some(version) = model.strip_prefix("gpt-") else {
+        return false;
+    };
+    let Some((major, minor_and_variant)) = version.split_once('.') else {
+        return false;
+    };
+    let minor = minor_and_variant
+        .chars()
+        .take_while(char::is_ascii_digit)
+        .collect::<String>();
+
+    matches!(
+        (major.parse::<u32>(), minor.parse::<u32>()),
+        (Ok(major), Ok(minor)) if (major, minor) >= (5, 6)
+    )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -244,6 +270,64 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
     }
 }
 
+/// Remove unsupported explicit cache breakpoints from typed Chat Completions messages.
+pub fn strip_unsupported_chat_prompt_cache_breakpoints(
+    model: &str,
+    messages: &mut [ChatCompletionRequestMessageExt],
+) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    for message in messages {
+        message.cache_control = None;
+        if let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = message.content.as_mut()
+        {
+            for part in parts {
+                part.base.prompt_cache_breakpoint = None;
+                part.cache_control = None;
+            }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Responses input.
+pub fn strip_unsupported_responses_prompt_cache_breakpoints(model: &str, input: &mut InputParam) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    if let InputParam::InputItemArray(items) = input {
+        for item in items {
+            if let Some(InputItemContent::InputContentArray(parts)) = item.content.as_mut() {
+                for part in parts {
+                    part.prompt_cache_breakpoint = None;
+                }
+            }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Responses prompt variables.
+pub fn strip_unsupported_responses_prompt_variable_cache_breakpoints(
+    model: &str,
+    prompt: &mut Prompt,
+) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    for variable in prompt
+        .variables
+        .iter_mut()
+        .flat_map(|variables| variables.values_mut())
+    {
+        if let PromptVariable::Input(input) = variable {
+            input.prompt_cache_breakpoint = None;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -291,6 +375,101 @@ mod tests {
         for model in no_needs {
             assert!(!model_needs_transforms(model), "should not need: {}", model);
         }
+    }
+
+    #[test]
+    fn test_strip_unsupported_prompt_cache_breakpoints() {
+        for model in ["gpt-5", "gpt-4o"] {
+            let mut messages: Vec<ChatCompletionRequestMessageExt> =
+                serde_json::from_value(json!([
+                    {
+                        "role": "user",
+                        "content": [{
+                        "type": "text",
+                        "text": "Hello",
+                        "cache_control": {"type": "ephemeral"},
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
+                        }]
+                    }
+                ]))
+                .unwrap();
+
+            strip_unsupported_chat_prompt_cache_breakpoints(model, &mut messages);
+            let messages = serde_json::to_value(messages).unwrap();
+            assert_eq!(
+                messages[0]["content"][0]["prompt_cache_breakpoint"],
+                Value::Null,
+                "{model} should strip prompt_cache_breakpoint"
+            );
+            assert_eq!(
+                messages[0]["content"][0]["cache_control"],
+                Value::Null,
+                "{model} should strip cache_control"
+            );
+        }
+    }
+
+    #[test]
+    fn test_strip_unsupported_message_cache_control_with_string_content() {
+        let mut messages: Vec<ChatCompletionRequestMessageExt> = serde_json::from_value(json!([
+            {
+                "role": "user",
+                "content": "Hello",
+                "cache_control": {"type": "ephemeral"}
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_chat_prompt_cache_breakpoints("gpt-5.5", &mut messages);
+        let messages = serde_json::to_value(messages).unwrap();
+
+        assert_eq!(messages[0]["cache_control"], Value::Null);
+    }
+
+    #[test]
+    fn test_preserve_supported_prompt_cache_breakpoints() {
+        let mut messages: Vec<ChatCompletionRequestMessageExt> = serde_json::from_value(json!([
+            {
+                "role": "user",
+                "content": [{
+                    "type": "text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_chat_prompt_cache_breakpoints("gpt-5.7", &mut messages);
+        let messages = serde_json::to_value(messages).unwrap();
+        assert_eq!(
+            messages[0]["content"][0]["prompt_cache_breakpoint"],
+            json!({"mode": "explicit"})
+        );
+    }
+
+    #[test]
+    fn test_strip_unsupported_responses_prompt_cache_fields() {
+        let mut input: InputParam = serde_json::from_value(json!([
+            {
+                "type": "message",
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_responses_prompt_cache_breakpoints("gpt-5.4", &mut input);
+        let input = serde_json::to_value(input).unwrap();
+
+        assert_eq!(
+            input[0]["content"][0]["prompt_cache_breakpoint"],
+            Value::Null
+        );
     }
 
     #[test]

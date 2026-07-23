@@ -11,12 +11,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "type": "text",
         },
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
-          "prompt_cache_breakpoint": {
-            "mode": "explicit",
-          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -26,12 +20,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
-          "prompt_cache_breakpoint": {
-            "mode": "explicit",
-          },
           "text": "hello world",
           "type": "text",
         },
@@ -966,12 +954,6 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
-          "prompt_cache_breakpoint": {
-            "mode": "explicit",
-          },
           "text": "Be helpful.",
           "type": "text",
         },

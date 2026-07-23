@@ -14,7 +14,8 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{
-    apply_model_transforms, clamp_reasoning_effort_for_model, model_needs_transforms,
+    apply_model_transforms, clamp_reasoning_effort_for_model,
+    strip_unsupported_chat_prompt_cache_breakpoints, supports_prompt_cache_breakpoint,
 };
 use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
@@ -547,11 +548,32 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
 
-        // Preserve source OpenAI shape by default, but always enforce required transforms for
-        // reasoning models (e.g. max_tokens -> max_completion_tokens, temperature stripping).
-        if openai_extras.is_none() || model_needs_transforms(model) {
-            apply_model_transforms(model, &mut obj);
+        if !supports_prompt_cache_breakpoint(model) {
+            obj.remove("prompt_cache_options");
         }
+
+        let messages = obj.remove("messages").ok_or_else(|| {
+            TransformError::FromUniversalFailed("missing OpenAI Chat Completions messages".into())
+        })?;
+        let mut typed_messages: Vec<ChatCompletionRequestMessageExt> =
+            serde_json::from_value(messages).map_err(|error| {
+                TransformError::FromUniversalFailed(format!(
+                    "failed to parse OpenAI Chat Completions messages: {error}"
+                ))
+            })?;
+        strip_unsupported_chat_prompt_cache_breakpoints(model, &mut typed_messages);
+        obj.insert(
+            "messages".into(),
+            serde_json::to_value(typed_messages).map_err(|error| {
+                TransformError::SerializationFailed(format!(
+                    "failed to serialize OpenAI Chat Completions messages: {error}"
+                ))
+            })?,
+        );
+
+        // Preserve source OpenAI shape by default, while enforcing model capability transforms
+        // (e.g. max_tokens -> max_completion_tokens and prompt cache breakpoint support).
+        apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
     }
