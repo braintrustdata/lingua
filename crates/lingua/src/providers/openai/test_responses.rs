@@ -209,6 +209,41 @@ mod tests {
         assert_eq!(serialized["type"], "programmatic_tool_calling");
     }
 
+    // Regression: the synchronized spec added `data_residency_mismatch` to the
+    // Responses API `ResponseError.code` enum. The new variant must deserialize and
+    // round-trip, and pre-existing variants (a compatibility contract) must remain
+    // accepted rather than being rejected by the regenerated enum.
+    #[test]
+    fn response_error_code_accepts_data_residency_mismatch() {
+        use crate::providers::openai::generated::{ResponseError, ResponseErrorCode};
+
+        // The newly added enum value must parse into its dedicated variant.
+        let payload = crate::serde_json::json!({
+            "code": "data_residency_mismatch",
+            "message": "Request could not be served from the required data region."
+        });
+        let error: ResponseError = crate::serde_json::from_value(payload)
+            .expect("data_residency_mismatch error code must deserialize");
+        assert_eq!(error.code, ResponseErrorCode::DataResidencyMismatch);
+
+        // And it must serialize back to the exact wire value.
+        let serialized = crate::serde_json::to_value(&error).unwrap();
+        assert_eq!(serialized["code"], "data_residency_mismatch");
+
+        // Pre-existing variants stay valid (no positive value was dropped).
+        for wire in [
+            "server_error",
+            "rate_limit_exceeded",
+            "invalid_prompt",
+            "bio_policy",
+        ] {
+            let value = crate::serde_json::json!({ "code": wire, "message": "x" });
+            let error: ResponseError = crate::serde_json::from_value(value)
+                .unwrap_or_else(|e| panic!("error code {wire} must still deserialize: {e}"));
+            assert_eq!(crate::serde_json::to_value(&error).unwrap()["code"], wire);
+        }
+    }
+
     // Include auto-generated test cases from build script
     #[allow(non_snake_case)]
     mod generated {
