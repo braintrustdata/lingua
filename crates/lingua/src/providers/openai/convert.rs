@@ -397,6 +397,28 @@ fn assistant_content_from_parts(content_parts: Vec<AssistantContentPart>) -> Ass
     }
 }
 
+pub(crate) fn assistant_content_parts_from_openai_tool_calls(
+    tool_calls: Vec<openai::ToolCall>,
+    reasoning_signature: Option<String>,
+) -> Vec<AssistantContentPart> {
+    tool_calls
+        .into_iter()
+        .filter_map(|tool_call| {
+            let function = tool_call.function?;
+            Some(AssistantContentPart::ToolCall {
+                tool_call_id: tool_call.id,
+                tool_name: function.name,
+                arguments: function.arguments.into(),
+                encrypted_content: reasoning_signature.clone(),
+                provider_options: None,
+                status: None,
+                caller: None,
+                provider_executed: None,
+            })
+        })
+        .collect()
+}
+
 fn chat_completion_content_to_user_content(
     content: Option<ChatCompletionRequestMessageContentExt>,
     cache_control: Option<serde_json::Value>,
@@ -4490,20 +4512,10 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = msg.tool_calls {
-                    for tool_call in tool_calls {
-                        if let Some(function) = tool_call.function {
-                            content_parts.push(AssistantContentPart::ToolCall {
-                                tool_call_id: tool_call.id,
-                                tool_name: function.name,
-                                arguments: function.arguments.into(),
-                                encrypted_content: msg.reasoning_signature.clone(),
-                                provider_options: None,
-                                status: None,
-                                caller: None,
-                                provider_executed: None,
-                            });
-                        }
-                    }
+                    content_parts.extend(assistant_content_parts_from_openai_tool_calls(
+                        tool_calls,
+                        msg.reasoning_signature,
+                    ));
                 }
 
                 let content = assistant_content_from_parts(content_parts);
