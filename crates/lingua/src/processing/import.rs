@@ -349,7 +349,8 @@ enum LenientAssistantContentPartCompat {
 #[cfg(feature = "openai")]
 #[derive(Debug, Clone, Deserialize)]
 struct ReasoningAssistantMessageCompat {
-    role: ReasoningAssistantRole,
+    #[serde(rename = "role")]
+    _role: ReasoningAssistantRole,
     content: Vec<LenientAssistantContentPartCompat>,
     #[serde(default)]
     tool_calls: Vec<openai::ToolCall>,
@@ -365,7 +366,7 @@ enum ReasoningAssistantRole {
 #[cfg(feature = "openai")]
 fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
     let ReasoningAssistantMessageCompat {
-        role: _,
+        _role: _,
         content,
         tool_calls,
     } = serde_json::from_value(item.clone()).ok()?;
