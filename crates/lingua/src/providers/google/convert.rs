@@ -2260,4 +2260,110 @@ mod tests {
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
     }
+
+    use crate::providers::google::generated::{
+        AudioTranscriptionConfig, Level, MediaResolution, V1MainMediaResolution,
+    };
+
+    #[test]
+    fn test_part_media_resolution_struct_round_trips() {
+        // `Part.mediaResolution` is a nested object carrying a `level` enum. The spec
+        // renamed this schema to `V1mainMediaResolution`, so the generated struct is
+        // now `V1MainMediaResolution`, but the wire shape is unchanged. In particular
+        // the Part-level `Level` enum still offers `MEDIA_RESOLUTION_ULTRA_HIGH`, which
+        // the GenerationConfig-level `MediaResolution` enum does not.
+        let payload = json!({
+            "text": "hello",
+            "mediaResolution": { "level": "MEDIA_RESOLUTION_ULTRA_HIGH" }
+        });
+        let parsed: GooglePart = serde_json::from_value(payload).unwrap();
+        assert_eq!(
+            parsed.media_resolution,
+            Some(V1MainMediaResolution {
+                level: Some(Level::MediaResolutionUltraHigh),
+            })
+        );
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(
+            reserialized["mediaResolution"],
+            json!({ "level": "MEDIA_RESOLUTION_ULTRA_HIGH" })
+        );
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_enum_round_trips() {
+        // `GenerationConfig.mediaResolution` is a bare string enum (renamed from
+        // `MediaResolutionEnum` to `MediaResolution`). Its four spec values must keep
+        // their SCREAMING_SNAKE_CASE wire format; it intentionally has no
+        // `MEDIA_RESOLUTION_ULTRA_HIGH` (that value is Part-level only).
+        for (wire, value) in [
+            (
+                "MEDIA_RESOLUTION_UNSPECIFIED",
+                MediaResolution::MediaResolutionUnspecified,
+            ),
+            ("MEDIA_RESOLUTION_LOW", MediaResolution::MediaResolutionLow),
+            (
+                "MEDIA_RESOLUTION_MEDIUM",
+                MediaResolution::MediaResolutionMedium,
+            ),
+            (
+                "MEDIA_RESOLUTION_HIGH",
+                MediaResolution::MediaResolutionHigh,
+            ),
+        ] {
+            let config = GenerationConfig {
+                media_resolution: Some(value.clone()),
+                ..Default::default()
+            };
+            let serialized = serde_json::to_value(&config).unwrap();
+            assert_eq!(serialized["mediaResolution"], json!(wire));
+
+            let parsed: GenerationConfig =
+                serde_json::from_value(json!({ "mediaResolution": wire })).unwrap();
+            assert_eq!(parsed.media_resolution, Some(value));
+        }
+    }
+
+    #[test]
+    fn test_generation_config_audio_transcription_config_round_trips() {
+        // Newly added GenerationConfig field. A provider payload exercising the nested
+        // LanguageHints and the empty `languageAuto` object must deserialize into the
+        // generated types and re-serialize with the expected camelCase keys.
+        let payload = json!({
+            "audioTranscriptionConfig": {
+                "diarization": true,
+                "wordTimestamp": false,
+                "languageHints": { "languageCodes": ["en-US", "es-ES"] },
+                "languageAuto": {},
+                "customVocabulary": ["Lingua"]
+            }
+        });
+        let parsed: GenerationConfig = serde_json::from_value(payload).unwrap();
+        let atc = parsed.audio_transcription_config.as_ref().unwrap();
+        assert_eq!(atc.diarization, Some(true));
+        assert_eq!(atc.word_timestamp, Some(false));
+        assert_eq!(
+            atc.language_hints.as_ref().unwrap().language_codes,
+            Some(vec!["en-US".to_string(), "es-ES".to_string()])
+        );
+        assert!(atc.language_auto.is_some());
+        assert_eq!(atc.custom_vocabulary, Some(vec!["Lingua".to_string()]));
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(
+            reserialized["audioTranscriptionConfig"]["languageHints"]["languageCodes"],
+            json!(["en-US", "es-ES"])
+        );
+        assert_eq!(
+            reserialized["audioTranscriptionConfig"]["wordTimestamp"],
+            json!(false)
+        );
+
+        // A default AudioTranscriptionConfig must also survive a bare round trip.
+        let empty = AudioTranscriptionConfig::default();
+        let value = serde_json::to_value(&empty).unwrap();
+        let back: AudioTranscriptionConfig = serde_json::from_value(value).unwrap();
+        assert_eq!(empty, back);
+    }
 }

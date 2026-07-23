@@ -5,9 +5,9 @@ import type { ExecutableCode } from "./ExecutableCode";
 import type { FileData } from "./FileData";
 import type { FunctionCall } from "./FunctionCall";
 import type { FunctionResponse } from "./FunctionResponse";
-import type { MediaResolution } from "./MediaResolution";
 import type { ToolCall } from "./ToolCall";
 import type { ToolResponse } from "./ToolResponse";
+import type { V1MainMediaResolution } from "./V1MainMediaResolution";
 import type { VideoMetadata } from "./VideoMetadata";
 
 /**
@@ -47,7 +47,7 @@ inlineData: Blob | null,
 /**
  * Optional. Media resolution for the input media.
  */
-mediaResolution: MediaResolution | null, 
+mediaResolution: V1MainMediaResolution | null, 
 /**
  * Custom metadata associated with the Part. Agents using genai.Part as content
  * representation may need to keep track of the additional information. For example it can
