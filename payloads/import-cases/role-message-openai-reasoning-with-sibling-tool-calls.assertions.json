@@ -1,0 +1,13 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "mustContainText": [
+    "Use the structured data tool before answering.",
+    "top_level_reasoning_signature_123",
+    "call_openai_reasoning_123",
+    "get_summary",
+    "anonymized metrics"
+  ]
+}
