@@ -354,6 +354,8 @@ struct ReasoningAssistantMessageCompat {
     content: Vec<LenientAssistantContentPartCompat>,
     #[serde(default)]
     tool_calls: Vec<openai::ToolCall>,
+    #[serde(default)]
+    reasoning_signature: Option<String>,
 }
 
 #[cfg(feature = "openai")]
@@ -369,6 +371,7 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         _role: _,
         content,
         tool_calls,
+        reasoning_signature,
     } = serde_json::from_value(item.clone()).ok()?;
 
     if !content
@@ -383,7 +386,8 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         .map(parse_lenient_assistant_content_part)
         .collect::<Option<_>>()?;
     content_parts.extend(assistant_content_parts_from_openai_tool_calls(
-        tool_calls, None,
+        tool_calls,
+        reasoning_signature,
     ));
 
     Some(Message::Assistant {
@@ -812,6 +816,7 @@ mod tests {
                         "arguments": "{\"city\":\"Paris\"}"
                     }
                 }],
+                "reasoning_signature": "reasoning-signature",
                 "content": [{ "text": "Need the weather", "type": "reasoning" }],
                 "role": "assistant"
             }
@@ -825,12 +830,14 @@ mod tests {
                     tool_call_id,
                     tool_name,
                     arguments,
+                    encrypted_content: Some(encrypted_content),
                     ..
                 },
             ] if text == "Need the weather"
                 && tool_call_id == "call_lookup"
                 && tool_name == "lookup_weather"
                 && arguments.to_string() == "{\"city\":\"Paris\"}"
+                && encrypted_content == "reasoning-signature"
         ));
     }
 }
