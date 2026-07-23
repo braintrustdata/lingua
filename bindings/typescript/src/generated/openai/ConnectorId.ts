@@ -2,8 +2,8 @@
 
 /**
  * Identifier for service connectors, like those available in ChatGPT. One of
- * `server_url` or `connector_id` must be provided. Learn more about service
- * connectors [here](/docs/guides/tools-remote-mcp#connectors).
+ * `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+ * about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
  *
  * Currently supported `connector_id` values are:
  *

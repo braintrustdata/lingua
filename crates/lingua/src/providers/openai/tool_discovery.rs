@@ -28,13 +28,13 @@ fn arguments_from_value(value: Option<serde_json::Value>) -> Option<openai::Argu
     })
 }
 
-fn status_to_string(status: Option<openai::Status>) -> Option<String> {
+fn status_to_string(status: Option<openai::FunctionCallItemStatus>) -> Option<String> {
     status
         .and_then(|status| serde_json::to_value(status).ok())
         .and_then(|value| serde_json::from_value(value).ok())
 }
 
-fn status_from_string(status: Option<String>) -> Option<openai::Status> {
+fn status_from_string(status: Option<String>) -> Option<openai::FunctionCallItemStatus> {
     status.and_then(|status| serde_json::from_value(serde_json::Value::String(status)).ok())
 }
 

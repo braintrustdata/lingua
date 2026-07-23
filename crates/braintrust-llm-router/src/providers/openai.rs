@@ -352,6 +352,8 @@ pub fn is_openai_compatible(kind: &str) -> bool {
             | "xAI"
             | "ollama"
             | "databricks"
+            | "cohere"
+            | "openrouter"
     )
 }
 
@@ -399,6 +401,14 @@ pub fn openai_compatible_endpoint(kind: &str) -> Option<OpenAICompatibleEndpoint
         }),
         "ollama" => Some(OpenAICompatibleEndpoint {
             url: "http://127.0.0.1:11434/v1",
+            is_template: false,
+        }),
+        "cohere" => Some(OpenAICompatibleEndpoint {
+            url: "https://api.cohere.com/compatibility/v1",
+            is_template: false,
+        }),
+        "openrouter" => Some(OpenAICompatibleEndpoint {
+            url: "https://openrouter.ai/api/v1",
             is_template: false,
         }),
         _ => None,

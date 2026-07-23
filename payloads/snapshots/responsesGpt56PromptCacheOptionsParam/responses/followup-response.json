@@ -1,13 +1,13 @@
 {
-  "id": "resp_0a2ca1c1e334976d006a515adc3cd4819e8ccb0f1dcb20a3a4",
+  "id": "resp_0809724855ac8883006a5eb83a9584819aaa5d8bb7a372a161",
   "object": "response",
-  "created_at": 1783716572,
+  "created_at": 1784592442,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1783716573,
+  "completed_at": 1784592444,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,13 +18,14 @@
   "moderation": null,
   "output": [
     {
-      "id": "rs_0a2ca1c1e334976d006a515adcb224819e9ab4cd531924e2a2",
+      "id": "rs_0809724855ac8883006a5eb83b192c819a82a38ab6c9cba2f3",
       "type": "reasoning",
       "content": [],
+      "encrypted_content": "gAAAAABqXrg8B_q0EGWWj9dyAgUaZLR31kv_mhw_oNC__EiFroNc61TY7rIVTeG0ZG_jyv-0GW7G1s0MQOYkS7E9vqXYqUOUw66DT2_rW220TU9K4zG9iKywY7tidZORWSGD-VYKozX4Ky5kZTy07gp646SK8kKlCsftLKaTW4hgnTE7cwzSQrW3lBZpeIKECReEVyiWGGGMl07tGGui2CWaELrc9nQBwsvlJ0pvf_9W6Ylmhns7SXmGl7I2AgCRCGnYt1GUM0VRWO476b9YJ-6_u9iL4HfxL5MCnELEUaBIu0D6Tjgx9YKDqhlJQ93IYk8S0zBNhN9xhOjNxqoQyXjbl78Ae-Pz2U1GnFVLH8wzkDKq4kgRK_o0lpHi5ZZIQIxa3ySAwLPuL34B2wWbSQpN1lv77nx5gtOJ4bdxUx_v7JyWpEl6L_z1XrOqxZTX5PcjV6j2Z0LXsga2n7AJTph9hwSvJqyHb6gm67CVrHxnI6FRRNvVhJI57agcePQQiv7CWJNqwxjCVKu0t0KEgKbHZAckuW-BV2WPR_z5eMoX7xW7gPkq5HUSqC0IZXoxeEhmMBVRZDYS4ZQcbTtcaOtDHD-YS6TM0clXxSy1Sy2btvJ7blsho1KONYb6FsKFj7ytO1WDUfpV2GgJBtLKGPnikkW0RnKIGf6CdLHEn3IX75WPkt2bgEq8c1ZKO3YD-mUuoJOuSeJMxyVs2iaQxeLVOjKA7UJr0g7vl2QgGONRkgtT7bH93_a2CNC_FjR_yFG1YQh0F3ORg3USD-47BCl_2-Jp31_YzzGhFqLIX7WsyiLv8pT87LqP12w6Rf_udHaezQDkHx-4r5No9oIg6QSFhioAv9JRIXal4FYpqcQIzTQkwk5avVsSlqQGgkHVGizm1kYuaxoPCcJK5py_QWRvps2ELQuD_nXXVYtfnFOPcX4pWcWyio1d6F9VeZviZAgAiGclKqFfjphD9ZSAxR1b5rCVD2ikeC7m9nz1hH-qNF5W4EqPEGxWtv984y3tQGt4iez-ynGTBe0vtDab0-VhKwIKGb1FPWQ1M0m1m2dT9r0Jk6bjGU_5BqvYwovER4BfCeAx6TluBbvR1mlPEn_Cqk0l3IFviFxqAP7U7vcAS6kDYozp_dCpFAgcvkgMwcg5fJLl5tOq_QFsDJMTXcRoJhzvokEtdEUp6IOSWo4xZLClEbeymeaxE2mzTwBeP1LmM8rtNqMdUnlng9BBBN55uLPlZIXS8g==",
       "summary": []
     },
     {
-      "id": "msg_0a2ca1c1e334976d006a515add3294819ebf42e4b9e265b446",
+      "id": "msg_0809724855ac8883006a5eb83bb26c819a9c7903b16638dfbe",
       "type": "message",
       "status": "completed",
       "content": [
@@ -32,7 +33,7 @@
           "type": "output_text",
           "annotations": [],
           "logprobs": [],
-          "text": "Next, provide the exact “stable policy prefix” you want included. Then ask your question or give the task you’d like completed."
+          "text": "Paste the exact prefix you want included in future answers, for example:\n\n`[Stable Policy]`\n\nThen tell me whether it should appear at the beginning of every response or only specific types of responses."
         }
       ],
       "phase": "final_answer",
@@ -88,18 +89,18 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 98,
+    "input_tokens": 117,
     "input_tokens_details": {
       "cache_write_tokens": 0,
       "cached_tokens": 0
     },
-    "output_tokens": 69,
+    "output_tokens": 99,
     "output_tokens_details": {
-      "reasoning_tokens": 36
+      "reasoning_tokens": 53
     },
-    "total_tokens": 167
+    "total_tokens": 216
   },
   "user": null,
   "metadata": {},
-  "output_text": "Next, provide the exact “stable policy prefix” you want included. Then ask your question or give the task you’d like completed."
+  "output_text": "Paste the exact prefix you want included in future answers, for example:\n\n`[Stable Policy]`\n\nThen tell me whether it should appear at the beginning of every response or only specific types of responses."
 }

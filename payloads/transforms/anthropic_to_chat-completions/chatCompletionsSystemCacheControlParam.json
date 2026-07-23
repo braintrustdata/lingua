@@ -1,35 +1,3 @@
 {
-  "id": "chatcmpl-Dzkwv1hNaCKsOKjq5wqDzvwdR11pm",
-  "object": "chat.completion",
-  "created": 1783610853,
-  "model": "gpt-5-nano-2025-08-07",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "I don’t have the text to summarize. Please paste the stable reference text (or share a link or title), and tell me how long you want the summary and what to focus on (main ideas, arguments, evidence, conclusions).\n\nI can provide:\n- A brief one-paragraph summary\n- A concise 3–5 bullet-point outline of key points\n- A 1–2 paragraph executive summary\n\nLet me know your preferred length and focus.",
-        "refusal": null,
-        "annotations": []
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 24,
-    "completion_tokens": 870,
-    "total_tokens": 894,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-      "audio_tokens": 0
-    },
-    "completion_tokens_details": {
-      "reasoning_tokens": 768,
-      "audio_tokens": 0,
-      "accepted_prediction_tokens": 0,
-      "rejected_prediction_tokens": 0
-    }
-  },
-  "service_tier": "default",
-  "system_fingerprint": null
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert cache_control.ttl `1h` to OpenAI Chat Completions prompt_cache_options.ttl (only `30m` is supported)"
 }

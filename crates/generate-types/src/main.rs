@@ -3,12 +3,45 @@
 //! Usage: cargo run --bin generate-types -- [provider]
 
 use big_serde_json as serde_json;
+use std::path::PathBuf;
 use tool_generator::{generate_all_tool_code, replace_tool_struct_with_enum};
 
 mod schema_converter;
 mod tool_generator;
 
+fn quicktype_binary() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    if let Some(binary) = std::env::var_os("LINGUA_QUICKTYPE_BIN") {
+        return Ok(PathBuf::from(binary));
+    }
+
+    let binary_name = if cfg!(windows) {
+        "quicktype.cmd"
+    } else {
+        "quicktype"
+    };
+    let binary = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../tools/quicktype/node_modules/.bin")
+        .join(binary_name);
+
+    if binary.is_file() {
+        return Ok(binary);
+    }
+
+    Err(format!(
+        "Lingua's pinned quicktype binary is missing at {}. Run `pnpm install` from the repository root",
+        binary.display()
+    )
+    .into())
+}
+
 fn main() {
+    if let Err(error) = run() {
+        eprintln!("❌ Type generation failed: {error}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
 
     let provider = if args.len() > 1 {
@@ -22,13 +55,13 @@ fn main() {
     println!("🔄 Generating types for provider: {}", provider);
 
     match provider.as_str() {
-        "openai" => generate_openai_types(),
-        "anthropic" => generate_anthropic_types(),
-        "google" => generate_google_discovery_types(),
+        "openai" => generate_openai_types()?,
+        "anthropic" => generate_anthropic_types()?,
+        "google" => generate_google_discovery_types()?,
         "all" => {
-            generate_openai_types();
-            generate_anthropic_types();
-            generate_google_discovery_types();
+            generate_openai_types()?;
+            generate_anthropic_types()?;
+            generate_google_discovery_types()?;
         }
         _ => {
             println!("❌ Unknown provider: {}", provider);
@@ -38,9 +71,10 @@ fn main() {
     }
 
     println!("✅ Type generation completed successfully!");
+    Ok(())
 }
 
-fn generate_openai_types() {
+fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating OpenAI types from OpenAPI spec using quicktype...");
 
     let spec_file_path = "specs/openai/openapi.yml";
@@ -48,14 +82,7 @@ fn generate_openai_types() {
     let openai_spec = match std::fs::read_to_string(spec_file_path) {
         Ok(content) => content,
         Err(e) => {
-            println!(
-                "❌ Failed to read OpenAPI spec at {}: {}",
-                spec_file_path, e
-            );
-            println!(
-                "Run './pipelines/generate-provider-types.sh openai' to download the spec first"
-            );
-            return;
+            return Err(format!("failed to read OpenAPI spec at {spec_file_path}: {e}").into())
         }
     };
 
@@ -63,10 +90,7 @@ fn generate_openai_types() {
 
     let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
         Ok(value) => value,
-        Err(e) => {
-            println!("❌ Failed to parse OpenAPI spec as YAML: {}", e);
-            return;
-        }
+        Err(e) => return Err(format!("failed to parse OpenAPI spec as YAML: {e}").into()),
     };
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
@@ -76,40 +100,29 @@ fn generate_openai_types() {
 
         // Generate essential OpenAI types for chat completion APIs using quicktype
         println!("🏗️  Generating essential OpenAI types for chat completions");
-        generate_openai_specific_types(&openai_spec);
+        generate_openai_specific_types(&openai_spec)?;
     } else {
-        println!("❌ No components/schemas section found in OpenAPI spec");
+        return Err("no components/schemas section found in OpenAPI spec".into());
     }
+
+    Ok(())
 }
 
-fn generate_anthropic_types() {
+fn generate_anthropic_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating Anthropic types from OpenAPI spec...");
 
     let spec_file_path = "specs/anthropic/openapi.yml";
 
-    let anthropic_spec = match std::fs::read_to_string(spec_file_path) {
-        Ok(content) => content,
-        Err(e) => {
-            println!(
-                "❌ Failed to read Anthropic OpenAPI spec at {}: {}",
-                spec_file_path, e
-            );
-            println!(
-                "Run './pipelines/generate-provider-types.sh anthropic' to download the spec first"
-            );
-            return;
-        }
-    };
+    let anthropic_spec = std::fs::read_to_string(spec_file_path).map_err(|error| {
+        format!(
+            "failed to read Anthropic OpenAPI spec at {spec_file_path}: {error}. Run `./pipelines/generate-provider-types.sh anthropic` to download the spec first"
+        )
+    })?;
 
     println!("🔍 Parsing JSON OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_json::from_str(&anthropic_spec) {
-        Ok(value) => value,
-        Err(e) => {
-            println!("❌ Failed to parse Anthropic OpenAPI spec as JSON: {}", e);
-            return;
-        }
-    };
+    let schema: serde_json::Value = serde_json::from_str(&anthropic_spec)
+        .map_err(|error| format!("failed to parse Anthropic OpenAPI spec as JSON: {error}"))?;
 
     let schemas = schema.get("components").and_then(|c| c.get("schemas"));
 
@@ -118,33 +131,24 @@ fn generate_anthropic_types() {
 
         // Generate essential Anthropic types for messages API using quicktype
         println!("🏗️  Generating essential Anthropic types for messages API");
-        generate_anthropic_specific_types(&anthropic_spec);
+        generate_anthropic_specific_types(&anthropic_spec)?;
     } else {
-        println!("❌ No components/schemas section found in Anthropic OpenAPI spec");
+        return Err("no components/schemas section found in Anthropic OpenAPI spec".into());
     }
+
+    Ok(())
 }
 
-fn generate_openai_specific_types(openai_spec: &str) {
+fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Using quicktype for OpenAI type generation...");
 
     // Extract OpenAI OpenAPI spec
     let full_spec: serde_json::Value =
         serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
-    // Generate types using quicktype approach
-    match generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec).unwrap()) {
-        Ok(()) => {
-            println!("✅ OpenAI types generated successfully with quicktype");
-        }
-        Err(e) => {
-            println!("❌ Quicktype generation failed for OpenAI: {}", e);
-            println!("📝 Falling back to minimal types");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/openai/generated.rs",
-                "// Quicktype generation failed",
-            );
-        }
-    }
+    generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
+    println!("✅ OpenAI types generated successfully with quicktype");
+    Ok(())
 }
 
 fn generate_openai_types_with_quicktype(
@@ -156,7 +160,6 @@ fn generate_openai_types_with_quicktype(
 
     // Extract essential OpenAI schemas for chat completions
     let essential_schemas = create_essential_openai_schemas(&spec);
-
     println!("🏗️  Generating OpenAI types with quicktype...");
 
     // Create a temporary JSON schema file for quicktype
@@ -167,7 +170,7 @@ fn generate_openai_types_with_quicktype(
     )?;
 
     // Use quicktype to generate types
-    let output = std::process::Command::new("quicktype")
+    let output = std::process::Command::new(quicktype_binary()?)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
@@ -334,7 +337,6 @@ fn add_openai_schema_with_dependencies(
     if let Some(schema) = all_schemas.get(type_name) {
         essential_schemas.insert(type_name.to_string(), schema.clone());
 
-        // Find and add referenced types
         let mut refs = std::collections::HashSet::new();
         extract_schema_refs(schema, &mut refs);
 
@@ -357,7 +359,6 @@ fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
             for (key, value) in obj {
                 if key == "$ref" {
                     if let Some(ref_str) = value.as_str() {
-                        // Fix the reference path
                         if ref_str.starts_with("#/components/schemas/") {
                             let new_ref =
                                 ref_str.replace("#/components/schemas/", "#/definitions/");
@@ -419,29 +420,17 @@ fn extract_type_name_from_ref(ref_str: &str) -> Option<String> {
         .map(|last_slash| ref_str[last_slash + 1..].to_string())
 }
 
-fn generate_anthropic_specific_types(anthropic_spec: &str) {
+fn generate_anthropic_specific_types(
+    anthropic_spec: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Using quicktype for Anthropic type generation...");
 
     // Extract Anthropic OpenAPI spec
-    let full_spec: serde_json::Value =
-        serde_json::from_str(anthropic_spec).expect("Failed to parse Anthropic OpenAPI spec");
+    let full_spec: serde_json::Value = serde_json::from_str(anthropic_spec)?;
 
-    // Generate types using quicktype approach
-    match generate_anthropic_types_with_quicktype(
-        &serde_json::to_string_pretty(&full_spec).unwrap(),
-    ) {
-        Ok(()) => {
-            println!("✅ Anthropic types generated successfully with quicktype");
-        }
-        Err(e) => {
-            println!("❌ Quicktype generation failed for Anthropic: {}", e);
-            println!("📝 Falling back to minimal types");
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/anthropic/generated.rs",
-                "// Quicktype generation failed",
-            );
-        }
-    }
+    generate_anthropic_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
+    println!("✅ Anthropic types generated successfully with quicktype");
+    Ok(())
 }
 
 fn generate_anthropic_types_with_quicktype(
@@ -463,7 +452,7 @@ fn generate_anthropic_types_with_quicktype(
     std::fs::write(&temp_schema_path, &schema_json)?;
 
     // Use quicktype to generate types - specify just one main type to avoid merging
-    let output = std::process::Command::new("quicktype")
+    let output = std::process::Command::new(quicktype_binary()?)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
@@ -974,7 +963,8 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
 }
 
 fn add_anthropic_tool_search_tool_variants(processed: &str) -> String {
-    if processed.contains("pub struct ToolSearchTool") {
+    // Nothing to do if the tool_search variants are already wired into the Tool enum.
+    if processed.contains("ToolSearchToolBm25(ToolSearchTool)") {
         return processed.to_string();
     }
 
@@ -989,17 +979,26 @@ pub struct ToolSearchTool {
 
 "#;
 
-    let with_struct = processed.replace(
-        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
-        &format!(
-            "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
-            tool_search_struct
-        ),
-    );
+    // quicktype now emits its own `ToolSearchTool` struct (the spec references
+    // tool_search tools directly), so only inject our definition when it is missing
+    // to avoid producing a duplicate type.
+    let mut with_struct = processed.to_string();
+    if !with_struct.contains("pub struct ToolSearchTool") {
+        with_struct = with_struct.replace(
+            "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {",
+            &format!(
+                "{}#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n#[serde(tag = \"type\")]\n#[ts(export_to = \"anthropic/\")]\npub enum Tool {{",
+                tool_search_struct
+            ),
+        );
+    }
 
+    // Inject the tool_search variants immediately before the untagged `Custom` fallback.
+    // Anchoring on the `Custom` variant (rather than a specific web_search version) keeps
+    // this robust as the spec keeps adding new dated server-tool variants to the enum.
     with_struct.replace(
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(untagged)]",
-        "    #[serde(rename = \"web_search_20260209\")]\n    WebSearch20260209(WebSearchTool20260209),\n\n    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]",
+        "    #[serde(untagged)]\n    Custom(CustomTool),",
+        "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
 }
 
@@ -1088,37 +1087,23 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
     // Add serde skip_serializing_if for Optional fields
     processed = add_serde_skip_if_none(&processed);
 
+    // quicktype renames the `none` reasoning effort to `ReasoningEffortNone` to
+    // avoid clashing with Option::None. The enum carries `#[serde(rename_all =
+    // "snake_case")]`, so restoring the stable `None` variant keeps the same wire
+    // value ("none") and the identifier the typed adapter expects. `max` is now
+    // present natively in the synchronized spec, so it no longer needs injection.
     processed = processed.replace(
-        "use crate::serde_json;\n",
-        "use crate::serde_json;\nuse crate::universal::message::ToolCaller;\n",
+        "    #[serde(rename = \"none\")]\n    ReasoningEffortNone,",
+        "    None,",
     );
 
-    // The local OpenAI spec can lag model-specific reasoning efforts. Keep
-    // generated request validation aligned with the compatibility params view.
-    processed = processed.replace(
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n}",
-        "pub enum ReasoningEffort {\n    High,\n    Low,\n    Medium,\n    Minimal,\n    None,\n    Xhigh,\n    Max,\n}",
-    );
-
-    // GPT-5.6 programmatic tool output items are not yet in the local spec.
-    // Patch the generated Responses output item model so the typed adapter can
-    // deserialize and convert them without a raw-JSON fallback.
-    processed = processed.replace(
-        "pub enum OutputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum OutputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
-    );
-    processed = processed.replace(
-        "pub enum InputItemType {\n    #[serde(rename = \"additional_tools\")]",
-        "pub enum InputItemType {\n    #[serde(rename = \"program\")]\n    Program,\n    #[serde(rename = \"program_output\")]\n    ProgramOutput,\n    #[serde(rename = \"additional_tools\")]",
-    );
-    processed = processed.replace(
-        "pub enum ToolType {\n    #[serde(rename = \"apply_patch\")]",
-        "pub enum ToolType {\n    #[serde(rename = \"programmatic_tool_calling\")]\n    ProgrammaticToolCalling,\n    #[serde(rename = \"apply_patch\")]",
-    );
-    processed = processed.replace(
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,",
-        "    pub result: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub code: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub fingerprint: Option<String>,\n    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub caller: Option<ToolCaller>,",
-    );
+    // GPT-5.6 programmatic tool calling (program / program_output items and the
+    // programmatic_tool_calling tool) is now present natively in the synchronized
+    // spec, so it no longer needs manual variant injection. The spec also carries
+    // the `fingerprint` field and a native `ToolCallCaller` (direct | program)
+    // discriminated union, which quicktype emits as InputItemDirectToolCallCaller /
+    // OutputItemDirectToolCallCaller. The typed adapter in convert.rs bridges both
+    // generated caller types to the universal ToolCaller.
 
     // Fix any specific type mappings that quicktype might miss for OpenAI
     // Fix call_id fields that quicktype incorrectly generates as serde_json::Value
@@ -1151,33 +1136,304 @@ fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
         "#[serde(skip_serializing_if = \"Option::is_none\")]\n    pub output_item_type: Option<OutputItemType>,"
     );
     processed = processed.replace(
-        "ContentOutputContentListArray(Vec<ContentOutputContentList>),",
-        "InputContentArray(Vec<ContentOutputContentList>),",
+        "ContentInputItemContentListArray(Vec<ContentInputItemContentList>),",
+        "InputContentArray(Vec<ContentInputItemContentList>),",
     );
     processed = processed.replace(
         "InputImage,\n    #[serde(rename = \"input_text\")]",
         "InputImage,\n    #[serde(rename = \"input_audio\")]\n    InputAudio,\n    #[serde(rename = \"input_text\")]",
     );
 
-    // Dynamically find the enum that quicktype generated for content list types.
-    // Quicktype assigns arbitrary names (IndecentType, HilariousType, etc.) that shift
-    // when the spec changes, so we search for the enum containing both InputText and
-    // OutputText variants.
-    let content_list_type_name = find_enum_with_variants(&processed, &["InputText", "OutputText"])
-        .expect("quicktype output did not contain an enum with InputText and OutputText variants");
+    processed = rename_enum_variant(&processed, "Arguments", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "InputParam", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "PredictionContent", "PurpleString", "String");
+    processed = rename_enum_variant(
+        &processed,
+        "InputItemContent",
+        "ContentInputItemContentListArray",
+        "InputContentArray",
+    );
+    processed = rename_enum_variant(&processed, "InputItemContent", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "Output", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "OutputUnion", "PurpleString", "String");
+    processed = rename_enum_variant(
+        &processed,
+        "OutputUnion",
+        "OutputInputItemContentListArray",
+        "FluffyInputContentArray",
+    );
+    processed = rename_enum_variant(
+        &processed,
+        "ChatCompletionRequestMessageContent",
+        "PurpleContentPartArray",
+        "ChatCompletionRequestMessageContentPartArray",
+    );
+    processed = rename_enum_variant(
+        &processed,
+        "ChatCompletionRequestMessageContent",
+        "PurpleString",
+        "String",
+    );
+    processed = rename_enum_variant(
+        &processed,
+        "InputItemListContent",
+        "InputItemContentListElementArray",
+        "InputContentArray",
+    );
+    processed = rename_enum_variant(&processed, "InputItemListContent", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "InputItemListOutput", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "OutputOutput", "PurpleString", "String");
+    processed = rename_enum_variant(&processed, "ReasoningEffort", "ReasoningEffortNone", "None");
+    processed = make_struct_field_optional(&processed, "OutputItem", "output_item_type");
 
-    processed.push_str(&format!(
-        r#"
+    // The synchronized spec marks `cache_write_tokens` as a required member of the
+    // Responses API `input_tokens_details`, but real OpenAI responses omit it when
+    // no input tokens were written to the cache. Tolerate its absence (defaulting to
+    // 0) so genuine provider payloads keep parsing, while still emitting it on
+    // serialization so outbound payloads satisfy the spec's required constraint. The
+    // Chat Completions counterpart is already `Option<i64>`, so this only targets the
+    // required Responses `i64` field.
+    processed = processed.replace(
+        "    pub cache_write_tokens: i64,",
+        "    #[serde(default)]\n    pub cache_write_tokens: i64,",
+    );
 
-// Compatibility aliases for names used by Lingua's hand-written adapters.
-pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
-pub type InputItemContentListType = {content_list_type_name};
-pub type FunctionCallItemStatus = Status;
-"#,
-    ));
+    processed = add_openai_compatibility_aliases(&processed);
 
     processed
+}
+
+fn add_openai_compatibility_aliases(processed: &str) -> String {
+    let mut aliases = Vec::new();
+
+    let compatibility_aliases = [
+        (
+            "ChatCompletionRequestMessageContentPart",
+            "PurpleContentPart",
+        ),
+        ("ContentPart", "FluffyContentPart"),
+        ("ContentOutputContentList", "InputItemContentListElement"),
+        ("InputItemAction", "InputItemListAction"),
+        ("InputItemContent", "InputItemListContent"),
+        (
+            "InputItemLocalEnvironmentParam",
+            "InputItemListLocalEnvironmentParam",
+        ),
+        ("InputItemRole", "InputItemListRole"),
+        ("InputItemTool", "InputItemListTool"),
+        ("InputItemType", "InputItemListType"),
+        ("Output", "InputItemListOutput"),
+        ("OutputItemAction", "OutputAction"),
+        ("OutputItemTool", "InputItemListTool"),
+        ("OutputUnion", "OutputOutput"),
+        ("Result", "InputItemListResult"),
+        ("InputItemListResult", "ResultElement"),
+        ("OutputResult", "ResultElement"),
+        ("WebSearchContextSize", "SearchContextSize"),
+    ];
+
+    for (alias, target) in compatibility_aliases {
+        if !contains_rust_type_definition(processed, alias)
+            && contains_rust_type_definition(processed, target)
+        {
+            aliases.push(format!("pub type {alias} = {target};"));
+        }
+    }
+
+    if !contains_rust_type_definition(processed, "OutputItemType") {
+        if let Some(output_item_type) =
+            find_struct_field_type(processed, "OutputItem", "output_item_type")
+        {
+            aliases.push(format!(
+                "pub type OutputItemType = {};",
+                strip_option_type(&output_item_type)
+            ));
+        }
+    }
+
+    if !contains_rust_type_definition(processed, "Instructions") {
+        aliases.push("pub type Instructions = InputParam;".to_string());
+    }
+    if !contains_rust_type_definition(processed, "InputContent") {
+        let input_content = [
+            "InputItemContentListElement",
+            "ContentInputItemContentList",
+            "ContentOutputContentList",
+        ]
+        .into_iter()
+        .find(|name| contains_rust_type_definition(processed, name));
+        if let Some(input_content) = input_content {
+            aliases.push(format!("pub type InputContent = {input_content};"));
+        }
+    }
+    if !contains_rust_type_definition(processed, "InputItemContentListType") {
+        if let Some(content_list_type_name) =
+            find_enum_with_variants(processed, &["InputText", "OutputText"])
+        {
+            aliases.push(format!(
+                "pub type InputItemContentListType = {content_list_type_name};"
+            ));
+        }
+    }
+    if !contains_rust_type_definition(processed, "FunctionCallItemStatus") {
+        aliases.push("pub type FunctionCallItemStatus = Status;".to_string());
+    }
+
+    if aliases.is_empty() {
+        return processed.to_string();
+    }
+
+    format!(
+        "{processed}\n\n// Compatibility aliases for names used by Lingua's hand-written adapters.\n{}\n",
+        aliases.join("\n")
+    )
+}
+
+fn contains_rust_type_definition(source: &str, type_name: &str) -> bool {
+    source.lines().any(|line| {
+        let trimmed = line.trim_start();
+        ["pub struct ", "pub enum ", "pub type "]
+            .iter()
+            .any(|prefix| {
+                trimmed.strip_prefix(prefix).is_some_and(|rest| {
+                    rest.starts_with(type_name) && type_name_boundary(rest, type_name)
+                })
+            })
+    })
+}
+
+fn type_name_boundary(rest: &str, type_name: &str) -> bool {
+    rest[type_name.len()..]
+        .chars()
+        .next()
+        .is_none_or(|character| {
+            character == ' ' || character == '{' || character == '=' || character == '<'
+        })
+}
+
+fn rename_enum_variant(
+    source: &str,
+    enum_name: &str,
+    current_variant: &str,
+    compatibility_variant: &str,
+) -> String {
+    let mut output = Vec::new();
+    let mut in_target_enum = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub enum {enum_name} ")) {
+            in_target_enum = true;
+            brace_depth = trimmed.matches('{').count();
+            output.push(line.to_string());
+            continue;
+        }
+
+        if in_target_enum {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+            let renamed = line.replacen(current_variant, compatibility_variant, 1);
+            output.push(renamed);
+            if brace_depth == 0 {
+                in_target_enum = false;
+            }
+        } else {
+            output.push(line.to_string());
+        }
+    }
+
+    output.join("\n")
+}
+
+fn make_struct_field_optional(source: &str, struct_name: &str, field_name: &str) -> String {
+    let mut output = Vec::new();
+    let mut in_target_struct = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
+            in_target_struct = true;
+            brace_depth = trimmed.matches('{').count();
+            output.push(line.to_string());
+            continue;
+        }
+
+        if in_target_struct {
+            brace_depth += trimmed.matches('{').count();
+            brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+            if let Some(field_type) = rust_field_type(trimmed, field_name) {
+                let indent = line.len() - line.trim_start().len();
+                if !output
+                    .last()
+                    .is_some_and(|previous: &String| previous.contains("skip_serializing_if"))
+                {
+                    output.push(format!(
+                        "{}#[serde(skip_serializing_if = \"Option::is_none\")]",
+                        " ".repeat(indent)
+                    ));
+                }
+                if field_type.starts_with("Option<") {
+                    output.push(line.to_string());
+                } else {
+                    output.push(line.replace(
+                        &format!("pub {field_name}: {field_type},"),
+                        &format!("pub {field_name}: Option<{field_type}>,"),
+                    ));
+                }
+            } else {
+                output.push(line.to_string());
+            }
+            if brace_depth == 0 {
+                in_target_struct = false;
+            }
+        } else {
+            output.push(line.to_string());
+        }
+    }
+
+    output.join("\n")
+}
+
+fn find_struct_field_type(source: &str, struct_name: &str, field_name: &str) -> Option<String> {
+    let mut in_target_struct = false;
+    let mut brace_depth = 0usize;
+
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&format!("pub struct {struct_name} ")) {
+            in_target_struct = true;
+            brace_depth = trimmed.matches('{').count();
+            continue;
+        }
+        if !in_target_struct {
+            continue;
+        }
+
+        brace_depth += trimmed.matches('{').count();
+        brace_depth = brace_depth.saturating_sub(trimmed.matches('}').count());
+        if let Some(field_type) = rust_field_type(trimmed, field_name) {
+            return Some(field_type.to_string());
+        }
+        if brace_depth == 0 {
+            return None;
+        }
+    }
+
+    None
+}
+
+fn rust_field_type<'a>(line: &'a str, field_name: &str) -> Option<&'a str> {
+    line.strip_prefix(&format!("pub {field_name}: "))
+        .and_then(|field_type| field_type.strip_suffix(','))
+}
+
+fn strip_option_type(field_type: &str) -> &str {
+    field_type
+        .strip_prefix("Option<")
+        .and_then(|inner| inner.strip_suffix('>'))
+        .unwrap_or(field_type)
 }
 
 /// Add #[ts(export_to = "...")] to all TS-enabled type definitions
@@ -1330,7 +1586,7 @@ fn add_serde_skip_if_none(content: &str) -> String {
     result_lines.join("\n")
 }
 
-fn generate_google_discovery_types() {
+fn generate_google_discovery_types() -> Result<(), Box<dyn std::error::Error>> {
     println!("📦 Generating Google types from Discovery JSON spec...");
 
     let spec_file_path = "specs/google/discovery.json";
@@ -1358,13 +1614,17 @@ fn generate_google_discovery_types() {
 
     if let Some(_schemas) = schemas {
         println!("✅ Found Google Discovery schemas section");
-        generate_google_types_with_quicktype(&spec);
+        generate_google_types_with_quicktype(&spec)?;
     } else {
         panic!("❌ No schemas section found in Discovery spec");
     }
+
+    Ok(())
 }
 
-fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
+fn generate_google_types_with_quicktype(
+    spec: &serde_json::Value,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
     let essential_schemas = create_essential_google_schemas(spec);
@@ -1374,7 +1634,8 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
         serde_json::to_string_pretty(&essential_schemas).expect("Failed to serialize schemas");
     std::fs::write(&temp_schema_path, &schema_json).expect("Failed to write temp schema");
 
-    let output = std::process::Command::new("quicktype")
+    let quicktype = quicktype_binary()?;
+    let output = std::process::Command::new(quicktype)
         .arg("--src-lang")
         .arg("schema")
         .arg("--lang")
@@ -1394,24 +1655,15 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
             if output.status.success() {
                 String::from_utf8(output.stdout).expect("Invalid UTF-8 from quicktype")
             } else {
-                println!(
-                    "❌ quicktype failed: {}",
+                return Err(format!(
+                    "quicktype failed: {}",
                     String::from_utf8_lossy(&output.stderr)
-                );
-                let _ = std::fs::write(
-                    "crates/lingua/src/providers/google/generated.rs",
-                    "// Quicktype generation failed",
-                );
-                return;
+                )
+                .into());
             }
         }
         Err(e) => {
-            println!("❌ Failed to run quicktype: {}", e);
-            let _ = std::fs::write(
-                "crates/lingua/src/providers/google/generated.rs",
-                "// Quicktype not found",
-            );
-            return;
+            return Err(format!("failed to run quicktype: {e}").into());
         }
     };
 
@@ -1433,6 +1685,7 @@ fn generate_google_types_with_quicktype(spec: &serde_json::Value) {
 
     println!("📝 Generated Google types to: {}", dest_path);
     println!("✅ Google Discovery types generated and formatted");
+    Ok(())
 }
 
 fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
@@ -1759,6 +2012,9 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // "STRING" (Google native) and "string" (OpenAI JSON Schema) during deserialization
     processed = add_type_enum_lowercase_aliases(&processed);
 
+    // Preserve established public Rust variant names when quicktype disambiguates them.
+    processed = preserve_google_public_enum_variant_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -1795,6 +2051,22 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
         }
 
         if in_type_enum {
+            // quicktype renames variants that collide with Rust prelude names (e.g. the
+            // `String` variant becomes `TypeString`) and emits an explicit
+            // `#[serde(rename = "STRING")]`. Those renamed lines are skipped by the
+            // bare-variant branch below, which would drop the lowercase JSON Schema alias.
+            // Re-attach it here so the enum keeps accepting both "STRING" and "string".
+            if let Some(wire) = single_word_serde_rename(trimmed) {
+                let indent = line.len() - line.trim_start().len();
+                result_lines.push(format!(
+                    "{}#[serde(rename = \"{}\", alias = \"{}\")]",
+                    " ".repeat(indent),
+                    wire,
+                    wire.to_lowercase()
+                ));
+                continue;
+            }
+
             // Match bare variant lines like "    Array," (no existing serde attribute)
             let variant_name = trimmed.trim_end_matches(',');
             let is_bare_variant = !trimmed.is_empty()
@@ -1826,7 +2098,60 @@ fn add_type_enum_lowercase_aliases(content: &str) -> String {
     result_lines.join("\n")
 }
 
-/// Find an enum in generated Rust source whose body contains all of the given variant names.
+/// Restore established public Google enum variant names that quicktype may disambiguate.
+fn preserve_google_public_enum_variant_names(content: &str) -> String {
+    let mut current_enum: Option<&str> = None;
+    let mut result_lines = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        current_enum = match trimmed {
+            "pub enum Type {" => Some("Type"),
+            "pub enum FunctionCallingConfigMode {" => Some("FunctionCallingConfigMode"),
+            "}" => None,
+            _ => current_enum,
+        };
+
+        let preserved_variant = match (current_enum, trimmed) {
+            (Some("Type"), "TypeString,") => Some("String,"),
+            (Some("FunctionCallingConfigMode"), "ModeNone,") => Some("None,"),
+            _ => None,
+        };
+
+        if let Some(variant) = preserved_variant {
+            let indent = line.len() - line.trim_start().len();
+            result_lines.push(format!("{}{}", " ".repeat(indent), variant));
+        } else {
+            result_lines.push(line.to_string());
+        }
+    }
+
+    result_lines.join("\n")
+}
+
+/// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
+/// existing alias (e.g. `#[serde(rename = "STRING")]`), return that wire word.
+///
+/// Used to re-attach lowercase JSON Schema aliases to `Type` variants that quicktype
+/// renamed to avoid Rust prelude collisions. Composite wire names such as
+/// `TYPE_UNSPECIFIED` (which never had a lowercase alias) are intentionally excluded.
+fn single_word_serde_rename(trimmed: &str) -> Option<String> {
+    if trimmed.contains("alias") {
+        return None;
+    }
+    let inner = trimmed
+        .strip_prefix("#[serde(rename = \"")?
+        .strip_suffix("\")]")?;
+    let is_single_uppercase_word =
+        !inner.is_empty() && inner.chars().all(|c| c.is_ascii_uppercase());
+    if is_single_uppercase_word {
+        Some(inner.to_string())
+    } else {
+        None
+    }
+}
+
 /// Returns the enum's identifier (e.g. "HilariousType") or `None`.
 fn find_enum_with_variants(source: &str, required_variants: &[&str]) -> Option<String> {
     let mut current_enum: Option<String> = None;
@@ -1949,4 +2274,64 @@ where
     }
 
     result_lines.join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn openai_compatibility_aliases_skip_generated_name_collisions() {
+        let source = r#"pub struct Instructions {}
+pub enum InputItemContentListType {
+    InputText,
+    OutputText,
+}
+pub enum HilariousType {
+    InputText,
+    OutputText,
+}
+pub struct ContentOutputContentList {}
+pub struct Status {}
+"#;
+
+        let processed = add_openai_compatibility_aliases(source);
+
+        assert!(!processed.contains("pub type Instructions ="));
+        assert!(!processed.contains("pub type InputItemContentListType ="));
+        assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
+        assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
+    }
+}
+
+#[cfg(test)]
+mod google_post_process_tests {
+    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+
+    #[test]
+    fn preserves_string_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum Type {
+    #[serde(rename = "STRING")]
+    TypeString,
+}"#;
+
+        let output = add_type_enum_lowercase_aliases(input);
+        let output = preserve_google_public_enum_variant_names(&output);
+
+        assert!(output.contains("#[serde(rename = \"STRING\", alias = \"string\")]\n    String,"));
+        assert!(!output.contains("TypeString"));
+    }
+
+    #[test]
+    fn preserves_function_calling_none_variant_when_quicktype_renames_it() {
+        let input = r#"pub enum FunctionCallingConfigMode {
+    #[serde(rename = "NONE")]
+    ModeNone,
+}"#;
+
+        let output = preserve_google_public_enum_variant_names(input);
+
+        assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
+        assert!(!output.contains("ModeNone"));
+    }
 }

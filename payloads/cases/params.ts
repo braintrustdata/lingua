@@ -10,7 +10,6 @@ import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
-  ChatCompletionUserMessageWithCacheControl,
   AnthropicMessageCreateParams,
   TestCase,
   TestCaseCollection,
@@ -40,13 +39,15 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlTextPart = {
   type: "text",
   text: "This assistant prefill should remain cacheable.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlMessage = {
@@ -270,18 +271,23 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAnthropicCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         {
           role: "user",
           content: [
-            chatCompletionCacheControlTextPart,
+            {
+              type: "text",
+              text: chatCompletionCacheControlTextPart.text,
+              cache_control: { type: "ephemeral" },
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
             {
               type: "text",
               text: "Now summarize it.",
             },
           ],
-        } satisfies ChatCompletionUserMessageWithCacheControl,
+        },
       ],
     },
     responses: null,
@@ -311,7 +317,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAssistantCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         { role: "user", content: "Use the cached assistant prefill." },
         chatCompletionAssistantCacheControlMessage,
@@ -341,7 +347,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsSystemCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         chatCompletionSystemCacheControlMessage,
         { role: "user", content: "Now summarize it." },
@@ -480,6 +486,23 @@ export const paramsCases: TestCaseCollection = {
   reasoningEffortMaxClampsToGpt5NanoParam: {
     "chat-completions": null,
     responses: null,
+    anthropic: {
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  responsesReasoningEffortMaxParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "max" },
+    },
     anthropic: {
       model: ANTHROPIC_OPUS_MODEL,
       max_tokens: 16000,
@@ -715,7 +738,18 @@ export const paramsCases: TestCaseCollection = {
     "chat-completions": null,
     responses: {
       model: OPENAI_RESPONSES_MODEL,
-      input: "Use the stable policy prefix when answering.",
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Use the stable policy prefix when answering.",
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
+          ],
+        },
+      ],
       prompt_cache_options: {
         mode: "explicit",
         ttl: "30m",

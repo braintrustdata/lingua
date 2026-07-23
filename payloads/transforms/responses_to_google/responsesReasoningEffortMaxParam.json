@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Analysis of a Simple Calculation**\n\nOkay, so the prompt is essentially asking me to summarize a ridiculously straightforward thought process: how to answer \"What is 2 + 2?\". It's a fundamental arithmetic problem, right? The initial step, I suppose, is recognizing the core question – \"What is 2+2?\" – that's the starting point.\n\nNext, I need to arrive at the answer. This is a matter of recalling a basic mathematical fact: the sum of two and two. No need for complex algorithms here, it's simply a matter of knowing that 2 + 2 equals 4.\n\nFinally, I have to formulate the response. The solution calls for efficiency and accuracy. No need for any extra fluff. My reply will be direct, factual, and devoid of unnecessary verbiage: \"2 + 2 is 4.\" Job done.\n\n\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 is 4.",
+            "thoughtSignature": "EpcCCpQCARFNMg8NpYvLQWcA3trt7wcrxQZ/o5L9MFSzPBextWkEoBjeImhR+lh1f/KnBLVMP8sbydJqljXna9U11EQjebxLCYixoTCxv+mOI6mAbsyiqktOfZtWU5pqqUzRGr1Rj9FZXjK5/5uNFkunmTiCi1DU35DmHtFn6PXYRMPOSaovcmF5c3EAR/BDAIpl/+/HrIRZwNUvnJHESxgJbW0JEaMeebki2wbP5pgc3NWQUdjODnzwP3hnVbrbeGOpjfHHG2Otc5vh0a9XlT160gRJbpScoDueSVq2yZoqrCyBY24y2SI3OaKXP/qpcmC0JlWaouNtOmFh3Z23PsX2nS45P/agp9zGeevqHs47AcjafWm0WoLl"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 88,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 72,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "6ORTauTXO56wjrEPhf-b-AY"
+}

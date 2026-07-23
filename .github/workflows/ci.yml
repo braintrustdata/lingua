@@ -111,6 +111,9 @@ jobs:
       with:
         version: 10
 
+    - name: Test provider type workflow helpers
+      run: node --test .github/scripts/braintrust-provider-types.test.mjs
+
     - name: Cache cargo registry
       uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3.5.0
       with:

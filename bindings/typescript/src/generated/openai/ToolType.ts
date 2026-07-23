@@ -16,6 +16,8 @@
  * The type of the code interpreter tool. Always `code_interpreter`.
  *
  *
+ * The type of the tool. Always `programmatic_tool_calling`.
+ *
  * The type of the image generation tool. Always `image_generation`.
  *
  *
@@ -34,4 +36,4 @@
  *
  * The type of the tool. Always `apply_patch`.
  */
-export type ToolType = "programmatic_tool_calling" | "apply_patch" | "code_interpreter" | "computer" | "computer_use_preview" | "custom" | "file_search" | "function" | "image_generation" | "local_shell" | "mcp" | "namespace" | "shell" | "tool_search" | "web_search" | "web_search_2025_08_26" | "web_search_preview" | "web_search_preview_2025_03_11";
+export type ToolType = "apply_patch" | "code_interpreter" | "computer" | "computer_use_preview" | "custom" | "file_search" | "function" | "image_generation" | "local_shell" | "mcp" | "namespace" | "programmatic_tool_calling" | "shell" | "tool_search" | "web_search" | "web_search_2025_08_26" | "web_search_preview" | "web_search_preview_2025_03_11";

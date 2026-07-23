@@ -197,6 +197,182 @@
   ],
   "perTestCase": [
     {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesReasoningEffortMaxParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56PromptCacheOptionsParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "responsesGpt56ReasoningMaxProContextParam",
+      "source": "Responses",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "messages[*].content[*].provider_options", "reason": "OpenAI Responses message phase metadata has no canonical equivalent in other provider request formats" }
+      ]
+    },
+    {
+      "testCase": "cacheControl5mParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `5m` to OpenAI Chat Completions", "reason": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 5m TTL" }
+      ]
+    },
+    {
+      "testCase": "cacheControl1hParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Chat Completions", "reason": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsAnthropicCacheControlParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Chat Completions", "reason": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsAssistantCacheControlParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Chat Completions", "reason": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsSystemCacheControlParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Chat Completions", "reason": "OpenAI Chat Completions only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsAssistantCacheControlParam",
+      "source": "*",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert Lingua assistant text cache_control to OpenAI Responses output_text", "reason": "Responses output_text does not support prompt_cache_breakpoint and cannot preserve assistant cache control" }
+      ]
+    },
+    {
+      "testCase": "cacheControl5mParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `5m` to OpenAI Responses", "reason": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 5m TTL" }
+      ]
+    },
+    {
+      "testCase": "cacheControl1hParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Responses", "reason": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsSystemCacheControlParam",
+      "source": "*",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Responses", "reason": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the fixture's per-block 1h TTL" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsAnthropicCacheControlParam",
+      "source": "Anthropic",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "cannot convert cache_control.ttl `1h` to OpenAI Responses", "reason": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve Anthropic's per-block 1h TTL" }
+      ]
+    },
+    {
       "testCase": "bedrockAnthropicContextManagementParam",
       "source": "Anthropic",
       "target": "Bedrock Anthropic",
