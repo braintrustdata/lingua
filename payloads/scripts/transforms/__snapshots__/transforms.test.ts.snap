@@ -11,9 +11,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "type": "text",
         },
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -23,9 +20,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "hello world",
           "type": "text",
         },
@@ -960,9 +954,6 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "Be helpful.",
           "type": "text",
         },

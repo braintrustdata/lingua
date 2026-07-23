@@ -284,6 +284,7 @@ pub fn strip_unsupported_chat_prompt_cache_breakpoints(
         {
             for part in parts {
                 part.base.prompt_cache_breakpoint = None;
+                part.cache_control = None;
             }
         }
     }
@@ -383,9 +384,10 @@ mod tests {
                     {
                         "role": "user",
                         "content": [{
-                            "type": "text",
-                            "text": "Hello",
-                            "prompt_cache_breakpoint": {"mode": "explicit"}
+                        "type": "text",
+                        "text": "Hello",
+                        "cache_control": {"type": "ephemeral"},
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
                         }]
                     }
                 ]))
@@ -397,6 +399,11 @@ mod tests {
                 messages[0]["content"][0]["prompt_cache_breakpoint"],
                 Value::Null,
                 "{model} should strip prompt_cache_breakpoint"
+            );
+            assert_eq!(
+                messages[0]["content"][0]["cache_control"],
+                Value::Null,
+                "{model} should strip cache_control"
             );
         }
     }
