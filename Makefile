@@ -72,7 +72,8 @@ fuzz-snapshots-prune: ## Prune fuzz snapshots (dedupe by normalized failure reas
 
 typed-boundary-check: ## Fail if local provider/universal edits add direct Value field access
 	@echo "Checking typed boundary regressions in local changes..."; \
-	RESULTS=$$(git diff --unified=0 -- crates/lingua/src/providers crates/lingua/src/universal | \
+	command -v rg >/dev/null 2>&1 || { echo "ripgrep (rg) is required" >&2; exit 1; }; \
+	RESULTS=$$(git diff HEAD --unified=0 -- crates/lingua/src/providers crates/lingua/src/universal | \
 		rg -N '^\+.*(\.get\(\"|\.as_object\(|\.as_array\(|\.as_str\(|\.as_i64\(|\.as_u64\(|\.as_bool\(|\.as_f64\()' || true); \
 	if [ -n "$$RESULTS" ]; then \
 		echo "Found direct Value access in added lines:"; \
@@ -86,6 +87,7 @@ typed-boundary-check-branch: ## Fail if committed branch diff adds direct Value 
 		echo "Usage: make typed-boundary-check-branch BASE=<comparison-branch>"; \
 		exit 1; \
 	fi; \
+	command -v rg >/dev/null 2>&1 || { echo "ripgrep (rg) is required" >&2; exit 1; }; \
 	echo "Checking typed boundary regressions in committed diff against $(BASE)..."; \
 	RESULTS=$$(git diff --unified=0 "$(BASE)"...HEAD -- crates/lingua/src/providers crates/lingua/src/universal | \
 		rg -N '^\+.*(\.get\(\"|\.as_object\(|\.as_array\(|\.as_str\(|\.as_i64\(|\.as_u64\(|\.as_bool\(|\.as_f64\()' || true); \

@@ -807,18 +807,26 @@ async function requestCodexRereview() {
   });
 }
 
-function isProhibitedAutofixPath(path) {
+function generatedProviderPath(provider) {
+  if (!["openai", "anthropic", "google"].includes(provider)) {
+    return null;
+  }
+  return `crates/lingua/src/providers/${provider}/generated.rs`;
+}
+
+function isProhibitedAutofixPath(path, allowedGeneratedPath) {
   const basename = path.split("/").at(-1);
   return (
     path.startsWith(".github/") ||
     path.startsWith("specs/") ||
     path.startsWith("pipelines/") ||
     path.split("/").includes("AGENTS.md") ||
-    basename === "generated.rs" ||
+    (basename === "generated.rs" && path !== allowedGeneratedPath) ||
     basename.endsWith(".lock") ||
     [
       "Cargo.toml",
       "Cargo.lock",
+      "Makefile",
       ".gitmodules",
       "go.mod",
       "go.sum",
@@ -834,14 +842,26 @@ function isProhibitedAutofixPath(path) {
   );
 }
 
-function validateAutofixPatch({ files, modes, hasBinary }) {
+function validateAutofixPatch({ files, modes, hasBinary, generatedProvider }) {
   const errors = [];
+  const allowedGeneratedPath = generatedProviderPath(generatedProvider);
   if (files.length === 0) {
     errors.push("Claude produced no patch");
   }
-  const prohibited = files.filter(isProhibitedAutofixPath);
+  const prohibited = files.filter((path) =>
+    isProhibitedAutofixPath(path, allowedGeneratedPath),
+  );
   if (prohibited.length > 0) {
     errors.push(`Patch touches prohibited paths: ${prohibited.join(", ")}`);
+  }
+  if (
+    allowedGeneratedPath &&
+    files.includes(allowedGeneratedPath) &&
+    !files.some((path) => path.startsWith("crates/generate-types/"))
+  ) {
+    errors.push(
+      `Generated provider output requires a matching crates/generate-types change: ${allowedGeneratedPath}`,
+    );
   }
   if (hasBinary) {
     errors.push("Patch contains binary changes");
@@ -883,6 +903,7 @@ function parseRawDiffModes(raw) {
 
 function validateCodexAutofixPatch() {
   const baseSha = requireEnv("AUTOFIX_BASE_SHA");
+  const generatedProvider = optionalEnv("AUTOFIX_GENERATED_PROVIDER");
   const nameList = execFileSync(
     "git",
     ["diff", "--name-only", "-z", "--no-renames", baseSha, "--"],
@@ -915,6 +936,7 @@ function validateCodexAutofixPatch() {
     changedLines,
     modes,
     hasBinary,
+    generatedProvider,
   });
   writeGithubOutput({
     patch_policy: result.valid ? "passed" : "failed",

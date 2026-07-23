@@ -166,6 +166,17 @@ test("rejects prohibited, binary, and unsafe-mode patches", () => {
   assert.equal(result.errors.length, 3);
 });
 
+test("rejects changes to the generator entrypoint Makefile", () => {
+  const result = validateAutofixPatch({
+    files: ["Makefile"],
+    changedLines: 1,
+    modes: [{ oldMode: "100644", newMode: "100644" }],
+    hasBinary: false,
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join("\n"), /prohibited paths/);
+});
+
 test("does not limit patch file count or changed lines", () => {
   const result = validateAutofixPatch({
     files: Array.from(
@@ -190,6 +201,53 @@ test("accepts a small handwritten provider patch", () => {
     hasBinary: false,
   });
   assert.deepEqual(result, { valid: true, errors: [] });
+});
+
+test("accepts reproducible generated output with matching generator changes", () => {
+  const result = validateAutofixPatch({
+    files: [
+      "crates/generate-types/src/main.rs",
+      "crates/lingua/src/providers/google/generated.rs",
+    ],
+    changedLines: 200,
+    modes: [
+      { oldMode: "100644", newMode: "100644" },
+      { oldMode: "100644", newMode: "100644" },
+    ],
+    hasBinary: false,
+    generatedProvider: "google",
+  });
+  assert.deepEqual(result, { valid: true, errors: [] });
+});
+
+test("rejects generated output without matching generator changes", () => {
+  const result = validateAutofixPatch({
+    files: ["crates/lingua/src/providers/google/generated.rs"],
+    changedLines: 20,
+    modes: [{ oldMode: "100644", newMode: "100644" }],
+    hasBinary: false,
+    generatedProvider: "google",
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join("\n"), /requires a matching/);
+});
+
+test("rejects generated output for a different provider", () => {
+  const result = validateAutofixPatch({
+    files: [
+      "crates/generate-types/src/main.rs",
+      "crates/lingua/src/providers/openai/generated.rs",
+    ],
+    changedLines: 200,
+    modes: [
+      { oldMode: "100644", newMode: "100644" },
+      { oldMode: "100644", newMode: "100644" },
+    ],
+    hasBinary: false,
+    generatedProvider: "google",
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join("\n"), /prohibited paths/);
 });
 
 test("parses raw diff headers without treating path records as modes", () => {
