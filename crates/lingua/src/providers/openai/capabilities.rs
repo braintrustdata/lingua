@@ -68,6 +68,28 @@ pub fn model_needs_transforms(model: &str) -> bool {
     !get_model_transforms(model).is_empty()
 }
 
+/// Whether a Chat Completions model accepts explicit prompt cache breakpoints.
+///
+/// OpenAI supports these for GPT-5.6 and later model families.
+fn supports_prompt_cache_breakpoint(model: &str) -> bool {
+    let model = normalize_openai_model_name(model);
+    let Some(version) = model.strip_prefix("gpt-") else {
+        return false;
+    };
+    let Some((major, minor_and_variant)) = version.split_once('.') else {
+        return false;
+    };
+    let minor = minor_and_variant
+        .chars()
+        .take_while(char::is_ascii_digit)
+        .collect::<String>();
+
+    matches!(
+        (major.parse::<u32>(), minor.parse::<u32>()),
+        (Ok(major), Ok(minor)) if (major, minor) >= (5, 6)
+    )
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EffortFamily {
     NoneLowMediumHighXhigh,
@@ -242,6 +264,34 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
             }
         }
     }
+
+    if !supports_prompt_cache_breakpoint(model) {
+        obj.remove("prompt_cache_options");
+        strip_chat_completions_prompt_cache_breakpoints(obj);
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from Chat Completions message content.
+fn strip_chat_completions_prompt_cache_breakpoints(obj: &mut Map<String, Value>) {
+    let Some(messages) = obj.get_mut("messages").and_then(Value::as_array_mut) else {
+        return;
+    };
+
+    for message in messages {
+        let Some(content) = message
+            .as_object_mut()
+            .and_then(|message| message.get_mut("content"))
+            .and_then(Value::as_array_mut)
+        else {
+            continue;
+        };
+
+        for part in content {
+            if let Some(part) = part.as_object_mut() {
+                part.remove("prompt_cache_breakpoint");
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -291,6 +341,61 @@ mod tests {
         for model in no_needs {
             assert!(!model_needs_transforms(model), "should not need: {}", model);
         }
+    }
+
+    #[test]
+    fn test_strip_unsupported_prompt_cache_breakpoints() {
+        for model in ["gpt-5", "gpt-4o"] {
+            let mut obj: Map<String, Value> = serde_json::from_value(json!({
+                "model": model,
+                "prompt_cache_options": {"mode": "explicit"},
+                "messages": [{
+                    "role": "user",
+                    "content": [{
+                        "type": "text",
+                        "text": "Hello",
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
+                    }]
+                }]
+            }))
+            .unwrap();
+
+            apply_model_transforms(model, &mut obj);
+            assert!(
+                !obj.contains_key("prompt_cache_options"),
+                "{model} should strip prompt_cache_options"
+            );
+            assert!(
+                obj["messages"][0]["content"][0]
+                    .get("prompt_cache_breakpoint")
+                    .is_none(),
+                "{model} should strip prompt_cache_breakpoint"
+            );
+        }
+    }
+
+    #[test]
+    fn test_preserve_supported_prompt_cache_breakpoints() {
+        let mut obj: Map<String, Value> = serde_json::from_value(json!({
+            "model": "gpt-5.7",
+            "prompt_cache_options": {"mode": "explicit"},
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }]
+        }))
+        .unwrap();
+
+        apply_model_transforms("gpt-5.7", &mut obj);
+        assert_eq!(obj["prompt_cache_options"], json!({"mode": "explicit"}));
+        assert_eq!(
+            obj["messages"][0]["content"][0]["prompt_cache_breakpoint"],
+            json!({"mode": "explicit"})
+        );
     }
 
     #[test]

@@ -14,7 +14,7 @@ use crate::processing::adapters::{
 };
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{
-    apply_model_transforms, clamp_reasoning_effort_for_model, model_needs_transforms,
+    apply_model_transforms, clamp_reasoning_effort_for_model,
 };
 use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
@@ -547,11 +547,9 @@ impl ProviderAdapter for OpenAIAdapter {
             }
         }
 
-        // Preserve source OpenAI shape by default, but always enforce required transforms for
-        // reasoning models (e.g. max_tokens -> max_completion_tokens, temperature stripping).
-        if openai_extras.is_none() || model_needs_transforms(model) {
-            apply_model_transforms(model, &mut obj);
-        }
+        // Preserve source OpenAI shape by default, while enforcing model capability transforms
+        // (e.g. max_tokens -> max_completion_tokens and prompt cache breakpoint support).
+        apply_model_transforms(model, &mut obj);
 
         Ok(Value::Object(obj))
     }
