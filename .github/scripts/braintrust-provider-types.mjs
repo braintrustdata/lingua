@@ -18,6 +18,8 @@ const PROVIDER_TYPE_WORKFLOW_PATH =
 const PROVIDER_TYPE_WORKFLOW_NAME = "Update provider types";
 const AUTOFIX_MARKER = "provider-type-codex-autofix";
 const AUTOFIX_MAX_ATTEMPTS = 2;
+const AUTOFIX_RETRY_COMMAND = "/provider-type-autofix retry";
+const AUTOFIX_WRITE_PERMISSIONS = new Set(["admin", "maintain", "write"]);
 
 const require = createRequire(import.meta.url);
 
@@ -333,24 +335,12 @@ function ineligible(reason, extra = {}) {
   };
 }
 
-function evaluateCodexAutofixEligibility({
-  event,
+function evaluateProviderTypePrProvenance({
+  pullRequest,
   repository,
-  inlineComments,
   workflowRun,
-  issueComments,
 }) {
-  const review = event?.review;
-  const pullRequest = event?.pull_request;
-  if (!review || !pullRequest) {
-    return ineligible("Event is not a pull request review");
-  }
-
-  if (!isExactBot(review.user, CODEX_BOT)) {
-    return ineligible("Review was not submitted by the exact Codex bot");
-  }
-
-  if (!isExactBot(pullRequest.user, GITHUB_ACTIONS_BOT)) {
+  if (!isExactBot(pullRequest?.user, GITHUB_ACTIONS_BOT)) {
     return ineligible("PR was not created by github-actions[bot]");
   }
 
@@ -367,10 +357,6 @@ function evaluateCodexAutofixEligibility({
     pullRequest.base?.repo?.full_name !== repository
   ) {
     return ineligible("PR head and base must both be in the current repository");
-  }
-
-  if (!review.commit_id || review.commit_id !== pullRequest.head?.sha) {
-    return ineligible("Codex review is stale relative to the PR head");
   }
 
   const labels = (pullRequest.labels || []).map((label) => label.name);
@@ -415,24 +401,101 @@ function evaluateCodexAutofixEligibility({
     return ineligible("Referenced Actions run is not the provider type update run");
   }
 
-  const actionableComments = (inlineComments || []).filter(
+  return { eligible: true, metadata };
+}
+
+function actionableReviewComments(inlineComments, review) {
+  return (inlineComments || []).filter(
     (comment) =>
-      Number(comment.pull_request_review_id) === Number(review.id) &&
+      Number(comment.pull_request_review_id) === Number(review?.id) &&
       isExactBot(comment.user, CODEX_BOT) &&
       typeof comment.body === "string" &&
       comment.body.trim(),
   );
-  if (actionableComments.length === 0) {
-    return ineligible("Codex review has no inline comments");
-  }
+}
 
-  const actionMarkers = (issueComments || [])
+function sanitizedReviewComments(comments) {
+  return comments.map((comment) => ({
+    id: comment.id,
+    path: comment.path,
+    line: comment.line || comment.original_line || null,
+    start_line: comment.start_line || comment.original_start_line || null,
+    body: comment.body.trim(),
+    url: comment.html_url,
+  }));
+}
+
+function actionAutofixMarkers(issueComments) {
+  return (issueComments || [])
     .filter((comment) => isExactBot(comment.user, GITHUB_ACTIONS_BOT))
     .map((comment) => ({
       comment,
       marker: extractAutofixMarker(comment.body),
     }))
     .filter(({ marker }) => marker?.version === 1);
+}
+
+function evaluateManualRetryEnvelope(event, repository) {
+  const comment = event?.comment;
+  if (repository !== "braintrustdata/lingua") {
+    return ineligible("Manual retry is restricted to braintrustdata/lingua");
+  }
+
+  if (!event?.issue?.pull_request) {
+    return ineligible("Comment is not on a pull request");
+  }
+
+  if (comment?.body !== AUTOFIX_RETRY_COMMAND) {
+    return ineligible("Comment is not the exact provider autofix retry command");
+  }
+
+  if (
+    comment.user?.type !== "User" ||
+    !["MEMBER", "OWNER"].includes(comment.author_association)
+  ) {
+    return ineligible("Comment author is not a Braintrust organization member");
+  }
+
+  return { eligible: true };
+}
+
+function evaluateCodexAutofixEligibility({
+  event,
+  repository,
+  inlineComments,
+  workflowRun,
+  issueComments,
+}) {
+  const review = event?.review;
+  const pullRequest = event?.pull_request;
+  if (!review || !pullRequest) {
+    return ineligible("Event is not a pull request review");
+  }
+
+  if (!isExactBot(review.user, CODEX_BOT)) {
+    return ineligible("Review was not submitted by the exact Codex bot");
+  }
+
+  const provenance = evaluateProviderTypePrProvenance({
+    pullRequest,
+    repository,
+    workflowRun,
+  });
+  if (!provenance.eligible) {
+    return provenance;
+  }
+  const { metadata } = provenance;
+
+  if (!review.commit_id || review.commit_id !== pullRequest.head?.sha) {
+    return ineligible("Codex review is stale relative to the PR head");
+  }
+
+  const actionableComments = actionableReviewComments(inlineComments, review);
+  if (actionableComments.length === 0) {
+    return ineligible("Codex review has no inline comments");
+  }
+
+  const actionMarkers = actionAutofixMarkers(issueComments);
   const attempts = actionMarkers.filter(
     ({ marker }) => marker.kind === "attempt",
   );
@@ -471,15 +534,116 @@ function evaluateCodexAutofixEligibility({
     headSha: pullRequest.head.sha,
     reviewId: review.id,
     reviewUrl: review.html_url,
+    reviewBody: (review.body || "").trim(),
     attempt: attempts.length + 1,
-    inlineComments: actionableComments.map((comment) => ({
-      id: comment.id,
-      path: comment.path,
-      line: comment.line || comment.original_line || null,
-      start_line: comment.start_line || comment.original_start_line || null,
-      body: comment.body.trim(),
-      url: comment.html_url,
-    })),
+    attemptKind: "automatic",
+    attemptDescription: `attempt ${attempts.length + 1}/${AUTOFIX_MAX_ATTEMPTS}`,
+    manualRetry: false,
+    commandCommentId: "",
+    inlineComments: sanitizedReviewComments(actionableComments),
+  };
+}
+
+function evaluateCodexAutofixCommentEligibility({
+  event,
+  repository,
+  pullRequest,
+  reviews,
+  inlineComments,
+  workflowRun,
+  issueComments,
+  permission,
+}) {
+  const comment = event?.comment;
+  const envelope = evaluateManualRetryEnvelope(event, repository);
+  if (!envelope.eligible) {
+    return envelope;
+  }
+  if (!pullRequest) {
+    return ineligible("Pull request details were not loaded");
+  }
+
+  if (
+    permission?.user?.login?.toLowerCase() !==
+      comment.user.login.toLowerCase() ||
+    !AUTOFIX_WRITE_PERMISSIONS.has(permission?.permission)
+  ) {
+    return ineligible("Comment author does not have repository write permission");
+  }
+
+  if (
+    Number(event.issue.number) !== Number(pullRequest.number) ||
+    pullRequest.base?.repo?.full_name !== repository
+  ) {
+    return ineligible("Comment and pull request repository context do not match");
+  }
+
+  const provenance = evaluateProviderTypePrProvenance({
+    pullRequest,
+    repository,
+    workflowRun,
+  });
+  if (!provenance.eligible) {
+    return provenance;
+  }
+  const { metadata } = provenance;
+
+  const currentReviews = (reviews || [])
+    .filter(
+      (review) =>
+        isExactBot(review.user, CODEX_BOT) &&
+        review.commit_id === pullRequest.head?.sha &&
+        actionableReviewComments(inlineComments, review).length > 0,
+    )
+    .sort((left, right) => {
+      const submittedDifference =
+        Date.parse(right.submitted_at || 0) - Date.parse(left.submitted_at || 0);
+      return submittedDifference || Number(right.id) - Number(left.id);
+    });
+  const review = currentReviews[0];
+  if (!review) {
+    return ineligible(
+      "PR head has no current Codex review with actionable inline comments",
+    );
+  }
+
+  const actionMarkers = actionAutofixMarkers(issueComments);
+  if (
+    actionMarkers.some(
+      ({ marker }) =>
+        marker.kind === "manual_attempt" &&
+        String(marker.command_comment_id) === String(comment.id),
+    )
+  ) {
+    return ineligible("This manual retry command was already reserved", {
+      duplicate: true,
+    });
+  }
+
+  const manualAttempts = actionMarkers.filter(
+    ({ marker }) => marker.kind === "manual_attempt",
+  );
+  const attempt = manualAttempts.length + 1;
+  const actionableComments = actionableReviewComments(inlineComments, review);
+  return {
+    eligible: true,
+    provider: metadata.provider,
+    braintrustProject: metadata.project,
+    rootSpanId: metadata.root_span_id,
+    sourceSpanId: metadata.span_id,
+    prNumber: pullRequest.number,
+    prUrl: pullRequest.html_url,
+    headRef: pullRequest.head.ref,
+    headSha: pullRequest.head.sha,
+    reviewId: review.id,
+    reviewUrl: review.html_url,
+    reviewBody: (review.body || "").trim(),
+    attempt,
+    attemptKind: "manual",
+    attemptDescription: `manual retry ${attempt}`,
+    manualRetry: true,
+    commandCommentId: String(comment.id),
+    inlineComments: sanitizedReviewComments(actionableComments),
   };
 }
 
@@ -662,32 +826,76 @@ async function extractCodexReviewEvent() {
 async function inspectCodexAutofixEvent() {
   const eventPath = requireEnv("GITHUB_EVENT_PATH");
   const repository = requireEnv("GITHUB_REPOSITORY");
+  const eventName = requireEnv("GITHUB_EVENT_NAME");
   const event = JSON.parse(readFileSync(eventPath, "utf8"));
-  const pullRequest = event.pull_request;
+  const [owner, repo] = repository.split("/");
+  const manualRetry = eventName === "issue_comment";
+
+  let pullRequest = event.pull_request;
+  let permission;
+  if (manualRetry) {
+    const preliminary = evaluateManualRetryEnvelope(event, repository);
+    if (!preliminary.eligible) {
+      writeGithubOutput({
+        eligible: "false",
+        reason: preliminary.reason,
+      });
+      return;
+    }
+    [pullRequest, permission] = await Promise.all([
+      githubApi(`/repos/${owner}/${repo}/pulls/${event.issue.number}`),
+      githubApi(
+        `/repos/${owner}/${repo}/collaborators/${encodeURIComponent(event.comment.user.login)}/permission`,
+      ),
+    ]);
+  }
+
   const review = event.review;
   const metadata = extractHiddenMetadata(pullRequest?.body || "");
-  const [owner, repo] = repository.split("/");
 
   let workflowRun;
   let inlineComments = [];
   let issueComments = [];
-  if (pullRequest && review && /^\d+$/.test(String(metadata?.run_id || ""))) {
-    [workflowRun, inlineComments, issueComments] = await Promise.all([
+  let reviews = [];
+  if (
+    pullRequest &&
+    (manualRetry || review) &&
+    /^\d+$/.test(String(metadata?.run_id || ""))
+  ) {
+    const requests = [
       githubApi(
         `/repos/${owner}/${repo}/actions/runs/${encodeURIComponent(metadata.run_id)}`,
       ),
       githubApiPages(`/repos/${owner}/${repo}/pulls/${pullRequest.number}/comments`),
       githubApiPages(`/repos/${owner}/${repo}/issues/${pullRequest.number}/comments`),
-    ]);
+    ];
+    if (manualRetry) {
+      requests.push(
+        githubApiPages(`/repos/${owner}/${repo}/pulls/${pullRequest.number}/reviews`),
+      );
+    }
+    [workflowRun, inlineComments, issueComments, reviews = []] =
+      await Promise.all(requests);
   }
 
-  const result = evaluateCodexAutofixEligibility({
-    event,
-    repository,
-    inlineComments,
-    workflowRun,
-    issueComments,
-  });
+  const result = manualRetry
+    ? evaluateCodexAutofixCommentEligibility({
+        event,
+        repository,
+        pullRequest,
+        reviews,
+        inlineComments,
+        workflowRun,
+        issueComments,
+        permission,
+      })
+    : evaluateCodexAutofixEligibility({
+        event,
+        repository,
+        inlineComments,
+        workflowRun,
+        issueComments,
+      });
 
   if (!result.eligible) {
     if (result.exhausted && !result.exhaustionReported && pullRequest && review) {
@@ -700,7 +908,7 @@ async function inspectCodexAutofixEvent() {
               version: 1,
               kind: "exhausted",
               review_id: String(review.id),
-            })}\n\nProvider type Codex autofix has reached its ${AUTOFIX_MAX_ATTEMPTS}-attempt limit. This review needs manual follow-up.`,
+            })}\n\nProvider type Codex autofix has reached its ${AUTOFIX_MAX_ATTEMPTS}-attempt limit. A Braintrust organization member with repository write access can start an uncapped manual retry by commenting \`${AUTOFIX_RETRY_COMMAND}\`.`,
           },
         },
       );
@@ -722,10 +930,13 @@ async function inspectCodexAutofixEvent() {
       body: {
         body: `${autofixMarker({
           version: 1,
-          kind: "attempt",
+          kind: result.manualRetry ? "manual_attempt" : "attempt",
           review_id: String(result.reviewId),
           attempt: result.attempt,
-        })}\n\nProvider type Codex autofix attempt **${result.attempt}/${AUTOFIX_MAX_ATTEMPTS}** started for [review ${result.reviewId}](${result.reviewUrl}).`,
+          ...(result.manualRetry
+            ? { command_comment_id: result.commandCommentId }
+            : {}),
+        })}\n\nProvider type Codex autofix **${result.attemptDescription}** started for [review ${result.reviewId}](${result.reviewUrl}).`,
       },
     },
   );
@@ -747,7 +958,9 @@ async function inspectCodexAutofixEvent() {
         head_sha: result.headSha,
         review_id: result.reviewId,
         review_url: result.reviewUrl,
-        review_body: (review.body || "").trim(),
+        review_body: result.reviewBody,
+        manual_retry: result.manualRetry,
+        command_comment_id: result.commandCommentId || null,
         inline_comments: result.inlineComments,
       },
       null,
@@ -765,6 +978,9 @@ async function inspectCodexAutofixEvent() {
     head_sha: result.headSha,
     review_id: result.reviewId,
     attempt: result.attempt,
+    attempt_description: result.attemptDescription,
+    manual_retry: result.manualRetry ? "true" : "false",
+    command_comment_id: result.commandCommentId,
     marker_comment_id: reservation.id,
   });
 }
@@ -778,6 +994,11 @@ async function updateCodexAutofixAttempt() {
   const status = requireEnv("AUTOFIX_STATUS");
   const detail = requireEnv("AUTOFIX_DETAIL");
   const commitSha = optionalEnv("AUTOFIX_COMMIT_SHA");
+  const manualRetry = optionalEnv("AUTOFIX_MANUAL_RETRY") === "true";
+  const commandCommentId = optionalEnv("AUTOFIX_COMMAND_COMMENT_ID");
+  const attemptDescription = manualRetry
+    ? `manual retry ${attempt}`
+    : `attempt ${attempt}/${AUTOFIX_MAX_ATTEMPTS}`;
   const commitText = commitSha ? ` Commit: \`${commitSha}\`.` : "";
 
   await githubApi(`/repos/${owner}/${repo}/issues/comments/${commentId}`, {
@@ -785,10 +1006,11 @@ async function updateCodexAutofixAttempt() {
     body: {
       body: `${autofixMarker({
         version: 1,
-        kind: "attempt",
+        kind: manualRetry ? "manual_attempt" : "attempt",
         review_id: String(reviewId),
         attempt,
-      })}\n\nProvider type Codex autofix attempt **${attempt}/${AUTOFIX_MAX_ATTEMPTS}** ${status}. ${detail}${commitText}`,
+        ...(manualRetry ? { command_comment_id: commandCommentId } : {}),
+      })}\n\nProvider type Codex autofix **${attemptDescription}** ${status}. ${detail}${commitText}`,
     },
   });
 }
@@ -798,11 +1020,15 @@ async function requestCodexRereview() {
   const [owner, repo] = repository.split("/");
   const prNumber = requireEnv("AUTOFIX_PR_NUMBER");
   const attempt = requireEnv("AUTOFIX_ATTEMPT");
+  const manualRetry = optionalEnv("AUTOFIX_MANUAL_RETRY") === "true";
+  const attemptDescription = manualRetry
+    ? `manual retry ${attempt}`
+    : `attempt ${attempt}/${AUTOFIX_MAX_ATTEMPTS}`;
 
   await githubApi(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
     method: "POST",
     body: {
-      body: `@codex review\n\nProvider type autofix attempt ${attempt}/${AUTOFIX_MAX_ATTEMPTS} passed its focused validation.`,
+      body: `@codex review\n\nProvider type autofix ${attemptDescription} passed its focused validation.`,
     },
   });
 }
@@ -1106,6 +1332,8 @@ async function logCodexAutofixResult() {
     rootSpanId: requireEnv("BRAINTRUST_ROOT_SPAN_ID"),
   };
   const attempt = requireEnv("AUTOFIX_ATTEMPT");
+  const manualRetry = optionalEnv("AUTOFIX_MANUAL_RETRY") === "true";
+  const commandCommentId = optionalEnv("AUTOFIX_COMMAND_COMMENT_ID");
   const publishResult = requireEnv("AUTOFIX_PUBLISH_RESULT");
   const status = publishResult === "success" ? "succeeded" : "failed";
   const logger = braintrust.initLogger({ projectName });
@@ -1118,6 +1346,8 @@ async function logCodexAutofixResult() {
           pr_number: requireEnv("AUTOFIX_PR_NUMBER"),
           review_id: requireEnv("AUTOFIX_REVIEW_ID"),
           attempt,
+          manual_retry: manualRetry,
+          command_comment_id: commandCommentId,
         },
         output: {
           status,
@@ -1153,6 +1383,8 @@ async function logCodexAutofixResult() {
           phase: "codex_autofix_result",
           autofix_status: status,
           autofix_attempt: attempt,
+          manual_retry: manualRetry,
+          command_comment_id: commandCommentId,
           pr_number: requireEnv("AUTOFIX_PR_NUMBER"),
           review_id: requireEnv("AUTOFIX_REVIEW_ID"),
           target_span_id: parentSpanIds.spanId,
@@ -1161,7 +1393,7 @@ async function logCodexAutofixResult() {
       });
     },
     {
-      name: `Codex autofix attempt ${attempt} result`,
+      name: `Codex autofix ${manualRetry ? `manual retry ${attempt}` : `attempt ${attempt}`} result`,
       type: "task",
       spanAttributes: {
         purpose: "task",
@@ -1219,8 +1451,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
 export {
   AUTOFIX_MAX_ATTEMPTS,
+  AUTOFIX_RETRY_COMMAND,
   CODEX_BOT,
   GITHUB_ACTIONS_BOT,
+  evaluateCodexAutofixCommentEligibility,
   evaluateCodexAutofixEligibility,
   extractAutofixMarker,
   extractHiddenMetadata,

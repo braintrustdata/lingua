@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   CODEX_BOT,
   GITHUB_ACTIONS_BOT,
+  evaluateCodexAutofixCommentEligibility,
   evaluateCodexAutofixEligibility,
   parseRawDiffModes,
   validateAutofixPatch,
@@ -81,6 +82,49 @@ function attemptMarker(reviewId, attempt) {
   };
 }
 
+function manualAttemptMarker(reviewId, attempt, commandCommentId) {
+  return {
+    user: bot(GITHUB_ACTIONS_BOT),
+    body: `<!-- provider-type-codex-autofix
+{"version":1,"kind":"manual_attempt","review_id":"${reviewId}","attempt":${attempt},"command_comment_id":"${commandCommentId}"}
+-->`,
+  };
+}
+
+function manualFixture() {
+  const automatic = fixture();
+  const review = {
+    ...automatic.event.review,
+    submitted_at: "2026-07-23T12:00:00Z",
+  };
+  return {
+    event: {
+      issue: {
+        number: automatic.event.pull_request.number,
+        pull_request: {
+          url: `${automatic.event.pull_request.html_url}.json`,
+        },
+      },
+      comment: {
+        id: 9001,
+        body: "/provider-type-autofix retry",
+        author_association: "MEMBER",
+        user: { login: "braintrust-maintainer", id: 55, type: "User" },
+      },
+    },
+    repository: automatic.repository,
+    pullRequest: automatic.event.pull_request,
+    reviews: [review],
+    inlineComments: automatic.inlineComments,
+    workflowRun: automatic.workflowRun,
+    issueComments: [],
+    permission: {
+      permission: "write",
+      user: { login: "braintrust-maintainer", id: 55, type: "User" },
+    },
+  };
+}
+
 test("accepts a current Codex review on a verified provider update PR", () => {
   const result = evaluateCodexAutofixEligibility(fixture());
   assert.equal(result.eligible, true);
@@ -153,6 +197,94 @@ test("stops after two attempts", () => {
   const result = evaluateCodexAutofixEligibility(input);
   assert.equal(result.eligible, false);
   assert.equal(result.exhausted, true);
+});
+
+test("accepts an authorized manual retry after automatic attempts are exhausted", () => {
+  const input = manualFixture();
+  input.issueComments = [attemptMarker(1, 1), attemptMarker(2, 2)];
+  const result = evaluateCodexAutofixCommentEligibility(input);
+  assert.equal(result.eligible, true);
+  assert.equal(result.manualRetry, true);
+  assert.equal(result.attempt, 1);
+  assert.equal(result.commandCommentId, "9001");
+});
+
+test("rejects a manual retry from a public commenter", () => {
+  const input = manualFixture();
+  input.event.comment.author_association = "NONE";
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /organization member/,
+  );
+});
+
+test("rejects an external collaborator even with write permission", () => {
+  const input = manualFixture();
+  input.event.comment.author_association = "COLLABORATOR";
+  assert.equal(evaluateCodexAutofixCommentEligibility(input).eligible, false);
+});
+
+test("requires repository write permission for a member retry", () => {
+  const input = manualFixture();
+  input.permission.permission = "read";
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /write permission/,
+  );
+});
+
+test("requires the exact manual retry command", () => {
+  const input = manualFixture();
+  input.event.comment.body = "/provider-type-autofix retry please";
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /exact provider autofix retry command/,
+  );
+});
+
+test("rejects a manual retry comment on an issue", () => {
+  const input = manualFixture();
+  delete input.event.issue.pull_request;
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /not on a pull request/,
+  );
+});
+
+test("requires a current actionable Codex review for a manual retry", () => {
+  const input = manualFixture();
+  input.reviews[0].commit_id = sourceSha;
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /no current Codex review/,
+  );
+});
+
+test("rejects a manual retry on a fork with copied provenance", () => {
+  const input = manualFixture();
+  input.pullRequest.head.repo.full_name = "attacker/lingua";
+  assert.match(
+    evaluateCodexAutofixCommentEligibility(input).reason,
+    /head and base/,
+  );
+});
+
+test("deduplicates a manual retry by command comment ID", () => {
+  const input = manualFixture();
+  input.issueComments = [
+    manualAttemptMarker(input.reviews[0].id, 1, input.event.comment.id),
+  ];
+  const result = evaluateCodexAutofixCommentEligibility(input);
+  assert.equal(result.eligible, false);
+  assert.equal(result.duplicate, true);
+});
+
+test("manual retries do not consume the automatic attempt budget", () => {
+  const input = fixture();
+  input.issueComments = [manualAttemptMarker(100, 1, 500)];
+  const result = evaluateCodexAutofixEligibility(input);
+  assert.equal(result.eligible, true);
+  assert.equal(result.attempt, 1);
 });
 
 test("rejects prohibited, binary, and unsafe-mode patches", () => {
