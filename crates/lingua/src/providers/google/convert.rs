@@ -2115,7 +2115,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment,
+        LanguageHints, Level, MediaResolution, Type, V1MainMediaResolution,
     };
 
     #[test]
@@ -2259,5 +2260,114 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    #[test]
+    fn test_part_media_resolution_struct_round_trips() {
+        // The Part-level media-resolution object schema was renamed
+        // `MediaResolution` -> `V1mainMediaResolution` in the discovery spec, but its
+        // wire shape (an object carrying an optional `level` enum) is unchanged and
+        // every previously valid payload must still parse and re-serialize identically.
+        let wire = json!({"mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}});
+        let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(
+            part.media_resolution,
+            Some(V1MainMediaResolution {
+                level: Some(Level::MediaResolutionUltraHigh),
+            })
+        );
+        assert_eq!(
+            serde_json::to_value(&part).unwrap()["mediaResolution"],
+            wire["mediaResolution"]
+        );
+
+        // The complete `Level` value set (including the struct-only ULTRA_HIGH) survives.
+        for (level_wire, level) in [
+            (
+                "MEDIA_RESOLUTION_UNSPECIFIED",
+                Level::MediaResolutionUnspecified,
+            ),
+            ("MEDIA_RESOLUTION_LOW", Level::MediaResolutionLow),
+            ("MEDIA_RESOLUTION_MEDIUM", Level::MediaResolutionMedium),
+            ("MEDIA_RESOLUTION_HIGH", Level::MediaResolutionHigh),
+            (
+                "MEDIA_RESOLUTION_ULTRA_HIGH",
+                Level::MediaResolutionUltraHigh,
+            ),
+        ] {
+            let mr: V1MainMediaResolution =
+                serde_json::from_value(json!({"level": level_wire})).unwrap();
+            assert_eq!(mr.level, Some(level));
+            assert_eq!(
+                serde_json::to_value(&mr).unwrap()["level"],
+                json!(level_wire)
+            );
+        }
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_enum_round_trips() {
+        // `GenerationConfig.mediaResolution` is a bare string enum whose generated name
+        // moved from `MediaResolutionEnum` -> `MediaResolution`. The wire values are
+        // unchanged, so all spec values must still round trip.
+        for (wire, value) in [
+            (
+                "MEDIA_RESOLUTION_UNSPECIFIED",
+                MediaResolution::MediaResolutionUnspecified,
+            ),
+            ("MEDIA_RESOLUTION_LOW", MediaResolution::MediaResolutionLow),
+            (
+                "MEDIA_RESOLUTION_MEDIUM",
+                MediaResolution::MediaResolutionMedium,
+            ),
+            (
+                "MEDIA_RESOLUTION_HIGH",
+                MediaResolution::MediaResolutionHigh,
+            ),
+        ] {
+            let config: GenerationConfig =
+                serde_json::from_value(json!({"mediaResolution": wire})).unwrap();
+            assert_eq!(config.media_resolution, Some(value.clone()));
+            assert_eq!(
+                serde_json::to_value(&config).unwrap()["mediaResolution"],
+                json!(wire)
+            );
+        }
+    }
+
+    #[test]
+    fn test_generation_config_audio_transcription_config_round_trips() {
+        // Newly added GenerationConfig field: must deserialize and re-serialize
+        // losslessly, including the nested LanguageHints object.
+        let wire = json!({
+            "audioTranscriptionConfig": {
+                "languageHints": {"languageCodes": ["en-US", "es-ES"]},
+                "diarization": true,
+                "wordTimestamp": false,
+                "customVocabulary": ["Lingua"]
+            }
+        });
+        let config: GenerationConfig = serde_json::from_value(wire.clone()).unwrap();
+        let atc = config.audio_transcription_config.clone().unwrap();
+        assert_eq!(
+            atc.language_hints,
+            Some(LanguageHints {
+                language_codes: Some(vec!["en-US".to_string(), "es-ES".to_string()]),
+            })
+        );
+        assert_eq!(atc.diarization, Some(true));
+        assert_eq!(atc.word_timestamp, Some(false));
+        assert_eq!(atc.custom_vocabulary, Some(vec!["Lingua".to_string()]));
+
+        let reserialized = serde_json::to_value(&config).unwrap();
+        assert_eq!(
+            reserialized["audioTranscriptionConfig"],
+            wire["audioTranscriptionConfig"]
+        );
+
+        // A bare AudioTranscriptionConfig also round trips through serde.
+        let atc_wire = json!({"adaptationPhrases": ["hi"], "languageAuto": {}});
+        let parsed: AudioTranscriptionConfig = serde_json::from_value(atc_wire.clone()).unwrap();
+        assert_eq!(serde_json::to_value(&parsed).unwrap(), atc_wire);
     }
 }
