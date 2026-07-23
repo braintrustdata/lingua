@@ -365,10 +365,9 @@ mod tests {
                 !obj.contains_key("prompt_cache_options"),
                 "{model} should strip prompt_cache_options"
             );
-            assert!(
-                obj["messages"][0]["content"][0]
-                    .get("prompt_cache_breakpoint")
-                    .is_none(),
+            assert_eq!(
+                obj["messages"][0]["content"][0]["prompt_cache_breakpoint"],
+                Value::Null,
                 "{model} should strip prompt_cache_breakpoint"
             );
         }
