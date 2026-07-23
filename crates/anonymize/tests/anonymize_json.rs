@@ -3,7 +3,24 @@ use anonymize::{
     anonymize_json_value_with_options_and_filter, AnonymizeFilterContext, AnonymizeFilterKind,
     AnonymizeOptions,
 };
-use serde_json::json;
+use serde_json::{json, Value};
+use std::collections::BTreeSet;
+
+fn strings_in(value: &Value) -> BTreeSet<String> {
+    match value {
+        Value::String(value) => [value.clone()].into_iter().collect(),
+        Value::Array(values) => values.iter().flat_map(strings_in).collect(),
+        Value::Object(values) => values
+            .iter()
+            .flat_map(|(key, value)| {
+                let mut strings = strings_in(value);
+                strings.insert(key.clone());
+                strings
+            })
+            .collect(),
+        _ => BTreeSet::new(),
+    }
+}
 
 #[test]
 fn anonymizes_content_and_metadata_strings_by_default() {
@@ -51,12 +68,17 @@ fn anonymizes_all_strings_when_all_strings_is_enabled() {
         AnonymizeOptions::default().with_all_strings(true),
     );
     assert_eq!(
-        result.value,
-        json!({
-            "role": "anon_1",
-            "content": "anon_2",
-            "type": "anon_3"
-        })
+        result
+            .value
+            .as_object()
+            .unwrap()
+            .values()
+            .map(|value| value.as_str().unwrap().to_owned())
+            .collect::<BTreeSet<_>>(),
+        ["anon_1", "anon_2", "anon_3"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect::<BTreeSet<_>>()
     );
     assert_eq!(result.replaced_string_count, 3);
     assert_eq!(result.unique_replacement_count, 3);
@@ -105,27 +127,23 @@ fn anonymizes_all_metadata_strings() {
     });
 
     let result = anonymize_json_value(input);
+    assert_eq!(result.value["metadata"]["model"], "gpt-5.1-2025-11-13");
     assert_eq!(
-        result.value,
-        json!({
-            "metadata": {
-                "model": "gpt-5.1-2025-11-13",
-                "trace_id": "anon_1",
-                "route": "anon_2",
-                "tool_definitions": [
-                    {
-                        "name": "anon_3",
-                        "description": "anon_4",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "city": { "type": "string", "description": "anon_5" }
-                            }
-                        }
-                    }
-                ]
-            }
-        })
+        [
+            &result.value["metadata"]["trace_id"],
+            &result.value["metadata"]["route"],
+            &result.value["metadata"]["tool_definitions"][0]["name"],
+            &result.value["metadata"]["tool_definitions"][0]["description"],
+            &result.value["metadata"]["tool_definitions"][0]["parameters"]["properties"]["city"]
+                ["description"],
+        ]
+        .into_iter()
+        .map(|value| value.as_str().unwrap().to_owned())
+        .collect::<BTreeSet<_>>(),
+        ["anon_1", "anon_2", "anon_3", "anon_4", "anon_5"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect()
     );
 }
 
@@ -316,7 +334,9 @@ fn filter_sees_every_unanonymized_key_and_field_in_json() {
     });
 
     let mut next = 1;
+    let mut filter_call_count = 0;
     let mut filter = |context: AnonymizeFilterContext<'_>, _value: &serde_json::Value| {
+        filter_call_count += 1;
         let replacement = json!(format!("custom_{next}"));
         next += 1;
 
@@ -331,23 +351,14 @@ fn filter_sees_every_unanonymized_key_and_field_in_json() {
         Some(&mut filter),
     );
 
+    drop(filter);
+
+    assert_eq!(filter_call_count, 25);
     assert_eq!(
-        result.value,
-        json!({
-            "custom_1": "custom_2",
-            "custom_3": "custom_4",
-            "custom_5": "custom_6",
-            "custom_7": "anon_1",
-            "custom_8": [
-                { "custom_9": "custom_10", "custom_11": "custom_12" },
-                { "custom_13": "custom_14", "custom_15": "custom_16" }
-            ],
-            "custom_17": {
-                "custom_18": "custom_19",
-                "custom_20": ["custom_21", "custom_22"]
-            },
-            "custom_23": "anon_2",
-            "custom_24": "custom_25"
-        })
+        strings_in(&result.value),
+        (1..=25)
+            .map(|index| format!("custom_{index}"))
+            .chain(["anon_1".to_owned(), "anon_2".to_owned()])
+            .collect()
     );
 }

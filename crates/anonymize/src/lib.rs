@@ -1,8 +1,6 @@
 use serde_json::{Map, Value};
 use std::collections::{HashMap, HashSet};
 
-pub use serde_json;
-
 const DEFAULT_PRESERVE_KEYS: &[&str] = &["role", "type"];
 const DEFAULT_TOKEN_PREFIX: &str = "anon";
 

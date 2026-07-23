@@ -36,7 +36,7 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 name = "anonymize"
 version = "0.1.0"
 dependencies = [
- "braintrust_serde_json_ordered",
+ "serde_json",
 ]
 
 [[package]]
@@ -558,19 +558,6 @@ dependencies = [
  "ryu",
  "serde",
  "serde_core",
-]
-
-[[package]]
-name = "braintrust_serde_json_ordered"
-version = "1.0.150"
-source = "git+https://github.com/braintrustdata/serde-json.git?rev=5ab1958c74173fc654b418e107a5b7f9a25110ec#5ab1958c74173fc654b418e107a5b7f9a25110ec"
-dependencies = [
- "indexmap 2.11.0",
- "itoa",
- "memchr",
- "serde",
- "serde_core",
- "zmij",
 ]
 
 [[package]]
@@ -4564,9 +4551,3 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "zmij"
-version = "1.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
