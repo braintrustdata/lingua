@@ -170,7 +170,7 @@ pub struct Part {
     pub inline_data: Option<Blob>,
     /// Optional. Media resolution for the input media.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_resolution: Option<MediaResolution>,
+    pub media_resolution: Option<V1MainMediaResolution>,
     /// Custom metadata associated with the Part. Agents using genai.Part as content
     /// representation may need to keep track of the additional information. For example it can
     /// be name of a file/source from which the Part originates or a way to multiplex multiple
@@ -422,16 +422,16 @@ pub struct Blob {
 
 /// Optional. Media resolution for the input media.
 ///
-/// Media resolution for the input media.
+/// Media resolution for tokenization.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
-pub struct MediaResolution {
-    /// The media resolution level.
+pub struct V1MainMediaResolution {
+    /// The tokenization quality used for given media. for Gemini API support .
     #[serde(skip_serializing_if = "Option::is_none")]
     pub level: Option<Level>,
 }
 
-/// The media resolution level.
+/// The tokenization quality used for given media. for Gemini API support .
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
@@ -553,6 +553,9 @@ pub struct GenerationConfig {
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_json_schema: Option<serde_json::Value>,
+    /// Optional. Config for audio transcription (speech recognition).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_transcription_config: Option<AudioTranscriptionConfig>,
     /// Optional. Number of generated responses to return. If unset, this will default to 1.
     /// Please note that this doesn't work for previous generation models (Gemini 1.0 family)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -590,7 +593,7 @@ pub struct GenerationConfig {
     pub max_output_tokens: Option<i64>,
     /// Optional. If specified, the media resolution specified will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_resolution: Option<MediaResolutionEnum>,
+    pub media_resolution: Option<MediaResolution>,
     /// Optional. Presence penalty applied to the next token's logprobs if the token has already
     /// been seen in the response. This penalty is binary on/off and not dependant on the number
     /// of times the token is used (after the first). Use frequency_penalty for a penalty that
@@ -675,6 +678,48 @@ pub struct GenerationConfig {
     pub translation_config: Option<TranslationConfig>,
 }
 
+/// Optional. Config for audio transcription (speech recognition).
+///
+/// The audio transcription configuration.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct AudioTranscriptionConfig {
+    /// Optional. A list of phrases used for speech adaptation, which biases the ASR model to
+    /// improve recognition of these specific terms.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adaptation_phrases: Option<Vec<String>>,
+    /// Optional. A list of custom vocabulary phrases to bias the speech recognition model toward
+    /// recognizing specific terms (product names, proper nouns, jargon).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_vocabulary: Option<Vec<String>>,
+    /// Optional. Configures speaker diarization.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diarization: Option<bool>,
+    /// Optional. The model will detect the language automatically.
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_auto: Option<serde_json::Map<String, serde_json::Value>>,
+    /// Optional. Specifies one or more languages in the audio.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_hints: Option<LanguageHints>,
+    /// Optional. Configures word-level timestamp generation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub word_timestamp: Option<bool>,
+}
+
+/// Optional. Specifies one or more languages in the audio.
+///
+/// Provides hints to the model about possible languages present in the audio.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "google/")]
+pub struct LanguageHints {
+    /// Required. BCP-47 language codes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language_codes: Option<Vec<String>>,
+}
+
 /// Optional. Config for image generation. An error will be returned if this field is set for
 /// models that don't support these config options.
 ///
@@ -699,7 +744,7 @@ pub struct ImageConfig {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
-pub enum MediaResolutionEnum {
+pub enum MediaResolution {
     #[serde(rename = "MEDIA_RESOLUTION_HIGH")]
     MediaResolutionHigh,
     #[serde(rename = "MEDIA_RESOLUTION_LOW")]
@@ -1034,7 +1079,7 @@ pub enum Type {
     Number,
     #[serde(alias = "object")]
     Object,
-    #[serde(alias = "string")]
+    #[serde(rename = "STRING", alias = "string")]
     String,
     #[serde(rename = "TYPE_UNSPECIFIED")]
     TypeUnspecified,
@@ -1302,9 +1347,10 @@ pub struct FunctionCallingConfig {
 pub enum FunctionCallingConfigMode {
     Any,
     Auto,
+    #[serde(rename = "NONE")]
+    None,
     #[serde(rename = "MODE_UNSPECIFIED")]
     ModeUnspecified,
-    None,
     Validated,
 }
 

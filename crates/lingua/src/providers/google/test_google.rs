@@ -74,4 +74,118 @@ mod tests {
     mod generated {
         include!(concat!(env!("OUT_DIR"), "/generated_google_tests.rs"));
     }
+
+    // Regression coverage for the Google provider type update that renamed the
+    // `Part.mediaResolution` referent from `MediaResolution` to `V1MainMediaResolution`,
+    // reclaimed the `MediaResolution` name for the `GenerationConfig.mediaResolution`
+    // string enum (previously `MediaResolutionEnum`), and added the additive
+    // `GenerationConfig.audioTranscriptionConfig` field. Wire formats are unchanged, so
+    // previously-valid payloads must continue to deserialize and round-trip losslessly.
+    mod provider_type_update_regression {
+        use crate::providers::google::generated::{
+            AudioTranscriptionConfig, GenerationConfig, LanguageHints, Level, MediaResolution,
+            Part, V1MainMediaResolution,
+        };
+        use serde_json::json;
+
+        // Part.mediaResolution is now the V1MainMediaResolution object. The uncommon but
+        // valid MEDIA_RESOLUTION_ULTRA_HIGH level must still deserialize and round-trip.
+        #[test]
+        fn test_part_media_resolution_v1main_ultra_high_roundtrips() {
+            let payload = json!({
+                "text": "hello",
+                "mediaResolution": { "level": "MEDIA_RESOLUTION_ULTRA_HIGH" }
+            });
+
+            let part: Part = serde_json::from_value(payload.clone())
+                .expect("Part with V1MainMediaResolution must deserialize");
+
+            assert_eq!(
+                part.media_resolution,
+                Some(V1MainMediaResolution {
+                    level: Some(Level::MediaResolutionUltraHigh),
+                }),
+            );
+
+            let reserialized = serde_json::to_value(&part).expect("Part must serialize");
+            assert_eq!(
+                reserialized, payload,
+                "Part media resolution must round-trip"
+            );
+        }
+
+        // GenerationConfig.mediaResolution is the string enum formerly named
+        // MediaResolutionEnum. Its wire values are unchanged and must still deserialize.
+        #[test]
+        fn test_generation_config_media_resolution_enum_roundtrips() {
+            for (wire, variant) in [
+                (
+                    "MEDIA_RESOLUTION_UNSPECIFIED",
+                    MediaResolution::MediaResolutionUnspecified,
+                ),
+                ("MEDIA_RESOLUTION_LOW", MediaResolution::MediaResolutionLow),
+                (
+                    "MEDIA_RESOLUTION_MEDIUM",
+                    MediaResolution::MediaResolutionMedium,
+                ),
+                (
+                    "MEDIA_RESOLUTION_HIGH",
+                    MediaResolution::MediaResolutionHigh,
+                ),
+            ] {
+                let payload = json!({ "mediaResolution": wire });
+                let config: GenerationConfig = serde_json::from_value(payload.clone())
+                    .unwrap_or_else(|e| panic!("GenerationConfig {wire} must deserialize: {e}"));
+                assert_eq!(config.media_resolution, Some(variant));
+
+                // Round-trip at the struct level: GenerationConfig always emits an
+                // unrelated `responseSchema: null` (Box<Option<Schema>> cannot use
+                // skip_serializing_if), so compare parsed structs rather than raw JSON.
+                let reserialized =
+                    serde_json::to_value(&config).expect("GenerationConfig must serialize");
+                let reparsed: GenerationConfig = serde_json::from_value(reserialized)
+                    .expect("re-serialized GenerationConfig must deserialize");
+                assert_eq!(config, reparsed, "media resolution enum must round-trip");
+            }
+        }
+
+        // Additive audioTranscriptionConfig field, including the nested LanguageHints
+        // object, must deserialize and round-trip losslessly.
+        #[test]
+        fn test_generation_config_audio_transcription_config_roundtrips() {
+            let payload = json!({
+                "audioTranscriptionConfig": {
+                    "languageHints": { "languageCodes": ["en-US", "es-ES"] },
+                    "diarization": true,
+                    "wordTimestamp": false,
+                    "customVocabulary": ["Lingua", "Gemini"]
+                }
+            });
+
+            let config: GenerationConfig = serde_json::from_value(payload.clone())
+                .expect("GenerationConfig with audioTranscriptionConfig must deserialize");
+
+            assert_eq!(
+                config.audio_transcription_config,
+                Some(AudioTranscriptionConfig {
+                    language_hints: Some(LanguageHints {
+                        language_codes: Some(vec!["en-US".to_string(), "es-ES".to_string()]),
+                    }),
+                    diarization: Some(true),
+                    word_timestamp: Some(false),
+                    custom_vocabulary: Some(vec!["Lingua".to_string(), "Gemini".to_string()]),
+                    ..Default::default()
+                }),
+            );
+
+            let reserialized =
+                serde_json::to_value(&config).expect("GenerationConfig must serialize");
+            let reparsed: GenerationConfig = serde_json::from_value(reserialized)
+                .expect("re-serialized GenerationConfig must deserialize");
+            assert_eq!(
+                config, reparsed,
+                "audio transcription config must round-trip"
+            );
+        }
+    }
 }
