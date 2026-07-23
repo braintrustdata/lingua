@@ -385,6 +385,16 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         .into_iter()
         .map(parse_lenient_assistant_content_part)
         .collect::<Option<_>>()?;
+    for content_part in &mut content_parts {
+        if let AssistantContentPart::Reasoning {
+            encrypted_content, ..
+        } = content_part
+        {
+            if encrypted_content.is_none() {
+                *encrypted_content = reasoning_signature.clone();
+            }
+        }
+    }
     content_parts.extend(assistant_content_parts_from_openai_tool_calls(
         tool_calls,
         reasoning_signature,
@@ -794,13 +804,17 @@ mod tests {
         let parts = import_assistant_parts(crate::serde_json::json!([
             {
                 "role": "assistant",
+                "reasoning_signature": "reasoning-signature",
                 "content": [{ "type": "reasoning", "text": "internal reasoning" }]
             }
         ]));
 
         assert!(matches!(
             parts.as_slice(),
-            [AssistantContentPart::Reasoning { text, .. }] if text == "internal reasoning"
+            [AssistantContentPart::Reasoning {
+                text,
+                encrypted_content: Some(encrypted_content),
+            }] if text == "internal reasoning" && encrypted_content == "reasoning-signature"
         ));
     }
 
