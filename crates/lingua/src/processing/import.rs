@@ -15,9 +15,11 @@ use crate::providers::bedrock::convert::try_parse_bedrock_for_import;
 use crate::providers::google::convert::try_parse_google_for_import;
 #[cfg(feature = "openai")]
 use crate::providers::openai::convert::{
-    try_parse_openai_for_import, try_system_message_from_openai_metadata,
-    ChatCompletionRequestMessageExt,
+    assistant_content_parts_from_openai_tool_calls, try_parse_openai_for_import,
+    try_system_message_from_openai_metadata, ChatCompletionRequestMessageExt,
 };
+#[cfg(feature = "openai")]
+use crate::providers::openai::generated as openai;
 use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::convert::TryFromLLM;
@@ -196,10 +198,18 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
-        let mut parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
-            let wrapped_item = Value::Array(vec![item.clone()]);
-            try_parsers_in_order(&wrapped_item, &provider_parsers)
-        });
+        #[cfg(feature = "openai")]
+        let mut parsed_messages =
+            try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
+        #[cfg(not(feature = "openai"))]
+        let mut parsed_messages = None;
+
+        if parsed_messages.is_none() {
+            parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
+                let wrapped_item = Value::Array(vec![item.clone()]);
+                try_parsers_in_order(&wrapped_item, &provider_parsers)
+            });
+        }
 
         if parsed_messages.is_none() {
             parsed_messages = parse_lenient_message_item(item).map(|message| vec![message]);
@@ -336,6 +346,51 @@ enum LenientAssistantContentPartCompat {
     },
 }
 
+#[cfg(feature = "openai")]
+#[derive(Debug, Clone, Deserialize)]
+struct ReasoningAssistantMessageCompat {
+    role: ReasoningAssistantRole,
+    content: Vec<LenientAssistantContentPartCompat>,
+    #[serde(default)]
+    tool_calls: Vec<openai::ToolCall>,
+}
+
+#[cfg(feature = "openai")]
+#[derive(Debug, Clone, Deserialize)]
+enum ReasoningAssistantRole {
+    #[serde(rename = "assistant")]
+    Assistant,
+}
+
+#[cfg(feature = "openai")]
+fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
+    let ReasoningAssistantMessageCompat {
+        role: _,
+        content,
+        tool_calls,
+    } = serde_json::from_value(item.clone()).ok()?;
+
+    if !content
+        .iter()
+        .any(|part| matches!(part, LenientAssistantContentPartCompat::Reasoning { .. }))
+    {
+        return None;
+    }
+
+    let mut content_parts: Vec<_> = content
+        .into_iter()
+        .map(parse_lenient_assistant_content_part)
+        .collect::<Option<_>>()?;
+    content_parts.extend(assistant_content_parts_from_openai_tool_calls(
+        tool_calls, None,
+    ));
+
+    Some(Message::Assistant {
+        content: AssistantContent::Array(content_parts),
+        id: None,
+    })
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 enum LenientToolContentPartCompat {
@@ -451,7 +506,14 @@ fn parse_tool_call_arguments(value: Option<Value>) -> Option<ToolCallArguments> 
 }
 
 fn try_parse_lenient_assistant_content_part(item: &Value) -> Option<AssistantContentPart> {
-    match serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()? {
+    let part = serde_json::from_value::<LenientAssistantContentPartCompat>(item.clone()).ok()?;
+    parse_lenient_assistant_content_part(part)
+}
+
+fn parse_lenient_assistant_content_part(
+    part: LenientAssistantContentPartCompat,
+) -> Option<AssistantContentPart> {
+    match part {
         LenientAssistantContentPartCompat::Text { text } => {
             Some(AssistantContentPart::Text(TextContentPart {
                 text,
@@ -665,4 +727,109 @@ pub fn import_messages_from_spans(spans: Vec<Span>) -> Vec<Message> {
 pub fn import_and_deduplicate_messages(spans: Vec<Span>) -> Vec<Message> {
     let messages = import_messages_from_spans(spans);
     super::dedup::deduplicate_messages(messages)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn import_assistant_parts(input: Value) -> Vec<AssistantContentPart> {
+        let messages = try_converting_to_messages(&input);
+        assert_eq!(messages.len(), 1);
+
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = messages
+            .into_iter()
+            .next()
+            .expect("expected assistant message")
+        else {
+            panic!("expected assistant content parts");
+        };
+
+        parts
+    }
+
+    #[test]
+    fn imports_reasoning_and_text_parts_independent_of_object_key_order() {
+        let content_first = crate::serde_json::json!([
+            {
+                "content": [
+                    { "text": "internal reasoning", "type": "reasoning" },
+                    { "text": "visible answer", "type": "text" }
+                ],
+                "role": "assistant"
+            }
+        ]);
+        let role_first = crate::serde_json::json!([
+            {
+                "role": "assistant",
+                "content": [
+                    { "type": "reasoning", "text": "internal reasoning" },
+                    { "type": "text", "text": "visible answer" }
+                ]
+            }
+        ]);
+
+        for input in [content_first, role_first] {
+            let parts = import_assistant_parts(input);
+            assert!(matches!(
+                parts.as_slice(),
+                [
+                    AssistantContentPart::Reasoning { text, .. },
+                    AssistantContentPart::Text(TextContentPart { text: visible, .. }),
+                ] if text == "internal reasoning" && visible == "visible answer"
+            ));
+        }
+    }
+
+    #[test]
+    fn imports_reasoning_only_assistant_content() {
+        let parts = import_assistant_parts(crate::serde_json::json!([
+            {
+                "role": "assistant",
+                "content": [{ "type": "reasoning", "text": "internal reasoning" }]
+            }
+        ]));
+
+        assert!(matches!(
+            parts.as_slice(),
+            [AssistantContentPart::Reasoning { text, .. }] if text == "internal reasoning"
+        ));
+    }
+
+    #[test]
+    fn imports_reasoning_with_openai_top_level_tool_calls() {
+        let parts = import_assistant_parts(crate::serde_json::json!([
+            {
+                "tool_calls": [{
+                    "id": "call_lookup",
+                    "type": "function",
+                    "function": {
+                        "name": "lookup_weather",
+                        "arguments": "{\"city\":\"Paris\"}"
+                    }
+                }],
+                "content": [{ "text": "Need the weather", "type": "reasoning" }],
+                "role": "assistant"
+            }
+        ]));
+
+        assert!(matches!(
+            parts.as_slice(),
+            [
+                AssistantContentPart::Reasoning { text, .. },
+                AssistantContentPart::ToolCall {
+                    tool_call_id,
+                    tool_name,
+                    arguments,
+                    ..
+                },
+            ] if text == "Need the weather"
+                && tool_call_id == "call_lookup"
+                && tool_name == "lookup_weather"
+                && arguments.to_string() == "{\"city\":\"Paris\"}"
+        ));
+    }
 }
