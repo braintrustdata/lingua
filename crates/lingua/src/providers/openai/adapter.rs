@@ -15,6 +15,7 @@ use crate::processing::adapters::{
 use crate::processing::transform::TransformError;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
+    strip_unsupported_chat_prompt_cache_breakpoints, supports_prompt_cache_breakpoint,
 };
 use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
@@ -546,6 +547,29 @@ impl ProviderAdapter for OpenAIAdapter {
                 obj.insert(k.clone(), v.clone());
             }
         }
+
+        if !supports_prompt_cache_breakpoint(model) {
+            obj.remove("prompt_cache_options");
+        }
+
+        let messages = obj.remove("messages").ok_or_else(|| {
+            TransformError::FromUniversalFailed("missing OpenAI Chat Completions messages".into())
+        })?;
+        let mut typed_messages: Vec<ChatCompletionRequestMessageExt> =
+            serde_json::from_value(messages).map_err(|error| {
+                TransformError::FromUniversalFailed(format!(
+                    "failed to parse OpenAI Chat Completions messages: {error}"
+                ))
+            })?;
+        strip_unsupported_chat_prompt_cache_breakpoints(model, &mut typed_messages);
+        obj.insert(
+            "messages".into(),
+            serde_json::to_value(typed_messages).map_err(|error| {
+                TransformError::SerializationFailed(format!(
+                    "failed to serialize OpenAI Chat Completions messages: {error}"
+                ))
+            })?,
+        );
 
         // Preserve source OpenAI shape by default, while enforcing model capability transforms
         // (e.g. max_tokens -> max_completion_tokens and prompt cache breakpoint support).
