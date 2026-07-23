@@ -4,7 +4,7 @@ OpenAI-specific capability detection used by the transformation pipeline.
 use crate::providers::openai::convert::{
     ChatCompletionRequestMessageContentExt, ChatCompletionRequestMessageExt,
 };
-use crate::providers::openai::generated::{InputItemContent, InputParam};
+use crate::providers::openai::generated::{InputItemContent, InputParam, Prompt, PromptVariable};
 use crate::serde_json::{Map, Value};
 use crate::universal::ReasoningEffort;
 
@@ -302,6 +302,26 @@ pub fn strip_unsupported_responses_prompt_cache_breakpoints(model: &str, input: 
                     part.prompt_cache_breakpoint = None;
                 }
             }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Responses prompt variables.
+pub fn strip_unsupported_responses_prompt_variable_cache_breakpoints(
+    model: &str,
+    prompt: &mut Prompt,
+) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    for variable in prompt
+        .variables
+        .iter_mut()
+        .flat_map(|variables| variables.values_mut())
+    {
+        if let PromptVariable::Input(input) = variable {
+            input.prompt_cache_breakpoint = None;
         }
     }
 }

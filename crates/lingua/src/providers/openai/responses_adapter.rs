@@ -15,14 +15,16 @@ use crate::processing::transform::TransformError;
 use crate::providers::openai::adapter::parse_openai_chat_extras;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
-    strip_unsupported_responses_prompt_cache_breakpoints, supports_prompt_cache_breakpoint,
+    strip_unsupported_responses_prompt_cache_breakpoints,
+    strip_unsupported_responses_prompt_variable_cache_breakpoints,
+    supports_prompt_cache_breakpoint,
 };
 use crate::providers::openai::convert::{
     responses_input_values_from_universal_context, responses_output_values_from_universal_context,
 };
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, InputParam, Instructions,
-    OutputItemType,
+    OutputItemType, Prompt,
 };
 use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
@@ -935,6 +937,23 @@ impl ProviderAdapter for ResponsesAdapter {
                 ))
             })?,
         );
+
+        if let Some(prompt) = obj.remove("prompt") {
+            let mut typed_prompt: Prompt = serde_json::from_value(prompt).map_err(|error| {
+                TransformError::FromUniversalFailed(format!(
+                    "failed to parse OpenAI Responses prompt: {error}"
+                ))
+            })?;
+            strip_unsupported_responses_prompt_variable_cache_breakpoints(model, &mut typed_prompt);
+            obj.insert(
+                "prompt".into(),
+                serde_json::to_value(typed_prompt).map_err(|error| {
+                    TransformError::SerializationFailed(format!(
+                        "failed to serialize OpenAI Responses prompt: {error}"
+                    ))
+                })?,
+            );
+        }
 
         // Apply capability-based transforms (e.g., strip temperature for reasoning models)
         apply_model_transforms(model, &mut obj);
@@ -3095,6 +3114,34 @@ mod tests {
         assert_eq!(
             roundtrip.pointer("/prompt_cache_retention"),
             Some(&json!("24h"))
+        );
+    }
+
+    #[test]
+    fn test_responses_strips_prompt_variable_cache_breakpoint_before_gpt_5_6() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "input": [{"role": "user", "content": "Hello"}],
+            "prompt": {
+                "id": "pmpt_123",
+                "variables": {
+                    "ctx": {
+                        "type": "input_text",
+                        "text": "Reusable context",
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
+                    }
+                }
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(roundtrip.pointer("/prompt/id"), Some(&json!("pmpt_123")));
+        assert_eq!(
+            roundtrip.pointer("/prompt/variables/ctx/prompt_cache_breakpoint"),
+            None
         );
     }
 
