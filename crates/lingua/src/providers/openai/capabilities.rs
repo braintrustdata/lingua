@@ -280,6 +280,7 @@ pub fn strip_unsupported_chat_prompt_cache_breakpoints(
     }
 
     for message in messages {
+        message.cache_control = None;
         if let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = message.content.as_mut()
         {
             for part in parts {
@@ -406,6 +407,23 @@ mod tests {
                 "{model} should strip cache_control"
             );
         }
+    }
+
+    #[test]
+    fn test_strip_unsupported_message_cache_control_with_string_content() {
+        let mut messages: Vec<ChatCompletionRequestMessageExt> = serde_json::from_value(json!([
+            {
+                "role": "user",
+                "content": "Hello",
+                "cache_control": {"type": "ephemeral"}
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_chat_prompt_cache_breakpoints("gpt-5.5", &mut messages);
+        let messages = serde_json::to_value(messages).unwrap();
+
+        assert_eq!(messages[0]["cache_control"], Value::Null);
     }
 
     #[test]

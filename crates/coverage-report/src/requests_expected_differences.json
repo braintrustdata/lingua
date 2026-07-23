@@ -571,6 +571,30 @@
     {
       "testCase": "anthropicMessageWithSystemMessage",
       "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].cache_control", "reason": "The fixture targets a pre-GPT-5.6 Chat Completions model, which rejects explicit prompt cache breakpoints and their compatibility cache-control markers" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsAnthropicCacheControlParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].cache_control", "reason": "The fixture targets a pre-GPT-5.6 Chat Completions model, which rejects explicit prompt cache breakpoints and their compatibility cache-control markers" }
+      ]
+    },
+    {
+      "testCase": "promptCacheKeyParam",
+      "source": "Anthropic",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "messages[*].content[*].cache_control", "reason": "The fixture targets a pre-GPT-5.6 Chat Completions model, which rejects explicit prompt cache breakpoints and their compatibility cache-control markers" }
+      ]
+    },
+    {
+      "testCase": "anthropicMessageWithSystemMessage",
+      "source": "Anthropic",
       "target": "Anthropic",
       "errors": [
         { "pattern": "live Messages API currently rejects role 'system'", "reason": "Claude Code system-role message payload is accepted as an Anthropic-shaped source for non-Anthropic targets, but the live Anthropic Messages API rejects system-role input messages for available models" }
