@@ -267,7 +267,9 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
 
     if !supports_prompt_cache_breakpoint(model) {
         obj.remove("prompt_cache_options");
+        obj.remove("prompt_cache_retention");
         strip_chat_completions_prompt_cache_breakpoints(obj);
+        strip_responses_prompt_cache_breakpoints(obj);
     }
 }
 
@@ -281,6 +283,29 @@ fn strip_chat_completions_prompt_cache_breakpoints(obj: &mut Map<String, Value>)
         let Some(content) = message
             .as_object_mut()
             .and_then(|message| message.get_mut("content"))
+            .and_then(Value::as_array_mut)
+        else {
+            continue;
+        };
+
+        for part in content {
+            if let Some(part) = part.as_object_mut() {
+                part.remove("prompt_cache_breakpoint");
+            }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from Responses input content.
+fn strip_responses_prompt_cache_breakpoints(obj: &mut Map<String, Value>) {
+    let Some(input) = obj.get_mut("input").and_then(Value::as_array_mut) else {
+        return;
+    };
+
+    for item in input {
+        let Some(content) = item
+            .as_object_mut()
+            .and_then(|item| item.get_mut("content"))
             .and_then(Value::as_array_mut)
         else {
             continue;
@@ -394,6 +419,34 @@ mod tests {
         assert_eq!(
             obj["messages"][0]["content"][0]["prompt_cache_breakpoint"],
             json!({"mode": "explicit"})
+        );
+    }
+
+    #[test]
+    fn test_strip_unsupported_responses_prompt_cache_fields() {
+        let mut obj: Map<String, Value> = serde_json::from_value(json!({
+            "model": "gpt-5.4",
+            "prompt_cache_options": {"mode": "explicit"},
+            "prompt_cache_retention": "24h",
+            "input": [{
+                "type": "message",
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }]
+        }))
+        .unwrap();
+
+        apply_model_transforms("gpt-5.4", &mut obj);
+
+        assert!(!obj.contains_key("prompt_cache_options"));
+        assert!(!obj.contains_key("prompt_cache_retention"));
+        assert_eq!(
+            obj["input"][0]["content"][0]["prompt_cache_breakpoint"],
+            Value::Null
         );
     }
 

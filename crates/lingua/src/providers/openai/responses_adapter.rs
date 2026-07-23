@@ -3030,7 +3030,7 @@ mod tests {
     #[test]
     fn test_responses_roundtrip_preserves_prompt_cache_breakpoint() {
         let payload = json!({
-            "model": "gpt-5.4",
+            "model": "gpt-5.6",
             "input": [{
                 "role": "user",
                 "content": [{
