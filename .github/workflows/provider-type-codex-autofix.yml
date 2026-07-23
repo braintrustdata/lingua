@@ -152,7 +152,7 @@ jobs:
 
       - name: Propose fixes for the Codex review
         id: claude
-        timeout-minutes: 20
+        timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         env:
           APPEND_SYSTEM_PROMPT: |
