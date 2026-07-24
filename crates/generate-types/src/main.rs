@@ -2015,6 +2015,10 @@ fn post_process_quicktype_output_for_google(quicktype_output: &str) -> String {
     // Preserve established public Rust variant names when quicktype disambiguates them.
     processed = preserve_google_public_enum_variant_names(&processed);
 
+    // Preserve the established public names for the media-resolution types even though
+    // the Discovery spec renamed the underlying schemas.
+    processed = preserve_google_media_resolution_type_names(&processed);
+
     // Google's Discovery spec represents Schema int64 fields as protobuf-JSON
     // strings. Accept numeric JSON Schema input too, while preserving string
     // serialization in the generated Google type.
@@ -2128,6 +2132,37 @@ fn preserve_google_public_enum_variant_names(content: &str) -> String {
     }
 
     result_lines.join("\n")
+}
+
+/// Restore the established public names for Google's media-resolution types.
+///
+/// The Discovery spec renamed the Part-level media-resolution object schema from
+/// `MediaResolution` to `V1mainMediaResolution` (quicktype emits `V1MainMediaResolution`).
+/// Because that freed up the `MediaResolution` identifier, the inline
+/// `GenerationConfig.mediaResolution` string enum stopped being disambiguated as
+/// `MediaResolutionEnum` and took over the `MediaResolution` name. The wire values are
+/// unchanged, so this is a spec-internal rename that would needlessly break downstream
+/// Rust users. Restore the previous public names:
+///   - the object struct keeps the name `MediaResolution`
+///   - the bare string enum keeps the name `MediaResolutionEnum`
+fn preserve_google_media_resolution_type_names(content: &str) -> String {
+    // Rename the enum first so reclaiming `MediaResolution` for the struct below cannot
+    // collide with it. Each replacement targets a full type token, so the `V1Main`-prefixed
+    // struct references are left untouched by the enum pass.
+    let processed = content
+        .replace(
+            "pub enum MediaResolution {",
+            "pub enum MediaResolutionEnum {",
+        )
+        .replace("Option<MediaResolution>", "Option<MediaResolutionEnum>");
+
+    // Now restore the object struct's historical name.
+    processed
+        .replace(
+            "pub struct V1MainMediaResolution {",
+            "pub struct MediaResolution {",
+        )
+        .replace("Option<V1MainMediaResolution>", "Option<MediaResolution>")
 }
 
 /// If `trimmed` is a serde rename attribute for a single all-uppercase word without an
@@ -2306,7 +2341,10 @@ pub struct Status {}
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, preserve_google_media_resolution_type_names,
+        preserve_google_public_enum_variant_names,
+    };
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {
@@ -2333,5 +2371,42 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+
+    #[test]
+    fn preserves_media_resolution_public_type_names() {
+        // Mirrors the generated shape: the Part-level object schema comes out as
+        // `V1MainMediaResolution` and the `GenerationConfig.mediaResolution` string enum
+        // takes over the freed-up `MediaResolution` name.
+        let input = r#"pub struct Part {
+    pub media_resolution: Option<V1MainMediaResolution>,
+}
+
+pub struct V1MainMediaResolution {
+    pub level: Option<Level>,
+}
+
+pub struct GenerationConfig {
+    pub media_resolution: Option<MediaResolution>,
+}
+
+pub enum MediaResolution {
+    MediaResolutionHigh,
+    MediaResolutionLow,
+}"#;
+
+        let output = preserve_google_media_resolution_type_names(input);
+
+        // The object struct keeps its historical `MediaResolution` name, referenced by Part.
+        assert!(output.contains("pub struct MediaResolution {"));
+        assert!(output.contains("pub media_resolution: Option<MediaResolution>,"));
+        // The string enum keeps its historical `MediaResolutionEnum` name, referenced by
+        // GenerationConfig.
+        assert!(output.contains("pub enum MediaResolutionEnum {"));
+        assert!(output.contains("pub media_resolution: Option<MediaResolutionEnum>,"));
+        // The disambiguated spec-internal name is gone entirely.
+        assert!(!output.contains("V1MainMediaResolution"));
+        // Enum variant names (which share the `MediaResolution` prefix) are untouched.
+        assert!(output.contains("    MediaResolutionHigh,"));
     }
 }

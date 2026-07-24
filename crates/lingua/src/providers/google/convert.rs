@@ -2116,7 +2116,7 @@ mod tests {
 
     use crate::providers::google::generated::{
         AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment,
-        LanguageHints, Level, MediaResolution, Type, V1MainMediaResolution,
+        LanguageHints, Level, MediaResolution, MediaResolutionEnum, Type,
     };
 
     #[test]
@@ -2264,15 +2264,16 @@ mod tests {
 
     #[test]
     fn test_part_media_resolution_struct_round_trips() {
-        // The Part-level media-resolution object schema was renamed
-        // `MediaResolution` -> `V1mainMediaResolution` in the discovery spec, but its
-        // wire shape (an object carrying an optional `level` enum) is unchanged and
-        // every previously valid payload must still parse and re-serialize identically.
+        // The Part-level media-resolution object schema is renamed
+        // `MediaResolution` -> `V1mainMediaResolution` in the discovery spec, but the
+        // generator restores its established public name `MediaResolution`. Its wire
+        // shape (an object carrying an optional `level` enum) is unchanged and every
+        // previously valid payload must still parse and re-serialize identically.
         let wire = json!({"mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}});
         let part: GooglePart = serde_json::from_value(wire.clone()).unwrap();
         assert_eq!(
             part.media_resolution,
-            Some(V1MainMediaResolution {
+            Some(MediaResolution {
                 level: Some(Level::MediaResolutionUltraHigh),
             })
         );
@@ -2295,8 +2296,7 @@ mod tests {
                 Level::MediaResolutionUltraHigh,
             ),
         ] {
-            let mr: V1MainMediaResolution =
-                serde_json::from_value(json!({"level": level_wire})).unwrap();
+            let mr: MediaResolution = serde_json::from_value(json!({"level": level_wire})).unwrap();
             assert_eq!(mr.level, Some(level));
             assert_eq!(
                 serde_json::to_value(&mr).unwrap()["level"],
@@ -2307,22 +2307,26 @@ mod tests {
 
     #[test]
     fn test_generation_config_media_resolution_enum_round_trips() {
-        // `GenerationConfig.mediaResolution` is a bare string enum whose generated name
-        // moved from `MediaResolutionEnum` -> `MediaResolution`. The wire values are
-        // unchanged, so all spec values must still round trip.
+        // `GenerationConfig.mediaResolution` is a bare string enum. The spec rename freed
+        // up the `MediaResolution` name, but the generator keeps the established public
+        // name `MediaResolutionEnum`. The wire values are unchanged, so all spec values
+        // must still round trip.
         for (wire, value) in [
             (
                 "MEDIA_RESOLUTION_UNSPECIFIED",
-                MediaResolution::MediaResolutionUnspecified,
+                MediaResolutionEnum::MediaResolutionUnspecified,
             ),
-            ("MEDIA_RESOLUTION_LOW", MediaResolution::MediaResolutionLow),
+            (
+                "MEDIA_RESOLUTION_LOW",
+                MediaResolutionEnum::MediaResolutionLow,
+            ),
             (
                 "MEDIA_RESOLUTION_MEDIUM",
-                MediaResolution::MediaResolutionMedium,
+                MediaResolutionEnum::MediaResolutionMedium,
             ),
             (
                 "MEDIA_RESOLUTION_HIGH",
-                MediaResolution::MediaResolutionHigh,
+                MediaResolutionEnum::MediaResolutionHigh,
             ),
         ] {
             let config: GenerationConfig =

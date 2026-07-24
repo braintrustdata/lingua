@@ -170,7 +170,7 @@ pub struct Part {
     pub inline_data: Option<Blob>,
     /// Optional. Media resolution for the input media.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_resolution: Option<V1MainMediaResolution>,
+    pub media_resolution: Option<MediaResolution>,
     /// Custom metadata associated with the Part. Agents using genai.Part as content
     /// representation may need to keep track of the additional information. For example it can
     /// be name of a file/source from which the Part originates or a way to multiplex multiple
@@ -425,7 +425,7 @@ pub struct Blob {
 /// Media resolution for tokenization.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "google/")]
-pub struct V1MainMediaResolution {
+pub struct MediaResolution {
     /// The tokenization quality used for given media. for Gemini API support .
     #[serde(skip_serializing_if = "Option::is_none")]
     pub level: Option<Level>,
@@ -593,7 +593,7 @@ pub struct GenerationConfig {
     pub max_output_tokens: Option<i64>,
     /// Optional. If specified, the media resolution specified will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_resolution: Option<MediaResolution>,
+    pub media_resolution: Option<MediaResolutionEnum>,
     /// Optional. Presence penalty applied to the next token's logprobs if the token has already
     /// been seen in the response. This penalty is binary on/off and not dependant on the number
     /// of times the token is used (after the first). Use frequency_penalty for a penalty that
@@ -744,7 +744,7 @@ pub struct ImageConfig {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[ts(export_to = "google/")]
-pub enum MediaResolution {
+pub enum MediaResolutionEnum {
     #[serde(rename = "MEDIA_RESOLUTION_HIGH")]
     MediaResolutionHigh,
     #[serde(rename = "MEDIA_RESOLUTION_LOW")]
