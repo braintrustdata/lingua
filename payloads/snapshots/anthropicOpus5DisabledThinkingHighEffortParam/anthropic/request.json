@@ -1,0 +1,16 @@
+{
+  "model": "claude-opus-5",
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    }
+  ],
+  "thinking": {
+    "type": "disabled"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}

@@ -229,6 +229,40 @@ exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffor
 }
 `;
 
+exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
+{
+  "max_completion_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_E5HL18LeQcug3pSMHCRgiE5360ycd",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 74,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > bedrockAnthropicContextManagementParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -2444,6 +2478,46 @@ Alright, a straightforward one. My initial assessment is that the user's inquiry
     },
     {
       "text": "2 + 2 is 4.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 86,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
       "type": "text",
     },
   ],
@@ -5665,6 +5739,42 @@ exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam 
     "effort": "max",
   },
   "stream": true,
+}
+`;
+
+exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 4096,
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_046216b07001f271006a63d313830c81988eb6a91053560ad5",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 11,
+  },
 }
 `;
 

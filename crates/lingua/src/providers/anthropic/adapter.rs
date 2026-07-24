@@ -170,6 +170,37 @@ fn reasoning_is_disabled(config: &ReasoningConfig) -> bool {
     config.effort == Some(ReasoningEffort::None) || config.enabled == Some(false)
 }
 
+fn reasoning_from_anthropic(
+    thinking: Option<&Thinking>,
+    output_config: Option<&OutputConfig>,
+) -> Option<ReasoningConfig> {
+    let effort =
+        output_config
+            .and_then(|config| config.effort.as_ref())
+            .map(|effort| match effort {
+                EffortLevel::Low => ReasoningEffort::Low,
+                EffortLevel::Medium => ReasoningEffort::Medium,
+                EffortLevel::High => ReasoningEffort::High,
+                EffortLevel::Xhigh => ReasoningEffort::Xhigh,
+                EffortLevel::Max => ReasoningEffort::Max,
+            });
+
+    if let Some(effort) = effort {
+        let enabled = thinking
+            .map(ReasoningConfig::from)
+            .and_then(|config| config.enabled)
+            .unwrap_or(true);
+        Some(ReasoningConfig {
+            enabled: Some(enabled),
+            effort: Some(effort),
+            canonical: Some(ReasoningCanonical::Effort),
+            ..Default::default()
+        })
+    } else {
+        thinking.map(ReasoningConfig::from)
+    }
+}
+
 fn reasoning_effort_level(
     config: Option<&ReasoningConfig>,
     max_tokens: Option<i64>,
@@ -320,35 +351,10 @@ impl ProviderAdapter for AnthropicAdapter {
                 .as_ref()
                 .and_then(|tc| tc.disable_parallel_tool_use)
                 .map(|disabled| !disabled),
-            reasoning: typed_params
-                .output_config
-                .as_ref()
-                .and_then(|oc| oc.effort.as_ref())
-                .map(|effort| {
-                    use crate::providers::anthropic::generated::EffortLevel;
-                    use crate::universal::request::{
-                        ReasoningCanonical, ReasoningConfig, ReasoningEffort,
-                    };
-                    let effort_level = match effort {
-                        EffortLevel::Low => ReasoningEffort::Low,
-                        EffortLevel::Medium => ReasoningEffort::Medium,
-                        EffortLevel::High => ReasoningEffort::High,
-                        EffortLevel::Xhigh => ReasoningEffort::Xhigh,
-                        EffortLevel::Max => ReasoningEffort::Max,
-                    };
-                    ReasoningConfig {
-                        enabled: Some(true),
-                        effort: Some(effort_level),
-                        canonical: Some(ReasoningCanonical::Effort),
-                        ..Default::default()
-                    }
-                })
-                .or_else(|| {
-                    typed_params
-                        .thinking
-                        .as_ref()
-                        .map(crate::universal::request::ReasoningConfig::from)
-                }),
+            reasoning: reasoning_from_anthropic(
+                typed_params.thinking.as_ref(),
+                typed_params.output_config.as_ref(),
+            ),
             metadata: typed_params
                 .metadata
                 .as_ref()
@@ -2352,6 +2358,39 @@ mod tests {
                 "{model}: output_config.effort should round-trip {effort}"
             );
         }
+    }
+
+    #[test]
+    fn test_anthropic_opus_5_preserves_disabled_thinking_with_effort_round_trip() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "model": "claude-opus-5",
+            "max_tokens": 4096,
+            "messages": [{"role": "user", "content": "What is 2+2?"}],
+            "thinking": {"type": "disabled"},
+            "output_config": {"effort": "high"}
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let reasoning = universal
+            .params
+            .reasoning
+            .as_ref()
+            .expect("reasoning should be present");
+        assert_eq!(reasoning.enabled, Some(false));
+        assert_eq!(reasoning.effort, Some(ReasoningEffort::High));
+        assert_eq!(reasoning.canonical, Some(ReasoningCanonical::Effort));
+
+        let result: CreateMessageParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        assert_eq!(
+            result.thinking.map(|thinking| thinking.thinking_type),
+            Some(ThinkingType::Disabled)
+        );
+        assert_eq!(
+            result.output_config.and_then(|config| config.effort),
+            Some(EffortLevel::High)
+        );
     }
 
     #[test]

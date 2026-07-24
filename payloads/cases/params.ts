@@ -532,6 +532,20 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  anthropicOpus5DisabledThinkingHighEffortParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "disabled" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {
