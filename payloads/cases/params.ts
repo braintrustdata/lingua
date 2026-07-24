@@ -513,6 +513,24 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  anthropicOpus5AdaptiveThinkingMaxEffortParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "max" },
+    },
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 65536,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "adaptive" },
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {

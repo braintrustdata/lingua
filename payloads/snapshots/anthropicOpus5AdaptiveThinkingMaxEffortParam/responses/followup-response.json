@@ -1,0 +1,102 @@
+{
+  "id": "resp_02edcf2cbd71902b006a63b99a31708198a7423c10cc7df97c",
+  "object": "response",
+  "created_at": 1784920474,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1784920476,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_02edcf2cbd71902b006a63b99abdf4819895d2484363bcd133",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqY7mc3ZMTkGSoVk0AgMMmEq7i4ps15aXuFW83jrh7pFUwZLnLnkr6yYW1eCADm_gV0i9vmRTX218O_KZZa9aRuP41El-nTAo53PufK7Q_WsIS7BOhdhSSnd9AT1rmx7s03dqsBAhbksaJ-woOZGMDvLRDyu1MB5ezxEwmhmfiOA7u1rvef70kBmLCfGknwK52ZamhSdV93kTA4vKrXGKCzibl4X-VGn_xMlBDp4Xfo-zm94s7rJ3mSiChsrIxgAtwG2pJNFWgUoK096NByx3i5Y2NHIESndTEwAbX8tpQZCgkZNaIfEtiZX7wpzWy01W2eueWK_11Ho-m6YpRXc0giYwCB3sFr5NpNMB3xorWMHsewRYnKRMwnSW6iatKA8gKl_b8lfZIERX2Z8muZkEE_j8O9cRdGeCgsFlFLra5yjnXSswIwJAzv9OYZiSUdhVZ8cL-nzuL5dMC2bT4lYjL5gKNAFu7Ss7qCIXkslP1R4e6MDPQbmXfz8uS0ngGOGD3MlzKpA604Ec3ut82m2ftxHGLK-aspAMvb2zjAvqNTIsjlQuIbDPvVHHuqGohw08pCyjryRbPI7BUkM6KFvPDVNCJ7QkxQbX9XyJV6DXpi5-NcPIKKr74EP2v0mRWa26rT5FbPIhTY1UON16a3rNJWPO9ZLuMbQGPfoH-qXEEsCBUVUcsz5WE1GMValMF7Yrzf38PrxiWLU6_lM0mihETXWbSb9tQQsRAJSMByTGuvsR_F4c6bQDIYhXu-zm9RsITsWu0wzHa2r3J_M4nsFaFzuKp127QzoV3j77KHdYxoJqPdxHUhyK_ITVpcDttnL1xGy6sbDuRsThoX4-m9h5qmzPhaprAyJnPDcRsgY2CnObgBC-SnPDfhaiBYHHgqGCppYHu99jQKBtVj2PhsgNr9j_u3BQrHuhCchrjxitDWpMfs0cChUrfzsvrfv5swk2D-iWkoUbTucXeSsFDWjeArKAh1lRMmHFl6lR6enelGPntmIDmz7Ip19wLmOEq4K1PUZxXzZiBo0ptRMS54PTwRC7cs7C5UZzn65HG1bb3GeK5nOAbJow9ZRDnqrV0AsVcKfDIv50bi8bl5gJbKlvntEvfqNoPfUDDlUd7NIRNaEMy1H_eGSgYPNzGPU5HdSbp23Gr12oUSsAbxJLhfYlJ-23nh5phnJJmPL3thDDO0rayoybzzo5KfdVfhO5UEQdoutqtVa3YY_y9SggT2P90B9pZyUQShLK_CcmfOo6dPfKkx0ITgFsOLMOiZUtULcWLDVTxkRjKPc7TJc8YNceUxnrl7QnlB2oKR_uhXO9f-4bvICb_EfjN0cW14cwHD0Z04hKzsdbfwHfaEh9zOxVpxIgMFtR8qVh5Ow_KoAE8duB8tNeS9b-7f0SjtV3YNbFzwOc3rORzb2OYlNr1Zn1hhnoksPooeXjoPOihvQIy4_f9lHcgWjc7tclHnHL0eSFm4mU6e7XNe-mIfSozfXsA_vjkdO5Mvih43F5-ECCsjPw_07SV1oxp2wrkbRK_kNKmJq8SWEwNrbucjyehZjXs6yU_x41_1qTg9WDvthhQxP0iJyg=",
+      "summary": []
+    },
+    {
+      "id": "msg_02edcf2cbd71902b006a63b99bc78081989263a55751f678a8",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Choose the smallest useful next step:\n\n1. Identify your top priority right now.\n2. Spend 10 focused minutes on it.\n3. Reassess when the timer ends.\n\nIf you mean a specific situation, tell me what you’re deciding between."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "max",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 36,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 166,
+    "output_tokens_details": {
+      "reasoning_tokens": 109
+    },
+    "total_tokens": 202
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Choose the smallest useful next step:\n\n1. Identify your top priority right now.\n2. Spend 10 focused minutes on it.\n3. Reassess when the timer ends.\n\nIf you mean a specific situation, tell me what you’re deciding between."
+}

@@ -211,6 +211,41 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
 }
 `;
 
+exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "max_completion_tokens": 65536,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_E5FdtBAY9w5P1D1UaCAAZmWEs4JZa",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 330,
+  },
+}
+`;
+
 exports[`anthropic → chat-completions > bedrockAnthropicContextManagementParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -2384,6 +2419,59 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "usage": {
     "input_tokens": 88,
     "output_tokens": 546,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 65536,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "**My Immediate Thought Process on the User's Query**
+
+Alright, a straightforward one. My initial assessment is that the user's inquiry, "What is 2+2?", boils down to a fundamental arithmetic problem. The core of the issue is to determine the sum of two and two. Given that, the solution is immediate. I already know that $2 + 2 = 4$. My subsequent thought is that the most effective response will be direct, concise, and unambiguous. No need for elaborate explanations here. I'll simply state the answer clearly: "2 + 2 is 4."
+
+
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 is 4.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 86,
   },
 }
 `;
@@ -5575,6 +5663,45 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 92,
     "output_tokens": 1024,
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 65536,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0e37c6be36145385006a63b99cda6c819bb09700c61ab9302b",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 11,
   },
 }
 `;
@@ -28972,6 +29099,74 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
 }
 `;
 
+exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-5",
+  "output_config": {
+    "effort": "max",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
+exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CdMR7fwXVygc6dpvp6pG6",
+  "incomplete_details": null,
+  "model": "claude-opus-5",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "encrypted_content": "CAIS5gIKhwEIEBgCKkC8CXvU023jRl9NRdOT+ltOgkiUmJu68VwvGEEByQE1wIHQLn1HLlgTr1LWBcjd0PFZ9P3axWG1SiSTRBFnyhf8Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDFRalmWqlhNzwrz/lRoMtQYkHg4G/JYhkHMbIjBGExFrTXep7/zP1yxI+qFgpqDw+7TJY6rq8XtZVf89Rfg5AKp85J28wHEZFm6a+VEqiwH/FpDE6/OEYzbMRjB+OQb96y3fY9cOyeymcet1Yrvdba7+iSzAKxLDxd0dntrCcrkpzDa993rT723oUQQ7GBcc/jyHyX1V5wy5AAhLV/5wRkhZ/PS4dczryoor/mSMMYEi00OwStRvcNvSdSHeBQoBCkhYtT4yX9MUsyLYPtcluczfZEUV2pagfFsqGAE=",
+      "id": "msg_transformed_item_0",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 54,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 67,
+  },
+}
+`;
+
 exports[`responses → anthropic > complexReasoningRequest > request 1`] = `
 {
   "max_tokens": 20000,
@@ -32411,6 +32606,92 @@ exports[`responses → anthropic > truncationAutoParam > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 20,
+  },
+}
+`;
+
+exports[`responses → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Mental Calculation of a Basic Arithmetic Query**
+
+Okay, so the user wants to know "What is 2+2?". Right, a fundamental arithmetic question. Let's break this down.
+
+First, I quickly identify the core task: it's a simple addition problem. No need for complex analysis here. The solution is straightforward.
+
+Next, the calculation. Two plus two equals... four. That's a given.
+
+Now, for the response. Given the user's intelligence and expertise, I don't need to overcomplicate things. The most direct and accurate answer is best. I could say "2 + 2 is 4," or even more concisely, just "4." It's about precision and efficiency. And that's that.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 is 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 is 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 100,
+    "output_tokens_details": {
+      "reasoning_tokens": 92,
+    },
+    "total_tokens": 108,
   },
 }
 `;

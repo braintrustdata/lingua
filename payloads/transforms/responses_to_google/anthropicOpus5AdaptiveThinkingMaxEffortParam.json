@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Mental Calculation of a Basic Arithmetic Query**\n\nOkay, so the user wants to know \"What is 2+2?\". Right, a fundamental arithmetic question. Let's break this down.\n\nFirst, I quickly identify the core task: it's a simple addition problem. No need for complex analysis here. The solution is straightforward.\n\nNext, the calculation. Two plus two equals... four. That's a given.\n\nNow, for the response. Given the user's intelligence and expertise, I don't need to overcomplicate things. The most direct and accurate answer is best. I could say \"2 + 2 is 4,\" or even more concisely, just \"4.\" It's about precision and efficiency. And that's that.\n\n\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 is 4.",
+            "thoughtSignature": "Et4CCtsCARFNMg8AocIebl9pGfwtbmresLTIHYpD7gP0BU/5M2kNBbrq+tWyyrVldosIsPLb3qskvoMXUNfopwkXdqaRp639x4VxidTRw629IviTsdYjSyVCNWkNSLTbqrkZxcSBLeYAtKjVVQCorQsqzrK38VFX6e7wa7jLYfgxTVRZW/+/33iL0HSH7zmxKVfP5s5vxLNhkDN74rwLgcT3gtSjAg+Xi1jHXWmqeAAZuUgBdykvVuZpqhCxbzj6OFU1CJ58ypIMXBYW1f4X8HG6YeJ7ZW0H5Y/itx2AyqrveFMbesHfSR4bW6stn76wMrihsokrvyWaVpuAQ/2P1xILBUiI5mv5Cm+JpjQhadp8N2YFBcR6SAVaxGV1MZv4YwoOXe9SnkU10q7htSW6jDdSUBrIHkT+85+RpsejiOSFVpifmWVsH1x907/OGY4tGeEkxDN6laJ2uTTvth7Pf80="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 108,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 92,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "nLljao3UO7-2_uMPoeCm6Qs"
+}
