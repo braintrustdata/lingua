@@ -523,6 +523,7 @@ export const paramsCases: TestCaseCollection = {
     anthropic: {
       model: "claude-opus-5",
       max_tokens: 65536,
+      stream: true,
       messages: [{ role: "user", content: "What is 2+2?" }],
       thinking: { type: "adaptive" },
       output_config: { effort: "max" },

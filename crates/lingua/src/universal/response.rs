@@ -117,7 +117,7 @@ pub enum FinishReason {
     /// Normal completion (OpenAI: "stop", Anthropic: "end_turn", Google: "STOP")
     Stop,
 
-    /// Hit token limit (OpenAI: "length", Anthropic: "max_tokens")
+    /// Hit token or context limit (OpenAI: "length", Anthropic: "max_tokens")
     Length,
 
     /// Model wants to call tools (OpenAI: "tool_calls", Anthropic: "tool_use")
@@ -150,7 +150,11 @@ impl std::str::FromStr for FinishReason {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s.to_lowercase().as_str() {
             "stop" | "end_turn" | "stop_sequence" | "completed" => FinishReason::Stop,
-            "length" | "max_tokens" | "max_output_tokens" | "incomplete" => FinishReason::Length,
+            "length"
+            | "max_tokens"
+            | "max_output_tokens"
+            | "model_context_window_exceeded"
+            | "incomplete" => FinishReason::Length,
             "tool_calls" | "tool_use" => FinishReason::ToolCalls,
             "content_filter" | "content_filtered" | "safety" | "refusal" => {
                 FinishReason::ContentFilter
@@ -167,7 +171,7 @@ impl FinishReason {
     /// string variants:
     /// - OpenAI Chat: "stop", "length", "tool_calls", "content_filter"
     /// - OpenAI Responses: "completed", "incomplete"
-    /// - Anthropic: "end_turn", "stop_sequence", "max_tokens", "tool_use"
+    /// - Anthropic: "end_turn", "stop_sequence", "max_tokens", "model_context_window_exceeded", "tool_use"
     /// - Bedrock: "end_turn", "stop_sequence", "max_tokens", "tool_use", "content_filtered"
     /// - Google: "STOP", "MAX_TOKENS", "TOOL_CALLS", "SAFETY", "RECITATION", "OTHER"
     pub fn from_provider_string(s: &str, provider: ProviderFormat) -> Self {
@@ -186,7 +190,7 @@ impl FinishReason {
 
             // Length variants
             (
-                "max_tokens",
+                "max_tokens" | "model_context_window_exceeded",
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::VertexAnthropic
@@ -917,6 +921,25 @@ mod tests {
                 FinishReason::from_provider_string("refusal", provider),
                 FinishReason::ContentFilter,
                 "expected 'refusal' to map to ContentFilter for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_context_window_exceeded_maps_to_length() {
+        let parsed: FinishReason = "model_context_window_exceeded".parse().unwrap();
+        assert_eq!(parsed, FinishReason::Length);
+
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+            ProviderFormat::Converse,
+        ] {
+            assert_eq!(
+                FinishReason::from_provider_string("model_context_window_exceeded", provider),
+                FinishReason::Length,
+                "expected context-window stop to map to Length for {provider:?}"
             );
         }
     }

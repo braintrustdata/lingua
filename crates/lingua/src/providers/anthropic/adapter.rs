@@ -3173,6 +3173,56 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_context_window_exceeded_response_maps_to_length() {
+        let payload = json!({
+            "id": "msg_test",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-opus-5",
+            "stop_reason": "model_context_window_exceeded",
+            "content": [{"type": "text", "text": "partial response"}]
+        });
+
+        let universal = AnthropicAdapter.response_to_universal(payload).unwrap();
+        assert_eq!(universal.finish_reason, Some(FinishReason::Length));
+        assert_eq!(universal.finish_reasons, vec![FinishReason::Length]);
+        let finish_reason = universal.finish_reason.as_ref().unwrap();
+        assert_eq!(
+            finish_reason.to_provider_string(ProviderFormat::ChatCompletions),
+            "length"
+        );
+        assert_eq!(
+            finish_reason.to_provider_string(ProviderFormat::Responses),
+            "incomplete"
+        );
+    }
+
+    #[test]
+    fn test_anthropic_context_window_exceeded_stream_maps_to_length() {
+        let payload = json!({
+            "type": "message_delta",
+            "delta": {
+                "stop_reason": "model_context_window_exceeded",
+                "stop_sequence": null
+            },
+            "usage": {"output_tokens": 64}
+        });
+
+        let chunk = AnthropicAdapter
+            .stream_to_universal(payload)
+            .expect("stream_to_universal should succeed")
+            .expect("message_delta should emit a chunk");
+
+        assert_eq!(
+            chunk
+                .choices
+                .first()
+                .and_then(|choice| choice.finish_reason.as_deref()),
+            Some("length")
+        );
+    }
+
+    #[test]
     fn test_stream_to_universal_thinking_delta_semantic_chunk() {
         let adapter = AnthropicAdapter;
         let payload = json!({

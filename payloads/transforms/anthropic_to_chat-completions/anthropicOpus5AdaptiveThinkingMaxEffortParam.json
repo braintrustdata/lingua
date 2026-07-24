@@ -1,35 +1,18 @@
 {
-  "id": "chatcmpl-E5FdtBAY9w5P1D1UaCAAZmWEs4JZa",
-  "object": "chat.completion",
-  "created": 1784920477,
-  "model": "gpt-5-nano-2025-08-07",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "4",
-        "refusal": null,
-        "annotations": []
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 13,
-    "completion_tokens": 330,
-    "total_tokens": 343,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-      "audio_tokens": 0
-    },
-    "completion_tokens_details": {
-      "reasoning_tokens": 320,
-      "audio_tokens": 0,
-      "accepted_prediction_tokens": 0,
-      "rejected_prediction_tokens": 0
+  "request": {
+    "max_completion_tokens": 65536,
+    "messages": [
+      {
+        "content": "What is 2+2?",
+        "role": "user"
+      }
+    ],
+    "model": "gpt-5-nano",
+    "reasoning_effort": "high",
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
     }
   },
-  "service_tier": "default",
-  "system_fingerprint": null
+  "error": "Deserialization failed: missing field `choices` at line 3 column 1"
 }

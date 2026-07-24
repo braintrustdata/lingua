@@ -222,26 +222,9 @@ exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffor
   ],
   "model": "gpt-5-nano",
   "reasoning_effort": "high",
-}
-`;
-
-exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "4",
-      "type": "text",
-    },
-  ],
-  "id": "msg_E5FdtBAY9w5P1D1UaCAAZmWEs4JZa",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 13,
-    "output_tokens": 330,
+  "stream": true,
+  "stream_options": {
+    "include_usage": true,
   },
 }
 `;
@@ -5681,28 +5664,7 @@ exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam 
   "reasoning": {
     "effort": "max",
   },
-}
-`;
-
-exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "2 + 2 = 4",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0e37c6be36145385006a63b99cda6c819bb09700c61ab9302b",
-  "model": "gpt-5.6-terra",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_creation_input_tokens": 0,
-    "cache_read_input_tokens": 0,
-    "input_tokens": 13,
-    "output_tokens": 11,
-  },
+  "stream": true,
 }
 `;
 
