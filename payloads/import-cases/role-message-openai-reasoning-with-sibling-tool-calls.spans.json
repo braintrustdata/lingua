@@ -1,0 +1,22 @@
+[
+  {
+    "output": [
+      {
+        "role": "assistant",
+        "content": "",
+        "reasoning": "Use the structured data tool before answering.",
+        "reasoning_signature": "top_level_reasoning_signature_123",
+        "tool_calls": [
+          {
+            "id": "call_openai_reasoning_123",
+            "type": "function",
+            "function": {
+              "name": "get_summary",
+              "arguments": "{\"topic\":\"anonymized metrics\"}"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
