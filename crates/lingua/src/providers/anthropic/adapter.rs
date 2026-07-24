@@ -3118,4 +3118,45 @@ mod tests {
             "message_stop should return None (terminal event)"
         );
     }
+
+    #[test]
+    fn test_anthropic_model_context_window_exceeded_stop_reason_roundtrips() {
+        // Regression: `model_context_window_exceeded` was added to the Anthropic
+        // StopReason enum. It is not a canonical universal FinishReason, so it must
+        // survive import as FinishReason::Other and re-export losslessly (not be
+        // rejected on import, nor rewritten to another reason on export).
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "id": "msg_ctx",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-5-20250929",
+            "stop_reason": "model_context_window_exceeded",
+            "content": [{ "type": "text", "text": "partial" }],
+            "usage": { "input_tokens": 5, "output_tokens": 3 }
+        });
+
+        let universal = adapter
+            .response_to_universal(payload)
+            .expect("valid Anthropic response must not be rejected");
+        assert_eq!(
+            universal.finish_reason,
+            Some(crate::universal::response::FinishReason::Other(
+                "model_context_window_exceeded".to_string()
+            ))
+        );
+
+        let reemitted = adapter
+            .response_from_universal(&universal)
+            .expect("response_from_universal should succeed");
+        // The emitted payload must deserialize back into the generated provider type
+        // with the stop reason preserved exactly (no lossy rewrite).
+        let message: crate::providers::anthropic::generated::Message =
+            serde_json::from_value(reemitted).expect("emitted payload must be a valid Message");
+        assert_eq!(
+            message.stop_reason,
+            Some(crate::providers::anthropic::generated::StopReason::ModelContextWindowExceeded),
+            "stop reason must round-trip losslessly"
+        );
+    }
 }

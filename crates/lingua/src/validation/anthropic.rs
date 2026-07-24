@@ -212,4 +212,104 @@ mod tests {
         let result = validate_anthropic_response(json);
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn test_validate_anthropic_response_model_context_window_exceeded() {
+        // Regression: the `model_context_window_exceeded` stop reason was added to
+        // the Anthropic spec (StopReason enum). A response carrying it must remain a
+        // valid Anthropic response and deserialize into the typed StopReason variant.
+        use crate::providers::anthropic::generated::StopReason;
+
+        let json = r#"{
+            "id": "msg_123",
+            "type": "message",
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "partial"
+                }
+            ],
+            "model": "claude-3-5-sonnet-20241022",
+            "stop_reason": "model_context_window_exceeded",
+            "usage": {
+                "input_tokens": 10,
+                "output_tokens": 20
+            }
+        }"#;
+
+        let message = validate_anthropic_response(json).expect("valid Anthropic response");
+        assert_eq!(
+            message.stop_reason,
+            Some(StopReason::ModelContextWindowExceeded)
+        );
+
+        // Round-trip: re-serializing preserves the wire value exactly.
+        let reserialized = crate::serde_json::to_value(&message).unwrap();
+        assert_eq!(
+            reserialized.get("stop_reason").and_then(|v| v.as_str()),
+            Some("model_context_window_exceeded")
+        );
+    }
+
+    #[test]
+    fn test_validate_anthropic_response_refusal_general_harms() {
+        // Regression: the `general_harms` refusal category was added to the Anthropic
+        // spec (RefusalCategory enum). A refusal response naming it must remain valid
+        // and deserialize into the typed RefusalCategory variant.
+        use crate::providers::anthropic::generated::{RefusalCategory, StopReason};
+
+        let json = r#"{
+            "id": "msg_123",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "claude-3-5-sonnet-20241022",
+            "stop_reason": "refusal",
+            "stop_details": {
+                "type": "refusal",
+                "category": "general_harms",
+                "explanation": "declined"
+            },
+            "usage": {
+                "input_tokens": 10,
+                "output_tokens": 0
+            }
+        }"#;
+
+        let message = validate_anthropic_response(json).expect("valid Anthropic response");
+        assert_eq!(message.stop_reason, Some(StopReason::Refusal));
+        let details = message.stop_details.expect("stop_details present");
+        assert_eq!(details.category, Some(RefusalCategory::GeneralHarms));
+    }
+
+    #[test]
+    fn test_validate_anthropic_response_all_stop_reasons_still_accepted() {
+        // Regression: widening StopReason must not drop any previously-valid wire value.
+        for reason in [
+            "end_turn",
+            "max_tokens",
+            "stop_sequence",
+            "tool_use",
+            "pause_turn",
+            "refusal",
+            "model_context_window_exceeded",
+        ] {
+            let json = format!(
+                r#"{{
+                    "id": "msg_123",
+                    "type": "message",
+                    "role": "assistant",
+                    "content": [],
+                    "model": "claude-3-5-sonnet-20241022",
+                    "stop_reason": "{reason}",
+                    "usage": {{ "input_tokens": 1, "output_tokens": 1 }}
+                }}"#
+            );
+            assert!(
+                validate_anthropic_response(&json).is_ok(),
+                "stop_reason {reason} should remain a valid Anthropic response"
+            );
+        }
+    }
 }

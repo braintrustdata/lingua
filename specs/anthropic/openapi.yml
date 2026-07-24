@@ -4417,7 +4417,7 @@
             "in": "query",
             "required": false,
             "schema": { "$ref": "#/components/schemas/BetaManagedAgentsListOrder" },
-            "description": "Sort direction for results, ordered by created_at. Defaults to asc (chronological)."
+            "description": "Sort direction for results, ordered by the event's `processed_at`. Defaults to asc (chronological)."
           },
           {
             "name": "types[]",
@@ -4433,28 +4433,28 @@
             "in": "query",
             "required": false,
             "schema": { "$ref": "#/components/schemas/BetaTimestamp" },
-            "description": "Return events created at or after this time (inclusive)."
+            "description": "Return events created at or after this time (inclusive). Compared against the event's `processed_at` value."
           },
           {
             "name": "created_at[gt]",
             "in": "query",
             "required": false,
             "schema": { "$ref": "#/components/schemas/BetaTimestamp" },
-            "description": "Return events created after this time (exclusive)."
+            "description": "Return events created after this time (exclusive). Compared against the event's `processed_at` value."
           },
           {
             "name": "created_at[lte]",
             "in": "query",
             "required": false,
             "schema": { "$ref": "#/components/schemas/BetaTimestamp" },
-            "description": "Return events created at or before this time (inclusive)."
+            "description": "Return events created at or before this time (inclusive). Compared against the event's `processed_at` value."
           },
           {
             "name": "created_at[lt]",
             "in": "query",
             "required": false,
             "schema": { "$ref": "#/components/schemas/BetaTimestamp" },
-            "description": "Return events created before this time (exclusive)."
+            "description": "Return events created before this time (exclusive). Compared against the event's `processed_at` value."
           }
         ],
         "responses": {
@@ -5459,6 +5459,18 @@
             "schema": { "type": "string" },
             "description": "Path parameter thread_id",
             "example": "sthr_011CZkZVWa6oIjw0rgXZpnBt"
+          },
+          {
+            "name": "event_deltas[]",
+            "in": "query",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/BetaManagedAgentsEventDeltaType" }
+            },
+            "description": "When set, this connection also receives streaming deltas (`event_start`, `event_delta`) while an event is being produced, before the event itself arrives. Deltas are best-effort; when the final event is produced it carries the complete content. A model request that ends early (an error or interrupt) produces no final event — its terminal `span.model_request_end` closes the preview. Accepts one or more event types to preview and may be repeated: `agent.message` streams `content_delta` fragments; `agent.thinking` is start-only — a signal that the agent has begun extended thinking, concluded by the `agent.thinking` event itself. Only previews of the requested event types are sent."
           }
         ],
         "responses": {
@@ -6883,7 +6895,8 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/BetaManagedAgentsUpdateAgentParams" }
+              "schema": { "$ref": "#/components/schemas/BetaManagedAgentsUpdateAgentParams" },
+              "example": { "description": "updated" }
             }
           }
         },
@@ -17340,7 +17353,11 @@
             "description": "Request-level diagnostics. Supply `previous_message_id` to have the response include `diagnostics.cache_miss_reason` explaining any prompt-cache divergence from that prior request."
           },
           "fallback_credit_token": {
-            "anyOf": [{ "maxLength": 2048, "minLength": 1, "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              { "maxLength": 2048, "minLength": 1, "type": "string" },
+              { "$ref": "#/components/schemas/BetaFallbackCreditTokenParam" },
+              { "type": "null" }
+            ],
             "description": "The `fallback_credit_token` from a prior refusal's `stop_details`.\n\nWhen a preceding request was refused and returned a `fallback_credit_token`,\npass that code here on the retry to have the retry's cache-creation tokens\nfor the prefix that was warm on the refused model billed at the cache-read\nrate. Must be redeemed by the same organization and workspace, with the same\nrequest body (optionally extended by one appended `assistant` message whose\ncontent is the partial text — with any trailing whitespace stripped from\nthe final text block — and paired server-tool blocks streamed before the\nrefusal; the appended-assistant form is not available for requests with\n`output_format` set or forced `tool_choice`), on an eligible fallback\nmodel, on the same platform,\nand within 5 minutes of the refusal; a mismatch is a 400. A token minted\nmid-server-tool-loop whose partial content was continuable may only be\nredeemed with the appended-assistant form — if an exact-body retry is\nrejected with a 400 saying the token must be redeemed by continuing the\npartial response, retry with the appended-assistant form instead.\n\nWhen the appended-assistant form is used on a model that otherwise disallows\nassistant-turn prefill, this token also authorizes that one prefill.",
             "title": "Fallback Credit Token"
           },
@@ -17352,9 +17369,15 @@
                 "minItems": 1,
                 "type": "array"
               },
+              {
+                "const": "default",
+                "type": "string",
+                "title": "FallbacksDefault",
+                "x-stainless-variantName": "Default"
+              },
               { "type": "null" }
             ],
-            "description": "Opt-in server-side retry on one or more substitute models when the requested model declines for policy reasons. Tried in order: if the first entry also declines, the second is tried, and so on.",
+            "description": "Opt-in server-side retry on one or more substitute models when the requested model declines for policy reasons. Tried in order: if the first entry also declines, the second is tried, and so on. The string \"default\" requests the requested model's server-defined default fallback configuration.",
             "title": "Fallbacks"
           },
           "inference_geo": {
@@ -18179,11 +18202,11 @@
           },
           "type": {
             "type": "string",
-            "const": "environment_deleted",
             "title": "Type",
             "description": "The type of response",
             "default": "environment_deleted",
-            "examples": ["environment_deleted"]
+            "examples": ["environment_deleted"],
+            "enum": ["environment_deleted"]
           }
         },
         "type": "object",
@@ -18321,6 +18344,94 @@
         },
         "required": ["model"],
         "title": "FallbackConfigV2",
+        "type": "object"
+      },
+      "BetaFallbackCreditNotApplied": {
+        "description": "No reprice was applied; ``reason`` says why.",
+        "properties": {
+          "reason": {
+            "description": "Why the reprice was not applied.\n\nA closed enum; additions to the redemption-check vocabulary arrive as\ndeliberate schema updates.",
+            "enum": [
+              "body_mismatch",
+              "continuation_excluded",
+              "continuation_only",
+              "expired",
+              "invalid_target_model",
+              "not_enabled",
+              "reprice_unavailable",
+              "temporarily_unavailable",
+              "variant_fields_present",
+              "wrong_organization",
+              "wrong_platform",
+              "wrong_workspace"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "remove_to_redeem": {
+            "anyOf": [{ "items": { "type": "string" }, "type": "array" }, { "type": "null" }],
+            "default": null,
+            "description": "Request fields to remove before retrying, so the retry can redeem this\ntoken.\n\nPresent exactly when `reason` is `variant_fields_present` — never null,\nnever an empty array; absent otherwise. Fields are named only from your own request, and only after\nthe sealed variant hash matched. A served best-effort retry has already\nbeen billed at normal price; nothing redeems retroactively, but a corrected\nre-send inside the token's five-minute window can still redeem.",
+            "title": "Remove To Redeem"
+          },
+          "type": { "const": "not_applied", "default": "not_applied", "title": "Type", "type": "string" }
+        },
+        "required": ["reason", "type"],
+        "title": "FallbackCreditNotApplied",
+        "type": "object"
+      },
+      "BetaFallbackCreditRedeemed": {
+        "description": "The reprice was applied: the retry is billed as if the conversation\nhad been on the retry model all along.",
+        "properties": {
+          "type": { "const": "redeemed", "default": "redeemed", "title": "Type", "type": "string" }
+        },
+        "required": ["type"],
+        "title": "FallbackCreditRedeemed",
+        "type": "object"
+      },
+      "BetaFallbackCreditTokenParam": {
+        "additionalProperties": false,
+        "description": "Object form of ``fallback_credit_token``: the token plus a redemption\nmode.\n\nRequires ``anthropic-beta: fallback-credit-2026-07-01``; without that\nheader the field accepts the bare string only. The bare string and the\nmode-less object are equivalent (both select ``strict``), so wrapping\nan existing token changes nothing by itself.",
+        "properties": {
+          "mode": {
+            "description": "How a failing token affects the retry. `strict` (the default, and the bare-string behavior): a failing redemption is a 400 and the retry is not served. `best_effort`: the retry is served either way — a token-layer failure no longer rejects the request; the retry proceeds at normal price and the outcome is reported on the response's `usage.fallback_credit`. Two failures stay hard in both modes: a malformed token, and combining `fallback_credit_token` with `fallbacks`.",
+            "enum": ["strict", "best_effort"],
+            "title": "Mode",
+            "type": "string"
+          },
+          "token": {
+            "description": "The opaque `fallback_credit_token` from a prior refusal's `stop_details` — the same string the bare-string form carries.",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": ["token"],
+        "title": "FallbackCreditTokenParam",
+        "type": "object"
+      },
+      "BetaFallbackCreditUsage": {
+        "description": "Outcome of the ``fallback_credit_token`` presented on this request.",
+        "properties": {
+          "status": {
+            "description": "Whether the fallback-credit reprice was applied to this response's billing.\n\nA union discriminated on `type`. `redeemed`: the retry is billed as if\nthe conversation had been on the retry model all along — including when the\nresulting shift is zero because there was nothing to move. `not_applied`:\nno reprice was applied; the arm's `reason` says why.",
+            "discriminator": {
+              "mapping": {
+                "not_applied": "#/components/schemas/BetaFallbackCreditNotApplied",
+                "redeemed": "#/components/schemas/BetaFallbackCreditRedeemed"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaFallbackCreditRedeemed" },
+              { "$ref": "#/components/schemas/BetaFallbackCreditNotApplied" }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": ["status"],
+        "title": "FallbackCreditUsage",
         "type": "object"
       },
       "BetaFallbackMessageIterationUsage": {
@@ -20202,6 +20313,11 @@
             "description": "Vault IDs for stored credentials the agent can use during the session.",
             "type": "array",
             "items": { "type": "string" }
+          },
+          "initial_events": {
+            "description": "Initial events to send to the `session` at creation, processed in order. Supports `user.message` and `user.define_outcome` events. Maximum 50 events.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BetaManagedAgentsSessionInitialEventParams" }
           }
         },
         "example": {
@@ -21119,6 +21235,73 @@
           { "$ref": "#/components/schemas/BetaManagedAgentsFileDocumentSource" }
         ]
       },
+      "BetaManagedAgentsEffort": {
+        "description": "How hard Claude works on each turn. Sets `output_config.effort` on every Messages call the session makes.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "low": "#/components/schemas/BetaManagedAgentsEffortLow",
+            "medium": "#/components/schemas/BetaManagedAgentsEffortMedium",
+            "high": "#/components/schemas/BetaManagedAgentsEffortHigh",
+            "xhigh": "#/components/schemas/BetaManagedAgentsEffortXhigh",
+            "max": "#/components/schemas/BetaManagedAgentsEffortMax"
+          }
+        },
+        "oneOf": [
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortLow" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortMedium" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortHigh" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortXhigh" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortMax" }
+        ]
+      },
+      "BetaManagedAgentsEffortHigh": {
+        "description": "High effort. Favors reasoning depth.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": { "type": { "type": "string", "enum": ["high"] } }
+      },
+      "BetaManagedAgentsEffortLevel": {
+        "type": "string",
+        "description": "How hard Claude works on each turn. Higher levels favor reasoning depth over latency. Not all models accept every level; invalid combinations are rejected at create time.",
+        "enum": ["low", "medium", "high", "xhigh", "max"]
+      },
+      "BetaManagedAgentsEffortLow": {
+        "description": "Low effort. Favors latency over reasoning depth.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": { "type": { "type": "string", "enum": ["low"] } }
+      },
+      "BetaManagedAgentsEffortMax": {
+        "description": "Maximum effort. Favors reasoning depth over latency.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": { "type": { "type": "string", "enum": ["max"] } }
+      },
+      "BetaManagedAgentsEffortMedium": {
+        "description": "Medium effort. Balances latency and reasoning depth.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": { "type": { "type": "string", "enum": ["medium"] } }
+      },
+      "BetaManagedAgentsEffortParams": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffortLevel" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsEffort" }
+        ]
+      },
+      "BetaManagedAgentsEffortXhigh": {
+        "description": "Extra-high effort. Not all models accept this level.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": { "type": { "type": "string", "enum": ["xhigh"] } }
+      },
       "BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError": {
         "description": "The deployment's environment was archived.",
         "type": "object",
@@ -22013,7 +22196,7 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "description": "Events for the session, ordered by `created_at`.",
+            "description": "Events for the session, ordered by `processed_at`.",
             "x-stainless-pagination-property": { "purpose": "items" },
             "type": "array",
             "items": { "$ref": "#/components/schemas/BetaManagedAgentsSessionEvent" },
@@ -22130,7 +22313,7 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "description": "Events for the thread, ordered by `created_at`.",
+            "description": "Events for the thread, ordered by `processed_at`.",
             "x-stainless-pagination-property": { "purpose": "items" },
             "type": "array",
             "items": { "$ref": "#/components/schemas/BetaManagedAgentsSessionEvent" }
@@ -23061,6 +23244,10 @@
             "description": "Inference speed mode. `fast` provides significantly faster output token generation at premium pricing. Defaults to `standard`. Not all models support `fast`; invalid combinations are rejected at create time.",
             "allOf": [{ "$ref": "#/components/schemas/BetaManagedAgentsSpeed" }],
             "examples": ["standard"]
+          },
+          "effort": {
+            "description": "How hard Claude works on each inference call. One of `low`, `medium`, `high`, `xhigh`, `max`. Always present; resolved to the per-model default at save time when not supplied.",
+            "allOf": [{ "$ref": "#/components/schemas/BetaManagedAgentsEffort" }]
           }
         },
         "example": { "id": "claude-opus-4-8", "speed": "standard" }
@@ -23075,6 +23262,11 @@
           "speed": {
             "description": "Inference speed mode. Defaults to `standard`.",
             "allOf": [{ "$ref": "#/components/schemas/BetaManagedAgentsSpeed" }],
+            "nullable": true
+          },
+          "effort": {
+            "description": "How hard Claude works on each inference call. Accepts a bare level string (`\"high\"`) or `{\"type\": \"high\"}`. On create, omitting it resolves the per-model default; on update, omitting it leaves the stored value unchanged.",
+            "allOf": [{ "$ref": "#/components/schemas/BetaManagedAgentsEffortParams" }],
             "nullable": true
           }
         },
@@ -24120,6 +24312,21 @@
           { "$ref": "#/components/schemas/BetaManagedAgentsSystemMessageEvent" }
         ]
       },
+      "BetaManagedAgentsSessionInitialEventParams": {
+        "description": "An event sent to the `session` immediately after it is created. Supports `user.message` and `user.define_outcome`.",
+        "type": "object",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "user.message": "#/components/schemas/BetaManagedAgentsUserMessageEventParams",
+            "user.define_outcome": "#/components/schemas/BetaManagedAgentsUserDefineOutcomeEventParams"
+          }
+        },
+        "oneOf": [
+          { "$ref": "#/components/schemas/BetaManagedAgentsUserMessageEventParams" },
+          { "$ref": "#/components/schemas/BetaManagedAgentsUserDefineOutcomeEventParams" }
+        ]
+      },
       "BetaManagedAgentsSessionMultiagent": {
         "description": "Resolved multiagent orchestration configuration as returned on a `session`.",
         "discriminator": {
@@ -24239,7 +24446,7 @@
         }
       },
       "BetaManagedAgentsSessionRetriesExhausted": {
-        "description": "The turn ended because repeated errors exhausted the automatic retry budget or the agent reached an internal execution limit.",
+        "description": "The turn ended because repeated errors exhausted the retry budget or an error escalated to `retry_status: 'exhausted'`.",
         "type": "object",
         "additionalProperties": false,
         "required": ["type"],
@@ -25654,10 +25861,9 @@
         "description": "Request parameters for updating an `agent`. Omit a field to preserve its current value.",
         "type": "object",
         "additionalProperties": false,
-        "required": ["version"],
         "properties": {
           "version": {
-            "description": "The agent's current version, used to prevent concurrent overwrites. Obtain this value from a create or retrieve response. The request fails if this does not match the server's current version.",
+            "description": "The agent's current version, used to prevent concurrent overwrites. Obtain this value from a create or retrieve response. Must be at least 1 if specified. When supplied, the request fails if it does not match the server's current version; omit to apply the update unconditionally.",
             "type": "integer",
             "format": "int32",
             "examples": [1]
@@ -26521,7 +26727,7 @@
           "model": { "$ref": "#/components/schemas/Model" },
           "stop_reason": {
             "anyOf": [{ "$ref": "#/components/schemas/BetaStopReason" }, { "type": "null" }],
-            "description": "The reason that we stopped.\n\nThis may be one the following values:\n* `\"end_turn\"`: the model reached a natural stopping point\n* `\"max_tokens\"`: we exceeded the requested `max_tokens` or the model's maximum\n* `\"stop_sequence\"`: one of your provided custom `stop_sequences` was generated\n* `\"tool_use\"`: the model invoked one or more tools\n* `\"pause_turn\"`: we paused a long-running turn. You may provide the response back as-is in a subsequent request to let the model continue.\n* `\"refusal\"`: when streaming classifiers intervene to handle potential policy violations\n\nIn non-streaming mode this value is always non-null. In streaming mode, it is null in the `message_start` event and non-null otherwise.",
+            "description": "The reason that we stopped.\n\nThis may be one the following values:\n* `\"end_turn\"`: the model reached a natural stopping point\n* `\"max_tokens\"`: we exceeded the requested `max_tokens` or the model's maximum\n* `\"stop_sequence\"`: one of your provided custom `stop_sequences` was generated\n* `\"tool_use\"`: the model invoked one or more tools\n* `\"pause_turn\"`: we paused a long-running turn. You may provide the response back as-is in a subsequent request to let the model continue.\n* `\"refusal\"`: when streaming classifiers intervene to handle potential policy violations\n* `\"model_context_window_exceeded\"`: we exceeded the model's context window\n\nIn non-streaming mode this value is always non-null. In streaming mode, it is null in the `message_start` event and non-null otherwise.",
             "title": "Stop Reason"
           },
           "stop_sequence": {
@@ -26774,6 +26980,11 @@
             "examples": [2051],
             "title": "Cache Read Input Tokens"
           },
+          "fallback_credit": {
+            "anyOf": [{ "$ref": "#/components/schemas/BetaFallbackCreditUsage" }, { "type": "null" }],
+            "default": null,
+            "description": "Outcome of the `fallback_credit_token` presented on this request.\n\nPresent on every response to a non-batch request that carried a\n`fallback_credit_token`, in either redemption mode; absent otherwise (batch\nitems accept and ignore the token and carry no outcome object)."
+          },
           "input_tokens": {
             "anyOf": [{ "minimum": 0, "type": "integer" }, { "type": "null" }],
             "default": null,
@@ -26802,6 +27013,7 @@
         "required": [
           "cache_creation_input_tokens",
           "cache_read_input_tokens",
+          "fallback_credit",
           "input_tokens",
           "iterations",
           "output_tokens",
@@ -27360,14 +27572,15 @@
       },
       "BetaRefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "general_harms"],
         "title": "RefusalCategory",
         "type": "string",
         "x-enum-descriptions": [
           "The request could enable cyber harm, such as malware or exploit development. Benign cybersecurity work can also trigger this category.",
           "The request could enable biological harm, such as dangerous lab methods. Beneficial life sciences work can also trigger this category.",
           "The request could assist the development of competing AI models, which is restricted under [Anthropic's commercial terms](https://www.anthropic.com/legal/commercial-terms). Benign machine learning work can also trigger this category.",
-          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)."
+          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).",
+          "The request could be related to an area that was determined as harmful. Benign work might sometimes trigger this category."
         ]
       },
       "BetaRefusalStopDetails": {
@@ -28061,10 +28274,18 @@
             "description": "System instruction text blocks.",
             "items": {
               "discriminator": {
-                "mapping": { "text": "#/components/schemas/BetaRequestTextBlock" },
+                "mapping": {
+                  "text": "#/components/schemas/BetaRequestTextBlock",
+                  "tool_addition": "#/components/schemas/BetaRequestToolAdditionBlock",
+                  "tool_removal": "#/components/schemas/BetaRequestToolRemovalBlock"
+                },
                 "propertyName": "type"
               },
-              "oneOf": [{ "$ref": "#/components/schemas/BetaRequestTextBlock" }]
+              "oneOf": [
+                { "$ref": "#/components/schemas/BetaRequestTextBlock" },
+                { "$ref": "#/components/schemas/BetaRequestToolAdditionBlock" },
+                { "$ref": "#/components/schemas/BetaRequestToolRemovalBlock" }
+              ]
             },
             "title": "Content",
             "type": "array"
@@ -28397,6 +28618,46 @@
         "title": "RequestThinkingBlock",
         "type": "object"
       },
+      "BetaRequestToolAdditionBlock": {
+        "additionalProperties": false,
+        "description": "Mid-conversation directive to surface a declared tool.\n\n``tool`` references a tool (or MCP toolset) by name from the request's\n``tools``; it is offered to the model from this point in the\nconversation onward.",
+        "properties": {
+          "cache_control": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": { "ephemeral": "#/components/schemas/BetaCacheControlEphemeral" },
+                  "propertyName": "type"
+                },
+                "oneOf": [{ "$ref": "#/components/schemas/BetaCacheControlEphemeral" }]
+              },
+              { "type": "null" }
+            ],
+            "description": "Create a cache control breakpoint at this content block.",
+            "title": "Cache Control"
+          },
+          "tool": {
+            "discriminator": {
+              "mapping": {
+                "mcp_tool_reference": "#/components/schemas/BetaToolChangeMCPToolReference",
+                "mcp_toolset_reference": "#/components/schemas/BetaToolChangeMCPToolsetReference",
+                "tool_reference": "#/components/schemas/BetaToolChangeToolReference"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaToolChangeToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolsetReference" }
+            ],
+            "title": "Tool"
+          },
+          "type": { "const": "tool_addition", "title": "Type", "type": "string" }
+        },
+        "required": ["tool", "type"],
+        "title": "RequestToolAdditionBlock",
+        "type": "object"
+      },
       "BetaRequestToolReferenceBlock": {
         "additionalProperties": false,
         "description": "Tool reference block that can be included in tool_result content.",
@@ -28426,6 +28687,46 @@
         },
         "required": ["tool_name", "type"],
         "title": "RequestToolReferenceBlock",
+        "type": "object"
+      },
+      "BetaRequestToolRemovalBlock": {
+        "additionalProperties": false,
+        "description": "Mid-conversation directive to withdraw a tool.\n\n``tool`` references a tool (or MCP toolset) by name from the request's\n``tools``; it is no longer offered to the model from this point in the\nconversation onward.",
+        "properties": {
+          "cache_control": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": { "ephemeral": "#/components/schemas/BetaCacheControlEphemeral" },
+                  "propertyName": "type"
+                },
+                "oneOf": [{ "$ref": "#/components/schemas/BetaCacheControlEphemeral" }]
+              },
+              { "type": "null" }
+            ],
+            "description": "Create a cache control breakpoint at this content block.",
+            "title": "Cache Control"
+          },
+          "tool": {
+            "discriminator": {
+              "mapping": {
+                "mcp_tool_reference": "#/components/schemas/BetaToolChangeMCPToolReference",
+                "mcp_toolset_reference": "#/components/schemas/BetaToolChangeMCPToolsetReference",
+                "tool_reference": "#/components/schemas/BetaToolChangeToolReference"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaToolChangeToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolsetReference" }
+            ],
+            "title": "Tool"
+          },
+          "type": { "const": "tool_removal", "title": "Type", "type": "string" }
+        },
+        "required": ["tool", "type"],
+        "title": "RequestToolRemovalBlock",
         "type": "object"
       },
       "BetaRequestToolResultBlock": {
@@ -29971,6 +30272,11 @@
             "title": "Metadata",
             "description": "User-provided metadata key-value pairs associated with this work item"
           },
+          "secret": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Secret",
+            "description": "Credential payload used by the environment worker to execute this work item. May be populated when polling for work; null on all other retrieval paths."
+          },
           "started_at": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Started At",
@@ -30009,6 +30315,7 @@
           "id",
           "latest_heartbeat_at",
           "metadata",
+          "secret",
           "started_at",
           "state",
           "stop_requested_at",
@@ -30802,6 +31109,40 @@
         "title": "Tool",
         "type": "object"
       },
+      "BetaToolChangeMCPToolReference": {
+        "additionalProperties": false,
+        "description": "Reference to a single MCP tool by its server and remote name — the\nsame ``server_name``/``name`` pair ``mcp_tool_use`` carries.",
+        "properties": {
+          "name": { "title": "Name", "type": "string" },
+          "server_name": { "title": "Server Name", "type": "string" },
+          "type": { "const": "mcp_tool_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["name", "server_name", "type"],
+        "title": "ToolChangeMCPToolReference",
+        "type": "object"
+      },
+      "BetaToolChangeMCPToolsetReference": {
+        "additionalProperties": false,
+        "description": "Reference to every tool in the named MCP server's toolset.",
+        "properties": {
+          "server_name": { "title": "Server Name", "type": "string" },
+          "type": { "const": "mcp_toolset_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["server_name", "type"],
+        "title": "ToolChangeMCPToolsetReference",
+        "type": "object"
+      },
+      "BetaToolChangeToolReference": {
+        "additionalProperties": false,
+        "description": "Reference to a single tool the caller declared directly in\n``tools[]``. Does not accept the composed ``{server}_{name}`` form the\nserver assigns to MCP-resolved tools — use ``mcp_tool_reference`` or\n``mcp_toolset_reference`` for those.",
+        "properties": {
+          "name": { "pattern": "^[a-zA-Z0-9_-]{1,128}$", "title": "Name", "type": "string" },
+          "type": { "const": "tool_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["name", "type"],
+        "title": "ToolChangeToolReference",
+        "type": "object"
+      },
       "BetaToolChoiceAny": {
         "additionalProperties": false,
         "description": "The model will use any available tools.",
@@ -31149,6 +31490,11 @@
             "examples": [2051],
             "title": "Cache Read Input Tokens"
           },
+          "fallback_credit": {
+            "anyOf": [{ "$ref": "#/components/schemas/BetaFallbackCreditUsage" }, { "type": "null" }],
+            "default": null,
+            "description": "Outcome of the `fallback_credit_token` presented on this request.\n\nPresent on every response to a non-batch request that carried a\n`fallback_credit_token`, in either redemption mode; absent otherwise (batch\nitems accept and ignore the token and carry no outcome object)."
+          },
           "inference_geo": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
             "default": null,
@@ -31197,6 +31543,7 @@
           "cache_creation",
           "cache_creation_input_tokens",
           "cache_read_input_tokens",
+          "fallback_credit",
           "inference_geo",
           "input_tokens",
           "iterations",
@@ -31988,6 +32335,50 @@
           "workspace_id": { "type": "string" }
         }
       },
+      "BetaWebhookEnvironmentArchivedEventData": {
+        "type": "object",
+        "title": "BetaWebhookEnvironmentArchivedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "environment.archived" },
+          "id": { "type": "string", "description": "ID of the environment that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
+      "BetaWebhookEnvironmentCreatedEventData": {
+        "type": "object",
+        "title": "BetaWebhookEnvironmentCreatedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "environment.created" },
+          "id": { "type": "string", "description": "ID of the environment that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
+      "BetaWebhookEnvironmentDeletedEventData": {
+        "type": "object",
+        "title": "BetaWebhookEnvironmentDeletedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "environment.deleted" },
+          "id": { "type": "string", "description": "ID of the environment that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
+      "BetaWebhookEnvironmentUpdatedEventData": {
+        "type": "object",
+        "title": "BetaWebhookEnvironmentUpdatedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "environment.updated" },
+          "id": { "type": "string", "description": "ID of the environment that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
       "BetaWebhookEvent": {
         "type": "object",
         "title": "BetaWebhookEvent",
@@ -32002,7 +32393,7 @@
           "id": {
             "type": "string",
             "description": "Unique event identifier for idempotency.",
-            "examples": ["wevt_011CZkZYZd9rLmz3ujAcsqEw"]
+            "examples": ["whe_0f1e2d3c4b5a69788796a5b4c3d2e1f0"]
           },
           "created_at": {
             "type": "string",
@@ -32024,7 +32415,7 @@
         },
         "example": {
           "type": "event",
-          "id": "wevt_011CZkZYZd9rLmz3ujAcsqEw",
+          "id": "whe_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
           "created_at": "2026-03-15T10:00:00Z",
           "data": {
             "type": "session.status_idled",
@@ -32072,7 +32463,14 @@
           { "$ref": "#/components/schemas/BetaWebhookDeploymentArchivedEventData" },
           { "$ref": "#/components/schemas/BetaWebhookDeploymentRunStartedEventData" },
           { "$ref": "#/components/schemas/BetaWebhookDeploymentDeletedEventData" },
-          { "$ref": "#/components/schemas/BetaWebhookDeploymentRunSucceededEventData" }
+          { "$ref": "#/components/schemas/BetaWebhookDeploymentRunSucceededEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookEnvironmentCreatedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookEnvironmentUpdatedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookEnvironmentArchivedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookEnvironmentDeletedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookMemoryStoreCreatedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookMemoryStoreArchivedEventData" },
+          { "$ref": "#/components/schemas/BetaWebhookMemoryStoreDeletedEventData" }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -32112,8 +32510,48 @@
             "deployment.archived": "#/components/schemas/BetaWebhookDeploymentArchivedEventData",
             "deployment_run.started": "#/components/schemas/BetaWebhookDeploymentRunStartedEventData",
             "deployment.deleted": "#/components/schemas/BetaWebhookDeploymentDeletedEventData",
-            "deployment_run.succeeded": "#/components/schemas/BetaWebhookDeploymentRunSucceededEventData"
+            "deployment_run.succeeded": "#/components/schemas/BetaWebhookDeploymentRunSucceededEventData",
+            "environment.created": "#/components/schemas/BetaWebhookEnvironmentCreatedEventData",
+            "environment.updated": "#/components/schemas/BetaWebhookEnvironmentUpdatedEventData",
+            "environment.archived": "#/components/schemas/BetaWebhookEnvironmentArchivedEventData",
+            "environment.deleted": "#/components/schemas/BetaWebhookEnvironmentDeletedEventData",
+            "memory_store.created": "#/components/schemas/BetaWebhookMemoryStoreCreatedEventData",
+            "memory_store.archived": "#/components/schemas/BetaWebhookMemoryStoreArchivedEventData",
+            "memory_store.deleted": "#/components/schemas/BetaWebhookMemoryStoreDeletedEventData"
           }
+        }
+      },
+      "BetaWebhookMemoryStoreArchivedEventData": {
+        "type": "object",
+        "title": "BetaWebhookMemoryStoreArchivedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "memory_store.archived" },
+          "id": { "type": "string", "description": "ID of the memory store that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
+      "BetaWebhookMemoryStoreCreatedEventData": {
+        "type": "object",
+        "title": "BetaWebhookMemoryStoreCreatedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "memory_store.created" },
+          "id": { "type": "string", "description": "ID of the memory store that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
+        }
+      },
+      "BetaWebhookMemoryStoreDeletedEventData": {
+        "type": "object",
+        "title": "BetaWebhookMemoryStoreDeletedEventData",
+        "required": ["type", "id", "organization_id", "workspace_id"],
+        "properties": {
+          "type": { "type": "string", "const": "memory_store.deleted" },
+          "id": { "type": "string", "description": "ID of the memory store that triggered the event." },
+          "organization_id": { "type": "string" },
+          "workspace_id": { "type": "string" }
         }
       },
       "BetaWebhookSessionArchivedEventData": {
@@ -33707,7 +34145,7 @@
           "model": { "$ref": "#/components/schemas/Model" },
           "stop_reason": {
             "anyOf": [{ "$ref": "#/components/schemas/StopReason" }, { "type": "null" }],
-            "description": "The reason that we stopped.\n\nThis may be one the following values:\n* `\"end_turn\"`: the model reached a natural stopping point\n* `\"max_tokens\"`: we exceeded the requested `max_tokens` or the model's maximum\n* `\"stop_sequence\"`: one of your provided custom `stop_sequences` was generated\n* `\"tool_use\"`: the model invoked one or more tools\n* `\"pause_turn\"`: we paused a long-running turn. You may provide the response back as-is in a subsequent request to let the model continue.\n* `\"refusal\"`: when streaming classifiers intervene to handle potential policy violations\n\nIn non-streaming mode this value is always non-null. In streaming mode, it is null in the `message_start` event and non-null otherwise.",
+            "description": "The reason that we stopped.\n\nThis may be one the following values:\n* `\"end_turn\"`: the model reached a natural stopping point\n* `\"max_tokens\"`: we exceeded the requested `max_tokens` or the model's maximum\n* `\"stop_sequence\"`: one of your provided custom `stop_sequences` was generated\n* `\"tool_use\"`: the model invoked one or more tools\n* `\"pause_turn\"`: we paused a long-running turn. You may provide the response back as-is in a subsequent request to let the model continue.\n* `\"refusal\"`: when streaming classifiers intervene to handle potential policy violations\n* `\"model_context_window_exceeded\"`: we exceeded the model's context window\n\nIn non-streaming mode this value is always non-null. In streaming mode, it is null in the `message_start` event and non-null otherwise.",
             "title": "Stop Reason"
           },
           "stop_sequence": {
@@ -34239,14 +34677,15 @@
       },
       "RefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "general_harms"],
         "title": "RefusalCategory",
         "type": "string",
         "x-enum-descriptions": [
           "The request could enable cyber harm, such as malware or exploit development. Benign cybersecurity work can also trigger this category.",
           "The request could enable biological harm, such as dangerous lab methods. Beneficial life sciences work can also trigger this category.",
           "The request could assist the development of competing AI models, which is restricted under [Anthropic's commercial terms](https://www.anthropic.com/legal/commercial-terms). Benign machine learning work can also trigger this category.",
-          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)."
+          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).",
+          "The request could be related to an area that was determined as harmful. Benign work might sometimes trigger this category."
         ]
       },
       "RefusalStopDetails": {
@@ -37712,7 +38151,9 @@
               "dreaming-2026-04-21",
               "thinking-token-count-2026-05-13",
               "server-side-fallback-2026-06-01",
+              "server-side-fallback-2026-07-01",
               "fallback-credit-2026-06-01",
+              "fallback-credit-2026-07-01",
               "agent-memory-2026-07-22"
             ],
             "x-stainless-nominal": false
@@ -37956,6 +38397,8 @@
             "text": "#/components/schemas/BetaRequestTextBlock",
             "text_editor_code_execution_tool_result": "#/components/schemas/BetaRequestTextEditorCodeExecutionToolResultBlock",
             "thinking": "#/components/schemas/BetaRequestThinkingBlock",
+            "tool_addition": "#/components/schemas/BetaRequestToolAdditionBlock",
+            "tool_removal": "#/components/schemas/BetaRequestToolRemovalBlock",
             "tool_result": "#/components/schemas/BetaRequestToolResultBlock",
             "tool_search_tool_result": "#/components/schemas/BetaRequestToolSearchToolResultBlock",
             "tool_use": "#/components/schemas/BetaRequestToolUseBlock",
@@ -38007,12 +38450,22 @@
           { "$ref": "#/components/schemas/BetaRequestContainerUploadBlock" },
           { "$ref": "#/components/schemas/BetaRequestCompactionBlock" },
           { "$ref": "#/components/schemas/BetaRequestMidConvSystemBlock" },
+          { "$ref": "#/components/schemas/BetaRequestToolAdditionBlock" },
+          { "$ref": "#/components/schemas/BetaRequestToolRemovalBlock" },
           { "$ref": "#/components/schemas/BetaRequestFallbackBlock" }
         ],
         "x-stainless-go-variant-constructor": { "naming": "new_beta_{variant}_block" }
       },
       "StopReason": {
-        "enum": ["end_turn", "max_tokens", "stop_sequence", "tool_use", "pause_turn", "refusal"],
+        "enum": [
+          "end_turn",
+          "max_tokens",
+          "stop_sequence",
+          "tool_use",
+          "pause_turn",
+          "refusal",
+          "model_context_window_exceeded"
+        ],
         "type": "string"
       },
       "BetaStopReason": {
@@ -38049,13 +38502,18 @@
             "x-stainless-nominal": false
           },
           {
+            "const": "claude-opus-5",
+            "description": "Powerful intelligence for long-running agents and coding",
+            "x-stainless-nominal": false
+          },
+          {
             "const": "claude-opus-4-8",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-7",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38067,7 +38525,7 @@
           },
           {
             "const": "claude-opus-4-6",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38087,12 +38545,12 @@
           },
           {
             "const": "claude-opus-4-5",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-5-20251101",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38107,14 +38565,14 @@
           },
           {
             "const": "claude-opus-4-1",
-            "description": "Exceptional model for specialized complex tasks",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false,
             "deprecated": true,
             "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
           },
           {
             "const": "claude-opus-4-1-20250805",
-            "description": "Exceptional model for specialized complex tasks",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false,
             "deprecated": true,
             "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
@@ -38137,18 +38595,23 @@
             "x-stainless-nominal": false
           },
           {
+            "const": "claude-opus-5",
+            "description": "Powerful intelligence for long-running agents and coding",
+            "x-stainless-nominal": false
+          },
+          {
             "const": "claude-opus-4-8",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-7",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-6",
-            "description": "Most intelligent model for building agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38168,12 +38631,12 @@
           },
           {
             "const": "claude-opus-4-5",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-5-20251101",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38871,6 +39334,83 @@
       "post": {
         "operationId": "BetaDeploymentRunSucceededWebhook",
         "summary": "deployment_run.succeeded webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "environment.created": {
+      "post": {
+        "operationId": "BetaEnvironmentCreatedWebhook",
+        "summary": "environment.created webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "environment.updated": {
+      "post": {
+        "operationId": "BetaEnvironmentUpdatedWebhook",
+        "summary": "environment.updated webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "environment.archived": {
+      "post": {
+        "operationId": "BetaEnvironmentArchivedWebhook",
+        "summary": "environment.archived webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "environment.deleted": {
+      "post": {
+        "operationId": "BetaEnvironmentDeletedWebhook",
+        "summary": "environment.deleted webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "memory_store.created": {
+      "post": {
+        "operationId": "BetaMemoryStoreCreatedWebhook",
+        "summary": "memory_store.created webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "memory_store.archived": {
+      "post": {
+        "operationId": "BetaMemoryStoreArchivedWebhook",
+        "summary": "memory_store.archived webhook",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
+        },
+        "responses": { "200": { "description": "Return any 2xx status to acknowledge receipt." } }
+      }
+    },
+    "memory_store.deleted": {
+      "post": {
+        "operationId": "BetaMemoryStoreDeletedWebhook",
+        "summary": "memory_store.deleted webhook",
         "requestBody": {
           "required": true,
           "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BetaWebhookEvent" } } }
