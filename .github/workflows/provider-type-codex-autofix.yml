@@ -218,6 +218,7 @@ jobs:
             cargo test -p lingua "$AUTOFIX_PROVIDER"
             cargo clippy -p lingua --all-targets --all-features -- -D warnings
             make typed-boundary-check
+            git diff --check -- . ':(exclude)bindings/typescript/src/generated/**'
 
       - name: Validate proposed patch policy
         id: proposal_policy
@@ -347,6 +348,13 @@ jobs:
           AUTOFIX_GENERATED_PROVIDER: ${{ needs.gate.outputs.provider }}
         run: node "$RUNNER_TEMP/autofix-context/braintrust-provider-types.mjs" validate-codex-autofix-patch
 
+      - name: Check non-generated patch whitespace
+        env:
+          AUTOFIX_BASE_SHA: ${{ needs.gate.outputs.head_sha }}
+        run: |
+          # ts-rs emits trailing spaces in generated TypeScript bindings.
+          git diff --check "$AUTOFIX_BASE_SHA" -- . ':(exclude)bindings/typescript/src/generated/**'
+
       - name: Run focused provider tests
         id: provider_tests
         continue-on-error: true
@@ -435,7 +443,9 @@ jobs:
           fi
 
           git apply --index "$RUNNER_TEMP/validated/validated.patch"
-          git diff --cached --check
+          # The reproducibility check covers generated TypeScript bindings,
+          # whose ts-rs output contains trailing spaces.
+          git diff --cached --check -- . ':(exclude)bindings/typescript/src/generated/**'
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Address Codex review $AUTOFIX_REVIEW_ID ($AUTOFIX_ATTEMPT_DESCRIPTION)"
