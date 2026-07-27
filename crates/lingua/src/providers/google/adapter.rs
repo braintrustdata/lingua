@@ -133,6 +133,22 @@ impl ProviderAdapter for GoogleAdapter {
         let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(contents)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
+        // Reject configurations we cannot represent non-lossily rather than silently
+        // dropping them on the round trip. `audioTranscriptionConfig` (language detection,
+        // custom vocabulary, diarization, word timestamps) has no canonical universal
+        // representation, so surface an explicit error until one is defined.
+        // See AGENTS.md: "Ask when non-lossy mapping is unclear".
+        if let Some(config) = &typed_params.generation_config {
+            if config.audio_transcription_config.is_some() {
+                return Err(TransformError::ToUniversalFailed(
+                    "Google: 'generationConfig.audioTranscriptionConfig' has no lossless \
+                     universal representation and would be silently dropped on transform. \
+                     This configuration is not yet supported."
+                        .to_string(),
+                ));
+            }
+        }
+
         // Extract params from generationConfig (now typed in params struct)
         let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
             if let Some(config) = &typed_params.generation_config {
@@ -1023,6 +1039,39 @@ mod tests {
             serde_json::from_value(reconstructed).expect("request should deserialize");
         assert!(reconstructed.contents.is_some());
         assert!(reconstructed.generation_config.is_some());
+    }
+
+    #[test]
+    fn test_google_audio_transcription_config_rejected_as_lossy() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "model": "gemini-pro",
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Transcribe this."}]
+            }],
+            "generationConfig": {
+                "temperature": 0.5,
+                "audioTranscriptionConfig": {
+                    "diarization": true,
+                    "wordTimestamp": true,
+                    "customVocabulary": ["Lingua"]
+                }
+            }
+        });
+
+        let err = adapter
+            .request_to_universal(payload)
+            .expect_err("audioTranscriptionConfig should be rejected, not silently dropped");
+        match err {
+            TransformError::ToUniversalFailed(reason) => {
+                assert!(
+                    reason.contains("audioTranscriptionConfig"),
+                    "error should name the unsupported field, got: {reason}"
+                );
+            }
+            other => panic!("expected ToUniversalFailed, got: {other:?}"),
+        }
     }
 
     #[test]
