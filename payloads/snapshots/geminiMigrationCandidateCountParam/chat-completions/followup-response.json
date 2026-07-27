@@ -1,0 +1,25 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "That depends on what you're in the mood for or working on! \n\nHere are a few ways we could go:\n\n1. **Get something done:** Tell me about a task, project, or email you're working on, and I can help you finish it or organize a plan.\n2. **Learn something new:** Name any topic (history, tech, science, a random fun fact), and we can dive into it.\n3. **Brainstorm or problem-solve:** If you're stuck on a decision or need ideas for a project, gift, or event, let's talk it through.\n4. **Take a break:** We could play a trivia game, write a story together, or chat about books/movies.\n\nWhat sounds best to you right now?",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 549,
+    "completion_tokens_details": {
+      "reasoning_tokens": 383
+    },
+    "prompt_tokens": 22,
+    "total_tokens": 571
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "model": "gemini-3.6-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hi."
+    },
+    {
+      "annotations": [],
+      "content": "Hi there! How can I help you today?",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "n": 2
+}

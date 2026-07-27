@@ -203,6 +203,66 @@ fn assistant_content_to_parts(content: AssistantContent) -> Vec<AssistantContent
     }
 }
 
+/// Whether an assistant message carries only text (no tool calls, reasoning,
+/// files, etc.) — the only case where it can be safely folded into another turn.
+fn assistant_is_text_only(content: &AssistantContent) -> bool {
+    match content {
+        AssistantContent::String(_) => true,
+        AssistantContent::Array(parts) => {
+            !parts.is_empty()
+                && parts
+                    .iter()
+                    .all(|part| matches!(part, AssistantContentPart::Text(_)))
+        }
+    }
+}
+
+/// Fold a trailing text-only assistant turn into the preceding user turn.
+///
+/// Gemini 3.x removed response prefill: a request whose `contents` ends with a
+/// `model` turn is rejected. When the caller prefilled an assistant turn, we
+/// merge its text into the preceding user turn so the request ends on a user
+/// turn instead (e.g. `User("Translate …") + Assistant("Translation:")` →
+/// `User(["Translate …", "Translation:"])`).
+///
+/// No-op (returns `false`) unless the last message is a text-only assistant
+/// turn *and* the message before it is a user turn — this preserves the current
+/// behavior for a lone assistant turn or an assistant turn carrying tool calls.
+pub fn merge_trailing_assistant_into_previous(messages: &mut Vec<Message>) -> bool {
+    if messages.len() < 2 {
+        return false;
+    }
+
+    let trailing_is_text_assistant = matches!(
+        messages.last(),
+        Some(Message::Assistant { content, .. }) if assistant_is_text_only(content)
+    );
+    let previous_is_user = matches!(messages[messages.len() - 2], Message::User { .. });
+    if !trailing_is_text_assistant || !previous_is_user {
+        return false;
+    }
+
+    let Some(Message::Assistant { content, .. }) = messages.pop() else {
+        return false;
+    };
+    let appended: Vec<UserContentPart> = assistant_content_to_parts(content)
+        .into_iter()
+        .filter_map(|part| match part {
+            AssistantContentPart::Text(text) => Some(UserContentPart::Text(text)),
+            _ => None,
+        })
+        .collect();
+
+    if let Some(Message::User { content }) = messages.last_mut() {
+        let old = std::mem::replace(content, UserContent::Array(vec![]));
+        let mut parts = user_content_to_parts(old);
+        parts.extend(appended);
+        *content = UserContent::Array(parts);
+    }
+
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,6 +310,60 @@ mod tests {
         } else {
             panic!("Expected User message with Array content");
         }
+    }
+
+    #[test]
+    fn test_merge_trailing_assistant_into_previous_merges_text() {
+        let mut messages = vec![
+            Message::User {
+                content: UserContent::String("Translate this.".into()),
+            },
+            Message::Assistant {
+                content: AssistantContent::String("Translation:".into()),
+                id: None,
+            },
+        ];
+
+        assert!(merge_trailing_assistant_into_previous(&mut messages));
+        assert_eq!(messages.len(), 1);
+        if let Message::User {
+            content: UserContent::Array(parts),
+        } = &messages[0]
+        {
+            assert_eq!(parts.len(), 2);
+        } else {
+            panic!("Expected merged User message with Array content");
+        }
+    }
+
+    #[test]
+    fn test_merge_trailing_assistant_noop_for_lone_assistant() {
+        let mut messages = vec![Message::Assistant {
+            content: AssistantContent::String("Hi".into()),
+            id: None,
+        }];
+
+        assert!(!merge_trailing_assistant_into_previous(&mut messages));
+        assert_eq!(messages.len(), 1);
+    }
+
+    #[test]
+    fn test_merge_trailing_assistant_noop_for_non_text_assistant() {
+        let mut messages = vec![
+            Message::User {
+                content: UserContent::String("Hi".into()),
+            },
+            Message::Assistant {
+                content: AssistantContent::Array(vec![AssistantContentPart::Reasoning {
+                    text: "thinking".into(),
+                    encrypted_content: None,
+                }]),
+                id: None,
+            },
+        ];
+
+        assert!(!merge_trailing_assistant_into_previous(&mut messages));
+        assert_eq!(messages.len(), 2);
     }
 
     #[test]

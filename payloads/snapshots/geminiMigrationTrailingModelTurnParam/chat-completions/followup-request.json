@@ -1,0 +1,22 @@
+{
+  "model": "gemini-3.6-flash",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Translate 'Hello world' to French."
+    },
+    {
+      "role": "assistant",
+      "content": "Translation:"
+    },
+    {
+      "annotations": [],
+      "content": "Bonjour le monde",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ]
+}

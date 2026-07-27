@@ -1,0 +1,29 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": " \"Bonjour le monde\""
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 19,
+    "outputTokens": 11,
+    "totalTokens": 30,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1361
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "d1f74e4f-354b-4ef5-8008-c0b2f9631cad",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

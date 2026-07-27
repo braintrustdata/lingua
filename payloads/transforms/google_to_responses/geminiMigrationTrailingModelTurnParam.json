@@ -1,0 +1,102 @@
+{
+  "id": "resp_06eda76533ce6869006a67c59bbc1c8191a7c23eb1e6ca0e09",
+  "object": "response",
+  "created_at": 1785185691,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1785185692,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_06eda76533ce6869006a67c59c2ad48191b1470b361e5f7c82",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqZ8Wcl90uklpFPvxEAheEvG4R8pPzPqggI1LkIZRKPoCl1rpNoveOtpMhbR52HJxqFMoLxh1r2xbmFZLC9r3q0s156IQXo3Smjsll1Axc_LHgi_Xc25I8PoNqk2M0gwjJ9Xw9sWcjwphVkNODg851zi61E-X3pF1P7K6ko2zbCnzDvB2rjDlV2IWeiZK02MpO8twnUIGTPTkAXc9t19Muj6KnD4083eulDcnTfD1sobaXHiogabQ2fgA71I32SYyFZ2n5DQQMpxy__J-4GPXoO3ljn2sWVQun9tIP9dKzUPylBAV5xDOximzdLBzzRMb98gngD6WC11dGztmmpk4L93o0S012Lunr-SC6E5Py9IDA-S7BewI-hOXxNI7h2XTdiEz8W7-6c0681eWEOzYDbKGAcQtBAB1MsPAqGpXUKiSisP7bZelILowP1fX8J6Qzb7mSzs634C2ohw3RvJgBqwIbgploB5PNO96a_oAIDwguB3mJQ9LWMzeD13VTKVEJec47CU5cluy06BHjIp8p6Ffh-bn4wM895LsNDpA9rCJOONjY9bsKJyJ6EUKU9uU8sxxVl0fFHNWly7Qt_jZfJws7GbB13_PFEGcoy4cTkJ-53yfGUCRypBmeOG3oSz3iWUCx9Km0DFfI5-hNSh9IZt-PHBygNXVaqxhJDEZAi2fTfXiURi14F-OFYA9_K0htJW2PMPsPCanSRQyEr96djSLzq4A77B07iq1e5XQ8zAC7hVBTfKwx4WIvLpz8F_RLIZIyB1nYPzHRiXK9VcfIYzIaQCx_01rE6iwV05b97W33-s1-O6V0uKtyWOAyAxAUSpJvG60c3saLJrW1BI7DS29wnZieTSx_Fbq-8tJJv8cVSFxDruRqBIowyX3umFmljXBXidM5WEkfT-A5TRCwv5j56qJFzY2CKP888kc2HM2sS2aDkelD7fIvCMRauJS3ui5huTfAqjN-bU_zomdG3f7ynK3Vfu0fgSEblWUiKZFzMa2Wt-VctEL3URS9T0yr9e6NO94mcULvH9BLAHHx_VlEfA==",
+      "summary": []
+    },
+    {
+      "id": "msg_06eda76533ce6869006a67c59c55788191a274a9582333bb72",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Bonjour le monde."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 22,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 31,
+    "output_tokens_details": {
+      "reasoning_tokens": 21
+    },
+    "total_tokens": 53
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Bonjour le monde."
+}

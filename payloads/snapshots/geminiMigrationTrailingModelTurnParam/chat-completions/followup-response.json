@@ -1,0 +1,25 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "That depends on what you're working on! Here are a few options based on common goals:\n\n### 1. If you're learning French:\n* **Learn basic greetings:** Try learning *Au revoir* (Goodbye), *S'il vous plaît* (Please), or *Merci* (Thank you).\n* **Practice conversation:** Ask me to translate another phrase or start a simple French dialogue with you.\n* **Grammar & Vocabulary:** Pick a theme, such as ordering food at a café or introducing yourself.\n\n### 2. If you're practicing programming / prompt engineering:\n* **Try another translation:** Ask for a full sentence or a paragraph with specific tone (formal/casual).\n* **Try a coding task:** Write a script that automatically translates text using an API.\n\n### 3. If you just want to explore:\n* Tell me what project or topic you're working on, and I can give you tailored suggestions! \n\nWhat would you like to focus on?",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 468,
+    "completion_tokens_details": {
+      "reasoning_tokens": 256
+    },
+    "prompt_tokens": 22,
+    "total_tokens": 490
+  }
+}

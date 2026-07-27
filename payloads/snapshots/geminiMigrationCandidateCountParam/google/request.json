@@ -1,0 +1,16 @@
+{
+  "model": "gemini-3.6-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "candidateCount": 2
+  }
+}

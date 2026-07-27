@@ -29,10 +29,11 @@ use crate::universal::request::ToolChoiceConfig;
 use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
-    extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
-    ReasoningConfig, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
+    extract_system_messages, flatten_consecutive_messages, merge_trailing_assistant_into_previous,
+    FinishReason, ReasoningCanonical, ReasoningConfig, TokenBudget, UniversalParams,
+    UniversalReasoningDelta, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalUsage, UserContent,
 };
 use serde::Serialize;
 
@@ -236,6 +237,14 @@ impl ProviderAdapter for GoogleAdapter {
 
         // Flatten consecutive messages of the same role (Google doesn't allow them)
         flatten_consecutive_messages(&mut messages);
+
+        // Gemini 3.x rejects requests ending with a model turn (prefill removed).
+        // Fold a trailing prefilled assistant turn into the preceding user turn.
+        if GoogleCapabilities::detect(req.model.as_deref()).thinking_style
+            == GoogleThinkingStyle::ThinkingLevelBased
+        {
+            merge_trailing_assistant_into_previous(&mut messages);
+        }
 
         // Fill in tool names from preceding tool_calls — Google requires functionResponse.name
         // but some formats (e.g. OpenAI chat-completions role:tool) don't carry the function name
@@ -1109,6 +1118,101 @@ mod tests {
         assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.include_thoughts, Some(true));
         assert_eq!(thinking_config.thinking_level, Some(ThinkingLevel::Medium));
+    }
+
+    #[test]
+    fn test_google_gemini_3_merges_trailing_model_turn() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.6-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("Translate 'Hello world' to French.".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::String("Translation:".to_string()),
+                    id: None,
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed.contents.expect("contents should be present");
+
+        assert_eq!(
+            contents.len(),
+            1,
+            "Gemini 3.x request must not end with a model turn"
+        );
+        assert_eq!(contents[0].role.as_deref(), Some("user"));
+        let text: String = contents[0]
+            .parts
+            .as_ref()
+            .expect("parts")
+            .iter()
+            .filter_map(|part| part.text.clone())
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(text.contains("Translate 'Hello world' to French."));
+        assert!(text.contains("Translation:"));
+    }
+
+    #[test]
+    fn test_google_gemini_25_preserves_trailing_model_turn() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-2.5-flash".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("Translate 'Hello world' to French.".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::String("Translation:".to_string()),
+                    id: None,
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed.contents.expect("contents should be present");
+
+        assert_eq!(
+            contents.len(),
+            2,
+            "pre-Gemini-3 models keep the prefilled model turn"
+        );
+        assert_eq!(contents[1].role.as_deref(), Some("model"));
+    }
+
+    #[test]
+    fn test_google_gemini_3_lone_model_turn_unchanged() {
+        let adapter = GoogleAdapter;
+        let req = UniversalRequest {
+            model: Some("gemini-3.6-flash".to_string()),
+            messages: vec![Message::Assistant {
+                content: AssistantContent::String("Only a model turn".to_string()),
+                id: None,
+            }],
+            params: UniversalParams::default(),
+        };
+
+        let payload = adapter.request_from_universal(&req).unwrap();
+        let typed: GenerateContentRequest =
+            serde_json::from_value(payload).expect("request should deserialize");
+        let contents = typed.contents.expect("contents should be present");
+
+        assert_eq!(contents.len(), 1);
+        assert_eq!(
+            contents[0].role.as_deref(),
+            Some("model"),
+            "a lone model turn has nothing to merge into and is left unchanged"
+        );
     }
 
     #[test]

@@ -1,0 +1,21 @@
+{
+  "model": "gemini-3.6-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Translate 'Hello world' to French."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Translation:"
+        }
+      ]
+    }
+  ]
+}

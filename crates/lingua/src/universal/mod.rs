@@ -38,4 +38,6 @@ pub use tools::{
     tools_to_openai_chat_value, tools_to_responses_value, BuiltinToolProvider, UniversalTool,
     UniversalToolType,
 };
-pub use transform::{extract_system_messages, flatten_consecutive_messages};
+pub use transform::{
+    extract_system_messages, flatten_consecutive_messages, merge_trailing_assistant_into_previous,
+};

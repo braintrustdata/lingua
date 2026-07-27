@@ -2722,16 +2722,11 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > requ
         {
           "text": "Use the cached assistant prefill.",
         },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
         {
           "text": "This assistant prefill should remain cacheable.",
         },
       ],
-      "role": "model",
+      "role": "user",
     },
   ],
   "generationConfig": {
@@ -2746,7 +2741,7 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
 {
   "content": [
     {
-      "text": " Let me know if you have a specific task or topic you'd like me to assist you with!",
+      "text": "I am ready to assist you. Please let me know what you would like to work on, and we can begin.",
       "type": "text",
     },
   ],
@@ -2756,8 +2751,8 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
-    "input_tokens": 18,
-    "output_tokens": 21,
+    "input_tokens": 17,
+    "output_tokens": 323,
   },
 }
 `;
@@ -8789,6 +8784,94 @@ exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam 
 }
 `;
 
+exports[`chat-completions → anthropic > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011CdTEBYsyGcSoiSRh2gTCU",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → anthropic > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Translate 'Hello world' to French.",
+      "role": "user",
+    },
+    {
+      "content": "Translation:",
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`chat-completions → anthropic > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": " **Bonjour le monde**
+
+(or simply "Bonjour monde")",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-011CdTEBYKEkdzUw9CZJZoff",
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 22,
+    "prompt_tokens": 19,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 41,
+  },
+}
+`;
+
 exports[`chat-completions → anthropic > googleToolCallThoughtSignatureReplayParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -11850,6 +11933,102 @@ exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > 
 }
 `;
 
+exports[`chat-completions → bedrock > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! 👋 How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 16,
+    "prompt_tokens": 10,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 26,
+  },
+}
+`;
+
+exports[`chat-completions → bedrock > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": [
+        {
+          "text": "Translate 'Hello world' to French.",
+        },
+      ],
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "Translation:",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "modelId": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+}
+`;
+
+exports[`chat-completions → bedrock > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": " "Bonjour le monde"",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "transformed",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 19,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 30,
+  },
+}
+`;
+
 exports[`chat-completions → bedrock > googleToolCallThoughtSignatureReplayParam > request 1`] = `
 {
   "messages": [
@@ -14502,16 +14681,11 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
         {
           "text": "Use the cached assistant prefill.",
         },
-      ],
-      "role": "user",
-    },
-    {
-      "parts": [
         {
           "text": "This assistant prefill should remain cacheable.",
         },
       ],
-      "role": "model",
+      "role": "user",
     },
   ],
   "model": "gemini-3.5-flash",
@@ -14526,7 +14700,7 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
       "index": 0,
       "message": {
         "annotations": [],
-        "content": " How can I help you today?",
+        "content": "I am ready. Please provide the details, instructions, or prompt you would like me to process, and I will assist you.",
         "role": "assistant",
       },
     },
@@ -14536,9 +14710,12 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
   "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 7,
-    "prompt_tokens": 18,
-    "total_tokens": 25,
+    "completion_tokens": 401,
+    "completion_tokens_details": {
+      "reasoning_tokens": 375,
+    },
+    "prompt_tokens": 17,
+    "total_tokens": 418,
   },
 }
 `;
@@ -14963,6 +15140,97 @@ Okay, so the user wants to know the weather in Tokyo. That's straightforward eno
     },
     "prompt_tokens": 37,
     "total_tokens": 98,
+  },
+}
+`;
+
+exports[`chat-completions → google > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Say hi.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.6-flash",
+}
+`;
+
+exports[`chat-completions → google > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi! How can I help you today?",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 158,
+    "completion_tokens_details": {
+      "reasoning_tokens": 149,
+    },
+    "prompt_tokens": 4,
+    "total_tokens": 162,
+  },
+}
+`;
+
+exports[`chat-completions → google > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Translate 'Hello world' to French.",
+        },
+        {
+          "text": "Translation:",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.6-flash",
+}
+`;
+
+exports[`chat-completions → google > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Bonjour le monde",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.6-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 170,
+    "completion_tokens_details": {
+      "reasoning_tokens": 167,
+    },
+    "prompt_tokens": 11,
+    "total_tokens": 181,
   },
 }
 `;
@@ -18423,6 +18691,94 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
 }
 `;
 
+exports[`chat-completions → responses > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Hi!",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-04209ce1cbe1ff56006a67c59a2b9881a09f09ac76c2f04266",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 6,
+    "prompt_tokens": 9,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
+exports[`chat-completions → responses > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Translate 'Hello world' to French.",
+      "role": "user",
+      "type": "message",
+    },
+    {
+      "content": "Translation:",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`chat-completions → responses > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "Bonjour le monde.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-04d0618a9a2a6866006a67c5990f2c819dab474e5c7238c2d2",
+  "model": "gpt-5.6-terra",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 8,
+    "prompt_tokens": 22,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "total_tokens": 30,
+  },
+}
+`;
+
 exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayParam > request 1`] = `
 {
   "input": [
@@ -21180,6 +21536,95 @@ What maximum token limit would you like to set?",
 }
 `;
 
+exports[`google → anthropic > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi! 👋 How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 16,
+    "promptTokenCount": 10,
+    "totalTokenCount": 26,
+  },
+}
+`;
+
+exports[`google → anthropic > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Translate 'Hello world' to French.",
+      "role": "user",
+    },
+    {
+      "content": [
+        {
+          "text": "Translation:",
+          "type": "text",
+        },
+      ],
+      "role": "assistant",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`google → anthropic > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": " **Bonjour le monde**
+
+(This is the standard French translation of "Hello world")",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "claude-sonnet-4-5-20250929",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 24,
+    "promptTokenCount": 19,
+    "totalTokenCount": 43,
+  },
+}
+`;
+
 exports[`google → anthropic > googleOpenAIModelTopKParam > request 1`] = `
 {
   "max_tokens": 1024,
@@ -23873,6 +24318,88 @@ Would you like me to set max_tokens to 1024 now, or provide a different value? I
 }
 `;
 
+exports[`google → chat-completions > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! How can I help you today?",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 19,
+    "promptTokenCount": 9,
+    "thoughtsTokenCount": 128,
+    "totalTokenCount": 156,
+  },
+}
+`;
+
+exports[`google → chat-completions > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "messages": [
+    {
+      "content": "Translate 'Hello world' to French.",
+      "role": "user",
+    },
+    {
+      "content": "Translation:",
+      "role": "assistant",
+    },
+  ],
+  "model": "gpt-5-nano",
+}
+`;
+
+exports[`google → chat-completions > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Bonjour le monde.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5-nano-2025-08-07",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 13,
+    "promptTokenCount": 22,
+    "thoughtsTokenCount": 320,
+    "totalTokenCount": 355,
+  },
+}
+`;
+
 exports[`google → chat-completions > googleOpenAIModelTopKParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
@@ -26364,6 +26891,103 @@ exports[`google → responses > exclusiveMinimumToolParam > response 1`] = `
     "promptTokenCount": 57,
     "thoughtsTokenCount": 512,
     "totalTokenCount": 644,
+  },
+}
+`;
+
+exports[`google → responses > geminiMigrationCandidateCountParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Say hi.",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`google → responses > geminiMigrationCandidateCountParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi!",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 6,
+    "promptTokenCount": 9,
+    "totalTokenCount": 15,
+  },
+}
+`;
+
+exports[`google → responses > geminiMigrationTrailingModelTurnParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "Translate 'Hello world' to French.",
+      "role": "user",
+      "type": "message",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "logprobs": [],
+          "text": "Translation:",
+          "type": "output_text",
+        },
+      ],
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "model": "gpt-5.6-terra",
+}
+`;
+
+exports[`google → responses > geminiMigrationTrailingModelTurnParam > response 1`] = `
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "",
+            "thought": true,
+            "thoughtSignature": "gAAAAABqZ8Wcl90uklpFPvxEAheEvG4R8pPzPqggI1LkIZRKPoCl1rpNoveOtpMhbR52HJxqFMoLxh1r2xbmFZLC9r3q0s156IQXo3Smjsll1Axc_LHgi_Xc25I8PoNqk2M0gwjJ9Xw9sWcjwphVkNODg851zi61E-X3pF1P7K6ko2zbCnzDvB2rjDlV2IWeiZK02MpO8twnUIGTPTkAXc9t19Muj6KnD4083eulDcnTfD1sobaXHiogabQ2fgA71I32SYyFZ2n5DQQMpxy__J-4GPXoO3ljn2sWVQun9tIP9dKzUPylBAV5xDOximzdLBzzRMb98gngD6WC11dGztmmpk4L93o0S012Lunr-SC6E5Py9IDA-S7BewI-hOXxNI7h2XTdiEz8W7-6c0681eWEOzYDbKGAcQtBAB1MsPAqGpXUKiSisP7bZelILowP1fX8J6Qzb7mSzs634C2ohw3RvJgBqwIbgploB5PNO96a_oAIDwguB3mJQ9LWMzeD13VTKVEJec47CU5cluy06BHjIp8p6Ffh-bn4wM895LsNDpA9rCJOONjY9bsKJyJ6EUKU9uU8sxxVl0fFHNWly7Qt_jZfJws7GbB13_PFEGcoy4cTkJ-53yfGUCRypBmeOG3oSz3iWUCx9Km0DFfI5-hNSh9IZt-PHBygNXVaqxhJDEZAi2fTfXiURi14F-OFYA9_K0htJW2PMPsPCanSRQyEr96djSLzq4A77B07iq1e5XQ8zAC7hVBTfKwx4WIvLpz8F_RLIZIyB1nYPzHRiXK9VcfIYzIaQCx_01rE6iwV05b97W33-s1-O6V0uKtyWOAyAxAUSpJvG60c3saLJrW1BI7DS29wnZieTSx_Fbq-8tJJv8cVSFxDruRqBIowyX3umFmljXBXidM5WEkfT-A5TRCwv5j56qJFzY2CKP888kc2HM2sS2aDkelD7fIvCMRauJS3ui5huTfAqjN-bU_zomdG3f7ynK3Vfu0fgSEblWUiKZFzMa2Wt-VctEL3URS9T0yr9e6NO94mcULvH9BLAHHx_VlEfA==",
+          },
+          {
+            "text": "Bonjour le monde.",
+          },
+        ],
+        "role": "model",
+      },
+      "finishReason": "STOP",
+      "index": 0,
+    },
+  ],
+  "modelVersion": "gpt-5.6-terra",
+  "usageMetadata": {
+    "cachedContentTokenCount": 0,
+    "candidatesTokenCount": 10,
+    "promptTokenCount": 22,
+    "thoughtsTokenCount": 21,
+    "totalTokenCount": 53,
   },
 }
 `;
