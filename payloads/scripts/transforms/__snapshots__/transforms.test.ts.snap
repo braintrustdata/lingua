@@ -211,24 +211,6 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
 }
 `;
 
-exports[`anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
-{
-  "max_completion_tokens": 65536,
-  "messages": [
-    {
-      "content": "What is 2+2?",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "reasoning_effort": "high",
-  "stream": true,
-  "stream_options": {
-    "include_usage": true,
-  },
-}
-`;
-
 exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
   "max_completion_tokens": 4096,
@@ -1530,23 +1512,6 @@ exports[`anthropic → chat-completions > stopSequencesParam > response 1`] = `
 }
 `;
 
-exports[`anthropic → chat-completions > streamParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Say hi.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "stream": true,
-  "stream_options": {
-    "include_usage": true,
-  },
-}
-`;
-
 exports[`anthropic → chat-completions > systemMessageArrayContent > request 1`] = `
 {
   "max_completion_tokens": 300,
@@ -2436,59 +2401,6 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "usage": {
     "input_tokens": 88,
     "output_tokens": 546,
-  },
-}
-`;
-
-exports[`anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "What is 2+2?",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "generationConfig": {
-    "maxOutputTokens": 65536,
-    "responseSchema": null,
-    "thinkingConfig": {
-      "includeThoughts": true,
-      "thinkingLevel": "HIGH",
-    },
-  },
-  "model": "gemini-3.5-flash",
-}
-`;
-
-exports[`anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "**My Immediate Thought Process on the User's Query**
-
-Alright, a straightforward one. My initial assessment is that the user's inquiry, "What is 2+2?", boils down to a fundamental arithmetic problem. The core of the issue is to determine the sum of two and two. Given that, the solution is immediate. I already know that $2 + 2 = 4$. My subsequent thought is that the most effective response will be direct, concise, and unambiguous. No need for elaborate explanations here. I'll simply state the answer clearly: "2 + 2 is 4."
-
-
-",
-      "type": "thinking",
-    },
-    {
-      "text": "2 + 2 is 4.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_transformed",
-  "model": "gemini-3.5-flash",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "input_tokens": 8,
-    "output_tokens": 86,
   },
 }
 `;
@@ -4478,46 +4390,6 @@ exports[`anthropic → google > stopSequencesParam > response 1`] = `
 }
 `;
 
-exports[`anthropic → google > streamParam > request 1`] = `
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "Say hi.",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "generationConfig": {
-    "maxOutputTokens": 1024,
-    "responseSchema": null,
-  },
-  "model": "gemini-3.5-flash",
-}
-`;
-
-exports[`anthropic → google > streamParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "Hi there!",
-      "type": "text",
-    },
-  ],
-  "id": "msg_transformed",
-  "model": "gemini-2.5-flash",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "input_tokens": 4,
-    "output_tokens": 24,
-  },
-}
-`;
-
 exports[`anthropic → google > systemMessageArrayContent > request 1`] = `
 {
   "contents": [
@@ -5721,24 +5593,6 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
     "input_tokens": 92,
     "output_tokens": 1024,
   },
-}
-`;
-
-exports[`anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "What is 2+2?",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 65536,
-  "model": "gpt-5.6-terra",
-  "reasoning": {
-    "effort": "max",
-  },
-  "stream": true,
 }
 `;
 
@@ -7267,21 +7121,6 @@ exports[`anthropic → responses > stopSequencesParam > response 1`] = `
     "input_tokens": 11,
     "output_tokens": 338,
   },
-}
-`;
-
-exports[`anthropic → responses > streamParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Say hi.",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5.6-terra",
-  "stream": true,
 }
 `;
 
