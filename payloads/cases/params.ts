@@ -2989,21 +2989,6 @@ export const paramsCases: TestCaseCollection = {
 
     return testCase;
   })(),
-
-  // === Gemini 3.6 Flash / 3.5 Flash-Lite API migration reproductions ===
-  //
-  // Reproduces documented Gemini "latest model" API changes with gemini-3.6-flash
-  // (chat-completions via the Braintrust gateway; google via native generateContent).
-  //
-  // - trailingModelTurn: a trailing model turn returns HTTP 400; Lingua now folds it
-  //   into the preceding user turn for Gemini 3.x, so the transform legs succeed (the
-  //   untransformed native google passthrough still 400s).
-  // - candidateCount: candidate_count returns HTTP 400 on native google; cross-provider
-  //   transforms already drop it, so the transform legs are unaffected.
-  //
-  // temperature/top_p/top_k and thinking_budget are deprecated-but-accepted (200), so
-  // they aren't captured as failures.
-
   geminiMigrationTrailingModelTurnParam: {
     "chat-completions": {
       model: GOOGLE_GEMINI_3_6_MODEL,
