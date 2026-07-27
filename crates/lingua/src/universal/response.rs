@@ -229,7 +229,7 @@ impl FinishReason {
 
     pub fn is_incomplete(&self) -> bool {
         matches!(self, Self::Length | Self::ContentFilter)
-            || matches!(self, Self::Other(reason) if ["queued", "in_progress", "failed", "cancelled"].contains(&reason.as_ref()))
+            || matches!(self, Self::Other(reason) if ["queued", "in_progress", "failed", "cancelled", "model_context_window_exceeded"].contains(&reason.as_ref()))
     }
 
     /// Convert a universal FinishReason to the provider-specific string representation.
@@ -815,6 +815,7 @@ mod tests {
         assert!(FinishReason::Other("in_progress".to_string()).is_incomplete());
         assert!(FinishReason::Other("failed".to_string()).is_incomplete());
         assert!(FinishReason::Other("cancelled".to_string()).is_incomplete());
+        assert!(FinishReason::Other("model_context_window_exceeded".to_string()).is_incomplete());
         assert!(!FinishReason::Other("done".to_string()).is_incomplete());
     }
 
@@ -927,6 +928,12 @@ mod tests {
                 parsed.to_provider_string(provider),
                 "model_context_window_exceeded",
                 "roundtrip must preserve the wire value for {provider:?}"
+            );
+            // Context-window exhaustion truncates output, so it must count as incomplete
+            // even though the wire value is preserved verbatim rather than mapped to Length.
+            assert!(
+                parsed.is_incomplete(),
+                "context-window exhaustion must be incomplete for {provider:?}"
             );
         }
 
