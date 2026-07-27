@@ -203,8 +203,8 @@ fn assistant_content_to_parts(content: AssistantContent) -> Vec<AssistantContent
     }
 }
 
-/// Whether an assistant message carries only text (no tool calls, reasoning,
-/// files, etc.) — the only case where it can be safely folded into another turn.
+/// Whether an assistant message carries only text (no tool calls, reasoning, or
+/// files) — the only case that can be safely folded into another turn.
 fn assistant_is_text_only(content: &AssistantContent) -> bool {
     match content {
         AssistantContent::String(_) => true,
@@ -217,17 +217,10 @@ fn assistant_is_text_only(content: &AssistantContent) -> bool {
     }
 }
 
-/// Fold a trailing text-only assistant turn into the preceding user turn.
-///
-/// Gemini 3.x removed response prefill: a request whose `contents` ends with a
-/// `model` turn is rejected. When the caller prefilled an assistant turn, we
-/// merge its text into the preceding user turn so the request ends on a user
-/// turn instead (e.g. `User("Translate …") + Assistant("Translation:")` →
-/// `User(["Translate …", "Translation:"])`).
-///
-/// No-op (returns `false`) unless the last message is a text-only assistant
-/// turn *and* the message before it is a user turn — this preserves the current
-/// behavior for a lone assistant turn or an assistant turn carrying tool calls.
+/// Fold a trailing text-only assistant (prefill) turn into the preceding user
+/// turn so the request no longer ends on a `model` turn, which Gemini 3.x
+/// rejects. No-op unless the last message is a text-only assistant turn preceded
+/// by a user turn.
 pub fn merge_trailing_assistant_into_previous(messages: &mut Vec<Message>) -> bool {
     if messages.len() < 2 {
         return false;

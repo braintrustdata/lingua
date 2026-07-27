@@ -238,8 +238,8 @@ impl ProviderAdapter for GoogleAdapter {
         // Flatten consecutive messages of the same role (Google doesn't allow them)
         flatten_consecutive_messages(&mut messages);
 
-        // Gemini 3.x rejects requests ending with a model turn (prefill removed).
-        // Fold a trailing prefilled assistant turn into the preceding user turn.
+        // Gemini 3.x rejects a trailing model turn, so fold a prefilled assistant
+        // turn into the preceding user turn.
         if GoogleCapabilities::detect(req.model.as_deref()).thinking_style
             == GoogleThinkingStyle::ThinkingLevelBased
         {

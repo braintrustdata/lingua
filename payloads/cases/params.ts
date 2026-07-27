@@ -2992,26 +2992,17 @@ export const paramsCases: TestCaseCollection = {
 
   // === Gemini 3.6 Flash / 3.5 Flash-Lite API migration reproductions ===
   //
-  // Reproduces documented Gemini "latest model" API changes. Both legs are
-  // captured with the newest model (gemini-3.6-flash): the chat-completions
-  // leg is routed through the Braintrust gateway (:8080), the google leg hits
-  // generateContent natively. Originally verified live 2026-07-27:
+  // Reproduces documented Gemini "latest model" API changes with gemini-3.6-flash
+  // (chat-completions via the Braintrust gateway; google via native generateContent).
   //
-  // - trailingModelTurn: native generateContent returns HTTP 400
-  //     "Requests ending with a model turn are not supported." Lingua now folds
-  //     a trailing model/assistant turn into the preceding user turn for Gemini
-  //     3.x (universal::merge_trailing_assistant_into_previous), so the
-  //     chat-completions -> google transform leg succeeds (200). The native
-  //     google -> google passthrough is not transformed, so its snapshot still
-  //     captures the provider 400.
-  // - candidateCount: google leg returns HTTP 400
-  //     "Multiple candidates is not enabled for this model". Cross-provider
-  //     transforms already drop candidate_count, so the chat-completions leg
-  //     returns 200; the native passthrough 400 is out of scope.
+  // - trailingModelTurn: a trailing model turn returns HTTP 400; Lingua now folds it
+  //   into the preceding user turn for Gemini 3.x, so the transform legs succeed (the
+  //   untransformed native google passthrough still 400s).
+  // - candidateCount: candidate_count returns HTTP 400 on native google; cross-provider
+  //   transforms already drop it, so the transform legs are unaffected.
   //
-  // (The temperature/top_p/top_k and thinking_budget changes are documented as
-  // "deprecated but still accepted" and returned 200 on 2026-07-27, so they are
-  // not captured as failures here.)
+  // temperature/top_p/top_k and thinking_budget are deprecated-but-accepted (200), so
+  // they aren't captured as failures.
 
   geminiMigrationTrailingModelTurnParam: {
     "chat-completions": {

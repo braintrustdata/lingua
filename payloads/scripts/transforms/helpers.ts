@@ -288,10 +288,9 @@ export const TARGET_MODELS: Record<SourceFormat, string> = {
   baseten: BASETEN_MODEL,
 };
 
-// A case's chat-completions/responses leg may pin a non-OpenAI model when it
-// exists to exercise a gateway route (e.g. gemini-3.6-flash routed through the
-// Braintrust gateway). Such a model must not be reused as the *target* model
-// when transforming into an OpenAI-family format, or the OpenAI SDK 404s on it.
+// A case's chat-completions/responses leg may pin a non-OpenAI model (e.g.
+// gemini-3.6-flash for a gateway route); don't reuse it as the target model for
+// an OpenAI-family transform, or the OpenAI SDK 404s on it.
 function isOpenAiFamilyFormat(format: SourceFormat): boolean {
   return format === "chat-completions" || format === "responses";
 }
