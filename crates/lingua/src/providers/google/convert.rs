@@ -2115,7 +2115,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment, Level,
+        MediaResolution, MediaResolutionEnum, Type,
     };
 
     #[test]
@@ -2165,6 +2166,98 @@ mod tests {
                 mode
             );
         }
+    }
+
+    #[test]
+    fn test_part_media_resolution_struct_round_trips() {
+        // `Part.mediaResolution` (upstream schema id `V1mainMediaResolution`) is exposed under
+        // the established public name `MediaResolution`, an object carrying a `level` enum.
+        let wire = json!({ "level": "MEDIA_RESOLUTION_ULTRA_HIGH" });
+        let parsed: MediaResolution = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(parsed.level, Some(Level::MediaResolutionUltraHigh));
+        assert_eq!(serde_json::to_value(&parsed).unwrap(), wire);
+
+        // The `level` enum accepts every documented resolution, including ULTRA_HIGH which the
+        // GenerationConfig-level enum does not carry.
+        for (w, level) in [
+            (
+                "MEDIA_RESOLUTION_UNSPECIFIED",
+                Level::MediaResolutionUnspecified,
+            ),
+            ("MEDIA_RESOLUTION_LOW", Level::MediaResolutionLow),
+            ("MEDIA_RESOLUTION_MEDIUM", Level::MediaResolutionMedium),
+            ("MEDIA_RESOLUTION_HIGH", Level::MediaResolutionHigh),
+            (
+                "MEDIA_RESOLUTION_ULTRA_HIGH",
+                Level::MediaResolutionUltraHigh,
+            ),
+        ] {
+            assert_eq!(
+                serde_json::from_str::<Level>(&format!("\"{w}\"")).unwrap(),
+                level
+            );
+            assert_eq!(serde_json::to_string(&level).unwrap(), format!("\"{w}\""));
+        }
+
+        // An empty object round-trips because `level` is optional and skipped when absent.
+        let empty: MediaResolution = serde_json::from_value(json!({})).unwrap();
+        assert_eq!(empty.level, None);
+        assert_eq!(serde_json::to_value(&empty).unwrap(), json!({}));
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_enum_wire_format() {
+        // `GenerationConfig.mediaResolution` stays the standalone enum `MediaResolutionEnum`.
+        for (wire, variant) in [
+            (
+                "\"MEDIA_RESOLUTION_UNSPECIFIED\"",
+                MediaResolutionEnum::MediaResolutionUnspecified,
+            ),
+            (
+                "\"MEDIA_RESOLUTION_LOW\"",
+                MediaResolutionEnum::MediaResolutionLow,
+            ),
+            (
+                "\"MEDIA_RESOLUTION_MEDIUM\"",
+                MediaResolutionEnum::MediaResolutionMedium,
+            ),
+            (
+                "\"MEDIA_RESOLUTION_HIGH\"",
+                MediaResolutionEnum::MediaResolutionHigh,
+            ),
+        ] {
+            assert_eq!(serde_json::to_string(&variant).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_str::<MediaResolutionEnum>(wire).unwrap(),
+                variant
+            );
+        }
+    }
+
+    #[test]
+    fn test_audio_transcription_config_round_trips() {
+        // Newly generated GenerationConfig field: a full payload must deserialize and
+        // re-serialize losslessly through the typed struct with camelCase wire names.
+        let wire = json!({
+            "wordTimestamp": true,
+            "diarization": false,
+            "adaptationPhrases": ["acme corp"],
+            "customVocabulary": ["gemini"],
+            "languageAuto": {},
+            "languageHints": { "languageCodes": ["en-US", "es-US"] },
+        });
+        let parsed: AudioTranscriptionConfig = serde_json::from_value(wire.clone()).unwrap();
+        assert_eq!(parsed.word_timestamp, Some(true));
+        assert_eq!(parsed.diarization, Some(false));
+        assert_eq!(
+            parsed.language_hints.as_ref().unwrap().language_codes,
+            Some(vec!["en-US".to_string(), "es-US".to_string()])
+        );
+        assert_eq!(serde_json::to_value(&parsed).unwrap(), wire);
+
+        // Optional fields are skipped when absent, so an empty config round-trips.
+        let empty: AudioTranscriptionConfig = serde_json::from_value(json!({})).unwrap();
+        assert_eq!(serde_json::to_value(&empty).unwrap(), json!({}));
     }
 
     #[test]

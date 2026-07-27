@@ -1603,12 +1603,18 @@ fn generate_google_discovery_types() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🔍 Parsing Discovery JSON spec...");
 
-    let spec: serde_json::Value = match serde_json::from_str(&discovery_spec) {
+    let mut spec: serde_json::Value = match serde_json::from_str(&discovery_spec) {
         Ok(value) => value,
         Err(e) => {
             panic!("❌ Failed to parse Discovery spec as JSON: {}", e);
         }
     };
+
+    // Restore established public schema names before generation. The upstream spec renamed
+    // some schema ids to versioned, path-derived names (e.g. `V1mainMediaResolution`) without
+    // changing their wire shape. Generated provider types are public API, so we alias these
+    // back to the names Lingua already exposes to keep identifiers stable.
+    normalize_google_public_schema_names(&mut spec);
 
     let schemas = spec.get("schemas");
 
@@ -1779,11 +1785,64 @@ fn add_google_schema_with_dependencies(
     }
 }
 
+/// Aliases upstream Discovery schema ids back to the public names Lingua already exposes,
+/// for schemas whose wire shape is unchanged. Renames the schema entry and rewrites every
+/// bare `$ref` that points at it. Skips an alias if its target name is already taken.
+fn normalize_google_public_schema_names(spec: &mut serde_json::Value) {
+    // (upstream schema id, established public name)
+    const ALIASES: &[(&str, &str)] = &[("V1mainMediaResolution", "MediaResolution")];
+
+    let Some(schemas) = spec.get_mut("schemas").and_then(|s| s.as_object_mut()) else {
+        return;
+    };
+
+    let mut applied: Vec<(&str, &str)> = Vec::new();
+    for &(from, to) in ALIASES {
+        if schemas.contains_key(to) {
+            // Public name already used by another schema; leave the upstream name untouched.
+            continue;
+        }
+        if let Some(mut schema) = schemas.remove(from) {
+            if let Some(id) = schema.get_mut("id") {
+                *id = serde_json::Value::String(to.to_string());
+            }
+            schemas.insert(to.to_string(), schema);
+            applied.push((from, to));
+        }
+    }
+
+    for (from, to) in applied {
+        rewrite_discovery_ref(spec, from, to);
+    }
+}
+
+/// Recursively rewrites bare Discovery `$ref` values equal to `from` into `to`.
+fn rewrite_discovery_ref(value: &mut serde_json::Value, from: &str, to: &str) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            if let Some(serde_json::Value::String(ref_str)) = obj.get_mut("$ref") {
+                if ref_str == from {
+                    *ref_str = to.to_string();
+                }
+            }
+            for (_, v) in obj.iter_mut() {
+                rewrite_discovery_ref(v, from, to);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr.iter_mut() {
+                rewrite_discovery_ref(item, from, to);
+            }
+        }
+        _ => {}
+    }
+}
+
 fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
     match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
+        // Safety net: if a future Discovery spec drops the media-resolution schema that `Part`
+        // references (aliased to `MediaResolution` by `normalize_google_public_schema_names`),
+        // fall back to the last-known shape so generation stays fully typed.
         "MediaResolution" => Some(serde_json::json!({
             "description": "Media resolution for the input media.",
             "type": "object",
@@ -2333,5 +2392,62 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+}
+
+#[cfg(test)]
+mod google_schema_alias_tests {
+    use super::normalize_google_public_schema_names;
+    use big_serde_json as serde_json;
+
+    #[test]
+    fn aliases_v1main_media_resolution_back_to_public_name() {
+        let mut spec = serde_json::json!({
+            "schemas": {
+                "V1mainMediaResolution": {
+                    "id": "V1mainMediaResolution",
+                    "type": "object",
+                    "properties": { "level": { "type": "string" } }
+                },
+                "Part": {
+                    "id": "Part",
+                    "type": "object",
+                    "properties": {
+                        "mediaResolution": { "$ref": "V1mainMediaResolution" }
+                    }
+                }
+            }
+        });
+
+        normalize_google_public_schema_names(&mut spec);
+
+        let schemas = spec["schemas"].as_object().unwrap();
+        // The schema is re-keyed under the established public name, id included.
+        assert!(schemas.contains_key("MediaResolution"));
+        assert!(!schemas.contains_key("V1mainMediaResolution"));
+        assert_eq!(schemas["MediaResolution"]["id"], "MediaResolution");
+        // Every bare `$ref` that pointed at the upstream name is rewritten.
+        assert_eq!(
+            schemas["Part"]["properties"]["mediaResolution"]["$ref"],
+            "MediaResolution"
+        );
+    }
+
+    #[test]
+    fn skips_alias_when_public_name_already_taken() {
+        // If a real `MediaResolution` schema already exists, the upstream name is left intact
+        // rather than clobbering the existing definition.
+        let mut spec = serde_json::json!({
+            "schemas": {
+                "MediaResolution": { "id": "MediaResolution", "type": "string" },
+                "V1mainMediaResolution": { "id": "V1mainMediaResolution", "type": "object" }
+            }
+        });
+
+        normalize_google_public_schema_names(&mut spec);
+
+        let schemas = spec["schemas"].as_object().unwrap();
+        assert!(schemas.contains_key("V1mainMediaResolution"));
+        assert_eq!(schemas["MediaResolution"]["type"], "string");
     }
 }
