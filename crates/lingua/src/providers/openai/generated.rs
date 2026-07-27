@@ -41,18 +41,10 @@ pub struct OpenaiSchemas {
 pub struct CreateChatCompletionRequestClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1249,7 +1241,8 @@ pub struct FunctionObject {
 
 /// Constrains the verbosity of the model's response. Lower values will result in
 /// more concise responses, while higher values will result in more verbose responses.
-/// Currently supported values are `low`, `medium`, and `high`.
+/// Currently supported values are `low`, `medium`, and `high`. The default is
+/// `medium`.
 ///
 ///
 /// High level guidance for the amount of context window space to use for the
@@ -1867,18 +1860,10 @@ pub enum ChatStreamResponseObject {
 pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4762,6 +4747,10 @@ pub struct Reasoning {
 }
 
 /// Controls which reasoning items are rendered back to the model on later turns.
+/// If omitted or set to `auto`, the model determines the context mode. The
+/// `gpt-5.6` model family defaults to `all_turns`; earlier models default to
+/// `current_turn`.
+///
 /// When returned on a response, this is the effective reasoning context mode
 /// used for the response.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -5442,18 +5431,10 @@ pub enum Truncation {
 pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5561,6 +5542,8 @@ pub struct ResponseError {
 pub enum ResponseErrorCode {
     #[serde(rename = "bio_policy")]
     BioPolicy,
+    #[serde(rename = "data_residency_mismatch")]
+    DataResidencyMismatch,
     #[serde(rename = "empty_image_file")]
     EmptyImageFile,
     #[serde(rename = "failed_to_download_image")]
