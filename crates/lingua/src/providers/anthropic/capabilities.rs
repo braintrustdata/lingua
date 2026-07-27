@@ -8,7 +8,7 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
+        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)([-.]\d{1,2})?)|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
     )
     .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
 });
@@ -173,6 +173,14 @@ mod tests {
             "anthropic/claude-opus-4-10@20260601"
         ));
         assert!(supports_output_config_effort("claude-opus-5-0"));
+        assert!(supports_output_config_effort("claude-opus-5"));
+        assert!(supports_output_config_effort("CLAUDE-OPUS-5"));
+        assert!(supports_output_config_effort(
+            "us.anthropic.claude-opus-5-v1:0"
+        ));
+        assert!(supports_output_config_effort(
+            "anthropic/claude-opus-5@20260701"
+        ));
         assert!(supports_output_config_effort("claude-opus-5.0"));
         assert!(supports_output_config_effort("claude-opus-5-1-20260701"));
         assert!(supports_output_config_effort(
@@ -216,6 +224,10 @@ mod tests {
             "claude-opus-4-10",
             "anthropic/claude-opus-4-10@20260601",
             "claude-opus-5-0",
+            "claude-opus-5",
+            "CLAUDE-OPUS-5",
+            "us.anthropic.claude-opus-5-v1:0",
+            "anthropic/claude-opus-5@20260701",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
             "anthropic/claude-opus-5-0@20260701",
@@ -371,6 +383,12 @@ mod tests {
                 &[StripSamplingParams][..],
             ),
             ("claude-opus-5-0", &[StripSamplingParams][..]),
+            ("claude-opus-5", &[StripSamplingParams][..]),
+            ("CLAUDE-OPUS-5", &[StripSamplingParams][..]),
+            (
+                "us.anthropic.claude-opus-5-v1:0",
+                &[StripSamplingParams][..],
+            ),
             ("claude-opus-5.0", &[StripSamplingParams][..]),
             ("claude-opus-5-1-20260701", &[StripSamplingParams][..]),
             (
@@ -425,6 +443,8 @@ mod tests {
             "claude-opus-4-8-20260528",
             "claude-opus-4-10",
             "claude-opus-5-0",
+            "claude-opus-5",
+            "us.anthropic.claude-opus-5-v1:0",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
             "claude-sonnet-5",
@@ -470,6 +490,10 @@ mod tests {
             "claude-opus-4-10",
             "anthropic/claude-opus-4-10@20260601",
             "claude-opus-5-0",
+            "claude-opus-5",
+            "CLAUDE-OPUS-5",
+            "us.anthropic.claude-opus-5-v1:0",
+            "anthropic/claude-opus-5@20260701",
             "claude-opus-5.0",
             "claude-opus-5-1-20260701",
             "anthropic/claude-opus-5-0@20260701",
