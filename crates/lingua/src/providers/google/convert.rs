@@ -2115,8 +2115,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment, Level,
-        MediaResolution, MediaResolutionEnum, Type,
+        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment,
+        LanguageAuto, Level, MediaResolution, MediaResolutionEnum, Type,
     };
 
     #[test]
@@ -2249,6 +2249,9 @@ mod tests {
         let parsed: AudioTranscriptionConfig = serde_json::from_value(wire.clone()).unwrap();
         assert_eq!(parsed.word_timestamp, Some(true));
         assert_eq!(parsed.diarization, Some(false));
+        // `languageAuto` is the named `LanguageAuto` schema, not an opaque JSON map, so the
+        // empty object parses into the typed struct and round-trips as `{}`.
+        assert_eq!(parsed.language_auto, Some(LanguageAuto {}));
         assert_eq!(
             parsed.language_hints.as_ref().unwrap().language_codes,
             Some(vec!["en-US".to_string(), "es-US".to_string()])

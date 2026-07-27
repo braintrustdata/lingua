@@ -1719,7 +1719,9 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
     // Convert all Discovery-format schemas to JSON Schema format
     let mut fixed_schemas = serde_json::Map::new();
     for (name, schema) in essential_schemas {
-        fixed_schemas.insert(name, convert_discovery_schema_to_json_schema(&schema));
+        let mut fixed = convert_discovery_schema_to_json_schema(&schema);
+        force_google_empty_object_to_struct(&name, &mut fixed);
+        fixed_schemas.insert(name, fixed);
     }
 
     let root_schema = serde_json::json!({
@@ -1739,6 +1741,38 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
     });
 
     root_schema
+}
+
+/// Discovery object schemas that model a concrete (currently empty) message rather than a
+/// free-form JSON map. Discovery expresses these as `{"type": "object", "properties": {}}`,
+/// which quicktype collapses into a raw map (`serde_json::Map<String, serde_json::Value>`),
+/// dropping the named type and its compile-time validation (and surfacing as `unknown` in
+/// TypeScript). Listing them here closes the schema so quicktype emits a named empty struct,
+/// preserving the canonical shape (e.g. `Option<LanguageAuto>`).
+const GOOGLE_STRUCT_EMPTY_OBJECT_SCHEMAS: &[&str] = &["LanguageAuto"];
+
+/// Force a known empty-message schema to generate as a struct by closing it with
+/// `additionalProperties: false`. Only applies when the schema really is an object with no
+/// declared properties and no explicit `additionalProperties`, so genuine free-form maps are
+/// left untouched.
+fn force_google_empty_object_to_struct(name: &str, schema: &mut serde_json::Value) {
+    if !GOOGLE_STRUCT_EMPTY_OBJECT_SCHEMAS.contains(&name) {
+        return;
+    }
+    let Some(obj) = schema.as_object_mut() else {
+        return;
+    };
+    let is_object = obj.get("type").and_then(|t| t.as_str()) == Some("object");
+    let has_properties = obj
+        .get("properties")
+        .and_then(|p| p.as_object())
+        .is_some_and(|p| !p.is_empty());
+    if is_object && !has_properties && !obj.contains_key("additionalProperties") {
+        obj.insert(
+            "additionalProperties".to_string(),
+            serde_json::Value::Bool(false),
+        );
+    }
 }
 
 fn add_google_schema_with_dependencies(
@@ -1807,8 +1841,13 @@ fn normalize_google_public_schema_names(spec: &mut serde_json::Value) {
                 *id = serde_json::Value::String(to.to_string());
             }
             schemas.insert(to.to_string(), schema);
-            applied.push((from, to));
         }
+        // Rewrite refs even when the upstream schema is absent. A future Discovery document
+        // could drop `from` while a schema like `Part` still references it; rewriting the
+        // reference to `to` keeps it resolvable via `google_missing_discovery_schema`, whose
+        // fallback is keyed by the public name. Otherwise the reference would dangle at `from`
+        // and the referenced definition would be silently omitted.
+        applied.push((from, to));
     }
 
     for (from, to) in applied {
@@ -2449,5 +2488,34 @@ mod google_schema_alias_tests {
         let schemas = spec["schemas"].as_object().unwrap();
         assert!(schemas.contains_key("V1mainMediaResolution"));
         assert_eq!(schemas["MediaResolution"]["type"], "string");
+    }
+
+    #[test]
+    fn rewrites_ref_even_when_upstream_schema_is_absent() {
+        // A future Discovery document may drop `V1mainMediaResolution` while `Part` still
+        // references it. The reference must still be rewritten to the public name so the
+        // `google_missing_discovery_schema` fallback (keyed by `MediaResolution`) stays
+        // reachable instead of leaving a dangling `V1mainMediaResolution` reference.
+        let mut spec = serde_json::json!({
+            "schemas": {
+                "Part": {
+                    "id": "Part",
+                    "type": "object",
+                    "properties": {
+                        "mediaResolution": { "$ref": "V1mainMediaResolution" }
+                    }
+                }
+            }
+        });
+
+        normalize_google_public_schema_names(&mut spec);
+
+        let schemas = spec["schemas"].as_object().unwrap();
+        assert!(!schemas.contains_key("V1mainMediaResolution"));
+        assert!(!schemas.contains_key("MediaResolution"));
+        assert_eq!(
+            schemas["Part"]["properties"]["mediaResolution"]["$ref"],
+            "MediaResolution"
+        );
     }
 }

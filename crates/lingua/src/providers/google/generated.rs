@@ -697,9 +697,8 @@ pub struct AudioTranscriptionConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub diarization: Option<bool>,
     /// Optional. The model will detect the language automatically.
-    #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub language_auto: Option<serde_json::Map<String, serde_json::Value>>,
+    pub language_auto: Option<LanguageAuto>,
     /// Optional. Specifies one or more languages in the audio.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub language_hints: Option<LanguageHints>,
@@ -707,6 +706,13 @@ pub struct AudioTranscriptionConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub word_timestamp: Option<bool>,
 }
+
+/// Optional. The model will detect the language automatically.
+///
+/// Indicates the language of the audio should be automatically detected.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "google/")]
+pub struct LanguageAuto {}
 
 /// Optional. Specifies one or more languages in the audio.
 ///
