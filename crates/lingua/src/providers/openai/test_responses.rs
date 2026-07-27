@@ -193,6 +193,53 @@ mod tests {
         );
     }
 
+    // Regression: the synchronized spec adds `data_residency_mismatch` to the
+    // Responses API `error.code` enum. The generated `ResponseErrorCode` must accept
+    // the new wire value, map it to the correct variant, and re-serialize it exactly,
+    // both standalone and when nested in a `TheResponseObject.error`.
+    #[test]
+    fn response_error_code_accepts_data_residency_mismatch() {
+        use crate::providers::openai::generated::{ResponseError, ResponseErrorCode};
+
+        // Standalone: the new code deserializes to the dedicated variant and round-trips.
+        let value = crate::serde_json::json!({
+            "code": "data_residency_mismatch",
+            "message": "Request could not be served from the required data residency region."
+        });
+        let error: ResponseError = crate::serde_json::from_value(value)
+            .expect("data_residency_mismatch error code must deserialize");
+        assert!(matches!(
+            error.code,
+            ResponseErrorCode::DataResidencyMismatch
+        ));
+
+        let serialized = crate::serde_json::to_value(&error).unwrap();
+        assert_eq!(serialized["code"], "data_residency_mismatch");
+
+        // Reachable through a full response object: a failed Response carrying the new
+        // code must still parse into the typed `TheResponseObject`.
+        let response = crate::serde_json::json!({
+            "id": "resp_123",
+            "object": "response",
+            "created_at": 1741900000,
+            "status": "failed",
+            "error": {
+                "code": "data_residency_mismatch",
+                "message": "Request could not be served from the required data residency region."
+            },
+            "instructions": null,
+            "model": "gpt-5.6",
+            "output": [],
+            "parallel_tool_calls": true,
+            "tool_choice": "auto",
+            "tools": []
+        });
+        let parsed: TheResponseObject = crate::serde_json::from_value(response)
+            .expect("Responses payload with data_residency_mismatch error must deserialize");
+        let code = parsed.error.expect("error must be present").code;
+        assert!(matches!(code, ResponseErrorCode::DataResidencyMismatch));
+    }
+
     // Regression: removing the stale duplicate `programmatic_tool_calling` variant
     // from the generated `Tool` enum must not stop the (still spec-valid) tool from
     // deserializing or re-serializing.
