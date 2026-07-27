@@ -1670,6 +1670,94 @@ mod tests {
     }
 
     #[test]
+    fn test_stop_reason_model_context_window_exceeded_generated_roundtrip() {
+        use crate::providers::anthropic::generated::StopReason;
+
+        // The wire value must deserialize into the dedicated generated variant and
+        // serialize back byte-identically (no coercion into an adjacent variant).
+        let parsed: StopReason =
+            serde_json::from_value(json!("model_context_window_exceeded")).unwrap();
+        assert_eq!(parsed, StopReason::ModelContextWindowExceeded);
+        assert_eq!(
+            serde_json::to_value(&parsed).unwrap(),
+            json!("model_context_window_exceeded")
+        );
+    }
+
+    #[test]
+    fn test_refusal_category_general_harms_generated_roundtrip() {
+        use crate::providers::anthropic::generated::{
+            RefusalCategory, RefusalStopDetails, RefusalStopDetailsType,
+        };
+
+        let parsed: RefusalCategory = serde_json::from_value(json!("general_harms")).unwrap();
+        assert_eq!(parsed, RefusalCategory::GeneralHarms);
+        assert_eq!(
+            serde_json::to_value(&parsed).unwrap(),
+            json!("general_harms")
+        );
+
+        // A full refusal stop-detail carrying the new category must round-trip through
+        // the typed struct without losing the category.
+        let details: RefusalStopDetails = serde_json::from_value(json!({
+            "type": "refusal",
+            "category": "general_harms",
+            "explanation": "policy"
+        }))
+        .unwrap();
+        assert_eq!(details.category, Some(RefusalCategory::GeneralHarms));
+        assert_eq!(
+            details.refusal_stop_details_type,
+            RefusalStopDetailsType::Refusal
+        );
+        assert_eq!(
+            serde_json::to_value(&details).unwrap(),
+            json!({
+                "type": "refusal",
+                "category": "general_harms",
+                "explanation": "policy"
+            })
+        );
+    }
+
+    #[test]
+    fn test_anthropic_response_preserves_model_context_window_exceeded() {
+        let adapter = AnthropicAdapter;
+        let payload = json!({
+            "id": "msg_123",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{"type": "text", "text": "partial answer"}],
+            "stop_reason": "model_context_window_exceeded",
+            "usage": {"input_tokens": 10, "output_tokens": 5}
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        // The new stop reason has no dedicated universal variant, so it is preserved
+        // losslessly as `Other` rather than coerced into `Length`/`max_tokens`.
+        assert_eq!(
+            universal.finish_reason,
+            Some(FinishReason::Other(
+                "model_context_window_exceeded".to_string()
+            ))
+        );
+
+        // The emitted payload must deserialize back into the generated `StopReason`
+        // variant (asserted via a typed view rather than raw `Value` access).
+        #[derive(Deserialize)]
+        struct StopReasonView {
+            stop_reason: Option<crate::providers::anthropic::generated::StopReason>,
+        }
+        let reconstructed = adapter.response_from_universal(&universal).unwrap();
+        let view: StopReasonView = serde_json::from_value(reconstructed).unwrap();
+        assert_eq!(
+            view.stop_reason,
+            Some(crate::providers::anthropic::generated::StopReason::ModelContextWindowExceeded)
+        );
+    }
+
+    #[test]
     fn test_anthropic_system_cache_control_preserved() {
         use crate::universal::message::{CacheControl, CacheControlType, TextContentPart};
 

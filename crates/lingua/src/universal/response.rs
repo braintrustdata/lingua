@@ -907,6 +907,38 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_model_context_window_exceeded_preserved_losslessly() {
+        // `model_context_window_exceeded` is a distinct Anthropic stop reason with no
+        // dedicated universal variant. It must be preserved verbatim as `Other` rather
+        // than conflated with `Length`/`max_tokens`, so it survives a round trip.
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+        ] {
+            let parsed =
+                FinishReason::from_provider_string("model_context_window_exceeded", provider);
+            assert_eq!(
+                parsed,
+                FinishReason::Other("model_context_window_exceeded".to_string()),
+                "expected passthrough for {provider:?}"
+            );
+            assert_eq!(
+                parsed.to_provider_string(provider),
+                "model_context_window_exceeded",
+                "roundtrip must preserve the wire value for {provider:?}"
+            );
+        }
+
+        // FromStr (used by the non-streaming response import path) must also preserve it.
+        let via_from_str: FinishReason = "model_context_window_exceeded".parse().unwrap();
+        assert_eq!(
+            via_from_str,
+            FinishReason::Other("model_context_window_exceeded".to_string())
+        );
+    }
+
+    #[test]
     fn test_anthropic_refusal_maps_to_content_filter() {
         for provider in [
             ProviderFormat::Anthropic,
