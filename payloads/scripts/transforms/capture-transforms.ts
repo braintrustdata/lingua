@@ -387,15 +387,29 @@ export async function captureTransforms(
   return { captured, skipped, failed };
 }
 
-async function main() {
-  const args = process.argv.slice(2);
+export function parseCaptureTransformArgs(args: string[]): {
+  filter: string | undefined;
+  force: boolean;
+  pair: { source: string; target: string } | undefined;
+} {
   const force = args.includes("--force");
   const pairIdx = args.indexOf("--pair");
   const pairArg = pairIdx !== -1 ? args[pairIdx + 1] : undefined;
   const pair = pairArg
     ? { source: pairArg.split(",")[0], target: pairArg.split(",")[1] }
     : undefined;
-  const filter = args.find((a, i) => !a.startsWith("--") && i !== pairIdx + 1);
+  const filter = args.find(
+    (arg, index) =>
+      !arg.startsWith("--") && (pairIdx === -1 || index !== pairIdx + 1)
+  );
+
+  return { filter, force, pair };
+}
+
+async function main() {
+  const { filter, force, pair } = parseCaptureTransformArgs(
+    process.argv.slice(2)
+  );
 
   const { failed } = await captureTransforms(filter, force, pair);
   process.exit(failed > 0 ? 1 : 0);

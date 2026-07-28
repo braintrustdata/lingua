@@ -8,9 +8,12 @@ use std::sync::LazyLock;
 const OUTPUT_CONFIG_EFFORT_MODEL_PREFIXES: &[&str] = &["claude-opus-4-5", "claude-opus-4-6"];
 static OPUS_4_7_OR_LATER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)[-.]\d{1,2})|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
+        r"(^|[./:@])claude-(opus-(4[-.]([7-9]|[1-9]\d)|([5-9]|[1-9]\d)([-.]\d{1,2})?)|sonnet-([5-9]|[1-9]\d)([-.]\d{1,2})?|fable-[a-z0-9][a-z0-9.-]*)($|[-./:@])",
     )
     .expect("valid Opus 4.7+ / Sonnet 5+ / Fable model regex")
+});
+static OPUS_5_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(^|[./:@])claude-opus-5($|[-./:@])").expect("valid Opus 5 model regex")
 });
 // Denylist of Claude models that do NOT support mid-conversation system messages.
 // Verified 2026-07-16 against the live Messages API: opus 4.1-4.7, sonnet 4.x, and haiku 4.x reject them.
@@ -62,6 +65,11 @@ pub fn supports_adaptive_thinking(model: &str) -> bool {
 pub fn supports_disabling_thinking(model: &str) -> bool {
     let lower = model.to_ascii_lowercase();
     !is_always_on_thinking(&lower)
+}
+
+/// Check if a model belongs to the Claude Opus 5 family.
+pub fn is_opus_5_model(model: &str) -> bool {
+    OPUS_5_RE.is_match(&model.to_ascii_lowercase())
 }
 
 /// Check if a Claude model supports mid-conversation system messages (`role: "system"` in `messages`).
@@ -174,9 +182,16 @@ mod tests {
         ));
         assert!(supports_output_config_effort("claude-opus-5-0"));
         assert!(supports_output_config_effort("claude-opus-5.0"));
+        assert!(supports_output_config_effort("claude-opus-5"));
         assert!(supports_output_config_effort("claude-opus-5-1-20260701"));
         assert!(supports_output_config_effort(
             "anthropic/claude-opus-5-0@20260701"
+        ));
+        assert!(supports_output_config_effort(
+            "us.anthropic.claude-opus-5-v1:0"
+        ));
+        assert!(supports_output_config_effort(
+            "anthropic/claude-opus-5@20260701"
         ));
         assert!(supports_output_config_effort("claude-sonnet-5"));
         assert!(supports_output_config_effort("claude-sonnet-5-20260701"));
@@ -217,8 +232,11 @@ mod tests {
             "anthropic/claude-opus-4-10@20260601",
             "claude-opus-5-0",
             "claude-opus-5.0",
+            "claude-opus-5",
             "claude-opus-5-1-20260701",
             "anthropic/claude-opus-5-0@20260701",
+            "us.anthropic.claude-opus-5-v1:0",
+            "anthropic/claude-opus-5@20260701",
             "claude-sonnet-5",
             "claude-sonnet-5-20260701",
             "CLAUDE-SONNET-5",
@@ -274,6 +292,28 @@ mod tests {
                 "should not support disabling: {}",
                 model
             );
+        }
+    }
+
+    #[test]
+    fn test_is_opus_5_model() {
+        for model in [
+            "claude-opus-5",
+            "CLAUDE-OPUS-5",
+            "claude-opus-5-0",
+            "us.anthropic.claude-opus-5-v1:0",
+            "anthropic/claude-opus-5@20260701",
+        ] {
+            assert!(is_opus_5_model(model), "model: {model}");
+        }
+
+        for model in [
+            "claude-opus-4-8",
+            "claude-opus-6",
+            "claude-sonnet-5",
+            "claude-fable-5",
+        ] {
+            assert!(!is_opus_5_model(model), "model: {model}");
         }
     }
 
