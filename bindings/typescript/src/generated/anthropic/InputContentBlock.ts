@@ -4,7 +4,7 @@ import type { Caller } from "./Caller";
 import type { Citations } from "./Citations";
 import type { InputContentBlockContent } from "./InputContentBlockContent";
 import type { InputContentBlockType } from "./InputContentBlockType";
-import type { Source } from "./Source";
+import type { SourceUnion } from "./SourceUnion";
 
 /**
  * Regular text content.
@@ -36,7 +36,7 @@ export type InputContentBlock = {
 /**
  * Create a cache control breakpoint at this content block.
  */
-cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: Source | null, context: string | null, title: string | null, 
+cache_control: CacheControlEphemeral | null, citations: Citations | null, text: string | null, type: InputContentBlockType, source: SourceUnion | null, context: string | null, title: string | null, 
 /**
  * System instruction text blocks.
  */

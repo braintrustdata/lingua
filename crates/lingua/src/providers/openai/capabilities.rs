@@ -1,6 +1,10 @@
 /*!
 OpenAI-specific capability detection used by the transformation pipeline.
 */
+use crate::providers::openai::convert::{
+    ChatCompletionRequestMessageContentExt, ChatCompletionRequestMessageExt,
+};
+use crate::providers::openai::generated::{InputItemContent, InputParam, Prompt, PromptVariable};
 use crate::serde_json::{Map, Value};
 use crate::universal::ReasoningEffort;
 
@@ -68,9 +72,32 @@ pub fn model_needs_transforms(model: &str) -> bool {
     !get_model_transforms(model).is_empty()
 }
 
+/// Whether a Chat Completions model accepts explicit prompt cache breakpoints.
+///
+/// OpenAI supports these for GPT-5.6 and later model families.
+pub fn supports_prompt_cache_breakpoint(model: &str) -> bool {
+    let model = normalize_openai_model_name(model);
+    let Some(version) = model.strip_prefix("gpt-") else {
+        return false;
+    };
+    let Some((major, minor_and_variant)) = version.split_once('.') else {
+        return false;
+    };
+    let minor = minor_and_variant
+        .chars()
+        .take_while(char::is_ascii_digit)
+        .collect::<String>();
+
+    matches!(
+        (major.parse::<u32>(), minor.parse::<u32>()),
+        (Ok(major), Ok(minor)) if (major, minor) >= (5, 6)
+    )
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EffortFamily {
     NoneLowMediumHighXhigh,
+    NoneLowMediumHighXhighMax,
     LowMediumHighXhigh,
     NoneLowMediumHigh,
     LowMediumHigh,
@@ -87,6 +114,15 @@ impl EffortFamily {
                     | ReasoningEffort::Medium
                     | ReasoningEffort::High
                     | ReasoningEffort::Xhigh
+            ),
+            EffortFamily::NoneLowMediumHighXhighMax => matches!(
+                effort,
+                ReasoningEffort::None
+                    | ReasoningEffort::Low
+                    | ReasoningEffort::Medium
+                    | ReasoningEffort::High
+                    | ReasoningEffort::Xhigh
+                    | ReasoningEffort::Max
             ),
             EffortFamily::LowMediumHighXhigh => matches!(
                 effort,
@@ -129,7 +165,9 @@ fn normalize_openai_model_name(model: &str) -> String {
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
     let model = normalize_openai_model_name(model);
 
-    if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
+    if model.starts_with("gpt-5.6") {
+        Some(EffortFamily::NoneLowMediumHighXhighMax)
+    } else if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
         if model.starts_with("gpt-5.2-codex") {
             Some(EffortFamily::LowMediumHighXhigh)
         } else {
@@ -168,25 +206,31 @@ pub fn clamp_reasoning_effort_for_model(model: &str, effort: ReasoningEffort) ->
     match family {
         EffortFamily::NoneLowMediumHighXhigh => match effort {
             ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Max => ReasoningEffort::Xhigh,
+            _ => effort,
+        },
+        EffortFamily::NoneLowMediumHighXhighMax => match effort {
+            ReasoningEffort::Minimal => ReasoningEffort::Low,
             _ => effort,
         },
         EffortFamily::LowMediumHighXhigh => match effort {
             ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
+            ReasoningEffort::Max => ReasoningEffort::Xhigh,
             _ => effort,
         },
         EffortFamily::NoneLowMediumHigh => match effort {
             ReasoningEffort::Minimal => ReasoningEffort::Low,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
         EffortFamily::LowMediumHigh => match effort {
             ReasoningEffort::None | ReasoningEffort::Minimal => ReasoningEffort::Low,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
         EffortFamily::MinimalLowMediumHigh => match effort {
             ReasoningEffort::None => ReasoningEffort::Minimal,
-            ReasoningEffort::Xhigh => ReasoningEffort::High,
+            ReasoningEffort::Xhigh | ReasoningEffort::Max => ReasoningEffort::High,
             _ => effort,
         },
     }
@@ -222,6 +266,64 @@ pub fn apply_model_transforms(model: &str, obj: &mut Map<String, Value>) {
             StripStreamOptions => {
                 obj.remove("stream_options");
             }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Chat Completions messages.
+pub fn strip_unsupported_chat_prompt_cache_breakpoints(
+    model: &str,
+    messages: &mut [ChatCompletionRequestMessageExt],
+) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    for message in messages {
+        message.cache_control = None;
+        if let Some(ChatCompletionRequestMessageContentExt::Parts(parts)) = message.content.as_mut()
+        {
+            for part in parts {
+                part.base.prompt_cache_breakpoint = None;
+                part.cache_control = None;
+            }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Responses input.
+pub fn strip_unsupported_responses_prompt_cache_breakpoints(model: &str, input: &mut InputParam) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    if let InputParam::InputItemArray(items) = input {
+        for item in items {
+            if let Some(InputItemContent::InputContentArray(parts)) = item.content.as_mut() {
+                for part in parts {
+                    part.prompt_cache_breakpoint = None;
+                }
+            }
+        }
+    }
+}
+
+/// Remove unsupported explicit cache breakpoints from typed Responses prompt variables.
+pub fn strip_unsupported_responses_prompt_variable_cache_breakpoints(
+    model: &str,
+    prompt: &mut Prompt,
+) {
+    if supports_prompt_cache_breakpoint(model) {
+        return;
+    }
+
+    for variable in prompt
+        .variables
+        .iter_mut()
+        .flat_map(|variables| variables.values_mut())
+    {
+        if let PromptVariable::Input(input) = variable {
+            input.prompt_cache_breakpoint = None;
         }
     }
 }
@@ -276,6 +378,101 @@ mod tests {
     }
 
     #[test]
+    fn test_strip_unsupported_prompt_cache_breakpoints() {
+        for model in ["gpt-5", "gpt-4o"] {
+            let mut messages: Vec<ChatCompletionRequestMessageExt> =
+                serde_json::from_value(json!([
+                    {
+                        "role": "user",
+                        "content": [{
+                        "type": "text",
+                        "text": "Hello",
+                        "cache_control": {"type": "ephemeral"},
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
+                        }]
+                    }
+                ]))
+                .unwrap();
+
+            strip_unsupported_chat_prompt_cache_breakpoints(model, &mut messages);
+            let messages = serde_json::to_value(messages).unwrap();
+            assert_eq!(
+                messages[0]["content"][0]["prompt_cache_breakpoint"],
+                Value::Null,
+                "{model} should strip prompt_cache_breakpoint"
+            );
+            assert_eq!(
+                messages[0]["content"][0]["cache_control"],
+                Value::Null,
+                "{model} should strip cache_control"
+            );
+        }
+    }
+
+    #[test]
+    fn test_strip_unsupported_message_cache_control_with_string_content() {
+        let mut messages: Vec<ChatCompletionRequestMessageExt> = serde_json::from_value(json!([
+            {
+                "role": "user",
+                "content": "Hello",
+                "cache_control": {"type": "ephemeral"}
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_chat_prompt_cache_breakpoints("gpt-5.5", &mut messages);
+        let messages = serde_json::to_value(messages).unwrap();
+
+        assert_eq!(messages[0]["cache_control"], Value::Null);
+    }
+
+    #[test]
+    fn test_preserve_supported_prompt_cache_breakpoints() {
+        let mut messages: Vec<ChatCompletionRequestMessageExt> = serde_json::from_value(json!([
+            {
+                "role": "user",
+                "content": [{
+                    "type": "text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_chat_prompt_cache_breakpoints("gpt-5.7", &mut messages);
+        let messages = serde_json::to_value(messages).unwrap();
+        assert_eq!(
+            messages[0]["content"][0]["prompt_cache_breakpoint"],
+            json!({"mode": "explicit"})
+        );
+    }
+
+    #[test]
+    fn test_strip_unsupported_responses_prompt_cache_fields() {
+        let mut input: InputParam = serde_json::from_value(json!([
+            {
+                "type": "message",
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }
+        ]))
+        .unwrap();
+
+        strip_unsupported_responses_prompt_cache_breakpoints("gpt-5.4", &mut input);
+        let input = serde_json::to_value(input).unwrap();
+
+        assert_eq!(
+            input[0]["content"][0]["prompt_cache_breakpoint"],
+            Value::Null
+        );
+    }
+
+    #[test]
     fn test_clamp_reasoning_effort_for_model() {
         let cases = [
             (
@@ -284,6 +481,18 @@ mod tests {
                 ReasoningEffort::Low,
             ),
             ("gpt-5.4", ReasoningEffort::Xhigh, ReasoningEffort::Xhigh),
+            ("gpt-5.4", ReasoningEffort::Max, ReasoningEffort::Xhigh),
+            (
+                "gpt-5.6-terra",
+                ReasoningEffort::None,
+                ReasoningEffort::None,
+            ),
+            (
+                "gpt-5.6-terra",
+                ReasoningEffort::Xhigh,
+                ReasoningEffort::Xhigh,
+            ),
+            ("gpt-5.6-terra", ReasoningEffort::Max, ReasoningEffort::Max),
             ("gpt-5.3-codex", ReasoningEffort::None, ReasoningEffort::Low),
             (
                 "gpt-5.2-codex",
@@ -299,6 +508,7 @@ mod tests {
             ),
             ("gpt-5", ReasoningEffort::None, ReasoningEffort::Minimal),
             ("gpt-5-mini", ReasoningEffort::Xhigh, ReasoningEffort::High),
+            ("gpt-5-nano", ReasoningEffort::Max, ReasoningEffort::High),
             (
                 "gpt-5-nano",
                 ReasoningEffort::Minimal,

@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Mental Calculation for a Simple Question**\n\nOkay, so I've received a very straightforward request – someone wants to know what 2 + 2 equals. Let's break this down.\n\nFirst, I quickly **analyze the input**. It's a fundamental addition problem. There's no ambiguity or hidden context. It's as direct as it gets.\n\nNext, I need to **determine the answer**. My knowledge base tells me that 2 added to 2 results in 4. This is a basic mathematical fact, firmly established in my core understanding.\n\nFinally, I **formulate the response**. Given the simplicity of the question, the best approach is to keep the answer concise, accurate, and unambiguous. No need for complex explanations or hedging. So, I will confidently respond with the answer.\n\nTherefore, my final output, based on my analysis and the desired user experience, will be: \"2 + 2 is 4.\"\n\n\n",
+            "thought": true
+          },
+          {
+            "text": "2 + 2 is 4.",
+            "thoughtSignature": "EtkCCtYCARFNMg+K6o7eVJFYojkl5+qEpHEGhGhrHVMvsadqRZcrtUqUs0DbuxH8fXctXVCJYMU42R7lylmNTroSRkz6mkz5eGZiM0WGTBYHcQJPKxb1Klt+G7YFk6TWh7eqxmuEx4ilsDqiKkjbxlwb4MYpj6Q6sFbS6ubPkXASmZ9X5TIcUynRBrkWxdaMpz2vwxt0UdZmeW8cCBNRlOGbm61Nb8hUMAraE56WNnyxRVHS8XHs7+4GOYtNW0Jn7YaRU3OeYxrvKXeDci9WdR16yLMcfeTlcwO7AyXHkUebf8CcjnG+TvHwM/UU01uzsaW0/Fw9OxEyoKsZ1ByhbPfxPA/3dejMhMFJsIq8tC/XhwnHtl79rOygN1GajhjGkTWpzoRNH/EE1yl+SrTzk5Pci7RYle+hpwrsbPqucEiWa6tbzDcdyRoKh+ahVKqKzgmNsQa6wq1BX/z6"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 8,
+    "totalTokenCount": 113,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 8
+      }
+    ],
+    "thoughtsTokenCount": 97,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "6eRTas_LCs2Z1MkPuai1sQ8"
+}

@@ -55,6 +55,7 @@ tracing = { workspace = true, optional = true }
 
 # URL handling
 url = { workspace = true }
+urlencoding = { workspace = true }
 
 # Base64 encoding (for auth)
 base64 = { workspace = true }

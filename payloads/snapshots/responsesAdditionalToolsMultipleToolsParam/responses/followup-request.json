@@ -1,0 +1,61 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Use the extra policy and note tools once the developer makes them available."
+    },
+    {
+      "id": "at_payload_123",
+      "type": "additional_tools",
+      "role": "developer",
+      "tools": [
+        {
+          "type": "function",
+          "name": "lookup_policy",
+          "description": "Look up an internal policy by slug.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "custom",
+          "name": "write_release_note",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rs_08276aed2af067dc006a5102c0a88081a3801b4e92c373df58",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "fc_08276aed2af067dc006a5102c13ad081a3b7aabde0219d91d7",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{\"slug\":\"extra-policy\"}",
+      "call_id": "call_qMRps86LQ6ZPuO3QigypTJKU",
+      "name": "lookup_policy"
+    },
+    {
+      "type": "function_call_output",
+      "call_id": "call_qMRps86LQ6ZPuO3QigypTJKU",
+      "output": "71 degrees"
+    }
+  ]
+}

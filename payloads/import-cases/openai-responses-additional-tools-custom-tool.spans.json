@@ -1,0 +1,52 @@
+[
+  {
+    "input": [
+      {
+        "id": "at_code_mode",
+        "type": "additional_tools",
+        "role": "developer",
+        "tools": [
+          {
+            "type": "custom",
+            "name": "exec",
+            "description": "Runs JavaScript code to orchestrate tool calls.",
+            "format": {
+              "type": "grammar",
+              "syntax": "lark",
+              "definition": "start: SOURCE\nSOURCE: /[\\s\\S]+/"
+            }
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Run a query and save the result to a file."
+          }
+        ]
+      },
+      {
+        "type": "custom_tool_call",
+        "call_id": "call_exec_1",
+        "name": "exec",
+        "input": "const rows = await tools.braintrust__sql_query({sql: \"select 1 as value\"});\nawait tools.exec_command({cmd: \"printf '%s\\n' done > /tmp/query-result.txt\"});"
+      },
+      {
+        "type": "custom_tool_call_output",
+        "call_id": "call_exec_1",
+        "output": "saved /tmp/query-result.txt"
+      }
+    ],
+    "output": [
+      {
+        "type": "custom_tool_call",
+        "call_id": "call_exec_2",
+        "name": "exec",
+        "input": "await tools.exec_command({cmd: \"wc -l /tmp/query-result.txt\"});"
+      }
+    ]
+  }
+]

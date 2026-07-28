@@ -349,7 +349,7 @@ fn transform_request<'py>(
     let result = transform(input_bytes, target, model.as_deref())
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
 
-    match result {
+    match result.result {
         TransformResult::PassThrough(bytes) => {
             let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
@@ -411,7 +411,7 @@ fn transform_response<'py>(
     let result = transform(input_bytes, target)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
 
-    match result {
+    match result.result {
         TransformResult::PassThrough(bytes) => {
             let data: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(

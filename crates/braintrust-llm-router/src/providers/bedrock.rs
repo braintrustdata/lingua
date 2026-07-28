@@ -35,6 +35,21 @@ fn is_remote_image_url(value: &str) -> bool {
     value.starts_with("http://") || value.starts_with("https://")
 }
 
+/// Percent-encode a Bedrock model identifier for use as a single URL path
+/// segment.
+///
+/// Application inference profile ARNs
+/// (`arn:aws:bedrock:...:application-inference-profile/<id>`) contain both `:`
+/// and `/`. Interpolated raw, the embedded `/` splits the path so the request
+/// becomes `model/arn:...:application-inference-profile/<id>/converse`, which
+/// Bedrock cannot route: it returns an opaque HTTP 200 `UnknownOperationException`
+/// body that the router then fails to detect, surfacing as a 500. Encoding the
+/// id (matching the AWS SDK's `extendedEncodeURIComponent`, i.e. everything
+/// except the unreserved set `A-Za-z0-9-_.~`) keeps it in a single segment.
+fn encode_bedrock_model_id(model: &str) -> String {
+    urlencoding::encode(model).into_owned()
+}
+
 async fn fetch_remote_image_as_base64(url: &str) -> Result<MediaBlock> {
     lingua::util::media::convert_media_to_base64(url, None, Some(BEDROCK_REMOTE_MEDIA_MAX_BYTES))
         .await
@@ -48,10 +63,18 @@ pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bo
     )
 }
 
-// xAI/Grok on Bedrock is served only on the `bedrock-mantle` host, not
-// `bedrock-runtime`.
+// Some Bedrock models are served only on the `bedrock-mantle` host, not
+// `bedrock-runtime`: xAI/Grok (`xai.`) and Google Gemma 4 (`google.gemma-4`).
+// Gemma 3 is excluded on purpose — it is served on `bedrock-runtime` and uses a
+// different mantle OpenAI path (`/v1` rather than `/openai/v1`).
 fn is_bedrock_mantle_only_model(model: &str) -> bool {
-    model.starts_with("xai.")
+    model.starts_with("xai.") || model.starts_with("google.gemma-4")
+}
+
+#[derive(Debug)]
+pub(crate) struct PreparedBedrockRequest {
+    pub(crate) bytes: Bytes,
+    pub(crate) requires_json_response: bool,
 }
 
 /// Prepare a Bedrock-targeted request by inlining client-provided remote image URLs.
@@ -63,7 +86,7 @@ pub(crate) async fn prepare_bedrock_request(
     body: Bytes,
     spec: &ModelSpec,
     format: ProviderFormat,
-) -> Result<Bytes> {
+) -> Result<PreparedBedrockRequest> {
     prepare_bedrock_request_with_fetch(body, spec, format, |url| {
         Box::pin(fetch_remote_image_as_base64(url))
     })
@@ -75,12 +98,15 @@ async fn prepare_bedrock_request_with_fetch<F>(
     spec: &ModelSpec,
     format: ProviderFormat,
     fetch: F,
-) -> Result<Bytes>
+) -> Result<PreparedBedrockRequest>
 where
     F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
 {
     if !requires_bedrock_request_preparation(format) {
-        return Ok(body);
+        return Ok(PreparedBedrockRequest {
+            bytes: body,
+            requires_json_response: false,
+        });
     }
 
     let parsed = lingua::parse_json_body(body)?;
@@ -96,8 +122,15 @@ where
         None => return Err(TransformError::UnableToDetectRequestFormat.into()),
     };
 
+    let requires_json_response = source_adapter
+        .request_requires_json_response(&payload)
+        .map_err(Error::from)?;
+
     if source_adapter.format() == format {
-        return Ok(rewrite_body_model_if_required(body, format, &spec.model));
+        return Ok(PreparedBedrockRequest {
+            bytes: rewrite_body_model_if_required(body, format, &spec.model),
+            requires_json_response,
+        });
     }
 
     let mut request = match source_adapter.request_to_universal(payload) {
@@ -113,9 +146,13 @@ where
     target_adapter.apply_defaults(&mut request);
     let prepared = target_adapter.request_from_universal(&request)?;
 
-    lingua::serde_json::to_vec(&prepared)
+    let bytes = lingua::serde_json::to_vec(&prepared)
         .map(Bytes::from)
-        .map_err(Error::LinguaJson)
+        .map_err(Error::LinguaJson)?;
+    Ok(PreparedBedrockRequest {
+        bytes,
+        requires_json_response,
+    })
 }
 
 async fn inline_remote_image_urls_with_fetch<F>(
@@ -130,7 +167,9 @@ where
             Message::System { content }
             | Message::Developer { content }
             | Message::User { content } => content,
-            Message::Assistant { .. } | Message::Tool { .. } => continue,
+            Message::Assistant { .. } | Message::Tool { .. } | Message::AdditionalTools { .. } => {
+                continue;
+            }
         };
 
         let UserContent::Array(parts) = content else {
@@ -243,6 +282,7 @@ impl BedrockProvider {
     }
 
     fn converse_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let model = encode_bedrock_model_id(model);
         let path = if stream {
             format!("model/{model}/converse-stream")
         } else {
@@ -255,6 +295,7 @@ impl BedrockProvider {
     }
 
     fn invoke_model_url(&self, model: &str, stream: bool) -> Result<Url> {
+        let model = encode_bedrock_model_id(model);
         let path = if stream {
             format!("model/{model}/invoke-with-response-stream")
         } else {
@@ -681,6 +722,57 @@ mod tests {
     }
 
     #[test]
+    fn converse_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.converse_url(arn, false).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/converse"
+        );
+    }
+
+    #[test]
+    fn converse_stream_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.converse_url(arn, true).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/converse-stream"
+        );
+    }
+
+    #[test]
+    fn invoke_model_url_percent_encodes_application_inference_profile_arn() {
+        let provider = provider();
+        let arn =
+            "arn:aws:bedrock:us-east-1:982534393296:application-inference-profile/7o74nebfwnum";
+        let url = provider.invoke_model_url(arn, false).unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/\
+             arn%3Aaws%3Abedrock%3Aus-east-1%3A982534393296%3Aapplication-inference-profile%2F7o74nebfwnum/invoke"
+        );
+    }
+
+    #[test]
+    fn converse_url_percent_encodes_foundation_model_version_colon() {
+        let provider = provider();
+        let url = provider
+            .converse_url("anthropic.claude-3-haiku-20240307-v1:0", false)
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/model/anthropic.claude-3-haiku-20240307-v1%3A0/converse"
+        );
+    }
+
+    #[test]
     fn chat_completions_url_uses_bedrock_openai_path_for_aws_runtime() {
         let provider = provider();
         let url = provider
@@ -699,6 +791,36 @@ mod tests {
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-east-1.api.aws/openai/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn chat_completions_url_routes_gemma_models_to_mantle() {
+        let provider = provider();
+        for model in [
+            "google.gemma-4-e2b",
+            "google.gemma-4-31b",
+            "google.gemma-4-26b-a4b",
+        ] {
+            let url = provider.chat_completions_url(model).unwrap();
+            assert_eq!(
+                url.as_str(),
+                "https://bedrock-mantle.us-east-1.api.aws/openai/v1/chat/completions",
+                "model {model} should route to the bedrock-mantle host"
+            );
+        }
+    }
+
+    #[test]
+    fn chat_completions_url_keeps_gemma_3_on_bedrock_runtime() {
+        let provider = provider();
+        let url = provider
+            .chat_completions_url("google.gemma-3-27b-it")
+            .unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions",
+            "Gemma 3 is served on bedrock-runtime, not the mantle host"
         );
     }
 
@@ -833,7 +955,8 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(prepared, body);
+        assert_eq!(prepared.bytes, body);
+        assert!(!prepared.requires_json_response);
     }
 
     #[tokio::test]
@@ -870,7 +993,8 @@ mod tests {
         .await
         .unwrap();
 
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
         assert_eq!(
             value.get("modelId").and_then(|v| v.as_str()),
             Some("anthropic.claude-3-haiku-20240307-v1:0")
@@ -910,11 +1034,42 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            prepared,
+            prepared.bytes,
             Bytes::from_static(
                 br#"{"modelId":"anthropic.claude-3-haiku-20240307-v1:0","messages":[{"role":"user","content":[{"text":"bad \uFFFD text"}]}]}"#
             )
         );
+    }
+
+    #[tokio::test]
+    async fn prepare_request_tracks_json_response_requirement_for_bedrock_targets() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&lingua::serde_json::json!({
+                "model": "claude-sonnet-4-5-20250929",
+                "messages": [{"role": "user", "content": "Return JSON."}],
+                "response_format": {"type": "json_object"}
+            }))
+            .unwrap(),
+        );
+
+        let prepared = prepare_bedrock_request_with_fetch(
+            body,
+            &bedrock_spec(
+                "anthropic.claude-3-haiku-20240307-v1:0",
+                ProviderFormat::Converse,
+            ),
+            ProviderFormat::Converse,
+            |_url| {
+                Box::pin(async {
+                    panic!("fetch should not be called for text-only requests");
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert!(prepared.requires_json_response);
+        assert!(!prepared.bytes.is_empty());
     }
 
     #[tokio::test]
@@ -951,7 +1106,8 @@ mod tests {
         )
         .await
         .unwrap();
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
 
         let bytes = value
             .pointer("/messages/0/content/1/image/source/bytes")
@@ -964,6 +1120,34 @@ mod tests {
                 .and_then(|v| v.as_str()),
             Some("jpeg")
         );
+    }
+
+    #[tokio::test]
+    async fn inline_remote_image_urls_skips_additional_tools_messages() {
+        let mut request = lingua::UniversalRequest {
+            model: Some("test-model".to_string()),
+            messages: vec![Message::AdditionalTools {
+                tools: Vec::new(),
+                id: Some("tools-1".to_string()),
+            }],
+            params: Default::default(),
+        };
+
+        inline_remote_image_urls_with_fetch(&mut request, |_url| {
+            Box::pin(async {
+                panic!("fetch should not be called for additional_tools messages");
+            })
+        })
+        .await
+        .unwrap();
+
+        assert!(matches!(
+            request.messages.as_slice(),
+            [Message::AdditionalTools {
+                id: Some(id),
+                tools
+            }] if id == "tools-1" && tools.is_empty()
+        ));
     }
 
     #[tokio::test]
@@ -1004,7 +1188,8 @@ mod tests {
         )
         .await
         .unwrap();
-        let value: lingua::serde_json::Value = lingua::serde_json::from_slice(&prepared).unwrap();
+        let value: lingua::serde_json::Value =
+            lingua::serde_json::from_slice(&prepared.bytes).unwrap();
 
         assert_eq!(
             value.get("anthropic_version").and_then(|v| v.as_str()),

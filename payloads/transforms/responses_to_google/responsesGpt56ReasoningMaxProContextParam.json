@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**My Analysis of the Rollout Checklist Request**\n\nOkay, here's how I'm approaching this. The user wants me to review a rollout checklist, specifically focusing on the \"highest-risk issue.\" First things first, the user hasn't actually given me the checklist yet, so that's where I need to start. My immediate action is to request the checklist from the user. I'll need it to do anything meaningful.\n\nOnce I have it, my process will kick in. I'll be meticulously examining the checklist, keeping a keen eye out for potential single points of failure, which could cripple the rollout. I'll also be rigorously checking for robust rollback plans; lack of these are major red flags. Then, I will look for any data migration risks, any obvious dependency issues that could derail things, timing or scheduling conflicts that might cause chaos, and deficiencies in monitoring strategies. Showing the user my thought process will help them and will show I am in expert.\n\n\n",
+            "thought": true
+          },
+          {
+            "text": "Please provide or paste the rollout checklist! \n\nOnce you share it, I will analyze it and identify the highest-risk areas, focusing on common deployment pitfalls such as:\n*   **Rollback gaps** (lack of clear, tested revert procedures)\n*   **Data integrity risks** (destructive migrations, lack of backups)\n*   **Single points of failure** or tight coupling\n*   **Inadequate monitoring/observability** (how you'll know if it failed)\n*   **Timing and dependency issues** (ordering of steps)\n*   **Security or permission bottlenecks**\n\nWhenever you're ready, paste the list and any brief context (e.g., tech stack, user impact level) below!",
+            "thoughtSignature": "ErYGCrMGARFNMg9zzldOYu5tGjUbaVVJzWnyl3UUnnbzhfpB0mSmCFK5MZonn4mQAApxg52msqHjVNLuuqwhix3sS2dmueX5p6HVXsafRUucQWQK8cEDx9Abv64N7qX1pmisNh3r09G9Bg1CRjqlCEe5i4T4E7nl2/gQwnPuXANuLkWjDsMnOiBQmTMNJHWRIwFnxCGVswrZP1F7sQu5qF7+v/qfV4e2hM4UCwRjl7OLLDbnsTMPtUYJrMZFNudketblBD9IlO0x2WFTlZCXyC/eFMmioM6h/SPBS1wajo+6TVPqcNtruiR9iKYsJL1Zep5RMG9wZ+oWAfpXb6H6qpvKvVk9+cMiKkxob535/AqKOQdQcV11eIMH6GVSIq1VwkbUYOeNJaT5cwzYlgWZaFTUyMZYAFxOP2OteKIy3LKjYTF4zrWMDVayuPnZInfApeFgbGjBMKWCBTshxQhcddliRiFDppSgOtwH+et7clk3aTKJbIf/NlaQ/d5Lsg+nP5L8XTv+liIJsMl9dnqFJYh2hFdWmosYlN9DfWyQoWi0M2RkNlaaNBZAirY4c7MTLm+r0bAEedc4FLk2WxeYBJmHodxpO1dWipxqMvniAIqPiv5xIhkJDXuf3loqy6VXessL1zNSBbUBO0nE2G4TL23mGnhgyizS1iJ3yAWkfAS/XngvQIb1zjKlhgOuGss8DjoVO/rpbMXhv87EtqIxyqzM91VIAYJso5+8A83HGtPANHkUG+ejWKldj+u+Iv4BlqQTrR2vqYnPEQWc/aFayQhcze+Ce3hqC5vfqfLiNP25PSv+ZswqaAErquB2KyL5kDH8aHO4MM/PXriFZRhT0KBJGJxOD3bYbvSu9cgOn4lvzOCowtm13J9xP0AtzVL9S7ejV+zoj3g8bvoLTDyD8tbzskCp7ETIOSFXeQQ4uvU0ZlCup5TvVKHCYK+U2EWmmsiy9W8vDJG0Bfv4b5WEi5/6mbOLABX7GKznQGzNkBMHSg0FDj4JoSgSGRsWJa3nertOhqeLL81arBhcEgZA+SM9slBaUBPIxBXofHBspu5rxpjBZLHp6Xi1LZUsV6Xz+uXX8r26IWnZ"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 12,
+    "candidatesTokenCount": 152,
+    "totalTokenCount": 348,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 12
+      }
+    ],
+    "thoughtsTokenCount": 184,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "BVtRaquVJbWhjrEPjI_lsQ8"
+}

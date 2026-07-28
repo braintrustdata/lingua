@@ -50,6 +50,8 @@ pub struct UniversalToolCallDelta {
     #[serde(default, rename = "type", skip_serializing_if = "Option::is_none")]
     pub call_type: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_tool_call: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub function: Option<UniversalToolFunctionDelta>,
 }
 

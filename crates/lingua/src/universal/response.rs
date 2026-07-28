@@ -8,7 +8,7 @@ converted to/from any provider format.
 use crate::capabilities::ProviderFormat;
 use crate::serde_json::{self, Value};
 use crate::universal::defaults::PLACEHOLDER_ID;
-use crate::universal::message::Message;
+use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use serde::{Deserialize, Serialize};
 
 /// Universal response envelope for LLM API responses.
@@ -35,6 +35,42 @@ pub struct UniversalResponse {
 
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
+
+    /// Why each choice stopped generating.
+    #[serde(skip_serializing)]
+    pub finish_reasons: Vec<FinishReason>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ParsableResponseInfo {
+    pub complete: bool,
+    pub content_is_json: bool,
+    pub saw_terminal_finish: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResponseRequirement {
+    Any,
+    Json,
+}
+
+impl ParsableResponseInfo {
+    pub fn valid() -> Self {
+        Self {
+            complete: true,
+            content_is_json: true,
+            saw_terminal_finish: true,
+        }
+    }
+
+    pub fn reusable_for_request(self, requirement: ResponseRequirement) -> bool {
+        let content_meets_requirement = match requirement {
+            ResponseRequirement::Any => true,
+            ResponseRequirement::Json => self.content_is_json,
+        };
+
+        self.saw_terminal_finish && self.complete && content_meets_requirement
+    }
 }
 
 /// Token usage statistics.
@@ -81,7 +117,7 @@ pub enum FinishReason {
     /// Normal completion (OpenAI: "stop", Anthropic: "end_turn", Google: "STOP")
     Stop,
 
-    /// Hit token limit (OpenAI: "length", Anthropic: "max_tokens")
+    /// Hit token or context limit (OpenAI: "length", Anthropic: "max_tokens")
     Length,
 
     /// Model wants to call tools (OpenAI: "tool_calls", Anthropic: "tool_use")
@@ -114,7 +150,11 @@ impl std::str::FromStr for FinishReason {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s.to_lowercase().as_str() {
             "stop" | "end_turn" | "stop_sequence" | "completed" => FinishReason::Stop,
-            "length" | "max_tokens" | "max_output_tokens" | "incomplete" => FinishReason::Length,
+            "length"
+            | "max_tokens"
+            | "max_output_tokens"
+            | "model_context_window_exceeded"
+            | "incomplete" => FinishReason::Length,
             "tool_calls" | "tool_use" => FinishReason::ToolCalls,
             "content_filter" | "content_filtered" | "safety" | "refusal" => {
                 FinishReason::ContentFilter
@@ -131,7 +171,7 @@ impl FinishReason {
     /// string variants:
     /// - OpenAI Chat: "stop", "length", "tool_calls", "content_filter"
     /// - OpenAI Responses: "completed", "incomplete"
-    /// - Anthropic: "end_turn", "stop_sequence", "max_tokens", "tool_use"
+    /// - Anthropic: "end_turn", "stop_sequence", "max_tokens", "model_context_window_exceeded", "tool_use"
     /// - Bedrock: "end_turn", "stop_sequence", "max_tokens", "tool_use", "content_filtered"
     /// - Google: "STOP", "MAX_TOKENS", "TOOL_CALLS", "SAFETY", "RECITATION", "OTHER"
     pub fn from_provider_string(s: &str, provider: ProviderFormat) -> Self {
@@ -150,7 +190,7 @@ impl FinishReason {
 
             // Length variants
             (
-                "max_tokens",
+                "max_tokens" | "model_context_window_exceeded",
                 ProviderFormat::Anthropic
                 | ProviderFormat::BedrockAnthropic
                 | ProviderFormat::VertexAnthropic
@@ -189,6 +229,11 @@ impl FinishReason {
             // Unknown - pass through
             (other, _) => Self::Other(other.to_string()),
         }
+    }
+
+    pub fn is_incomplete(&self) -> bool {
+        matches!(self, Self::Length | Self::ContentFilter)
+            || matches!(self, Self::Other(reason) if ["queued", "in_progress", "failed", "cancelled"].contains(&reason.as_ref()))
     }
 
     /// Convert a universal FinishReason to the provider-specific string representation.
@@ -287,6 +332,47 @@ impl UniversalResponse {
             .and_then(|v| v.id)
     }
 
+    pub fn content_is_json(&self) -> bool {
+        let contents = self.assistant_texts();
+        !contents.is_empty()
+            && contents
+                .iter()
+                .all(|content| serde_json::from_str::<Value>(content).is_ok())
+    }
+
+    pub fn is_complete(&self) -> bool {
+        !self.finish_reasons.iter().any(FinishReason::is_incomplete)
+            && !self
+                .finish_reason
+                .as_ref()
+                .is_some_and(FinishReason::is_incomplete)
+    }
+
+    pub fn assistant_texts(&self) -> Vec<String> {
+        let mut contents: Vec<String> = self
+            .messages
+            .iter()
+            .filter_map(|message| match message {
+                Message::Assistant { content, .. } => assistant_content_text(content),
+                _ => None,
+            })
+            .collect();
+        if contents.is_empty() {
+            if let Some(text) = self.messages.last().and_then(message_text) {
+                contents.push(text);
+            }
+        }
+        contents
+    }
+
+    pub fn parsable_info(&self) -> ParsableResponseInfo {
+        ParsableResponseInfo {
+            complete: self.is_complete(),
+            content_is_json: self.content_is_json(),
+            saw_terminal_finish: true,
+        }
+    }
+
     pub fn id_for(&self, format: ProviderFormat) -> String {
         let prefix = match format {
             ProviderFormat::Anthropic => "msg_",
@@ -312,6 +398,34 @@ impl UniversalResponse {
             }
         }
         format!("{}{}", prefix, PLACEHOLDER_ID)
+    }
+}
+
+fn assistant_content_text(content: &AssistantContent) -> Option<String> {
+    match content {
+        AssistantContent::String(text) => Some(text.clone()),
+        AssistantContent::Array(parts) => {
+            let text: String = parts
+                .iter()
+                .filter_map(|part| match part {
+                    AssistantContentPart::Text(text_part) => Some(&text_part.text),
+                    _ => None,
+                })
+                .map(String::as_str)
+                .collect();
+            (!text.is_empty()).then_some(text)
+        }
+    }
+}
+
+fn message_text(message: &Message) -> Option<String> {
+    match message {
+        Message::Assistant { content, .. } => assistant_content_text(content),
+        Message::System { .. }
+        | Message::Developer { .. }
+        | Message::User { .. }
+        | Message::Tool { .. }
+        | Message::AdditionalTools { .. } => None,
     }
 }
 
@@ -381,6 +495,25 @@ fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
     serde_json::from_value::<AnthropicUsageView>(usage.clone()).unwrap_or_default()
 }
 
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIResponsesUsageDetailsView {
+    cached_tokens: Option<i64>,
+    cache_write_tokens: Option<i64>,
+    reasoning_tokens: Option<i64>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIResponsesUsageView {
+    input_tokens: Option<i64>,
+    output_tokens: Option<i64>,
+    input_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
+    output_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
+}
+
+fn openai_responses_usage_view(usage: &Value) -> OpenAIResponsesUsageView {
+    serde_json::from_value::<OpenAIResponsesUsageView>(usage.clone()).unwrap_or_default()
+}
+
 impl UniversalUsage {
     /// Parse usage from provider-specific JSON value.
     ///
@@ -414,25 +547,23 @@ impl UniversalUsage {
                         .filter(|&v| v > 0),
                 }
             }
-            ProviderFormat::Responses => Self {
-                prompt_tokens: usage.get("input_tokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("output_tokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage
-                    .get("input_tokens_details")
-                    .and_then(|d| d.get("cached_tokens"))
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_tokens: None,
-                prompt_cache_creation_5m_tokens: None,
-                prompt_cache_creation_1h_tokens: None,
-                // OpenAI's input_tokens already includes cached tokens
-                prompt_tokens_exclude_cache: false,
-                // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
-                completion_reasoning_tokens: usage
-                    .get("output_tokens_details")
-                    .and_then(|d| d.get("reasoning_tokens"))
-                    .and_then(Value::as_i64)
-                    .filter(|&v| v > 0),
-            },
+            ProviderFormat::Responses => {
+                let usage = openai_responses_usage_view(usage);
+                let input_details = usage.input_tokens_details.unwrap_or_default();
+                let output_details = usage.output_tokens_details.unwrap_or_default();
+                Self {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    prompt_cached_tokens: input_details.cached_tokens,
+                    prompt_cache_creation_tokens: input_details.cache_write_tokens,
+                    prompt_cache_creation_5m_tokens: None,
+                    prompt_cache_creation_1h_tokens: None,
+                    // OpenAI's input_tokens already includes cached tokens
+                    prompt_tokens_exclude_cache: false,
+                    // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
+                    completion_reasoning_tokens: output_details.reasoning_tokens.filter(|&v| v > 0),
+                }
+            }
             ProviderFormat::Anthropic
             | ProviderFormat::BedrockAnthropic
             | ProviderFormat::VertexAnthropic => {
@@ -574,10 +705,13 @@ impl UniversalUsage {
                 );
 
                 let cached = self.prompt_cached_tokens.unwrap_or(0);
-                map.insert(
-                    "input_tokens_details".into(),
-                    serde_json::json!({ "cached_tokens": cached }),
-                );
+                let mut input_details = serde_json::Map::new();
+                input_details.insert("cached_tokens".into(), serde_json::json!(cached));
+                if let Some(cache_write) = self.prompt_cache_creation_tokens_for_prompt_math() {
+                    input_details
+                        .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
+                }
+                map.insert("input_tokens_details".into(), Value::Object(input_details));
 
                 let reasoning = self.completion_reasoning_tokens.unwrap_or(0);
                 map.insert(
@@ -673,6 +807,102 @@ impl UniversalUsage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::universal::message::AssistantContent;
+
+    #[test]
+    fn test_incomplete_finish_reasons() {
+        assert!(!FinishReason::Stop.is_incomplete());
+        assert!(FinishReason::Length.is_incomplete());
+        assert!(!FinishReason::ToolCalls.is_incomplete());
+        assert!(FinishReason::ContentFilter.is_incomplete());
+        assert!(FinishReason::Other("queued".to_string()).is_incomplete());
+        assert!(FinishReason::Other("in_progress".to_string()).is_incomplete());
+        assert!(FinishReason::Other("failed".to_string()).is_incomplete());
+        assert!(FinishReason::Other("cancelled".to_string()).is_incomplete());
+        assert!(!FinishReason::Other("done".to_string()).is_incomplete());
+    }
+
+    #[test]
+    fn test_response_completeness_uses_every_choice() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Length, FinishReason::Stop],
+        };
+        assert!(!response.is_complete());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop, FinishReason::ToolCalls],
+        };
+        assert!(response.is_complete());
+    }
+
+    #[test]
+    fn test_response_content_is_json_validates_every_assistant_message() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: vec![
+                Message::Assistant {
+                    content: AssistantContent::String(r#"{"ok":true}"#.to_string()),
+                    id: None,
+                },
+                Message::Assistant {
+                    content: AssistantContent::String(r#"{"broken":"#.to_string()),
+                    id: None,
+                },
+            ],
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
+        };
+        assert!(!response.content_is_json());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: Vec::new(),
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
+        };
+        assert!(!response.content_is_json());
+
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: None,
+            messages: vec![Message::Assistant {
+                content: AssistantContent::Array(vec![
+                    crate::universal::message::AssistantContentPart::Text(
+                        crate::universal::message::TextContentPart {
+                            text: r#"{"ok":true}"#.to_string(),
+                            encrypted_content: None,
+                            cache_control: None,
+                            provider_options: None,
+                        },
+                    ),
+                ]),
+                id: None,
+            }],
+            usage: None,
+            finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
+        };
+        assert!(response.content_is_json());
+    }
 
     #[test]
     fn test_google_escalation_string_maps_to_content_filter() {
@@ -691,6 +921,25 @@ mod tests {
                 FinishReason::from_provider_string("refusal", provider),
                 FinishReason::ContentFilter,
                 "expected 'refusal' to map to ContentFilter for {provider:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_anthropic_context_window_exceeded_maps_to_length() {
+        let parsed: FinishReason = "model_context_window_exceeded".parse().unwrap();
+        assert_eq!(parsed, FinishReason::Length);
+
+        for provider in [
+            ProviderFormat::Anthropic,
+            ProviderFormat::BedrockAnthropic,
+            ProviderFormat::VertexAnthropic,
+            ProviderFormat::Converse,
+        ] {
+            assert_eq!(
+                FinishReason::from_provider_string("model_context_window_exceeded", provider),
+                FinishReason::Length,
+                "expected context-window stop to map to Length for {provider:?}"
             );
         }
     }
@@ -762,6 +1011,7 @@ mod tests {
         assert_eq!(responses["input_tokens"], 60);
         assert_eq!(responses["output_tokens"], 5);
         assert_eq!(responses["total_tokens"], 65);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 30);
     }
 
     #[test]
@@ -776,6 +1026,23 @@ mod tests {
         };
 
         assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
+    }
+
+    #[test]
+    fn test_responses_cache_write_tokens_uses_split_ttl_when_aggregate_missing() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(10),
+            prompt_cached_tokens: Some(20),
+            prompt_cache_creation_5m_tokens: Some(30),
+            prompt_cache_creation_1h_tokens: Some(40),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+
+        assert_eq!(responses["input_tokens"], 100);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 70);
     }
 
     #[test]
@@ -845,5 +1112,32 @@ mod tests {
         assert_eq!(usage.prompt_cache_creation_tokens, Some(30));
         assert_eq!(usage.prompt_cache_creation_5m_tokens, None);
         assert_eq!(usage.prompt_cache_creation_1h_tokens, None);
+    }
+
+    #[test]
+    fn test_openai_responses_cache_write_tokens() {
+        let usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "input_tokens_details": {
+                "cached_tokens": 40,
+                "cache_write_tokens": 15
+            },
+            "output_tokens_details": {
+                "reasoning_tokens": 5
+            }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_tokens, Some(100));
+        assert_eq!(usage.completion_tokens, Some(25));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.completion_reasoning_tokens, Some(5));
+
+        let responses = usage.to_provider_value(ProviderFormat::Responses);
+        assert_eq!(responses["input_tokens_details"]["cached_tokens"], 40);
+        assert_eq!(responses["input_tokens_details"]["cache_write_tokens"], 15);
     }
 }

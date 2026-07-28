@@ -59,6 +59,15 @@ pub struct UniversalRequest {
     pub params: UniversalParams,
 }
 
+impl UniversalRequest {
+    pub fn requires_json_response(&self) -> bool {
+        self.params
+            .response_format
+            .as_ref()
+            .is_some_and(ResponseFormatConfig::requires_json_response)
+    }
+}
+
 /// Canonical token budget for request generation limits.
 ///
 /// This uses mutually-exclusive variants to avoid invalid combinations like
@@ -369,6 +378,7 @@ pub enum ReasoningEffort {
     Medium,
     High,
     Xhigh,
+    Max,
 }
 
 impl ReasoningEffort {
@@ -381,6 +391,7 @@ impl ReasoningEffort {
             Self::Medium => "medium",
             Self::High => "high",
             Self::Xhigh => "xhigh",
+            Self::Max => "max",
         }
     }
 }
@@ -396,6 +407,7 @@ impl FromStr for ReasoningEffort {
             "medium" => Ok(Self::Medium),
             "high" => Ok(Self::High),
             "xhigh" => Ok(Self::Xhigh),
+            "max" => Ok(Self::Max),
             _ => Err(ConvertError::InvalidEnumValue {
                 type_name: "ReasoningEffort",
                 value: s.to_string(),
@@ -591,6 +603,15 @@ pub struct ResponseFormatConfig {
 
     /// JSON schema configuration (when format_type = JsonSchema)
     pub json_schema: Option<JsonSchemaConfig>,
+}
+
+impl ResponseFormatConfig {
+    pub fn requires_json_response(&self) -> bool {
+        matches!(
+            self.format_type,
+            Some(ResponseFormatType::JsonObject | ResponseFormatType::JsonSchema)
+        )
+    }
 }
 
 /// Response format type (portable across providers).

@@ -15,11 +15,20 @@ use crate::processing::transform::TransformError;
 use crate::providers::openai::adapter::parse_openai_chat_extras;
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
+    strip_unsupported_responses_prompt_cache_breakpoints,
+    strip_unsupported_responses_prompt_variable_cache_breakpoints,
+    supports_prompt_cache_breakpoint,
+};
+use crate::providers::openai::convert::{
+    responses_input_values_from_universal_context, responses_output_values_from_universal_context,
 };
 use crate::providers::openai::generated::{
-    InputItem, InputItemContent, InputItemRole, InputItemType, Instructions, OutputItemType,
+    InputItem, InputItemContent, InputItemRole, InputItemType, InputParam, Instructions,
+    OutputItemType, Prompt,
 };
-use crate::providers::openai::params::{OpenAIResponsesExtrasView, OpenAIResponsesParams};
+use crate::providers::openai::params::{
+    OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
+};
 use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
 use crate::providers::openai::{try_parse_responses, universal_to_responses_input};
 use crate::serde_json::{self, Map, Value};
@@ -31,7 +40,8 @@ use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
     ConversationReference, ConversationReferenceType, FinishReason, TokenBudget, UniversalParams,
     UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
+    PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -60,19 +70,21 @@ fn system_text(message: &Message) -> Option<&str> {
 pub struct ResponsesAdapter;
 
 pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
-    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0)
+    responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0, 0)
 }
 
 pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     chunk: &UniversalStreamChunk,
     text_output_index: Option<u32>,
     tool_output_index_offset: u32,
+    sequence_number: u64,
 ) -> Vec<Value> {
     let Some(choice) = chunk.choices.first() else {
         return Vec::new();
     };
 
     let mut events = Vec::new();
+    let mut next_sequence_number = sequence_number;
     if let Some(delta) = choice.delta_view() {
         let reasoning_output_index = choice.index;
         let base_output_index = choice.index.max(tool_output_index_offset);
@@ -86,8 +98,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.reasoning_summary_text.delta",
                 "output_index": reasoning_output_index,
                 "summary_index": 0,
-                "delta": reasoning
+                "delta": reasoning,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
         let mut next_output_index = base_output_index;
         if !reasoning.is_empty() {
@@ -101,8 +115,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 "type": "response.output_text.delta",
                 "output_index": output_index,
                 "content_index": 0,
-                "delta": content
+                "delta": content,
+                "sequence_number": next_sequence_number
             }));
+            next_sequence_number += 1;
         }
 
         for tool_call in &delta.tool_calls {
@@ -119,17 +135,37 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 .and_then(|f| f.name.as_deref())
                 .unwrap_or("");
             if let Some(call_id) = call_id {
-                events.push(serde_json::json!({
-                    "type": "response.output_item.added",
-                    "output_index": output_index,
-                    "item": {
-                        "type": "function_call",
-                        "status": "in_progress",
-                        "call_id": call_id,
-                        "name": name,
-                        "arguments": ""
-                    }
-                }));
+                if tool_call.custom_tool_call == Some(true) {
+                    let item_id = custom_tool_call_item_id(output_index);
+                    events.push(serde_json::json!({
+                        "type": "response.output_item.added",
+                        "output_index": output_index,
+                        "item": {
+                            "id": item_id,
+                            "type": "custom_tool_call",
+                            "status": "in_progress",
+                            "call_id": call_id,
+                            "name": name,
+                            "input": ""
+                        },
+                        "sequence_number": next_sequence_number
+                    }));
+                    next_sequence_number += 1;
+                } else {
+                    events.push(serde_json::json!({
+                        "type": "response.output_item.added",
+                        "output_index": output_index,
+                        "item": {
+                            "type": "function_call",
+                            "status": "in_progress",
+                            "call_id": call_id,
+                            "name": name,
+                            "arguments": ""
+                        },
+                        "sequence_number": next_sequence_number
+                    }));
+                    next_sequence_number += 1;
+                }
             }
 
             if let Some(arguments) = tool_call
@@ -138,23 +174,43 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                 .and_then(|f| f.arguments.as_deref())
                 .filter(|arguments| !arguments.is_empty())
             {
-                events.push(serde_json::json!({
-                    "type": "response.function_call_arguments.delta",
-                    "output_index": output_index,
-                    "delta": arguments
-                }));
+                if tool_call.custom_tool_call == Some(true) {
+                    events.push(serde_json::json!({
+                        "type": "response.custom_tool_call_input.delta",
+                        "output_index": output_index,
+                        "item_id": custom_tool_call_item_id(output_index),
+                        "delta": arguments,
+                        "sequence_number": next_sequence_number
+                    }));
+                    next_sequence_number += 1;
+                } else {
+                    events.push(serde_json::json!({
+                        "type": "response.function_call_arguments.delta",
+                        "output_index": output_index,
+                        "delta": arguments,
+                        "sequence_number": next_sequence_number
+                    }));
+                    next_sequence_number += 1;
+                }
             }
         }
     }
 
     if choice.finish_reason.is_some() {
-        events.push(responses_terminal_stream_event(chunk));
+        events.push(responses_terminal_stream_event(chunk, next_sequence_number));
     }
 
     events
 }
 
-pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStreamChunk) -> Value {
+fn custom_tool_call_item_id(output_index: u32) -> String {
+    format!("ctc_{output_index}")
+}
+
+pub(crate) fn responses_created_stream_event_from_universal(
+    chunk: &UniversalStreamChunk,
+    sequence_number: u64,
+) -> Value {
     let id = chunk
         .id
         .clone()
@@ -178,11 +234,12 @@ pub(crate) fn responses_created_stream_event_from_universal(chunk: &UniversalStr
 
     crate::serde_json::json!({
         "type": "response.created",
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
-fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
+fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number: u64) -> Value {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {
         Some(reason) if reason == "length" => "incomplete",
@@ -213,20 +270,133 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk) -> Value {
 
     serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
-        "response": response
+        "response": response,
+        "sequence_number": sequence_number
     })
 }
 
 #[derive(Debug, Deserialize, Default)]
+struct ResponsesStatusView {
+    status: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
 struct ResponsesOutputItemAddedEvent {
-    item: Option<Value>,
+    item: Option<ResponsesOutputItemAddedItem>,
     output_index: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(tag = "type")]
+enum ResponsesOutputItemAddedItem {
+    #[serde(rename = "function_call")]
+    FunctionCall {
+        call_id: Option<String>,
+        name: Option<String>,
+    },
+    #[serde(rename = "custom_tool_call")]
+    CustomToolCall {
+        call_id: Option<String>,
+        name: Option<String>,
+    },
+    #[serde(other)]
+    #[default]
+    Other,
+}
+
+impl ResponsesOutputItemAddedItem {
+    fn tool_call_start(&self) -> Option<(&str, &str, bool)> {
+        match self {
+            Self::FunctionCall { call_id, name } => Some((
+                call_id.as_deref().unwrap_or(""),
+                name.as_deref().unwrap_or(""),
+                false,
+            )),
+            Self::CustomToolCall { call_id, name } => Some((
+                call_id.as_deref().unwrap_or(""),
+                name.as_deref().unwrap_or(""),
+                true,
+            )),
+            Self::Other => None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesFunctionCallArgumentsDeltaEvent {
     delta: Option<String>,
     output_index: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ResponsesCustomToolCallInputDeltaEvent {
+    delta: String,
+    output_index: u32,
+    #[serde(rename = "item_id")]
+    _item_id: String,
+    #[serde(rename = "sequence_number")]
+    _sequence_number: u32,
+}
+
+fn responses_tool_call_start_chunk(
+    call_id: &str,
+    name: &str,
+    output_index: u32,
+    custom_tool_call: bool,
+) -> UniversalStreamChunk {
+    UniversalStreamChunk::new(
+        None,
+        None,
+        vec![UniversalStreamChoice {
+            index: 0,
+            delta: Some(serde_json::json!({
+                "role": "assistant",
+                "content": Value::Null,
+                "tool_calls": [UniversalToolCallDelta {
+                    index: Some(output_index),
+                    id: Some(call_id.to_string()),
+                    call_type: Some("function".to_string()),
+                    custom_tool_call: custom_tool_call.then_some(true),
+                    function: Some(UniversalToolFunctionDelta {
+                        name: Some(name.to_string()),
+                        arguments: Some(String::new()),
+                    }),
+                }]
+            })),
+            finish_reason: None,
+        }],
+        None,
+        None,
+    )
+}
+
+fn responses_tool_call_arguments_delta_chunk(
+    arguments: String,
+    output_index: u32,
+    custom_tool_call: bool,
+) -> UniversalStreamChunk {
+    UniversalStreamChunk::new(
+        None,
+        None,
+        vec![UniversalStreamChoice {
+            index: 0,
+            delta: Some(serde_json::json!({
+                "tool_calls": [UniversalToolCallDelta {
+                    index: Some(output_index),
+                    id: None,
+                    call_type: None,
+                    custom_tool_call: custom_tool_call.then_some(true),
+                    function: Some(UniversalToolFunctionDelta {
+                        name: None,
+                        arguments: Some(arguments),
+                    }),
+                }]
+            })),
+            finish_reason: None,
+        }],
+        None,
+        None,
+    )
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -274,6 +444,26 @@ impl ProviderAdapter for ResponsesAdapter {
 
     fn detect_request(&self, payload: &Value) -> bool {
         try_parse_responses(payload).is_ok()
+    }
+
+    fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
+        #[derive(serde::Deserialize)]
+        struct TextView {
+            format: Option<Value>,
+        }
+        #[derive(serde::Deserialize)]
+        struct ResponseFormatView {
+            text: Option<TextView>,
+        }
+
+        let view: ResponseFormatView = serde_json::from_value(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+        let Some(format) = view.text.as_ref().and_then(|text| text.format.as_ref()) else {
+            return Ok(false);
+        };
+        let config: crate::universal::request::ResponseFormatConfig =
+            (ProviderFormat::Responses, format).try_into()?;
+        Ok(config.requires_json_response())
     }
 
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError> {
@@ -344,6 +534,11 @@ impl ProviderAdapter for ResponsesAdapter {
         let reasoning = typed_params
             .reasoning
             .as_ref()
+            .filter(|reasoning| {
+                reasoning.effort.is_some()
+                    || reasoning.summary.is_some()
+                    || reasoning.generate_summary.is_some()
+            })
             .map(|r| (r, max_tokens).into());
 
         let canonical_metadata = typed_params.metadata.clone().or_else(|| {
@@ -401,6 +596,21 @@ impl ProviderAdapter for ResponsesAdapter {
         if let Some(text) = typed_params.text {
             extras_map.insert("text".into(), text);
         }
+        if let Some(include) = typed_params.include {
+            extras_map.insert("include".into(), include);
+        }
+        if let Some(previous_response_id) = typed_params.previous_response_id {
+            extras_map.insert(
+                "previous_response_id".into(),
+                Value::String(previous_response_id),
+            );
+        }
+        if let Some(prompt_cache_options) = typed_params.prompt_cache_options {
+            extras_map.insert("prompt_cache_options".into(), prompt_cache_options);
+        }
+        if let Some(prompt_cache_retention) = typed_params.prompt_cache_retention {
+            extras_map.insert("prompt_cache_retention".into(), prompt_cache_retention);
+        }
         if let Some(truncation) = typed_params.truncation {
             extras_map.insert("truncation".into(), truncation);
         }
@@ -415,6 +625,16 @@ impl ProviderAdapter for ResponsesAdapter {
         }
         if let Some(moderation) = typed_params.moderation {
             extras_map.insert("moderation".into(), moderation);
+        }
+        if let Some(reasoning) = typed_params.reasoning.as_ref() {
+            extras_map.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning).map_err(|error| {
+                    TransformError::ToUniversalFailed(format!(
+                        "failed to preserve OpenAI Responses reasoning fields: {error}"
+                    ))
+                })?,
+            );
         }
 
         if !extras_map.is_empty() {
@@ -480,8 +700,38 @@ impl ProviderAdapter for ResponsesAdapter {
         } else {
             obj.insert(
                 "input".into(),
-                serde_json::to_value(input_items)
+                Value::Array(
+                    responses_input_values_from_universal_context(
+                        &input_items,
+                        &messages_for_input,
+                    )
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                ),
+            );
+        }
+        if let Some(raw_include) = responses_extras_view.include.as_ref() {
+            obj.insert("include".into(), raw_include.clone());
+        }
+        if let Some(raw_previous_response_id) = responses_extras_view.previous_response_id.as_ref()
+        {
+            obj.insert(
+                "previous_response_id".into(),
+                raw_previous_response_id.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_options) = responses_extras_view.prompt_cache_options.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_options".into(),
+                raw_prompt_cache_options.clone(),
+            );
+        }
+        if let Some(raw_prompt_cache_retention) =
+            responses_extras_view.prompt_cache_retention.as_ref()
+        {
+            obj.insert(
+                "prompt_cache_retention".into(),
+                raw_prompt_cache_retention.clone(),
             );
         }
 
@@ -545,21 +795,72 @@ impl ProviderAdapter for ResponsesAdapter {
             obj.insert("text".into(), text_val);
         }
 
-        // Add reasoning from canonical params
-        if let Some(raw_reasoning) = responses_extras_view.reasoning.as_ref() {
-            obj.insert("reasoning".into(), raw_reasoning.clone());
-        } else if let Some(reasoning) = req.params.reasoning.as_ref() {
-            let mut reasoning = reasoning.clone();
-            if let Some(effort) = reasoning.effort {
-                reasoning.effort = Some(clamp_reasoning_effort_for_model(model, effort));
+        // Add reasoning from canonical params and merge provider-only fields preserved in extras.
+        let canonical_reasoning_has_effort = req
+            .params
+            .reasoning
+            .as_ref()
+            .and_then(|reasoning| reasoning.effort)
+            .is_some();
+        let canonical_reasoning: Option<OpenAIReasoning> =
+            if let Some(reasoning) = req.params.reasoning.as_ref() {
+                let mut reasoning = reasoning.clone();
+                if let Some(effort) = reasoning.effort {
+                    let has_raw_responses_effort = responses_extras_view
+                        .reasoning
+                        .as_ref()
+                        .and_then(|reasoning| reasoning.effort)
+                        .is_some();
+                    reasoning.effort = Some(if has_raw_responses_effort {
+                        effort
+                    } else {
+                        clamp_reasoning_effort_for_model(model, effort)
+                    });
+                }
+                let value = reasoning
+                    .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
+                    .map_err(|error| {
+                        TransformError::FromUniversalFailed(format!(
+                            "failed to convert canonical OpenAI Responses reasoning: {error}"
+                        ))
+                    })?;
+                value
+                    .map(|value| {
+                        serde_json::from_value(value).map_err(|error| {
+                            TransformError::FromUniversalFailed(format!(
+                                "failed to parse canonical OpenAI Responses reasoning: {error}"
+                            ))
+                        })
+                    })
+                    .transpose()?
+            } else {
+                None
+            };
+        let merged_reasoning = match (
+            responses_extras_view.reasoning.as_ref(),
+            canonical_reasoning,
+        ) {
+            (Some(provider_reasoning), Some(canonical_reasoning)) => {
+                let mut merged = provider_reasoning.clone();
+                if canonical_reasoning_has_effort {
+                    merged.effort = canonical_reasoning.effort;
+                }
+                merged.summary = canonical_reasoning.summary;
+                merged.generate_summary = canonical_reasoning.generate_summary;
+                Some(merged)
             }
-            if let Some(reasoning_val) = reasoning
-                .to_provider(ProviderFormat::Responses, req.params.output_token_budget())
-                .ok()
-                .flatten()
-            {
-                obj.insert("reasoning".into(), reasoning_val);
-            }
+            (Some(provider_reasoning), None) => Some(provider_reasoning.clone()),
+            (None, canonical_reasoning) => canonical_reasoning,
+        };
+        if let Some(reasoning) = merged_reasoning {
+            obj.insert(
+                "reasoning".into(),
+                serde_json::to_value(reasoning).map_err(|error| {
+                    TransformError::FromUniversalFailed(format!(
+                        "failed to serialize OpenAI Responses reasoning: {error}"
+                    ))
+                })?,
+            );
         }
         if let Some(raw_moderation) = responses_extras_view
             .moderation
@@ -615,6 +916,45 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
 
+        if !supports_prompt_cache_breakpoint(model) {
+            obj.remove("prompt_cache_options");
+        }
+
+        let input = obj.remove("input").ok_or_else(|| {
+            TransformError::FromUniversalFailed("missing OpenAI Responses input".into())
+        })?;
+        let mut typed_input: InputParam = serde_json::from_value(input).map_err(|error| {
+            TransformError::FromUniversalFailed(format!(
+                "failed to parse OpenAI Responses input: {error}"
+            ))
+        })?;
+        strip_unsupported_responses_prompt_cache_breakpoints(model, &mut typed_input);
+        obj.insert(
+            "input".into(),
+            serde_json::to_value(typed_input).map_err(|error| {
+                TransformError::SerializationFailed(format!(
+                    "failed to serialize OpenAI Responses input: {error}"
+                ))
+            })?,
+        );
+
+        if let Some(prompt) = obj.remove("prompt") {
+            let mut typed_prompt: Prompt = serde_json::from_value(prompt).map_err(|error| {
+                TransformError::FromUniversalFailed(format!(
+                    "failed to parse OpenAI Responses prompt: {error}"
+                ))
+            })?;
+            strip_unsupported_responses_prompt_variable_cache_breakpoints(model, &mut typed_prompt);
+            obj.insert(
+                "prompt".into(),
+                serde_json::to_value(typed_prompt).map_err(|error| {
+                    TransformError::SerializationFailed(format!(
+                        "failed to serialize OpenAI Responses prompt: {error}"
+                    ))
+                })?,
+            );
+        }
+
         // Apply capability-based transforms (e.g., strip temperature for reasoning models)
         apply_model_transforms(model, &mut obj);
 
@@ -666,16 +1006,16 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         });
 
+        let response_status = serde_json::from_value::<ResponsesStatusView>(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+            .status;
+
         let finish_reason = if has_actionable_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
-            match payload.get("status").and_then(Value::as_str) {
-                Some(s) => Some(s.parse().map_err(|_| ConvertError::InvalidEnumValue {
-                    type_name: "FinishReason",
-                    value: s.to_string(),
-                })?),
-                None => None,
-            }
+            response_status
+                .as_deref()
+                .map(|s| FinishReason::from_provider_string(s, ProviderFormat::Responses))
         };
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
@@ -689,7 +1029,8 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(String::from),
             messages,
             usage,
-            finish_reason,
+            finish_reason: finish_reason.clone(),
+            finish_reasons: finish_reason.into_iter().collect(),
         })
     }
 
@@ -700,16 +1041,13 @@ impl ProviderAdapter for ResponsesAdapter {
             .map_err(|e: ConvertError| TransformError::FromUniversalFailed(e.to_string()))?;
 
         // Serialize OutputItems to JSON values
-        let output: Vec<Value> = output_items
-            .iter()
-            .map(serde_json::to_value)
-            .collect::<Result<_, _>>()
-            .map_err(|e| {
-                TransformError::SerializationFailed(format!(
-                    "Failed to serialize output item: {}",
-                    e
-                ))
-            })?;
+        let output: Vec<Value> = responses_output_values_from_universal_context(
+            &output_items,
+            &resp.messages,
+        )
+        .map_err(|e| {
+            TransformError::SerializationFailed(format!("Failed to serialize output item: {}", e))
+        })?;
 
         // Calculate output_text (concatenate text from all message-type items)
         let output_text = output_items
@@ -984,45 +1322,21 @@ impl ProviderAdapter for ResponsesAdapter {
                 let parsed =
                     serde_json::from_value::<ResponsesOutputItemAddedEvent>(payload.clone())
                         .unwrap_or_default();
-                let item = parsed.item.as_ref();
-                let item_type = item.and_then(|i| i.get("type")).and_then(Value::as_str);
-
-                if item_type == Some("function_call") {
-                    let call_id = item
-                        .and_then(|i| i.get("call_id"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
-                    let name = item
-                        .and_then(|i| i.get("name"))
-                        .and_then(Value::as_str)
-                        .unwrap_or("");
+                if let Some((call_id, name, custom_tool_call)) = parsed
+                    .item
+                    .as_ref()
+                    .and_then(ResponsesOutputItemAddedItem::tool_call_start)
+                {
                     let output_index = parsed.output_index.unwrap_or(0);
 
                     // Preserve Responses output_index as a correlation key. Stateful
                     // stream transforms remap it to a tool-relative index before
                     // serializing to non-Responses targets.
-                    return Ok(Some(UniversalStreamChunk::new(
-                        None,
-                        None,
-                        vec![UniversalStreamChoice {
-                            index: 0,
-                            delta: Some(serde_json::json!({
-                                "role": "assistant",
-                                "content": Value::Null,
-                                "tool_calls": [{
-                                    "index": output_index,
-                                    "id": call_id,
-                                    "type": "function",
-                                    "function": {
-                                        "name": name,
-                                        "arguments": ""
-                                    }
-                                }]
-                            })),
-                            finish_reason: None,
-                        }],
-                        None,
-                        None,
+                    return Ok(Some(responses_tool_call_start_chunk(
+                        call_id,
+                        name,
+                        output_index,
+                        custom_tool_call,
                     )));
                 }
 
@@ -1040,23 +1354,28 @@ impl ProviderAdapter for ResponsesAdapter {
                 // Preserve Responses output_index as a correlation key. Stateful
                 // stream transforms remap it to the same tool-relative index as
                 // the corresponding response.output_item.added event.
-                Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({
-                            "tool_calls": [{
-                                "index": output_index,
-                                "function": {
-                                    "arguments": arguments
-                                }
-                            }]
-                        })),
-                        finish_reason: None,
-                    }],
-                    None,
-                    None,
+                Ok(Some(responses_tool_call_arguments_delta_chunk(
+                    arguments,
+                    output_index,
+                    false,
+                )))
+            }
+
+            "response.custom_tool_call_input.delta" => {
+                let parsed = serde_json::from_value::<ResponsesCustomToolCallInputDeltaEvent>(
+                    payload.clone(),
+                )
+                .map_err(|e| {
+                    TransformError::DeserializationFailed(format!(
+                        "Responses custom tool call input delta event: {}",
+                        e
+                    ))
+                })?;
+
+                Ok(Some(responses_tool_call_arguments_delta_chunk(
+                    parsed.delta,
+                    parsed.output_index,
+                    true,
                 )))
             }
 
@@ -1139,7 +1458,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
         if has_finish {
-            return Ok(responses_terminal_stream_event(chunk));
+            return Ok(responses_terminal_stream_event(chunk, 0));
         }
         if let Some(event) = stream_events.into_iter().next() {
             return Ok(event);
@@ -1225,7 +1544,10 @@ mod tests {
     use crate::providers::openai::generated::{Arguments, InputParam};
     use crate::providers::openai::params::OpenAIResponsesParams;
     use crate::serde_json::json;
-    use crate::universal::{AssistantContentPart, ToolContentPart};
+    use crate::universal::{
+        AssistantContentPart, ResponseRequirement, ToolCallArguments, ToolCaller, ToolCallerType,
+        ToolContentPart, ToolResultContentPart,
+    };
     use bytes::Bytes;
 
     #[test]
@@ -1294,6 +1616,358 @@ mod tests {
         let value = adapter.request_from_universal(&universal).unwrap();
 
         assert_eq!(value["prompt_cache_key"], json!("cache-key-updated"));
+    }
+
+    #[test]
+    fn test_responses_preserves_gpt56_request_controls_in_extras() {
+        #[derive(Debug, Deserialize)]
+        struct PreservedResponsesExtras {
+            include: Value,
+            reasoning: Value,
+            previous_response_id: String,
+            prompt_cache_options: Value,
+            prompt_cache_retention: Value,
+        }
+
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{"role": "user", "content": "Hello"}],
+            "include": ["reasoning.encrypted_content"],
+            "reasoning": {
+                "effort": "max",
+                "mode": "pro",
+                "context": "all_turns"
+            },
+            "previous_response_id": "resp_123",
+            "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
+            "prompt_cache_retention": "24h"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let responses_extras = universal
+            .params
+            .extras
+            .clone()
+            .into_iter()
+            .find(|(format, _)| *format == ProviderFormat::Responses)
+            .map(|(_, extras)| extras)
+            .expect("Responses extras should be preserved");
+        let extras: PreservedResponsesExtras =
+            serde_json::from_value(serde_json::to_value(responses_extras).unwrap()).unwrap();
+
+        assert_eq!(extras.include, json!(["reasoning.encrypted_content"]));
+        assert_eq!(
+            extras.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(extras.previous_response_id, "resp_123");
+        assert_eq!(
+            extras.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(extras.prompt_cache_retention, json!("24h"));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: PreservedResponsesExtras =
+            serde_json::from_value(reconstructed).unwrap();
+        assert_eq!(
+            reconstructed.include,
+            json!(["reasoning.encrypted_content"])
+        );
+        assert_eq!(
+            reconstructed.reasoning,
+            json!({"effort": "max", "mode": "pro", "context": "all_turns"})
+        );
+        assert_eq!(reconstructed.previous_response_id, "resp_123");
+        assert_eq!(
+            reconstructed.prompt_cache_options,
+            json!({"mode": "explicit", "ttl": "30m"})
+        );
+        assert_eq!(reconstructed.prompt_cache_retention, json!("24h"));
+    }
+
+    #[test]
+    fn responses_programmatic_items_and_callers_export_to_input_json() {
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: Some("call_prog_123".to_string()),
+        };
+        let req = UniversalRequest {
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![
+                Message::User {
+                    content: UserContent::String("Check inventory.".to_string()),
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![
+                        AssistantContentPart::Program {
+                            call_id: "call_prog_123".to_string(),
+                            code: "const result = await get_inventory({ sku: \"sku_123\" });"
+                                .to_string(),
+                            fingerprint: Some("opaque_state".to_string()),
+                            id: Some("prog_123".to_string()),
+                        },
+                        AssistantContentPart::ToolCall {
+                            tool_call_id: "call_inventory_123".to_string(),
+                            tool_name: "get_inventory".to_string(),
+                            arguments: ToolCallArguments::from("{\"sku\":\"sku_123\"}".to_string()),
+                            caller: Some(caller.clone()),
+                            encrypted_content: None,
+                            provider_options: None,
+                            status: None,
+                            provider_executed: None,
+                        },
+                    ]),
+                    id: None,
+                },
+                Message::Tool {
+                    content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                        tool_call_id: "call_inventory_123".to_string(),
+                        tool_name: "get_inventory".to_string(),
+                        output: json!({"sku": "sku_123", "available_units": 42}),
+                        custom_tool_call: None,
+                        caller: Some(caller),
+                        provider_options: None,
+                    })],
+                },
+                Message::Assistant {
+                    content: AssistantContent::Array(vec![AssistantContentPart::ProgramOutput {
+                        call_id: "call_prog_123".to_string(),
+                        result: "{\"done\":true}".to_string(),
+                        status: "completed".to_string(),
+                        id: Some("prog_out_123".to_string()),
+                    }]),
+                    id: None,
+                },
+            ],
+            params: UniversalParams::default(),
+        };
+
+        #[derive(Debug, Deserialize)]
+        struct RequestInputView {
+            input: Vec<Value>,
+        }
+
+        let value = adapter.request_from_universal(&req).unwrap();
+        let input = serde_json::from_value::<RequestInputView>(value)
+            .unwrap()
+            .input;
+
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program",
+                "id": "prog_123",
+                "call_id": "call_prog_123",
+                "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                "fingerprint": "opaque_state"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "program_output",
+                "id": "prog_out_123",
+                "call_id": "call_prog_123",
+                "result": "{\"done\":true}",
+                "status": "completed"
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "arguments": "{\"sku\":\"sku_123\"}",
+                "status": "completed",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
+        assert!(input.iter().any(|item| item
+            == &json!({
+                "type": "function_call_output",
+                "call_id": "call_inventory_123",
+                "name": "get_inventory",
+                "output": "{\"available_units\":42,\"sku\":\"sku_123\"}",
+                "caller": {
+                    "type": "program",
+                    "caller_id": "call_prog_123"
+                }
+            })));
+    }
+
+    #[test]
+    fn responses_programmatic_output_items_convert_to_universal() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_123",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": "Done.",
+                            "annotations": []
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+
+        let Message::Assistant {
+            content: AssistantContent::Array(program_parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("program item should become assistant message");
+        };
+        let AssistantContentPart::Program {
+            call_id,
+            code,
+            fingerprint,
+            ..
+        } = &program_parts[0]
+        else {
+            panic!("expected program part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(
+            code,
+            "const result = await get_inventory({ sku: \"sku_123\" });"
+        );
+        assert_eq!(fingerprint.as_deref(), Some("opaque_state"));
+
+        let Message::Assistant {
+            content: AssistantContent::Array(output_parts),
+            ..
+        } = &universal.messages[1]
+        else {
+            panic!("program_output item should become assistant message");
+        };
+        let AssistantContentPart::ProgramOutput {
+            call_id,
+            result,
+            status,
+            ..
+        } = &output_parts[0]
+        else {
+            panic!("expected program_output part");
+        };
+        assert_eq!(call_id, "call_prog_123");
+        assert_eq!(result, "{\"done\":true}");
+        assert_eq!(status, "completed");
+    }
+
+    #[test]
+    fn responses_programmatic_callers_roundtrip_through_response_export() {
+        use crate::providers::openai::generated::{OutputItemType, TheResponseObject};
+
+        let adapter = ResponsesAdapter;
+        let caller = ToolCaller {
+            caller_type: ToolCallerType::Program,
+            caller_id: Some("call_prog_123".to_string()),
+        };
+        let payload = json!({
+            "id": "resp_programmatic",
+            "object": "response",
+            "model": "gpt-5.6-terra",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "program",
+                    "id": "prog_123",
+                    "call_id": "call_prog_123",
+                    "code": "const result = await get_inventory({ sku: \"sku_123\" });",
+                    "fingerprint": "opaque_state"
+                },
+                {
+                    "type": "function_call",
+                    "id": "fc_123",
+                    "call_id": "call_inventory_123",
+                    "name": "get_inventory",
+                    "status": "in_progress",
+                    "arguments": "{\"sku\":\"sku_123\"}",
+                    "caller": {
+                        "type": "program",
+                        "caller_id": "call_prog_123"
+                    }
+                },
+                {
+                    "type": "program_output",
+                    "id": "prog_out_123",
+                    "call_id": "call_prog_123",
+                    "result": "{\"done\":true}",
+                    "status": "completed"
+                }
+            ]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        let exported = adapter.response_from_universal(&universal).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported response should deserialize as TheResponseObject");
+
+        let function_call = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCall))
+            .expect("function_call output item should be exported");
+        assert_eq!(function_call.caller, Some(caller.clone().into()));
+        assert_eq!(
+            function_call.status,
+            Some(crate::providers::openai::generated::Status::InProgress)
+        );
+
+        let tool_result_resp = UniversalResponse {
+            id: Some("resp_programmatic_tool_result".to_string()),
+            id_format: Some(ProviderFormat::Responses),
+            model: Some("gpt-5.6-terra".to_string()),
+            messages: vec![Message::Tool {
+                content: vec![ToolContentPart::ToolResult(ToolResultContentPart {
+                    tool_call_id: "call_inventory_123".to_string(),
+                    tool_name: "get_inventory".to_string(),
+                    output: json!({"sku": "sku_123", "available_units": 42}),
+                    custom_tool_call: None,
+                    caller: Some(caller.clone()),
+                    provider_options: None,
+                })],
+            }],
+            usage: None,
+            finish_reason: None,
+            finish_reasons: Vec::new(),
+        };
+        let exported = adapter.response_from_universal(&tool_result_resp).unwrap();
+        let response: TheResponseObject = serde_json::from_value(exported)
+            .expect("exported tool result should deserialize as TheResponseObject");
+        let function_call_output = response
+            .output
+            .iter()
+            .find(|item| item.output_item_type == Some(OutputItemType::FunctionCallOutput))
+            .expect("function_call_output item should be exported");
+        assert_eq!(function_call_output.caller, Some(caller.into()));
     }
 
     #[test]
@@ -1515,6 +2189,8 @@ mod tests {
                     arguments: r#"{"query":"weather"}"#.to_string().into(),
                     encrypted_content: None,
                     provider_options: None,
+                    status: None,
+                    caller: None,
                     provider_executed: None,
                 }]),
                 id: None,
@@ -1599,6 +2275,7 @@ mod tests {
             ProviderFormat::ChatCompletions,
         )
         .expect("Responses response should transform to Chat Completions")
+        .result
         .into_bytes();
 
         #[derive(serde::Deserialize)]
@@ -1630,6 +2307,29 @@ mod tests {
             chat.choices[0].message.reasoning_signature.as_deref(),
             Some("encrypted-reasoning")
         );
+    }
+
+    #[test]
+    fn test_responses_status_is_incomplete_for_non_terminal_responses() {
+        let adapter = ResponsesAdapter;
+        for status in ["queued", "in_progress", "failed", "cancelled", "incomplete"] {
+            let payload = json!({
+                "id": "resp_123",
+                "object": "response",
+                "model": "gpt-5-mini",
+                "status": status,
+                "output": []
+            });
+
+            let universal = adapter.response_to_universal(payload).unwrap();
+
+            assert!(
+                !universal
+                    .parsable_info()
+                    .reusable_for_request(ResponseRequirement::Any),
+                "{status} should not be reusable"
+            );
+        }
     }
 
     #[test]
@@ -1831,7 +2531,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(
@@ -1892,7 +2592,7 @@ mod tests {
         let result = transform_response(input, crate::capabilities::ProviderFormat::Responses)
             .expect("transform should succeed");
 
-        let response: TheResponseObject = serde_json::from_slice(&result.into_bytes())
+        let response: TheResponseObject = serde_json::from_slice(&result.result.into_bytes())
             .expect("must deserialize as TheResponseObject");
 
         assert!(!response.output.is_empty());
@@ -2024,6 +2724,7 @@ mod tests {
             }],
             usage: None,
             finish_reason: Some(FinishReason::Stop),
+            finish_reasons: vec![FinishReason::Stop],
         };
 
         let adapter = ResponsesAdapter;
@@ -2294,6 +2995,234 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_clamps_synthesized_max_reasoning_effort_for_target_model() {
+        let req = UniversalRequest {
+            model: Some("gpt-5.4".to_string()),
+            messages: vec![Message::User {
+                content: UserContent::String("Hello".to_string()),
+            }],
+            params: UniversalParams {
+                reasoning: Some(crate::universal::ReasoningConfig {
+                    enabled: Some(true),
+                    effort: Some(crate::universal::ReasoningEffort::Max),
+                    canonical: Some(crate::universal::ReasoningCanonical::Effort),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        };
+
+        let adapter = ResponsesAdapter;
+        let typed: OpenAIResponsesParams =
+            serde_json::from_value(adapter.request_from_universal(&req).unwrap()).unwrap();
+
+        assert_eq!(
+            typed.reasoning.and_then(|reasoning| reasoning.effort),
+            Some(crate::providers::openai::params::OpenAIReasoningEffort::Xhigh)
+        );
+    }
+
+    #[test]
+    fn test_responses_provider_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "context": "all_turns",
+                "mode": "persistent"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert!(universal.params.reasoning.is_none());
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/reasoning/context"),
+            Some(&json!("all_turns"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/mode"),
+            Some(&json!("persistent"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_summary_only_reasoning_does_not_synthesize_effort() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "summary": "auto"
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/reasoning/summary"),
+            Some(&json!("auto"))
+        );
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_prompt_cache_breakpoint() {
+        let payload = json!({
+            "model": "gpt-5.6",
+            "input": [{
+                "role": "user",
+                "content": [{
+                    "type": "input_text",
+                    "text": "Hello",
+                    "prompt_cache_breakpoint": {"mode": "explicit"}
+                }]
+            }],
+            "prompt_cache_options": {"ttl": "24h"}
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/input/0/content/0/prompt_cache_breakpoint/mode"),
+            Some(&json!("explicit"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/prompt_cache_options/ttl"),
+            Some(&json!("24h"))
+        );
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_prompt_cache_retention_before_gpt_5_6() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "input": [{"role": "user", "content": "Hello"}],
+            "prompt_cache_retention": "24h"
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(
+            roundtrip.pointer("/prompt_cache_retention"),
+            Some(&json!("24h"))
+        );
+    }
+
+    #[test]
+    fn test_responses_strips_prompt_variable_cache_breakpoint_before_gpt_5_6() {
+        let payload = json!({
+            "model": "gpt-5.5",
+            "input": [{"role": "user", "content": "Hello"}],
+            "prompt": {
+                "id": "pmpt_123",
+                "variables": {
+                    "ctx": {
+                        "type": "input_text",
+                        "text": "Reusable context",
+                        "prompt_cache_breakpoint": {"mode": "explicit"}
+                    }
+                }
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+
+        assert_eq!(roundtrip.pointer("/prompt/id"), Some(&json!("pmpt_123")));
+        assert_eq!(
+            roundtrip.pointer("/prompt/variables/ctx/prompt_cache_breakpoint"),
+            None
+        );
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_direct_caller_without_id() {
+        let payload = json!({
+            "model": "gpt-5.6-terra",
+            "input": [{
+                "type": "function_call",
+                "call_id": "call_direct_123",
+                "name": "get_weather",
+                "arguments": "{}",
+                "caller": {"type": "direct"}
+            }]
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("function call should become an assistant message");
+        };
+        let AssistantContentPart::ToolCall { caller, .. } = &parts[0] else {
+            panic!("assistant message should contain a tool call");
+        };
+        let caller = caller.as_ref().expect("caller should be preserved");
+        assert_eq!(caller.caller_type, ToolCallerType::Direct);
+        assert_eq!(caller.caller_id, None);
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(
+            roundtrip.pointer("/input/0/caller/type"),
+            Some(&json!("direct"))
+        );
+        assert_eq!(roundtrip.pointer("/input/0/caller/caller_id"), None);
+    }
+
+    #[test]
+    fn test_responses_roundtrip_preserves_reasoning_provider_fields() {
+        let payload = json!({
+            "model": "gpt-5.4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "reasoning": {
+                "effort": "max",
+                "context": "all_turns",
+                "mode": "persistent",
+                "future_reasoning_field": {"enabled": true}
+            }
+        });
+        let adapter = ResponsesAdapter;
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(
+            universal
+                .params
+                .reasoning
+                .as_ref()
+                .and_then(|reasoning| reasoning.effort),
+            Some(crate::universal::ReasoningEffort::Max)
+        );
+
+        let roundtrip = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(roundtrip.pointer("/reasoning/effort"), Some(&json!("max")));
+        assert_eq!(
+            roundtrip.pointer("/reasoning/context"),
+            Some(&json!("all_turns"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/mode"),
+            Some(&json!("persistent"))
+        );
+        assert_eq!(
+            roundtrip.pointer("/reasoning/future_reasoning_field"),
+            Some(&json!({"enabled": true}))
+        );
+    }
+
+    #[test]
     fn test_responses_clamps_synthesized_max_output_tokens_to_provider_minimum() {
         use crate::providers::openai::generated::CreateResponseClass;
 
@@ -2436,6 +3365,127 @@ mod tests {
             text_delta.content.as_deref(),
             Some("{\"answer\":\"visible json\"}")
         );
+    }
+
+    #[test]
+    fn test_responses_stream_custom_tool_call_roundtrips() {
+        let adapter = ResponsesAdapter;
+        let custom_tool_start = json!({
+            "type": "response.output_item.added",
+            "item": {
+                "type": "custom_tool_call",
+                "status": "in_progress",
+                "call_id": "call_exec",
+                "input": "",
+                "name": "exec"
+            },
+            "output_index": 7
+        });
+        let start_chunk = adapter
+            .stream_to_universal(custom_tool_start.clone())
+            .expect("custom tool start should parse")
+            .expect("custom tool start should produce a chunk");
+        assert!(!start_chunk.is_keep_alive());
+        let start_delta = start_chunk
+            .choices
+            .first()
+            .expect("custom tool start should have a choice")
+            .delta_view()
+            .expect("custom tool start delta should parse");
+        let start_tool_call = start_delta
+            .tool_calls
+            .first()
+            .expect("custom tool start should emit a tool call");
+        assert_eq!(start_tool_call.index, Some(7));
+        assert_eq!(start_tool_call.id.as_deref(), Some("call_exec"));
+        assert_eq!(start_tool_call.call_type.as_deref(), Some("function"));
+        assert_eq!(start_tool_call.custom_tool_call, Some(true));
+        assert_eq!(
+            start_tool_call
+                .function
+                .as_ref()
+                .and_then(|function| function.name.as_deref()),
+            Some("exec")
+        );
+        assert_eq!(
+            responses_stream_events_from_universal(&start_chunk),
+            vec![json!({
+                "type": "response.output_item.added",
+                "output_index": 7,
+                "item": {
+                    "id": "ctc_7",
+                    "type": "custom_tool_call",
+                    "status": "in_progress",
+                    "call_id": "call_exec",
+                    "name": "exec",
+                    "input": ""
+                },
+                "sequence_number": 0
+            })]
+        );
+
+        let custom_tool_delta = json!({
+            "type": "response.custom_tool_call_input.delta",
+            "delta": "await tools.exec_command({cmd: \"true\"});",
+            "item_id": "ctc_exec",
+            "sequence_number": 8,
+            "output_index": 7
+        });
+        let delta_chunk = adapter
+            .stream_to_universal(custom_tool_delta.clone())
+            .expect("custom tool delta should parse")
+            .expect("custom tool delta should produce a chunk");
+        assert!(!delta_chunk.is_keep_alive());
+        let delta = delta_chunk
+            .choices
+            .first()
+            .expect("custom tool delta should have a choice")
+            .delta_view()
+            .expect("custom tool delta should parse");
+        let delta_tool_call = delta
+            .tool_calls
+            .first()
+            .expect("custom tool delta should emit tool call input");
+        assert_eq!(delta_tool_call.index, Some(7));
+        assert_eq!(delta_tool_call.custom_tool_call, Some(true));
+        assert_eq!(
+            delta_tool_call
+                .function
+                .as_ref()
+                .and_then(|function| function.arguments.as_deref()),
+            Some("await tools.exec_command({cmd: \"true\"});")
+        );
+        let expected_custom_tool_delta = json!({
+            "type": "response.custom_tool_call_input.delta",
+            "delta": "await tools.exec_command({cmd: \"true\"});",
+            "item_id": "ctc_7",
+            "output_index": 7,
+            "sequence_number": 0
+        });
+        assert_eq!(
+            responses_stream_events_from_universal(&delta_chunk),
+            vec![expected_custom_tool_delta.clone()]
+        );
+
+        adapter
+            .stream_to_universal(expected_custom_tool_delta)
+            .expect("emitted custom tool delta should satisfy strict parsing");
+    }
+
+    #[test]
+    fn test_responses_stream_custom_tool_call_delta_rejects_missing_required_fields() {
+        let adapter = ResponsesAdapter;
+        let err = adapter
+            .stream_to_universal(json!({
+                "type": "response.custom_tool_call_input.delta",
+                "delta": "malformed"
+            }))
+            .expect_err("malformed custom tool input delta should fail");
+
+        assert!(matches!(err, TransformError::DeserializationFailed(_)));
+        assert!(err
+            .to_string()
+            .contains("Responses custom tool call input delta event"));
     }
 
     #[test]

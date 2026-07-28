@@ -233,7 +233,9 @@ fn to_anthropic(config: &ToolChoiceConfig, parallel_tool_calls: Option<bool>) ->
     let tool_choice = ToolChoice {
         tool_choice_type: match mode {
             ToolChoiceMode::Auto => crate::providers::anthropic::generated::ToolChoiceType::Auto,
-            ToolChoiceMode::None => crate::providers::anthropic::generated::ToolChoiceType::None,
+            ToolChoiceMode::None => {
+                crate::providers::anthropic::generated::ToolChoiceType::TypeNone
+            }
             ToolChoiceMode::Required => crate::providers::anthropic::generated::ToolChoiceType::Any,
             ToolChoiceMode::Tool => crate::providers::anthropic::generated::ToolChoiceType::Tool,
         },

@@ -62,6 +62,10 @@ pub trait ProviderAdapter: Send + Sync {
     /// This extracts messages, params, and extras from the provider payload.
     fn request_to_universal(&self, payload: Value) -> Result<UniversalRequest, TransformError>;
 
+    fn request_requires_json_response(&self, _payload: &Value) -> Result<bool, TransformError> {
+        Ok(false)
+    }
+
     /// Convert a universal request to provider-specific format.
     ///
     /// This builds a complete request payload in the provider's format.

@@ -1,35 +1,3 @@
 {
-  "id": "chatcmpl-DoyXcnDoLWiYmHaGyrxa5C5eTmZTh",
-  "object": "chat.completion",
-  "created": 1781041492,
-  "model": "gpt-5-nano-2025-08-07",
-  "choices": [
-    {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "Hi there! How can I help today? Tell me what you’re looking to do—explain a concept, draft something, brainstorm ideas, code, plan something, or just chat. If you’re not sure, you can share a topic and I’ll suggest options.",
-        "refusal": null,
-        "annotations": []
-      },
-      "finish_reason": "stop"
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 14,
-    "completion_tokens": 320,
-    "total_tokens": 334,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-      "audio_tokens": 0
-    },
-    "completion_tokens_details": {
-      "reasoning_tokens": 256,
-      "audio_tokens": 0,
-      "accepted_prediction_tokens": 0,
-      "rejected_prediction_tokens": 0
-    }
-  },
-  "service_tier": "default",
-  "system_fingerprint": null
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert cache_control.ttl `1h` to OpenAI Chat Completions prompt_cache_options.ttl (only `30m` is supported)"
 }

@@ -10,7 +10,6 @@ import {
   ChatCompletionAssistantMessageWithCacheControl,
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
-  ChatCompletionUserMessageWithCacheControl,
   AnthropicMessageCreateParams,
   TestCase,
   TestCaseCollection,
@@ -30,6 +29,7 @@ import {
   GOOGLE_IMAGE_MODEL,
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
+  BEDROCK_ANTHROPIC_MODEL,
 } from "./models";
 
 type ChatCompletionAssistantMessageWithReasoningSignature =
@@ -40,13 +40,15 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
 const chatCompletionCacheControlTextPart = {
   type: "text",
   text: "Use this stable reference text as cacheable context.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlTextPart = {
   type: "text",
   text: "This assistant prefill should remain cacheable.",
-  cache_control: { type: "ephemeral", ttl: "1h" },
+  cache_control: { type: "ephemeral" },
+  prompt_cache_breakpoint: { mode: "explicit" },
 } satisfies ChatCompletionTextPartWithCacheControl;
 
 const chatCompletionAssistantCacheControlMessage = {
@@ -129,6 +131,29 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
       additionalModelResponseFieldPaths: ["/stop_sequence"],
+    },
+  },
+
+  bedrockAnthropicContextManagementParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
+    },
+    google: null,
+    bedrock: null,
+    "bedrock-anthropic": {
+      model: BEDROCK_ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      messages: [{ role: "user", content: "hi" }],
+      context_management: {
+        edits: [{ type: "clear_tool_uses_20250919" }],
+      },
     },
   },
 
@@ -247,18 +272,23 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAnthropicCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         {
           role: "user",
           content: [
-            chatCompletionCacheControlTextPart,
+            {
+              type: "text",
+              text: chatCompletionCacheControlTextPart.text,
+              cache_control: { type: "ephemeral" },
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
             {
               type: "text",
               text: "Now summarize it.",
             },
           ],
-        } satisfies ChatCompletionUserMessageWithCacheControl,
+        },
       ],
     },
     responses: null,
@@ -288,7 +318,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsAssistantCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         { role: "user", content: "Use the cached assistant prefill." },
         chatCompletionAssistantCacheControlMessage,
@@ -318,7 +348,7 @@ export const paramsCases: TestCaseCollection = {
 
   chatCompletionsSystemCacheControlParam: {
     "chat-completions": {
-      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      model: OPENAI_RESPONSES_MODEL,
       messages: [
         chatCompletionSystemCacheControlMessage,
         { role: "user", content: "Now summarize it." },
@@ -467,6 +497,56 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesReasoningEffortMaxParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "max" },
+    },
+    anthropic: {
+      model: ANTHROPIC_OPUS_MODEL,
+      max_tokens: 16000,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  anthropicOpus5AdaptiveThinkingMaxEffortParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [{ role: "user", content: "What is 2+2?" }],
+      reasoning: { effort: "max" },
+    },
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 65536,
+      stream: true,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "adaptive" },
+      output_config: { effort: "max" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
+  anthropicOpus5DisabledThinkingHighEffortParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: {
+      model: "claude-opus-5",
+      max_tokens: 4096,
+      messages: [{ role: "user", content: "What is 2+2?" }],
+      thinking: { type: "disabled" },
+      output_config: { effort: "high" },
+    },
+    google: null,
+    bedrock: null,
+  },
+
   responsesInputFileUrlParam: {
     "chat-completions": null,
     responses: {
@@ -567,6 +647,193 @@ export const paramsCases: TestCaseCollection = {
               strict: true,
             },
           ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesAdditionalToolsMultipleToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Use the extra policy and note tools once the developer makes them available.",
+        },
+        {
+          id: "at_payload_123",
+          type: "additional_tools",
+          role: "developer",
+          tools: [
+            {
+              type: "function",
+              name: "lookup_policy",
+              description: "Look up an internal policy by slug.",
+              parameters: {
+                type: "object",
+                properties: {
+                  slug: { type: "string" },
+                },
+                required: ["slug"],
+                additionalProperties: false,
+              },
+              strict: true,
+            },
+            {
+              type: "custom",
+              name: "write_release_note",
+              description: "Draft a release note in plain text.",
+              format: {
+                type: "text",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesCustomToolCallStreamingParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response.",
+        },
+      ],
+      tools: [
+        {
+          type: "custom",
+          name: "write_release_note",
+          description: "Draft a release note in plain text.",
+          format: { type: "text" },
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56ReasoningMaxProContextParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Review this rollout checklist for the highest-risk issue.",
+      reasoning: {
+        effort: "max",
+        mode: "pro",
+        context: "all_turns",
+      },
+      text: {
+        verbosity: "high",
+      },
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PersistedReasoningParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      store: false,
+      include: ["reasoning.encrypted_content"],
+      reasoning: {
+        effort: "low",
+        context: "all_turns",
+      },
+      input: [
+        {
+          role: "user",
+          content:
+            "Summarize the deployment risk and preserve reasoning state.",
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesGpt56PromptCacheOptionsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: "Use the stable policy prefix when answering.",
+              prompt_cache_breakpoint: { mode: "explicit" },
+            },
+          ],
+        },
+      ],
+      prompt_cache_options: {
+        mode: "explicit",
+        ttl: "30m",
+      },
+      prompt_cache_retention: "24h",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  responsesProgrammaticToolCallingToolsParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: "Compare inventory and demand for sku_123.",
+      tools: [
+        {
+          type: "function",
+          name: "get_inventory",
+          description: "Return inventory details for a SKU.",
+          parameters: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+            },
+            required: ["sku"],
+            additionalProperties: false,
+          },
+          strict: true,
+          output_schema: {
+            type: "object",
+            properties: {
+              sku: { type: "string" },
+              available_units: { type: "number" },
+            },
+            required: ["sku", "available_units"],
+            additionalProperties: false,
+          },
+          allowed_callers: ["programmatic"],
+        },
+        {
+          type: "custom",
+          name: "write_short_note",
+          description: "Write a compact plain-text note.",
+          format: { type: "text" },
+          allowed_callers: ["direct", "programmatic"],
+        },
+        {
+          type: "programmatic_tool_calling",
         },
       ],
     },

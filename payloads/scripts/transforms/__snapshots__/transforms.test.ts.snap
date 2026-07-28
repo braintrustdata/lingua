@@ -11,9 +11,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
           "type": "text",
         },
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "Preserve the user's coding instructions.",
           "type": "text",
         },
@@ -23,9 +20,6 @@ exports[`anthropic → chat-completions > anthropicMessageWithSystemMessage > re
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "hello world",
           "type": "text",
         },
@@ -217,25 +211,12 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
 }
 `;
 
-exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
+exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
-  "max_completion_tokens": 1024,
+  "max_completion_tokens": 4096,
   "messages": [
     {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Be helpful.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Hi",
+      "content": "What is 2+2?",
       "role": "user",
     },
   ],
@@ -243,46 +224,33 @@ exports[`anthropic → chat-completions > cacheControl1hParam > request 1`] = `
 }
 `;
 
-exports[`anthropic → chat-completions > cacheControl1hParam > response 1`] = `
+exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help today? Tell me what you’re looking to do—explain a concept, draft something, brainstorm ideas, code, plan something, or just chat. If you’re not sure, you can share a topic and I’ll suggest options.",
+      "text": "4",
       "type": "text",
     },
   ],
-  "id": "msg_DoyXcnDoLWiYmHaGyrxa5C5eTmZTh",
+  "id": "msg_E5HL18LeQcug3pSMHCRgiE5360ycd",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 320,
+    "input_tokens": 13,
+    "output_tokens": 74,
   },
 }
 `;
 
-exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
+exports[`anthropic → chat-completions > bedrockAnthropicContextManagementParam > request 1`] = `
 {
   "max_completion_tokens": 1024,
   "messages": [
     {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "5m",
-            "type": "ephemeral",
-          },
-          "text": "Be helpful.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Hi",
+      "content": "hi",
       "role": "user",
     },
   ],
@@ -290,180 +258,25 @@ exports[`anthropic → chat-completions > cacheControl5mParam > request 1`] = `
 }
 `;
 
-exports[`anthropic → chat-completions > cacheControl5mParam > response 1`] = `
+exports[`anthropic → chat-completions > bedrockAnthropicContextManagementParam > response 1`] = `
 {
   "content": [
     {
-      "text": "Hi there! How can I help today?
+      "text": "Hi there! How can I help today? I can help with questions, writing, coding, planning, learning a topic, translating, summarizing, or just chatting. 
 
-I can:
-- Answer questions or explain ideas
-- Help with writing, editing, or brainstorming
-- Assist with coding or math problems
-- Plan projects or study guides
-- Translate or summarize text
-
-Tell me what you’re working on or what you’d like to do, and I’ll tailor my response.",
+What would you like to do? Tell me a topic, task, or even just a bit of context, and I’ll tailor my response.",
       "type": "text",
     },
   ],
-  "id": "msg_DoyXY1rhrMhp1zV6HUmXXCJP5vjlx",
+  "id": "msg_E1GlGM8PnLSdt5TnrRNwvJePhfMiZ",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 401,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "text",
-        },
-        {
-          "text": "Now summarize it.",
-          "type": "text",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAnthropicCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_DoyXQmi2ZJ3lrkHlBv2e8rFfjAV5V",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 19,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-    },
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "text",
-        },
-      ],
-      "role": "assistant",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "",
-      "type": "text",
-    },
-  ],
-  "id": "msg_Doz5dqccAkf821azRvDKYMbiBoTa5",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 28,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": [
-        {
-          "cache_control": {
-            "ttl": "1h",
-            "type": "ephemeral",
-          },
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "text",
-        },
-      ],
-      "role": "system",
-    },
-    {
-      "content": "Now summarize it.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → chat-completions > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "I don’t have the text to summarize. Please paste the stable reference text (or share a link or title), and tell me how long you want the summary and what to focus on (main ideas, arguments, evidence, conclusions).
-
-I can provide:
-- A brief one-paragraph summary
-- A concise 3–5 bullet-point outline of key points
-- A 1–2 paragraph executive summary
-
-Let me know your preferred length and focus.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_Dzkwv1hNaCKsOKjq5wqDzvwdR11pm",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 24,
-    "output_tokens": 870,
+    "input_tokens": 7,
+    "output_tokens": 329,
   },
 }
 `;
@@ -1175,9 +988,6 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
-          "cache_control": {
-            "type": "ephemeral",
-          },
           "text": "Be helpful.",
           "type": "text",
         },
@@ -1223,7 +1033,7 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > request 1`] 
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "low",
 }
 `;
@@ -1367,7 +1177,7 @@ exports[`anthropic → chat-completions > reasoningSummaryParam > request 1`] = 
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "medium",
 }
 `;
@@ -1423,6 +1233,41 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 752,
+  },
+}
+`;
+
+exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "max_completion_tokens": 16000,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "gpt-5-nano",
+  "reasoning_effort": "high",
+}
+`;
+
+exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_E0cMLnbSWJ1EUMM8jphc3qK1w8PEe",
+  "model": "gpt-5-nano-2025-08-07",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 906,
   },
 }
 `;
@@ -1663,23 +1508,6 @@ exports[`anthropic → chat-completions > stopSequencesParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 34,
-  },
-}
-`;
-
-exports[`anthropic → chat-completions > streamParam > request 1`] = `
-{
-  "max_completion_tokens": 1024,
-  "messages": [
-    {
-      "content": "Say hi.",
-      "role": "user",
-    },
-  ],
-  "model": "gpt-5-nano",
-  "stream": true,
-  "stream_options": {
-    "include_usage": true,
   },
 }
 `;
@@ -2573,6 +2401,86 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "usage": {
     "input_tokens": 88,
     "output_tokens": 546,
+  },
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 4096,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 86,
+  },
+}
+`;
+
+exports[`anthropic → google > bedrockAnthropicContextManagementParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "hi",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 1024,
+    "responseSchema": null,
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > bedrockAnthropicContextManagementParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "Hello! How can I help you today?",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 193,
   },
 }
 `;
@@ -4158,6 +4066,67 @@ However, the sky can also appear in many other colors depending on the time of d
 }
 `;
 
+exports[`anthropic → google > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 16000,
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`anthropic → google > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "thinking": "**My Mental Calculation for a Simple Question**
+
+Okay, so I've received a very straightforward request – someone wants to know what 2 + 2 equals. Let's break this down.
+
+First, I quickly **analyze the input**. It's a fundamental addition problem. There's no ambiguity or hidden context. It's as direct as it gets.
+
+Next, I need to **determine the answer**. My knowledge base tells me that 2 added to 2 results in 4. This is a basic mathematical fact, firmly established in my core understanding.
+
+Finally, I **formulate the response**. Given the simplicity of the question, the best approach is to keep the answer concise, accurate, and unambiguous. No need for complex explanations or hedging. So, I will confidently respond with the answer.
+
+Therefore, my final output, based on my analysis and the desired user experience, will be: "2 + 2 is 4."
+
+
+",
+      "type": "thinking",
+    },
+    {
+      "text": "2 + 2 is 4.",
+      "type": "text",
+    },
+  ],
+  "id": "msg_transformed",
+  "model": "gemini-3.5-flash",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 8,
+    "output_tokens": 105,
+  },
+}
+`;
+
 exports[`anthropic → google > responsesToolSearchInputParam > request 1`] = `
 {
   "contents": [
@@ -4412,46 +4381,6 @@ exports[`anthropic → google > stopSequencesParam > response 1`] = `
   "usage": {
     "input_tokens": 7,
     "output_tokens": 52,
-  },
-}
-`;
-
-exports[`anthropic → google > streamParam > request 1`] = `
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "Say hi.",
-        },
-      ],
-      "role": "user",
-    },
-  ],
-  "generationConfig": {
-    "maxOutputTokens": 1024,
-    "responseSchema": null,
-  },
-  "model": "gemini-3.5-flash",
-}
-`;
-
-exports[`anthropic → google > streamParam > response 1`] = `
-{
-  "content": [
-    {
-      "text": "Hi there!",
-      "type": "text",
-    },
-  ],
-  "id": "msg_transformed",
-  "model": "gemini-2.5-flash",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "input_tokens": 4,
-    "output_tokens": 24,
   },
 }
 `;
@@ -5447,6 +5376,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
           "type": "input_text",
         },
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Preserve the user's coding instructions.",
           "type": "input_text",
         },
@@ -5457,6 +5389,9 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "hello world",
           "type": "input_text",
         },
@@ -5471,7 +5406,7 @@ exports[`anthropic → responses > anthropicMessageWithSystemMessage > request 1
     },
   ],
   "max_output_tokens": 32000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -5557,7 +5492,7 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > reque
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -5614,7 +5549,7 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > request 1`
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "name": "search_records",
@@ -5656,280 +5591,74 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
 }
 `;
 
-exports[`anthropic → responses > cacheControl1hParam > request 1`] = `
+exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam > request 1`] = `
 {
   "input": [
     {
-      "content": [
-        {
-          "text": "Be helpful.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Hi",
+      "content": "What is 2+2?",
       "role": "user",
       "type": "message",
     },
   ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "max_output_tokens": 4096,
+  "model": "gpt-5.6-terra",
 }
 `;
 
-exports[`anthropic → responses > cacheControl1hParam > response 1`] = `
+exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam > response 1`] = `
 {
   "content": [
     {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "Hi! How can I help today? I can:
-- Explain concepts or answer questions
-- Help write or edit emails, essays, or posts
-- Brainstorm ideas or plan a project
-- Solve math problems or debug code
-- Translate or summarize text
-- Plan trips, events, or study schedules
-
-Tell me what you’re aiming for, and any details you have, and I’ll get started.",
+      "text": "2 + 2 = 4",
       "type": "text",
     },
   ],
-  "id": "msg_030e6e86f7b183f40069cbea92a7608196a86f979cfa8a9bc0",
-  "model": "gpt-5-nano-2025-08-07",
+  "id": "msg_046216b07001f271006a63d313830c81988eb6a91053560ad5",
+  "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
+    "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 485,
+    "input_tokens": 13,
+    "output_tokens": 11,
   },
 }
 `;
 
-exports[`anthropic → responses > cacheControl5mParam > request 1`] = `
+exports[`anthropic → responses > bedrockAnthropicContextManagementParam > request 1`] = `
 {
   "input": [
     {
-      "content": [
-        {
-          "text": "Be helpful.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Hi",
+      "content": "hi",
       "role": "user",
       "type": "message",
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
-exports[`anthropic → responses > cacheControl5mParam > response 1`] = `
+exports[`anthropic → responses > bedrockAnthropicContextManagementParam > response 1`] = `
 {
   "content": [
     {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "Hi there! How can I help today? I can answer questions, explain concepts, write or edit text, brainstorm ideas, help with coding, plan something, translate, or just chat about any topic. What would you like to do?",
+      "text": "Hi! How can I help?",
       "type": "text",
     },
   ],
-  "id": "msg_0645f656c205491a0069cbea92656c8194996286bab4b5f4f9",
-  "model": "gpt-5-nano-2025-08-07",
+  "id": "msg_0b122f86eb2121e5006a553e8e688081a19005aebcbe89e863",
+  "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
+    "cache_creation_input_tokens": 0,
     "cache_read_input_tokens": 0,
-    "input_tokens": 14,
-    "output_tokens": 381,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "input_text",
-        },
-        {
-          "text": "Now summarize it.",
-          "type": "input_text",
-        },
-      ],
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAnthropicCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "I don’t see the stable reference text yet. Please paste the text here or upload it, and I’ll summarize it.
-
-If you want, tell me:
-- Summary length (e.g., 1 sentence, 5 bullets, or a short paragraph)
-- What to emphasize (main ideas, methods, results, dates, implications)
-- Any terms or sections to preserve verbatim
-
-Notes:
-- I’ll treat the provided text as the base context for this chat and summarize accordingly.
-- If the text is long, I can summarize in parts or provide a concise overview plus a detailed section-by-section summary.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0a27e71404f41641006a2885fe96588192a5a8d8381ede582a",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 19,
-    "output_tokens": 797,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "This assistant prefill should remain cacheable.
-
-If you",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0592e9ab206b9682006a288c85556081a0aabd0fb3e8ba4c63",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "max_tokens",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 28,
-    "output_tokens": 1024,
-  },
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": [
-        {
-          "text": "Use this stable reference text as cacheable context.",
-          "type": "input_text",
-        },
-      ],
-      "role": "system",
-      "type": "message",
-    },
-    {
-      "content": "Now summarize it.",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`anthropic → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "content": [
-    {
-      "thinking": "",
-      "type": "thinking",
-    },
-    {
-      "text": "I’m ready to summarize, but I don’t see the text yet. Please paste the content you want summarized (or share a link). If it’s long, you can send it in parts.
-
-Optional details to specify:
-- Desired length (one sentence, 3-5 bullets, a short paragraph, etc.)
-- Target audience or purpose
-- Focus (main ideas, arguments, data, conclusions)
-
-I can provide:
-- A one-sentence summary
-- A bullet-point outline of key points
-- A short 2–3 paragraph synopsis
-
-If you’d like, I can also reuse this content as context for future questions in this chat.",
-      "type": "text",
-    },
-  ],
-  "id": "msg_0d7911ae28e3e15a006a4fbde5388481a2beb4a631fd8304fd",
-  "model": "gpt-5-nano-2025-08-07",
-  "role": "assistant",
-  "stop_reason": "end_turn",
-  "type": "message",
-  "usage": {
-    "cache_read_input_tokens": 0,
-    "input_tokens": 24,
-    "output_tokens": 767,
+    "input_tokens": 7,
+    "output_tokens": 11,
   },
 }
 `;
@@ -5944,7 +5673,7 @@ exports[`anthropic → responses > complexReasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6017,7 +5746,7 @@ exports[`anthropic → responses > documentContentParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6064,7 +5793,7 @@ exports[`anthropic → responses > fableTemperatureParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6112,7 +5841,7 @@ exports[`anthropic → responses > imageContentParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6156,7 +5885,7 @@ exports[`anthropic → responses > instructionsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6195,7 +5924,7 @@ exports[`anthropic → responses > jsonSchemaFormatParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6253,7 +5982,7 @@ exports[`anthropic → responses > maxCompletionTokensParam > request 1`] = `
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6295,7 +6024,7 @@ exports[`anthropic → responses > metadataParam > request 1`] = `
   "metadata": {
     "user_id": "user-12345",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6343,7 +6072,7 @@ exports[`anthropic → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6378,7 +6107,7 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
     },
   ],
   "max_output_tokens": 4096,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -6420,7 +6149,7 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > reque
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -6484,7 +6213,7 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6545,7 +6274,7 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -6606,7 +6335,7 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > request 1`] 
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "parallel_tool_calls": false,
   "tool_choice": "auto",
   "tools": [
@@ -6693,7 +6422,7 @@ exports[`anthropic → responses > parallelToolCallsRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -6751,6 +6480,9 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Be helpful.",
           "type": "input_text",
         },
@@ -6765,7 +6497,7 @@ exports[`anthropic → responses > promptCacheKeyParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6804,7 +6536,7 @@ exports[`anthropic → responses > reasoningEffortLowParam > request 1`] = `
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -6846,9 +6578,9 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > req
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "high",
+    "effort": "max",
   },
 }
 `;
@@ -6888,7 +6620,7 @@ exports[`anthropic → responses > reasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6938,7 +6670,7 @@ exports[`anthropic → responses > reasoningRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -6973,7 +6705,7 @@ exports[`anthropic → responses > reasoningSummaryParam > request 1`] = `
     },
   ],
   "max_output_tokens": 16000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -7015,7 +6747,7 @@ exports[`anthropic → responses > reasoningWithOutput > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7048,6 +6780,45 @@ If you tell me the time and location, I can describe what the sky would look lik
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 528,
+  },
+}
+`;
+
+exports[`anthropic → responses > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "input": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+      "type": "message",
+    },
+  ],
+  "max_output_tokens": 16000,
+  "model": "gpt-5.6-terra",
+  "reasoning": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`anthropic → responses > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "content": [
+    {
+      "text": "2 + 2 = 4",
+      "type": "text",
+    },
+  ],
+  "id": "msg_0134ce6a18475cb0006a52dde9eaa4819a9fea4e9a36824aec",
+  "model": "gpt-5.6-terra",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 13,
+    "output_tokens": 11,
   },
 }
 `;
@@ -7147,7 +6918,7 @@ exports[`anthropic → responses > safetyIdentifierParam > request 1`] = `
   "metadata": {
     "user_id": "hashed-user-id-abc123",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7186,7 +6957,7 @@ exports[`anthropic → responses > serviceTierParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "service_tier": "auto",
 }
 `;
@@ -7226,7 +6997,7 @@ exports[`anthropic → responses > simpleRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7265,7 +7036,7 @@ exports[`anthropic → responses > simpleRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7300,7 +7071,7 @@ exports[`anthropic → responses > stopSequencesParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7348,21 +7119,6 @@ exports[`anthropic → responses > stopSequencesParam > response 1`] = `
 }
 `;
 
-exports[`anthropic → responses > streamParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Say hi.",
-      "role": "user",
-      "type": "message",
-    },
-  ],
-  "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
-  "stream": true,
-}
-`;
-
 exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
 {
   "input": [
@@ -7383,7 +7139,7 @@ exports[`anthropic → responses > systemMessageArrayContent > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7418,7 +7174,7 @@ exports[`anthropic → responses > temperatureParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7432,7 +7188,7 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -7493,7 +7249,7 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -7554,7 +7310,7 @@ exports[`anthropic → responses > thinkingDisabledParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7593,7 +7349,7 @@ exports[`anthropic → responses > toolCallRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -7656,7 +7412,7 @@ exports[`anthropic → responses > toolChoiceAnyParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -7718,7 +7474,7 @@ exports[`anthropic → responses > toolChoiceAutoParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -7781,7 +7537,7 @@ exports[`anthropic → responses > toolChoiceNoneParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "none",
   "tools": [
     {
@@ -7839,7 +7595,7 @@ exports[`anthropic → responses > toolChoiceRequiredParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -7904,7 +7660,7 @@ exports[`anthropic → responses > topKParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7943,7 +7699,7 @@ exports[`anthropic → responses > topPParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -7982,7 +7738,7 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "filters": {
@@ -8049,7 +7805,7 @@ exports[`anthropic → responses > webSearchToolParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -8190,7 +7946,7 @@ exports[`anthropic → responses > webSearchUserLocationParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -8235,7 +7991,6 @@ exports[`chat-completions → anthropic > chatCompletionsAnthropicCacheControlPa
       "content": [
         {
           "cache_control": {
-            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "Use this stable reference text as cacheable context.",
@@ -8303,7 +8058,6 @@ exports[`chat-completions → anthropic > chatCompletionsAssistantCacheControlPa
       "content": [
         {
           "cache_control": {
-            "ttl": "1h",
             "type": "ephemeral",
           },
           "text": "This assistant prefill should remain cacheable.",
@@ -8360,7 +8114,6 @@ exports[`chat-completions → anthropic > chatCompletionsSystemCacheControlParam
   "system": [
     {
       "cache_control": {
-        "ttl": "1h",
         "type": "ephemeral",
       },
       "text": "Use this stable reference text as cacheable context.",
@@ -18179,6 +17932,9 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -18191,7 +17947,7 @@ exports[`chat-completions → responses > chatCompletionsAnthropicCacheControlPa
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18252,84 +18008,15 @@ Once you provide the text, I’ll generate the summary in your chosen format and
 }
 `;
 
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > request 1`] = `
-{
-  "input": [
-    {
-      "content": "Use the cached assistant prefill.",
-      "role": "user",
-      "type": "message",
-    },
-    {
-      "content": [
-        {
-          "annotations": [],
-          "logprobs": [],
-          "text": "This assistant prefill should remain cacheable.",
-          "type": "output_text",
-        },
-      ],
-      "role": "assistant",
-      "status": "completed",
-      "type": "message",
-    },
-  ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsAssistantCacheControlParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "content": "I can’t directly pull a cached prefill from elsewhere in this chat. If you want me to use a prefill, paste its content here or tell me the style you want, and I’ll apply it to my responses. I can also provide you with a reusable prefill you can store and reuse.
-
-Here’s a compact, generic prefill you can use right away (store it and reuse):
-
-Prefill (system-like):
-- Role: Helpful assistant
-- Tone: concise, accurate, and polite
-- Scope: answers questions, provides steps, and asks clarifying questions if information is missing
-- Verification: do not fabricate facts; if unsure, say so
-- Formatting: use bullet points for steps; provide brief summaries; cite sources when possible
-- Special cases: for code, give a minimal complete example with explanations
-
-How to use:
-- Use this as the initial context before your prompt (e.g., as a system message in an API or as a header in your workflow), then ask your question.
-- If you want a domain-specific prefill (coding, legal, medical, etc.), tell me and I’ll tailor it.",
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-0e8751d57b6db4fd006a288c855828819e98360163cba968b9",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 1957,
-    "completion_tokens_details": {
-      "reasoning_tokens": 1664,
-    },
-    "prompt_tokens": 28,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 1985,
-  },
-}
-`;
-
 exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > request 1`] = `
 {
   "input": [
     {
       "content": [
         {
+          "prompt_cache_breakpoint": {
+            "mode": "explicit",
+          },
           "text": "Use this stable reference text as cacheable context.",
           "type": "input_text",
         },
@@ -18343,44 +18030,7 @@ exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
-}
-`;
-
-exports[`chat-completions → responses > chatCompletionsSystemCacheControlParam > response 1`] = `
-{
-  "choices": [
-    {
-      "finish_reason": "stop",
-      "index": 0,
-      "message": {
-        "annotations": [],
-        "content": "I’m ready to summarize, but I don’t have the stable reference text here. Please paste the text you want summarized (or share a link/title and any length/delivery preferences). Also tell me:
-
-- Desired length (e.g., one paragraph, 5 bullet points, short executive summary)
-- Target audience (general, technical, executives, students)
-
-Once I have the text, I’ll provide a concise summary.",
-        "reasoning": "",
-        "role": "assistant",
-      },
-    },
-  ],
-  "created": 0,
-  "id": "chatcmpl-0088349d1fe45341006a4fbde56094819fac9e0750a337a8b7",
-  "model": "gpt-5-nano-2025-08-07",
-  "object": "chat.completion",
-  "usage": {
-    "completion_tokens": 791,
-    "completion_tokens_details": {
-      "reasoning_tokens": 640,
-    },
-    "prompt_tokens": 24,
-    "prompt_tokens_details": {
-      "cached_tokens": 0,
-    },
-    "total_tokens": 815,
-  },
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18394,7 +18044,7 @@ exports[`chat-completions → responses > complexReasoningRequest > request 1`] 
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18459,7 +18109,7 @@ exports[`chat-completions → responses > exclusiveMinimumToolParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Configure LLM generation parameters",
@@ -18533,7 +18183,7 @@ exports[`chat-completions → responses > fableTemperatureParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18578,7 +18228,7 @@ exports[`chat-completions → responses > frequencyPenaltyParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18800,7 +18450,7 @@ exports[`chat-completions → responses > googleToolCallThoughtSignatureReplayPa
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -18877,7 +18527,7 @@ exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > reques
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18927,7 +18577,7 @@ exports[`chat-completions → responses > instructionsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -18972,7 +18622,7 @@ exports[`chat-completions → responses > jsonSchemaFormatParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "timestamp_response",
@@ -19037,7 +18687,7 @@ exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "tag_list",
@@ -19106,7 +18756,7 @@ exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > reques
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "bounded_score",
@@ -19172,7 +18822,7 @@ exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "tuple_response",
@@ -19256,7 +18906,7 @@ exports[`chat-completions → responses > logitBiasParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19301,7 +18951,7 @@ exports[`chat-completions → responses > logprobsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "top_logprobs": 2,
 }
 `;
@@ -19316,7 +18966,7 @@ exports[`chat-completions → responses > maxCompletionTokensParam > request 1`]
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19366,7 +19016,7 @@ exports[`chat-completions → responses > metadataParam > request 1`] = `
     "request_id": "req-12345",
     "user_tier": "premium",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "store": true,
 }
 `;
@@ -19422,7 +19072,7 @@ exports[`chat-completions → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19466,7 +19116,7 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19511,7 +19161,7 @@ exports[`chat-completions → responses > openaiPromptCacheKeyParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "prompt_cache_key": "policy-cache-v1",
 }
 `;
@@ -19574,7 +19224,7 @@ exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortP
     },
   ],
   "max_output_tokens": 4096,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -19622,7 +19272,7 @@ exports[`chat-completions → responses > parallelToolCallsDisabledParam > reque
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "parallel_tool_calls": false,
   "tools": [
     {
@@ -19721,7 +19371,7 @@ exports[`chat-completions → responses > parallelToolCallsRequest > request 1`]
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -19794,7 +19444,7 @@ function divide(a, b) {
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19871,7 +19521,7 @@ exports[`chat-completions → responses > presencePenaltyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -19916,7 +19566,7 @@ exports[`chat-completions → responses > promptCacheKeyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "prompt_cache_key": "user-123-ml-explanation",
 }
 `;
@@ -19962,7 +19612,7 @@ exports[`chat-completions → responses > reasoningEffortLowParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -20007,9 +19657,9 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > request 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
-    "effort": "minimal",
+    "effort": "low",
   },
 }
 `;
@@ -20096,7 +19746,7 @@ exports[`chat-completions → responses > reasoningRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20153,7 +19803,7 @@ exports[`chat-completions → responses > reasoningRequestTruncated > request 1`
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20197,7 +19847,7 @@ exports[`chat-completions → responses > reasoningSummaryParam > request 1`] = 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -20245,7 +19895,7 @@ exports[`chat-completions → responses > reasoningWithOutput > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20293,7 +19943,7 @@ exports[`chat-completions → responses > safetyIdentifierParam > request 1`] = 
   "metadata": {
     "user_id": "hashed-user-id-abc123",
   },
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20338,7 +19988,7 @@ exports[`chat-completions → responses > seedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20385,7 +20035,7 @@ exports[`chat-completions → responses > serviceTierParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "service_tier": "default",
 }
 `;
@@ -20431,7 +20081,7 @@ exports[`chat-completions → responses > simpleRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "low",
   },
@@ -20477,7 +20127,7 @@ exports[`chat-completions → responses > simpleRequestTruncated > request 1`] =
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20518,7 +20168,7 @@ exports[`chat-completions → responses > stopSequencesParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20563,7 +20213,7 @@ exports[`chat-completions → responses > storeDisabledParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "store": false,
 }
 `;
@@ -20620,7 +20270,7 @@ exports[`chat-completions → responses > systemMessageArrayContent > request 1`
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20664,7 +20314,7 @@ exports[`chat-completions → responses > temperatureParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -20677,7 +20327,7 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "json_object",
@@ -20791,7 +20441,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeG
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "query_result",
@@ -20866,7 +20516,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaParam > request 1`
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "person_info",
@@ -20934,7 +20584,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionPar
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "description": "Extract person information from text",
@@ -21003,7 +20653,7 @@ exports[`chat-completions → responses > textFormatTextParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "text",
@@ -21053,7 +20703,7 @@ exports[`chat-completions → responses > toolCallRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -21127,7 +20777,7 @@ exports[`chat-completions → responses > toolChoiceRequiredParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -21205,7 +20855,7 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -21286,7 +20936,7 @@ exports[`chat-completions → responses > topPParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -21331,7 +20981,7 @@ exports[`chat-completions → responses > topPReasoningModelParam > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -25358,7 +25008,7 @@ exports[`google → chat-completions > reasoningEffortLowParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "high",
 }
 `;
@@ -25490,7 +25140,7 @@ exports[`google → chat-completions > reasoningSummaryParam > request 1`] = `
       "role": "user",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning_effort": "high",
 }
 `;
@@ -26766,7 +26416,7 @@ exports[`google → responses > complexReasoningRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 20000,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -26836,7 +26486,7 @@ exports[`google → responses > exclusiveMinimumToolParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Configure LLM generation parameters",
@@ -27002,7 +26652,7 @@ exports[`google → responses > googleOpenAIModelTopKParam > request 1`] = `
     },
   ],
   "max_output_tokens": 1024,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27047,7 +26697,7 @@ exports[`google → responses > googleResponseSchemaPropertyOrderingParam > requ
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27113,7 +26763,7 @@ Return exactly {"topic": "...", "recommendation": "...", "confidence": 0.0}.",
     },
   ],
   "max_output_tokens": 2048,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -27199,7 +26849,7 @@ exports[`google → responses > googleToolCallThoughtSignatureReplayParam > requ
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "List the collections in a MongoDB database.",
@@ -27265,7 +26915,7 @@ exports[`google → responses > googleToolSchemaNumericInt64Param > request 1`] 
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Validate bounded string and array inputs.",
@@ -27354,7 +27004,7 @@ exports[`google → responses > imageConfigParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27415,7 +27065,7 @@ exports[`google → responses > imageUrlMimeTypeFallbackParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27459,7 +27109,7 @@ exports[`google → responses > instructionsParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27504,7 +27154,7 @@ exports[`google → responses > jsonSchemaFormatParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27565,7 +27215,7 @@ exports[`google → responses > jsonSchemaMinMaxItemsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27630,7 +27280,7 @@ exports[`google → responses > jsonSchemaMinimumMaximumParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27692,7 +27342,7 @@ exports[`google → responses > jsonSchemaPrefixItemsParam > request 1`] = `
     },
   ],
   "max_output_tokens": 128,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -27772,7 +27422,7 @@ exports[`google → responses > maxCompletionTokensParam > request 1`] = `
     },
   ],
   "max_output_tokens": 500,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27816,7 +27466,7 @@ exports[`google → responses > mediaResolutionParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27870,7 +27520,7 @@ exports[`google → responses > multimodalRequest > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -27937,7 +27587,7 @@ exports[`google → responses > parallelToolCallsRequest > request 1`] = `
       "type": "function_call_output",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "description": "Get the current weather for a location",
@@ -28005,7 +27655,7 @@ exports[`google → responses > reasoningEffortLowParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -28052,7 +27702,7 @@ exports[`google → responses > reasoningRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28105,7 +27755,7 @@ exports[`google → responses > reasoningRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 100,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28146,7 +27796,7 @@ exports[`google → responses > reasoningSummaryParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -28193,7 +27843,7 @@ exports[`google → responses > reasoningWithOutput > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28243,7 +27893,7 @@ exports[`google → responses > responseModalitiesAudioParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28287,7 +27937,7 @@ exports[`google → responses > seedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28331,7 +27981,7 @@ exports[`google → responses > simpleRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28376,7 +28026,7 @@ exports[`google → responses > simpleRequestTruncated > request 1`] = `
     },
   ],
   "max_output_tokens": 16,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28416,7 +28066,7 @@ exports[`google → responses > speechConfigParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28460,7 +28110,7 @@ exports[`google → responses > stopSequencesParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28505,7 +28155,7 @@ exports[`google → responses > systemMessageArrayContent > request 1`] = `
     },
   ],
   "max_output_tokens": 300,
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28546,7 +28196,7 @@ exports[`google → responses > temperatureParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -28590,7 +28240,7 @@ exports[`google → responses > textFormatJsonObjectParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "type": "json_object",
@@ -28639,7 +28289,7 @@ exports[`google → responses > textFormatJsonSchemaParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -28705,7 +28355,7 @@ exports[`google → responses > textFormatJsonSchemaWithDescriptionParam > reque
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "text": {
     "format": {
       "name": "response",
@@ -28771,7 +28421,7 @@ exports[`google → responses > thinkingLevelParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "high",
   },
@@ -28834,7 +28484,7 @@ exports[`google → responses > toolCallRequest > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -28903,7 +28553,7 @@ exports[`google → responses > toolChoiceAnyParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "required",
   "tools": [
     {
@@ -28971,7 +28621,7 @@ exports[`google → responses > toolChoiceAutoParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -29040,7 +28690,7 @@ exports[`google → responses > toolChoiceNoneParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "none",
   "tools": [
     {
@@ -29109,7 +28759,7 @@ exports[`google → responses > toolChoiceRequiredParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": {
     "name": "get_weather",
     "type": "function",
@@ -29180,7 +28830,7 @@ exports[`google → responses > toolChoiceRequiredWithReasoningParam > request 1
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "reasoning": {
     "effort": "medium",
   },
@@ -29254,7 +28904,7 @@ exports[`google → responses > toolModeValidatedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tool_choice": "auto",
   "tools": [
     {
@@ -29322,7 +28972,7 @@ exports[`google → responses > topKParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -29366,7 +29016,7 @@ exports[`google → responses > topPParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
 }
 `;
 
@@ -29410,7 +29060,7 @@ exports[`google → responses > webSearchToolAdvancedParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -29836,7 +29486,7 @@ exports[`google → responses > webSearchToolParam > request 1`] = `
       "type": "message",
     },
   ],
-  "model": "gpt-5-nano",
+  "model": "gpt-5.6-terra",
   "tools": [
     {
       "type": "web_search",
@@ -29980,6 +29630,74 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
     "promptTokenCount": 20844,
     "thoughtsTokenCount": 5184,
     "totalTokenCount": 26616,
+  },
+}
+`;
+
+exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-5",
+  "output_config": {
+    "effort": "max",
+  },
+  "thinking": {
+    "type": "adaptive",
+  },
+}
+`;
+
+exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CdMR7fwXVygc6dpvp6pG6",
+  "incomplete_details": null,
+  "model": "claude-opus-5",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "encrypted_content": "CAIS5gIKhwEIEBgCKkC8CXvU023jRl9NRdOT+ltOgkiUmJu68VwvGEEByQE1wIHQLn1HLlgTr1LWBcjd0PFZ9P3axWG1SiSTRBFnyhf8Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQyNzc5NjY2OC03MzUxLTQwYWMtYWNjNC0wMjRhZWU4OTk1YTUSDFRalmWqlhNzwrz/lRoMtQYkHg4G/JYhkHMbIjBGExFrTXep7/zP1yxI+qFgpqDw+7TJY6rq8XtZVf89Rfg5AKp85J28wHEZFm6a+VEqiwH/FpDE6/OEYzbMRjB+OQb96y3fY9cOyeymcet1Yrvdba7+iSzAKxLDxd0dntrCcrkpzDa993rT723oUQQ7GBcc/jyHyX1V5wy5AAhLV/5wRkhZ/PS4dczryoor/mSMMYEi00OwStRvcNvSdSHeBQoBCkhYtT4yX9MUsyLYPtcluczfZEUV2pagfFsqGAE=",
+      "id": "msg_transformed_item_0",
+      "summary": [],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = 4",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = 4",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 54,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 67,
   },
 }
 `;
@@ -30170,6 +29888,7 @@ The digits 0 and 1 dominate because they appear frequently in both hours (00-19)
   "usage": {
     "input_tokens": 109,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 2889,
@@ -30261,6 +29980,7 @@ For context, common values might be:
   "usage": {
     "input_tokens": 596,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 127,
@@ -30345,6 +30065,7 @@ exports[`responses → anthropic > functionToolsWithReasoningEffortParam > respo
   "usage": {
     "input_tokens": 592,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 100,
@@ -30400,6 +30121,7 @@ exports[`responses → anthropic > instructionsParam > response 1`] = `
   "usage": {
     "input_tokens": 11,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30472,6 +30194,7 @@ exports[`responses → anthropic > jsonSchemaFormatParam > response 1`] = `
   "usage": {
     "input_tokens": 177,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 22,
@@ -30546,6 +30269,7 @@ exports[`responses → anthropic > jsonSchemaMinMaxItemsParam > response 1`] = `
   "usage": {
     "input_tokens": 182,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 16,
@@ -30617,6 +30341,7 @@ exports[`responses → anthropic > jsonSchemaMinimumMaximumParam > response 1`] 
   "usage": {
     "input_tokens": 163,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 9,
@@ -30698,6 +30423,7 @@ exports[`responses → anthropic > jsonSchemaPrefixItemsParam > response 1`] = `
   "usage": {
     "input_tokens": 208,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30752,6 +30478,7 @@ exports[`responses → anthropic > metadataParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30818,6 +30545,7 @@ exports[`responses → anthropic > multimodalRequest > response 1`] = `
   "usage": {
     "input_tokens": 278,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 131,
@@ -30872,6 +30600,7 @@ exports[`responses → anthropic > openaiPromptCacheKeyParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -30957,6 +30686,7 @@ exports[`responses → anthropic > parallelToolCallsDisabledParam > response 1`]
   "usage": {
     "input_tokens": 356,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 62,
@@ -31082,6 +30812,7 @@ exports[`responses → anthropic > parallelToolCallsRequest > response 1`] = `
   "usage": {
     "input_tokens": 757,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 37,
@@ -31136,6 +30867,7 @@ exports[`responses → anthropic > promptCacheKeyParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -31205,6 +30937,7 @@ exports[`responses → anthropic > reasoningEffortLowParam > response 1`] = `
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 22,
@@ -31275,6 +31008,7 @@ exports[`responses → anthropic > reasoningEffortMinimalParam > response 1`] = 
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 36,
@@ -31332,6 +31066,7 @@ exports[`responses → anthropic > reasoningEffortNoneParam > response 1`] = `
   "usage": {
     "input_tokens": 14,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 13,
@@ -31473,6 +31208,7 @@ Note: Average speed is not the same as the average of the speeds (which would be
   "usage": {
     "input_tokens": 74,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 464,
@@ -31559,6 +31295,7 @@ exports[`responses → anthropic > reasoningSummaryParam > response 1`] = `
   "usage": {
     "input_tokens": 40,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 15,
@@ -31649,6 +31386,7 @@ However, the sky can appear different colors depending on conditions:
   "usage": {
     "input_tokens": 42,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 251,
@@ -31756,6 +31494,7 @@ These are the standard system databases that come with a MongoDB installation. T
   "usage": {
     "input_tokens": 642,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 89,
@@ -31763,6 +31502,257 @@ These are the standard system databases that come with a MongoDB installation. T
       "reasoning_tokens": 0,
     },
     "total_tokens": 731,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Summarize the deployment risk and preserve reasoning state.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 1024,
+    "type": "enabled",
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PersistedReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Ccu45pwQvb96ySAKU7JwK",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "encrypted_content": "EvMGCpQBCA8YAipAHGFgx9UuQVXyYaLIjDf+TYKbssbF2LHKF5UpYNBmSWqafE7hKg1uGYiiPD64vyN+hw8C/KozqKboLww3S/OU3DIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMT6H6rBrn9EUiR56fGgwfsVoGDptwvdQGBssiMHsrQ81QHdxPbeKII3oO2qqdnpFh6cY7nfFQU66akcQY7w4Ze4pwLlUyoJhUA2cTQSqLBYZv3ejEkUQLo9qRVYsfUV2tUxb312eZVILzQzkqh7Cj3FdqpFqkkoBAefsbSkvRAz9/a52rwJAdefL/Ao9pFGlePCsXZok44PdGXt8j8j3Q4hoVe3S//xsOSzWaOssGKRtV4XH7nmEtdY/v+AYXOrxIjUb+R8WDccwv/R4TmocPH0h2De9cVZLUAFUW1G7dD/Trh+6Nx51bp6+AJvEC6V2NpRT/+PV0iRcjIxYE2EBvIXetZ/SbJc+0mPzX7xhiU2Jrr2ibgZYQ/X4Xf/bpJ1f9Bl9mW1A4vcyZ8+DXBNSHa4OXOtc+LjeLHVK0JbP29u+Rl+opQAr/40tglMAZTyWdJ7XyYAQ7nsk2Nmkg1B5PzOv4dlMWq7thn57fbyerc1CT0w999Qnrs0q6Cg1TszDd1zFroq2vNzz5a0ir3o9Ax5ABnkWSqQKzFx1wx1UPO0mIy0+cnvFJ69fDHc6mkLHJeIIf04DzpRVTL/y1KK4lkgBYVnwqQgJUtAU4e1tNuK1RAJqChqNdQZa0RbC6IgfsOME5cj4+NTXSyI07tZ9z6Mzl3v4SDQ5I0/l66Utao/gPAFYkAxCAQxwwsAhxbFLuB4XY6AnNmsEOrMP4AOftuKEy2FX4lar3KF7HUcT66WCiXJf7wK4Tj+HcRfTR/JSjgiiu6nARepQxNO3c8RRY9iOJ4VquH++N5qtRb4XDrMRsaIAeYz3sRX0MItpu4FDzF5OEun3QrhdqkRy9j3qbQGd+9neyhzdwwNeR0LGuAHlgdEqUHop4aGYCyXDxRgP+rSN+RmZkg43gW/xzEYAm6lLm4Urjhhwr6RO5RBx5BYAC0LUGgYl3AMjfXyJBUVXJNeJqYhkRCY6MAhgB",
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "This request is asking me to summarize deployment risk and preserve reasoning state. However, I don't have any prior context about what specific deployment we're discussing or what reasoning state needs to be preserved.
+
+This seems like it might be:
+1. A test prompt to see how I respond to vague instructions
+2. Part of a conversation where context was lost
+3. A request related to software deployment or AI system deployment
+
+Without more context, I should:
+- Acknowledge the lack of context
+- Explain what I would need to provide a meaningful response
+- Offer a general framework for thinking about deployment risk if that's helpful",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "# Deployment Risk Summary
+
+I don't have prior context about a specific deployment to summarize. To provide a meaningful risk assessment, I would need information about:
+
+## What I'd Need:
+- **System/product being deployed**
+- **Deployment environment** (production, staging, etc.)
+- **Changes or features** being introduced
+- **Previous reasoning or decisions** made
+
+## General Deployment Risk Framework:
+
+**High Risk Factors:**
+- Database schema changes
+- Authentication/security modifications
+- Breaking API changes
+- Insufficient testing/rollback plans
+
+**Medium Risk Factors:**
+- Feature flags not tested
+- Third-party dependency updates
+- Configuration changes
+
+**Low Risk Factors:**
+- UI copy changes
+- Logging improvements
+- Non-critical bug fixes
+
+## Reasoning State Preservation:
+To preserve reasoning state, I would document:
+- Decision rationale
+- Assumptions made
+- Trade-offs considered
+- Rollback criteria
+
+**Could you provide the specific deployment context you'd like me to analyze?**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "# Deployment Risk Summary
+
+I don't have prior context about a specific deployment to summarize. To provide a meaningful risk assessment, I would need information about:
+
+## What I'd Need:
+- **System/product being deployed**
+- **Deployment environment** (production, staging, etc.)
+- **Changes or features** being introduced
+- **Previous reasoning or decisions** made
+
+## General Deployment Risk Framework:
+
+**High Risk Factors:**
+- Database schema changes
+- Authentication/security modifications
+- Breaking API changes
+- Insufficient testing/rollback plans
+
+**Medium Risk Factors:**
+- Feature flags not tested
+- Third-party dependency updates
+- Configuration changes
+
+**Low Risk Factors:**
+- UI copy changes
+- Logging improvements
+- Non-critical bug fixes
+
+## Reasoning State Preservation:
+To preserve reasoning state, I would document:
+- Decision rationale
+- Assumptions made
+- Trade-offs considered
+- Rollback criteria
+
+**Could you provide the specific deployment context you'd like me to analyze?**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 47,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 369,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 416,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": [
+        {
+          "cache_control": {
+            "type": "ephemeral",
+          },
+          "text": "Use the stable policy prefix when answering.",
+          "type": "text",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56PromptCacheOptionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Ccu35hDhWijFvTbgG4BgR",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about.
+
+Could you please clarify what kind of stable policy you're referring to? For example:
+
+- **Software/API versioning** - stable release policies
+- **Economic policy** - stable fiscal or monetary policies
+- **Reinforcement learning** - stable policy optimization
+- **Organization/company policies** - established stable guidelines
+- **System administration** - stable branch policies
+
+Once you provide more details about your specific area of interest, I can give you a more targeted and helpful response using the appropriate stable policy framework.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "I'd be happy to help you with information about stable policies, but I need more context about what specific topic or system you're asking about.
+
+Could you please clarify what kind of stable policy you're referring to? For example:
+
+- **Software/API versioning** - stable release policies
+- **Economic policy** - stable fiscal or monetary policies
+- **Reinforcement learning** - stable policy optimization
+- **Organization/company policies** - established stable guidelines
+- **System administration** - stable branch policies
+
+Once you provide more details about your specific area of interest, I can give you a more targeted and helpful response using the appropriate stable policy framework.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 16,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 140,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 156,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Review this rollout checklist for the highest-risk issue.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "thinking": {
+    "budget_tokens": 4096,
+    "type": "enabled",
   },
 }
 `;
@@ -31964,6 +31954,7 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
   "usage": {
     "input_tokens": 32901,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 1050,
@@ -31971,6 +31962,64 @@ exports[`responses → anthropic > responsesInputFileUrlParam > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 33951,
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user",
+    },
+  ],
+  "model": "claude-opus-4-6",
+  "output_config": {
+    "effort": "max",
+  },
+}
+`;
+
+exports[`responses → anthropic > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011CcwCxgmtiRfJ45U8dM7vz",
+  "incomplete_details": null,
+  "model": "claude-opus-4-6",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 = **4**",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 = **4**",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 14,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 28,
   },
 }
 `;
@@ -32071,6 +32120,7 @@ exports[`responses → anthropic > responsesToolSearchInputParam > response 1`] 
   "usage": {
     "input_tokens": 837,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 48,
@@ -32128,6 +32178,7 @@ exports[`responses → anthropic > safetyIdentifierParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32183,6 +32234,7 @@ exports[`responses → anthropic > serviceTierParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32253,6 +32305,7 @@ exports[`responses → anthropic > simpleRequest > response 1`] = `
   "usage": {
     "input_tokens": 43,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 50,
@@ -32307,6 +32360,7 @@ exports[`responses → anthropic > simpleRequestTruncated > response 1`] = `
   "usage": {
     "input_tokens": 16,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 1,
@@ -32361,6 +32415,7 @@ exports[`responses → anthropic > storeDisabledParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32472,6 +32527,7 @@ Would you like me to modify the query for a different time range, or can you sha
   "usage": {
     "input_tokens": 33,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 246,
@@ -32539,6 +32595,7 @@ exports[`responses → anthropic > textFormatJsonObjectParam > response 1`] = `
   "usage": {
     "input_tokens": 637,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 37,
@@ -32613,6 +32670,7 @@ exports[`responses → anthropic > textFormatJsonSchemaMissingRequiredPropertyPa
   "usage": {
     "input_tokens": 172,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 46,
@@ -32688,6 +32746,7 @@ exports[`responses → anthropic > textFormatJsonSchemaParam > response 1`] = `
   "usage": {
     "input_tokens": 178,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32763,6 +32822,7 @@ exports[`responses → anthropic > textFormatJsonSchemaWithDescriptionParam > re
   "usage": {
     "input_tokens": 178,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32817,6 +32877,7 @@ exports[`responses → anthropic > textFormatTextParam > response 1`] = `
   "usage": {
     "input_tokens": 10,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -32888,6 +32949,7 @@ exports[`responses → anthropic > toolCallRequest > response 1`] = `
   "usage": {
     "input_tokens": 677,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 41,
@@ -32960,6 +33022,7 @@ exports[`responses → anthropic > toolChoiceRequiredParam > response 1`] = `
   "usage": {
     "input_tokens": 659,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 33,
@@ -33015,6 +33078,7 @@ exports[`responses → anthropic > topPReasoningModelParam > response 1`] = `
   "usage": {
     "input_tokens": 10,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 16,
@@ -33069,6 +33133,7 @@ exports[`responses → anthropic > truncationAutoParam > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "input_tokens_details": {
+      "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
     "output_tokens": 12,
@@ -33076,6 +33141,92 @@ exports[`responses → anthropic > truncationAutoParam > response 1`] = `
       "reasoning_tokens": 0,
     },
     "total_tokens": 20,
+  },
+}
+`;
+
+exports[`responses → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Mental Calculation of a Basic Arithmetic Query**
+
+Okay, so the user wants to know "What is 2+2?". Right, a fundamental arithmetic question. Let's break this down.
+
+First, I quickly identify the core task: it's a simple addition problem. No need for complex analysis here. The solution is straightforward.
+
+Next, the calculation. Two plus two equals... four. That's a given.
+
+Now, for the response. Given the user's intelligence and expertise, I don't need to overcomplicate things. The most direct and accurate answer is best. I could say "2 + 2 is 4," or even more concisely, just "4." It's about precision and efficiency. And that's that.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 is 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 is 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 100,
+    "output_tokens_details": {
+      "reasoning_tokens": 92,
+    },
+    "total_tokens": 108,
   },
 }
 `;
@@ -35412,6 +35563,77 @@ So, while we most commonly think of the sky as **blue**, it can be a beautiful s
 }
 `;
 
+exports[`responses → google > responsesCustomToolCallStreamingParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesCustomToolCallStreamingParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "\`\`\`json
+{
+  "name": "write_release_note",
+  "arguments": {
+    "release_note": "Fixed an issue where streaming custom tools failed to transmit real-time updates correctly, ensuring smooth and immediate output delivery."
+  }
+}
+\`\`\`",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "\`\`\`json
+{
+  "name": "write_release_note",
+  "arguments": {
+    "release_note": "Fixed an issue where streaming custom tools failed to transmit real-time updates correctly, ensuring smooth and immediate output delivery."
+  }
+}
+\`\`\`",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 32,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 698,
+    "output_tokens_details": {
+      "reasoning_tokens": 638,
+    },
+    "total_tokens": 730,
+  },
+}
+`;
+
 exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatureParam > request 1`] = `
 {
   "contents": [
@@ -35527,6 +35749,367 @@ exports[`responses → google > responsesFunctionCallOutputWithoutThoughtSignatu
       "reasoning_tokens": 36,
     },
     "total_tokens": 152,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56PersistedReasoningParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Summarize the deployment risk and preserve reasoning state.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "LOW",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56PersistedReasoningParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of Deployment Risk**
+
+Okay, so I've been asked to summarize "deployment risk," and the prompt specifically wants me to show my thought process. That’s good; I'm happy to walk through my methodology for this. Since no specific text is provided, I'll need to deliver a thorough, high-level overview suitable for a system or software engineering expert.
+
+Here's how I'm approaching this:
+
+1.  **Understanding the Scope:** "Deployment risk" implies potential problems during the rollout of new software, configurations, or infrastructure. This is about preventing failure or disruption when we make changes to a live environment. The request to "preserve reasoning state" is key. I'll need to be explicit about the assumptions and framework I use to structure this summary.
+
+2.  **Structuring the Response:** To meet the "reasoning state" constraint, I'll present this in two main sections: a "Reasoning State" section that explains my approach, followed by the actual "Summary of Deployment Risk."
+
+3.  **My Reasoning State:**
+
+    *   *Premise:* My core assumption is that "deployment risk" covers any potential for a negative outcome during, or immediately following, the transition of updates into a production environment. I need to be inclusive to make this useful.
+    *   *Categorization:* To avoid a simple, unstructured list, I'll categorize the risks. I think a good framework for this encompasses: Technical/Operational risks (things related to the code, infrastructure, and performance), Security/Compliance risks (vulnerabilities, regulatory violations), Business/Financial risks (impact on the company, users, and the bottom line), and Human/Organizational risks (process issues, people-related problems).
+    *   *Mitigation Linkage:* This isn't just about listing risks. A good risk summary also needs to *hint* at mitigation strategies. Think Continuous Integration/Continuous Delivery, canary deployments, rollbacks, etc. to give a fuller picture.
+
+4.  **Summary of Deployment Risk:**
+
+    *   **Definition:** "Deployment risk" refers to the probability and the potential impact of adverse events that might happen during, or immediately following, the introduction of changes to a live system.
+
+    *   **Key Risk Categories and Examples:**
+        *   *Technical/Infrastructure:* This encompasses issues such as system downtime, data loss or corruption, performance degradation (e.g., slow response times, high latency), failing dependencies, and the dreaded inability to successfully roll back to a previous state.
+        *   *Security/Compliance:* This is huge. Think about the introduction of new vulnerabilities, misconfigurations in the deployed system, and potential violations of compliance regulations like GDPR or HIPAA.
+        *   *Business/Operational:* Here, we're talking about things like disrupted user experience (frustrated users!), direct financial loss (downtime costing money!), and reputational damage (bad press, loss of customer trust).
+        *   *Process/People:* This covers things like inadequate training of teams to handle the new deployment, communication silos between teams leading to misunderstandings, and insufficient or poorly executed testing prior to deployment.
+
+    *   **Mitigation Strategies (in Brief):** We mitigate these risks with things like automated testing at various levels, Blue-Green or Canary deployments for controlled rollouts, feature flags to decouple releases from enablement, comprehensive monitoring and observability to detect issues quickly, and well-defined rollback plans to revert to a stable state if needed.
+
+5.  **Final Check:** Did I summarize deployment risk? Absolutely. Did I preserve my reasoning state? I think so. I've been explicit about the framework and the assumptions that guided my thinking. This gives you a clear understanding of the lens I used to analyze this topic.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "### Reasoning State Preservation
+
+To construct an accurate and comprehensive summary of deployment risk, the following analytical framework and reasoning steps were applied:
+
+1. **Definition of Domain:** "Deployment risk" is defined within the context of software engineering, IT operations, and systems release. It represents the probability and impact of negative outcomes occurring during or immediately after transitioning new code, configurations, or infrastructure to a production environment.
+2. **Taxonomy Generation (Categorization):** To ensure a holistic summary, risks cannot be treated as a monolith. They are categorized into four distinct dimensions:
+   * *Technical/Systemic* (the software/hardware itself)
+   * *Operational/Process* (how the deployment is executed)
+   * *Security/Compliance* (vulnerabilities and regulatory issues)
+   * *Business/Financial* (the impact on customers and revenue)
+3. **Synthesis of Mitigations:** A risk summary is incomplete without acknowledging how these risks are managed. Therefore, industry-standard mitigation patterns (e.g., CI/CD pipelines, progressive delivery) are synthesized as the counter-balance to the risks.
+4. **Logical Flow:** 
+   * *Definition* $\\rightarrow$ *Core Categories of Risk* $\\rightarrow$ *Primary Causes* $\\rightarrow$ *Mitigation Strategies*.
+
+---
+
+### Summary of Deployment Risk
+
+**Deployment Risk** is the potential for system instability, service degradation, data loss, or business interruption resulting from releasing changes (software updates, configuration adjustments, or infrastructure modifications) to a live production environment. 
+
+#### 1. Core Risk Categories
+* **Technical & Performance Risks:** 
+  * **System Downtime:** Unexpected outages caused by resource exhaustion, software bugs, or incompatible dependencies.
+  * **Data Corruption/Loss:** Faulty database migrations or schema changes that corrupt user data.
+  * **Performance Degradation:** Latency spikes, memory leaks, or CPU throttling under production-level traffic.
+* **Security & Compliance Risks:**
+  * **Vulnerabilities:** Introducing insecure code, outdated libraries, or misconfigured access controls (IAM).
+  * **Compliance Violations:** Accidentally exposing sensitive data (PII/PHI), violating regulatory standards like GDPR, HIPAA, or PCI-DSS.
+* **Operational & Process Risks:**
+  * **Rollback Failure:** The inability to quickly revert to a previous stable state when a deployment fails.
+  * **Configuration Drift:** Discrepancies between staging and production environments causing unexpected behavior.
+* **Business & Reputational Risks:**
+  * **Negative User Experience:** Broken features or degraded UI/UX leading to customer frustration and churn.
+  * **Financial Loss:** Transaction failures, SLA breach penalties, or lost productivity.
+
+#### 2. Primary Drivers of Deployment Risk
+* **High Change Volume:** Shipping massive, monolithic updates rather than small, incremental changes.
+* **Lack of Automation:** Relying on manual intervention for testing, provisioning, or deployment steps, which introduces human error.
+* **Inadequate Testing:** Failing to test under realistic, production-like loads or neglecting edge cases.
+* **Poor Observability:** Lacking the telemetry (logs, metrics, traces) needed to detect failures immediately after a release.
+
+#### 3. Standard Mitigation Frameworks
+To minimize deployment risk, modern engineering teams employ several safety-net strategies:
+* **Progressive Delivery:** Utilizing **Canary Releases** (deploying to a small percentage of users first) or **Blue-Green Deployments** (switching traffic between two identical environments).
+* **Feature Flags:** Decoupling code deployment from feature activation, allowing instant deactivation of buggy code without a full rollback.
+* **Automated CI/CD Pipelines:** Ensuring rigorous automated testing, vulnerability scanning, and syntax checks before code reaches production.
+* **Automated Rollbacks:** Configuring monitoring tools to trigger automatic reverts if error rates cross a defined threshold post-deployment.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "### Reasoning State Preservation
+
+To construct an accurate and comprehensive summary of deployment risk, the following analytical framework and reasoning steps were applied:
+
+1. **Definition of Domain:** "Deployment risk" is defined within the context of software engineering, IT operations, and systems release. It represents the probability and impact of negative outcomes occurring during or immediately after transitioning new code, configurations, or infrastructure to a production environment.
+2. **Taxonomy Generation (Categorization):** To ensure a holistic summary, risks cannot be treated as a monolith. They are categorized into four distinct dimensions:
+   * *Technical/Systemic* (the software/hardware itself)
+   * *Operational/Process* (how the deployment is executed)
+   * *Security/Compliance* (vulnerabilities and regulatory issues)
+   * *Business/Financial* (the impact on customers and revenue)
+3. **Synthesis of Mitigations:** A risk summary is incomplete without acknowledging how these risks are managed. Therefore, industry-standard mitigation patterns (e.g., CI/CD pipelines, progressive delivery) are synthesized as the counter-balance to the risks.
+4. **Logical Flow:** 
+   * *Definition* $\\rightarrow$ *Core Categories of Risk* $\\rightarrow$ *Primary Causes* $\\rightarrow$ *Mitigation Strategies*.
+
+---
+
+### Summary of Deployment Risk
+
+**Deployment Risk** is the potential for system instability, service degradation, data loss, or business interruption resulting from releasing changes (software updates, configuration adjustments, or infrastructure modifications) to a live production environment. 
+
+#### 1. Core Risk Categories
+* **Technical & Performance Risks:** 
+  * **System Downtime:** Unexpected outages caused by resource exhaustion, software bugs, or incompatible dependencies.
+  * **Data Corruption/Loss:** Faulty database migrations or schema changes that corrupt user data.
+  * **Performance Degradation:** Latency spikes, memory leaks, or CPU throttling under production-level traffic.
+* **Security & Compliance Risks:**
+  * **Vulnerabilities:** Introducing insecure code, outdated libraries, or misconfigured access controls (IAM).
+  * **Compliance Violations:** Accidentally exposing sensitive data (PII/PHI), violating regulatory standards like GDPR, HIPAA, or PCI-DSS.
+* **Operational & Process Risks:**
+  * **Rollback Failure:** The inability to quickly revert to a previous stable state when a deployment fails.
+  * **Configuration Drift:** Discrepancies between staging and production environments causing unexpected behavior.
+* **Business & Reputational Risks:**
+  * **Negative User Experience:** Broken features or degraded UI/UX leading to customer frustration and churn.
+  * **Financial Loss:** Transaction failures, SLA breach penalties, or lost productivity.
+
+#### 2. Primary Drivers of Deployment Risk
+* **High Change Volume:** Shipping massive, monolithic updates rather than small, incremental changes.
+* **Lack of Automation:** Relying on manual intervention for testing, provisioning, or deployment steps, which introduces human error.
+* **Inadequate Testing:** Failing to test under realistic, production-like loads or neglecting edge cases.
+* **Poor Observability:** Lacking the telemetry (logs, metrics, traces) needed to detect failures immediately after a release.
+
+#### 3. Standard Mitigation Frameworks
+To minimize deployment risk, modern engineering teams employ several safety-net strategies:
+* **Progressive Delivery:** Utilizing **Canary Releases** (deploying to a small percentage of users first) or **Blue-Green Deployments** (switching traffic between two identical environments).
+* **Feature Flags:** Decoupling code deployment from feature activation, allowing instant deactivation of buggy code without a full rollback.
+* **Automated CI/CD Pipelines:** Ensuring rigorous automated testing, vulnerability scanning, and syntax checks before code reaches production.
+* **Automated Rollbacks:** Configuring monitoring tools to trigger automatic reverts if error rates cross a defined threshold post-deployment.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 1327,
+    "output_tokens_details": {
+      "reasoning_tokens": 511,
+    },
+    "total_tokens": 1338,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56PromptCacheOptionsParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Use the stable policy prefix when answering.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56PromptCacheOptionsParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "In accordance with stable policy guidelines: 
+
+I am ready to assist you. Please let me know how I can help you today.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "In accordance with stable policy guidelines: 
+
+I am ready to assist you. Please let me know how I can help you today.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 9,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 857,
+    "output_tokens_details": {
+      "reasoning_tokens": 830,
+    },
+    "total_tokens": 866,
+  },
+}
+`;
+
+exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Review this rollout checklist for the highest-risk issue.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesGpt56ReasoningMaxProContextParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of the Rollout Checklist Request**
+
+Okay, here's how I'm approaching this. The user wants me to review a rollout checklist, specifically focusing on the "highest-risk issue." First things first, the user hasn't actually given me the checklist yet, so that's where I need to start. My immediate action is to request the checklist from the user. I'll need it to do anything meaningful.
+
+Once I have it, my process will kick in. I'll be meticulously examining the checklist, keeping a keen eye out for potential single points of failure, which could cripple the rollout. I'll also be rigorously checking for robust rollback plans; lack of these are major red flags. Then, I will look for any data migration risks, any obvious dependency issues that could derail things, timing or scheduling conflicts that might cause chaos, and deficiencies in monitoring strategies. Showing the user my thought process will help them and will show I am in expert.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "Please provide or paste the rollout checklist! 
+
+Once you share it, I will analyze it and identify the highest-risk areas, focusing on common deployment pitfalls such as:
+*   **Rollback gaps** (lack of clear, tested revert procedures)
+*   **Data integrity risks** (destructive migrations, lack of backups)
+*   **Single points of failure** or tight coupling
+*   **Inadequate monitoring/observability** (how you'll know if it failed)
+*   **Timing and dependency issues** (ordering of steps)
+*   **Security or permission bottlenecks**
+
+Whenever you're ready, paste the list and any brief context (e.g., tech stack, user impact level) below!",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "Please provide or paste the rollout checklist! 
+
+Once you share it, I will analyze it and identify the highest-risk areas, focusing on common deployment pitfalls such as:
+*   **Rollback gaps** (lack of clear, tested revert procedures)
+*   **Data integrity risks** (destructive migrations, lack of backups)
+*   **Single points of failure** or tight coupling
+*   **Inadequate monitoring/observability** (how you'll know if it failed)
+*   **Timing and dependency issues** (ordering of steps)
+*   **Security or permission bottlenecks**
+
+Whenever you're ready, paste the list and any brief context (e.g., tech stack, user impact level) below!",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 12,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 336,
+    "output_tokens_details": {
+      "reasoning_tokens": 184,
+    },
+    "total_tokens": 348,
   },
 }
 `;
@@ -35668,6 +36251,90 @@ Here are the key points:
       "reasoning_tokens": 2733,
     },
     "total_tokens": 3973,
+  },
+}
+`;
+
+exports[`responses → google > responsesReasoningEffortMaxParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "What is 2+2?",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "generationConfig": {
+    "responseSchema": null,
+    "thinkingConfig": {
+      "includeThoughts": true,
+      "thinkingLevel": "HIGH",
+    },
+  },
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > responsesReasoningEffortMaxParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [],
+      "id": "msg_transformed_item_0",
+      "summary": [
+        {
+          "text": "**My Analysis of a Simple Calculation**
+
+Okay, so the prompt is essentially asking me to summarize a ridiculously straightforward thought process: how to answer "What is 2 + 2?". It's a fundamental arithmetic problem, right? The initial step, I suppose, is recognizing the core question – "What is 2+2?" – that's the starting point.
+
+Next, I need to arrive at the answer. This is a matter of recalling a basic mathematical fact: the sum of two and two. No need for complex algorithms here, it's simply a matter of knowing that 2 + 2 equals 4.
+
+Finally, I have to formulate the response. The solution calls for efficiency and accuracy. No need for any extra fluff. My reply will be direct, factual, and devoid of unnecessary verbiage: "2 + 2 is 4." Job done.
+
+
+",
+          "type": "summary_text",
+        },
+      ],
+      "type": "reasoning",
+    },
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "2 + 2 is 4.",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_1",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "2 + 2 is 4.",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 8,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 80,
+    "output_tokens_details": {
+      "reasoning_tokens": 72,
+    },
+    "total_tokens": 88,
   },
 }
 `;

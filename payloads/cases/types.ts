@@ -22,6 +22,12 @@ export type AnthropicMessageCreateParams =
   Anthropic.Messages.MessageCreateParams & {
     output_format?: Anthropic.Beta.Messages.BetaJSONOutputFormat | null;
     output_config?: Anthropic.Messages.OutputConfig;
+    context_management?: {
+      edits: Array<
+        | { type: "clear_tool_uses_20250919"; clear_tool_inputs?: boolean }
+        | { type: "clear_thinking_20251015" }
+      >;
+    } | null;
   };
 
 export type ChatCompletionTextPartWithCacheControl =

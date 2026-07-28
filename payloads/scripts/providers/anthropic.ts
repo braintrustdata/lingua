@@ -59,10 +59,16 @@ export async function executeAnthropic(
   > = { request: payload };
 
   try {
-    // Add beta header if output_format is present (structured outputs beta)
+    const betaHeaders: string[] = [];
+    if ("output_format" in payload) {
+      betaHeaders.push("structured-outputs-2025-11-13");
+    }
+    if ("context_management" in payload) {
+      betaHeaders.push("context-management-2025-06-27");
+    }
     const requestOptions =
-      "output_format" in payload
-        ? { headers: { "anthropic-beta": "structured-outputs-2025-11-13" } }
+      betaHeaders.length > 0
+        ? { headers: { "anthropic-beta": betaHeaders.join(",") } }
         : undefined;
 
     // Create promises for parallel execution

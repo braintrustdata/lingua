@@ -1,0 +1,101 @@
+{
+  "id": "resp_0f1a795a4fdafa88006a52dde5f3cc819883623233d5d9e181",
+  "object": "response",
+  "created_at": 1783815653,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1783815656,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0f1a795a4fdafa88006a52dde6818c8198afccf1a25a708e32",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0f1a795a4fdafa88006a52dde789308198bc2c1d342ba7bdb3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Pick one small, concrete task and start it now—for example:\n\n- If you’re studying: solve another problem.\n- If you’re working: write down the next action in your task.\n- If you’re unsure: take a short break, then choose your top priority.\n\nIf you mean “next” in a specific context, tell me what you’re doing."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "max",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 36,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 210,
+    "output_tokens_details": {
+      "reasoning_tokens": 131
+    },
+    "total_tokens": 246
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Pick one small, concrete task and start it now—for example:\n\n- If you’re studying: solve another problem.\n- If you’re working: write down the next action in your task.\n- If you’re unsure: take a short break, then choose your top priority.\n\nIf you mean “next” in a specific context, tell me what you’re doing."
+}

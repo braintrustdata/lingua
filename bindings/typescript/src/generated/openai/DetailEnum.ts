@@ -4,7 +4,9 @@
  * The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
  * `original`. Defaults to `auto`.
  *
- * The detail level of the file to be sent to the model. Use `low` for the default rendering
- * behavior, or `high` to render the file at higher quality. Defaults to `low`.
+ * The detail level of the file to be sent to the model. Use `auto` to let the system select
+ * the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+ * may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+ * the file at higher quality. Defaults to `auto`.
  */
 export type DetailEnum = "auto" | "high" | "low" | "original";

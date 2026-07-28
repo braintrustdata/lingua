@@ -4,6 +4,8 @@ target
 .vscode/
 .idea/
 node_modules/
+bindings/lingua-wasm/nodejs/
+bindings/lingua-wasm/web/
 *.swp
 __pycache__
 *.so

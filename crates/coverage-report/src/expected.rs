@@ -311,6 +311,29 @@ mod tests {
     }
 
     #[test]
+    fn responses_phase_limitations_exclude_responses_roundtrip() {
+        let field = "messages[0].content[0].provider_options";
+        assert!(is_expected_field(
+            TestCategory::Requests,
+            "Responses",
+            "Anthropic",
+            Some("responsesReasoningEffortMaxParam"),
+            field,
+        )
+        .is_some());
+        assert_eq!(
+            is_expected_field(
+                TestCategory::Requests,
+                "Responses",
+                "Responses",
+                Some("responsesReasoningEffortMaxParam"),
+                field,
+            ),
+            None
+        );
+    }
+
+    #[test]
     fn test_test_case_exact_match() {
         assert!(is_expected_test_case(
             TestCategory::Requests,

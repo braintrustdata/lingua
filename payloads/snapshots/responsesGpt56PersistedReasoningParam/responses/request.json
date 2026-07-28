@@ -1,0 +1,17 @@
+{
+  "model": "gpt-5.6-terra",
+  "store": false,
+  "include": [
+    "reasoning.encrypted_content"
+  ],
+  "reasoning": {
+    "effort": "low",
+    "context": "all_turns"
+  },
+  "input": [
+    {
+      "role": "user",
+      "content": "Summarize the deployment risk and preserve reasoning state."
+    }
+  ]
+}

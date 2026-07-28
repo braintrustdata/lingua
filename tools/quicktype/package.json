@@ -1,0 +1,8 @@
+{
+  "name": "@lingua/quicktype-toolchain",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "quicktype": "25.1.0"
+  }
+}

@@ -1,0 +1,456 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_08276aed2af067dc006a5102c1a85881a3abab07dff8489284",
+      "object": "response",
+      "created_at": 1783694017,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_08276aed2af067dc006a5102c1a85881a3abab07dff8489284",
+      "object": "response",
+      "created_at": 1783694017,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_08276aed2af067dc006a5102c21ae081a3b20f96562f510faa",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_08276aed2af067dc006a5102c21ae081a3b20f96562f510faa",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+      "type": "custom_tool_call",
+      "status": "in_progress",
+      "call_id": "call_hRAWRRZNE6oIyNmhqRjOLa4j",
+      "input": "",
+      "name": "write_release_note"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "Policy",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "8HAcj2cf8V",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " lookup",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "E60MWCylM",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " completed",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "PmgblV",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": ":",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "F4gxH0mlwFpzHH8",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " extra",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "kxg4lC6sqW",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "-policy",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "ZgEtaTXOd",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " =",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "eMDkACgylna1oz",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " ",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "zBJpKoEv9Xe11xY",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "71",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "66JCcXpQ36Zu9Z",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " degrees",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "9CWYyz89",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": ".",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "obfuscation": "8BDIrag05ZMVIav",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.custom_tool_call_input.done",
+    "input": "Policy lookup completed: extra-policy = 71 degrees.",
+    "item_id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+      "type": "custom_tool_call",
+      "status": "completed",
+      "call_id": "call_hRAWRRZNE6oIyNmhqRjOLa4j",
+      "input": "Policy lookup completed: extra-policy = 71 degrees.",
+      "name": "write_release_note"
+    },
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_08276aed2af067dc006a5102c1a85881a3abab07dff8489284",
+      "object": "response",
+      "created_at": 1783694017,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1783694018,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_08276aed2af067dc006a5102c21ae081a3b20f96562f510faa",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "ctc_08276aed2af067dc006a5102c2515481a38a5b8ecba38ec66b",
+          "type": "custom_tool_call",
+          "status": "completed",
+          "call_id": "call_hRAWRRZNE6oIyNmhqRjOLa4j",
+          "input": "Policy lookup completed: extra-policy = 71 degrees.",
+          "name": "write_release_note"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Look up an internal policy by slug.",
+          "name": "lookup_policy",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 260,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 40,
+        "output_tokens_details": {
+          "reasoning_tokens": 15
+        },
+        "total_tokens": 300
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 18
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "anthropic_version": "bedrock-2023-05-31",
+  "max_tokens": 1024,
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi"
+    }
+  ],
+  "context_management": {
+    "edits": [
+      {
+        "type": "clear_tool_uses_20250919"
+      }
+    ]
+  }
+}

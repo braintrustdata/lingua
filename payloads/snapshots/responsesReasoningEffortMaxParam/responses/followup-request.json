@@ -1,0 +1,31 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "What is 2+2?"
+    },
+    {
+      "id": "msg_0f1a795a4fdafa88006a52dde5605c8198a7554e7f3e3177cf",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "2 + 2 = 4"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    {
+      "role": "user",
+      "content": "What should I do next?"
+    }
+  ],
+  "reasoning": {
+    "effort": "max"
+  }
+}

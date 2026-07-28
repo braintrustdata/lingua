@@ -323,16 +323,20 @@ fn convert_tool_call(tool_call: LangChainToolCallCompat) -> AssistantContentPart
             tool_call_id: native.id,
             tool_name: native.name,
             arguments: parse_tool_call_arguments(native.args),
+            caller: None,
             encrypted_content: None,
             provider_options: None,
+            status: None,
             provider_executed: None,
         },
         LangChainToolCallCompat::OpenAi(openai) => AssistantContentPart::ToolCall {
             tool_call_id: openai.id,
             tool_name: openai.function.name,
             arguments: parse_tool_call_arguments(Some(openai.function.arguments)),
+            caller: None,
             encrypted_content: None,
             provider_options: None,
+            status: None,
             provider_executed: None,
         },
     }
@@ -366,8 +370,10 @@ fn parse_assistant_content(
                                 tool_call_id: id,
                                 tool_name: name,
                                 arguments: parse_tool_call_arguments(Some(input)),
+                                caller: None,
                                 encrypted_content: None,
                                 provider_options: None,
+                                status: None,
                                 provider_executed: None,
                             });
                         }
@@ -465,6 +471,8 @@ fn parse_tool_message_content(
             tool_call_id,
             tool_name,
             output,
+            custom_tool_call: None,
+            caller: None,
             provider_options: None,
         })],
     })

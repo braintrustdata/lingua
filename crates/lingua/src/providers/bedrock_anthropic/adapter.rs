@@ -56,6 +56,7 @@ impl BedrockAnthropicAdapter {
             obj.remove("model");
             obj.remove("stream");
             obj.remove("stream_options");
+            obj.remove("context_management");
             obj.insert(
                 "anthropic_version".into(),
                 Value::String(BEDROCK_ANTHROPIC_VERSION.into()),
@@ -205,12 +206,15 @@ mod tests {
         model: Option<Value>,
         #[serde(default)]
         stream: Option<Value>,
+        #[serde(default)]
+        context_management: Option<Value>,
     }
 
     fn assert_flat_invoke_body(transformed: Value) {
         let body: BedrockInvokeBodyView = crate::serde_json::from_value(transformed).unwrap();
         assert!(body.model.is_none());
         assert!(body.stream.is_none());
+        assert!(body.context_management.is_none());
         assert_eq!(body.anthropic_version, "bedrock-2023-05-31");
         assert_eq!(body.max_tokens, 1024);
         assert!(!body.messages.is_empty());
@@ -297,6 +301,25 @@ mod tests {
 
         let mut universal = adapter.request_to_universal(input).unwrap();
         // Model is injected externally (by the router/runner) since it's in the URL path
+        universal.model = Some("us.anthropic.claude-haiku-4-5-20251001-v1:0".to_string());
+        let transformed = adapter.request_from_universal(&universal).unwrap();
+
+        assert_flat_invoke_body(transformed);
+    }
+
+    #[test]
+    fn request_roundtrip_strips_context_management() {
+        let adapter = BedrockAnthropicAdapter::new();
+        let input = json!({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1024,
+            "messages": [{"role": "user", "content": "hi"}],
+            "context_management": {
+                "edits": [{"type": "clear_tool_uses_20250919"}]
+            }
+        });
+
+        let mut universal = adapter.request_to_universal(input).unwrap();
         universal.model = Some("us.anthropic.claude-haiku-4-5-20251001-v1:0".to_string());
         let transformed = adapter.request_from_universal(&universal).unwrap();
 

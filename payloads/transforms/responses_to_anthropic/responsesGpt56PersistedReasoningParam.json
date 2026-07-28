@@ -1,0 +1,35 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011Ccu45pwQvb96ySAKU7JwK",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "This request is asking me to summarize deployment risk and preserve reasoning state. However, I don't have any prior context about what specific deployment we're discussing or what reasoning state needs to be preserved.\n\nThis seems like it might be:\n1. A test prompt to see how I respond to vague instructions\n2. Part of a conversation where context was lost\n3. A request related to software deployment or AI system deployment\n\nWithout more context, I should:\n- Acknowledge the lack of context\n- Explain what I would need to provide a meaningful response\n- Offer a general framework for thinking about deployment risk if that's helpful",
+      "signature": "EvMGCpQBCA8YAipAHGFgx9UuQVXyYaLIjDf+TYKbssbF2LHKF5UpYNBmSWqafE7hKg1uGYiiPD64vyN+hw8C/KozqKboLww3S/OU3DIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMT6H6rBrn9EUiR56fGgwfsVoGDptwvdQGBssiMHsrQ81QHdxPbeKII3oO2qqdnpFh6cY7nfFQU66akcQY7w4Ze4pwLlUyoJhUA2cTQSqLBYZv3ejEkUQLo9qRVYsfUV2tUxb312eZVILzQzkqh7Cj3FdqpFqkkoBAefsbSkvRAz9/a52rwJAdefL/Ao9pFGlePCsXZok44PdGXt8j8j3Q4hoVe3S//xsOSzWaOssGKRtV4XH7nmEtdY/v+AYXOrxIjUb+R8WDccwv/R4TmocPH0h2De9cVZLUAFUW1G7dD/Trh+6Nx51bp6+AJvEC6V2NpRT/+PV0iRcjIxYE2EBvIXetZ/SbJc+0mPzX7xhiU2Jrr2ibgZYQ/X4Xf/bpJ1f9Bl9mW1A4vcyZ8+DXBNSHa4OXOtc+LjeLHVK0JbP29u+Rl+opQAr/40tglMAZTyWdJ7XyYAQ7nsk2Nmkg1B5PzOv4dlMWq7thn57fbyerc1CT0w999Qnrs0q6Cg1TszDd1zFroq2vNzz5a0ir3o9Ax5ABnkWSqQKzFx1wx1UPO0mIy0+cnvFJ69fDHc6mkLHJeIIf04DzpRVTL/y1KK4lkgBYVnwqQgJUtAU4e1tNuK1RAJqChqNdQZa0RbC6IgfsOME5cj4+NTXSyI07tZ9z6Mzl3v4SDQ5I0/l66Utao/gPAFYkAxCAQxwwsAhxbFLuB4XY6AnNmsEOrMP4AOftuKEy2FX4lar3KF7HUcT66WCiXJf7wK4Tj+HcRfTR/JSjgiiu6nARepQxNO3c8RRY9iOJ4VquH++N5qtRb4XDrMRsaIAeYz3sRX0MItpu4FDzF5OEun3QrhdqkRy9j3qbQGd+9neyhzdwwNeR0LGuAHlgdEqUHop4aGYCyXDxRgP+rSN+RmZkg43gW/xzEYAm6lLm4Urjhhwr6RO5RBx5BYAC0LUGgYl3AMjfXyJBUVXJNeJqYhkRCY6MAhgB"
+    },
+    {
+      "type": "text",
+      "text": "# Deployment Risk Summary\n\nI don't have prior context about a specific deployment to summarize. To provide a meaningful risk assessment, I would need information about:\n\n## What I'd Need:\n- **System/product being deployed**\n- **Deployment environment** (production, staging, etc.)\n- **Changes or features** being introduced\n- **Previous reasoning or decisions** made\n\n## General Deployment Risk Framework:\n\n**High Risk Factors:**\n- Database schema changes\n- Authentication/security modifications\n- Breaking API changes\n- Insufficient testing/rollback plans\n\n**Medium Risk Factors:**\n- Feature flags not tested\n- Third-party dependency updates\n- Configuration changes\n\n**Low Risk Factors:**\n- UI copy changes\n- Logging improvements\n- Non-critical bug fixes\n\n## Reasoning State Preservation:\nTo preserve reasoning state, I would document:\n- Decision rationale\n- Assumptions made\n- Trade-offs considered\n- Rollback criteria\n\n**Could you provide the specific deployment context you'd like me to analyze?**"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 47,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 369,
+    "output_tokens_details": {
+      "thinking_tokens": 138
+    },
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

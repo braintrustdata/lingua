@@ -1,0 +1,101 @@
+{
+  "id": "resp_0e903b86e7e03ec5006a515ae9e68c819e9fbe728beccf471e",
+  "object": "response",
+  "created_at": 1783716585,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1783716600,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0e903b86e7e03ec5006a515af79488819e99426ecfa700a0e7",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    {
+      "id": "msg_0e903b86e7e03ec5006a515af79604819e9f05ad57271fd7ed",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Your next step is to **share the rollout checklist**—paste it here or upload it—so I can identify the highest-risk issue rather than guessing.\n\nIf the rollout is imminent, pause long enough to verify these four release blockers first:\n\n1. **Rollback is real and tested**\n   - Is there a documented rollback command/process?\n   - Can it be completed within an acceptable time?\n   - Does rollback work if the new version has already processed writes or jobs?\n\n2. **Data changes are safe**\n   - Are there schema migrations, backfills, destructive operations, or format changes?\n   - Is there a current backup and a tested restore path?\n   - Are migrations backward-compatible with both old and new application versions?\n\n3. **Blast radius is controlled**\n   - Can you use a canary, feature flag, phased rollout, or limited tenant/region release?\n   - Are explicit stop conditions defined—for example, error rate, latency, payment failures, or support contacts?\n\n4. **Someone can detect and respond**\n   - Are dashboards and alerts in place for the key user journey?\n   - Is an on-call owner assigned during the rollout?\n   - Is there a communication channel and decision-maker for go/no-go or rollback?\n\nThen send the checklist in this format if convenient:\n\n```text\nChange:\nScope / affected users:\nDeployment plan:\nData/schema changes:\nDependencies:\nMonitoring / success metrics:\nRollback plan:\nOwners / on-call:\nKnown risks:\n```\n\nI can then call out the single highest-risk gap and recommend the specific corrective action."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "max",
+    "mode": "pro",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "high"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 4113,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 2004,
+    "output_tokens_details": {
+      "reasoning_tokens": 1078
+    },
+    "total_tokens": 6117
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Your next step is to **share the rollout checklist**—paste it here or upload it—so I can identify the highest-risk issue rather than guessing.\n\nIf the rollout is imminent, pause long enough to verify these four release blockers first:\n\n1. **Rollback is real and tested**\n   - Is there a documented rollback command/process?\n   - Can it be completed within an acceptable time?\n   - Does rollback work if the new version has already processed writes or jobs?\n\n2. **Data changes are safe**\n   - Are there schema migrations, backfills, destructive operations, or format changes?\n   - Is there a current backup and a tested restore path?\n   - Are migrations backward-compatible with both old and new application versions?\n\n3. **Blast radius is controlled**\n   - Can you use a canary, feature flag, phased rollout, or limited tenant/region release?\n   - Are explicit stop conditions defined—for example, error rate, latency, payment failures, or support contacts?\n\n4. **Someone can detect and respond**\n   - Are dashboards and alerts in place for the key user journey?\n   - Is an on-call owner assigned during the rollout?\n   - Is there a communication channel and decision-maker for go/no-go or rollback?\n\nThen send the checklist in this format if convenient:\n\n```text\nChange:\nScope / affected users:\nDeployment plan:\nData/schema changes:\nDependencies:\nMonitoring / success metrics:\nRollback plan:\nOwners / on-call:\nKnown risks:\n```\n\nI can then call out the single highest-risk gap and recommend the specific corrective action."
+}

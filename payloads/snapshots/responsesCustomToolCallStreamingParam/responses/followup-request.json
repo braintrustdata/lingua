@@ -1,0 +1,39 @@
+{
+  "model": "gpt-5.6-terra",
+  "input": [
+    {
+      "role": "user",
+      "content": "Call write_release_note with a non-empty plain-text release note about the streaming custom-tool fix. Do not provide a normal response."
+    },
+    {
+      "id": "rs_0dcedf859a52c6ea006a5522bf82d481a2ad870db95ac90b90",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqVSLAyxhe6RICptnU2oxYt7YaZIWU6O3vzUI_FqSqfFyefQQena3DK9V53TT6HmioIwatVuGQfNkXiPb5G6CAzBdKuLO99OKvH0fCajEPGKR53PDNp-Q63h2U8FeH1mUfgx5wGYmaYybDfdDDPmkBf5xDbPT9PLyBcsihgTAW2fczweKz0c-9qSinBx1bJPwA3IDW9TqWfsYh6S0bQ0zawSaDRm-1ztzCIpSKDbQkJtgwzP3lYfYtEzpZ8xPaxJEdbVxNNX2QWOho9Wkq-u5pvSk9-ZzEAXNrYcyqEygreDQCSch1WMy4moz8Om19BTThO9E_DwucW8aZo1i1wooV3B1V7wISmzAwihcXbJAWoD2DuGCfgAblwcPsNzFd7ru1VFacvYjOZyI2zj1ii_1-zJxNF73ole94WygU8P9unfOrCM0S-I2EjtOxgzUJ8Ncn0Ese3nQ3p34te7ajJX274e_mOeWybTE9BLZQfGmFtGhuUUOLDJPhL8kqspXnXTuCT5KqYZiH_gU3nw5GSolqqdOXflsFkL385ZUIoMehL20bTcuMh9J09MrCTZWit3ArkJ0SMmRaep7EyE9htGlEHcxKZ1gv50t-nG3RTSBh5QVX8ixlePfQ9Oq58SNISaxeJFBF6hzBI6F7cOOTQA6mlBcG90hdU4o_w75YtlsDYF435_o19bilyMBuRnawURBDhGYtINnhjtcSF0kRtM_dwoM43ORt8kqvqoMLHqbOrKwXvP3x2w5EhuBw6eEpDpQvnZPdieziDGMIeOu8WbqO6Klo6OggiQeTJ-JC0LhQG0t-DveHdI4n6CWUMEC-a_V5sVrZ74LK2qau9gUOYhXZaJPJXzE2M2cphLgCZDFNc1zACV4VS0uFumZe2Nt0YvVYY6l05NzGXDO0lFD-0OG96_o9VAzIp4svIw51ugNUZTZMOgazxP592sMT6PFz89zDP1hFne0xKCicNs8zFqT95UR0zcFQQdbAt3GkeOluTWEyQvE=",
+      "summary": []
+    },
+    {
+      "id": "ctc_0dcedf859a52c6ea006a5522bfbbc081a2b69c1d9ccc04015d",
+      "type": "custom_tool_call",
+      "status": "completed",
+      "call_id": "call_eRChHLZyjLz8E0V8ZSDPakpZ",
+      "input": "Streaming custom-tool fix\n\nFixed streaming behavior for custom tool calls so tool invocation data is delivered reliably throughout the stream. This resolves issues where custom-tool arguments or events could be incomplete, delayed, or mishandled during streamed responses.",
+      "name": "write_release_note"
+    },
+    {
+      "type": "custom_tool_call_output",
+      "call_id": "call_eRChHLZyjLz8E0V8ZSDPakpZ",
+      "output": "Mock custom tool output."
+    }
+  ],
+  "tools": [
+    {
+      "type": "custom",
+      "name": "write_release_note",
+      "description": "Draft a release note in plain text.",
+      "format": {
+        "type": "text"
+      }
+    }
+  ]
+}

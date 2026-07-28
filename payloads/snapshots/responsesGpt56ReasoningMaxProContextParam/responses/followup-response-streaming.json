@@ -1,0 +1,339 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_0e903b86e7e03ec5006a515ae9ed60819e8268a693d89be643",
+      "object": "response",
+      "created_at": 1783716585,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_0e903b86e7e03ec5006a515ae9ed60819e8268a693d89be643",
+      "object": "response",
+      "created_at": 1783716585,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_0e903b86e7e03ec5006a515b0511b4819e88259178c9e8de1c",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_0e903b86e7e03ec5006a515b0511b4819e88259178c9e8de1c",
+      "type": "reasoning",
+      "content": [],
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+      "type": "message",
+      "status": "completed",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Your next step is to share the rollout checklist itself—paste it here or upload it, with secrets, customer data, and credentials removed.\n\nInclude these details alongside it if they are not already in the checklist:\n\n```text\nChange being deployed:\nAffected services / customers:\nSchema or data migration? (yes/no; reversible?)\nRollout method: (all at once, canary, percentage-based, region-by-region)\nRollback method and estimated rollback time:\nBackup and restore validation:\nMonitoring / alerts:\nOn-call owner and escalation path:\nPlanned deployment window:\n```\n\nIf the rollout is imminent, do this before approving it:\n\n1. **Find every irreversible action**  \n   Examples: destructive database migrations, backfills, cache invalidation, permission changes, message-format changes, or external API contract changes.\n\n2. **Require a tested rollback or restore path**  \n   A backup alone is not sufficient; someone should be able to state how to restore, how long it takes, and whether the restore has been tested.\n\n3. **Confirm blast-radius controls**  \n   Prefer a canary, feature flag, small traffic percentage, one region, or one customer cohort before full deployment.\n\n4. **Verify detection and ownership**  \n   Ensure there are concrete health metrics, alert thresholds, dashboards, and a named person who can halt or roll back the rollout.\n\n5. **Treat this as a release blocker if missing:**  \n   If the change includes a data/schema migration and there is no proven rollback/restore plan, that is usually the highest-risk issue.\n\nSend the checklist, and I’ll identify the single most serious gap, explain why it matters, and give a specific go/no-go recommendation.",
+    "item_id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+    "logprobs": [],
+    "obfuscation": "3axMlu",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 7,
+    "text": "Your next step is to share the rollout checklist itself—paste it here or upload it, with secrets, customer data, and credentials removed.\n\nInclude these details alongside it if they are not already in the checklist:\n\n```text\nChange being deployed:\nAffected services / customers:\nSchema or data migration? (yes/no; reversible?)\nRollout method: (all at once, canary, percentage-based, region-by-region)\nRollback method and estimated rollback time:\nBackup and restore validation:\nMonitoring / alerts:\nOn-call owner and escalation path:\nPlanned deployment window:\n```\n\nIf the rollout is imminent, do this before approving it:\n\n1. **Find every irreversible action**  \n   Examples: destructive database migrations, backfills, cache invalidation, permission changes, message-format changes, or external API contract changes.\n\n2. **Require a tested rollback or restore path**  \n   A backup alone is not sufficient; someone should be able to state how to restore, how long it takes, and whether the restore has been tested.\n\n3. **Confirm blast-radius controls**  \n   Prefer a canary, feature flag, small traffic percentage, one region, or one customer cohort before full deployment.\n\n4. **Verify detection and ownership**  \n   Ensure there are concrete health metrics, alert thresholds, dashboards, and a named person who can halt or roll back the rollout.\n\n5. **Treat this as a release blocker if missing:**  \n   If the change includes a data/schema migration and there is no proven rollback/restore plan, that is usually the highest-risk issue.\n\nSend the checklist, and I’ll identify the single most serious gap, explain why it matters, and give a specific go/no-go recommendation."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Your next step is to share the rollout checklist itself—paste it here or upload it, with secrets, customer data, and credentials removed.\n\nInclude these details alongside it if they are not already in the checklist:\n\n```text\nChange being deployed:\nAffected services / customers:\nSchema or data migration? (yes/no; reversible?)\nRollout method: (all at once, canary, percentage-based, region-by-region)\nRollback method and estimated rollback time:\nBackup and restore validation:\nMonitoring / alerts:\nOn-call owner and escalation path:\nPlanned deployment window:\n```\n\nIf the rollout is imminent, do this before approving it:\n\n1. **Find every irreversible action**  \n   Examples: destructive database migrations, backfills, cache invalidation, permission changes, message-format changes, or external API contract changes.\n\n2. **Require a tested rollback or restore path**  \n   A backup alone is not sufficient; someone should be able to state how to restore, how long it takes, and whether the restore has been tested.\n\n3. **Confirm blast-radius controls**  \n   Prefer a canary, feature flag, small traffic percentage, one region, or one customer cohort before full deployment.\n\n4. **Verify detection and ownership**  \n   Ensure there are concrete health metrics, alert thresholds, dashboards, and a named person who can halt or roll back the rollout.\n\n5. **Treat this as a release blocker if missing:**  \n   If the change includes a data/schema migration and there is no proven rollback/restore plan, that is usually the highest-risk issue.\n\nSend the checklist, and I’ll identify the single most serious gap, explain why it matters, and give a specific go/no-go recommendation."
+    },
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Your next step is to share the rollout checklist itself—paste it here or upload it, with secrets, customer data, and credentials removed.\n\nInclude these details alongside it if they are not already in the checklist:\n\n```text\nChange being deployed:\nAffected services / customers:\nSchema or data migration? (yes/no; reversible?)\nRollout method: (all at once, canary, percentage-based, region-by-region)\nRollback method and estimated rollback time:\nBackup and restore validation:\nMonitoring / alerts:\nOn-call owner and escalation path:\nPlanned deployment window:\n```\n\nIf the rollout is imminent, do this before approving it:\n\n1. **Find every irreversible action**  \n   Examples: destructive database migrations, backfills, cache invalidation, permission changes, message-format changes, or external API contract changes.\n\n2. **Require a tested rollback or restore path**  \n   A backup alone is not sufficient; someone should be able to state how to restore, how long it takes, and whether the restore has been tested.\n\n3. **Confirm blast-radius controls**  \n   Prefer a canary, feature flag, small traffic percentage, one region, or one customer cohort before full deployment.\n\n4. **Verify detection and ownership**  \n   Ensure there are concrete health metrics, alert thresholds, dashboards, and a named person who can halt or roll back the rollout.\n\n5. **Treat this as a release blocker if missing:**  \n   If the change includes a data/schema migration and there is no proven rollback/restore plan, that is usually the highest-risk issue.\n\nSend the checklist, and I’ll identify the single most serious gap, explain why it matters, and give a specific go/no-go recommendation."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_0e903b86e7e03ec5006a515ae9ed60819e8268a693d89be643",
+      "object": "response",
+      "created_at": 1783716585,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1783716613,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_0e903b86e7e03ec5006a515b0511b4819e88259178c9e8de1c",
+          "type": "reasoning",
+          "content": [],
+          "summary": []
+        },
+        {
+          "id": "msg_0e903b86e7e03ec5006a515b05143c819e83a80dff7281da8f",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Your next step is to share the rollout checklist itself—paste it here or upload it, with secrets, customer data, and credentials removed.\n\nInclude these details alongside it if they are not already in the checklist:\n\n```text\nChange being deployed:\nAffected services / customers:\nSchema or data migration? (yes/no; reversible?)\nRollout method: (all at once, canary, percentage-based, region-by-region)\nRollback method and estimated rollback time:\nBackup and restore validation:\nMonitoring / alerts:\nOn-call owner and escalation path:\nPlanned deployment window:\n```\n\nIf the rollout is imminent, do this before approving it:\n\n1. **Find every irreversible action**  \n   Examples: destructive database migrations, backfills, cache invalidation, permission changes, message-format changes, or external API contract changes.\n\n2. **Require a tested rollback or restore path**  \n   A backup alone is not sufficient; someone should be able to state how to restore, how long it takes, and whether the restore has been tested.\n\n3. **Confirm blast-radius controls**  \n   Prefer a canary, feature flag, small traffic percentage, one region, or one customer cohort before full deployment.\n\n4. **Verify detection and ownership**  \n   Ensure there are concrete health metrics, alert thresholds, dashboards, and a named person who can halt or roll back the rollout.\n\n5. **Treat this as a release blocker if missing:**  \n   If the change includes a data/schema migration and there is no proven rollback/restore plan, that is usually the highest-risk issue.\n\nSend the checklist, and I’ll identify the single most serious gap, explain why it matters, and give a specific go/no-go recommendation."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "max",
+        "mode": "pro",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "high"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 4380,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 3490,
+        "output_tokens_details": {
+          "reasoning_tokens": 2558
+        },
+        "total_tokens": 7870
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 10
+  }
+]

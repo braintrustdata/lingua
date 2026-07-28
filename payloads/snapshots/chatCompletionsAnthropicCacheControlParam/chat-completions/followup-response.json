@@ -1,14 +1,14 @@
 {
-  "id": "chatcmpl-DoxetOeH0CVTKB4ndtw5LIfDs0aW3",
+  "id": "chatcmpl-E3sxHd6ioSZIob8XZbuSOffqBXkOg",
   "object": "chat.completion",
-  "created": 1781038099,
-  "model": "gpt-5-nano-2025-08-07",
+  "created": 1784594939,
+  "model": "gpt-5.6-terra",
   "choices": [
     {
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Please provide one specific task you’d like me to do next. Example: \"Draft a concise email responding to X.\"",
+        "content": "Paste the stable reference text you want to use as cacheable context. Once provided, I can summarize it and refer back to it in later requests.",
         "refusal": null,
         "annotations": []
       },
@@ -16,15 +16,16 @@
     }
   ],
   "usage": {
-    "prompt_tokens": 11698,
-    "completion_tokens": 929,
-    "total_tokens": 12627,
+    "prompt_tokens": 46,
+    "completion_tokens": 33,
+    "total_tokens": 79,
     "prompt_tokens_details": {
-      "cached_tokens": 11648,
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
       "audio_tokens": 0
     },
     "completion_tokens_details": {
-      "reasoning_tokens": 896,
+      "reasoning_tokens": 0,
       "audio_tokens": 0,
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0

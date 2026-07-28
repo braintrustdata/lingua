@@ -58,6 +58,8 @@ export interface TransformPair {
   // baseten → anthropic captures the native Baseten/GLM stream (the source) and
   // renders it onto the Anthropic surface (the target).
   captureProvider?: SourceFormat;
+  // Restrict streaming coverage to source cases that explicitly request it.
+  explicitStreamingOnly?: boolean;
 }
 
 export interface FixtureHandlerConfig {
@@ -363,7 +365,7 @@ export async function parseGoogleSseStream<T = unknown>(
   return chunks;
 }
 
-export function getTransformableCases(
+function getTransformCandidateCases(
   pair: TransformPair,
   filter?: string
 ): string[] {
@@ -373,6 +375,28 @@ export function getTransformableCases(
     const testCase = allTestCases[caseName];
     return sourceCase != null && !testCase?.expect;
   });
+}
+
+function caseExplicitlyRequestsStreaming(
+  pair: TransformPair,
+  caseName: string
+): boolean {
+  const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
+  return (
+    typeof sourceCase === "object" &&
+    sourceCase !== null &&
+    "stream" in sourceCase &&
+    sourceCase.stream === true
+  );
+}
+
+export function getTransformableCases(
+  pair: TransformPair,
+  filter?: string
+): string[] {
+  return getTransformCandidateCases(pair, filter).filter(
+    (caseName) => !caseExplicitlyRequestsStreaming(pair, caseName)
+  );
 }
 
 export const STREAMING_PAIRS: TransformPair[] = [
@@ -411,6 +435,20 @@ export const STREAMING_PAIRS: TransformPair[] = [
     target: "chat-completions",
     wasmSource: "Anthropic",
     wasmTarget: "OpenAI",
+  },
+  {
+    source: "anthropic",
+    target: "responses",
+    wasmSource: "Anthropic",
+    wasmTarget: "Responses",
+    explicitStreamingOnly: true,
+  },
+  {
+    source: "anthropic",
+    target: "google",
+    wasmSource: "Anthropic",
+    wasmTarget: "Google",
+    explicitStreamingOnly: true,
   },
   {
     source: "google",
@@ -452,9 +490,18 @@ export function getStreamingTransformableCases(
   const includeParamCases =
     pair.source === "chat-completions" && pair.target === "bedrock";
 
-  return getTransformableCases(pair, filter).filter(
-    (caseName) => includeParamCases || !isParamCase(caseName)
-  );
+  return getTransformCandidateCases(pair, filter).filter((caseName) => {
+    const explicitlyRequestsStreaming = caseExplicitlyRequestsStreaming(
+      pair,
+      caseName
+    );
+    if (pair.explicitStreamingOnly) {
+      return explicitlyRequestsStreaming;
+    }
+    return (
+      explicitlyRequestsStreaming || includeParamCases || !isParamCase(caseName)
+    );
+  });
 }
 
 // ============================================================================

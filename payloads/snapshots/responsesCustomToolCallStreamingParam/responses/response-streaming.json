@@ -1,0 +1,645 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_09b331b85717d5ef006a5522bf0ce8819c92d7781366510c2f",
+      "object": "response",
+      "created_at": 1783964351,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_09b331b85717d5ef006a5522bf0ce8819c92d7781366510c2f",
+      "object": "response",
+      "created_at": 1783964351,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_09b331b85717d5ef006a5522bf7eec819cb358190599e16089",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqVSK_s920FJ1VFlW5PLdiCzFJhLb3-jhikInJxJ-WDwTsoPMgFiVMRh7vKGe5ZiQy_gsw7cIU8CkxutrL6f0N0rkQVepfb8XTtEWJOwPRseTBE1JD3_df8k1mDVu37gJGDL_uM38mTWuj2xWvpvJf94mQmeTQgSYbPmx6d_4z2F3WtYpS-yQa3qdn6oFOOfQ_N7-W3vj7DQFB-lNkKWT3PC1LrGYymC7yIlqxcoBLJZ25zU_4PR-N-BQz-YlnlwPUbGTzjoQql7S0RGCgEKV46iBIKsScjh-dO2lqMaOtMg1yf5SSY6hjGLBYTRQP8vs04hJ-9jSQxjFCleiE1-pgYSCZcJOg473N0WAz37zPBp9gFKuhRufCFXFAg4yeTDHXnohd6ujMtsSCSu1u9NNAHQJnWyQ3SF4DsDxbuOyZPgV8UVnzlWdF4PQG4B6H9ecVfS3PKvaizbpzObYB6JAe6AphgFw_8CQgSBf-w3wLWL1YrkByrydBsyEr9LSnGrYnaqhA7xIQ7w-tE403ElJ07IEElafzIAFmaLHFYU1HzD3k7hvfO59od8JM0nVW2bfFwr-X-HyaEm0K2a_E6BanwIcKlRsIUTtAC-lyGetZ0CEtoPgnWGnz2li0nkl-_x4b97zK9B-Qqn8dSQQVs74SUK0yimdlDFPXEyutRvQy3CQgCAZ5JQWF5opDDWU4xB1cr_7OFKHKHLqBMNjgpj4fPtMH2_8daptZs3CnQl-6mWLYV_vrlYltYcbtN149DGTtrI00S7a8NYPX4wa4OAa8zYoR2xZEd6afgz95BEuGJHvUcfO8OXUCVtw1VqOdzABxWBNYibtG8m2yVCbprKmuAhbkq5jG2dp43Kg9K16-OpNn9ATbt06DEpwiUamMZRkDo5zc1ID1L_hNwLcmOzVPHQ3ZuQ==",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_09b331b85717d5ef006a5522bf7eec819cb358190599e16089",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqVSK_T2Jj5nzfQ8P0xwi0uN8rcIPiRfOwLRLPZSEyrV9ECMYXD8RIecJEpxKM-Znb4W-HjWEQQ8rM3B-O-Rhce_v2Zv3xr3Y1-2xfwRluvY-jfjhE8l3taOeQVgu-PQeGkJ6pQRBV0mA01w-2tRzEkFr8ANcoqoYmogPES0DGFjuuK2EGinlMof3fXHli2bi4P3LKuTDWZ0wndJMNL2cZuWEZxrN9qc8KMubI3bAtuiNd3NDIgQgDKSZPkmJ8_4AzrYgtb6_uGc6VJSgweYvIdze3TqJWA22vD5Nzoj66-wkDrvMBOsjIjGQ43vluRlX3r5Vui1F80-gJ7ye0m2-CqAaRVSmP-bqKU7FH93DfElTMmKPIxlRewbWrkHePeh_X3Bjo3w45wIECSJBuzA-UtKKBjJq89Aebgt79QU2h17Ai_o5DhRNtLCGLONZV0OEYgNHBLENy3PvNv4xsNETChgfHhnB_CbA4V-t5oLy13WRx7tb5S8Ah1Jmun86ZT9-hmeGdMqNCIKC_TyyfP7ixhulgOPXnjBgQCM3cPVMKyomaz01xgr-bKOYvqOaAgqnk1YTXmLP4ooTkPFk_ckYTpqh01w3IwlVzS0U6dOq2aXkSWK9lCC2RkoWK3_EkFY4rWAYHefyWafNb5qwOrSTElfwYI0t7OtRmds4DmE3mDTow3-_ETLUlEqLK7ThkkRjtfOlByAhx7VtYKI3RIzov8Fen5wA2Gk5INpRH3EKaGN6OkhjZGQ_FE3vOxXJENIVwqt5tVA10Oygz9Uzk4PKJOkJxqM_XDcXlDYzcWpZPm7X8xJuz20scHqtJH0-Y1M6RZqgRr-INe9eY77FvKuJTgPbLn5lBrN0_XTRaOXlXS-wJTMgmcS6E6a9xQkOUw0O_Y2Z1cIuYmvzYb7UD0cZ7yyk2Sbg1IUxwmqc3lO4Po1UxksFM7cYHDUZy3ykdlpuha06CMkNKpRLODXMBew1kFfm91Q==",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+      "type": "custom_tool_call",
+      "status": "in_progress",
+      "call_id": "call_32wLa2TkwLFFKIrZ4DKKGSwL",
+      "input": "",
+      "name": "write_release_note"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "Streaming",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "75BpiUN",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " custom",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "jjDj9wfkk",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "-tool",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "nY7aM8QrxRh",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " fix",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "ee8f6BlRgQDD",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "\n\n",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "ZeE87CE19oDCvd",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "Fixed",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "p6s32Kz2tJM",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " an",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "LReCVDhxNHaIV",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " issue",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "l1ZmblMXe2",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " that",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "6PdPaD6m05Y",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " could",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "76rbsvoBZX",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " interrupt",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "EfIzeB",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " or",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "2UqpLfyhYvzwG",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " mish",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "IpywvpHpWbG",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "andle",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "4udvAaWeVbm",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " custom",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "oiFXoAomo",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "-tool",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "EJHEGuapVMi",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " calls",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "8h516VMTXG",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " while",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "RJPUfs310H",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " streaming",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "bKWwLe",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " responses",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "mCSGvy",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": ".",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "AZyWJOPtfJZYu2x",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " Streaming",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "NpjI09",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " tool",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "lLFmlZ4hXgF",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " execution",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "df3TaJ",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " is",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "5z0V6GGPMwWkQ",
+    "output_index": 1,
+    "sequence_number": 29
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " now",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "XhMmplmGto8Q",
+    "output_index": 1,
+    "sequence_number": 30
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " processed",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "QAXO5g",
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " reliably",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "Cb2k1a7",
+    "output_index": 1,
+    "sequence_number": 32
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": ",",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "ZupY78hEV4SGk4l",
+    "output_index": 1,
+    "sequence_number": 33
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " preserving",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "bFEPX",
+    "output_index": 1,
+    "sequence_number": 34
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " tool",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "Uc7gXmgNbw4",
+    "output_index": 1,
+    "sequence_number": 35
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " payload",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "Bl1HRsh9",
+    "output_index": 1,
+    "sequence_number": 36
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": "s",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "UYUOVPgCcptsnKT",
+    "output_index": 1,
+    "sequence_number": 37
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " and",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "S3RP1P294bz7",
+    "output_index": 1,
+    "sequence_number": 38
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " ensuring",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "M9dPpDK",
+    "output_index": 1,
+    "sequence_number": 39
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " downstream",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "HPc9v",
+    "output_index": 1,
+    "sequence_number": 40
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " results",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "lWAXKSBA",
+    "output_index": 1,
+    "sequence_number": 41
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " are",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "PBRhhOPnblIb",
+    "output_index": 1,
+    "sequence_number": 42
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " delivered",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "YOcFOM",
+    "output_index": 1,
+    "sequence_number": 43
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": " correctly",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "JUe41L",
+    "output_index": 1,
+    "sequence_number": 44
+  },
+  {
+    "type": "response.custom_tool_call_input.delta",
+    "delta": ".",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "obfuscation": "8pLoPjZKMzdNi4R",
+    "output_index": 1,
+    "sequence_number": 45
+  },
+  {
+    "type": "response.custom_tool_call_input.done",
+    "input": "Streaming custom-tool fix\n\nFixed an issue that could interrupt or mishandle custom-tool calls while streaming responses. Streaming tool execution is now processed reliably, preserving tool payloads and ensuring downstream results are delivered correctly.",
+    "item_id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+    "output_index": 1,
+    "sequence_number": 46
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+      "type": "custom_tool_call",
+      "status": "completed",
+      "call_id": "call_32wLa2TkwLFFKIrZ4DKKGSwL",
+      "input": "Streaming custom-tool fix\n\nFixed an issue that could interrupt or mishandle custom-tool calls while streaming responses. Streaming tool execution is now processed reliably, preserving tool payloads and ensuring downstream results are delivered correctly.",
+      "name": "write_release_note"
+    },
+    "output_index": 1,
+    "sequence_number": 47
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_09b331b85717d5ef006a5522bf0ce8819c92d7781366510c2f",
+      "object": "response",
+      "created_at": 1783964351,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1783964352,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_09b331b85717d5ef006a5522bf7eec819cb358190599e16089",
+          "type": "reasoning",
+          "content": [],
+          "encrypted_content": "gAAAAABqVSLAkw7kPTr0kjzi2tx3NVvkkSOacQ2nE43d1iBSsw7G_UaSdvKFLV0p2mN3gICHIsXtxoDJ7NK6VmTei82WDCPonHP5kZrDrELdZpzZxncf1WIkZ6A7wDm3KhZ2Aks1PxZS1yjga9ij7a5_qKRlGHjxB6ueiCyUj4Q3-91gqxleC4VJR1P3iLieAJMxOQQmF2ceFGYZcz-IALtgUVNJD3IV7hLLpyrN-67cfn_6hpsUmsTUlevfROqzfo19TYPyUCFJNij7pbojtC4r_hcGH7K7ltLWnYYMtMu_KKHqMl3kj5Gn_2zJx39n5NBj9qxRJtYWZ5TCUHlqN8ZbqIHSzilrS1lkwFKLHv-K2RKKHsD3-ijcwuRyYlZxhu3fTgxdLe056lUvQbDS1KxSyBqS_ZkOqdMVt_SekjNgyyiLF3QYgbGREJ4hNjSmsvUs2OkaK_OMXnK5LtPu2ipmprSRnLdS35VPG9jW7dXdSSSlrg3B1zhlFjXm9IzobSinsRvemTxUVG8tl5-lSp3m0uOu792BEHByMgLoe-TTZKLChYfxX4skXNATYexXRFi8yqOqo41N7bC5ZHpH3h4nc62F48AbW8hYNU8IDRN4sYVY4COquSqjlm9DY5eB0XZ1j2dul7z8I_xWI5xCpXUzehXNhhaCOp_JMieAJzx107xCY4p7ROcTWcg6bxyR0DrWKDYHhpA7mRAM2VX8lZryUNi3-dJCZ5aDdvZtxsHaF0I8rbvdrV1cnBG07rfcNUQyhm1stFKDaPOB75_P4gIBJAZqlMJbGknpdHYMpS7cI9zROBtyiw8ZgZJQDvmWnx9n4R8eamrFhF8_8yRH1L09n9lTPXqz0jq29LprC3EXImXImQdvaCru8AtpkRyQLWqxSnbYC2dw11fJaIHmoyQXHYrTt9ovZOzwPaAB_LFTcYkCkbiioip_MDoZnGHdGNkq2aB3SXFy7n03AtYfh-bccBg51G73gw==",
+          "summary": []
+        },
+        {
+          "id": "ctc_09b331b85717d5ef006a5522bfa340819cb6a2f91319137dce",
+          "type": "custom_tool_call",
+          "status": "completed",
+          "call_id": "call_32wLa2TkwLFFKIrZ4DKKGSwL",
+          "input": "Streaming custom-tool fix\n\nFixed an issue that could interrupt or mishandle custom-tool calls while streaming responses. Streaming tool execution is now processed reliably, preserving tool payloads and ensuring downstream results are delivered correctly.",
+          "name": "write_release_note"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "custom",
+          "description": "Draft a release note in plain text.",
+          "format": {
+            "type": "text"
+          },
+          "name": "write_release_note"
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 81,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 69,
+        "output_tokens_details": {
+          "reasoning_tokens": 14
+        },
+        "total_tokens": 150
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 48
+  }
+]

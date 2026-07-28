@@ -41,18 +41,10 @@ pub struct OpenaiSchemas {
 pub struct CreateChatCompletionRequestClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,6 +74,8 @@ pub struct CreateChatCompletionRequestClass {
     /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_options: Option<CreateChatCompletionRequestPromptCacheOptions>,
     /// Parameters for audio output. Required when audio output is requested with
     /// `modalities: ["audio"]`. [Learn more](/docs/guides/audio).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -221,7 +215,7 @@ pub struct CreateChatCompletionRequestClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<CreateChatCompletionRequestTool>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub verbosity: Option<WebSearchContextSize>,
+    pub verbosity: Option<SearchContextSize>,
     /// This tool searches the web for relevant results to use in a response.
     /// Learn more about the [web search tool](/docs/guides/tools-web-search?api-mode=chat).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -268,7 +262,7 @@ pub enum AudioFormat {
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum Voice {
-    String(String),
+    PurpleString(String),
     VoiceClass(VoiceClass),
 }
 
@@ -319,7 +313,8 @@ pub struct ChatCompletionFunctionCallOption {
 #[ts(export_to = "openai/")]
 pub enum FunctionCallEnum {
     Auto,
-    None,
+    #[serde(rename = "none")]
+    FunctionCallNone,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -409,7 +404,7 @@ pub struct ChatCompletionRequestMessageAudio {
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum ChatCompletionRequestMessageContent {
-    ChatCompletionRequestMessageContentPartArray(Vec<ChatCompletionRequestMessageContentPart>),
+    ChatCompletionRequestMessageContentPartArray(Vec<PurpleContentPart>),
     String(String),
 }
 
@@ -428,10 +423,6 @@ pub enum ChatCompletionRequestMessageContent {
 /// An array of content parts with a defined type. For tool messages, only type `text` is
 /// supported.
 ///
-/// An array of content parts with a defined type. Supported options differ based on the
-/// [model](/docs/models) being used to generate the response. Can contain text, image, or
-/// audio inputs.
-///
 /// Learn about [image inputs](/docs/guides/vision).
 ///
 ///
@@ -439,13 +430,11 @@ pub enum ChatCompletionRequestMessageContent {
 ///
 ///
 /// Learn about [file inputs](/docs/guides/text) for text generation.
-///
-///
-/// An array of content parts with a defined type. Can be one or more of type `text`, or
-/// exactly one of type `refusal`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct ChatCompletionRequestMessageContentPart {
+pub struct PurpleContentPart {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<ArrayOfContentPartPromptCacheBreakpoint>,
     /// The text content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -455,7 +444,7 @@ pub struct ChatCompletionRequestMessageContentPart {
     ///
     /// The type of the content part. Always `file`.
     #[serde(rename = "type")]
-    pub chat_completion_request_message_content_part_type: PurpleType,
+    pub content_part_type: PurpleType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<ImageUrl>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -539,6 +528,23 @@ pub struct InputAudio {
 pub enum InputAudioFormat {
     Mp3,
     Wav,
+}
+
+/// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
+/// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ArrayOfContentPartPromptCacheBreakpoint {
+    /// The breakpoint mode. Always `explicit`.
+    pub mode: PromptCacheBreakpointMode,
+}
+
+/// The breakpoint mode. Always `explicit`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum PromptCacheBreakpointMode {
+    Explicit,
 }
 
 /// Deprecated and replaced by `tool_calls`. The name and arguments of a function that should
@@ -667,6 +673,35 @@ pub enum ResponseModality {
 pub struct ModerationParam {
     /// The moderation model to use for moderated completions, e.g. 'omni-moderation-latest'.
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub policy: Option<ModerationPolicyParam>,
+}
+
+/// The policy to apply to moderated response input and output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ModerationPolicyParam {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<ModerationConfigParam>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output: Option<ModerationConfigParam>,
+}
+
+/// The moderation policy for the response input.
+///
+/// The moderation policy for the response output.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ModerationConfigParam {
+    pub mode: ModerationMode,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum ModerationMode {
+    Block,
+    Score,
 }
 
 /// Configuration for a [Predicted Output](/docs/guides/predicted-outputs),
@@ -690,14 +725,11 @@ pub struct StaticContent {
     pub static_content_type: PredictionType,
 }
 
-/// The contents of the system message.
-///
-/// The contents of the tool message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum PredictionContent {
-    ContentPartArray(Vec<ContentPart>),
+    FluffyContentPartArray(Vec<FluffyContentPart>),
     String(String),
 }
 
@@ -717,7 +749,9 @@ pub enum PredictionContent {
 /// supported.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct ContentPart {
+pub struct FluffyContentPart {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<ArrayOfContentPartPromptCacheBreakpoint>,
     /// The text content.
     pub text: String,
     /// The type of the content part.
@@ -742,9 +776,66 @@ pub enum PredictionType {
     Content,
 }
 
+/// Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI
+/// automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to
+/// content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+/// breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the
+/// conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable
+/// the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only
+/// supported value. See the [prompt caching guide](/docs/guides/prompt-caching) for current
+/// details.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct CreateChatCompletionRequestPromptCacheOptions {
+    /// Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to
+    /// `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the
+    /// latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create
+    /// an implicit breakpoint and writes up to the latest four explicit breakpoints. If there
+    /// are no explicit breakpoints, the request does not use prompt caching.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<PromptCacheModeEnum>,
+    /// The minimum lifetime applied to every implicit and explicit cache breakpoint written by
+    /// the request. Defaults to `30m`, which is currently the only supported value. The backend
+    /// may retain cache entries for longer.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ttl: Option<PromptCacheTtlEnum>,
+}
+
+/// Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to
+/// `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the
+/// latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create
+/// an implicit breakpoint and writes up to the latest four explicit breakpoints. If there
+/// are no explicit breakpoints, the request does not use prompt caching.
+///
+/// Whether implicit prompt-cache breakpoints were enabled.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum PromptCacheModeEnum {
+    Explicit,
+    Implicit,
+}
+
+/// The minimum lifetime applied to every implicit and explicit cache breakpoint written by
+/// the request. Defaults to `30m`, which is currently the only supported value. The backend
+/// may retain cache entries for longer.
+///
+/// The minimum lifetime applied to each cache breakpoint.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub enum PromptCacheTtlEnum {
+    #[serde(rename = "30m")]
+    The30M,
+}
+
+/// Deprecated. Use `prompt_cache_options.ttl` instead.
+///
 /// The retention policy for the prompt cache. Set to `24h` to enable extended prompt
 /// caching, which keeps cached prefixes active for longer, up to a maximum of 24 hours.
 /// [Learn more](/docs/guides/prompt-caching#prompt-cache-retention).
+/// This field expresses a maximum retention policy, while
+/// `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two
+/// fields are independent and do not interact.
 /// For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
 ///
 /// For older models that support both `in_memory` and `24h`, the default depends on your
@@ -762,26 +853,20 @@ pub enum PromptCacheRetention {
     The24H,
 }
 
-/// Constrains effort on reasoning for
-/// [reasoning models](https://platform.openai.com/docs/guides/reasoning).
-/// Currently supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-/// Reducing
-/// reasoning effort can result in faster responses and fewer tokens used
-/// on reasoning in a response.
-///
-/// - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported reasoning
-/// values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool calls are supported
-/// for all reasoning values in gpt-5.1.
-/// - All models before `gpt-5.1` default to `medium` reasoning effort, and do not support
-/// `none`.
-/// - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-/// - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+/// Constrains effort on reasoning for reasoning models. Currently supported
+/// values are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`.
+/// Reducing reasoning effort can result in faster responses and fewer tokens
+/// used on reasoning in a response. Not all reasoning models support every
+/// value. See the
+/// [reasoning guide](https://platform.openai.com/docs/guides/reasoning)
+/// for model-specific support.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum ReasoningEffort {
     High,
     Low,
+    Max,
     Medium,
     Minimal,
     None,
@@ -892,7 +977,7 @@ pub enum ServiceTier {
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum StopConfiguration {
-    String(String),
+    PurpleString(String),
     StringArray(Vec<String>),
 }
 
@@ -975,7 +1060,7 @@ pub struct AllowedTools {
     /// message.
     ///
     /// `required` requires the model to call one or more of the allowed tools.
-    pub mode: Mode,
+    pub mode: AllowedToolsMode,
     /// A list of tool definitions that the model should be allowed to call.
     ///
     /// For the Chat Completions API, the list of tool definitions might look like:
@@ -998,7 +1083,7 @@ pub struct AllowedTools {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum Mode {
+pub enum AllowedToolsMode {
     Auto,
     Required,
 }
@@ -1050,8 +1135,9 @@ pub struct AllowedToolsFunction {
 #[ts(export_to = "openai/")]
 pub enum ToolChoiceMode {
     Auto,
-    None,
     Required,
+    #[serde(rename = "none")]
+    ToolChoiceModeNone,
 }
 
 /// A function tool that can be used to generate a response.
@@ -1155,7 +1241,8 @@ pub struct FunctionObject {
 
 /// Constrains the verbosity of the model's response. Lower values will result in
 /// more concise responses, while higher values will result in more verbose responses.
-/// Currently supported values are `low`, `medium`, and `high`.
+/// Currently supported values are `low`, `medium`, and `high`. The default is
+/// `medium`.
 ///
 ///
 /// High level guidance for the amount of context window space to use for the
@@ -1167,7 +1254,7 @@ pub struct FunctionObject {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum WebSearchContextSize {
+pub enum SearchContextSize {
     High,
     Low,
     Medium,
@@ -1179,7 +1266,7 @@ pub enum WebSearchContextSize {
 #[ts(export_to = "openai/")]
 pub struct WebSearch {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_context_size: Option<WebSearchContextSize>,
+    pub search_context_size: Option<SearchContextSize>,
     /// Approximate location parameters for the search.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_location: Option<UserLocation>,
@@ -1600,6 +1687,9 @@ pub struct PromptTokensDetails {
     /// Audio input tokens present in the prompt.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audio_tokens: Option<i64>,
+    /// The unadjusted number of prompt tokens written to cache.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_write_tokens: Option<i64>,
     /// Cached tokens present in the prompt.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cached_tokens: Option<i64>,
@@ -1770,18 +1860,10 @@ pub enum ChatStreamResponseObject {
 pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1805,6 +1887,8 @@ pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_options: Option<CreateChatCompletionRequestPromptCacheOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub background: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_tool_calls: Option<i64>,
@@ -1819,15 +1903,11 @@ pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<Prompt>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning: Option<Reasoning>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<ResponseTextParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_choice: Option<CreateResponseToolChoiceParam>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<Tool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context_management: Option<Vec<ContextManagementParam>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1845,11 +1925,15 @@ pub struct CreateResponseClass {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parallel_tool_calls: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<Reasoning>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub store: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream_options: Option<ResponseStreamOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truncation: Option<Truncation>,
 }
 
 /// Context management configuration for this request.
@@ -1868,7 +1952,7 @@ pub struct ContextManagementParam {
 #[ts(export_to = "openai/")]
 pub enum ConversationParam {
     ConversationObject(ConversationObject),
-    String(String),
+    PurpleString(String),
 }
 
 /// The conversation that this response belongs to.
@@ -2140,6 +2224,10 @@ pub struct InputItem {
     ///
     ///
     /// The type of the item. Always `compaction_trigger`.
+    ///
+    /// The item type. Always `program`.
+    ///
+    /// The item type. Always `program_output`.
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_item_type: Option<InputItemType>,
@@ -2178,6 +2266,9 @@ pub struct InputItem {
     ///
     /// The status of the tool call. One of `in_progress`, `completed`, `incomplete`, `calling`,
     /// or `failed`.
+    ///
+    ///
+    /// The terminal status of the program output.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<Status>,
     /// The unique ID of the output message.
@@ -2225,13 +2316,17 @@ pub struct InputItem {
     ///
     ///
     /// The ID of the item to reference.
+    ///
+    /// The unique ID of this program item.
+    ///
+    /// The unique ID of this program output item.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     /// The queries used to search for files.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queries: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub results: Option<Vec<Result>>,
+    pub results: Option<Vec<ResultElement>>,
     /// An object describing the specific action taken in this web search call.
     /// Includes details on how the model used the web (search, open_page, find_in_page).
     ///
@@ -2262,6 +2357,11 @@ pub struct InputItem {
     ///
     ///
     /// An identifier used to map this custom tool call to a tool call output.
+    ///
+    ///
+    /// The stable call ID of the program item.
+    ///
+    /// The call ID of the program item.
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_id: Option<String>,
@@ -2292,6 +2392,8 @@ pub struct InputItem {
     /// A JSON string of the arguments passed to the tool.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arguments: Option<Arguments>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<InputItemDirectToolCallCaller>,
     /// The name of the function to run.
     ///
     ///
@@ -2326,8 +2428,10 @@ pub struct InputItem {
     /// Reasoning summary content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Vec<SummaryText>>,
+    /// The result produced by the program item.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<String>,
+    /// The JavaScript source executed by programmatic tool calling.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
     /// The ID of the container used to run the code.
@@ -2367,6 +2471,9 @@ pub struct InputItem {
     /// The input for the custom tool call generated by the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input: Option<String>,
+    /// Opaque program replay fingerprint that must be round-tripped.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
 }
 
 /// A pending safety check for the computer call.
@@ -2764,10 +2871,34 @@ pub enum Arguments {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct InputItemDirectToolCallCaller {
+    /// The caller type. Always `direct`.
+    ///
+    /// The caller type. Always `program`.
+    #[serde(rename = "type")]
+    pub direct_tool_call_caller_type: DirectToolCallCallerType,
+    /// The call ID of the program item that produced this tool call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller_id: Option<String>,
+}
+
+/// The caller type. Always `direct`.
+///
+/// The caller type. Always `program`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum DirectToolCallCallerType {
+    Direct,
+    Program,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
 pub enum InputItemContent {
-    InputContentArray(Vec<ContentOutputContentList>),
+    InputContentArray(Vec<ContentInputItemContentList>),
     String(String),
 }
 
@@ -2794,7 +2925,9 @@ pub enum InputItemContent {
 /// Reasoning text from the model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct ContentOutputContentList {
+pub struct ContentInputItemContentList {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<InputItemContentListPromptCacheBreakpoint>,
     /// The text input to the model.
     ///
     /// The text output from the model.
@@ -2818,8 +2951,10 @@ pub struct ContentOutputContentList {
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
     /// `original`. Defaults to `auto`.
     ///
-    /// The detail level of the file to be sent to the model. Use `low` for the default rendering
-    /// behavior, or `high` to render the file at higher quality. Defaults to `low`.
+    /// The detail level of the file to be sent to the model. Use `auto` to let the system select
+    /// the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+    /// may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+    /// the file at higher quality. Defaults to `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<DetailEnum>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2926,8 +3061,10 @@ pub enum AnnotationTypeEnum {
 /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
 /// `original`. Defaults to `auto`.
 ///
-/// The detail level of the file to be sent to the model. Use `low` for the default rendering
-/// behavior, or `high` to render the file at higher quality. Defaults to `low`.
+/// The detail level of the file to be sent to the model. Use `auto` to let the system select
+/// the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+/// may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+/// the file at higher quality. Defaults to `auto`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
@@ -2985,6 +3122,15 @@ pub struct TopLogProbability {
     pub bytes: Vec<i64>,
     pub logprob: f64,
     pub token: String,
+}
+
+/// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
+/// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct InputItemContentListPromptCacheBreakpoint {
+    /// The breakpoint mode. Always `explicit`.
+    pub mode: PromptCacheBreakpointMode,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -3117,6 +3263,10 @@ pub enum ToolSearchExecutionType {
 /// The type of the item. Always `compaction_trigger`.
 ///
 /// The type of item to reference. Always `item_reference`.
+///
+/// The item type. Always `program`.
+///
+/// The item type. Always `program_output`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
@@ -3163,6 +3313,9 @@ pub enum InputItemType {
     #[serde(rename = "mcp_list_tools")]
     McpListTools,
     Message,
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     Reasoning,
     #[serde(rename = "shell_call")]
     ShellCall,
@@ -3241,10 +3394,6 @@ pub enum Output {
     String(String),
 }
 
-/// An array of content outputs (text, image, file) for the function tool call.
-///
-/// A piece of message content, such as text, an image, or a file.
-///
 /// A text input to the model.
 ///
 /// An image input to the model. Learn about [image inputs](/docs/guides/vision)
@@ -3253,20 +3402,12 @@ pub enum Output {
 ///
 /// Captured stdout and stderr for a portion of a shell tool call output.
 ///
-/// A list of one or many input items to the model, containing different content
-/// types.
-///
-///
-/// Text, image, or file output of the custom tool call.
-///
-///
-/// Text, image, or file output of the function call.
-///
-///
 /// An image input to the model. Learn about [image inputs](/docs/guides/vision).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct PurpleInputContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<PromptCacheBreakpoint>,
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -3278,8 +3419,10 @@ pub struct PurpleInputContent {
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_content_type: Option<InputTextType>,
-    /// The detail level of the file to be sent to the model. Use `low` for the default rendering
-    /// behavior, or `high` to render the file at higher quality. Defaults to `low`.
+    /// The detail level of the file to be sent to the model. Use `auto` to let the system select
+    /// the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+    /// may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+    /// the file at higher quality. Defaults to `auto`.
     ///
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
     /// `original`. Defaults to `auto`.
@@ -3357,6 +3500,15 @@ pub enum ShellCallOutcomeType {
     Timeout,
 }
 
+/// Marks the exact end of a reusable prompt prefix. The breakpoint inherits its TTL from the
+/// request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct PromptCacheBreakpoint {
+    /// The breakpoint mode. Always `explicit`.
+    pub mode: PromptCacheBreakpointMode,
+}
+
 /// A computer screenshot image used with the computer use tool.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
@@ -3370,7 +3522,7 @@ pub struct ComputerScreenshotImage {
     /// Specifies the event type. For a computer screenshot, this property is
     /// always set to `computer_screenshot`.
     #[serde(rename = "type")]
-    pub computer_screenshot_image_type: AmbitiousType,
+    pub computer_screenshot_image_type: ComputerScreenshotImageType,
 }
 
 /// Specifies the event type. For a computer screenshot, this property is
@@ -3378,7 +3530,7 @@ pub struct ComputerScreenshotImage {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum AmbitiousType {
+pub enum ComputerScreenshotImageType {
     #[serde(rename = "computer_screenshot")]
     ComputerScreenshot,
 }
@@ -3400,7 +3552,7 @@ pub struct CodeInterpreterOutput {
     ///
     /// The type of the output. Always `image`.
     #[serde(rename = "type")]
-    pub code_interpreter_output_type: CunningType,
+    pub code_interpreter_output_type: AmbitiousType,
     /// The URL of the image output from the code interpreter.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
@@ -3412,7 +3564,7 @@ pub struct CodeInterpreterOutput {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum CunningType {
+pub enum AmbitiousType {
     Image,
     Logs,
 }
@@ -3435,7 +3587,7 @@ pub enum MessagePhase {
 /// The results of the file search tool call.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct Result {
+pub struct ResultElement {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<HashMap<String, VectorStoreFileAttribute>>,
     /// The unique ID of the file.
@@ -3458,7 +3610,7 @@ pub struct Result {
 pub enum VectorStoreFileAttribute {
     Bool(bool),
     Double(f64),
-    String(String),
+    PurpleString(String),
 }
 
 /// The role of the message input. One of `user`, `assistant`, `system`, or
@@ -3542,7 +3694,11 @@ pub enum InputItemRole {
 /// or `failed`.
 ///
 ///
+/// The terminal status of the program output.
+///
 /// The status of the tool search output item that was recorded.
+///
+/// The terminal status of the program output item.
 ///
 /// The status of the tool search call item that was recorded.
 ///
@@ -3582,27 +3738,6 @@ pub enum SummaryType {
     SummaryText,
 }
 
-/// An array of tools the model may call while generating a response. You
-/// can specify which tool to use by setting the `tool_choice` parameter.
-///
-/// We support the following categories of tools:
-/// - **Built-in tools**: Tools that are provided by OpenAI that extend the
-/// model's capabilities, like [web search](/docs/guides/tools-web-search)
-/// or [file search](/docs/guides/tools-file-search). Learn more about
-/// [built-in tools](/docs/guides/tools).
-/// - **MCP Tools**: Integrations with third-party systems via custom MCP servers
-/// or predefined connectors such as Google Drive and SharePoint. Learn more about
-/// [MCP Tools](/docs/guides/tools-connectors-mcp).
-/// - **Function calls (custom tools)**: Functions that are defined by you,
-/// enabling the model to call your own code with strongly typed arguments
-/// and outputs. Learn more about
-/// [function calling](/docs/guides/function-calling). You can also use
-/// custom tools to call your own code.
-///
-///
-/// A tool that can be used to generate a response.
-///
-///
 /// Defines a function in your own code the model can choose to call. Learn more about
 /// [function calling](https://platform.openai.com/docs/guides/function-calling).
 ///
@@ -3646,6 +3781,8 @@ pub enum SummaryType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct InputItemTool {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<CallableToolAllowedCaller>>,
     /// Whether this function is deferred and loaded via tool search.
     ///
     /// Whether this MCP tool is deferred and discovered via tool search.
@@ -3670,6 +3807,9 @@ pub struct InputItemTool {
     pub name: Option<String>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_schema: Option<serde_json::Map<String, serde_json::Value>>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
@@ -3687,6 +3827,8 @@ pub struct InputItemTool {
     ///
     /// The type of the code interpreter tool. Always `code_interpreter`.
     ///
+    ///
+    /// The type of the tool. Always `programmatic_tool_calling`.
     ///
     /// The type of the image generation tool. Always `image_generation`.
     ///
@@ -3731,7 +3873,7 @@ pub struct InputItemTool {
     /// High level guidance for the amount of context window space to use for the search. One of
     /// `low`, `medium`, or `high`. `medium` is the default.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_context_size: Option<WebSearchContextSize>,
+    pub search_context_size: Option<SearchContextSize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_location: Option<ApproximateLocation>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3742,8 +3884,8 @@ pub struct InputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -3767,10 +3909,14 @@ pub struct InputItemTool {
     /// A label for this MCP server, used to identify it in tool calls.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_label: Option<String>,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code, along with an
     /// optional `memory_limit` setting.
@@ -3849,6 +3995,15 @@ pub enum ImageGenActionEnum {
     Generate,
 }
 
+/// The tool invocation context(s).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum CallableToolAllowedCaller {
+    Direct,
+    Programmatic,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(untagged)]
 #[ts(export_to = "openai/")]
@@ -3884,8 +4039,8 @@ pub enum Background {
 }
 
 /// Identifier for service connectors, like those available in ChatGPT. One of
-/// `server_url` or `connector_id` must be provided. Learn more about service
-/// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+/// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+/// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
 ///
 /// Currently supported `connector_id` values are:
 ///
@@ -3927,7 +4082,7 @@ pub enum ConnectorId {
 #[ts(export_to = "openai/")]
 pub enum Container {
     CodeInterpreterToolAuto(CodeInterpreterToolAuto),
-    String(String),
+    PurpleString(String),
 }
 
 /// Configuration for a code interpreter container. Optionally specify the IDs of the files
@@ -4114,14 +4269,14 @@ pub struct InlineSkillSourceParam {
     pub media_type: MediaType,
     /// The type of the inline skill source. Must be `base64`.
     #[serde(rename = "type")]
-    pub inline_skill_source_param_type: MagentaType,
+    pub inline_skill_source_param_type: CunningType,
 }
 
 /// The type of the inline skill source. Must be `base64`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum MagentaType {
+pub enum CunningType {
     Base64,
 }
 
@@ -4219,7 +4374,7 @@ pub enum ComparisonFilterType {
 pub enum ComparisonFilterValue {
     Bool(bool),
     Double(f64),
-    String(String),
+    PurpleString(String),
     UnionArray(Vec<ValueElement>),
 }
 
@@ -4228,7 +4383,7 @@ pub enum ComparisonFilterValue {
 #[ts(export_to = "openai/")]
 pub enum ValueElement {
     Double(f64),
-    String(String),
+    PurpleString(String),
 }
 
 /// The input format for the custom tool. Default is unconstrained text.
@@ -4393,6 +4548,8 @@ pub enum McpToolApprovalSetting {
 /// The type of the code interpreter tool. Always `code_interpreter`.
 ///
 ///
+/// The type of the tool. Always `programmatic_tool_calling`.
+///
 /// The type of the image generation tool. Always `image_generation`.
 ///
 ///
@@ -4431,6 +4588,8 @@ pub enum ToolType {
     LocalShell,
     Mcp,
     Namespace,
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling,
     Shell,
     #[serde(rename = "tool_search")]
     ToolSearch,
@@ -4451,6 +4610,8 @@ pub enum ToolType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct FunctionToolParam {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<CallableToolAllowedCaller>>,
     /// Whether this function should be deferred and discovered via tool search.
     ///
     /// Whether this tool should be deferred and discovered via tool search.
@@ -4461,6 +4622,9 @@ pub struct FunctionToolParam {
     pub description: Option<String>,
     /// The name of the custom tool, used to identify it in tool calls.
     pub name: String,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_schema: Option<serde_json::Map<String, serde_json::Value>>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Map<String, serde_json::Value>>,
@@ -4513,7 +4677,7 @@ pub struct Prompt {
 #[ts(export_to = "openai/")]
 pub enum PromptVariable {
     Input(Input),
-    String(String),
+    PurpleString(String),
 }
 
 /// A text input to the model.
@@ -4524,6 +4688,8 @@ pub enum PromptVariable {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct Input {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<InputItemContentListPromptCacheBreakpoint>,
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -4537,8 +4703,10 @@ pub struct Input {
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
     /// `original`. Defaults to `auto`.
     ///
-    /// The detail level of the file to be sent to the model. Use `low` for the default rendering
-    /// behavior, or `high` to render the file at higher quality. Defaults to `low`.
+    /// The detail level of the file to be sent to the model. Use `auto` to let the system select
+    /// the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+    /// may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+    /// the file at higher quality. Defaults to `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<DetailEnum>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -4564,11 +4732,36 @@ pub struct Input {
 #[ts(export_to = "openai/")]
 pub struct Reasoning {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<Context>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effort: Option<ReasoningEffort>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_summary: Option<Summary>,
+    /// Controls the reasoning execution mode for the request.
+    ///
+    /// When returned on a response, this is the effective execution mode.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Summary>,
+}
+
+/// Controls which reasoning items are rendered back to the model on later turns.
+/// If omitted or set to `auto`, the model determines the context mode. The
+/// `gpt-5.6` model family defaults to `all_turns`; earlier models default to
+/// `current_turn`.
+///
+/// When returned on a response, this is the effective reasoning context mode
+/// used for the response.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "openai/")]
+pub enum Context {
+    #[serde(rename = "all_turns")]
+    AllTurns,
+    Auto,
+    #[serde(rename = "current_turn")]
+    CurrentTurn,
 }
 
 /// **Deprecated:** use `summary` instead.
@@ -4618,7 +4811,7 @@ pub struct ResponseTextParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<TextResponseFormatConfiguration>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub verbosity: Option<WebSearchContextSize>,
+    pub verbosity: Option<SearchContextSize>,
 }
 
 /// An object specifying the format that the model must output.
@@ -4712,7 +4905,7 @@ pub struct HostedToolClass {
     ///
     /// `required` requires the model to call one or more of the allowed tools.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mode: Option<Mode>,
+    pub mode: Option<AllowedToolsMode>,
     /// A list of tool definitions that the model should be allowed to call.
     ///
     /// For the Responses API, the list of tool definitions might look like:
@@ -4746,6 +4939,8 @@ pub struct HostedToolClass {
     /// For MCP tools, the type is always `mcp`.
     ///
     /// For custom tool calling, the type is always `custom`.
+    ///
+    /// The tool to call. Always `programmatic_tool_calling`.
     ///
     /// The tool to call. Always `apply_patch`.
     ///
@@ -4783,6 +4978,8 @@ pub struct HostedToolClass {
 ///
 /// For custom tool calling, the type is always `custom`.
 ///
+/// The tool to call. Always `programmatic_tool_calling`.
+///
 /// The tool to call. Always `apply_patch`.
 ///
 /// The tool to call. Always `shell`.
@@ -4808,6 +5005,8 @@ pub enum HostedToolType {
     #[serde(rename = "image_generation")]
     ImageGeneration,
     Mcp,
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticToolCalling,
     Shell,
     #[serde(rename = "web_search_preview")]
     WebSearchPreview,
@@ -4878,6 +5077,9 @@ pub enum HostedToolType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct FunctionTool {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
     /// Whether this function is deferred and loaded via tool search.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defer_loading: Option<bool>,
@@ -4885,6 +5087,9 @@ pub struct FunctionTool {
     pub description: Option<String>,
     /// The name of the function to call.
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub output_schema: Option<serde_json::Map<String, serde_json::Value>>,
     #[ts(type = "unknown")]
     pub parameters: serde_json::Map<String, serde_json::Value>,
     pub strict: bool,
@@ -4894,6 +5099,9 @@ pub struct FunctionTool {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct CustomToolParam {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
     /// Whether this tool should be deferred and discovered via tool search.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defer_loading: Option<bool>,
@@ -4967,6 +5175,9 @@ pub struct WebSearchTool {
 pub struct MCPTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
     pub allowed_tools: Option<serde_json::Value>,
     /// An OAuth access token that can be used with a remote MCP server, either
     /// with a custom MCP server URL or a service connector. Your application
@@ -4974,8 +5185,8 @@ pub struct MCPTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -5003,22 +5214,33 @@ pub struct MCPTool {
     pub server_description: Option<String>,
     /// A label for this MCP server, used to identify it in tool calls.
     pub server_label: String,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
 }
 
 /// A tool that runs Python code to help generate a response to a prompt.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct CodeInterpreterTool {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code, along with an
     /// optional `memory_limit` setting.
     #[ts(type = "unknown")]
     pub container: serde_json::Value,
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct ProgrammaticToolCallingParam {}
 
 /// A tool that generates images using the GPT image models.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -5077,6 +5299,9 @@ pub struct LocalShellToolParam {}
 pub struct FunctionShellToolParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
     pub environment: Option<serde_json::Value>,
 }
 
@@ -5127,7 +5352,11 @@ pub struct WebSearchPreviewTool {
 /// Allows the assistant to create, delete, or update files using unified diffs.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct ApplyPatchToolParam {}
+pub struct ApplyPatchToolParam {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub allowed_callers: Option<Vec<serde_json::Value>>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type")]
@@ -5150,6 +5379,9 @@ pub enum Tool {
 
     #[serde(rename = "code_interpreter")]
     CodeInterpreter(CodeInterpreterTool),
+
+    #[serde(rename = "programmatic_tool_calling")]
+    ProgrammaticCallingParam(ProgrammaticToolCallingParam),
 
     #[serde(rename = "image_generation")]
     ImageGen(ImageGenTool),
@@ -5199,18 +5431,10 @@ pub enum Truncation {
 pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<HashMap<String, String>>,
-    /// Used by OpenAI to cache responses for similar requests to optimize your cache hit rates.
-    /// Replaces the `user` field. [Learn more](/docs/guides/prompt-caching).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt_cache_retention: Option<PromptCacheRetention>,
-    /// A stable identifier used to help detect users of your application that may be violating
-    /// OpenAI's usage policies.
-    /// The IDs should be a string that uniquely identifies each user, with a maximum length of
-    /// 64 characters. We recommend hashing their username or email address, in order to avoid
-    /// sending us any identifying information. [Learn
-    /// more](/docs/guides/safety-best-practices#safety-identifiers).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety_identifier: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5243,13 +5467,9 @@ pub struct TheResponseObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prompt: Option<Prompt>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reasoning: Option<Reasoning>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<ResponseTextParam>,
     pub tool_choice: TheResponseObjectToolChoiceParam,
     pub tools: Vec<Tool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_at: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -5283,10 +5503,16 @@ pub struct TheResponseObject {
     pub output_text: Option<String>,
     /// Whether to allow the model to run tool calls in parallel.
     pub parallel_tool_calls: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_options: Option<TheResponseObjectPromptCacheOptions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<Reasoning>,
     /// The status of the response generation. One of `completed`, `failed`,
     /// `in_progress`, `cancelled`, `queued`, or `incomplete`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<StatusEnum>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truncation: Option<Truncation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<ResponseUsage>,
 }
@@ -5314,6 +5540,10 @@ pub struct ResponseError {
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
 pub enum ResponseErrorCode {
+    #[serde(rename = "bio_policy")]
+    BioPolicy,
+    #[serde(rename = "data_residency_mismatch")]
+    DataResidencyMismatch,
     #[serde(rename = "empty_image_file")]
     EmptyImageFile,
     #[serde(rename = "failed_to_download_image")]
@@ -5416,7 +5646,7 @@ pub struct OutputClass {
     ///
     /// The object type, which was always `error` for moderation failures.
     #[serde(rename = "type")]
-    pub moderation_type: FriskyType,
+    pub moderation_type: MagentaType,
     /// The error code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
@@ -5431,7 +5661,7 @@ pub struct OutputClass {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export_to = "openai/")]
-pub enum FriskyType {
+pub enum MagentaType {
     Error,
     #[serde(rename = "moderation_result")]
     ModerationResult,
@@ -5554,6 +5784,10 @@ pub struct OutputItem {
     /// The unique identifier of the reasoning content.
     ///
     ///
+    /// The unique ID of the program item.
+    ///
+    /// The unique ID of the program output item.
+    ///
     /// The unique ID of the tool search call item.
     ///
     /// The unique ID of the tool search output item.
@@ -5628,6 +5862,8 @@ pub struct OutputItem {
     /// The status of the web search tool call.
     ///
     ///
+    /// The terminal status of the program output item.
+    ///
     /// The status of the tool search call item that was recorded.
     ///
     /// The status of the tool search output item that was recorded.
@@ -5676,6 +5912,10 @@ pub struct OutputItem {
     ///
     /// The type of the object. Always `reasoning`.
     ///
+    ///
+    /// The type of the item. Always `program`.
+    ///
+    /// The type of the item. Always `program_output`.
     ///
     /// The type of the item. Always `tool_search_call`.
     ///
@@ -5728,7 +5968,7 @@ pub struct OutputItem {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queries: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub results: Option<Vec<Result>>,
+    pub results: Option<Vec<ResultElement>>,
     /// A JSON string of the arguments to pass to the function.
     ///
     ///
@@ -5750,6 +5990,10 @@ pub struct OutputItem {
     /// The ID of the computer tool call that produced the output.
     ///
     ///
+    /// The stable call ID of the program item.
+    ///
+    /// The call ID of the program item.
+    ///
     /// The unique ID of the local shell tool call generated by the model.
     ///
     ///
@@ -5764,6 +6008,8 @@ pub struct OutputItem {
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub call_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller: Option<OutputItemDirectToolCallCaller>,
     /// The name of the function to run.
     ///
     ///
@@ -5827,6 +6073,15 @@ pub struct OutputItem {
     /// Reasoning summary content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<Vec<SummaryText>>,
+    /// The JavaScript source executed by programmatic tool calling.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    /// Opaque program replay fingerprint that must be round-tripped.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    /// The result produced by the program item.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<String>,
     /// Whether tool search was executed by the server or by the client.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution: Option<ToolSearchExecutionType>,
@@ -5837,10 +6092,6 @@ pub struct OutputItem {
     /// The tools available on the server.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tools: Option<Vec<OutputItemTool>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub code: Option<String>,
     /// The ID of the container used to run the code.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub container_id: Option<String>,
@@ -6032,6 +6283,19 @@ pub struct OutputItemAction {
     pub max_output_length: Option<i64>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct OutputItemDirectToolCallCaller {
+    /// The caller type. Always `direct`.
+    ///
+    /// The caller type. Always `program`.
+    #[serde(rename = "type")]
+    pub direct_tool_call_caller_type: DirectToolCallCallerType,
+    /// The call ID of the program item that produced this tool call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caller_id: Option<String>,
+}
+
 /// A text output from the model.
 ///
 /// A refusal from the model.
@@ -6126,7 +6390,7 @@ pub struct FluffyApplyPatchOperation {
 #[ts(export_to = "openai/")]
 pub enum OutputUnion {
     ComputerScreenshotImage(ComputerScreenshotImage),
-    FluffyInputContentArray(Vec<FluffyInputContent>),
+    FluffyInputContentArray(Vec<OutputInputItemContentList>),
     String(String),
 }
 
@@ -6149,7 +6413,9 @@ pub enum OutputUnion {
 /// The content of a shell tool call output that was emitted.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
-pub struct FluffyInputContent {
+pub struct OutputInputItemContentList {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt_cache_breakpoint: Option<InputItemContentListPromptCacheBreakpoint>,
     /// The text input to the model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
@@ -6164,8 +6430,10 @@ pub struct FluffyInputContent {
     /// The detail level of the image to be sent to the model. One of `high`, `low`, `auto`, or
     /// `original`. Defaults to `auto`.
     ///
-    /// The detail level of the file to be sent to the model. Use `low` for the default rendering
-    /// behavior, or `high` to render the file at higher quality. Defaults to `low`.
+    /// The detail level of the file to be sent to the model. Use `auto` to let the system select
+    /// the detail level; for GPT-5.6 and later models, `auto` uses high-quality rendering, which
+    /// may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
+    /// the file at higher quality. Defaults to `auto`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<DetailEnum>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -6237,6 +6505,10 @@ pub struct FluffyShellCallOutcome {
 ///
 /// The type of the object. Always `reasoning`.
 ///
+///
+/// The type of the item. Always `program`.
+///
+/// The type of the item. Always `program_output`.
 ///
 /// The type of the item. Always `tool_search_call`.
 ///
@@ -6324,6 +6596,9 @@ pub enum OutputItemType {
     #[serde(rename = "mcp_list_tools")]
     McpListTools,
     Message,
+    Program,
+    #[serde(rename = "program_output")]
+    ProgramOutput,
     Reasoning,
     #[serde(rename = "shell_call")]
     ShellCall,
@@ -6419,6 +6694,8 @@ pub enum RoleEnum {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct OutputItemTool {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_callers: Option<Vec<CallableToolAllowedCaller>>,
     /// Whether this function is deferred and loaded via tool search.
     ///
     /// Whether this MCP tool is deferred and discovered via tool search.
@@ -6443,6 +6720,9 @@ pub struct OutputItemTool {
     pub name: Option<String>,
     #[ts(type = "unknown")]
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub output_schema: Option<serde_json::Map<String, serde_json::Value>>,
+    #[ts(type = "unknown")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Map<String, serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
@@ -6460,6 +6740,8 @@ pub struct OutputItemTool {
     ///
     /// The type of the code interpreter tool. Always `code_interpreter`.
     ///
+    ///
+    /// The type of the tool. Always `programmatic_tool_calling`.
     ///
     /// The type of the image generation tool. Always `image_generation`.
     ///
@@ -6504,7 +6786,7 @@ pub struct OutputItemTool {
     /// High level guidance for the amount of context window space to use for the search. One of
     /// `low`, `medium`, or `high`. `medium` is the default.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub search_context_size: Option<WebSearchContextSize>,
+    pub search_context_size: Option<SearchContextSize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_location: Option<ApproximateLocation>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -6515,8 +6797,8 @@ pub struct OutputItemTool {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub authorization: Option<String>,
     /// Identifier for service connectors, like those available in ChatGPT. One of
-    /// `server_url` or `connector_id` must be provided. Learn more about service
-    /// connectors [here](/docs/guides/tools-remote-mcp#connectors).
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    /// about service connectors [here](/docs/guides/tools-remote-mcp#connectors).
     ///
     /// Currently supported `connector_id` values are:
     ///
@@ -6540,10 +6822,14 @@ pub struct OutputItemTool {
     /// A label for this MCP server, used to identify it in tool calls.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_label: Option<String>,
-    /// The URL for the MCP server. One of `server_url` or `connector_id` must be
-    /// provided.
+    /// The URL for the MCP server. One of `server_url`, `connector_id`, or
+    /// `tunnel_id` must be provided.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub server_url: Option<String>,
+    /// The Secure MCP Tunnel ID to use instead of a direct server URL. One of
+    /// `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tunnel_id: Option<String>,
     /// The code interpreter container. Can be a container ID or an object that
     /// specifies uploaded file IDs to make available to your code, along with an
     /// optional `memory_limit` setting.
@@ -6612,6 +6898,17 @@ pub struct OutputItemTool {
     pub input_schema: Option<serde_json::Map<String, serde_json::Value>>,
 }
 
+/// The prompt-caching options that were applied to the response. Supported for `gpt-5.6` and
+/// later models.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "openai/")]
+pub struct TheResponseObjectPromptCacheOptions {
+    /// Whether implicit prompt-cache breakpoints were enabled.
+    pub mode: PromptCacheModeEnum,
+    /// The minimum lifetime applied to each cache breakpoint.
+    pub ttl: PromptCacheTtlEnum,
+}
+
 /// The status of the response generation. One of `completed`, `failed`,
 /// `in_progress`, `cancelled`, `queued`, or `incomplete`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -6659,6 +6956,9 @@ pub struct ResponseUsage {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "openai/")]
 pub struct InputTokensDetails {
+    /// The number of input tokens that were written to the cache.
+    #[serde(default)]
+    pub cache_write_tokens: i64,
     /// The number of tokens that were retrieved from the cache.
     /// [More on prompt caching](/docs/guides/prompt-caching).
     pub cached_tokens: i64,
@@ -6673,7 +6973,12 @@ pub struct OutputTokensDetails {
 }
 
 // Compatibility aliases for names used by Lingua's hand-written adapters.
+pub type ChatCompletionRequestMessageContentPart = PurpleContentPart;
+pub type ContentPart = FluffyContentPart;
+pub type InputItemListResult = ResultElement;
+pub type OutputResult = ResultElement;
+pub type WebSearchContextSize = SearchContextSize;
 pub type Instructions = InputParam;
-pub type InputContent = ContentOutputContentList;
+pub type InputContent = ContentInputItemContentList;
 pub type InputItemContentListType = HilariousType;
 pub type FunctionCallItemStatus = Status;

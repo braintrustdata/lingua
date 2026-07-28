@@ -316,6 +316,8 @@ impl TryFromLLM<GoogleContent> for Message {
                                 arguments: ToolCallArguments::from(args_string),
                                 encrypted_content,
                                 provider_options: None,
+                                status: None,
+                                caller: None,
                                 provider_executed: None,
                             });
                         }
@@ -410,6 +412,8 @@ impl TryFromLLM<GoogleContent> for Message {
                                 tool_call_id,
                                 tool_name: tool_name.clone(),
                                 output,
+                                custom_tool_call: None,
+                                caller: None,
                                 provider_options: None,
                             }));
                         }
@@ -598,7 +602,8 @@ impl TryFromLLM<Message> for GoogleContent {
                                 } => {
                                     let value = match arguments {
                                         ToolCallArguments::Valid(map) => Some(Value::Object(map)),
-                                        ToolCallArguments::Invalid(s) => {
+                                        ToolCallArguments::Invalid(s)
+                                        | ToolCallArguments::Custom(s) => {
                                             serde_json::from_str(&s).ok()
                                         }
                                     };
@@ -678,6 +683,12 @@ impl TryFromLLM<Message> for GoogleContent {
                     })
                     .collect::<Result<Vec<_>, ConvertError>>()?;
                 ("user".to_string(), parts)
+            }
+            Message::AdditionalTools { .. } => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Message::AdditionalTools".to_string(),
+                    to: "Google Content",
+                });
             }
         };
 
@@ -870,6 +881,20 @@ impl TryFrom<&UniversalTool> for FunctionDeclaration {
     fn try_from(tool: &UniversalTool) -> Result<Self, Self::Error> {
         match &tool.tool_type {
             UniversalToolType::Function => {
+                if tool.allowed_callers.is_some() {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: tool.name.clone(),
+                        tool_type: "allowed_callers".to_string(),
+                        target_provider: ProviderFormat::Google,
+                    });
+                }
+                if tool.output_schema.is_some() {
+                    return Err(ConvertError::UnsupportedToolType {
+                        tool_name: tool.name.clone(),
+                        tool_type: "output_schema".to_string(),
+                        target_provider: ProviderFormat::Google,
+                    });
+                }
                 // Strip JSON Schema keywords unsupported by Google's Schema proto (e.g.
                 // `exclusiveMinimum`) before embedding the schema in the declaration.
                 let parameters_json_schema = tool.parameters.clone().map(|mut p| {
@@ -1529,6 +1554,8 @@ mod tests {
                 arguments: ToolCallArguments::from(r#"{"location":"SF"}"#.to_string()),
                 encrypted_content: None,
                 provider_options: None,
+                status: None,
+                caller: None,
                 provider_executed: None,
             }]),
             id: None,
@@ -1681,6 +1708,41 @@ mod tests {
         assert_eq!(decl.name, Some("get_weather".to_string()));
         assert_eq!(decl.description, Some("Get weather info".to_string()));
         assert!(decl.parameters_json_schema.is_some());
+    }
+
+    #[test]
+    fn test_function_declaration_rejects_responses_tool_metadata() {
+        let mut tool = UniversalTool::function(
+            "get_inventory",
+            Some("Get inventory".to_string()),
+            Some(json!({"type": "object", "properties": {}})),
+            None,
+        );
+        tool.allowed_callers = Some(vec![
+            crate::universal::tools::UniversalToolCaller::Programmatic,
+        ]);
+
+        let err = FunctionDeclaration::try_from(&tool).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::Google,
+                ..
+            } if tool_type == "allowed_callers"
+        ));
+
+        tool.allowed_callers = None;
+        tool.output_schema = Some(json!({"type": "object"}));
+        let err = FunctionDeclaration::try_from(&tool).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedToolType {
+                tool_type,
+                target_provider: ProviderFormat::Google,
+                ..
+            } if tool_type == "output_schema"
+        ));
     }
 
     #[test]
@@ -2044,5 +2106,158 @@ mod tests {
         let reason = GoogleFinishReason::Escalation;
         let universal: FinishReason = FinishReason::from(&reason);
         assert_eq!(universal, FinishReason::ContentFilter);
+    }
+
+    // --- Regression tests for the regenerated google provider types ---
+    //
+    // These guard the wire format of enum variants that quicktype renamed to avoid
+    // Rust prelude collisions, and confirm newly added spec variants/fields survive a
+    // serde round trip into and out of the generated types.
+
+    use crate::providers::google::generated::{
+        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+    };
+
+    #[test]
+    fn test_schema_type_string_wire_format_and_lowercase_alias() {
+        // The existing public `String` variant must still serialize as "STRING".
+        assert_eq!(serde_json::to_string(&Type::String).unwrap(), "\"STRING\"");
+        // Google's uppercase form and the JSON Schema lowercase alias both deserialize.
+        assert_eq!(
+            serde_json::from_str::<Type>("\"STRING\"").unwrap(),
+            Type::String
+        );
+        assert_eq!(
+            serde_json::from_str::<Type>("\"string\"").unwrap(),
+            Type::String
+        );
+        // The composite unspecified variant never had a lowercase alias.
+        assert_eq!(
+            serde_json::to_string(&Type::TypeUnspecified).unwrap(),
+            "\"TYPE_UNSPECIFIED\""
+        );
+        assert!(serde_json::from_str::<Type>("\"type_unspecified\"").is_err());
+    }
+
+    #[test]
+    fn test_function_calling_config_mode_none_wire_format() {
+        // The existing public `None` variant must still serialize/deserialize as "NONE".
+        assert_eq!(
+            serde_json::to_string(&FunctionCallingConfigMode::None).unwrap(),
+            "\"NONE\""
+        );
+        assert_eq!(
+            serde_json::from_str::<FunctionCallingConfigMode>("\"NONE\"").unwrap(),
+            FunctionCallingConfigMode::None
+        );
+        // The other spec modes remain accepted, including the newer VALIDATED.
+        for (wire, mode) in [
+            ("\"AUTO\"", FunctionCallingConfigMode::Auto),
+            ("\"ANY\"", FunctionCallingConfigMode::Any),
+            ("\"VALIDATED\"", FunctionCallingConfigMode::Validated),
+            (
+                "\"MODE_UNSPECIFIED\"",
+                FunctionCallingConfigMode::ModeUnspecified,
+            ),
+        ] {
+            assert_eq!(
+                serde_json::from_str::<FunctionCallingConfigMode>(wire).unwrap(),
+                mode
+            );
+        }
+    }
+
+    #[test]
+    fn test_new_harm_category_jailbreak_round_trips() {
+        assert_eq!(
+            serde_json::to_string(&Category::HarmCategoryJailbreak).unwrap(),
+            "\"HARM_CATEGORY_JAILBREAK\""
+        );
+        assert_eq!(
+            serde_json::from_str::<Category>("\"HARM_CATEGORY_JAILBREAK\"").unwrap(),
+            Category::HarmCategoryJailbreak
+        );
+    }
+
+    #[test]
+    fn test_new_environment_variants_round_trip() {
+        for (wire, env) in [
+            ("\"ENVIRONMENT_DESKTOP\"", Environment::EnvironmentDesktop),
+            ("\"ENVIRONMENT_MOBILE\"", Environment::EnvironmentMobile),
+        ] {
+            assert_eq!(serde_json::to_string(&env).unwrap(), wire);
+            assert_eq!(serde_json::from_str::<Environment>(wire).unwrap(), env);
+        }
+    }
+
+    #[test]
+    fn test_disabled_safety_policy_values_round_trip() {
+        for (wire, policy) in [
+            (
+                "\"ACCOUNT_CREATION\"",
+                DisabledSafetyPolicy::AccountCreation,
+            ),
+            (
+                "\"SENSITIVE_DATA_MODIFICATION\"",
+                DisabledSafetyPolicy::SensitiveDataModification,
+            ),
+            (
+                "\"LEGAL_TERMS_AND_AGREEMENTS\"",
+                DisabledSafetyPolicy::LegalTermsAndAgreements,
+            ),
+            (
+                "\"SAFETY_POLICY_UNSPECIFIED\"",
+                DisabledSafetyPolicy::SafetyPolicyUnspecified,
+            ),
+        ] {
+            assert_eq!(serde_json::to_string(&policy).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_str::<DisabledSafetyPolicy>(wire).unwrap(),
+                policy
+            );
+        }
+    }
+
+    #[test]
+    fn test_computer_use_new_fields_round_trip() {
+        // A provider payload exercising the newly added ComputerUse fields must
+        // deserialize into the generated type and re-serialize with the expected
+        // camelCase keys.
+        let payload = json!({
+            "environment": "ENVIRONMENT_DESKTOP",
+            "enablePromptInjectionDetection": true,
+            "disabledSafetyPolicies": ["ACCOUNT_CREATION", "DATA_MODIFICATION"]
+        });
+        let parsed: ComputerUse = serde_json::from_value(payload).unwrap();
+        assert_eq!(parsed.environment, Some(Environment::EnvironmentDesktop));
+        assert_eq!(parsed.enable_prompt_injection_detection, Some(true));
+        assert_eq!(
+            parsed.disabled_safety_policies,
+            Some(vec![
+                DisabledSafetyPolicy::AccountCreation,
+                DisabledSafetyPolicy::DataModification,
+            ])
+        );
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(reserialized["enablePromptInjectionDetection"], json!(true));
+        assert_eq!(
+            reserialized["disabledSafetyPolicies"],
+            json!(["ACCOUNT_CREATION", "DATA_MODIFICATION"])
+        );
+    }
+
+    #[test]
+    fn test_generation_config_enable_affective_dialog_round_trips() {
+        let config = GenerationConfig {
+            enable_affective_dialog: Some(true),
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["enableAffectiveDialog"], json!(true));
+
+        let parsed: GenerationConfig =
+            serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
+        assert_eq!(parsed.enable_affective_dialog, Some(true));
     }
 }
