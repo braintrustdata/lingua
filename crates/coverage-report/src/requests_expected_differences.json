@@ -1093,6 +1093,14 @@
       "errors": [
         { "pattern": "InputItemType::AdditionalTools", "reason": "Responses additional_tools is a mid-conversation tool definition item with no universal representation" }
       ]
+    },
+    {
+      "testCase": "geminiMigrationTrailingModelTurnParam",
+      "source": "Google",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Coverage-report exercises the transform layer directly (request_to_universal -> request_from_universal), not the gateway's google->google passthrough. For Gemini 3.x the transform folds a trailing model turn into the preceding user turn (2 messages -> 1); production native google->google is passthrough and unaffected" }
+      ]
     }
   ]
 }
