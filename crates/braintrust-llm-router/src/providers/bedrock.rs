@@ -958,7 +958,10 @@ mod tests {
         };
         let provider = BedrockProvider::new(config).unwrap();
         let url = provider.responses_url("openai.gpt-5.6-sol").unwrap();
-        assert_eq!(url.as_str(), "https://my-proxy.example.com/openai/v1/responses");
+        assert_eq!(
+            url.as_str(),
+            "https://my-proxy.example.com/openai/v1/responses"
+        );
     }
 
     #[test]
