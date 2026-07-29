@@ -65,23 +65,17 @@ pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bo
 
 // Some Bedrock models are served only on the `bedrock-mantle` host, not
 // `bedrock-runtime`: xAI/Grok (`xai.`), Google Gemma 4 (`google.gemma-4`), and the
-// OpenAI frontier GPT family (`openai.gpt-5.4`, `openai.gpt-5.6-sol`, ...). Gemma 3
-// is excluded on purpose — it is served on `bedrock-runtime` and uses a different
-// mantle OpenAI path (`/v1` rather than `/openai/v1`).
+// OpenAI frontier GPT family (`openai.gpt-<version>`). Gemma 3 is excluded on
+// purpose — it is served on `bedrock-runtime` and uses a different mantle OpenAI
+// path (`/v1` rather than `/openai/v1`).
 fn is_bedrock_mantle_only_model(model: &str) -> bool {
     model.starts_with("xai.")
         || model.starts_with("google.gemma-4")
         || is_bedrock_mantle_only_openai_model(model)
 }
 
-// Bedrock serves the OpenAI frontier GPT family (versioned `openai.gpt-<n>` ids
-// such as `openai.gpt-5.4`, `openai.gpt-5.5`, `openai.gpt-5.6-sol`) only on the
-// `bedrock-mantle` host's `openai/v1/*` surface — Responses on `openai/v1/responses`,
-// never `bedrock-runtime` (see the AWS model cards). The `openai.gpt-oss-*` models
-// are open-weight and served via Bedrock's native Converse API on `bedrock-runtime`
-// instead; they have a non-numeric id after `gpt-`, so they are excluded. Matching
-// on the numeric version prefix also routes future releases (`openai.gpt-5.7`,
-// `openai.gpt-6`, ...) to mantle automatically.
+// The versioned `openai.gpt-<n>` family is mantle-only; the open-weight
+// `openai.gpt-oss-*` models (non-numeric id after `gpt-`) stay on bedrock-runtime.
 fn is_bedrock_mantle_only_openai_model(model: &str) -> bool {
     model
         .strip_prefix("openai.")
@@ -387,16 +381,13 @@ impl BedrockProvider {
     }
 
     fn responses_url(&self, model: &str) -> Result<Url> {
-        // On the AWS-managed `bedrock-runtime` host, the OpenAI Responses API is
-        // served on the sibling `bedrock-mantle` host under `openai/v1/responses`.
+        // The AWS-managed `bedrock-runtime` host serves the Responses API on the
+        // sibling `bedrock-mantle` host; a custom api_base is honored as-is.
         if self.is_aws_managed_endpoint() {
             return self.mantle_openai_url("responses");
         }
 
-        // A custom api_base is honored as-is — never overridden. Mantle-only models
-        // (the OpenAI frontier GPT family, xAI, Gemma 4) require the `openai/v1`
-        // prefix on the responses path; other models use a plain `v1/responses`.
-        // A proxy/PrivateLink base is responsible for forwarding to `bedrock-mantle`.
+        // Mantle-only models need the `openai/v1` prefix; other models use `v1`.
         let mut url = self.config.endpoint.clone();
         let needs_openai_segment = is_bedrock_mantle_only_model(model);
         let has_openai = url
@@ -892,8 +883,6 @@ mod tests {
     #[test]
     fn responses_url_uses_bedrock_mantle_host_for_aws_runtime() {
         let provider = provider();
-        // A model that is not itself mantle-only still resolves to the mantle host
-        // when the endpoint is AWS-managed.
         let url = provider.responses_url("custom-responses-model").unwrap();
         assert_eq!(
             url.as_str(),
@@ -932,11 +921,6 @@ mod tests {
 
     #[test]
     fn responses_url_uses_openai_prefix_for_frontier_gpt_family_on_custom_endpoint() {
-        // The frontier OpenAI GPT family needs the `openai/v1/responses` path (the
-        // plain `v1/responses` path is rejected). On a custom api_base the configured
-        // host MUST be preserved (a proxy/PrivateLink base forwards to bedrock-mantle);
-        // we only add the `openai/v1` prefix, never override the host. gpt-5.4/5.5/5.6
-        // and future releases must all get the same path.
         let config = BedrockConfig {
             endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
             service: "bedrock".to_string(),
@@ -996,7 +980,6 @@ mod tests {
             );
         }
         for model in [
-            // gpt-oss models are served via the native Converse API on bedrock-runtime.
             "openai.gpt-oss-120b",
             "openai.gpt-oss-safeguard-120b",
             "google.gemma-3-27b-it",

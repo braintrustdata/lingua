@@ -2635,11 +2635,6 @@ mod tests {
 
     #[test]
     fn bedrock_frontier_gpt_family_resolves_to_responses_via_real_provider() {
-        // End-to-end through the real BedrockProvider (whose provider_formats include
-        // Responses): the frontier GPT family is catalogued as flavor=chat/format=openai
-        // (ChatCompletions) yet must resolve to the Responses format so the transport
-        // uses `responses_url` (the mantle `openai/v1/responses` path). 5.4/5.5/5.6 must
-        // all behave identically.
         let bedrock_spec = |model: &str| ModelSpec {
             model: model.to_string(),
             format: ProviderFormat::ChatCompletions,
@@ -2660,8 +2655,6 @@ mod tests {
         for model in ["openai.gpt-5.4", "openai.gpt-5.5", "openai.gpt-5.6-sol"] {
             let mut catalog = ModelCatalog::empty();
             catalog.insert(model.into(), bedrock_spec(model));
-            // A custom api_base (not `bedrock-runtime.*.amazonaws.com`) with an explicit
-            // region — the "same provider" case the report describes.
             let bedrock = BedrockProvider::new(crate::providers::BedrockConfig {
                 endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
                 service: "bedrock".to_string(),
