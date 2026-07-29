@@ -388,27 +388,29 @@ impl BedrockProvider {
         }
 
         // Mantle-only models need the `openai/v1` prefix; other models use `v1`.
+        // `openai` must precede `v1`, even when the base already ends in `/v1`.
         let mut url = self.config.endpoint.clone();
-        let needs_openai_segment = is_bedrock_mantle_only_model(model);
-        let has_openai = url
+        let mut segments: Vec<String> = url
             .path_segments()
-            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "openai"));
-        let has_v1 = url
-            .path_segments()
-            .is_some_and(|segments| segments.into_iter().any(|segment| segment == "v1"));
-        {
-            let mut segments = url
-                .path_segments_mut()
-                .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?;
-            segments.pop_if_empty();
-            if needs_openai_segment && !has_openai {
-                segments.push("openai");
+            .into_iter()
+            .flatten()
+            .filter(|segment| !segment.is_empty())
+            .map(str::to_string)
+            .collect();
+        if is_bedrock_mantle_only_model(model) && !segments.iter().any(|s| s == "openai") {
+            match segments.iter().position(|s| s == "v1") {
+                Some(idx) => segments.insert(idx, "openai".to_string()),
+                None => segments.push("openai".to_string()),
             }
-            if !has_v1 {
-                segments.push("v1");
-            }
-            segments.push("responses");
         }
+        if !segments.iter().any(|s| s == "v1") {
+            segments.push("v1".to_string());
+        }
+        segments.push("responses".to_string());
+        url.path_segments_mut()
+            .map_err(|_| Error::InvalidRequest("endpoint must be absolute".into()))?
+            .clear()
+            .extend(&segments);
         Ok(url)
     }
 
@@ -962,6 +964,24 @@ mod tests {
             url.as_str(),
             "https://my-proxy.example.com/openai/v1/responses"
         );
+    }
+
+    #[test]
+    fn responses_url_inserts_openai_before_existing_v1_on_custom_endpoint() {
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://my-proxy.example.com/v1").unwrap(),
+            service: "bedrock".to_string(),
+            region: None,
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        let url = provider.responses_url("openai.gpt-5.6-sol").unwrap();
+        assert_eq!(
+            url.as_str(),
+            "https://my-proxy.example.com/openai/v1/responses"
+        );
+        let other = provider.responses_url("custom-responses-model").unwrap();
+        assert_eq!(other.as_str(), "https://my-proxy.example.com/v1/responses");
     }
 
     #[test]
