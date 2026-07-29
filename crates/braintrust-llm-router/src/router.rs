@@ -2634,6 +2634,69 @@ mod tests {
     }
 
     #[test]
+    fn bedrock_frontier_gpt_family_resolves_to_responses_via_real_provider() {
+        // End-to-end through the real BedrockProvider (whose provider_formats include
+        // Responses): the frontier GPT family is catalogued as flavor=chat/format=openai
+        // (ChatCompletions) yet must resolve to the Responses format so the transport
+        // uses `responses_url` (the mantle `openai/v1/responses` path). 5.4/5.5/5.6 must
+        // all behave identically.
+        let bedrock_spec = |model: &str| ModelSpec {
+            model: model.to_string(),
+            format: ProviderFormat::ChatCompletions,
+            flavor: ModelFlavor::Chat,
+            display_name: None,
+            parent: None,
+            input_cost_per_mil_tokens: None,
+            output_cost_per_mil_tokens: None,
+            input_cache_read_cost_per_mil_tokens: None,
+            multimodal: None,
+            reasoning: None,
+            max_input_tokens: None,
+            max_output_tokens: None,
+            supports_streaming: true,
+            extra: Default::default(),
+            available_providers: vec!["bedrock".into()],
+        };
+        for model in ["openai.gpt-5.4", "openai.gpt-5.5", "openai.gpt-5.6-sol"] {
+            let mut catalog = ModelCatalog::empty();
+            catalog.insert(model.into(), bedrock_spec(model));
+            // A custom api_base (not `bedrock-runtime.*.amazonaws.com`) with an explicit
+            // region — the "same provider" case the report describes.
+            let bedrock = BedrockProvider::new(crate::providers::BedrockConfig {
+                endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
+                service: "bedrock".to_string(),
+                region: Some("us-east-1".to_string()),
+                timeout: None,
+            })
+            .expect("bedrock provider builds");
+            let router = Router::builder()
+                .with_catalog(Arc::new(catalog))
+                .add_provider(
+                    "bedrock",
+                    bedrock,
+                    dummy_auth(),
+                    vec![
+                        ProviderFormat::Converse,
+                        ProviderFormat::BedrockAnthropic,
+                        ProviderFormat::Responses,
+                    ],
+                )
+                .build()
+                .expect("router builds");
+
+            let routes = router
+                .resolve_provider_routes(model, ProviderFormat::ChatCompletions, &[])
+                .expect("resolves");
+            assert_eq!(routes.len(), 1, "{model}");
+            assert_eq!(
+                routes[0].format,
+                ProviderFormat::Responses,
+                "{model} must resolve to Responses so it uses the mantle responses path"
+            );
+        }
+    }
+
+    #[test]
     fn non_responses_model_keeps_chat_completions_format() {
         let model = "gpt-5-mini";
         let mut catalog = ModelCatalog::empty();
