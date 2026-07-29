@@ -100,7 +100,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
           npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
-          pnpm install --filter @lingua/quicktype-toolchain --frozen-lockfile
+          pnpm install \
+            --filter @lingua/quicktype-toolchain \
+            --filter @braintrust/payload-capture... \
+            --frozen-lockfile
 
       - name: Create Braintrust workflow trace
         id: braintrust_trace
@@ -192,7 +195,7 @@ jobs:
               }
             }
           claude_args: |
-            --model claude-opus-4-8
+            --model claude-opus-5
             --max-turns 80
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
@@ -241,8 +244,8 @@ jobs:
           echo "Changes detected:"
           git status --short
 
-      - name: Snapshot Braintrust trace for integration review
-        id: integration_review_task_trace
+      - name: Snapshot Braintrust trace for integration planning
+        id: integration_plan_task_trace
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         env:
@@ -251,7 +254,7 @@ jobs:
           BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
           BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
           PROVIDER: ${{ matrix.provider }}
-          TRACE_PHASE: review generated provider integration
+          TRACE_PHASE: plan generated provider integration
         run: |
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
@@ -268,9 +271,94 @@ jobs:
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs load-action-messages
 
-      - name: Review generated provider integration
-        id: integration_review
+      - name: Plan generated provider integration
+        id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        timeout-minutes: 20
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
+        with:
+          anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
+          github_token: ${{ github.token }}
+          display_report: "true"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
+                "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.integration_plan_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.integration_plan_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.integration_plan_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "PROVIDER_UPDATE_PLAN_PATH": "${{ runner.temp }}/provider-type-update-plan.json",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 40
+            --add-dir "${{ runner.temp }}"
+            --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
+            --allowedTools "Agent(provider-spec-auditor),Agent(provider-capability-auditor),Agent(provider-semantic-auditor),Agent(provider-coverage-auditor),Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
+            --disallowedTools "Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            This is the planning-only phase for provider `${{ matrix.provider }}`.
+            Invoke the `provider-type-update` skill and follow its planning phase.
+            Use all four provider audit subagents in parallel, then reconcile their reports yourself.
+            Treat the centrally managed task below as context, but do not perform its edits in this phase:
+
+            ${{ steps.review_messages.outputs.user_message }}
+
+            Do not modify any tracked file. Read
+            `.github/scripts/provider-type-update-plan.mjs` and its tests for the
+            exact schema. Write only the final JSON plan to
+            `$PROVIDER_UPDATE_PLAN_PATH`. The plan must inventory the complete
+            specification diff, not only compilation failures or generated Rust.
+
+      - name: Validate integration plan
+        id: plan_validation
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          plan_path="$RUNNER_TEMP/provider-type-update-plan.json"
+          node .github/scripts/provider-type-update-plan.mjs validate "$plan_path" "${{ matrix.provider }}"
+          echo "digest=$(sha256sum "$plan_path" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Stage validated plan for implementation
+        id: stage_plan
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.plan_validation.outcome == 'success'
+        continue-on-error: true
+        run: cp "$RUNNER_TEMP/provider-type-update-plan.json" plan.md
+
+      - name: Snapshot Braintrust trace for implementation
+        id: integration_implementation_task_trace
+        if: steps.stage_plan.outcome == 'success'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: implement generated provider integration
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
+
+      - name: Implement generated provider integration
+        id: integration_implementation
+        if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
@@ -290,23 +378,52 @@ jobs:
                 "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
                 "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
                 "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "TRACE_TO_BRAINTRUST": "${{ (steps.integration_review_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.integration_implementation_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
                 "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
                 "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
-                "CC_PARENT_SPAN_ID": "${{ steps.integration_review_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
-                "CC_ROOT_SPAN_ID": "${{ steps.integration_review_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.integration_implementation_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.integration_implementation_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
                 "BRAINTRUST_DEBUG": "false"
               }
             }
           claude_args: |
-            --model claude-opus-4-8
-            --max-turns 100
-            --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
-            --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
-          prompt: ${{ steps.review_messages.outputs.user_message }}
+            --model claude-opus-5
+            --max-turns 70
+            --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo fmt:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
+            --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            This is the implementation phase for provider `${{ matrix.provider }}`.
+            Invoke the `provider-type-update` skill and follow its implementation
+            phase. Read and implement the validated plan in `plan.md`.
 
-      - name: Regenerate TypeScript types after integration review
-        id: post_review_ts_types
+            The centrally managed task context is:
+
+            ${{ steps.review_messages.outputs.user_message }}
+
+            Implement every unblocked plan item, including focused tests and
+            payload cases. Do not edit `plan.md`, any `generated.rs` file, or call
+            a live provider API. Leave the completed changes uncommitted.
+
+      - name: Remove staged implementation plan
+        if: always() && steps.stage_plan.outcome == 'success'
+        run: rm -f plan.md
+
+      - name: Revalidate immutable integration plan
+        id: post_implementation_plan
+        if: steps.stage_plan.outcome == 'success'
+        continue-on-error: true
+        env:
+          EXPECTED_PLAN_DIGEST: ${{ steps.plan_validation.outputs.digest }}
+        run: |
+          set -euo pipefail
+          plan_path="$RUNNER_TEMP/provider-type-update-plan.json"
+          node .github/scripts/provider-type-update-plan.mjs validate "$plan_path" "${{ matrix.provider }}"
+          actual_digest=$(sha256sum "$plan_path" | awk '{print $1}')
+          test "$actual_digest" = "$EXPECTED_PLAN_DIGEST"
+
+      - name: Regenerate TypeScript types after implementation
+        id: post_implementation_ts_types
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         run: make generate-types
@@ -316,6 +433,73 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         run: cargo fmt --all
+
+      - name: Run focused provider tests
+        id: provider_tests
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: cargo test -p lingua "${{ matrix.provider }}"
+
+      - name: Build Lingua WASM for payload validation
+        id: lingua_wasm
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make lingua-wasm
+
+      - name: Extract planned live capture cases
+        id: capture_cases
+        if: steps.post_implementation_plan.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cases=$(node .github/scripts/provider-type-update-plan.mjs capture-cases \
+            "$RUNNER_TEMP/provider-type-update-plan.json" "${{ matrix.provider }}")
+          echo "cases=$cases" >> "$GITHUB_OUTPUT"
+
+      - name: Live capture OpenAI cases
+        id: live_capture_openai
+        if: >-
+          matrix.provider == 'openai' &&
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != ''
+        continue-on-error: true
+        env:
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+          OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
+        run: pnpm --dir payloads capture --force --snapshots-only --providers chat-completions,responses --cases "$CAPTURE_CASES"
+
+      - name: Live capture Anthropic cases
+        id: live_capture_anthropic
+        if: >-
+          matrix.provider == 'anthropic' &&
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != ''
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.LINGUA_CAPTURE_ANTHROPIC_API_KEY }}
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+        run: pnpm --dir payloads capture --force --snapshots-only --providers anthropic --cases "$CAPTURE_CASES"
+
+      - name: Live capture Google cases
+        id: live_capture_google
+        if: >-
+          matrix.provider == 'google' &&
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != ''
+        continue-on-error: true
+        env:
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+          GOOGLE_API_KEY: ${{ secrets.LINGUA_CAPTURE_GOOGLE_API_KEY }}
+        run: pnpm --dir payloads capture --force --snapshots-only --providers google --cases "$CAPTURE_CASES"
+
+      - name: Run payload transform checks
+        id: payload_tests
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make test-payloads
 
       - name: Validate build
         id: build
@@ -342,6 +526,101 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         run: cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
+
+      - name: Snapshot Braintrust trace for verification
+        id: integration_verification_task_trace
+        if: steps.integration_implementation.outcome == 'success'
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: verify generated provider integration
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
+
+      - name: Verify generated provider integration
+        id: integration_verification
+        if: steps.integration_implementation.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        env:
+          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
+        with:
+          anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
+          github_token: ${{ github.token }}
+          display_report: "true"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
+                "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.integration_verification_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.integration_verification_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.integration_verification_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "PROVIDER_UPDATE_PLAN_PATH": "${{ runner.temp }}/provider-type-update-plan.json",
+                "PROVIDER_UPDATE_VERIFICATION_PATH": "${{ runner.temp }}/provider-type-update-verification.json",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 30
+            --add-dir "${{ runner.temp }}"
+            --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*)"
+            --disallowedTools "Agent,Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            This is the read-only verification phase for provider `${{ matrix.provider }}`.
+            Invoke the `provider-type-update` skill and follow its verification
+            phase. Read `$PROVIDER_UPDATE_PLAN_PATH`, inspect the complete final
+            diff, and do not modify any tracked file.
+
+            Validation outcomes:
+            - focused provider tests: `${{ steps.provider_tests.outcome }}`
+            - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
+            - live capture: openai `${{ steps.live_capture_openai.outcome }}`, anthropic `${{ steps.live_capture_anthropic.outcome }}`, google `${{ steps.live_capture_google.outcome }}`
+            - payload tests: `${{ steps.payload_tests.outcome }}`
+            - build: `${{ steps.build.outcome }}`
+            - clippy: `${{ steps.clippy.outcome }}`
+            - typed boundary: `${{ steps.typed_boundary.outcome }}`
+            - cross-provider guard: `${{ steps.cross_provider.outcome }}`
+
+            Read `.github/scripts/provider-type-update-plan.mjs` for the exact
+            verification schema. Write only the JSON report to
+            `$PROVIDER_UPDATE_VERIFICATION_PATH`. A failed or skipped required
+            validation is a blocking finding.
+
+      - name: Validate integration verification report
+        id: verification_report
+        if: steps.integration_implementation.outcome == 'success'
+        continue-on-error: true
+        run: |
+          node .github/scripts/provider-type-update-plan.mjs verify \
+            "$RUNNER_TEMP/provider-type-update-verification.json" \
+            "${{ matrix.provider }}"
+
+      - name: Upload integration plan and verification
+        if: always() && steps.changes.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: provider-type-integration-${{ matrix.provider }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/provider-type-update-plan.json
+            ${{ runner.temp }}/provider-type-update-verification.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Build PR body
         if: steps.changes.outputs.has_changes == 'true'
@@ -372,13 +651,25 @@ jobs:
             fi
             echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
             echo "- Braintrust workflow trace: ${{ steps.braintrust_trace.outcome }}"
-            echo "- Claude integration review: ${{ steps.integration_review.outcome }}"
-            echo "- Post-review \`make generate-types\`: ${{ steps.post_review_ts_types.outcome }}"
+            echo "- Claude integration plan: ${{ steps.integration_plan.outcome }}"
+            echo "- Structured plan validation: ${{ steps.plan_validation.outcome }}"
+            echo "- Claude focused implementation: ${{ steps.integration_implementation.outcome }}"
+            echo "- Immutable plan revalidation: ${{ steps.post_implementation_plan.outcome }}"
+            echo "- Post-implementation \`make generate-types\`: ${{ steps.post_implementation_ts_types.outcome }}"
             echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
+            echo "- \`cargo test -p lingua ${{ matrix.provider }}\`: ${{ steps.provider_tests.outcome }}"
+            echo "- \`make lingua-wasm\`: ${{ steps.lingua_wasm.outcome }}"
+            echo "- Planned live capture cases: \`${{ steps.capture_cases.outputs.cases }}\`"
+            echo "- Live capture (OpenAI): ${{ steps.live_capture_openai.outcome }}"
+            echo "- Live capture (Anthropic): ${{ steps.live_capture_anthropic.outcome }}"
+            echo "- Live capture (Google): ${{ steps.live_capture_google.outcome }}"
+            echo "- \`make test-payloads\`: ${{ steps.payload_tests.outcome }}"
             echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
             echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
             echo "- \`make typed-boundary-check\`: ${{ steps.typed_boundary.outcome }}"
             echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
+            echo "- Claude read-only verification: ${{ steps.integration_verification.outcome }}"
+            echo "- Verification report validation: ${{ steps.verification_report.outcome }}"
             echo
             echo "This PR is created even when validation fails so the generated update and repair attempt are available for manual follow-up."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
@@ -402,14 +693,32 @@ jobs:
           (
             (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
             steps.retry.outcome == 'failure' ||
-            (steps.ts_types.outcome == 'failure' && steps.post_review_ts_types.outcome != 'success') ||
-            steps.integration_review.outcome == 'failure' ||
-            steps.post_review_ts_types.outcome == 'failure' ||
-            steps.fmt.outcome == 'failure' ||
-            steps.build.outcome == 'failure' ||
-            steps.clippy.outcome == 'failure' ||
-            steps.typed_boundary.outcome == 'failure' ||
-            steps.cross_provider.outcome == 'failure'
+            (steps.ts_types.outcome == 'failure' && steps.post_implementation_ts_types.outcome != 'success') ||
+            (
+              steps.changes.outputs.has_changes == 'true' &&
+              (
+                steps.integration_plan.outcome != 'success' ||
+                steps.plan_validation.outcome != 'success' ||
+                steps.stage_plan.outcome != 'success' ||
+                steps.integration_implementation.outcome != 'success' ||
+                steps.post_implementation_plan.outcome != 'success' ||
+                steps.post_implementation_ts_types.outcome == 'failure' ||
+                steps.fmt.outcome == 'failure' ||
+                steps.provider_tests.outcome == 'failure' ||
+                steps.lingua_wasm.outcome == 'failure' ||
+                steps.capture_cases.outcome == 'failure' ||
+                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
+                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome != 'success') ||
+                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'google' && steps.live_capture_google.outcome != 'success') ||
+                steps.payload_tests.outcome == 'failure' ||
+                steps.build.outcome == 'failure' ||
+                steps.clippy.outcome == 'failure' ||
+                steps.typed_boundary.outcome == 'failure' ||
+                steps.cross_provider.outcome == 'failure' ||
+                steps.integration_verification.outcome != 'success' ||
+                steps.verification_report.outcome != 'success'
+              )
+            )
           )
         run: |
           echo "Provider type update failed validation. If changes were produced, the PR creation step already ran." >&2
