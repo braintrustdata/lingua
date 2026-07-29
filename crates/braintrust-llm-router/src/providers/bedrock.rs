@@ -64,11 +64,29 @@ pub(crate) fn requires_bedrock_request_preparation(format: ProviderFormat) -> bo
 }
 
 // Some Bedrock models are served only on the `bedrock-mantle` host, not
-// `bedrock-runtime`: xAI/Grok (`xai.`) and Google Gemma 4 (`google.gemma-4`).
-// Gemma 3 is excluded on purpose — it is served on `bedrock-runtime` and uses a
-// different mantle OpenAI path (`/v1` rather than `/openai/v1`).
+// `bedrock-runtime`: xAI/Grok (`xai.`), Google Gemma 4 (`google.gemma-4`), and the
+// OpenAI frontier GPT family (`openai.gpt-5.4`, `openai.gpt-5.6-sol`, ...). Gemma 3
+// is excluded on purpose — it is served on `bedrock-runtime` and uses a different
+// mantle OpenAI path (`/v1` rather than `/openai/v1`).
 fn is_bedrock_mantle_only_model(model: &str) -> bool {
-    model.starts_with("xai.") || model.starts_with("google.gemma-4")
+    model.starts_with("xai.")
+        || model.starts_with("google.gemma-4")
+        || is_bedrock_mantle_only_openai_model(model)
+}
+
+// Bedrock serves the OpenAI frontier GPT family (versioned `openai.gpt-<n>` ids
+// such as `openai.gpt-5.4`, `openai.gpt-5.5`, `openai.gpt-5.6-sol`) only on the
+// `bedrock-mantle` host's `openai/v1/*` surface — Responses on `openai/v1/responses`,
+// never `bedrock-runtime` (see the AWS model cards). The `openai.gpt-oss-*` models
+// are open-weight and served via Bedrock's native Converse API on `bedrock-runtime`
+// instead; they have a non-numeric id after `gpt-`, so they are excluded. Matching
+// on the numeric version prefix also routes future releases (`openai.gpt-5.7`,
+// `openai.gpt-6`, ...) to mantle automatically.
+fn is_bedrock_mantle_only_openai_model(model: &str) -> bool {
+    model
+        .strip_prefix("openai.")
+        .and_then(|m| m.strip_prefix("gpt-"))
+        .is_some_and(|rest| rest.starts_with(|c: char| c.is_ascii_digit()))
 }
 
 #[derive(Debug)]
@@ -368,7 +386,15 @@ impl BedrockProvider {
         Ok(url)
     }
 
-    fn responses_url(&self) -> Result<Url> {
+    fn responses_url(&self, model: &str) -> Result<Url> {
+        // Mantle-only models (e.g. the OpenAI GPT-5.6 family) are served solely on
+        // the `bedrock-mantle` host's `openai/v1/responses` path, regardless of the
+        // configured endpoint — other models on a custom api_base use a plain
+        // `v1/responses` path, which those models reject.
+        if is_bedrock_mantle_only_model(model) {
+            return self.mantle_openai_url("responses");
+        }
+
         // AWS serves the Responses API on the `bedrock-mantle` host; a custom
         // api_base is honored as-is with `v1/responses` appended.
         if self.is_aws_managed_endpoint() {
@@ -567,7 +593,7 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, false)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
-            ProviderFormat::Responses => self.responses_url()?,
+            ProviderFormat::Responses => self.responses_url(&spec.model)?,
             _ => self.converse_url(&spec.model, false)?,
         };
         let response = self.send_signed(url, payload, auth, client_headers).await?;
@@ -591,7 +617,7 @@ impl crate::providers::Provider for BedrockProvider {
         let url = match format {
             ProviderFormat::BedrockAnthropic => self.invoke_model_url(&spec.model, true)?,
             ProviderFormat::ChatCompletions => self.chat_completions_url(&spec.model)?,
-            ProviderFormat::Responses => self.responses_url()?,
+            ProviderFormat::Responses => self.responses_url(&spec.model)?,
             _ => self.converse_url(&spec.model, true)?,
         };
 
@@ -863,7 +889,9 @@ mod tests {
     #[test]
     fn responses_url_uses_bedrock_mantle_host_for_aws_runtime() {
         let provider = provider();
-        let url = provider.responses_url().unwrap();
+        // A model that is not itself mantle-only still resolves to the mantle host
+        // when the endpoint is AWS-managed.
+        let url = provider.responses_url("custom-responses-model").unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses"
@@ -879,7 +907,7 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.responses_url().unwrap();
+        let url = provider.responses_url("custom-responses-model").unwrap();
         assert_eq!(
             url.as_str(),
             "https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses"
@@ -887,7 +915,7 @@ mod tests {
     }
 
     #[test]
-    fn responses_url_preserves_custom_endpoint_path() {
+    fn responses_url_preserves_custom_endpoint_path_for_non_mantle_models() {
         let config = BedrockConfig {
             endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
             service: "bedrock".to_string(),
@@ -895,8 +923,84 @@ mod tests {
             timeout: None,
         };
         let provider = BedrockProvider::new(config).unwrap();
-        let url = provider.responses_url().unwrap();
+        let url = provider.responses_url("custom-responses-model").unwrap();
         assert_eq!(url.as_str(), "https://my-proxy.example.com/v1/responses");
+    }
+
+    #[test]
+    fn responses_url_routes_frontier_gpt_family_to_mantle_openai_path_on_custom_endpoint() {
+        // The frontier OpenAI GPT family is served only on `bedrock-mantle`'s
+        // `openai/v1/responses` path. Even when the provider is configured with a
+        // custom api_base (so the endpoint is not AWS-managed), these models must not
+        // fall back to the plain `v1/responses` path, which Bedrock rejects with a
+        // validation error. gpt-5.4/5.5/5.6 must all route identically.
+        let config = BedrockConfig {
+            endpoint: Url::parse("https://my-proxy.example.com/").unwrap(),
+            service: "bedrock".to_string(),
+            region: Some("us-east-1".to_string()),
+            timeout: None,
+        };
+        let provider = BedrockProvider::new(config).unwrap();
+        for model in [
+            "openai.gpt-5.4",
+            "openai.gpt-5.5",
+            "openai.gpt-5.6",
+            "openai.gpt-5.6-sol",
+            "openai.gpt-5.6-terra",
+            "openai.gpt-5.6-luna",
+        ] {
+            let url = provider.responses_url(model).unwrap();
+            assert_eq!(
+                url.as_str(),
+                "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses",
+                "model {model} must route to the bedrock-mantle openai/v1/responses path"
+            );
+        }
+    }
+
+    #[test]
+    fn responses_url_routes_future_gpt_families_to_mantle() {
+        let provider = provider();
+        for model in ["openai.gpt-5.7-sol", "openai.gpt-6", "openai.gpt-6.2-terra"] {
+            let url = provider.responses_url(model).unwrap();
+            assert_eq!(
+                url.as_str(),
+                "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses",
+                "future model {model} must route to the bedrock-mantle host"
+            );
+        }
+    }
+
+    #[test]
+    fn is_bedrock_mantle_only_model_covers_frontier_gpt_family_but_not_oss() {
+        for model in [
+            "openai.gpt-5.4",
+            "openai.gpt-5.5",
+            "openai.gpt-5.6-sol",
+            "openai.gpt-5.6",
+            "openai.gpt-5.7",
+            "openai.gpt-6",
+            "openai.gpt-6.3-luna",
+            "xai.grok-4.3",
+            "google.gemma-4-e2b",
+        ] {
+            assert!(
+                is_bedrock_mantle_only_model(model),
+                "expected mantle-only: {model}"
+            );
+        }
+        for model in [
+            // gpt-oss models are served via the native Converse API on bedrock-runtime.
+            "openai.gpt-oss-120b",
+            "openai.gpt-oss-safeguard-120b",
+            "google.gemma-3-27b-it",
+            "anthropic.claude-3-haiku-20240307-v1:0",
+        ] {
+            assert!(
+                !is_bedrock_mantle_only_model(model),
+                "did not expect mantle-only: {model}"
+            );
+        }
     }
 
     #[test]
