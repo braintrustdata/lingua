@@ -259,26 +259,12 @@ jobs:
           set -euo pipefail
           NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
 
-      - name: Load review messages from Braintrust
-        id: review_messages
-        if: steps.changes.outputs.has_changes == 'true'
-        env:
-          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-          BRAINTRUST_PROJECT: lingua-provider-type-updates
-          PROMPT_PHASE: review
-          PROVIDER: ${{ matrix.provider }}
-        run: |
-          set -euo pipefail
-          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs load-action-messages
-
       - name: Plan generated provider integration
         id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         timeout-minutes: 20
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
-        env:
-          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -313,9 +299,6 @@ jobs:
             This is the planning-only phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its planning phase.
             Use all four provider audit subagents in parallel, then reconcile their reports yourself.
-            Treat the centrally managed task below as context, but do not perform its edits in this phase:
-
-            ${{ steps.review_messages.outputs.user_message }}
 
             Do not modify any tracked file. Read
             `.github/scripts/provider-type-update-plan.mjs` and its tests for the
@@ -362,8 +345,6 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
-        env:
-          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -396,10 +377,6 @@ jobs:
             This is the implementation phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its implementation
             phase. Read and implement the validated plan in `plan.md`.
-
-            The centrally managed task context is:
-
-            ${{ steps.review_messages.outputs.user_message }}
 
             Implement every unblocked plan item, including focused tests and
             payload cases. Do not edit `plan.md`, any `generated.rs` file, or call
@@ -548,8 +525,6 @@ jobs:
         continue-on-error: true
         timeout-minutes: 15
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
-        env:
-          APPEND_SYSTEM_PROMPT: ${{ steps.review_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
