@@ -745,6 +745,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
                             }),
+                            ..Default::default()
                         });
                     }
                     AssistantContentPart::File { .. }

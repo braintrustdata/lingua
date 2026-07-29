@@ -674,6 +674,7 @@ impl ProviderAdapter for GoogleAdapter {
                                     .as_ref()
                                     .map(|args| Value::Object(args.clone()).to_string()),
                             }),
+                            ..Default::default()
                         }
                     })
                 })
