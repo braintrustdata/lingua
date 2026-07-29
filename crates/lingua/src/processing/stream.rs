@@ -58,10 +58,14 @@ struct SessionChunkState<'a> {
     next_responses_sequence_number: &'a mut u64,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Default)]
 struct ResponsesOutputIndexState {
     text_output_index: Option<u32>,
     tool_output_index_offset: u32,
+    // Text accumulated for the open assistant `message` output item, used to
+    // populate `response.output_item.done` and `response.completed.output` when
+    // synthesizing a Responses stream from a non-Responses source.
+    text_content: String,
 }
 
 /// Stateful stream transformation session.
@@ -999,8 +1003,20 @@ fn expand_responses_session_chunks(
         .unwrap_or((0, false, false, false));
     let output_index_state = responses_output_index_states
         .get(&choice_index)
-        .copied()
+        .cloned()
         .unwrap_or_default();
+    let text_output_index_before = output_index_state.text_output_index;
+    let content_str = universal
+        .choices
+        .first()
+        .and_then(|choice| choice.delta_view())
+        .and_then(|delta| {
+            delta
+                .content
+                .as_deref()
+                .filter(|content| !content.is_empty())
+                .map(ToString::to_string)
+        });
 
     let has_metadata =
         universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
@@ -1028,6 +1044,23 @@ fn expand_responses_session_chunks(
             .tool_output_index_offset
             .max(text_output_index + 1);
     }
+    if let Some(content) = &content_str {
+        next_output_index_state.text_content.push_str(content);
+    }
+
+    // Synthesize the assistant `message` output-item envelope around text so the
+    // OpenAI Responses protocol (and the AI SDK Responses parser) can assemble
+    // text via matched output_item.added -> output_text.delta -> output_item.done
+    // events keyed by `item_id`. Without it, text deltas are dropped downstream.
+    let text_output_index = next_output_index_state.text_output_index;
+    let text_item_id = text_output_index.map(responses_message_item_id);
+    let text_just_started = text_output_index_before.is_none() && text_output_index.is_some();
+    let finish_text = if has_finish {
+        Some(std::mem::take(&mut next_output_index_state.text_content))
+    } else {
+        None
+    };
+
     if has_finish {
         responses_output_index_states.remove(&choice_index);
     } else if next_output_index_state.text_output_index.is_some()
@@ -1035,6 +1068,17 @@ fn expand_responses_session_chunks(
     {
         responses_output_index_states.insert(choice_index, next_output_index_state);
     }
+
+    if let Some(item_id) = &text_item_id {
+        stamp_responses_text_delta_item_ids(&mut events);
+        if text_just_started {
+            insert_responses_message_item_added(&mut events, item_id, text_output_index);
+        }
+        if let Some(text) = finish_text {
+            insert_responses_message_item_done(&mut events, item_id, text_output_index, text);
+        }
+    }
+
     if has_metadata
         && !responses_message_started
         && !events.is_empty()
@@ -1053,6 +1097,7 @@ fn expand_responses_session_chunks(
         );
     }
 
+    renumber_responses_sequence_numbers(&mut events, *next_responses_sequence_number);
     *next_responses_sequence_number += events.len() as u64;
     if has_finish {
         *next_responses_sequence_number = 0;
@@ -1073,6 +1118,106 @@ fn expand_responses_session_chunks(
         Ok(chunks)
     } else {
         Ok(out)
+    }
+}
+
+fn responses_message_item_id(output_index: u32) -> String {
+    format!("msg_{output_index}")
+}
+
+fn responses_message_item(item_id: &str, status: &str, text: Option<&str>) -> Value {
+    let content = match text {
+        Some(text) => crate::serde_json::json!([{
+            "type": "output_text",
+            "text": text,
+            "annotations": []
+        }]),
+        None => crate::serde_json::json!([]),
+    };
+    crate::serde_json::json!({
+        "id": item_id,
+        "type": "message",
+        "role": "assistant",
+        "status": status,
+        "content": content
+    })
+}
+
+fn stamp_responses_text_delta_item_ids(events: &mut [Value]) {
+    for event in events.iter_mut() {
+        if event.get("type").and_then(Value::as_str) != Some("response.output_text.delta") {
+            continue;
+        }
+        let Some(obj) = event.as_object_mut() else {
+            continue;
+        };
+        let output_index = obj.get("output_index").and_then(Value::as_u64).unwrap_or(0);
+        obj.insert(
+            "item_id".to_string(),
+            Value::from(responses_message_item_id(output_index as u32)),
+        );
+    }
+}
+
+fn insert_responses_message_item_added(
+    events: &mut Vec<Value>,
+    item_id: &str,
+    output_index: Option<u32>,
+) {
+    let Some(position) = events.iter().position(|event| {
+        event.get("type").and_then(Value::as_str) == Some("response.output_text.delta")
+    }) else {
+        return;
+    };
+    events.insert(
+        position,
+        crate::serde_json::json!({
+            "type": "response.output_item.added",
+            "output_index": output_index.unwrap_or(0),
+            "item": responses_message_item(item_id, "in_progress", None)
+        }),
+    );
+}
+
+fn insert_responses_message_item_done(
+    events: &mut Vec<Value>,
+    item_id: &str,
+    output_index: Option<u32>,
+    text: String,
+) {
+    let item = responses_message_item(item_id, "completed", Some(&text));
+    let done = crate::serde_json::json!({
+        "type": "response.output_item.done",
+        "output_index": output_index.unwrap_or(0),
+        "item": item.clone()
+    });
+    match events.iter().position(|event| {
+        matches!(
+            event.get("type").and_then(Value::as_str),
+            Some("response.completed") | Some("response.incomplete")
+        )
+    }) {
+        Some(position) => {
+            events.insert(position, done);
+            if let Some(terminal) = events.get_mut(position + 1) {
+                if let Some(response) = terminal.get_mut("response").and_then(Value::as_object_mut)
+                {
+                    response.insert("output".to_string(), crate::serde_json::json!([item]));
+                }
+            }
+        }
+        None => events.push(done),
+    }
+}
+
+fn renumber_responses_sequence_numbers(events: &mut [Value], base: u64) {
+    for (offset, event) in events.iter_mut().enumerate() {
+        if let Some(obj) = event.as_object_mut() {
+            obj.insert(
+                "sequence_number".to_string(),
+                Value::from(base + offset as u64),
+            );
+        }
     }
 }
 
@@ -2585,7 +2730,9 @@ mod tests {
             vec![
                 Some("response.created"),
                 Some("response.reasoning_summary_text.delta"),
+                Some("response.output_item.added"),
                 Some("response.output_text.delta"),
+                Some("response.output_item.done"),
                 Some("response.completed")
             ]
         );
@@ -2598,6 +2745,199 @@ mod tests {
                 .and_then(Value::as_str),
             Some("response_123")
         );
+    }
+
+    // BT-6217: a non-Responses source streamed to the Responses target must
+    // wrap assistant text in a `message` output item so the OpenAI Responses
+    // protocol (and the AI SDK Responses parser) can assemble text-start /
+    // text-delta / text-end. Regression: bare `output_text.delta` events with no
+    // `output_item.added`, no `item_id`, and no `output_item.done` cause
+    // `streamText` to yield an empty string.
+    #[test]
+    #[cfg(all(feature = "anthropic", feature = "openai"))]
+    fn test_stream_session_anthropic_full_response_expands_text_envelope_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        // A full (non-streaming) Anthropic response, as produced by the
+        // `supportsStreaming: false` Azure Foundry path before it is fake-streamed.
+        let full_response = to_bytes(&json!({
+            "id": "msg_abc",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{ "type": "text", "text": "Paris is the capital of France." }],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": { "input_tokens": 19, "output_tokens": 10 }
+        }));
+
+        let mut out = session.push(full_response).unwrap();
+        out.extend(session.finish());
+
+        let events = out
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            out.iter()
+                .map(|chunk| chunk.event_type.as_deref())
+                .collect::<Vec<_>>(),
+            vec![
+                Some("response.created"),
+                Some("response.output_item.added"),
+                Some("response.output_text.delta"),
+                Some("response.output_item.done"),
+                Some("response.completed"),
+            ],
+        );
+
+        let added = &events[1];
+        let item_id = added["item"]["id"].as_str().expect("message item id");
+        assert_eq!(added["item"]["type"], json!("message"));
+        assert_eq!(added["item"]["role"], json!("assistant"));
+        assert_eq!(added["item"]["status"], json!("in_progress"));
+
+        let delta = &events[2];
+        assert_eq!(delta["delta"], json!("Paris is the capital of France."));
+        assert_eq!(
+            delta["item_id"].as_str(),
+            Some(item_id),
+            "text delta must carry the message item_id",
+        );
+
+        let done = &events[3];
+        assert_eq!(done["item"]["id"].as_str(), Some(item_id));
+        assert_eq!(done["item"]["type"], json!("message"));
+        assert_eq!(done["item"]["status"], json!("completed"));
+        assert_eq!(
+            done["item"]["content"][0]["text"],
+            json!("Paris is the capital of France."),
+        );
+
+        let completed = &events[4];
+        assert_eq!(
+            completed["response"]["output"][0]["id"].as_str(),
+            Some(item_id)
+        );
+        assert_eq!(
+            completed["response"]["output"][0]["content"][0]["text"],
+            json!("Paris is the capital of France."),
+        );
+        assert_eq!(completed["response"]["usage"]["output_tokens"], json!(10));
+    }
+
+    #[test]
+    #[cfg(feature = "anthropic")]
+    fn test_stream_session_anthropic_text_stream_expands_text_envelope_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let pushes = vec![
+            json!({
+                "type": "message_start",
+                "message": {
+                    "id": "msg_stream",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-haiku-4-5",
+                    "content": [],
+                    "stop_reason": null,
+                    "usage": { "input_tokens": 19, "output_tokens": 0 }
+                }
+            }),
+            json!({
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": { "type": "text", "text": "" }
+            }),
+            json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": "Paris" }
+            }),
+            json!({
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": { "type": "text_delta", "text": " is the capital." }
+            }),
+            json!({ "type": "content_block_stop", "index": 0 }),
+            json!({
+                "type": "message_delta",
+                "delta": { "stop_reason": "end_turn" },
+                "usage": { "output_tokens": 6 }
+            }),
+            json!({ "type": "message_stop" }),
+        ];
+
+        let mut events = Vec::new();
+        for push in pushes {
+            for chunk in session.push(to_bytes(&push)).unwrap() {
+                events.push((
+                    chunk.event_type.clone(),
+                    crate::serde_json::from_slice::<Value>(&chunk.data).unwrap(),
+                ));
+            }
+        }
+        for chunk in session.finish() {
+            events.push((
+                chunk.event_type.clone(),
+                crate::serde_json::from_slice::<Value>(&chunk.data).unwrap(),
+            ));
+        }
+
+        let types = events
+            .iter()
+            .map(|(event_type, _)| event_type.as_deref())
+            .collect::<Vec<_>>();
+
+        // Envelope events are present exactly once, deltas carry item_id.
+        assert_eq!(
+            types
+                .iter()
+                .filter(|t| **t == Some("response.output_item.added"))
+                .count(),
+            1,
+            "exactly one message output_item.added, got {types:?}",
+        );
+        assert_eq!(
+            types
+                .iter()
+                .filter(|t| **t == Some("response.output_item.done"))
+                .count(),
+            1,
+            "exactly one message output_item.done, got {types:?}",
+        );
+
+        let added = events
+            .iter()
+            .find(|(t, _)| t.as_deref() == Some("response.output_item.added"))
+            .map(|(_, v)| v)
+            .expect("output_item.added");
+        let item_id = added["item"]["id"]
+            .as_str()
+            .expect("message item id")
+            .to_string();
+        assert_eq!(added["item"]["type"], json!("message"));
+
+        let text_deltas = events
+            .iter()
+            .filter(|(t, _)| t.as_deref() == Some("response.output_text.delta"))
+            .map(|(_, v)| v)
+            .collect::<Vec<_>>();
+        assert!(
+            !text_deltas.is_empty(),
+            "expected text deltas, got {types:?}"
+        );
+        for delta in &text_deltas {
+            assert_eq!(
+                delta["item_id"].as_str(),
+                Some(item_id.as_str()),
+                "every text delta carries the message item_id",
+            );
+        }
+        let text: String = text_deltas
+            .iter()
+            .filter_map(|d| d["delta"].as_str())
+            .collect();
+        assert_eq!(text, "Paris is the capital.");
     }
 
     #[test]
@@ -2764,12 +3104,14 @@ mod tests {
                 .map(|chunk| chunk.event_type.as_deref())
                 .collect::<Vec<_>>(),
             vec![
+                Some("response.output_item.added"),
                 Some("response.output_text.delta"),
+                Some("response.output_item.done"),
                 Some("response.completed")
             ]
         );
 
-        let text_delta: OutputTextDelta = crate::serde_json::from_slice(&second[0].data).unwrap();
+        let text_delta: OutputTextDelta = crate::serde_json::from_slice(&second[1].data).unwrap();
         assert_eq!(text_delta.output_index, 1);
         assert_eq!(text_delta.delta, "{\"answer\":\"visible json\"}");
     }
@@ -2831,12 +3173,15 @@ mod tests {
             vec![
                 Some("response.created"),
                 Some("response.reasoning_summary_text.delta"),
+                Some("response.output_item.added"),
                 Some("response.output_text.delta")
             ]
         );
-        let text_delta: OutputEvent = crate::serde_json::from_slice(&first[2].data).unwrap();
+        let text_delta: OutputEvent = crate::serde_json::from_slice(&first[3].data).unwrap();
         assert_eq!(text_delta.output_index, 1);
 
+        // The still-open text message item is closed with output_item.done at
+        // finish, even though the finishing chunk carries the tool call.
         let second = session.push(tool_call).unwrap();
         assert_eq!(
             second
@@ -2846,6 +3191,7 @@ mod tests {
             vec![
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta"),
+                Some("response.output_item.done"),
                 Some("response.completed")
             ]
         );
