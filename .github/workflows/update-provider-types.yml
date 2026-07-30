@@ -483,6 +483,32 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.LINGUA_CAPTURE_GOOGLE_API_KEY }}
         run: pnpm --dir payloads capture --force --snapshots-only --providers google --cases "$CAPTURE_CASES"
 
+      - name: Capture planned cross-provider transforms
+        id: transform_capture
+        if: >-
+          steps.lingua_wasm.outcome == 'success' &&
+          steps.capture_cases.outcome == 'success' &&
+          steps.capture_cases.outputs.cases != '' &&
+          (
+            (matrix.provider == 'openai' && steps.live_capture_openai.outcome == 'success') ||
+            (matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome == 'success') ||
+            (matrix.provider == 'google' && steps.live_capture_google.outcome == 'success')
+          )
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.LINGUA_CAPTURE_ANTHROPIC_API_KEY }}
+          AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.LINGUA_CAPTURE_AWS_BEARER_TOKEN_BEDROCK }}
+          CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
+          GOOGLE_API_KEY: ${{ secrets.LINGUA_CAPTURE_GOOGLE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
+        run: make capture-transforms CASES="$CAPTURE_CASES" FORCE=1
+
+      - name: Verify payload fixture sync
+        id: payload_sync
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: pnpm --dir payloads vitest run scripts/sync.test.ts
+
       - name: Run payload transform checks
         id: payload_tests
         if: steps.changes.outputs.has_changes == 'true'
@@ -534,7 +560,7 @@ jobs:
         id: integration_verification
         if: steps.integration_implementation.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 30
+        timeout-minutes: 45
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -562,10 +588,10 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 60
+            --max-turns 120
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
-            --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*)"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git ls-files:*),Bash(ls:*),Bash(head:*),Bash(cat:*),Bash(grep:*)"
             --disallowedTools "Agent,Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the read-only verification phase for provider `${{ matrix.provider }}`.
@@ -574,9 +600,12 @@ jobs:
             diff, and do not modify any tracked file.
 
             Validation outcomes:
+            - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
             - focused provider tests: `${{ steps.provider_tests.outcome }}`
             - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
             - live capture: openai `${{ steps.live_capture_openai.outcome }}`, anthropic `${{ steps.live_capture_anthropic.outcome }}`, google `${{ steps.live_capture_google.outcome }}`
+            - planned transform capture: `${{ steps.transform_capture.outcome }}`
+            - payload fixture sync: `${{ steps.payload_sync.outcome }}`
             - payload tests: `${{ steps.payload_tests.outcome }}`
             - build: `${{ steps.build.outcome }}`
             - clippy: `${{ steps.clippy.outcome }}`
@@ -586,7 +615,14 @@ jobs:
             Read `.github/scripts/provider-type-update-plan.mjs` for the exact
             verification schema. Write only the JSON report to
             `$PROVIDER_UPDATE_VERIFICATION_PATH`. A failed or skipped required
-            validation is a blocking finding.
+            validation is a blocking finding. Live and transform capture are
+            required only when the planned live capture case list is non-empty.
+            Prioritize completing the report:
+            use the validated plan, final diff, and deterministic validation
+            outcomes as primary evidence; inspect only files needed to resolve
+            uncertainty. Do not repeat completed checks or exhaust the turn
+            budget on optional exploration. Write the report as soon as every
+            required schema field has sufficient evidence.
 
       - name: Validate integration verification report
         id: verification_report
@@ -649,6 +685,8 @@ jobs:
             echo "- Live capture (OpenAI): ${{ steps.live_capture_openai.outcome }}"
             echo "- Live capture (Anthropic): ${{ steps.live_capture_anthropic.outcome }}"
             echo "- Live capture (Google): ${{ steps.live_capture_google.outcome }}"
+            echo "- Planned cross-provider transform capture: ${{ steps.transform_capture.outcome }}"
+            echo "- Payload fixture sync: ${{ steps.payload_sync.outcome }}"
             echo "- \`make test-payloads\`: ${{ steps.payload_tests.outcome }}"
             echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
             echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
@@ -696,6 +734,8 @@ jobs:
                 (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
                 (steps.capture_cases.outputs.cases != '' && matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome != 'success') ||
                 (steps.capture_cases.outputs.cases != '' && matrix.provider == 'google' && steps.live_capture_google.outcome != 'success') ||
+                (steps.capture_cases.outputs.cases != '' && steps.transform_capture.outcome != 'success') ||
+                steps.payload_sync.outcome != 'success' ||
                 steps.payload_tests.outcome == 'failure' ||
                 steps.build.outcome == 'failure' ||
                 steps.clippy.outcome == 'failure' ||

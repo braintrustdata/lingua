@@ -286,7 +286,9 @@ async function main() {
     const forceTransforms = options.force && !options.providers;
     const transformResult = await captureTransforms(
       options.filter,
-      forceTransforms
+      forceTransforms,
+      undefined,
+      options.cases
     );
 
     if (transformResult.captured > 0) {
