@@ -447,6 +447,112 @@ data: {"type":"message_stop"}
 "
 `;
 
+exports[`streaming: anthropic → chat-completions > anthropicOpus5AdaptiveThinkingMaxEffortParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"chatcmpl-E6KEHp0Cx1rdhcOdU0fV9Cdtx3Snb","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"4","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" In","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" base","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"-","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"10","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" arithmetic","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"2","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" +","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"2","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" =","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"4","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" If","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" you","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" meant","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" a","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" different","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" base","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":",","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" I","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" can","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" convert","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" it","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":".","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":13,"output_tokens":422}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
 exports[`streaming: anthropic → chat-completions > complexReasoningRequest > streaming 1`] = `
 "event: message_start
 data: {"message":{"content":[],"id":"chatcmpl-DQJkt7wWytDi8Nj25RE2kiFvAJAw7","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
@@ -3368,6 +3474,52 @@ data: {"type":"message_stop"}
 "
 `;
 
+exports[`streaming: anthropic → chat-completions > streamParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"chatcmpl-E6KDyCqtGp0k22p21ICruiyl3YizP","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"Hi","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" there","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"!","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" How","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" can","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" I","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" help","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" today","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"?","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":9,"output_tokens":146}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
 exports[`streaming: anthropic → chat-completions > systemMessageArrayContent > streaming 1`] = `
 "event: message_start
 data: {"message":{"content":[],"id":"chatcmpl-DQJkv4fvJmyemAFjFO7Exu2n0aL8u","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
@@ -3417,6 +3569,166 @@ data: {"index":0,"type":"content_block_stop"}
 
 event: message_delta
 data: {"delta":{"stop_reason":"tool_use"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":148,"output_tokens":218}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
+exports[`streaming: anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"daFnaoaWBrCGz7IPtPykgQ4","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":8,"output_tokens":91}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"2 + 2 is 4.","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"thinking","thinking":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"signature":"EoQDCoEDARFNMg95F+3XLRnv3sd0hqKjfkEStftAjfXYNlU9tJBa64wldNio7JoZKKTXKXu0hNHd3V0yYFCQDC0Hg4YRjC6ZxW2076sdsM1m6Zk5jqUUjSGGWHelzOj7w6tsUcPYRGdA7Jdi0/DElfvOaywCcBrSu0IC7cfc0u7Bbevm/QgiFdw9Iiqzuv5EjorPMo8TegBmqpjLQq3iN6F57XyusE74JyrIQvziYeL1vRY7LYgL8Nz13gt3FAfGlELfXL9WXHrJLvrNd6TR4SGzb4dFaU22J0nIM2jUReGHRTceLPTcwpigtRHuOq1PcgeM248F0qyvoe615KX92/xiN4kYxKSivFjI3t+E+tKsCznAKpZgdOteCbFx3XZBLJEbMFxbT/6cTp1Ovn3fQrL3K2byc9TkVp8p2/xqdyeEJ3Hw6/ofDq991CR4LKGZ8EazqYzOZHCspU5FZDmO8OE2MNZgYznU7cAHlzrtfimehDJxb504YohDtvqD2yqqFlGbdU3OiA==","type":"signature_delta"}}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":8,"output_tokens":91}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
+exports[`streaming: anthropic → google > streamParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"YqFnav24CdSb9MoPmp-Z0A0","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":4,"output_tokens":127}},"type":"message_start"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"Hi!","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" How can I help you today?","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"thinking","thinking":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"signature":"EtMECtAEARFNMg+lIuHngqEnFTmXMHgvcv0Qn9l8owW/iZkdT6ryxTnBOvkMot3e2IykznQZSYDhsJ1gO4rqGqzpgHREC+xNO7tceGuZNgybHVCIxZJOY4mxdNpNNTTGe6AZ52aSAx6Ure3IgASuIcTKhCwj3cSJ0XGMsVeQpevFkztzedhB1m9tPiSiokDsu0KoY5q6XijfM9Sic3hibUXsq2RYIPR7SLC4iRUQcSk9umRV4gNldYCFRZPzJcpqM7BCMMN6VFmmaNPgHfeQ64Qy7sBZezPaKuM2JEoO/0rPi0fPZPo4XEOEypCXs4gzYfsr1boaYK+JT8+n/AkI/YjAEt9polAnaSmiffD4nH9xf2Nss8pjO7+5eJsVVrC/GYBDru7zQWbIodt4zzf8IocQXWTzDCYiyyjukuggH6GU5We6q9m15ta+TvnAhoyX5Fpol5vgI0MBIaAvPX/lsswNRrDRC2yxkX9VZf/Hzj7YAwB2MIFsZi7HYlGkKN4lpoTEfgrl/Sa2/kH2v/7Xz1ssHebRpDPfzuGeY/hSsLN6Dq2+Jwzb/6q/YRLdCYZSTKcRYWYYeQw0XkP2j7l/vpTVtWDPZiPEp3pjNE2tRJKWkZKk1tuWAHUFyWJz+Le96whSa/S1CFTC9FexagoDY3i9YpdskwyvfZa8E7K/pqiiW1PDTJ0WVy+jtN2Pn/oxbQdBQ/AoSLzccpAyWQAsU8203ufZn5kIuVBxvnVHiSUk6cQ+AIX+n77GL51l+5V9rKFuq1s3bHbykRCG9zelhWXJ9xlHcQ==","type":"signature_delta"}}
+
+event: content_block_stop
+data: {"index":1,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":4,"output_tokens":134}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
+exports[`streaming: anthropic → responses > anthropicOpus5AdaptiveThinkingMaxEffortParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"resp_0cb206d67667f87c006a67a1752b64819bad3be26f1811e4be","model":"gpt-5.6-terra","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"2","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" +","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"2","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" =","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":" ","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"4","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":13,"output_tokens":11}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"
+`;
+
+exports[`streaming: anthropic → responses > streamParam > streaming 1`] = `
+"event: message_start
+data: {"message":{"content":[],"id":"resp_0d546674209f65b9006a67a162d040819bbb4f7533560769dc","model":"gpt-5.6-terra","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":0,"output_tokens":0}},"type":"message_start"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"delta":{"text":"Hi","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: content_block_delta
+data: {"delta":{"text":"!","type":"text_delta"},"index":0,"type":"content_block_delta"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: ping
+data: {"type":"ping"}
+
+event: content_block_stop
+data: {"index":0,"type":"content_block_stop"}
+
+event: message_delta
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"input_tokens":9,"output_tokens":6}}
 
 event: message_stop
 data: {"type":"message_stop"}

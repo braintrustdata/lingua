@@ -30054,7 +30054,8 @@ paths:
                 "usage": {
                   "input_tokens": 36,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 87,
                   "output_tokens_details": {
@@ -30225,7 +30226,8 @@ paths:
                 "usage": {
                   "input_tokens": 328,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 52,
                   "output_tokens_details": {
@@ -30378,7 +30380,8 @@ paths:
                 "usage": {
                   "input_tokens": 8438,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 398,
                   "output_tokens_details": {
@@ -30576,7 +30579,8 @@ paths:
                 "usage": {
                   "input_tokens": 328,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 356,
                   "output_tokens_details": {
@@ -30816,7 +30820,8 @@ paths:
                 "usage": {
                   "input_tokens": 18307,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 348,
                   "output_tokens_details": {
@@ -31390,7 +31395,8 @@ paths:
                 "usage": {
                   "input_tokens": 81,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 1035,
                   "output_tokens_details": {
@@ -31591,7 +31597,8 @@ paths:
               "usage": {
                 "input_tokens": 32,
                 "input_tokens_details": {
-                  "cached_tokens": 0
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0
                 },
                 "output_tokens": 18,
                 "output_tokens_details": {
@@ -39134,6 +39141,672 @@ paths:
               "created_at": 1741900000,
               "metadata": {"topic": "project-x"}
             }
+  /organization/spend_limit:
+    get:
+      summary: Get the organization's hard spend limit.
+      operationId: Getorganizationspendlimit
+      parameters: []
+      responses:
+        '200':
+          description: Hard spend limit retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationSpendLimitResource'
+      x-oaiMeta:
+        name: Retrieve organization spend limit
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/spend_limit \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const organizationSpendLimit = await
+              client.admin.organization.spendLimit.retrieve();
+
+
+              console.log(organizationSpendLimit.currency);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              organization_spend_limit =
+              client.admin.organization.spend_limit.retrieve()
+
+              print(organization_spend_limit.currency)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\torganizationSpendLimit, err := client.Admin.Organization.SpendLimit.Get(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", organizationSpendLimit.Currency)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.spendlimit.OrganizationSpendLimit;
+
+              import
+              com.openai.models.admin.organization.spendlimit.SpendLimitRetrieveParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      OrganizationSpendLimit organizationSpendLimit = client.admin().organization().spendLimit().retrieve();
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              organization_spend_limit =
+              openai.admin.organization.spend_limit.retrieve
+
+
+              puts(organization_spend_limit)
+          response: |
+            {
+                "object": "organization.spend_limit",
+                "threshold_amount": 10000,
+                "currency": "USD",
+                "interval": "month",
+                "enforcement": {
+                    "status": "enforcing"
+                }
+            }
+      security:
+        - AdminApiKeyAuth: []
+    post:
+      summary: Create or replace the organization's hard spend limit.
+      operationId: Updateorganizationspendlimit
+      parameters: []
+      requestBody:
+        description: Parameters for the hard spend limit you want to create or replace.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationSpendLimitBody'
+        required: true
+      responses:
+        '200':
+          description: Hard spend limit created or replaced successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationSpendLimitResource'
+      x-oaiMeta:
+        name: Update organization spend limit
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/spend_limit \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                    "threshold_amount": 10000,
+                    "currency": "USD",
+                    "interval": "month"
+                }'
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const organizationSpendLimit = await
+              client.admin.organization.spendLimit.update({
+                currency: 'USD',
+                interval: 'month',
+                threshold_amount: 1,
+              });
+
+
+              console.log(organizationSpendLimit.currency);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              organization_spend_limit =
+              client.admin.organization.spend_limit.update(
+                  currency="USD",
+                  interval="month",
+                  threshold_amount=1,
+              )
+
+              print(organization_spend_limit.currency)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\torganizationSpendLimit, err := client.Admin.Organization.SpendLimit.Update(context.TODO(), openai.AdminOrganizationSpendLimitUpdateParams{\n\t\tCurrency:        openai.AdminOrganizationSpendLimitUpdateParamsCurrencyUsd,\n\t\tInterval:        openai.AdminOrganizationSpendLimitUpdateParamsIntervalMonth,\n\t\tThresholdAmount: 1,\n\t})\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", organizationSpendLimit.Currency)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.spendlimit.OrganizationSpendLimit;
+
+              import
+              com.openai.models.admin.organization.spendlimit.SpendLimitUpdateParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      SpendLimitUpdateParams params = SpendLimitUpdateParams.builder()
+                          .currency(SpendLimitUpdateParams.Currency.USD)
+                          .interval(SpendLimitUpdateParams.Interval.MONTH)
+                          .thresholdAmount(1L)
+                          .build();
+                      OrganizationSpendLimit organizationSpendLimit = client.admin().organization().spendLimit().update(params);
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              organization_spend_limit =
+              openai.admin.organization.spend_limit.update(currency: :USD,
+              interval: :month, threshold_amount: 1)
+
+
+              puts(organization_spend_limit)
+          response: |
+            {
+                "object": "organization.spend_limit",
+                "threshold_amount": 10000,
+                "currency": "USD",
+                "interval": "month",
+                "enforcement": {
+                    "status": "enforcing"
+                }
+            }
+      security:
+        - AdminApiKeyAuth: []
+    delete:
+      summary: Delete the organization's hard spend limit.
+      operationId: Deleteorganizationspendlimit
+      parameters: []
+      responses:
+        '200':
+          description: Hard spend limit deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationSpendLimitDeletedResource'
+      x-oaiMeta:
+        name: Delete organization spend limit
+        group: administration
+        examples:
+          request:
+            curl: >
+              curl -X DELETE https://api.openai.com/v1/organization/spend_limit
+              \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const organizationSpendLimitDeleted = await
+              client.admin.organization.spendLimit.delete();
+
+
+              console.log(organizationSpendLimitDeleted.deleted);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              organization_spend_limit_deleted =
+              client.admin.organization.spend_limit.delete()
+
+              print(organization_spend_limit_deleted.deleted)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\torganizationSpendLimitDeleted, err := client.Admin.Organization.SpendLimit.Delete(context.TODO())\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", organizationSpendLimitDeleted.Deleted)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.spendlimit.OrganizationSpendLimitDeleted;
+
+              import
+              com.openai.models.admin.organization.spendlimit.SpendLimitDeleteParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      OrganizationSpendLimitDeleted organizationSpendLimitDeleted = client.admin().organization().spendLimit().delete();
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              organization_spend_limit_deleted =
+              openai.admin.organization.spend_limit.delete
+
+
+              puts(organization_spend_limit_deleted)
+          response: |
+            {
+                "object": "organization.spend_limit.deleted",
+                "deleted": true
+            }
+      security:
+        - AdminApiKeyAuth: []
+  /organization/projects/{project_id}/spend_limit:
+    get:
+      summary: Get a project's hard spend limit.
+      operationId: Getprojectspendlimit
+      parameters:
+        - name: project_id
+          in: path
+          description: The ID of the project whose hard spend limit is being managed.
+          required: true
+          schema:
+            example: proj_123
+            type: string
+      responses:
+        '200':
+          description: Hard spend limit retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSpendLimitResource'
+      x-oaiMeta:
+        name: Retrieve project spend limit
+        group: administration
+        examples:
+          request:
+            curl: >
+              curl
+              https://api.openai.com/v1/organization/projects/proj_abc/spend_limit
+              \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const projectSpendLimit = await
+              client.admin.organization.projects.spendLimit.retrieve('proj_123');
+
+
+              console.log(projectSpendLimit.currency);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              project_spend_limit =
+              client.admin.organization.projects.spend_limit.retrieve(
+                  "proj_123",
+              )
+
+              print(project_spend_limit.currency)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\tprojectSpendLimit, err := client.Admin.Organization.Projects.SpendLimit.Get(context.TODO(), \"proj_123\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", projectSpendLimit.Currency)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.ProjectSpendLimit;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.SpendLimitRetrieveParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      ProjectSpendLimit projectSpendLimit = client.admin().organization().projects().spendLimit().retrieve("proj_123");
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              project_spend_limit =
+              openai.admin.organization.projects.spend_limit.retrieve("proj_123")
+
+
+              puts(project_spend_limit)
+          response: |
+            {
+                "object": "project.spend_limit",
+                "threshold_amount": 10000,
+                "currency": "USD",
+                "interval": "month",
+                "enforcement": {
+                    "status": "enforcing"
+                }
+            }
+      security:
+        - AdminApiKeyAuth: []
+    delete:
+      summary: Delete a project's hard spend limit.
+      operationId: Deleteprojectspendlimit
+      parameters:
+        - name: project_id
+          in: path
+          description: The ID of the project whose hard spend limit is being managed.
+          required: true
+          schema:
+            example: proj_123
+            type: string
+      responses:
+        '200':
+          description: Hard spend limit deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSpendLimitDeletedResource'
+      x-oaiMeta:
+        name: Delete project spend limit
+        group: administration
+        examples:
+          request:
+            curl: >
+              curl -X DELETE
+              https://api.openai.com/v1/organization/projects/proj_abc/spend_limit
+              \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const projectSpendLimitDeleted = await
+              client.admin.organization.projects.spendLimit.delete(
+                'proj_123',
+              );
+
+
+              console.log(projectSpendLimitDeleted.deleted);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              project_spend_limit_deleted =
+              client.admin.organization.projects.spend_limit.delete(
+                  "proj_123",
+              )
+
+              print(project_spend_limit_deleted.deleted)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\tprojectSpendLimitDeleted, err := client.Admin.Organization.Projects.SpendLimit.Delete(context.TODO(), \"proj_123\")\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", projectSpendLimitDeleted.Deleted)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.ProjectSpendLimitDeleted;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.SpendLimitDeleteParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      ProjectSpendLimitDeleted projectSpendLimitDeleted = client.admin().organization().projects().spendLimit().delete("proj_123");
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              project_spend_limit_deleted =
+              openai.admin.organization.projects.spend_limit.delete("proj_123")
+
+
+              puts(project_spend_limit_deleted)
+          response: |
+            {
+                "object": "project.spend_limit.deleted",
+                "deleted": true
+            }
+      security:
+        - AdminApiKeyAuth: []
+    post:
+      summary: Create or replace a project's hard spend limit.
+      operationId: Updateprojectspendlimit
+      parameters:
+        - name: project_id
+          in: path
+          description: The ID of the project whose hard spend limit is being managed.
+          required: true
+          schema:
+            example: proj_123
+            type: string
+      requestBody:
+        description: Parameters for the hard spend limit you want to create or replace.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectSpendLimitBody'
+        required: true
+      responses:
+        '200':
+          description: Hard spend limit created or replaced successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSpendLimitResource'
+      x-oaiMeta:
+        name: Update project spend limit
+        group: administration
+        examples:
+          request:
+            curl: >
+              curl -X POST
+              https://api.openai.com/v1/organization/projects/proj_abc/spend_limit
+              \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                    "threshold_amount": 10000,
+                    "currency": "USD",
+                    "interval": "month"
+                }'
+            node.js: >-
+              import OpenAI from 'openai';
+
+
+              const client = new OpenAI({
+                adminAPIKey: process.env['OPENAI_ADMIN_KEY'], // This is the default and can be omitted
+              });
+
+
+              const projectSpendLimit = await
+              client.admin.organization.projects.spendLimit.update('proj_123', {
+                currency: 'USD',
+                interval: 'month',
+                threshold_amount: 1,
+              });
+
+
+              console.log(projectSpendLimit.currency);
+            python: >-
+              import os
+
+              from openai import OpenAI
+
+
+              client = OpenAI(
+                  admin_api_key=os.environ.get("OPENAI_ADMIN_KEY"),  # This is the default and can be omitted
+              )
+
+              project_spend_limit =
+              client.admin.organization.projects.spend_limit.update(
+                  project_id="proj_123",
+                  currency="USD",
+                  interval="month",
+                  threshold_amount=1,
+              )
+
+              print(project_spend_limit.currency)
+            go: "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\n\t\"github.com/openai/openai-go\"\n\t\"github.com/openai/openai-go/option\"\n)\n\nfunc main() {\n\tclient := openai.NewClient(\n\t\toption.WithAdminAPIKey(\"My Admin API Key\"),\n\t)\n\tprojectSpendLimit, err := client.Admin.Organization.Projects.SpendLimit.Update(\n\t\tcontext.TODO(),\n\t\t\"proj_123\",\n\t\topenai.AdminOrganizationProjectSpendLimitUpdateParams{\n\t\t\tCurrency:        openai.AdminOrganizationProjectSpendLimitUpdateParamsCurrencyUsd,\n\t\t\tInterval:        openai.AdminOrganizationProjectSpendLimitUpdateParamsIntervalMonth,\n\t\t\tThresholdAmount: 1,\n\t\t},\n\t)\n\tif err != nil {\n\t\tpanic(err.Error())\n\t}\n\tfmt.Printf(\"%+v\\n\", projectSpendLimit.Currency)\n}\n"
+            java: >-
+              package com.openai.example;
+
+
+              import com.openai.client.OpenAIClient;
+
+              import com.openai.client.okhttp.OpenAIOkHttpClient;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.ProjectSpendLimit;
+
+              import
+              com.openai.models.admin.organization.projects.spendlimit.SpendLimitUpdateParams;
+
+
+              public final class Main {
+                  private Main() {}
+
+                  public static void main(String[] args) {
+                      OpenAIClient client = OpenAIOkHttpClient.fromEnv();
+
+                      SpendLimitUpdateParams params = SpendLimitUpdateParams.builder()
+                          .projectId("proj_123")
+                          .currency(SpendLimitUpdateParams.Currency.USD)
+                          .interval(SpendLimitUpdateParams.Interval.MONTH)
+                          .thresholdAmount(1L)
+                          .build();
+                      ProjectSpendLimit projectSpendLimit = client.admin().organization().projects().spendLimit().update(params);
+                  }
+              }
+            ruby: >-
+              require "openai"
+
+
+              openai = OpenAI::Client.new(admin_api_key: "My Admin API Key")
+
+
+              project_spend_limit =
+              openai.admin.organization.projects.spend_limit.update(
+                "proj_123",
+                currency: :USD,
+                interval: :month,
+                threshold_amount: 1
+              )
+
+
+              puts(project_spend_limit)
+          response: |
+            {
+                "object": "project.spend_limit",
+                "threshold_amount": 10000,
+                "currency": "USD",
+                "interval": "month",
+                "enforcement": {
+                    "status": "enforcing"
+                }
+            }
+      security:
+        - AdminApiKeyAuth: []
   /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys:
     post:
       summary: Creates an API key for a service account in the project.
@@ -40502,7 +41175,8 @@ paths:
               "usage": {
                 "input_tokens": 139,
                 "input_tokens_details": {
-                  "cached_tokens": 0
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0
                 },
                 "output_tokens": 438,
                 "output_tokens_details": {
@@ -42445,7 +43119,8 @@ paths:
                 "usage": {
                   "input_tokens": 36,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 87,
                   "output_tokens_details": {
@@ -42616,7 +43291,8 @@ paths:
                 "usage": {
                   "input_tokens": 328,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 52,
                   "output_tokens_details": {
@@ -42769,7 +43445,8 @@ paths:
                 "usage": {
                   "input_tokens": 8438,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 398,
                   "output_tokens_details": {
@@ -42967,7 +43644,8 @@ paths:
                 "usage": {
                   "input_tokens": 328,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 356,
                   "output_tokens_details": {
@@ -43207,7 +43885,8 @@ paths:
                 "usage": {
                   "input_tokens": 18307,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 348,
                   "output_tokens_details": {
@@ -43781,7 +44460,8 @@ paths:
                 "usage": {
                   "input_tokens": 81,
                   "input_tokens_details": {
-                    "cached_tokens": 0
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0
                   },
                   "output_tokens": 1035,
                   "output_tokens_details": {
@@ -44009,7 +44689,8 @@ paths:
               "usage": {
                 "input_tokens": 32,
                 "input_tokens_details": {
-                  "cached_tokens": 0
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0
                 },
                 "output_tokens": 18,
                 "output_tokens_details": {
@@ -44477,7 +45158,8 @@ paths:
               "usage": {
                 "input_tokens": 139,
                 "input_tokens_details": {
-                  "cached_tokens": 0
+                  "cached_tokens": 0,
+                  "cache_write_tokens": 0
                 },
                 "output_tokens": 438,
                 "output_tokens_details": {
@@ -61374,25 +62056,29 @@ components:
             and  to help OpenAI detect and prevent abuse. [Learn
             more](/docs/guides/safety-best-practices#safety-identifiers).
         safety_identifier:
-          type: string
-          maxLength: 64
-          example: safety-identifier-1234
-          description: >
-            A stable identifier used to help detect users of your application
-            that may be violating OpenAI's usage policies.
+          anyOf:
+            - type: string
+              maxLength: 64
+              example: safety-identifier-1234
+              description: >
+                A stable identifier used to help detect users of your
+                application that may be violating OpenAI's usage policies.
 
-            The IDs should be a string that uniquely identifies each user, with
-            a maximum length of 64 characters. We recommend hashing their
-            username or email address, in order to avoid sending us any
-            identifying information. [Learn
-            more](/docs/guides/safety-best-practices#safety-identifiers).
+                The IDs should be a string that uniquely identifies each user,
+                with a maximum length of 64 characters. We recommend hashing
+                their username or email address, in order to avoid sending us
+                any identifying information. [Learn
+                more](/docs/guides/safety-best-practices#safety-identifiers).
+            - type: 'null'
         prompt_cache_key:
-          type: string
-          example: prompt-cache-key-1234
-          description: >
-            Used by OpenAI to cache responses for similar requests to optimize
-            your cache hit rates. Replaces the `user` field. [Learn
-            more](/docs/guides/prompt-caching).
+          anyOf:
+            - type: string
+              example: prompt-cache-key-1234
+              description: >
+                Used by OpenAI to cache responses for similar requests to
+                optimize your cache hit rates. Replaces the `user` field. [Learn
+                more](/docs/guides/prompt-caching).
+            - type: 'null'
         service_tier:
           $ref: '#/components/schemas/ServiceTier'
         prompt_cache_retention:
@@ -74043,6 +74729,15 @@ components:
                 Controls which reasoning items are rendered back to the model on
                 later turns.
 
+                If omitted or set to `auto`, the model determines the context
+                mode. The
+
+                `gpt-5.6` model family defaults to `all_turns`; earlier models
+                default to
+
+                `current_turn`.
+
+
                 When returned on a response, this is the effective reasoning
                 context mode
 
@@ -74396,6 +75091,7 @@ components:
           input_tokens: 328
           input_tokens_details:
             cached_tokens: 0
+            cache_write_tokens: 0
           output_tokens: 52
           output_tokens_details:
             reasoning_tokens: 0
@@ -75081,6 +75777,7 @@ components:
         - server_error
         - rate_limit_exceeded
         - invalid_prompt
+        - data_residency_mismatch
         - bio_policy
         - vector_store_timeout
         - invalid_image
@@ -81835,7 +82532,10 @@ components:
             more concise responses, while higher values will result in more
             verbose responses.
 
-            Currently supported values are `low`, `medium`, and `high`.
+            Currently supported values are `low`, `medium`, and `high`. The
+            default is
+
+            `medium`.
         - type: 'null'
     VoiceConsentDeletedResource:
       type: object
@@ -87082,6 +87782,188 @@ components:
         - object
         - deleted
         - id
+    SpendLimitCurrency:
+      anyOf:
+        - type: string
+        - type: string
+          enum:
+            - USD
+    SpendLimitInterval:
+      anyOf:
+        - type: string
+        - type: string
+          enum:
+            - month
+    SpendLimitEnforcementStatus:
+      anyOf:
+        - type: string
+        - type: string
+          enum:
+            - inactive
+            - enforcing
+    SpendLimitEnforcement:
+      properties:
+        status:
+          $ref: '#/components/schemas/SpendLimitEnforcementStatus'
+          description: Whether the hard spend limit is currently enforcing.
+      type: object
+      required:
+        - status
+      description: The current enforcement state of a hard spend limit.
+    OrganizationSpendLimitResource:
+      properties:
+        object:
+          type: string
+          enum:
+            - organization.spend_limit
+          description: The object type, which is always `organization.spend_limit`.
+          default: organization.spend_limit
+          x-stainless-const: true
+        threshold_amount:
+          type: integer
+          description: The hard spend limit amount, in cents.
+        currency:
+          $ref: '#/components/schemas/SpendLimitCurrency'
+          description: >-
+            The currency for the threshold amount. Currently, only `USD` is
+            supported.
+        interval:
+          $ref: '#/components/schemas/SpendLimitInterval'
+          description: >-
+            The time interval for evaluating spend against the threshold.
+            Currently, only `month` is supported.
+        enforcement:
+          $ref: '#/components/schemas/SpendLimitEnforcement'
+          description: The current enforcement state of the hard spend limit.
+      type: object
+      required:
+        - object
+        - threshold_amount
+        - currency
+        - interval
+        - enforcement
+      description: Represents a hard spend limit configured at the organization level.
+    UpdateOrganizationSpendLimitBody:
+      properties:
+        threshold_amount:
+          type: integer
+          minimum: 1
+          description: The hard spend limit amount, in cents.
+        currency:
+          type: string
+          enum:
+            - USD
+          description: >-
+            The currency for the threshold amount. Currently, only `USD` is
+            supported.
+        interval:
+          type: string
+          enum:
+            - month
+          description: >-
+            The time interval for evaluating spend against the threshold.
+            Currently, only `month` is supported.
+      type: object
+      required:
+        - threshold_amount
+        - currency
+        - interval
+      description: Parameters for the hard spend limit you want to create or replace.
+    OrganizationSpendLimitDeletedResource:
+      properties:
+        object:
+          type: string
+          enum:
+            - organization.spend_limit.deleted
+          description: The object type, which is always `organization.spend_limit.deleted`.
+          default: organization.spend_limit.deleted
+          x-stainless-const: true
+        deleted:
+          type: boolean
+          description: Whether the hard spend limit was deleted.
+      type: object
+      required:
+        - object
+        - deleted
+      description: >-
+        Confirmation payload returned after deleting an organization hard spend
+        limit.
+    ProjectSpendLimitResource:
+      properties:
+        object:
+          type: string
+          enum:
+            - project.spend_limit
+          description: The object type, which is always `project.spend_limit`.
+          default: project.spend_limit
+          x-stainless-const: true
+        threshold_amount:
+          type: integer
+          description: The hard spend limit amount, in cents.
+        currency:
+          $ref: '#/components/schemas/SpendLimitCurrency'
+          description: >-
+            The currency for the threshold amount. Currently, only `USD` is
+            supported.
+        interval:
+          $ref: '#/components/schemas/SpendLimitInterval'
+          description: >-
+            The time interval for evaluating spend against the threshold.
+            Currently, only `month` is supported.
+        enforcement:
+          $ref: '#/components/schemas/SpendLimitEnforcement'
+          description: The current enforcement state of the hard spend limit.
+      type: object
+      required:
+        - object
+        - threshold_amount
+        - currency
+        - interval
+        - enforcement
+      description: Represents a hard spend limit configured at the project level.
+    UpdateProjectSpendLimitBody:
+      properties:
+        threshold_amount:
+          type: integer
+          minimum: 1
+          description: The hard spend limit amount, in cents.
+        currency:
+          type: string
+          enum:
+            - USD
+          description: >-
+            The currency for the threshold amount. Currently, only `USD` is
+            supported.
+        interval:
+          type: string
+          enum:
+            - month
+          description: >-
+            The time interval for evaluating spend against the threshold.
+            Currently, only `month` is supported.
+      type: object
+      required:
+        - threshold_amount
+        - currency
+        - interval
+      description: Parameters for the hard spend limit you want to create or replace.
+    ProjectSpendLimitDeletedResource:
+      properties:
+        object:
+          type: string
+          enum:
+            - project.spend_limit.deleted
+          description: The object type, which is always `project.spend_limit.deleted`.
+          default: project.spend_limit.deleted
+          x-stainless-const: true
+        deleted:
+          type: boolean
+          description: Whether the hard spend limit was deleted.
+      type: object
+      required:
+        - object
+        - deleted
+      description: Confirmation payload returned after deleting a project hard spend limit.
     CreateProjectServiceAccountApiKeyBody:
       properties:
         name:
@@ -89672,6 +90554,15 @@ components:
                 Controls which reasoning items are rendered back to the model on
                 later turns.
 
+                If omitted or set to `auto`, the model determines the context
+                mode. The
+
+                `gpt-5.6` model family defaults to `all_turns`; earlier models
+                default to
+
+                `current_turn`.
+
+
                 When returned on a response, this is the effective reasoning
                 context mode
 
@@ -89765,7 +90656,10 @@ components:
             more concise responses, while higher values will result in more
             verbose responses.
 
-            Currently supported values are `low`, `medium`, and `high`.
+            Currently supported values are `low`, `medium`, and `high`. The
+            default is
+
+            `medium`.
         - type: 'null'
     BetaTextResponseFormatConfiguration:
       description: >
@@ -96714,6 +97608,7 @@ components:
           input_tokens: 328
           input_tokens_details:
             cached_tokens: 0
+            cache_write_tokens: 0
           output_tokens: 52
           output_tokens_details:
             reasoning_tokens: 0
@@ -96914,6 +97809,7 @@ components:
         - server_error
         - rate_limit_exceeded
         - invalid_prompt
+        - data_residency_mismatch
         - bio_policy
         - vector_store_timeout
         - invalid_image
@@ -97120,25 +98016,29 @@ components:
             and  to help OpenAI detect and prevent abuse. [Learn
             more](/docs/guides/safety-best-practices#safety-identifiers).
         safety_identifier:
-          type: string
-          maxLength: 64
-          example: safety-identifier-1234
-          description: >
-            A stable identifier used to help detect users of your application
-            that may be violating OpenAI's usage policies.
+          anyOf:
+            - type: string
+              maxLength: 64
+              example: safety-identifier-1234
+              description: >
+                A stable identifier used to help detect users of your
+                application that may be violating OpenAI's usage policies.
 
-            The IDs should be a string that uniquely identifies each user, with
-            a maximum length of 64 characters. We recommend hashing their
-            username or email address, in order to avoid sending us any
-            identifying information. [Learn
-            more](/docs/guides/safety-best-practices#safety-identifiers).
+                The IDs should be a string that uniquely identifies each user,
+                with a maximum length of 64 characters. We recommend hashing
+                their username or email address, in order to avoid sending us
+                any identifying information. [Learn
+                more](/docs/guides/safety-best-practices#safety-identifiers).
+            - type: 'null'
         prompt_cache_key:
-          type: string
-          example: prompt-cache-key-1234
-          description: >
-            Used by OpenAI to cache responses for similar requests to optimize
-            your cache hit rates. Replaces the `user` field. [Learn
-            more](/docs/guides/prompt-caching).
+          anyOf:
+            - type: string
+              example: prompt-cache-key-1234
+              description: >
+                Used by OpenAI to cache responses for similar requests to
+                optimize your cache hit rates. Replaces the `user` field. [Learn
+                more](/docs/guides/prompt-caching).
+            - type: 'null'
         service_tier:
           $ref: '#/components/schemas/BetaServiceTier'
         prompt_cache_retention:
