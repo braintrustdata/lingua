@@ -19,9 +19,7 @@ use crate::providers::{
     rewrite_body_model_if_required, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
-use crate::streaming::{
-    transform_stream, transform_stream_with_capture, RawStreamChunkCapture, ResponseStream,
-};
+use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
 use lingua::{ParsableResponseInfo, TransformError, TransformResult};
@@ -577,26 +575,16 @@ impl Router {
             requires_json_response: _,
             strategy: _,
         } = request.inner;
-        let allow_full_response_fallback = true;
         let raw_stream = provider
             .clone()
             .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
             .await?;
-        Ok(match raw_chunk_capture {
-            Some(capture) => transform_stream_with_capture(
-                raw_stream,
-                output_format,
-                allow_full_response_fallback,
-                gateway_request_id,
-                Some(capture),
-            ),
-            None => transform_stream(
-                raw_stream,
-                output_format,
-                allow_full_response_fallback,
-                gateway_request_id,
-            ),
-        })
+        Ok(transform_provider_stream(
+            raw_stream,
+            output_format,
+            gateway_request_id,
+            raw_chunk_capture,
+        ))
     }
 
     /// Resolve all providers for a given model and output format.
