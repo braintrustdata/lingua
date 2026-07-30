@@ -3,14 +3,25 @@ use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::anthropic::AnthropicAdapter;
 use crate::serde_json::{self, Value};
-use crate::universal::{
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalUsage,
-};
-use serde::Serialize;
+use crate::universal::{UniversalRequest, UniversalResponse, UniversalStreamChunk, UniversalUsage};
+use serde::{Deserialize, Serialize};
 
 const BEDROCK_ANTHROPIC_VERSION: &str = "bedrock-2023-05-31";
 const BEDROCK_ANTHROPIC_PLACEHOLDER_MODEL: &str = "bedrock-anthropic-path-model";
+
+#[derive(Deserialize)]
+struct BedrockInvocationMetricsEnvelope {
+    #[serde(rename = "amazon-bedrock-invocationMetrics")]
+    invocation_metrics: Option<BedrockInvocationMetrics>,
+}
+
+#[derive(Deserialize)]
+struct BedrockInvocationMetrics {
+    #[serde(rename = "inputTokenCount")]
+    input_token_count: Option<i64>,
+    #[serde(rename = "outputTokenCount")]
+    output_token_count: Option<i64>,
+}
 
 #[derive(Serialize)]
 struct BedrockAnthropicBodyWithModel {
@@ -151,15 +162,11 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
         // Intercept message_stop with Bedrock invocation metrics
         if payload.get("type").and_then(Value::as_str) == Some("message_stop") {
-            if let Some(usage) = usage_from_bedrock_invocation_metrics(&payload) {
+            if let Some(usage) = usage_from_bedrock_invocation_metrics(&payload)? {
                 return Ok(Some(UniversalStreamChunk::new(
                     None,
                     None,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("stop".to_string()),
-                    }],
+                    vec![],
                     None,
                     Some(usage),
                 )));
@@ -174,11 +181,22 @@ impl ProviderAdapter for BedrockAnthropicAdapter {
     }
 }
 
-fn usage_from_bedrock_invocation_metrics(payload: &Value) -> Option<UniversalUsage> {
-    let metrics = payload.get("amazon-bedrock-invocationMetrics")?;
-    Some(UniversalUsage {
-        prompt_tokens: metrics.get("inputTokenCount").and_then(Value::as_i64),
-        completion_tokens: metrics.get("outputTokenCount").and_then(Value::as_i64),
+fn usage_from_bedrock_invocation_metrics(
+    payload: &Value,
+) -> Result<Option<UniversalUsage>, TransformError> {
+    let envelope: BedrockInvocationMetricsEnvelope = serde_json::from_value(payload.clone())
+        .map_err(|error| TransformError::DeserializationFailed(error.to_string()))?;
+    let Some(metrics) = envelope.invocation_metrics else {
+        return Ok(None);
+    };
+    let total_tokens = match (metrics.input_token_count, metrics.output_token_count) {
+        (Some(input), Some(output)) => Some(input.saturating_add(output)),
+        _ => None,
+    };
+    Ok(Some(UniversalUsage {
+        prompt_tokens: metrics.input_token_count,
+        completion_tokens: metrics.output_token_count,
+        total_tokens,
         prompt_cached_tokens: None,
         prompt_cache_creation_tokens: None,
         prompt_cache_creation_5m_tokens: None,
@@ -187,7 +205,8 @@ fn usage_from_bedrock_invocation_metrics(payload: &Value) -> Option<UniversalUsa
         // reported here, so this is for semantic consistency only)
         prompt_tokens_exclude_cache: true,
         completion_reasoning_tokens: None,
-    })
+        ..Default::default()
+    }))
 }
 
 #[cfg(test)]
@@ -248,12 +267,20 @@ mod tests {
             Some(4)
         );
         assert_eq!(
-            chunk
-                .choices
-                .first()
-                .and_then(|choice| choice.finish_reason.as_deref()),
-            Some("stop")
+            chunk.usage.as_ref().and_then(|usage| usage.total_tokens),
+            Some(20)
         );
+        assert!(chunk.choices.is_empty());
+
+        let serialized = adapter
+            .stream_from_universal(&chunk)
+            .expect("usage-only chunk should serialize");
+        let reparsed = adapter
+            .stream_to_universal(serialized)
+            .expect("serialized usage should parse")
+            .expect("serialized usage should produce a chunk");
+        assert!(reparsed.usage.is_some());
+        assert!(reparsed.choices.is_empty());
     }
 
     #[test]

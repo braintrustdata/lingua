@@ -1093,15 +1093,25 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
-                if finish_reason.is_some() || usage.is_some() {
+                if let Some(finish_reason) = finish_reason {
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
                             index: 0,
                             delta: Some(serde_json::json!({})),
-                            finish_reason,
+                            finish_reason: Some(finish_reason),
                         }],
+                        None,
+                        usage,
+                    )));
+                }
+
+                if usage.is_some() {
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![],
                         None,
                         usage,
                     )));
