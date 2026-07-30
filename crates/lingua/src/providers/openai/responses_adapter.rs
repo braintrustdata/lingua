@@ -5,6 +5,8 @@ This module provides the `ResponsesAdapter` for the Responses API,
 which is used by reasoning models like o1 and o3.
 */
 
+use std::collections::BTreeMap;
+
 use crate::capabilities::ProviderFormat;
 
 use crate::error::ConvertError;
@@ -297,11 +299,13 @@ struct ResponsesOutputItemAddedEvent {
 enum ResponsesOutputItemAddedItem {
     #[serde(rename = "function_call")]
     FunctionCall {
+        id: Option<String>,
         call_id: Option<String>,
         name: Option<String>,
     },
     #[serde(rename = "custom_tool_call")]
     CustomToolCall {
+        id: Option<String>,
         call_id: Option<String>,
         name: Option<String>,
     },
@@ -313,12 +317,12 @@ enum ResponsesOutputItemAddedItem {
 impl ResponsesOutputItemAddedItem {
     fn tool_call_start(&self) -> Option<(&str, &str, bool)> {
         match self {
-            Self::FunctionCall { call_id, name } => Some((
+            Self::FunctionCall { call_id, name, .. } => Some((
                 call_id.as_deref().unwrap_or(""),
                 name.as_deref().unwrap_or(""),
                 false,
             )),
-            Self::CustomToolCall { call_id, name } => Some((
+            Self::CustomToolCall { call_id, name, .. } => Some((
                 call_id.as_deref().unwrap_or(""),
                 name.as_deref().unwrap_or(""),
                 true,
@@ -326,6 +330,121 @@ impl ResponsesOutputItemAddedItem {
             Self::Other => None,
         }
     }
+
+    /// Identity of a tool-call item, or an error when a required field is absent.
+    fn tool_call_identity(&self) -> Result<Option<(String, String, String, bool)>, TransformError> {
+        let (id, call_id, name, custom) = match self {
+            Self::FunctionCall { id, call_id, name } => (id, call_id, name, false),
+            Self::CustomToolCall { id, call_id, name } => (id, call_id, name, true),
+            Self::Other => return Ok(None),
+        };
+        let missing = |field: &str| {
+            TransformError::SerializationFailed(format!(
+                "synthesized Responses tool-call item is missing `{field}`"
+            ))
+        };
+        Ok(Some((
+            id.clone().ok_or_else(|| missing("id"))?,
+            call_id.clone().ok_or_else(|| missing("call_id"))?,
+            name.clone().ok_or_else(|| missing("name"))?,
+            custom,
+        )))
+    }
+}
+
+/// An open tool-call output item awaiting its terminal `output_item.done`.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct ResponsesToolItem {
+    pub id: String,
+    pub call_id: String,
+    pub name: String,
+    pub arguments: String,
+    pub custom: bool,
+}
+
+/// Typed dispatch over the synthesized events that open or extend a tool call.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum ResponsesToolStreamEvent {
+    #[serde(rename = "response.output_item.added")]
+    OutputItemAdded(ResponsesOutputItemAddedEvent),
+    #[serde(rename = "response.function_call_arguments.delta")]
+    FunctionCallArgumentsDelta(ResponsesFunctionCallArgumentsDeltaEvent),
+    #[serde(rename = "response.custom_tool_call_input.delta")]
+    CustomToolCallInputDelta(ResponsesCustomToolCallInputDeltaEvent),
+    #[serde(other)]
+    Other,
+}
+
+/// Record tool-call output items emitted for this chunk so they can be closed at finish.
+pub(crate) fn record_responses_tool_items(
+    events: &[Value],
+    tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
+) -> Result<(), TransformError> {
+    for event in events {
+        let parsed =
+            serde_json::from_value::<ResponsesToolStreamEvent>(event.clone()).map_err(|e| {
+                TransformError::SerializationFailed(format!(
+                    "synthesized Responses tool event did not match its typed view: {e}"
+                ))
+            })?;
+        match parsed {
+            ResponsesToolStreamEvent::OutputItemAdded(added) => {
+                let (Some(item), Some(output_index)) = (added.item, added.output_index) else {
+                    continue;
+                };
+                let Some((id, call_id, name, custom)) = item.tool_call_identity()? else {
+                    continue;
+                };
+                tool_items.insert(
+                    output_index,
+                    ResponsesToolItem {
+                        id,
+                        call_id,
+                        name,
+                        arguments: String::new(),
+                        custom,
+                    },
+                );
+            }
+            ResponsesToolStreamEvent::FunctionCallArgumentsDelta(delta) => {
+                if let (Some(output_index), Some(text)) = (delta.output_index, delta.delta) {
+                    if let Some(entry) = tool_items.get_mut(&output_index) {
+                        entry.arguments.push_str(&text);
+                    }
+                }
+            }
+            ResponsesToolStreamEvent::CustomToolCallInputDelta(delta) => {
+                if let Some(entry) = tool_items.get_mut(&delta.output_index) {
+                    entry.arguments.push_str(&delta.delta);
+                }
+            }
+            ResponsesToolStreamEvent::Other => {}
+        }
+    }
+    Ok(())
+}
+
+/// Build the terminal `output_item.done` item for a tool call.
+pub(crate) fn responses_tool_call_item(tool: &ResponsesToolItem, status: &str) -> Value {
+    if tool.custom {
+        return serde_json::json!({
+            "id": tool.id,
+            "type": "custom_tool_call",
+            "status": status,
+            "call_id": tool.call_id,
+            "name": tool.name,
+            "input": tool.arguments
+        });
+    }
+    serde_json::json!({
+        "id": tool.id,
+        "type": "function_call",
+        "status": status,
+        "call_id": tool.call_id,
+        "name": tool.name,
+        "arguments": tool.arguments
+    })
 }
 
 #[derive(Debug, Deserialize, Default)]
