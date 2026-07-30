@@ -591,4 +591,64 @@ mod tests {
         assert!(first.event_type.is_none());
         assert!(next.is_none());
     }
+
+    // BT-6217: a non-streaming provider (`supports_streaming == false`) has its
+    // full response wrapped as a single chunk and fake-streamed. With the
+    // full-response fallback enabled (as the router now always does), that full
+    // Anthropic response must be synthesized into a well-formed Responses stream
+    // — output_item.added -> output_text.delta (with item_id) -> output_item.done
+    // -> completed — not passed through raw.
+    #[test]
+    fn transform_stream_synthesizes_responses_stream_from_full_anthropic_response() {
+        let full_response = Bytes::from_static(
+            br#"{"id":"msg_abc","type":"message","role":"assistant","model":"claude-haiku-4-5","content":[{"type":"text","text":"Paris is the capital of France."}],"stop_reason":"end_turn","usage":{"input_tokens":19,"output_tokens":10}}"#,
+        );
+        let raw: RawResponseStream = Box::pin(futures::stream::once(async move {
+            Ok(StreamChunk::data(full_response))
+        }));
+        let mut stream = transform_stream(raw, ProviderFormat::Responses, true, None);
+
+        let mut event_types = Vec::new();
+        let mut text = String::new();
+        let mut delta_item_ids = Vec::new();
+        while let Some(chunk) = futures::executor::block_on(stream.next()) {
+            let chunk = chunk.expect("chunk should be ok");
+            let value: serde_json::Value =
+                serde_json::from_slice(&chunk.data).expect("valid json event");
+            let event_type = value
+                .get("type")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+            if event_type == "response.output_text.delta" {
+                text.push_str(value["delta"].as_str().unwrap_or_default());
+                delta_item_ids.push(
+                    value["item_id"]
+                        .as_str()
+                        .expect("text delta must carry item_id")
+                        .to_string(),
+                );
+            }
+            event_types.push(event_type);
+        }
+
+        assert!(
+            event_types.contains(&"response.output_item.added".to_string()),
+            "expected a message output_item.added, got {event_types:?}",
+        );
+        assert!(
+            event_types.contains(&"response.output_item.done".to_string()),
+            "expected a message output_item.done, got {event_types:?}",
+        );
+        assert_eq!(text, "Paris is the capital of France.");
+        assert!(
+            delta_item_ids.iter().all(|id| id == &delta_item_ids[0]),
+            "all text deltas share one item_id, got {delta_item_ids:?}",
+        );
+        // Not a raw passthrough of the Anthropic message.
+        assert!(
+            !event_types.iter().any(|t| t.is_empty()),
+            "every emitted chunk is a typed Responses event, got {event_types:?}",
+        );
+    }
 }

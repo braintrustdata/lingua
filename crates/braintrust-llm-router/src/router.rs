@@ -577,7 +577,17 @@ impl Router {
             requires_json_response: _,
             strategy: _,
         } = request.inner;
-        let allow_full_response_fallback = spec.supports_streaming;
+        // Always allow the stream transform to fall back to full-response
+        // detection. Two distinct paths depend on it:
+        //   - supports_streaming == true: some providers (e.g. Vertex) may return
+        //     a full response payload even for a streaming request.
+        //   - supports_streaming == false: `complete_stream` made a non-streaming
+        //     request and wrapped the full response as a single chunk
+        //     (`single_bytes_stream`), which must be synthesized into a stream.
+        // Gating this on `supports_streaming` disabled the conversion for exactly
+        // the fake-stream case, causing the raw provider response to be passed
+        // through instead of a real SSE stream (BT-6217).
+        let allow_full_response_fallback = true;
         let raw_stream = provider
             .clone()
             .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
