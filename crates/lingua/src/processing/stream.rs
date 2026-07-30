@@ -10,8 +10,8 @@ use crate::processing::transform::{
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
     record_responses_tool_items, responses_created_stream_event_from_universal,
-    responses_stream_events_from_universal_with_output_index_offset, responses_tool_call_item,
-    ResponsesToolItem,
+    responses_message_item_id, responses_stream_events_from_universal_with_output_index_offset,
+    responses_tool_call_item, ResponsesToolItem,
 };
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
@@ -1008,11 +1008,6 @@ fn expand_responses_session_chunks(
         .choices
         .first()
         .and_then(|choice| choice.finish_reason.clone());
-    let output_index_state = responses_output_index_states
-        .get(&choice_index)
-        .cloned()
-        .unwrap_or_default();
-    let text_output_index_before = output_index_state.text_output_index;
     let content_str = universal
         .choices
         .first()
@@ -1029,47 +1024,55 @@ fn expand_responses_session_chunks(
         universal.model.is_some() || universal.id.is_some() || universal.usage.is_some();
     let may_emit_created = has_metadata && !responses_message_started;
     let event_sequence_number = *next_responses_sequence_number + u64::from(may_emit_created);
+
+    // Mutated in place: the accumulated text and tool arguments must not be
+    // cloned on every delta, which would make streaming quadratic in output size.
+    let state = responses_output_index_states
+        .entry(choice_index)
+        .or_default();
+    let text_output_index_before = state.text_output_index;
     let mut events = responses_stream_events_from_universal_with_output_index_offset(
         universal,
-        output_index_state.text_output_index,
-        output_index_state.tool_output_index_offset,
+        state.text_output_index,
+        state.tool_output_index_offset,
         event_sequence_number,
     );
-    let mut next_output_index_state = output_index_state;
     if has_reasoning {
-        next_output_index_state.tool_output_index_offset = next_output_index_state
-            .tool_output_index_offset
-            .max(choice_index + 1);
+        state.tool_output_index_offset = state.tool_output_index_offset.max(choice_index + 1);
     }
     if has_content {
-        let text_output_index = *next_output_index_state
+        let default_text_output_index = choice_index.max(state.tool_output_index_offset);
+        let text_output_index = *state
             .text_output_index
-            .get_or_insert_with(|| {
-                choice_index.max(next_output_index_state.tool_output_index_offset)
-            });
-        next_output_index_state.tool_output_index_offset = next_output_index_state
-            .tool_output_index_offset
-            .max(text_output_index + 1);
+            .get_or_insert(default_text_output_index);
+        state.tool_output_index_offset = state.tool_output_index_offset.max(text_output_index + 1);
     }
     if let Some(content) = &content_str {
-        next_output_index_state.text_content.push_str(content);
+        state.text_content.push_str(content);
     }
 
-    record_responses_tool_items(&events, &mut next_output_index_state.tool_items)?;
+    record_responses_tool_items(&events, &mut state.tool_items)?;
 
-    let text_output_index = next_output_index_state.text_output_index;
+    let text_output_index = state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
     let text_just_started = text_output_index_before.is_none() && text_output_index.is_some();
     let finish_text = if has_finish {
-        Some(std::mem::take(&mut next_output_index_state.text_content))
+        Some(std::mem::take(&mut state.text_content))
     } else {
         None
     };
     let finish_tool_items = if has_finish {
-        std::mem::take(&mut next_output_index_state.tool_items)
+        std::mem::take(&mut state.tool_items)
     } else {
         BTreeMap::new()
     };
+    let state_is_empty = state.text_output_index.is_none()
+        && state.tool_output_index_offset == 0
+        && state.tool_items.is_empty();
+    if has_finish || state_is_empty {
+        responses_output_index_states.remove(&choice_index);
+    }
+
     // Truncated turns terminate with `response.incomplete`; the message item and
     // the entry in `response.output` must carry the matching status.
     let finish_item_status = match finish_reason.as_deref() {
@@ -1077,17 +1080,7 @@ fn expand_responses_session_chunks(
         _ => "completed",
     };
 
-    if has_finish {
-        responses_output_index_states.remove(&choice_index);
-    } else if next_output_index_state.text_output_index.is_some()
-        || next_output_index_state.tool_output_index_offset > 0
-        || !next_output_index_state.tool_items.is_empty()
-    {
-        responses_output_index_states.insert(choice_index, next_output_index_state);
-    }
-
     if let Some(item_id) = &text_item_id {
-        stamp_responses_text_delta_item_ids(&mut events, item_id);
         if text_just_started {
             insert_responses_message_item_added(&mut events, item_id, text_output_index);
         }
@@ -1148,10 +1141,6 @@ fn expand_responses_session_chunks(
     }
 }
 
-fn responses_message_item_id(output_index: u32) -> String {
-    format!("msg_{output_index}")
-}
-
 fn responses_message_item(item_id: &str, status: &str, text: Option<&str>) -> Value {
     let content = match text {
         Some(text) => crate::serde_json::json!([{
@@ -1168,18 +1157,6 @@ fn responses_message_item(item_id: &str, status: &str, text: Option<&str>) -> Va
         "status": status,
         "content": content
     })
-}
-
-fn stamp_responses_text_delta_item_ids(events: &mut [Value], item_id: &str) {
-    for event in events.iter_mut() {
-        if event.get("type").and_then(Value::as_str) != Some("response.output_text.delta") {
-            continue;
-        }
-        let Some(obj) = event.as_object_mut() else {
-            continue;
-        };
-        obj.insert("item_id".to_string(), Value::from(item_id));
-    }
 }
 
 fn insert_responses_message_item_added(

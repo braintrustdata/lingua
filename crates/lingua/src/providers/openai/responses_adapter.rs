@@ -116,6 +116,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
             events.push(serde_json::json!({
                 "type": "response.output_text.delta",
                 "output_index": output_index,
+                "item_id": responses_message_item_id(output_index),
                 "content_index": 0,
                 "delta": content,
                 "sequence_number": next_sequence_number
@@ -209,6 +210,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
 
 fn custom_tool_call_item_id(output_index: u32) -> String {
     format!("ctc_{output_index}")
+}
+
+pub(crate) fn responses_message_item_id(output_index: u32) -> String {
+    format!("msg_{output_index}")
 }
 
 pub(crate) fn function_call_item_id(output_index: u32) -> String {
