@@ -2883,6 +2883,58 @@ mod tests {
         assert_eq!(completed["response"]["usage"]["output_tokens"], json!(10));
     }
 
+    /// A full Responses payload is one turn whose `output` items each become an
+    /// assistant message; synthesis consumes a single choice, so they must merge.
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_stream_session_full_responses_payload_keeps_reasoning_and_text() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let full_response = to_bytes(&json!({
+            "id": "resp_1",
+            "object": "response",
+            "model": "gpt-5-nano",
+            "status": "completed",
+            "output": [
+                {"id": "rs_1", "type": "reasoning",
+                 "summary": [{"type": "summary_text", "text": "thinking hard"}]},
+                {"id": "msg_1", "type": "message", "role": "assistant", "status": "completed",
+                 "content": [{"type": "output_text", "text": "Paris is the capital.",
+                              "annotations": []}]}
+            ],
+            "usage": {"input_tokens": 5, "output_tokens": 7, "total_tokens": 12}
+        }));
+
+        let mut out = session.push(full_response).unwrap();
+        out.extend(session.finish());
+        let events = out
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+            .collect::<Vec<_>>();
+
+        let text: String = events
+            .iter()
+            .filter(|e| e["type"] == json!("response.output_text.delta"))
+            .filter_map(|e| e["delta"].as_str())
+            .collect();
+        assert_eq!(
+            text,
+            "Paris is the capital.",
+            "assistant text must survive alongside the reasoning item, got {:?}",
+            events.iter().map(|e| e["type"].clone()).collect::<Vec<_>>()
+        );
+        assert!(
+            events
+                .iter()
+                .any(|e| e["type"] == json!("response.reasoning_summary_text.delta")),
+            "reasoning must still be emitted",
+        );
+        let terminal = events.last().expect("terminal event");
+        assert_eq!(
+            terminal["response"]["output"][0]["content"][0]["text"],
+            json!("Paris is the capital."),
+        );
+    }
+
     /// Anthropic keys tool blocks by content-block index while the terminal
     /// `message_delta` uses choice 0, so tool items must be finalized response-wide.
     #[test]

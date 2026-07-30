@@ -766,24 +766,77 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
     }
 }
 
-fn response_to_stream_chunk(response: UniversalResponse) -> UniversalStreamChunk {
-    let choices = response
+/// Whether a full response's assistant messages are alternative completions
+/// (chat-completions `n > 1`) rather than output items of a single turn.
+fn format_uses_multiple_choices(format: ProviderFormat) -> bool {
+    matches!(format, ProviderFormat::ChatCompletions)
+}
+
+/// Combine per-message deltas from one assistant turn into a single delta.
+fn merge_assistant_stream_deltas(deltas: Vec<UniversalStreamDelta>) -> UniversalStreamDelta {
+    let mut merged = UniversalStreamDelta {
+        role: Some("assistant".to_string()),
+        ..Default::default()
+    };
+    let mut text = String::new();
+    for delta in deltas {
+        if let Some(content) = delta.content {
+            text.push_str(&content);
+        }
+        merged.reasoning.extend(delta.reasoning);
+        for mut tool_call in delta.tool_calls {
+            tool_call.index = Some(merged.tool_calls.len() as u32);
+            merged.tool_calls.push(tool_call);
+        }
+        if merged.reasoning_signature.is_none() {
+            merged.reasoning_signature = delta.reasoning_signature;
+        }
+    }
+    merged.content = (!text.is_empty()).then_some(text);
+    merged
+}
+
+fn response_to_stream_chunk(
+    response: UniversalResponse,
+    source_format: ProviderFormat,
+) -> UniversalStreamChunk {
+    let finish_reason = response.finish_reason.as_ref().map(ToString::to_string);
+    let assistant_deltas = response
         .messages
         .iter()
-        .enumerate()
-        .filter_map(|(index, message)| match message {
-            Message::Assistant { content, .. } => Some(UniversalStreamChoice {
-                index: index as u32,
-                delta: Some(Value::from(assistant_content_to_stream_delta(content))),
-                finish_reason: response.finish_reason.as_ref().map(ToString::to_string),
-            }),
+        .filter_map(|message| match message {
+            Message::Assistant { content, .. } => Some(assistant_content_to_stream_delta(content)),
             Message::System { .. }
             | Message::Developer { .. }
             | Message::User { .. }
             | Message::Tool { .. }
             | Message::AdditionalTools { .. } => None,
-        })
-        .collect();
+        });
+
+    // Formats without `n > 1` return one turn whose output items each become an
+    // assistant message. Stream synthesis consumes a single choice, so those
+    // items must be merged or everything after the first one is dropped.
+    let choices = if format_uses_multiple_choices(source_format) {
+        assistant_deltas
+            .enumerate()
+            .map(|(index, delta)| UniversalStreamChoice {
+                index: index as u32,
+                delta: Some(Value::from(delta)),
+                finish_reason: finish_reason.clone(),
+            })
+            .collect()
+    } else {
+        let deltas: Vec<UniversalStreamDelta> = assistant_deltas.collect();
+        if deltas.is_empty() {
+            Vec::new()
+        } else {
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(merge_assistant_stream_deltas(deltas))),
+                finish_reason,
+            }]
+        }
+    };
 
     UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
 }
@@ -807,7 +860,7 @@ pub(crate) fn transform_stream_chunk_step(
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
             let response = source_adapter.response_to_universal(chunk)?;
-            Some(response_to_stream_chunk(response))
+            Some(response_to_stream_chunk(response, source_format))
         }
         DetectKind::Request => {
             unreachable!("stream detection never falls back to request payloads")
@@ -2240,7 +2293,7 @@ mod tests {
             finish_reasons: Vec::new(),
         };
 
-        let chunk = response_to_stream_chunk(response);
+        let chunk = response_to_stream_chunk(response, ProviderFormat::Responses);
         let output = crate::providers::openai::responses_adapter::ResponsesAdapter
             .stream_from_universal(&chunk)
             .unwrap();
