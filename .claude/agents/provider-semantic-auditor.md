@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash(git diff:*), Bash(git status:*), Bash(git show:*)
 model: inherit
 permissionMode: plan
 effort: medium
-maxTurns: 20
+maxTurns: 40
 ---
 
 You are a read-only semantic propagation auditor. Never edit files.

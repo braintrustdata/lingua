@@ -98,10 +98,12 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          sudo apt-get install -y protobuf-compiler ripgrep
+          make install-wasm-tools
           npm install -g braintrust || echo "::warning::Failed to install Braintrust SDK; parent trace setup will be skipped"
           pnpm install \
             --filter @lingua/quicktype-toolchain \
+            --filter @braintrust/lingua-wasm... \
             --filter @braintrust/payload-capture... \
             --frozen-lockfile
 
@@ -263,7 +265,7 @@ jobs:
         id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 45
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -290,7 +292,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 40
+            --max-turns 120
             --add-dir "${{ runner.temp }}"
             --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
             --allowedTools "Agent(provider-spec-auditor),Agent(provider-capability-auditor),Agent(provider-semantic-auditor),Agent(provider-coverage-auditor),Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
@@ -298,7 +300,16 @@ jobs:
           prompt: |
             This is the planning-only phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its planning phase.
-            Use all four provider audit subagents in parallel, then reconcile their reports yourself.
+
+            Before inspecting the provider diff yourself, invoke these four named
+            subagents in parallel:
+            - `@provider-spec-auditor`
+            - `@provider-capability-auditor`
+            - `@provider-semantic-auditor`
+            - `@provider-coverage-auditor`
+
+            Wait for all four reports, then reconcile their evidence yourself.
+            Do not substitute your own audit for any missing subagent report.
 
             Do not modify any tracked file. Read
             `.github/scripts/provider-type-update-plan.mjs` and its tests for the
@@ -343,7 +354,7 @@ jobs:
         id: integration_implementation
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 30
+        timeout-minutes: 60
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -369,7 +380,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 70
+            --max-turns 160
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
             --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo fmt:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
@@ -523,7 +534,7 @@ jobs:
         id: integration_verification
         if: steps.integration_implementation.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 30
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -551,7 +562,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 30
+            --max-turns 60
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
             --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*)"
