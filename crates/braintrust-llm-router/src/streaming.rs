@@ -82,37 +82,19 @@ pub type RawStreamChunkCapture = Arc<dyn Fn(&StreamChunk) + Send + Sync>;
 /// Create a raw SSE stream that yields JSON bytes without transformation.
 ///
 /// Parses Server-Sent Events from the HTTP response and yields raw JSON bytes.
-/// Use `transform_stream()` to convert to the desired output format.
+/// Use `transform_provider_stream()` to convert to the desired output format.
 pub fn sse_stream(response: Response) -> RawResponseStream {
     Box::pin(RawSseStream::new(response.bytes_stream()))
 }
 
-/// Transform a raw stream of bytes chunks to the specified output format.
+/// Transform a provider stream using the session's default full-response handling.
 ///
-/// This is the central transformation point for all streaming responses.
-/// It takes raw bytes from any provider and transforms them using lingua.
-/// The stream yields pre-serialized bytes.
-pub fn transform_stream(
+/// A provider stream can legitimately carry a single full response rather than
+/// SSE events: models with `supports_streaming == false` are fake-streamed from
+/// one complete response, and some streaming providers (Vertex) return one anyway.
+pub fn transform_provider_stream(
     raw: RawResponseStream,
     output_format: ProviderFormat,
-    allow_full_response_fallback: bool,
-    #[cfg_attr(not(feature = "tracing"), allow(unused_variables))] gateway_request_id: Option<
-        String,
-    >,
-) -> ResponseStream {
-    transform_stream_with_capture(
-        raw,
-        output_format,
-        allow_full_response_fallback,
-        gateway_request_id,
-        None,
-    )
-}
-
-pub fn transform_stream_with_capture(
-    raw: RawResponseStream,
-    output_format: ProviderFormat,
-    allow_full_response_fallback: bool,
     #[cfg_attr(not(feature = "tracing"), allow(unused_variables))] gateway_request_id: Option<
         String,
     >,
@@ -120,10 +102,7 @@ pub fn transform_stream_with_capture(
 ) -> ResponseStream {
     Box::pin(SessionTransformStream {
         raw,
-        session: lingua::StreamTransformSession::with_full_response_fallback(
-            output_format,
-            allow_full_response_fallback,
-        ),
+        session: lingua::StreamTransformSession::new(output_format),
         #[cfg(feature = "tracing")]
         gateway_request_id,
         raw_chunk_capture,
@@ -495,7 +474,7 @@ where
 /// Create a raw Bedrock event stream that yields JSON bytes without transformation.
 ///
 /// Parses AWS binary event stream format and yields raw JSON bytes.
-/// Use `transform_stream()` to convert to the desired output format.
+/// Use `transform_provider_stream()` to convert to the desired output format.
 /// NOTE: This will be moved to bedrock.rs in a future refactor.
 #[cfg(feature = "provider-bedrock")]
 pub fn bedrock_event_stream(response: Response) -> RawResponseStream {
@@ -571,8 +550,10 @@ mod tests {
         assert!(!buffer.is_empty());
     }
 
+    /// A fake-streamed full response is synthesized into a stream rather than
+    /// passed through raw.
     #[test]
-    fn transform_stream_can_disable_full_response_fallback() {
+    fn transform_provider_stream_synthesizes_chat_completions_stream_from_full_response() {
         let full_response = Bytes::from_static(
             br#"{"id":"chatcmpl-test","object":"chat.completion","created":123,"model":"gpt-4","choices":[{"index":0,"message":{"role":"assistant","content":"Hello from a fake stream"},"finish_reason":"stop"}]}"#,
         );
@@ -580,15 +561,23 @@ mod tests {
             let full_response = full_response.clone();
             async move { Ok(StreamChunk::data(full_response)) }
         }));
-        let mut stream = transform_stream(raw, ProviderFormat::ChatCompletions, false, None);
+        let mut stream =
+            transform_provider_stream(raw, ProviderFormat::ChatCompletions, None, None);
 
         let first = futures::executor::block_on(stream.next())
             .expect("stream should yield a chunk")
             .expect("chunk should be ok");
-        let next = futures::executor::block_on(stream.next());
 
-        assert_eq!(first.data, full_response);
-        assert!(first.event_type.is_none());
-        assert!(next.is_none());
+        assert_ne!(
+            first.data, full_response,
+            "the full response must not be passed through raw",
+        );
+        let value: serde_json::Value =
+            serde_json::from_slice(&first.data).expect("valid json chunk");
+        assert_eq!(value["object"], serde_json::json!("chat.completion.chunk"));
+        assert_eq!(
+            value["choices"][0]["delta"]["content"],
+            serde_json::json!("Hello from a fake stream"),
+        );
     }
 }
