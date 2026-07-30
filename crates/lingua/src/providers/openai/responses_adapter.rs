@@ -255,7 +255,15 @@ pub(crate) fn responses_created_stream_event_from_universal(
 fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number: u64) -> Value {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {
-        Some(reason) if reason == "length" => "incomplete",
+        Some(reason)
+            if crate::universal::response::FinishReason::from_provider_string(
+                reason,
+                ProviderFormat::ChatCompletions,
+            )
+            .is_incomplete() =>
+        {
+            "incomplete"
+        }
         _ => "completed",
     };
 

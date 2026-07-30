@@ -56,6 +56,7 @@ struct SessionChunkState<'a> {
     anthropic_message_started: bool,
     responses_message_started: bool,
     responses_output_index_states: &'a mut BTreeMap<u32, ResponsesOutputIndexState>,
+    responses_tool_items: &'a mut BTreeMap<u32, ResponsesToolItem>,
     next_responses_sequence_number: &'a mut u64,
 }
 
@@ -68,7 +69,6 @@ struct ResponsesOutputIndexState {
     // synthesizing a Responses stream from a non-Responses source.
     text_content: String,
     // Open tool-call output items, keyed by output index.
-    tool_items: BTreeMap<u32, ResponsesToolItem>,
 }
 
 /// Stateful stream transformation session.
@@ -98,6 +98,9 @@ pub struct StreamTransformSession {
     anthropic_content_block_index_map: BTreeMap<(AnthropicContentBlockKind, u32), u32>,
     responses_message_started: bool,
     responses_output_index_states: BTreeMap<u32, ResponsesOutputIndexState>,
+    // Tool items are finalized response-wide: providers such as Anthropic key
+    // tool blocks by content-block index while the terminal event uses choice 0.
+    responses_tool_items: BTreeMap<u32, ResponsesToolItem>,
     next_responses_sequence_number: u64,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
@@ -127,6 +130,7 @@ impl StreamTransformSession {
             anthropic_content_block_index_map: BTreeMap::new(),
             responses_message_started: false,
             responses_output_index_states: BTreeMap::new(),
+            responses_tool_items: BTreeMap::new(),
             next_responses_sequence_number: 0,
             responses_tool_call_indexes: BTreeMap::new(),
             next_responses_tool_call_index: 0,
@@ -165,6 +169,7 @@ impl StreamTransformSession {
                 anthropic_message_started: self.anthropic_message_started,
                 responses_message_started: self.responses_message_started,
                 responses_output_index_states: &mut self.responses_output_index_states,
+                responses_tool_items: &mut self.responses_tool_items,
                 next_responses_sequence_number: &mut self.next_responses_sequence_number,
             },
         )?;
@@ -958,6 +963,7 @@ fn build_session_chunks(
             universal,
             state.responses_message_started,
             state.responses_output_index_states,
+            state.responses_tool_items,
             state.next_responses_sequence_number,
         );
         #[cfg(not(feature = "openai"))]
@@ -971,6 +977,7 @@ fn expand_responses_session_chunks(
     universal: Option<&UniversalStreamChunk>,
     responses_message_started: bool,
     responses_output_index_states: &mut BTreeMap<u32, ResponsesOutputIndexState>,
+    responses_tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
     next_responses_sequence_number: &mut u64,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
@@ -1051,7 +1058,7 @@ fn expand_responses_session_chunks(
         state.text_content.push_str(content);
     }
 
-    record_responses_tool_items(&events, &mut state.tool_items)?;
+    record_responses_tool_items(&events, responses_tool_items)?;
 
     let text_output_index = state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
@@ -1062,13 +1069,11 @@ fn expand_responses_session_chunks(
         None
     };
     let finish_tool_items = if has_finish {
-        std::mem::take(&mut state.tool_items)
+        std::mem::take(responses_tool_items)
     } else {
         BTreeMap::new()
     };
-    let state_is_empty = state.text_output_index.is_none()
-        && state.tool_output_index_offset == 0
-        && state.tool_items.is_empty();
+    let state_is_empty = state.text_output_index.is_none() && state.tool_output_index_offset == 0;
     if has_finish || state_is_empty {
         responses_output_index_states.remove(&choice_index);
     }
@@ -1076,7 +1081,15 @@ fn expand_responses_session_chunks(
     // Truncated turns terminate with `response.incomplete`; the message item and
     // the entry in `response.output` must carry the matching status.
     let finish_item_status = match finish_reason.as_deref() {
-        Some("length") => "incomplete",
+        Some(reason)
+            if crate::universal::response::FinishReason::from_provider_string(
+                reason,
+                ProviderFormat::ChatCompletions,
+            )
+            .is_incomplete() =>
+        {
+            "incomplete"
+        }
         _ => "completed",
     };
 
@@ -2868,6 +2881,56 @@ mod tests {
             json!("Paris is the capital of France."),
         );
         assert_eq!(completed["response"]["usage"]["output_tokens"], json!(10));
+    }
+
+    /// Anthropic keys tool blocks by content-block index while the terminal
+    /// `message_delta` uses choice 0, so tool items must be finalized response-wide.
+    #[test]
+    #[cfg(all(feature = "anthropic", feature = "openai"))]
+    fn test_stream_session_finalizes_parallel_anthropic_tool_blocks_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let pushes = vec![
+            json!({"type":"message_start","message":{"id":"msg_par","type":"message","role":"assistant","model":"claude-haiku-4-5","content":[],"stop_reason":null,"usage":{"input_tokens":5,"output_tokens":0}}}),
+            json!({"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"toolu_a","name":"get_weather","input":{}}}),
+            json!({"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"city\":\"SF\"}"}}),
+            json!({"type":"content_block_stop","index":0}),
+            json!({"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_b","name":"get_time","input":{}}}),
+            json!({"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"tz\":\"PT\"}"}}),
+            json!({"type":"content_block_stop","index":1}),
+            json!({"type":"message_delta","delta":{"stop_reason":"tool_use"},"usage":{"output_tokens":9}}),
+            json!({"type":"message_stop"}),
+        ];
+        let mut events = Vec::new();
+        for push in pushes {
+            for chunk in session.push(to_bytes(&push)).unwrap() {
+                events.push(crate::serde_json::from_slice::<Value>(&chunk.data).unwrap());
+            }
+        }
+        for chunk in session.finish() {
+            events.push(crate::serde_json::from_slice::<Value>(&chunk.data).unwrap());
+        }
+
+        let done_calls: Vec<&Value> = events
+            .iter()
+            .filter(|e| e["type"] == json!("response.output_item.done"))
+            .filter(|e| e["item"]["type"] == json!("function_call"))
+            .collect();
+        assert_eq!(
+            done_calls.len(),
+            2,
+            "both parallel tool blocks must be closed, got {:?}",
+            events.iter().map(|e| e["type"].clone()).collect::<Vec<_>>()
+        );
+
+        let terminal = events.last().expect("terminal event");
+        let output = terminal["response"]["output"]
+            .as_array()
+            .expect("terminal output array");
+        let names: Vec<&str> = output
+            .iter()
+            .filter_map(|item| item["name"].as_str())
+            .collect();
+        assert_eq!(names, vec!["get_weather", "get_time"]);
     }
 
     #[test]
