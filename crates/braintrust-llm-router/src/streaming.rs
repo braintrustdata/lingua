@@ -592,12 +592,6 @@ mod tests {
         assert!(next.is_none());
     }
 
-    // BT-6217: a non-streaming provider (`supports_streaming == false`) has its
-    // full response wrapped as a single chunk and fake-streamed. With the
-    // full-response fallback enabled (as the router now always does), that full
-    // Anthropic response must be synthesized into a well-formed Responses stream
-    // — output_item.added -> output_text.delta (with item_id) -> output_item.done
-    // -> completed — not passed through raw.
     #[test]
     fn transform_stream_synthesizes_responses_stream_from_full_anthropic_response() {
         let full_response = Bytes::from_static(

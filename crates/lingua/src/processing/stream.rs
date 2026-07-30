@@ -1048,10 +1048,6 @@ fn expand_responses_session_chunks(
         next_output_index_state.text_content.push_str(content);
     }
 
-    // Synthesize the assistant `message` output-item envelope around text so the
-    // OpenAI Responses protocol (and the AI SDK Responses parser) can assemble
-    // text via matched output_item.added -> output_text.delta -> output_item.done
-    // events keyed by `item_id`. Without it, text deltas are dropped downstream.
     let text_output_index = next_output_index_state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
     let text_just_started = text_output_index_before.is_none() && text_output_index.is_some();
@@ -2747,12 +2743,6 @@ mod tests {
         );
     }
 
-    // BT-6217: a non-Responses source streamed to the Responses target must
-    // wrap assistant text in a `message` output item so the OpenAI Responses
-    // protocol (and the AI SDK Responses parser) can assemble text-start /
-    // text-delta / text-end. Regression: bare `output_text.delta` events with no
-    // `output_item.added`, no `item_id`, and no `output_item.done` cause
-    // `streamText` to yield an empty string.
     #[test]
     #[cfg(all(feature = "anthropic", feature = "openai"))]
     fn test_stream_session_anthropic_full_response_expands_text_envelope_for_responses() {
