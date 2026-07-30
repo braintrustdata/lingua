@@ -1001,6 +1001,10 @@ fn expand_responses_session_chunks(
             )
         })
         .unwrap_or((0, false, false, false));
+    let finish_reason = universal
+        .choices
+        .first()
+        .and_then(|choice| choice.finish_reason.clone());
     let output_index_state = responses_output_index_states
         .get(&choice_index)
         .cloned()
@@ -1056,6 +1060,12 @@ fn expand_responses_session_chunks(
     } else {
         None
     };
+    // Truncated turns terminate with `response.incomplete`; the message item and
+    // the entry in `response.output` must carry the matching status.
+    let finish_item_status = match finish_reason.as_deref() {
+        Some("length") => "incomplete",
+        _ => "completed",
+    };
 
     if has_finish {
         responses_output_index_states.remove(&choice_index);
@@ -1066,12 +1076,18 @@ fn expand_responses_session_chunks(
     }
 
     if let Some(item_id) = &text_item_id {
-        stamp_responses_text_delta_item_ids(&mut events);
+        stamp_responses_text_delta_item_ids(&mut events, item_id);
         if text_just_started {
             insert_responses_message_item_added(&mut events, item_id, text_output_index);
         }
         if let Some(text) = finish_text {
-            insert_responses_message_item_done(&mut events, item_id, text_output_index, text);
+            insert_responses_message_item_done(
+                &mut events,
+                item_id,
+                text_output_index,
+                text,
+                finish_item_status,
+            );
         }
     }
 
@@ -1139,7 +1155,7 @@ fn responses_message_item(item_id: &str, status: &str, text: Option<&str>) -> Va
     })
 }
 
-fn stamp_responses_text_delta_item_ids(events: &mut [Value]) {
+fn stamp_responses_text_delta_item_ids(events: &mut [Value], item_id: &str) {
     for event in events.iter_mut() {
         if event.get("type").and_then(Value::as_str) != Some("response.output_text.delta") {
             continue;
@@ -1147,11 +1163,7 @@ fn stamp_responses_text_delta_item_ids(events: &mut [Value]) {
         let Some(obj) = event.as_object_mut() else {
             continue;
         };
-        let output_index = obj.get("output_index").and_then(Value::as_u64).unwrap_or(0);
-        obj.insert(
-            "item_id".to_string(),
-            Value::from(responses_message_item_id(output_index as u32)),
-        );
+        obj.insert("item_id".to_string(), Value::from(item_id));
     }
 }
 
@@ -1180,8 +1192,9 @@ fn insert_responses_message_item_done(
     item_id: &str,
     output_index: Option<u32>,
     text: String,
+    status: &str,
 ) {
-    let item = responses_message_item(item_id, "completed", Some(&text));
+    let item = responses_message_item(item_id, status, Some(&text));
     let done = crate::serde_json::json!({
         "type": "response.output_item.done",
         "output_index": output_index.unwrap_or(0),
@@ -2814,6 +2827,51 @@ mod tests {
             json!("Paris is the capital of France."),
         );
         assert_eq!(completed["response"]["usage"]["output_tokens"], json!(10));
+    }
+
+    #[test]
+    #[cfg(all(feature = "anthropic", feature = "openai"))]
+    fn test_stream_session_truncated_response_marks_message_item_incomplete_for_responses() {
+        let mut session = StreamTransformSession::new(ProviderFormat::Responses);
+        let truncated = to_bytes(&json!({
+            "id": "msg_trunc",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-haiku-4-5",
+            "content": [{ "type": "text", "text": "Paris is the" }],
+            "stop_reason": "max_tokens",
+            "stop_sequence": null,
+            "usage": { "input_tokens": 19, "output_tokens": 4 }
+        }));
+
+        let mut out = session.push(truncated).unwrap();
+        out.extend(session.finish());
+        let events = out
+            .iter()
+            .map(|chunk| crate::serde_json::from_slice::<Value>(&chunk.data).unwrap())
+            .collect::<Vec<_>>();
+
+        let done = events
+            .iter()
+            .find(|e| e["type"] == json!("response.output_item.done"))
+            .expect("output_item.done");
+        let terminal = events.last().expect("terminal event");
+
+        assert_eq!(
+            terminal["type"],
+            json!("response.incomplete"),
+            "truncated turns terminate with response.incomplete",
+        );
+        assert_eq!(
+            done["item"]["status"],
+            json!("incomplete"),
+            "message item status must match the terminal status",
+        );
+        assert_eq!(
+            terminal["response"]["output"][0]["status"],
+            json!("incomplete"),
+            "response.output entry must match the terminal status",
+        );
     }
 
     #[test]

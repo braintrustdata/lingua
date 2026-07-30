@@ -10362,10 +10362,10 @@ event: response.in_progress
 data: {"sequence_number":0,"type":"response.in_progress"}
 
 event: response.output_item.done
-data: {"item":{"content":[{"annotations":[],"text":"#","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"},"output_index":0,"sequence_number":2,"type":"response.output_item.done"}
+data: {"item":{"content":[{"annotations":[],"text":"#","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"},"output_index":0,"sequence_number":2,"type":"response.output_item.done"}
 
 event: response.incomplete
-data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[{"content":[{"annotations":[],"text":"#","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"}],"status":"incomplete","usage":{"input_tokens":16,"input_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":17}},"sequence_number":3,"type":"response.incomplete"}
+data: {"response":{"id":"resp_transformed","model":"transformed","object":"response","output":[{"content":[{"annotations":[],"text":"#","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"}],"status":"incomplete","usage":{"input_tokens":16,"input_tokens_details":{"cache_write_tokens":0,"cached_tokens":0},"output_tokens":1,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":17}},"sequence_number":3,"type":"response.incomplete"}
 
 "
 `;
@@ -10651,10 +10651,10 @@ event: response.output_text.delta
 data: {"content_index":0,"delta":"In this image, I see a beautiful **","item_id":"msg_0","output_index":0,"sequence_number":2,"type":"response.output_text.delta"}
 
 event: response.output_item.done
-data: {"item":{"content":[{"annotations":[],"text":"In this image, I see a beautiful **","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"},"output_index":0,"sequence_number":3,"type":"response.output_item.done"}
+data: {"item":{"content":[{"annotations":[],"text":"In this image, I see a beautiful **","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"},"output_index":0,"sequence_number":3,"type":"response.output_item.done"}
 
 event: response.incomplete
-data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"In this image, I see a beautiful **","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"}],"status":"incomplete","usage":{"input_tokens":267,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":287},"total_tokens":563}},"sequence_number":4,"type":"response.incomplete"}
+data: {"response":{"id":"iW_VaZ3aDdSa_uMPpsqI4Qw","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"In this image, I see a beautiful **","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"}],"status":"incomplete","usage":{"input_tokens":267,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":287},"total_tokens":563}},"sequence_number":4,"type":"response.incomplete"}
 
 "
 `;
@@ -10747,10 +10747,10 @@ event: response.output_text.delta
 data: {"content_index":0,"delta":"Let's break","item_id":"msg_1","output_index":1,"sequence_number":4,"type":"response.output_text.delta"}
 
 event: response.output_item.done
-data: {"item":{"content":[{"annotations":[],"text":"Let's break","type":"output_text"}],"id":"msg_1","role":"assistant","status":"completed","type":"message"},"output_index":1,"sequence_number":5,"type":"response.output_item.done"}
+data: {"item":{"content":[{"annotations":[],"text":"Let's break","type":"output_text"}],"id":"msg_1","role":"assistant","status":"incomplete","type":"message"},"output_index":1,"sequence_number":5,"type":"response.output_item.done"}
 
 event: response.incomplete
-data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"Let's break","type":"output_text"}],"id":"msg_1","role":"assistant","status":"completed","type":"message"}],"status":"incomplete","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":94,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":131}},"sequence_number":6,"type":"response.incomplete"}
+data: {"response":{"id":"iG_VabCjI7rv_uMPnN-N6Q8","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"Let's break","type":"output_text"}],"id":"msg_1","role":"assistant","status":"incomplete","type":"message"}],"status":"incomplete","usage":{"input_tokens":37,"input_tokens_details":{"cached_tokens":0},"output_tokens":94,"output_tokens_details":{"reasoning_tokens":92},"total_tokens":131}},"sequence_number":6,"type":"response.incomplete"}
 
 "
 `;
@@ -10847,10 +10847,10 @@ event: response.output_text.delta
 data: {"content_index":0,"delta":"To find recent errors in the \`project_logs\` (","item_id":"msg_0","output_index":0,"sequence_number":2,"type":"response.output_text.delta"}
 
 event: response.output_item.done
-data: {"item":{"content":[{"annotations":[],"text":"To find recent errors in the \`project_logs\` (","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"},"output_index":0,"sequence_number":3,"type":"response.output_item.done"}
+data: {"item":{"content":[{"annotations":[],"text":"To find recent errors in the \`project_logs\` (","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"},"output_index":0,"sequence_number":3,"type":"response.output_item.done"}
 
 event: response.incomplete
-data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"To find recent errors in the \`project_logs\` (","type":"output_text"}],"id":"msg_0","role":"assistant","status":"completed","type":"message"}],"status":"incomplete","usage":{"input_tokens":29,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":284},"total_tokens":325}},"sequence_number":4,"type":"response.incomplete"}
+data: {"response":{"id":"i2_VafqnDsbu_uMPxqqZkQ0","model":"gemini-2.5-flash","object":"response","output":[{"content":[{"annotations":[],"text":"To find recent errors in the \`project_logs\` (","type":"output_text"}],"id":"msg_0","role":"assistant","status":"incomplete","type":"message"}],"status":"incomplete","usage":{"input_tokens":29,"input_tokens_details":{"cached_tokens":0},"output_tokens":296,"output_tokens_details":{"reasoning_tokens":284},"total_tokens":325}},"sequence_number":4,"type":"response.incomplete"}
 
 "
 `;
