@@ -1178,6 +1178,41 @@ mod tests {
     }
 
     #[test]
+    fn test_google_tool_choice_none_is_distinct_from_absent_tool_config() {
+        let adapter = GoogleAdapter;
+        let banned = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }],
+            "toolConfig": {
+                "functionCallingConfig": {
+                    "mode": "NONE"
+                }
+            }
+        });
+
+        let universal = adapter.request_to_universal(banned).unwrap();
+        let tool_choice = universal
+            .params
+            .tool_choice
+            .expect("explicit NONE must survive as a tool choice");
+        assert_eq!(tool_choice.mode, Some(ToolChoiceMode::None));
+
+        // An omitted toolConfig means "no preference", which is not the same request as an
+        // explicit ban on calling tools.
+        let unspecified = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }]
+        });
+
+        let universal = adapter.request_to_universal(unspecified).unwrap();
+        assert!(universal.params.tool_choice.is_none());
+    }
+
+    #[test]
     fn test_google_tool_choice_from_universal() {
         let adapter = GoogleAdapter;
         let req = UniversalRequest {

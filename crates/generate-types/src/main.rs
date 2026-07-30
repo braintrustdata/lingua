@@ -1747,11 +1747,7 @@ fn add_google_schema_with_dependencies(
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
         return;
     };
 
@@ -1776,39 +1772,6 @@ fn add_google_schema_with_dependencies(
                 processed,
             );
         }
-    }
-}
-
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
     }
 }
 
@@ -2333,5 +2296,66 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+}
+
+#[cfg(test)]
+mod google_schema_walk_tests {
+    use super::add_google_schema_with_dependencies;
+    use big_serde_json as serde_json;
+
+    fn discovery_schemas() -> serde_json::Map<String, serde_json::Value> {
+        let spec_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../specs/google/discovery.json");
+        let spec: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(&spec_path)
+                .expect("vendored Discovery spec should be readable"),
+        )
+        .expect("vendored Discovery spec should be valid JSON");
+
+        spec.get("schemas")
+            .and_then(|schemas| schemas.as_object())
+            .expect("Discovery spec should define schemas")
+            .clone()
+    }
+
+    fn walk(root: &str) -> serde_json::Map<String, serde_json::Value> {
+        let all_schemas = discovery_schemas();
+        let mut essential = serde_json::Map::new();
+        let mut processed = std::collections::HashSet::new();
+        add_google_schema_with_dependencies(root, &all_schemas, &mut essential, &mut processed);
+        essential
+    }
+
+    #[test]
+    fn google_part_media_resolution_resolves_from_spec_without_fallback() {
+        let essential = walk("Part");
+
+        // Part's media resolution now points at a schema the spec actually defines, so no
+        // hand-written substitute is needed to keep generation fully typed.
+        let media_resolution_ref = essential["Part"]["properties"]["mediaResolution"]["$ref"]
+            .as_str()
+            .expect("Part.mediaResolution should be a $ref");
+        assert_eq!(media_resolution_ref, "V1mainMediaResolution");
+        assert!(essential.contains_key("V1mainMediaResolution"));
+
+        // The vacated name must not reappear: it now belongs to GenerationConfig's inline enum,
+        // so re-injecting an object schema under it would collide.
+        assert!(!essential.contains_key("MediaResolution"));
+
+        let levels = essential["V1mainMediaResolution"]["properties"]["level"]["enum"]
+            .as_array()
+            .expect("V1mainMediaResolution.level should be an enum");
+        assert!(levels
+            .iter()
+            .any(|level| level == "MEDIA_RESOLUTION_ULTRA_HIGH"));
+    }
+
+    #[test]
+    fn google_schema_walk_skips_names_the_spec_does_not_define() {
+        // A $ref the spec never defines resolves to nothing instead of a substituted schema,
+        // so generation fails visibly rather than silently generating stale types.
+        let essential = walk("MediaResolution");
+        assert!(essential.is_empty());
     }
 }

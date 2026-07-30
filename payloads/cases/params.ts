@@ -11,6 +11,7 @@ import {
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
   AnthropicMessageCreateParams,
+  GoogleGenerateContentRequest,
   TestCase,
   TestCaseCollection,
 } from "./types";
@@ -3061,6 +3062,45 @@ export const paramsCases: TestCaseCollection = {
     },
     bedrock: null,
   },
+
+  googleAudioTranscriptionConfigParam: (() => {
+    // Discovery nests language hints under audioTranscriptionConfig.languageHints.languageCodes,
+    // while the published SDK type only models the flat Live API shape
+    // (AudioTranscriptionConfig = { languageCodes }). The config is therefore authored as a
+    // literal. customVocabulary is used because adaptationPhrases is now deprecated.
+    //
+    // The request is text-only: the repository has no speech-audio fixture, and sending an
+    // empty synthetic WAV would make an API rejection ambiguous between the audio and the new
+    // config key. This case establishes whether generateContent accepts
+    // audioTranscriptionConfig at all; transcript-part output shape needs a follow-up case
+    // once a speech fixture is available.
+    const generationConfig = {
+      audioTranscriptionConfig: {
+        customVocabulary: ["Lingua", "Braintrust"],
+        diarization: true,
+        wordTimestamp: true,
+        languageHints: { languageCodes: ["en-US"] },
+      },
+    } as unknown as GoogleGenerateContentRequest["generationConfig"];
+
+    const testCase: TestCase = {
+      "chat-completions": null,
+      responses: null,
+      anthropic: null,
+      google: {
+        model: GOOGLE_MODEL,
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: "Reply with the single word: ok." }],
+          },
+        ],
+        generationConfig,
+      },
+      bedrock: null,
+    };
+    return testCase;
+  })(),
 
   googleToolSchemaNumericInt64Param: (() => {
     const indexNameSchema: Record<string, unknown> = {

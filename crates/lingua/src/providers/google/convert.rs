@@ -2115,7 +2115,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment, Level,
+        MediaResolution, Type, V1MainMediaResolution,
     };
 
     #[test]
@@ -2259,5 +2260,243 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    #[test]
+    fn test_google_part_media_resolution_serializes_as_nested_level_object() {
+        let part = GooglePart {
+            media_resolution: Some(V1MainMediaResolution {
+                level: Some(Level::MediaResolutionMedium),
+            }),
+            ..Default::default()
+        };
+
+        let value = serde_json::to_value(&part).unwrap();
+        assert_eq!(
+            value["mediaResolution"],
+            json!({"level": "MEDIA_RESOLUTION_MEDIUM"})
+        );
+
+        let parsed: GooglePart = serde_json::from_value(
+            json!({"mediaResolution": {"level": "MEDIA_RESOLUTION_MEDIUM"}}),
+        )
+        .expect("nested level object is the Part-scope shape");
+        assert_eq!(
+            parsed.media_resolution,
+            Some(V1MainMediaResolution {
+                level: Some(Level::MediaResolutionMedium),
+            })
+        );
+
+        // The Part scope takes the message, never the bare enum string that GenerationConfig
+        // takes. Accepting both would blur two scopes with different vocabularies.
+        assert!(serde_json::from_value::<GooglePart>(
+            json!({"mediaResolution": "MEDIA_RESOLUTION_MEDIUM"})
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn test_google_part_level_enum_round_trips_all_five_variants() {
+        for (wire, level) in [
+            (
+                "\"MEDIA_RESOLUTION_UNSPECIFIED\"",
+                Level::MediaResolutionUnspecified,
+            ),
+            ("\"MEDIA_RESOLUTION_LOW\"", Level::MediaResolutionLow),
+            ("\"MEDIA_RESOLUTION_MEDIUM\"", Level::MediaResolutionMedium),
+            ("\"MEDIA_RESOLUTION_HIGH\"", Level::MediaResolutionHigh),
+            (
+                "\"MEDIA_RESOLUTION_ULTRA_HIGH\"",
+                Level::MediaResolutionUltraHigh,
+            ),
+        ] {
+            assert_eq!(serde_json::to_string(&level).unwrap(), wire);
+            assert_eq!(serde_json::from_str::<Level>(wire).unwrap(), level);
+        }
+    }
+
+    #[test]
+    fn test_google_generation_config_media_resolution_is_bare_enum_string() {
+        let config = GenerationConfig {
+            media_resolution: Some(MediaResolution::MediaResolutionLow),
+            ..Default::default()
+        };
+
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["mediaResolution"], json!("MEDIA_RESOLUTION_LOW"));
+
+        let parsed: GenerationConfig =
+            serde_json::from_value(json!({"mediaResolution": "MEDIA_RESOLUTION_LOW"}))
+                .expect("bare enum string is the GenerationConfig-scope shape");
+        assert_eq!(
+            parsed.media_resolution,
+            Some(MediaResolution::MediaResolutionLow)
+        );
+
+        // `MediaResolution` now names the GenerationConfig enum, not the Part message it was
+        // renamed away from, so the nested object form must not deserialize here.
+        assert!(serde_json::from_value::<GenerationConfig>(
+            json!({"mediaResolution": {"level": "MEDIA_RESOLUTION_LOW"}})
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn test_google_media_resolution_scopes_have_different_vocabularies() {
+        // ULTRA_HIGH is a Part-scope level only; the spec's GenerationConfig enum omits it.
+        assert_eq!(
+            serde_json::from_str::<Level>("\"MEDIA_RESOLUTION_ULTRA_HIGH\"").unwrap(),
+            Level::MediaResolutionUltraHigh
+        );
+        assert!(
+            serde_json::from_str::<MediaResolution>("\"MEDIA_RESOLUTION_ULTRA_HIGH\"").is_err()
+        );
+    }
+
+    #[test]
+    fn test_google_audio_transcription_config_round_trips_through_generation_config() {
+        let parsed: GenerationConfig = serde_json::from_value(json!({
+            "audioTranscriptionConfig": {
+                "customVocabulary": ["Lingua"],
+                "diarization": true,
+                "wordTimestamp": true,
+                "languageHints": {"languageCodes": ["en-US", "es-ES"]}
+            }
+        }))
+        .expect("audioTranscriptionConfig should parse into the typed config");
+
+        let transcription = parsed
+            .audio_transcription_config
+            .as_ref()
+            .expect("audio transcription config should be retained");
+        assert_eq!(
+            transcription.custom_vocabulary,
+            Some(vec!["Lingua".to_string()])
+        );
+        assert_eq!(transcription.diarization, Some(true));
+        assert_eq!(transcription.word_timestamp, Some(true));
+        assert_eq!(transcription.adaptation_phrases, None);
+        assert_eq!(transcription.language_auto, None);
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(
+            reserialized["audioTranscriptionConfig"],
+            json!({
+                "customVocabulary": ["Lingua"],
+                "diarization": true,
+                "languageHints": {"languageCodes": ["en-US", "es-ES"]},
+                "wordTimestamp": true
+            })
+        );
+    }
+
+    #[test]
+    fn test_google_language_hints_nesting_is_not_flattened() {
+        let parsed: AudioTranscriptionConfig = serde_json::from_value(json!({
+            "languageHints": {"languageCodes": ["en-US", "es-ES"]}
+        }))
+        .expect("nested languageHints is the Discovery shape");
+        let hints = parsed
+            .language_hints
+            .expect("languageHints should be retained");
+        assert_eq!(
+            hints.language_codes,
+            Some(vec!["en-US".to_string(), "es-ES".to_string()])
+        );
+
+        // The published SDK exposes a flat {languageCodes} for the Live API. Lingua follows
+        // Discovery, so the flat form must not silently populate the nested hints.
+        let flat: AudioTranscriptionConfig =
+            serde_json::from_value(json!({"languageCodes": ["en-US"]}))
+                .expect("unknown keys are ignored by the generated types");
+        assert_eq!(flat.language_hints, None);
+    }
+
+    #[test]
+    fn test_google_audio_transcription_language_auto_presence_marker_is_preserved() {
+        let parsed: AudioTranscriptionConfig =
+            serde_json::from_value(json!({"languageAuto": {}})).unwrap();
+        let language_auto = parsed
+            .language_auto
+            .as_ref()
+            .expect("languageAuto presence must be retained");
+        assert!(language_auto.is_empty());
+        assert_eq!(
+            serde_json::to_value(&parsed).unwrap(),
+            json!({"languageAuto": {}})
+        );
+
+        // Absent is a distinct state from the empty presence marker.
+        let omitted: AudioTranscriptionConfig = serde_json::from_value(json!({})).unwrap();
+        assert_eq!(omitted.language_auto, None);
+        assert_eq!(serde_json::to_value(&omitted).unwrap(), json!({}));
+    }
+
+    #[test]
+    fn test_google_generation_config_without_audio_transcription_is_byte_identical() {
+        let config = GenerationConfig {
+            temperature: Some(0.5),
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        // The new audioTranscriptionConfig field adds no key when unset, so every existing
+        // request is emitted exactly as before. `responseSchema: null` is the pre-existing
+        // emission of the boxed typed schema and is unrelated to this addition.
+        assert_eq!(value, json!({"responseSchema": null, "temperature": 0.5}));
+    }
+
+    #[test]
+    fn test_google_audio_transcription_deprecated_adaptation_phrases_still_parses() {
+        // adaptationPhrases is deprecated in favour of customVocabulary, but Google still
+        // accepts it, so inbound requests using it must keep round-tripping.
+        let parsed: AudioTranscriptionConfig =
+            serde_json::from_value(json!({"adaptationPhrases": ["Gemini"]})).unwrap();
+        assert_eq!(parsed.adaptation_phrases, Some(vec!["Gemini".to_string()]));
+        assert_eq!(parsed.custom_vocabulary, None);
+        assert_eq!(
+            serde_json::to_value(&parsed).unwrap(),
+            json!({"adaptationPhrases": ["Gemini"]})
+        );
+    }
+
+    #[test]
+    fn test_google_json_schema_export_uses_response_json_schema_and_never_deprecated_response_schema(
+    ) {
+        // GenerationConfig.responseSchema is deprecated in favour of responseJsonSchema, so
+        // export must write only the surviving field.
+        let format = ResponseFormatConfig {
+            format_type: Some(ResponseFormatType::JsonSchema),
+            json_schema: Some(JsonSchemaConfig {
+                name: "answer".to_string(),
+                description: None,
+                schema: json!({
+                    "type": "object",
+                    "properties": {"answer": {"type": "string"}},
+                    "required": ["answer"]
+                }),
+                strict: Some(true),
+            }),
+        };
+
+        let config =
+            GenerationConfig::try_from(&format).expect("json schema format should convert");
+
+        assert!(config.generation_config_response_json_schema.is_some());
+        assert!(config.response_schema.is_none());
+
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(
+            value["responseJsonSchema"],
+            json!({
+                "type": "object",
+                "title": "answer",
+                "properties": {"answer": {"type": "string"}},
+                "required": ["answer"]
+            })
+        );
+        // The deprecated typed field is never populated on export; it is only emitted as an
+        // explicit null by the generated boxed-option field.
+        assert_eq!(value["responseSchema"], json!(null));
     }
 }

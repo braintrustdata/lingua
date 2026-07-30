@@ -1,0 +1,28 @@
+{
+  "model": "gemini-3.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Reply with the single word: ok."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "customVocabulary": [
+        "Lingua",
+        "Braintrust"
+      ],
+      "diarization": true,
+      "wordTimestamp": true,
+      "languageHints": {
+        "languageCodes": [
+          "en-US"
+        ]
+      }
+    }
+  }
+}

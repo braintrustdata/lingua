@@ -1,0 +1,45 @@
+{
+  "model": "gemini-3.5-flash",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Reply with the single word: ok."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "ok",
+          "thoughtSignature": "EtsDCtgDARFNMg/EHO7gI4AootEGFcMA9/LLO/XPZUgHxYVxIEDC/gq6w7x2Hpy+Pu1H/QOcvdydD0rplxMFyVsnWY3OK4p6siUHoMFCY689riBDZdNxF2bjh4BnMwtwdm5e5lWdjXJR/p4kKXTDFnQZcoJz0MHYJYDyfHykNqp2fKmwHBNNKoBiN7ZrCACw4eO94GkeUCZfXXIF6BojTwmQMHyKQaczJHtASiQkKDZo2jVQLpRmels5j6QoY5xMmdzJuV0k845HJPOIIan3kDEfGWYeYChS6tH/w9jV/d6Ul2+prU2JlEs+LDSAwTBWOt9Hi01WKhxHAwRZYsUOFl65NM1d/Ys29kMrgbhGLb/h/d28skLvhdWSdJGPDbJmM8si/P3YuIIomqf26umTnZyGsei3Bb2MTh/NFhz3bw8X5jyWsRJl3DwiunMxeqpGBBu6Qmp4jet96T1+arvI9micCAN9LQI+1Qf+MngDLFbt9e/YXEQEzcD+RI/1fIyULP3hs+xB8bOfDI/JDYXm06RNSrX36iuK6Y/BLRqRnRyVhmOafWUERDGjihXMBkDvK0If+HTWsw6juwYxrdQ1HFSwJxJgUbhS6q38pFTLXnBwhVldmxP0oNhFHIndEA=="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "customVocabulary": [
+        "Lingua",
+        "Braintrust"
+      ],
+      "diarization": true,
+      "wordTimestamp": true,
+      "languageHints": {
+        "languageCodes": [
+          "en-US"
+        ]
+      }
+    }
+  }
+}

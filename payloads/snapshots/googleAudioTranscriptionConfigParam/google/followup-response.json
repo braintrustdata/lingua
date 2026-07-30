@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "That depends on what you're working on or what you're in the mood for! Here are a few options:\n\n1. **Ask a question:** Is there a topic you've been curious about, a concept you want explained, or a trivia question you want answered?\n2. **Get help with a task:** Do you need help writing an email, drafting a resume, brainstorming ideas, or planning an event?\n3. **Solve a problem:** Are you stuck on a coding issue, a math problem, or a logical puzzle?\n4. **Just chat:** We can talk about a hobby, play a text-based game, or discuss your favorite movie.\n\nWhat's on your mind?",
+            "thoughtSignature": "EuQICuEIARFNMg9MM6RMoOzy8Sc83YdBYnMc4xJZLfg0Mx9RRc2f5gSsS4SBIUnqDZf6u3vO0/K6zlX4BojQuO4GypIiTFixQHTUjVfKDaj9I6TSEKexy0/xFbX2mpZWYwniGEyey2p5uWsB7q1oWxhoZavv/drVkIL9XzZZ1S5s/QyUFjmwoHTcjEvy7NyPtRa1sqhkpr9+FXb0kS+7PmOiLSScJdy5UrpGzI+vuhJv7T3Q7dLJZxOZLAUbsh9x8/Bdja8kuW8tRiRrSbrMAWJUBWD6H7dx0IVqT/Hogj6bLZutyzZoExoQUvr10CcVLSRoyPxsU31RaZNJrsWRMcRUDfETwecLpozGc6HJWR+nLkCdgliRC6YeRpvFHeRyD7ePXgK74rJcmgSqELkh+tbFtU+St5ajNyUWwRq1DWtYxi/aZSEWW2CjasRkbkwKgzExgNyXjZWsp3WZyF7Tp7UJp7ig3sZaTn/7tiKHgn2jFaxMKLQuBU7PYcAlcNJbm7XD+/IadwK0kJDYusfrFdimhs77GmlOOdGZh17KVPoaio1O7ZMWuczOJR9hmwNYp2rXqQap0qZGNbGAucYK0sQbwxdUWww3CTVrGbUwyTWuuYyIdwSQOYKdhdo26MVbn41rcUsk+PU/rwIrYril7W6RrcixT6cnMMVK74VEbz0ZsacD5j4MGHKmty769AjhApMIq+ian2teQpYI9UXy9JpchIColFt4gY+msXt4t9qGSr2fA/H9YModtwxEix3eBbeLUPOebKuGjih/wFTZz20kEFNKbhStdtjQCEZDoM09ucqxi4lL6dRkGG5srPIpg6zFFfYU08djPN2jAYPlIE/gUrZse17Thu+mrwJuOAIZaVRu96y4FYur/vgdpjgsOzNmlS3X/4eM8wwrVrC3GvJgHnhuRJV8Le+WO53KoOewgrHG8M/i9BxlLklY43dUBMmuUKEBtJBnEFiu6M5BdL1drNtNohed6Nsm8jCLXNonXJjoDBLrrn5zHrfvNjfezNEI4gFSDwnWJWKBYHNJzIbU5sy3k2a3DjDzpku6DbFEFyjHZaiDTirADWHIlgFA/hygJeoV7CqnguXBK8SpO6dyBS2eHyZvI0Hb116hle/Qw4LYa8X/6fPJQwo2iKMCpTD+JJ+K1gDUvOdiJAABfjDb1/lKtXRnlZnchtY2W/vqay2lTBTEvA5RI8wFEjmmbAg6NBp271q62Lfjo8GqqdkH2qwaf0R7zbro88ADuu8tz9/jWkHQdFqmeLbqod8IU8ZydQcno4XwkMb/1u0URdS/KOyrI3elnRXpXHcALGnIZZWCQOAwu/PyDBO5WDJ97ongFHmSTkwzoHC+qTXmuUxPycVG+/aR47ne7XyT4ThAm8RZjIW54BCq5tgvyn7r1H5AInjDpWpjiVZXdz4dv/ss3ffuZ6s2dzP0BTQnOUZdQlQYT+JRl36Q7yZnViyUMWw1b+V8a1WeQtGC1GlofsYgCcgjMF4="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 121,
+    "candidatesTokenCount": 148,
+    "totalTokenCount": 531,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 121
+      }
+    ],
+    "thoughtsTokenCount": 262,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "kqNrap_dLLLrz7IP4re82Qo"
+}

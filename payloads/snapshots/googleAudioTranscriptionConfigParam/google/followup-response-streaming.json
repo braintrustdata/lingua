@@ -1,0 +1,214 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "That depends on what you're working on or what you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 441,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "'re in the mood for! \n\nIf you're not sure, here are a few things we could do"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 36,
+      "totalTokenCount": 465,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ":\n\n1. **Brainstorm:** Have a project, hobby, or problem you want to generate ideas for?\n2."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 62,
+      "totalTokenCount": 491,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " **Write or Edit:** Need help drafting an email, polishing a resume, or writing a story?\n3. **Learn:**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 88,
+      "totalTokenCount": 517,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " Curious about a specific topic, historical event, or concept?\n4. **Plan:** Want to organize your day, plan"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 113,
+      "totalTokenCount": 542,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " a trip, or set up a workout routine?\n\nWhat's on your mind?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 18,
+      "candidatesTokenCount": 131,
+      "totalTokenCount": 560,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 18
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "Ep8OCpwOARFNMg8dMX4TSQitL+GNl6D71xCo/2wwvaZ3oSo2XLpTuz3dDQN44z4Ow9Ay2aUetODUp1RG/EUNLMdf2YjyYIfB0thaxEOrJ63QJnUdaCT6RZOm7nbXMMcb7OyQpXX8EkKSmFY/bQ1T9FwERBrL7vUA5W6+s7iJ+LfBaUfonecPy+wXy+sB8ak7CmvCmDBL3XbEIhKk115zM3F6cgAQk6uEcnQXdXfFOXnNCOIyOvDhKT6BINAVwCxzBKSQ/T4cj0OeICxg61PZNoSl++wOdjWibelaXPuWAdVeFVqmm6UYMhzXx1PRX1zxBuuVh4YHvbfWY80HfwDtLoYlK3mQFYW+2MfzEEDuLCyBzesWYtE22v9k9g6yaaGWRblLaJf3kJiKxeaPP12gZ8PsWBTQRCyikaBG43QZ5GC61c39Mm5qlzUTPQA+L8sWD0iVv5PsearUVgcklj/C+MSrOCwFRehDVGDxR8gbHpYAZ8K1RSnNRFdzRjBtH14cjs0kvOwB/wMgpK4yBr24ibFreQXXopHOC3ANxf3B3vGFNcvR1463BWSY9t/5npnge4559SQfVJ5wra8CdjzEsLDWh7QAGCssChbh/8CLK3SeOpHFbajAf6Dn8kPx6+3r4xiPgWIrrsDnbMQweFszIUFj7mrI88TmwYDqzTvpZBs66vvNWpAUJPgmrONM5uHpSadZ/f5TVkCwfSQHjcXzwfPqqEjfLHMqNYXEbJ5dUpo1X4BjoNMWRzLVe3xEo0Sh/2hqXLHzVKhIRDKD37ockqU4OFiwWCEXOH5h11fFZnyCKT/toEaymjfDEqdpOgl9Bl4MRVnjQ3wA61ZizEEbM7fHgxd2p1zvkGfwwA2vku6+BZR2WszqLCcEy3Ot8R8EDtZfBg+kBka3ceIZmxm+lMNS4+yVxLoz8z5Vsxcid+46HA3Qo4MvVUzfxmVEV2pBK3NE1jK9TiIPyS9MmGxzZuLnKKUHL6eDsny1P1NzCdP123jLZDOyCdFL4UadtLHxowQk2JsYE26i3x6xL3NPiFwuycMZg5c9YXiIQ4mAm4n+5hb0G0bS4HhqNmqsryKldf4YNQcBn395K6Lhw+OL3yb1OrJ9c8Dnl4oA9pgzFS8Zn0vpEi/qTuH9ghEnmBVOkxuats1AFZUika0EEOkElQ3DXTbYHaiNoJnzBFGjR4crreYbbqkrjqtG1IX2fcS1Zpas4th1Mx84m+l2n50/4MOMA6bAZG3me7Xex4QpXfHigCTmxcM29se/FrAnl7gV/huZNxZlTs8xXh/2E5k8CXdtz7GK20dv7Fc2p9a+zn75iD67uPAmxO9xUCC9by42Wj0gakhf3Ixhe6LVZJGyfBGUAWrPugZUCqjUiLxgcEres225trOOuGfG5j/T7PuksOxLbNcvCP7N22qruzDimLYR5nHpNorm/jppGoPIJ6JjeePMFRIBdWC8u7BCIax2ay0453k3Ojp0ltr9btn6pnaw7LPMCFFqjZ/YfRAPRGxFTFiCgmfNQ4HK7ldMLKJIphcpHozfxHZ3b44rfQMUlhcr2SlaEIYWOYxqoqSANAPfnbdDuHGa4BDJ/v92XyfAAox4a/LBAYAE/Sgx+sYiTLh+CGQFK6UppXdHuo7UFFii7HwoAu2GZlsFwQcXV/UuQv4qF/UPQzK1N1vc8UQqCveph4diQfD+lcApzgrqymcJbrJ/HMlfZiH4wrXkjS5jwt2O8IHu3XDQcUGKJbaAbXJm82gIqK/4gb9152k03SfxEzAlXNmpx91ZILD30fDfGKmuABLKAkYGL+of343IJvrprOn0LZ6inlx6nAp527xVDSvhvsonhSXZsB5Ntmz9vE3lucVX4hkF9W+To/nnmXy3CW9SQbG87HkWpLlAjuC0Uy9WQs8UMKOuTVHux98VoqKSyIxo5kPvLO7y3XhOxNqVShDfeedgUxkrPKqkx1TqxyBsKzngPIWW9McuUShiDgjOLGwEPIkSWLpWtm53UzZfNBCmKsYHy1LG7Bn0F14cMwwbJPNUNZ5AlRe79Kt4BkqgqP8zJmqTcoWIGXdtMDdaVDnnQBfTyRByaFpSUDRfOiPMtbtAPmG8GdhAgiWg1T3LIhjxNraPw9mlIHFEG634jv5CsIXZJj0HbKj2p+MlwhVngWj28ooTqtHQqvpDVp52yBKGGvftpCjRooTXFRk7gIoZQZphEwNutMqC1GqwpwObYFmzduUlzXhFMEFsejaCM7ZaWMyP8p4ffpRZhuqm6W552oNkjRp0j8Xc/CsPPB9oRMv6si4fzRI3sHueE0dEvxdviih6yhOeZJ4xTS5nhC6eYTPxBFZpkpUAtJhLLKtEhpBJqXXLJR8n4EYBRTjAV9OFg9BOZxyrpOxDVzmCLg5lfOCJAr2d9C5jmkn2SNiGH7aUiXJn6JJxHf070Q0="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 121,
+      "candidatesTokenCount": 131,
+      "totalTokenCount": 663,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 121
+        }
+      ],
+      "thoughtsTokenCount": 411,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kqNrau6sLYzWz7IPg7zAmQE"
+  }
+]
