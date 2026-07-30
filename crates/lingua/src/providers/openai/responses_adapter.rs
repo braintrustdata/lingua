@@ -99,6 +99,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
             events.push(serde_json::json!({
                 "type": "response.reasoning_summary_text.delta",
                 "output_index": reasoning_output_index,
+                "item_id": responses_reasoning_item_id(reasoning_output_index),
                 "summary_index": 0,
                 "delta": reasoning,
                 "sequence_number": next_sequence_number
@@ -210,6 +211,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
 
 fn custom_tool_call_item_id(output_index: u32) -> String {
     format!("ctc_{output_index}")
+}
+
+pub(crate) fn responses_reasoning_item_id(output_index: u32) -> String {
+    format!("rs_{output_index}")
 }
 
 pub(crate) fn responses_message_item_id(output_index: u32) -> String {
@@ -375,12 +380,21 @@ pub(crate) struct ResponsesToolItem {
     pub custom: bool,
 }
 
+/// Typed view of a synthesized reasoning summary delta.
+#[derive(Debug, Deserialize)]
+pub(crate) struct ResponsesReasoningSummaryTextDeltaEvent {
+    output_index: u32,
+    delta: String,
+}
+
 /// Typed dispatch over the synthesized events that open or extend a tool call.
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
 enum ResponsesToolStreamEvent {
     #[serde(rename = "response.output_item.added")]
     OutputItemAdded(ResponsesOutputItemAddedEvent),
+    #[serde(rename = "response.reasoning_summary_text.delta")]
+    ReasoningSummaryTextDelta(ResponsesReasoningSummaryTextDeltaEvent),
     #[serde(rename = "response.function_call_arguments.delta")]
     FunctionCallArgumentsDelta(ResponsesFunctionCallArgumentsDeltaEvent),
     #[serde(rename = "response.custom_tool_call_input.delta")]
@@ -390,9 +404,10 @@ enum ResponsesToolStreamEvent {
 }
 
 /// Record tool-call output items emitted for this chunk so they can be closed at finish.
-pub(crate) fn record_responses_tool_items(
+pub(crate) fn record_responses_output_items(
     events: &[Value],
     tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
+    reasoning_items: &mut BTreeMap<u32, String>,
 ) -> Result<(), TransformError> {
     for event in events {
         let parsed =
@@ -432,10 +447,29 @@ pub(crate) fn record_responses_tool_items(
                     entry.arguments.push_str(&delta.delta);
                 }
             }
+            ResponsesToolStreamEvent::ReasoningSummaryTextDelta(delta) => {
+                reasoning_items
+                    .entry(delta.output_index)
+                    .or_default()
+                    .push_str(&delta.delta);
+            }
             ResponsesToolStreamEvent::Other => {}
         }
     }
     Ok(())
+}
+
+/// Build a reasoning output item; `summary` is empty until the turn finishes.
+pub(crate) fn responses_reasoning_item(item_id: &str, summary: Option<&str>) -> Value {
+    let summary = match summary.filter(|text| !text.is_empty()) {
+        Some(text) => serde_json::json!([{ "type": "summary_text", "text": text }]),
+        None => serde_json::json!([]),
+    };
+    serde_json::json!({
+        "id": item_id,
+        "type": "reasoning",
+        "summary": summary
+    })
 }
 
 /// Build the terminal `output_item.done` item for a tool call.

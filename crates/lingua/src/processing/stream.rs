@@ -9,9 +9,10 @@ use crate::processing::transform::{
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
-    record_responses_tool_items, responses_created_stream_event_from_universal,
-    responses_message_item_id, responses_stream_events_from_universal_with_output_index_offset,
-    responses_tool_call_item, ResponsesToolItem,
+    record_responses_output_items, responses_created_stream_event_from_universal,
+    responses_message_item_id, responses_reasoning_item, responses_reasoning_item_id,
+    responses_stream_events_from_universal_with_output_index_offset, responses_tool_call_item,
+    ResponsesToolItem,
 };
 use crate::serde_json::Value;
 use crate::universal::UniversalStreamChunk;
@@ -57,6 +58,7 @@ struct SessionChunkState<'a> {
     responses_message_started: bool,
     responses_output_index_states: &'a mut BTreeMap<u32, ResponsesOutputIndexState>,
     responses_tool_items: &'a mut BTreeMap<u32, ResponsesToolItem>,
+    responses_reasoning_items: &'a mut BTreeMap<u32, String>,
     next_responses_sequence_number: &'a mut u64,
 }
 
@@ -101,6 +103,8 @@ pub struct StreamTransformSession {
     // Tool items are finalized response-wide: providers such as Anthropic key
     // tool blocks by content-block index while the terminal event uses choice 0.
     responses_tool_items: BTreeMap<u32, ResponsesToolItem>,
+    // Accumulated reasoning summaries, finalized response-wide like tool items.
+    responses_reasoning_items: BTreeMap<u32, String>,
     next_responses_sequence_number: u64,
     responses_tool_call_indexes: BTreeMap<u32, u32>,
     next_responses_tool_call_index: u32,
@@ -131,6 +135,7 @@ impl StreamTransformSession {
             responses_message_started: false,
             responses_output_index_states: BTreeMap::new(),
             responses_tool_items: BTreeMap::new(),
+            responses_reasoning_items: BTreeMap::new(),
             next_responses_sequence_number: 0,
             responses_tool_call_indexes: BTreeMap::new(),
             next_responses_tool_call_index: 0,
@@ -170,6 +175,7 @@ impl StreamTransformSession {
                 responses_message_started: self.responses_message_started,
                 responses_output_index_states: &mut self.responses_output_index_states,
                 responses_tool_items: &mut self.responses_tool_items,
+                responses_reasoning_items: &mut self.responses_reasoning_items,
                 next_responses_sequence_number: &mut self.next_responses_sequence_number,
             },
         )?;
@@ -964,6 +970,7 @@ fn build_session_chunks(
             state.responses_message_started,
             state.responses_output_index_states,
             state.responses_tool_items,
+            state.responses_reasoning_items,
             state.next_responses_sequence_number,
         );
         #[cfg(not(feature = "openai"))]
@@ -978,6 +985,7 @@ fn expand_responses_session_chunks(
     responses_message_started: bool,
     responses_output_index_states: &mut BTreeMap<u32, ResponsesOutputIndexState>,
     responses_tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
+    responses_reasoning_items: &mut BTreeMap<u32, String>,
     next_responses_sequence_number: &mut u64,
 ) -> Result<Vec<StreamOutputChunk>, TransformError> {
     let Some(universal) = universal else {
@@ -1058,7 +1066,13 @@ fn expand_responses_session_chunks(
         state.text_content.push_str(content);
     }
 
-    record_responses_tool_items(&events, responses_tool_items)?;
+    let reasoning_before: Vec<u32> = responses_reasoning_items.keys().copied().collect();
+    record_responses_output_items(&events, responses_tool_items, responses_reasoning_items)?;
+    let new_reasoning: Vec<u32> = responses_reasoning_items
+        .keys()
+        .copied()
+        .filter(|index| !reasoning_before.contains(index))
+        .collect();
 
     let text_output_index = state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
@@ -1070,6 +1084,11 @@ fn expand_responses_session_chunks(
     };
     let finish_tool_items = if has_finish {
         std::mem::take(responses_tool_items)
+    } else {
+        BTreeMap::new()
+    };
+    let finish_reasoning_items = if has_finish {
+        std::mem::take(responses_reasoning_items)
     } else {
         BTreeMap::new()
     };
@@ -1093,6 +1112,10 @@ fn expand_responses_session_chunks(
         _ => "completed",
     };
 
+    for output_index in new_reasoning {
+        insert_responses_reasoning_item_added(&mut events, output_index);
+    }
+
     if let Some(item_id) = &text_item_id {
         if text_just_started {
             insert_responses_message_item_added(&mut events, item_id, text_output_index);
@@ -1108,6 +1131,7 @@ fn expand_responses_session_chunks(
             &mut events,
             finish_message,
             &finish_tool_items,
+            &finish_reasoning_items,
             finish_item_status,
         );
     }
@@ -1192,11 +1216,33 @@ fn insert_responses_message_item_added(
     );
 }
 
+/// Open a reasoning item before its first summary delta.
+///
+/// The AI SDK dereferences its reasoning state on `output_item.done`, so a
+/// reasoning item must never be closed without first being opened.
+fn insert_responses_reasoning_item_added(events: &mut Vec<Value>, output_index: u32) {
+    let Some(position) = events.iter().position(|event| {
+        event.get("type").and_then(Value::as_str) == Some("response.reasoning_summary_text.delta")
+            && event.get("output_index").and_then(Value::as_u64) == Some(u64::from(output_index))
+    }) else {
+        return;
+    };
+    events.insert(
+        position,
+        crate::serde_json::json!({
+            "type": "response.output_item.added",
+            "output_index": output_index,
+            "item": responses_reasoning_item(&responses_reasoning_item_id(output_index), None)
+        }),
+    );
+}
+
 /// Close every open output item before the terminal event and populate `response.output`.
 fn insert_responses_finish_items(
     events: &mut Vec<Value>,
     message: Option<(u32, String, String)>,
     tool_items: &BTreeMap<u32, ResponsesToolItem>,
+    reasoning_items: &BTreeMap<u32, String>,
     status: &str,
 ) {
     let mut entries: Vec<(u32, Value, Option<Value>)> = Vec::new();
@@ -1205,6 +1251,17 @@ fn insert_responses_finish_items(
         entries.push((
             output_index,
             responses_message_item(&item_id, status, Some(&text)),
+            None,
+        ));
+    }
+
+    for (output_index, summary) in reasoning_items {
+        entries.push((
+            *output_index,
+            responses_reasoning_item(
+                &responses_reasoning_item_id(*output_index),
+                Some(summary.as_str()),
+            ),
             None,
         ));
     }
@@ -2792,9 +2849,11 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.output_item.added"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_item.added"),
                 Some("response.output_text.delta"),
+                Some("response.output_item.done"),
                 Some("response.output_item.done"),
                 Some("response.completed")
             ]
@@ -2929,8 +2988,20 @@ mod tests {
             "reasoning must still be emitted",
         );
         let terminal = events.last().expect("terminal event");
+        let output = terminal["response"]["output"]
+            .as_array()
+            .expect("terminal output array");
         assert_eq!(
-            terminal["response"]["output"][0]["content"][0]["text"],
+            output
+                .iter()
+                .map(|item| item["type"].clone())
+                .collect::<Vec<_>>(),
+            vec![json!("reasoning"), json!("message")],
+            "reasoning must be retained alongside the message",
+        );
+        assert_eq!(output[0]["summary"][0]["text"], json!("thinking hard"),);
+        assert_eq!(
+            output[1]["content"][0]["text"],
             json!("Paris is the capital."),
         );
     }
@@ -3180,6 +3251,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.output_item.added"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta")
@@ -3233,6 +3305,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.output_item.added"),
                 Some("response.reasoning_summary_text.delta")
             ]
         );
@@ -3297,6 +3370,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.output_item.added"),
                 Some("response.reasoning_summary_text.delta")
             ]
         );
@@ -3310,6 +3384,8 @@ mod tests {
             vec![
                 Some("response.output_item.added"),
                 Some("response.output_text.delta"),
+                // reasoning (index 0) then the message (index 1)
+                Some("response.output_item.done"),
                 Some("response.output_item.done"),
                 Some("response.completed")
             ]
@@ -3376,6 +3452,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![
                 Some("response.created"),
+                Some("response.output_item.added"),
                 Some("response.reasoning_summary_text.delta"),
                 Some("response.output_item.added"),
                 Some("response.output_text.delta")
@@ -3395,7 +3472,9 @@ mod tests {
             vec![
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta"),
-                // the still-open text item (output_index 1) closes before the tool call (2)
+                // still-open reasoning (0) and text (1) items close at finish, even
+                // though the finishing chunk carries the tool call (2).
+                Some("response.output_item.done"),
                 Some("response.output_item.done"),
                 Some("response.function_call_arguments.done"),
                 Some("response.output_item.done"),
@@ -3406,7 +3485,7 @@ mod tests {
         let tool_args: OutputEvent = crate::serde_json::from_slice(&second[1].data).unwrap();
         assert_eq!(tool_start.output_index, 2);
         assert_eq!(tool_args.output_index, 2);
-        let tool_done: Value = crate::serde_json::from_slice(&second[4].data).unwrap();
+        let tool_done: Value = crate::serde_json::from_slice(&second[5].data).unwrap();
         assert_eq!(tool_done["item"]["type"], json!("function_call"));
         assert_eq!(tool_done["item"]["name"], json!("lookup_creator"));
         assert_eq!(tool_done["output_index"], json!(2));
