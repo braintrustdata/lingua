@@ -10433,22 +10433,22 @@ event: response.function_call_arguments.delta
 data: {"delta":"","output_index":0,"type":"response.function_call_arguments.delta"}
 
 event: response.function_call_arguments.delta
-data: {"delta":"{\\"locatio","output_index":0,"sequence_number":1,"type":"response.function_call_arguments.delta"}
+data: {"delta":"{\\"locatio","item_id":"fc_0","output_index":0,"sequence_number":1,"type":"response.function_call_arguments.delta"}
 
 event: response.function_call_arguments.delta
-data: {"delta":"n\\": \\"","output_index":0,"sequence_number":2,"type":"response.function_call_arguments.delta"}
+data: {"delta":"n\\": \\"","item_id":"fc_0","output_index":0,"sequence_number":2,"type":"response.function_call_arguments.delta"}
 
 event: response.function_call_arguments.delta
-data: {"delta":"San Fr","output_index":0,"sequence_number":3,"type":"response.function_call_arguments.delta"}
+data: {"delta":"San Fr","item_id":"fc_0","output_index":0,"sequence_number":3,"type":"response.function_call_arguments.delta"}
 
 event: response.function_call_arguments.delta
-data: {"delta":"ancisco, CA\\"}","output_index":0,"sequence_number":4,"type":"response.function_call_arguments.delta"}
+data: {"delta":"ancisco, CA\\"}","item_id":"fc_0","output_index":0,"sequence_number":4,"type":"response.function_call_arguments.delta"}
 
 event: response.in_progress
 data: {"sequence_number":0,"type":"response.in_progress"}
 
 event: response.function_call_arguments.done
-data: {"arguments":"{\\"location\\": \\"San Francisco, CA\\"}","output_index":0,"sequence_number":5,"type":"response.function_call_arguments.done"}
+data: {"arguments":"{\\"location\\": \\"San Francisco, CA\\"}","item_id":"fc_0","output_index":0,"sequence_number":5,"type":"response.function_call_arguments.done"}
 
 event: response.output_item.done
 data: {"item":{"arguments":"{\\"location\\": \\"San Francisco, CA\\"}","call_id":"toolu_01UoCBs6hrWsp9CLkLyFkX1u","id":"fc_0","name":"get_weather","status":"completed","type":"function_call"},"output_index":0,"sequence_number":6,"type":"response.output_item.done"}
@@ -10869,10 +10869,10 @@ event: response.output_item.added
 data: {"item":{"arguments":"","call_id":"etjq4utn","id":"fc_0","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":0,"sequence_number":1,"type":"response.output_item.added"}
 
 event: response.function_call_arguments.delta
-data: {"delta":"{\\"location\\":\\"San Francisco, CA\\"}","output_index":0,"sequence_number":2,"type":"response.function_call_arguments.delta"}
+data: {"delta":"{\\"location\\":\\"San Francisco, CA\\"}","item_id":"fc_0","output_index":0,"sequence_number":2,"type":"response.function_call_arguments.delta"}
 
 event: response.function_call_arguments.done
-data: {"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","output_index":0,"sequence_number":3,"type":"response.function_call_arguments.done"}
+data: {"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","item_id":"fc_0","output_index":0,"sequence_number":3,"type":"response.function_call_arguments.done"}
 
 event: response.output_item.done
 data: {"item":{"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","call_id":"etjq4utn","id":"fc_0","name":"get_weather","status":"completed","type":"function_call"},"output_index":0,"sequence_number":4,"type":"response.output_item.done"}

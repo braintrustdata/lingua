@@ -188,6 +188,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                     events.push(serde_json::json!({
                         "type": "response.function_call_arguments.delta",
                         "output_index": output_index,
+                        "item_id": function_call_item_id(output_index),
                         "delta": arguments,
                         "sequence_number": next_sequence_number
                     }));

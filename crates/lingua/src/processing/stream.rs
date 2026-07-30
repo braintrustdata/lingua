@@ -73,11 +73,48 @@ struct ResponsesOutputIndexState {
 /// An open tool-call output item awaiting its terminal `output_item.done`.
 #[derive(Debug, Clone, Default)]
 struct ResponsesToolItem {
-    id: Option<String>,
+    id: String,
     call_id: String,
     name: String,
     arguments: String,
     custom: bool,
+}
+
+/// Typed view of the synthesized Responses events that open or extend a tool call.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum ResponsesToolStreamEvent {
+    #[serde(rename = "response.output_item.added")]
+    OutputItemAdded {
+        output_index: u32,
+        item: ResponsesAddedItem,
+    },
+    #[serde(rename = "response.function_call_arguments.delta")]
+    FunctionCallArgumentsDelta { output_index: u32, delta: String },
+    #[serde(rename = "response.custom_tool_call_input.delta")]
+    CustomToolCallInputDelta { output_index: u32, delta: String },
+    #[serde(other)]
+    Other,
+}
+
+/// Typed view of the output item carried by `response.output_item.added`.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum ResponsesAddedItem {
+    #[serde(rename = "function_call")]
+    FunctionCall {
+        id: String,
+        call_id: String,
+        name: String,
+    },
+    #[serde(rename = "custom_tool_call")]
+    CustomToolCall {
+        id: String,
+        call_id: String,
+        name: String,
+    },
+    #[serde(other)]
+    Other,
 }
 
 /// Stateful stream transformation session.
@@ -1064,7 +1101,7 @@ fn expand_responses_session_chunks(
         next_output_index_state.text_content.push_str(content);
     }
 
-    record_responses_tool_items(&events, &mut next_output_index_state.tool_items);
+    record_responses_tool_items(&events, &mut next_output_index_state.tool_items)?;
 
     let text_output_index = next_output_index_state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
@@ -1214,7 +1251,7 @@ fn insert_responses_message_item_added(
 fn responses_tool_call_item(tool: &ResponsesToolItem, status: &str) -> Value {
     if tool.custom {
         return crate::serde_json::json!({
-            "id": tool.id.clone().unwrap_or_default(),
+            "id": tool.id,
             "type": "custom_tool_call",
             "status": status,
             "call_id": tool.call_id,
@@ -1223,7 +1260,7 @@ fn responses_tool_call_item(tool: &ResponsesToolItem, status: &str) -> Value {
         });
     }
     crate::serde_json::json!({
-        "id": tool.id.clone().unwrap_or_default(),
+        "id": tool.id,
         "type": "function_call",
         "status": status,
         "call_id": tool.call_id,
@@ -1236,59 +1273,52 @@ fn responses_tool_call_item(tool: &ResponsesToolItem, status: &str) -> Value {
 fn record_responses_tool_items(
     events: &[Value],
     tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
-) {
+) -> Result<(), TransformError> {
     for event in events {
-        let Some(event_type) = event.get("type").and_then(Value::as_str) else {
-            continue;
-        };
-        let Some(output_index) = event
-            .get("output_index")
-            .and_then(Value::as_u64)
-            .map(|index| index as u32)
-        else {
-            continue;
-        };
-        match event_type {
-            "response.output_item.added" => {
-                let Some(item) = event.get("item") else {
-                    continue;
+        let parsed: ResponsesToolStreamEvent = crate::serde_json::from_value(event.clone())
+            .map_err(|e| {
+                TransformError::SerializationFailed(format!(
+                    "synthesized Responses tool event did not match its typed view: {e}"
+                ))
+            })?;
+        match parsed {
+            ResponsesToolStreamEvent::OutputItemAdded { output_index, item } => {
+                let (id, call_id, name, custom) = match item {
+                    ResponsesAddedItem::FunctionCall { id, call_id, name } => {
+                        (id, call_id, name, false)
+                    }
+                    ResponsesAddedItem::CustomToolCall { id, call_id, name } => {
+                        (id, call_id, name, true)
+                    }
+                    ResponsesAddedItem::Other => continue,
                 };
-                let item_type = item.get("type").and_then(Value::as_str).unwrap_or_default();
-                if item_type != "function_call" && item_type != "custom_tool_call" {
-                    continue;
-                }
                 tool_items.insert(
                     output_index,
                     ResponsesToolItem {
-                        id: item
-                            .get("id")
-                            .and_then(Value::as_str)
-                            .map(ToString::to_string),
-                        call_id: item
-                            .get("call_id")
-                            .and_then(Value::as_str)
-                            .unwrap_or_default()
-                            .to_string(),
-                        name: item
-                            .get("name")
-                            .and_then(Value::as_str)
-                            .unwrap_or_default()
-                            .to_string(),
+                        id,
+                        call_id,
+                        name,
                         arguments: String::new(),
-                        custom: item_type == "custom_tool_call",
+                        custom,
                     },
                 );
             }
-            "response.function_call_arguments.delta" | "response.custom_tool_call_input.delta" => {
+            ResponsesToolStreamEvent::FunctionCallArgumentsDelta {
+                output_index,
+                delta,
+            }
+            | ResponsesToolStreamEvent::CustomToolCallInputDelta {
+                output_index,
+                delta,
+            } => {
                 if let Some(entry) = tool_items.get_mut(&output_index) {
-                    if let Some(delta) = event.get("delta").and_then(Value::as_str) {
-                        entry.arguments.push_str(delta);
-                    }
+                    entry.arguments.push_str(&delta);
                 }
             }
-            _ => {}
+            ResponsesToolStreamEvent::Other => {}
         }
     }
+    Ok(())
 }
 
 /// Close every open output item before the terminal event and populate `response.output`.
@@ -1313,13 +1343,14 @@ fn insert_responses_finish_items(
             crate::serde_json::json!({
                 "type": "response.custom_tool_call_input.done",
                 "output_index": output_index,
-                "item_id": tool.id.clone().unwrap_or_default(),
+                "item_id": tool.id,
                 "input": tool.arguments
             })
         } else {
             crate::serde_json::json!({
                 "type": "response.function_call_arguments.done",
                 "output_index": output_index,
+                "item_id": tool.id,
                 "arguments": tool.arguments
             })
         };
