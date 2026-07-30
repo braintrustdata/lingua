@@ -156,6 +156,7 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
                         "type": "response.output_item.added",
                         "output_index": output_index,
                         "item": {
+                            "id": function_call_item_id(output_index),
                             "type": "function_call",
                             "status": "in_progress",
                             "call_id": call_id,
@@ -205,6 +206,10 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
 
 fn custom_tool_call_item_id(output_index: u32) -> String {
     format!("ctc_{output_index}")
+}
+
+pub(crate) fn function_call_item_id(output_index: u32) -> String {
+    format!("fc_{output_index}")
 }
 
 pub(crate) fn responses_created_stream_event_from_universal(

@@ -1,12 +1,15 @@
 import { describe, test, expect } from "vitest";
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { generateText, streamText } from "ai";
 import { allTestCases, getCaseForProvider } from "../../cases";
 import {
   TRANSFORM_PAIRS,
+  STREAMING_PAIRS,
   TARGET_MODELS,
   getTransformableCases,
+  getStreamingTransformableCases,
   getResponsePath,
+  getStreamingResponsePath,
   getFixtureSkipReason,
 } from "./helpers";
 import {
@@ -74,6 +77,84 @@ for (const pair of RESPONSES_TO_ANTHROPIC_PAIRS) {
               prompt: "test",
             })
           ).resolves.toBeDefined();
+        },
+        TIMEOUT
+      );
+    }
+  });
+}
+
+// Same path, but streamed. A malformed Responses stream does not throw -- the AI
+// SDK simply drops content it cannot attach to an output item -- so these tests
+// assert the SDK actually surfaces the content rather than just resolving.
+const STREAMING_RESPONSES_TO_ANTHROPIC_PAIRS = STREAMING_PAIRS.filter(
+  (p) => p.source === "responses" && p.target === "anthropic"
+);
+
+for (const pair of STREAMING_RESPONSES_TO_ANTHROPIC_PAIRS) {
+  const pairLabel = `${pair.target} stream → ${pair.source} format`;
+  describe(`AI SDK validation (streaming): ${pairLabel}`, () => {
+    for (const caseName of getStreamingTransformableCases(pair)) {
+      const responsePath = getStreamingResponsePath(
+        pair.source,
+        pair.target,
+        caseName
+      );
+      const skipReason = getFixtureSkipReason(responsePath, { streaming: true });
+
+      if (skipReason) {
+        registerSkippedFixtureTest(pairLabel, caseName, skipReason);
+        continue;
+      }
+
+      test(
+        caseName,
+        async () => {
+          getServer().useStreamingFixture({
+            path: "/v1/responses",
+            targetFormat: pair.target,
+            wasmSource: pair.wasmSource,
+            responsePath,
+          });
+
+          const targetCase = getCaseForProvider(
+            allTestCases,
+            caseName,
+            pair.source
+          );
+          const model =
+            targetCase &&
+            typeof targetCase === "object" &&
+            "model" in targetCase
+              ? String(targetCase.model)
+              : TARGET_MODELS[pair.source];
+
+          const provider = createOpenAI({
+            apiKey: "test-key",
+            baseURL: getServer().openaiBaseUrl,
+          });
+
+          const result = streamText({
+            model: provider.responses(model),
+            prompt: "test",
+          });
+
+          let text = "";
+          for await (const delta of result.textStream) {
+            text += delta;
+          }
+          const [finishReason, toolCalls] = await Promise.all([
+            result.finishReason,
+            result.toolCalls,
+          ]);
+
+          expect(finishReason).toBeDefined();
+          // Every fixture in this set produces assistant text, tool calls, or
+          // both; surfacing neither means the transformed stream was malformed.
+          expect(
+            text.length > 0 || toolCalls.length > 0,
+            `AI SDK surfaced no content: text=${JSON.stringify(text)} toolCalls=${toolCalls.length}`
+          ).toBe(true);
         },
         TIMEOUT
       );

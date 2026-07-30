@@ -66,6 +66,18 @@ struct ResponsesOutputIndexState {
     // populate `response.output_item.done` and `response.completed.output` when
     // synthesizing a Responses stream from a non-Responses source.
     text_content: String,
+    // Open tool-call output items, keyed by output index.
+    tool_items: BTreeMap<u32, ResponsesToolItem>,
+}
+
+/// An open tool-call output item awaiting its terminal `output_item.done`.
+#[derive(Debug, Clone, Default)]
+struct ResponsesToolItem {
+    id: Option<String>,
+    call_id: String,
+    name: String,
+    arguments: String,
+    custom: bool,
 }
 
 /// Stateful stream transformation session.
@@ -1052,6 +1064,8 @@ fn expand_responses_session_chunks(
         next_output_index_state.text_content.push_str(content);
     }
 
+    record_responses_tool_items(&events, &mut next_output_index_state.tool_items);
+
     let text_output_index = next_output_index_state.text_output_index;
     let text_item_id = text_output_index.map(responses_message_item_id);
     let text_just_started = text_output_index_before.is_none() && text_output_index.is_some();
@@ -1059,6 +1073,11 @@ fn expand_responses_session_chunks(
         Some(std::mem::take(&mut next_output_index_state.text_content))
     } else {
         None
+    };
+    let finish_tool_items = if has_finish {
+        std::mem::take(&mut next_output_index_state.tool_items)
+    } else {
+        BTreeMap::new()
     };
     // Truncated turns terminate with `response.incomplete`; the message item and
     // the entry in `response.output` must carry the matching status.
@@ -1071,6 +1090,7 @@ fn expand_responses_session_chunks(
         responses_output_index_states.remove(&choice_index);
     } else if next_output_index_state.text_output_index.is_some()
         || next_output_index_state.tool_output_index_offset > 0
+        || !next_output_index_state.tool_items.is_empty()
     {
         responses_output_index_states.insert(choice_index, next_output_index_state);
     }
@@ -1080,15 +1100,19 @@ fn expand_responses_session_chunks(
         if text_just_started {
             insert_responses_message_item_added(&mut events, item_id, text_output_index);
         }
-        if let Some(text) = finish_text {
-            insert_responses_message_item_done(
-                &mut events,
-                item_id,
-                text_output_index,
-                text,
-                finish_item_status,
-            );
-        }
+    }
+
+    if has_finish {
+        let finish_message = text_item_id
+            .as_ref()
+            .zip(finish_text)
+            .map(|(item_id, text)| (text_output_index.unwrap_or(0), item_id.clone(), text));
+        insert_responses_finish_items(
+            &mut events,
+            finish_message,
+            &finish_tool_items,
+            finish_item_status,
+        );
     }
 
     if has_metadata
@@ -1187,19 +1211,144 @@ fn insert_responses_message_item_added(
     );
 }
 
-fn insert_responses_message_item_done(
+fn responses_tool_call_item(tool: &ResponsesToolItem, status: &str) -> Value {
+    if tool.custom {
+        return crate::serde_json::json!({
+            "id": tool.id.clone().unwrap_or_default(),
+            "type": "custom_tool_call",
+            "status": status,
+            "call_id": tool.call_id,
+            "name": tool.name,
+            "input": tool.arguments
+        });
+    }
+    crate::serde_json::json!({
+        "id": tool.id.clone().unwrap_or_default(),
+        "type": "function_call",
+        "status": status,
+        "call_id": tool.call_id,
+        "name": tool.name,
+        "arguments": tool.arguments
+    })
+}
+
+/// Record tool-call output items emitted for this chunk so they can be closed at finish.
+fn record_responses_tool_items(
+    events: &[Value],
+    tool_items: &mut BTreeMap<u32, ResponsesToolItem>,
+) {
+    for event in events {
+        let Some(event_type) = event.get("type").and_then(Value::as_str) else {
+            continue;
+        };
+        let Some(output_index) = event
+            .get("output_index")
+            .and_then(Value::as_u64)
+            .map(|index| index as u32)
+        else {
+            continue;
+        };
+        match event_type {
+            "response.output_item.added" => {
+                let Some(item) = event.get("item") else {
+                    continue;
+                };
+                let item_type = item.get("type").and_then(Value::as_str).unwrap_or_default();
+                if item_type != "function_call" && item_type != "custom_tool_call" {
+                    continue;
+                }
+                tool_items.insert(
+                    output_index,
+                    ResponsesToolItem {
+                        id: item
+                            .get("id")
+                            .and_then(Value::as_str)
+                            .map(ToString::to_string),
+                        call_id: item
+                            .get("call_id")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_string(),
+                        name: item
+                            .get("name")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_string(),
+                        arguments: String::new(),
+                        custom: item_type == "custom_tool_call",
+                    },
+                );
+            }
+            "response.function_call_arguments.delta" | "response.custom_tool_call_input.delta" => {
+                if let Some(entry) = tool_items.get_mut(&output_index) {
+                    if let Some(delta) = event.get("delta").and_then(Value::as_str) {
+                        entry.arguments.push_str(delta);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Close every open output item before the terminal event and populate `response.output`.
+fn insert_responses_finish_items(
     events: &mut Vec<Value>,
-    item_id: &str,
-    output_index: Option<u32>,
-    text: String,
+    message: Option<(u32, String, String)>,
+    tool_items: &BTreeMap<u32, ResponsesToolItem>,
     status: &str,
 ) {
-    let item = responses_message_item(item_id, status, Some(&text));
-    let done = crate::serde_json::json!({
-        "type": "response.output_item.done",
-        "output_index": output_index.unwrap_or(0),
-        "item": item.clone()
-    });
+    let mut entries: Vec<(u32, Value, Option<Value>)> = Vec::new();
+
+    if let Some((output_index, item_id, text)) = message {
+        entries.push((
+            output_index,
+            responses_message_item(&item_id, status, Some(&text)),
+            None,
+        ));
+    }
+
+    for (output_index, tool) in tool_items {
+        let arguments_done = if tool.custom {
+            crate::serde_json::json!({
+                "type": "response.custom_tool_call_input.done",
+                "output_index": output_index,
+                "item_id": tool.id.clone().unwrap_or_default(),
+                "input": tool.arguments
+            })
+        } else {
+            crate::serde_json::json!({
+                "type": "response.function_call_arguments.done",
+                "output_index": output_index,
+                "arguments": tool.arguments
+            })
+        };
+        entries.push((
+            *output_index,
+            responses_tool_call_item(tool, status),
+            Some(arguments_done),
+        ));
+    }
+
+    if entries.is_empty() {
+        return;
+    }
+    entries.sort_by_key(|(output_index, _, _)| *output_index);
+
+    let mut inserts: Vec<Value> = Vec::new();
+    let mut outputs: Vec<Value> = Vec::new();
+    for (output_index, item, arguments_done) in entries {
+        if let Some(arguments_done) = arguments_done {
+            inserts.push(arguments_done);
+        }
+        inserts.push(crate::serde_json::json!({
+            "type": "response.output_item.done",
+            "output_index": output_index,
+            "item": item.clone()
+        }));
+        outputs.push(item);
+    }
+
     match events.iter().position(|event| {
         matches!(
             event.get("type").and_then(Value::as_str),
@@ -1207,15 +1356,18 @@ fn insert_responses_message_item_done(
         )
     }) {
         Some(position) => {
-            events.insert(position, done);
-            if let Some(terminal) = events.get_mut(position + 1) {
+            let terminal_position = position + inserts.len();
+            for (offset, event) in inserts.into_iter().enumerate() {
+                events.insert(position + offset, event);
+            }
+            if let Some(terminal) = events.get_mut(terminal_position) {
                 if let Some(response) = terminal.get_mut("response").and_then(Value::as_object_mut)
                 {
-                    response.insert("output".to_string(), crate::serde_json::json!([item]));
+                    response.insert("output".to_string(), Value::Array(outputs));
                 }
             }
         }
-        None => events.push(done),
+        None => events.extend(inserts),
     }
 }
 
@@ -3239,6 +3391,9 @@ mod tests {
             vec![
                 Some("response.output_item.added"),
                 Some("response.function_call_arguments.delta"),
+                // the still-open text item (output_index 1) closes before the tool call (2)
+                Some("response.output_item.done"),
+                Some("response.function_call_arguments.done"),
                 Some("response.output_item.done"),
                 Some("response.completed")
             ]
@@ -3247,6 +3402,10 @@ mod tests {
         let tool_args: OutputEvent = crate::serde_json::from_slice(&second[1].data).unwrap();
         assert_eq!(tool_start.output_index, 2);
         assert_eq!(tool_args.output_index, 2);
+        let tool_done: Value = crate::serde_json::from_slice(&second[4].data).unwrap();
+        assert_eq!(tool_done["item"]["type"], json!("function_call"));
+        assert_eq!(tool_done["item"]["name"], json!("lookup_creator"));
+        assert_eq!(tool_done["output_index"], json!(2));
     }
 
     #[test]
@@ -3281,18 +3440,30 @@ mod tests {
                 Some("response.created"),
                 Some("response.output_item.added"),
                 Some("response.custom_tool_call_input.delta"),
+                Some("response.custom_tool_call_input.done"),
+                Some("response.output_item.done"),
                 Some("response.completed")
             ]
         );
-        assert_eq!(events[0]["sequence_number"], json!(0));
-        assert_eq!(events[1]["sequence_number"], json!(1));
-        assert_eq!(events[2]["sequence_number"], json!(2));
-        assert_eq!(events[3]["sequence_number"], json!(3));
+        for (index, event) in events.iter().enumerate() {
+            assert_eq!(event["sequence_number"], json!(index));
+        }
         assert_eq!(events[1]["item"]["id"], json!("ctc_0"));
         assert_eq!(events[2]["item_id"], json!("ctc_0"));
         assert_eq!(
             events[2]["delta"],
             json!("await tools.exec_command({cmd: true});")
+        );
+        assert_eq!(
+            events[3]["input"],
+            json!("await tools.exec_command({cmd: true});")
+        );
+        assert_eq!(events[4]["item"]["id"], json!("ctc_0"));
+        assert_eq!(events[4]["item"]["status"], json!("completed"));
+        assert_eq!(
+            events[5]["response"]["output"][0]["id"],
+            json!("ctc_0"),
+            "the completed tool call must appear in response.output",
         );
     }
 
