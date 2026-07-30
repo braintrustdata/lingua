@@ -94,6 +94,26 @@ test("rejects a semantic change without payload coverage", () => {
   );
 });
 
+test("rejects implementation targets under GitHub workflows", () => {
+  const plan = validPlan();
+  plan.changes[0].implementation_targets.push(
+    "` .github/workflows/ci.yml`: generated type check"
+  );
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /must not target GitHub workflow definitions/
+  );
+});
+
+test("reports invalid implementation target types without throwing", () => {
+  const plan = validPlan();
+  plan.changes[0].implementation_targets.push(null);
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /implementation_targets/
+  );
+});
+
 test("requires a question for blocked mappings", () => {
   const plan = validPlan();
   plan.changes[0].mapping.decision = "blocked";

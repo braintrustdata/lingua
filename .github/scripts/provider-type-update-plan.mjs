@@ -37,6 +37,7 @@ const PAYLOAD_SURFACES = [
   "universal_semantics",
   "cross_provider",
 ];
+const FORBIDDEN_IMPLEMENTATION_TARGET_PREFIXES = [".github/workflows/"];
 const VERIFICATION_CHECKS = [
   "plan_coverage",
   "generated_source_integrity",
@@ -260,6 +261,21 @@ export function validatePlan(plan, expectedProvider) {
         `${path}.implementation_targets`,
         "must list targets when any surface is affected"
       );
+      if (Array.isArray(change.implementation_targets)) {
+        change.implementation_targets.forEach((target, targetIndex) => {
+          const targetsWorkflow =
+            typeof target === "string" &&
+            FORBIDDEN_IMPLEMENTATION_TARGET_PREFIXES.some((prefix) =>
+              target.includes(prefix)
+            );
+          push(
+            errors,
+            !targetsWorkflow,
+            `${path}.implementation_targets[${targetIndex}]`,
+            "must not target GitHub workflow definitions"
+          );
+        });
+      }
 
       push(
         errors,

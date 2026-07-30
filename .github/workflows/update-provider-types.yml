@@ -223,7 +223,7 @@ jobs:
       - name: Generate TypeScript types
         id: ts_types
         continue-on-error: true
-        run: make generate-types
+        run: make generate-types PROVIDER="${{ matrix.provider }}"
 
       - name: Build branch name
         id: branch
@@ -316,6 +316,9 @@ jobs:
             exact schema. Write only the final JSON plan to
             `$PROVIDER_UPDATE_PLAN_PATH`. The plan must inventory the complete
             specification diff, not only compilation failures or generated Rust.
+            GitHub workflow definitions are outside the scope of provider updates:
+            do not include `.github/workflows/**` in implementation targets.
+            Solve generation hygiene in the generator, scripts, or Makefile.
 
       - name: Validate integration plan
         id: plan_validation
@@ -390,8 +393,9 @@ jobs:
             phase. Read and implement the validated plan in `plan.md`.
 
             Implement every unblocked plan item, including focused tests and
-            payload cases. Do not edit `plan.md`, any `generated.rs` file, or call
-            a live provider API. Leave the completed changes uncommitted.
+            payload cases. Do not edit `plan.md`, any `generated.rs` file,
+            `.github/workflows/**`, or call a live provider API. Leave the
+            completed changes uncommitted.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -410,11 +414,25 @@ jobs:
           actual_digest=$(sha256sum "$plan_path" | awk '{print $1}')
           test "$actual_digest" = "$EXPECTED_PLAN_DIGEST"
 
+      - name: Enforce provider update path policy
+        id: path_policy
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          changes=$(git status --porcelain -- .github/workflows)
+          if [ -n "$changes" ]; then
+            echo "::error::Provider update agents must not modify .github/workflows/**"
+            printf '%s\n' "$changes"
+            exit 1
+          fi
+          echo "Provider update path policy passed."
+
       - name: Regenerate TypeScript types after implementation
         id: post_implementation_ts_types
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        run: make generate-types
+        run: make generate-types PROVIDER="${{ matrix.provider }}"
 
       - name: Format code
         id: fmt
@@ -427,6 +445,18 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         run: cargo test -p lingua "${{ matrix.provider }}"
+
+      - name: Run generator tests
+        id: generator_tests
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- crates/generate-types)" ]; then
+            echo "Generator sources are unchanged; no generator tests required."
+            exit 0
+          fi
+          cargo test -p generate-types
 
       - name: Build Lingua WASM for payload validation
         id: lingua_wasm
@@ -507,7 +537,7 @@ jobs:
         id: payload_sync
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        run: pnpm --dir payloads vitest run scripts/sync.test.ts
+        run: pnpm --dir payloads exec vitest run scripts/sync.test.ts
 
       - name: Run payload transform checks
         id: payload_tests
@@ -601,7 +631,9 @@ jobs:
 
             Validation outcomes:
             - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
+            - provider update path policy: `${{ steps.path_policy.outcome }}`
             - focused provider tests: `${{ steps.provider_tests.outcome }}`
+            - generator tests: `${{ steps.generator_tests.outcome }}`
             - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
             - live capture: openai `${{ steps.live_capture_openai.outcome }}`, anthropic `${{ steps.live_capture_anthropic.outcome }}`, google `${{ steps.live_capture_google.outcome }}`
             - planned transform capture: `${{ steps.transform_capture.outcome }}`
@@ -671,15 +703,17 @@ jobs:
               echo "- Claude repair pass: ${{ steps.repair.outcome }}"
               echo "- Retry \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.retry.outcome }}"
             fi
-            echo "- \`make generate-types\`: ${{ steps.ts_types.outcome }}"
+            echo "- \`make generate-types PROVIDER=${{ matrix.provider }}\`: ${{ steps.ts_types.outcome }}"
             echo "- Braintrust workflow trace: ${{ steps.braintrust_trace.outcome }}"
             echo "- Claude integration plan: ${{ steps.integration_plan.outcome }}"
             echo "- Structured plan validation: ${{ steps.plan_validation.outcome }}"
             echo "- Claude focused implementation: ${{ steps.integration_implementation.outcome }}"
             echo "- Immutable plan revalidation: ${{ steps.post_implementation_plan.outcome }}"
-            echo "- Post-implementation \`make generate-types\`: ${{ steps.post_implementation_ts_types.outcome }}"
+            echo "- Provider update path policy: ${{ steps.path_policy.outcome }}"
+            echo "- Post-implementation \`make generate-types PROVIDER=${{ matrix.provider }}\`: ${{ steps.post_implementation_ts_types.outcome }}"
             echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
             echo "- \`cargo test -p lingua ${{ matrix.provider }}\`: ${{ steps.provider_tests.outcome }}"
+            echo "- Conditional \`cargo test -p generate-types\`: ${{ steps.generator_tests.outcome }}"
             echo "- \`make lingua-wasm\`: ${{ steps.lingua_wasm.outcome }}"
             echo "- Planned live capture cases: \`${{ steps.capture_cases.outputs.cases }}\`"
             echo "- Live capture (OpenAI): ${{ steps.live_capture_openai.outcome }}"
@@ -699,7 +733,9 @@ jobs:
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
       - name: Create PR
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.path_policy.outcome == 'success'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ github.token }}
@@ -726,9 +762,11 @@ jobs:
                 steps.stage_plan.outcome != 'success' ||
                 steps.integration_implementation.outcome != 'success' ||
                 steps.post_implementation_plan.outcome != 'success' ||
+                steps.path_policy.outcome != 'success' ||
                 steps.post_implementation_ts_types.outcome == 'failure' ||
                 steps.fmt.outcome == 'failure' ||
                 steps.provider_tests.outcome == 'failure' ||
+                steps.generator_tests.outcome != 'success' ||
                 steps.lingua_wasm.outcome == 'failure' ||
                 steps.capture_cases.outcome == 'failure' ||
                 (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
@@ -747,7 +785,7 @@ jobs:
             )
           )
         run: |
-          echo "Provider type update failed validation. If changes were produced, the PR creation step already ran." >&2
+          echo "Provider type update failed validation. A PR is created for failed validations unless the generated update violated the path policy." >&2
           exit 1
 
       - name: Summary

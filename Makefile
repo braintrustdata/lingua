@@ -27,7 +27,7 @@ generate-all-providers: ## Regenerate types for all providers (anthropic, openai
 
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
-	@cargo test export_bindings --lib --quiet
+	@node scripts/regenerate-typescript-bindings.mjs $(if $(PROVIDER),--provider $(PROVIDER))
 
 lingua-wasm: ## Build WASM package
 	@echo "Building WASM package..."
