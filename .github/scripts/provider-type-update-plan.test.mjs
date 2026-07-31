@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   captureCases,
+  hasBlockers,
+  renderBlockers,
   validatePlan,
   validateVerification,
 } from "./provider-type-update-plan.mjs";
@@ -137,9 +139,70 @@ test("accepts a structurally complete blocked plan for reporting", () => {
       change_id: "context-window-stop-reason",
       question:
         "Which universal incomplete reason should represent this value?",
+      evidence:
+        "The provider value has no existing universal incomplete-reason equivalent.",
+      recommendation:
+        "Add an explicit universal context-window incomplete reason.",
+      alternatives: [
+        "Reject imports containing this value.",
+        "Keep the provider type without universal conversion support.",
+      ],
+      affected_files: [
+        "crates/lingua/src/universal/response.rs",
+        "crates/lingua/src/providers/anthropic/adapter.rs",
+      ],
+      validation_commands: [
+        "cargo test -p lingua anthropic",
+        "make test-payloads",
+      ],
     },
   ];
   assert.deepEqual(validatePlan(plan, "anthropic"), []);
+});
+
+test("blocked changes are excluded from live capture", () => {
+  const plan = validPlan();
+  plan.blockers = [
+    {
+      change_id: "context-window-stop-reason",
+      question:
+        "Which universal incomplete reason should represent this value?",
+      evidence:
+        "The provider value has no existing universal incomplete-reason equivalent.",
+      recommendation:
+        "Add an explicit universal context-window incomplete reason.",
+      alternatives: ["Reject imports containing this value."],
+      affected_files: ["crates/lingua/src/universal/response.rs"],
+      validation_commands: ["cargo test -p lingua anthropic"],
+    },
+  ];
+
+  assert.equal(hasBlockers(plan), true);
+  assert.deepEqual(captureCases(plan), []);
+});
+
+test("renders a human decision checklist with actionable evidence", () => {
+  const plan = validPlan();
+  plan.blockers = [
+    {
+      change_id: "context-window-stop-reason",
+      question:
+        "Which universal incomplete reason should represent this value?",
+      evidence:
+        "The provider value has no existing universal incomplete-reason equivalent.",
+      recommendation:
+        "Add an explicit universal context-window incomplete reason.",
+      alternatives: ["Reject imports containing this value."],
+      affected_files: ["crates/lingua/src/universal/response.rs"],
+      validation_commands: ["cargo test -p lingua anthropic"],
+    },
+  ];
+
+  const markdown = renderBlockers(plan);
+  assert.match(markdown, /## Human decisions required/);
+  assert.match(markdown, /StopReason/);
+  assert.match(markdown, /Recommended option/);
+  assert.match(markdown, /cargo test -p lingua anthropic/);
 });
 
 test("rejects verification passes with blocking findings", () => {

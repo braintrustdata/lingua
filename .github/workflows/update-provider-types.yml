@@ -354,6 +354,12 @@ jobs:
             naming collisions and internal prefixes; do not accept a prefixed
             fallback such as `V1Main...` as a compatibility solution.
 
+            For every blocked change, fill the complete blocker schema with the
+            decision question, concrete evidence, a recommended option,
+            alternatives and their tradeoffs, likely affected files, and exact
+            validation commands. The workflow renders this information directly
+            into a draft PR for the human who finishes the update.
+
       - name: Validate integration plan
         id: plan_validation
         if: steps.changes.outputs.has_changes == 'true'
@@ -361,7 +367,12 @@ jobs:
         run: |
           set -euo pipefail
           plan_path="$RUNNER_TEMP/provider-type-update-plan.json"
-          node .github/scripts/provider-type-update-plan.mjs validate "$plan_path" "${{ matrix.provider }}"
+          node .github/scripts/provider-type-update-plan.mjs validate-structure "$plan_path" "${{ matrix.provider }}"
+          has_blockers=$(
+            node .github/scripts/provider-type-update-plan.mjs has-blockers \
+              "$plan_path" "${{ matrix.provider }}"
+          )
+          echo "has_blockers=$has_blockers" >> "$GITHUB_OUTPUT"
           echo "digest=$(sha256sum "$plan_path" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
       - name: Stage validated plan for implementation
@@ -427,7 +438,9 @@ jobs:
             phase. Read and implement the validated plan in `plan.md`.
 
             Implement every unblocked plan item, including focused tests and
-            payload cases. Do not edit `plan.md`, any `generated.rs` file,
+            payload cases. Treat every change id listed in `plan.md`'s
+            `blockers` array as out of scope: do not implement it, add a fixture
+            for it, or invent a workaround. Do not edit `plan.md`, any `generated.rs` file,
             `.github/**`, `pipelines/**`, `scripts/**`, or `Makefile`, and do not
             call a live provider API. Never add a `provider_options` marker or
             another opaque field solely to replay a provider semantic. If the
@@ -450,7 +463,7 @@ jobs:
         run: |
           set -euo pipefail
           plan_path="$RUNNER_TEMP/provider-type-update-plan.json"
-          node .github/scripts/provider-type-update-plan.mjs validate "$plan_path" "${{ matrix.provider }}"
+          node .github/scripts/provider-type-update-plan.mjs validate-structure "$plan_path" "${{ matrix.provider }}"
           actual_digest=$(sha256sum "$plan_path" | awk '{print $1}')
           test "$actual_digest" = "$EXPECTED_PLAN_DIGEST"
 
@@ -708,6 +721,7 @@ jobs:
             diff, and do not modify any tracked file.
 
             Validation outcomes:
+            - plan has human blockers: `${{ steps.plan_validation.outputs.has_blockers }}`
             - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
             - provider update path policy: `${{ steps.path_policy.outcome }}`
             - provider semantic policy: `${{ steps.semantic_policy.outcome }}`
@@ -731,6 +745,11 @@ jobs:
             Treat any new `provider_options` round-trip marker, opaque replay-only
             field, generated public-name collision, or leaked internal prefix such
             as `V1Main...` as blocking even if compilation succeeds.
+            If the validated plan has human blockers, verify that every blocked
+            change was left untouched and include those unresolved decisions as
+            blocking findings with a `fail` verdict. That is the expected report
+            for a safe needs-design draft; do not fail to write the report merely
+            because the plan intentionally contains blockers.
             Prioritize completing the report:
             use the validated plan, final diff, and deterministic validation
             outcomes as primary evidence; inspect only files needed to resolve
@@ -743,9 +762,16 @@ jobs:
         if: steps.integration_implementation.outcome == 'success'
         continue-on-error: true
         run: |
-          node .github/scripts/provider-type-update-plan.mjs verify \
+          set -euo pipefail
+          node .github/scripts/provider-type-update-plan.mjs verify-structure \
             "$RUNNER_TEMP/provider-type-update-verification.json" \
             "${{ matrix.provider }}"
+          verdict=$(
+            node .github/scripts/provider-type-update-plan.mjs verdict \
+              "$RUNNER_TEMP/provider-type-update-verification.json" \
+              "${{ matrix.provider }}"
+          )
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
 
       - name: Archive provider update patch
         id: update_patch
@@ -790,8 +816,17 @@ jobs:
             echo
             echo "Provider: \`${{ matrix.provider }}\`"
             echo
+            echo "Publication mode: \`${{ steps.plan_validation.outputs.has_blockers == 'true' && 'needs-design draft' || 'ready' }}\`"
+            echo
             echo "Feedback: comment \`/bt good\` or \`/bt bad\` to log review feedback to the Braintrust trace."
             echo
+            if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+              node .github/scripts/provider-type-update-plan.mjs render-blockers \
+                "$RUNNER_TEMP/provider-type-update-plan.json" \
+                "${{ matrix.provider }}"
+              echo
+              echo
+            fi
             echo "**Validation**"
             echo
             echo "- \`./pipelines/generate-provider-types.sh ${{ matrix.provider }}\`: ${{ steps.generate.outcome }}"
@@ -803,6 +838,7 @@ jobs:
             echo "- Braintrust workflow trace: ${{ steps.braintrust_trace.outcome }}"
             echo "- Claude integration plan: ${{ steps.integration_plan.outcome }}"
             echo "- Structured plan validation: ${{ steps.plan_validation.outcome }}"
+            echo "- Human design blockers: ${{ steps.plan_validation.outputs.has_blockers }}"
             echo "- Claude focused implementation: ${{ steps.integration_implementation.outcome }}"
             echo "- Immutable plan revalidation: ${{ steps.post_implementation_plan.outcome }}"
             echo "- Provider update path policy: ${{ steps.path_policy.outcome }}"
@@ -825,9 +861,10 @@ jobs:
             echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
             echo "- Claude read-only verification: ${{ steps.integration_verification.outcome }}"
             echo "- Verification report validation: ${{ steps.verification_report.outcome }}"
+            echo "- Verification verdict: ${{ steps.verification_report.outputs.verdict }}"
             echo "- Recoverable binary patch archive: ${{ steps.update_patch.outcome }}"
             echo
-            echo "Only fully validated updates are published. Failed runs retain the exact binary patch in the workflow artifact for manual recovery."
+            echo "Ready PRs have no blockers and a passing verification verdict. Draft PRs may contain explicit human design blockers, but every automated safety and deterministic validation still passed. Failed runs retain the exact binary patch in the workflow artifact for manual recovery."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
       - name: Check publication readiness
@@ -885,13 +922,28 @@ jobs:
             esac
           fi
 
+          mode="ready"
+          if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+            mode="draft"
+            if [ "${{ steps.verification_report.outputs.verdict }}" != "fail" ]; then
+              failures+=(
+                "needs-design verification verdict: ${{ steps.verification_report.outputs.verdict }}"
+              )
+            fi
+          elif [ "${{ steps.verification_report.outputs.verdict }}" != "pass" ]; then
+            failures+=(
+              "ready verification verdict: ${{ steps.verification_report.outputs.verdict }}"
+            )
+          fi
+
           if [ "${#failures[@]}" -ne 0 ]; then
             echo "::error::Provider update is not ready to publish"
             printf '  - %s\n' "${failures[@]}"
             exit 1
           fi
 
-          echo "Provider update is ready to publish."
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Provider update is ready to publish as mode: $mode."
 
       - name: Create PR
         if: >-
@@ -903,9 +955,10 @@ jobs:
           base: ${{ github.ref_name }}
           branch: ${{ steps.branch.outputs.name }}
           commit-message: "Update ${{ matrix.provider }} provider types"
-          title: "Update ${{ matrix.provider }} provider types"
+          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs design] ' || '' }}Update ${{ matrix.provider }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
-          labels: auto-sync
+          labels: ${{ steps.publication_readiness.outputs.mode == 'ready' && 'auto-sync' || '' }}
+          draft: ${{ steps.publication_readiness.outputs.mode == 'draft' }}
           delete-branch: true
           signoff: false
 
@@ -949,14 +1002,14 @@ jobs:
             )
           )
         run: |
-          echo "Provider type update failed validation. A PR is created for failed validations unless the generated update violated the path policy." >&2
+          echo "Provider type update failed publication safety checks. No PR was created; use the archived patch for manual recovery." >&2
           exit 1
 
       - name: Summary
         run: |
           set -euo pipefail
           if [ "${{ steps.publication_readiness.outcome }}" = "success" ]; then
-            echo "Provider types changed, passed validation, and were published."
+            echo "Provider types changed and were published in ${{ steps.publication_readiness.outputs.mode }} mode."
           elif [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
             echo "Provider types changed but were not published. Download the archived patch for manual recovery."
           elif [ "${{ steps.generate.outcome }}" = "failure" ]; then

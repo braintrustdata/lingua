@@ -394,6 +394,26 @@ export function validatePlan(plan, expectedProvider) {
         `${path}.question`,
         "must be a non-empty string"
       );
+      for (const field of ["evidence", "recommendation"]) {
+        push(
+          errors,
+          nonEmptyString(blocker[field]),
+          `${path}.${field}`,
+          "must be a non-empty string"
+        );
+      }
+      for (const field of [
+        "alternatives",
+        "affected_files",
+        "validation_commands",
+      ]) {
+        push(
+          errors,
+          nonEmptyStringArray(blocker[field]),
+          `${path}.${field}`,
+          "must be a non-empty array of strings"
+        );
+      }
       blockerIds.add(blocker.change_id);
     });
   }
@@ -409,9 +429,17 @@ export function validatePlan(plan, expectedProvider) {
   return errors;
 }
 
+export function hasBlockers(plan) {
+  return Array.isArray(plan.blockers) && plan.blockers.length > 0;
+}
+
 export function captureCases(plan) {
   const cases = new Set();
+  const blockerIds = new Set(
+    (plan.blockers ?? []).map((blocker) => blocker.change_id)
+  );
   for (const change of plan.changes ?? []) {
+    if (blockerIds.has(change.id)) continue;
     if (change.tests?.live_capture?.required) {
       for (const name of change.tests.live_capture.cases ?? []) {
         cases.add(name);
@@ -419,6 +447,44 @@ export function captureCases(plan) {
     }
   }
   return [...cases].sort();
+}
+
+export function renderBlockers(plan) {
+  if (!hasBlockers(plan)) return "";
+
+  const changes = new Map(
+    (plan.changes ?? []).map((change) => [change.id, change])
+  );
+  const lines = [
+    "## Human decisions required",
+    "",
+    "The agent completed every unblocked item. These decisions require human input before the update can be finished:",
+    "",
+  ];
+
+  for (const blocker of plan.blockers) {
+    const change = changes.get(blocker.change_id);
+    const label = change?.source?.symbol ?? blocker.change_id;
+    lines.push(`- [ ] \`${label}\` (\`${blocker.change_id}\`)`);
+    lines.push(`  - **Question:** ${blocker.question}`);
+    lines.push(`  - **Evidence:** ${blocker.evidence}`);
+    lines.push(`  - **Recommended option:** ${blocker.recommendation}`);
+    lines.push("  - **Alternatives:**");
+    for (const alternative of blocker.alternatives) {
+      lines.push(`    - ${alternative}`);
+    }
+    lines.push("  - **Likely files:**");
+    for (const file of blocker.affected_files) {
+      lines.push(`    - \`${file}\``);
+    }
+    lines.push("  - **Validation commands:**");
+    for (const command of blocker.validation_commands) {
+      lines.push(`    - \`${command}\``);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
 }
 
 export function validateVerification(report, expectedProvider) {
@@ -521,17 +587,17 @@ function main(argv) {
   const [command, path, provider] = argv;
   if (!command || !path) {
     throw new Error(
-      "Usage: provider-type-update-plan.mjs validate|capture-cases|verify <path> [provider]"
+      "Usage: provider-type-update-plan.mjs validate|validate-structure|has-blockers|render-blockers|capture-cases|verify|verify-structure|verdict <path> [provider]"
     );
   }
   const value = loadJson(path);
 
-  if (command === "validate") {
+  if (command === "validate" || command === "validate-structure") {
     const errors = validatePlan(value, provider);
     if (errors.length) {
       printErrors("Plan", errors);
       process.exitCode = 1;
-    } else if (value.blockers.length > 0) {
+    } else if (command === "validate" && hasBlockers(value)) {
       console.error("Plan is valid but has unresolved blockers:");
       for (const blocker of value.blockers) {
         console.error(`- ${blocker.change_id}: ${blocker.question}`);
@@ -541,6 +607,26 @@ function main(argv) {
       console.log(
         `Validated ${value.changes.length} ${value.provider} plan item(s).`
       );
+    }
+    return;
+  }
+  if (command === "has-blockers") {
+    const errors = validatePlan(value, provider);
+    if (errors.length) {
+      printErrors("Plan", errors);
+      process.exitCode = 1;
+    } else {
+      console.log(hasBlockers(value) ? "true" : "false");
+    }
+    return;
+  }
+  if (command === "render-blockers") {
+    const errors = validatePlan(value, provider);
+    if (errors.length) {
+      printErrors("Plan", errors);
+      process.exitCode = 1;
+    } else {
+      console.log(renderBlockers(value));
     }
     return;
   }
@@ -554,16 +640,30 @@ function main(argv) {
     }
     return;
   }
-  if (command === "verify") {
+  if (command === "verify" || command === "verify-structure") {
     const errors = validateVerification(value, provider);
     if (errors.length) {
       printErrors("Verification report", errors);
       process.exitCode = 1;
-    } else if (value.verdict !== "pass") {
+    } else if (command === "verify" && value.verdict !== "pass") {
       console.error("Verification verdict is fail.");
       process.exitCode = 1;
     } else {
-      console.log(`Verification passed for ${value.provider}.`);
+      console.log(
+        command === "verify"
+          ? `Verification passed for ${value.provider}.`
+          : `Verification report is structurally valid for ${value.provider}.`
+      );
+    }
+    return;
+  }
+  if (command === "verdict") {
+    const errors = validateVerification(value, provider);
+    if (errors.length) {
+      printErrors("Verification report", errors);
+      process.exitCode = 1;
+    } else {
+      console.log(value.verdict);
     }
     return;
   }
