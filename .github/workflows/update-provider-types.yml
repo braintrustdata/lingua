@@ -665,6 +665,20 @@ jobs:
             "$RUNNER_TEMP/provider-type-update-verification.json" \
             "${{ matrix.provider }}"
 
+      - name: Archive provider update patch
+        id: update_patch
+        if: >-
+          always() &&
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.path_policy.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --binary --full-index > "$RUNNER_TEMP/provider-type-update.patch"
+          test -s "$RUNNER_TEMP/provider-type-update.patch"
+          git diff --cached --stat
+
       - name: Upload integration plan and verification
         if: always() && steps.changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -673,6 +687,7 @@ jobs:
           path: |
             ${{ runner.temp }}/provider-type-update-plan.json
             ${{ runner.temp }}/provider-type-update-verification.json
+            ${{ runner.temp }}/provider-type-update.patch
           if-no-files-found: warn
           retention-days: 14
 
@@ -728,6 +743,7 @@ jobs:
             echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
             echo "- Claude read-only verification: ${{ steps.integration_verification.outcome }}"
             echo "- Verification report validation: ${{ steps.verification_report.outcome }}"
+            echo "- Recoverable binary patch archive: ${{ steps.update_patch.outcome }}"
             echo
             echo "This PR is created even when validation fails so the generated update and repair attempt are available for manual follow-up."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
@@ -739,7 +755,7 @@ jobs:
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ github.token }}
-          base: main
+          base: ${{ github.ref_name }}
           branch: ${{ steps.branch.outputs.name }}
           commit-message: "Update ${{ matrix.provider }} provider types"
           title: "Update ${{ matrix.provider }} provider types"
@@ -780,7 +796,8 @@ jobs:
                 steps.typed_boundary.outcome == 'failure' ||
                 steps.cross_provider.outcome == 'failure' ||
                 steps.integration_verification.outcome != 'success' ||
-                steps.verification_report.outcome != 'success'
+                steps.verification_report.outcome != 'success' ||
+                steps.update_patch.outcome != 'success'
               )
             )
           )
