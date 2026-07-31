@@ -1,0 +1,74 @@
+---
+name: provider-type-update
+description: Audit, plan, implement, and verify updates to OpenAI, Anthropic, or Google generated provider types. Use when a provider specification or generated.rs diff may require capability, adapter, universal type, serializer, streaming, payload-case, or test changes.
+---
+
+# Provider type update
+
+Treat a provider specification update as a semantic integration task, not a
+generated-code review.
+
+## Planning phase
+
+Do not edit tracked files during this phase.
+
+1. Read `AGENTS.md` and inspect the complete provider specification diff.
+2. Use the four provider audit agents in parallel:
+   - `provider-spec-auditor`
+   - `provider-capability-auditor`
+   - `provider-semantic-auditor`
+   - `provider-coverage-auditor`
+3. Reconcile their reports yourself. Subagent reports are evidence, not final
+   decisions.
+4. Write the structured JSON plan requested by the workflow.
+5. Cover every changed provider field or enum value. Do not focus only on
+   generated Rust compilation errors.
+
+For every change, classify these surfaces explicitly:
+
+- generated type effect
+- model and capability matching
+- provider request import
+- provider request export
+- provider response import
+- provider response export
+- streaming
+- universal semantics
+- cross-provider behavior
+
+Use `not_affected` or `not_applicable` only with concrete evidence. Mark an
+item `blocked` when a non-lossy universal representation is unclear.
+
+## Implementation phase
+
+Read the validated JSON plan before changing files. Implement one plan item at
+a time.
+
+1. Add focused unit and payload cases before changing adapter behavior.
+2. Change generation code or typed adapters. Never edit `generated.rs`
+   directly.
+3. Preserve typed boundaries and explicit errors.
+4. Update every serializer and streaming path identified by the plan.
+5. Run focused tests before broad validation.
+6. Do not call live provider APIs. The workflow runs planned live captures in
+   a separate secret-scoped step.
+7. Re-read the plan and inspect `git diff` before finishing. Every affected
+   surface must have an implementation or test.
+
+Do not add marker fields, silent coercions, raw JSON semantic inspection, broad
+expected-difference exceptions, or fallback behavior.
+
+## Verification phase
+
+Do not edit tracked files.
+
+1. Compare the final diff with every plan item.
+2. Inspect generated-source provenance, capability predicates, all request and
+   response directions, streaming completion behavior, universal semantics,
+   and cross-provider effects.
+3. Check that focused tests exercise new semantic cases rather than only
+   serialization shape.
+4. Write the structured verification report requested by the workflow.
+5. Fail verification for omissions, unsupported assumptions, or a plan item
+   without corresponding implementation and tests.
+

@@ -32,6 +32,7 @@ const allProviders = [
 interface CaptureOptions {
   list: boolean;
   force: boolean;
+  snapshotsOnly: boolean;
   filter?: string;
   providers?: string[];
   cases?: string[];
@@ -43,6 +44,7 @@ function parseArguments(): CaptureOptions {
   const options: CaptureOptions = {
     list: false,
     force: false,
+    snapshotsOnly: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -54,6 +56,9 @@ function parseArguments(): CaptureOptions {
         break;
       case "--force":
         options.force = true;
+        break;
+      case "--snapshots-only":
+        options.snapshotsOnly = true;
         break;
       case "--filter":
         if (i + 1 < args.length) {
@@ -94,7 +99,7 @@ function parseArguments(): CaptureOptions {
         if (arg.startsWith("--")) {
           console.error(`Unknown option: ${arg}`);
           console.error(
-            "Available options: --list, --force, --filter, --providers, --cases, --stream"
+            "Available options: --list, --force, --snapshots-only, --filter, --providers, --cases, --stream"
           );
           process.exit(1);
         }
@@ -144,10 +149,24 @@ function getAllCases(options: CaptureOptions): CaseToRun[] {
   return cases;
 }
 
+export function findUnmatchedRequestedCases(
+  requestedCases: string[] | undefined,
+  matchedCaseNames: Iterable<string>
+): string[] {
+  if (!requestedCases) {
+    return [];
+  }
+
+  const matched = new Set(matchedCaseNames);
+  return [...new Set(requestedCases)].filter(
+    (caseName) => !matched.has(caseName)
+  );
+}
+
 async function captureProviderSnapshots(
   cases: CaseToRun[],
   options: CaptureOptions
-): Promise<void> {
+): Promise<boolean> {
   const outputDir = join(__dirname, "..", "snapshots");
   mkdirSync(outputDir, { recursive: true });
 
@@ -171,7 +190,7 @@ async function captureProviderSnapshots(
 
   if (casesToRun.length === 0) {
     console.log("No cases to run!");
-    return;
+    return true;
   }
 
   console.log(`Running ${casesToRun.length} cases in parallel...`);
@@ -237,6 +256,8 @@ async function captureProviderSnapshots(
       );
     }
   }
+
+  return failed.length === 0;
 }
 
 function updateVitestSnapshots(): void {
@@ -262,22 +283,48 @@ async function main() {
     }
     return;
   }
+  const unmatchedRequestedCases = findUnmatchedRequestedCases(
+    options.cases,
+    allCases.map((case_) => case_.caseName)
+  );
+  if (unmatchedRequestedCases.length > 0) {
+    throw new Error(
+      `Requested cases did not match the selected providers: ${unmatchedRequestedCases.join(",")}`
+    );
+  }
 
   console.log(`\n--- Provider snapshots ---`);
-  await captureProviderSnapshots(allCases, options);
-
-  console.log(`\n--- Transform captures ---`);
-  const forceTransforms = options.force && !options.providers;
-  const transformResult = await captureTransforms(
-    options.filter,
-    forceTransforms
+  const providerCapturesSucceeded = await captureProviderSnapshots(
+    allCases,
+    options
   );
 
-  if (transformResult.captured > 0) {
-    updateVitestSnapshots();
+  if (!options.snapshotsOnly) {
+    console.log(`\n--- Transform captures ---`);
+    const forceTransforms = options.force && !options.providers;
+    const transformResult = await captureTransforms(
+      options.filter,
+      forceTransforms,
+      undefined,
+      options.cases
+    );
+
+    if (transformResult.captured > 0) {
+      updateVitestSnapshots();
+    }
+    if (transformResult.failed > 0) {
+      process.exitCode = 1;
+    }
+  }
+
+  if (!providerCapturesSucceeded) {
+    process.exitCode = 1;
   }
 }
 
 if (require.main === module) {
-  main().catch(console.error);
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }

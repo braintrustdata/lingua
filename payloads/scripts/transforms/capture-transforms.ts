@@ -21,6 +21,7 @@ import {
   getResponsePath,
   getStreamingResponsePath,
   type SourceFormat,
+  type TransformPair,
 } from "./helpers";
 
 const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
@@ -217,7 +218,9 @@ async function collectStreamChunks(
 export async function captureTransforms(
   filter?: string,
   force?: boolean,
-  requestedPair?: { source: string; target: string }
+  requestedPair?: { source: string; target: string },
+  requestedCases?: string[],
+  requestedCaptureProviders?: string[]
 ): Promise<{ captured: number; skipped: number; failed: number }> {
   mkdirSync(TRANSFORMS_DIR, { recursive: true });
 
@@ -228,13 +231,19 @@ export async function captureTransforms(
   const nonStreamingTasks: (() => Promise<void>)[] = [];
 
   for (const p of TRANSFORM_PAIRS) {
+    if (!isCaptureProviderSelected(p, requestedCaptureProviders)) {
+      continue;
+    }
     if (
       requestedPair &&
       (p.source !== requestedPair.source || p.target !== requestedPair.target)
     ) {
       continue;
     }
-    const cases = getTransformableCases(p, filter);
+    const cases = selectRequestedCases(
+      getTransformableCases(p, filter),
+      requestedCases
+    );
 
     for (const caseName of cases) {
       const responsePath = getResponsePath(p.source, p.target, caseName);
@@ -289,6 +298,9 @@ export async function captureTransforms(
   const streamingTasks: (() => Promise<void>)[] = [];
 
   for (const streamingPair of STREAMING_PAIRS) {
+    if (!isCaptureProviderSelected(streamingPair, requestedCaptureProviders)) {
+      continue;
+    }
     if (
       requestedPair &&
       (streamingPair.source !== requestedPair.source ||
@@ -297,9 +309,9 @@ export async function captureTransforms(
       continue;
     }
 
-    const streamingCases = getStreamingTransformableCases(
-      streamingPair,
-      filter
+    const streamingCases = selectRequestedCases(
+      getStreamingTransformableCases(streamingPair, filter),
+      requestedCases
     );
 
     for (const caseName of streamingCases) {
@@ -387,10 +399,36 @@ export async function captureTransforms(
   return { captured, skipped, failed };
 }
 
+export function isCaptureProviderSelected(
+  pair: Pick<TransformPair, "target" | "captureProvider">,
+  requestedCaptureProviders?: string[]
+): boolean {
+  if (!requestedCaptureProviders) {
+    return true;
+  }
+
+  const captureProvider = pair.captureProvider ?? pair.target;
+  return requestedCaptureProviders.includes(captureProvider);
+}
+
+export function selectRequestedCases(
+  caseNames: string[],
+  requestedCases?: string[]
+): string[] {
+  if (!requestedCases) {
+    return caseNames;
+  }
+
+  const requested = new Set(requestedCases);
+  return caseNames.filter((caseName) => requested.has(caseName));
+}
+
 export function parseCaptureTransformArgs(args: string[]): {
   filter: string | undefined;
   force: boolean;
   pair: { source: string; target: string } | undefined;
+  cases: string[] | undefined;
+  captureProviders: string[] | undefined;
 } {
   const force = args.includes("--force");
   const pairIdx = args.indexOf("--pair");
@@ -398,20 +436,39 @@ export function parseCaptureTransformArgs(args: string[]): {
   const pair = pairArg
     ? { source: pairArg.split(",")[0], target: pairArg.split(",")[1] }
     : undefined;
+  const casesIdx = args.indexOf("--cases");
+  const casesArg = casesIdx !== -1 ? args[casesIdx + 1] : undefined;
+  const cases = casesArg
+    ? casesArg.split(",").filter((caseName) => caseName.length > 0)
+    : undefined;
+  const captureProvidersIdx = args.indexOf("--capture-providers");
+  const captureProvidersArg =
+    captureProvidersIdx !== -1 ? args[captureProvidersIdx + 1] : undefined;
+  const captureProviders = captureProvidersArg
+    ? captureProvidersArg.split(",").filter((provider) => provider.length > 0)
+    : undefined;
   const filter = args.find(
     (arg, index) =>
-      !arg.startsWith("--") && (pairIdx === -1 || index !== pairIdx + 1)
+      !arg.startsWith("--") &&
+      (pairIdx === -1 || index !== pairIdx + 1) &&
+      (casesIdx === -1 || index !== casesIdx + 1) &&
+      (captureProvidersIdx === -1 || index !== captureProvidersIdx + 1)
   );
 
-  return { filter, force, pair };
+  return { filter, force, pair, cases, captureProviders };
 }
 
 async function main() {
-  const { filter, force, pair } = parseCaptureTransformArgs(
-    process.argv.slice(2)
-  );
+  const { filter, force, pair, cases, captureProviders } =
+    parseCaptureTransformArgs(process.argv.slice(2));
 
-  const { failed } = await captureTransforms(filter, force, pair);
+  const { failed } = await captureTransforms(
+    filter,
+    force,
+    pair,
+    cases,
+    captureProviders
+  );
   process.exit(failed > 0 ? 1 : 0);
 }
 
