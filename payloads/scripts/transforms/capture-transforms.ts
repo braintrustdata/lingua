@@ -21,6 +21,7 @@ import {
   getResponsePath,
   getStreamingResponsePath,
   type SourceFormat,
+  type TransformPair,
 } from "./helpers";
 
 const GOOGLE_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
@@ -218,7 +219,8 @@ export async function captureTransforms(
   filter?: string,
   force?: boolean,
   requestedPair?: { source: string; target: string },
-  requestedCases?: string[]
+  requestedCases?: string[],
+  requestedCaptureProviders?: string[]
 ): Promise<{ captured: number; skipped: number; failed: number }> {
   mkdirSync(TRANSFORMS_DIR, { recursive: true });
 
@@ -229,6 +231,9 @@ export async function captureTransforms(
   const nonStreamingTasks: (() => Promise<void>)[] = [];
 
   for (const p of TRANSFORM_PAIRS) {
+    if (!isCaptureProviderSelected(p, requestedCaptureProviders)) {
+      continue;
+    }
     if (
       requestedPair &&
       (p.source !== requestedPair.source || p.target !== requestedPair.target)
@@ -293,6 +298,9 @@ export async function captureTransforms(
   const streamingTasks: (() => Promise<void>)[] = [];
 
   for (const streamingPair of STREAMING_PAIRS) {
+    if (!isCaptureProviderSelected(streamingPair, requestedCaptureProviders)) {
+      continue;
+    }
     if (
       requestedPair &&
       (streamingPair.source !== requestedPair.source ||
@@ -391,6 +399,18 @@ export async function captureTransforms(
   return { captured, skipped, failed };
 }
 
+export function isCaptureProviderSelected(
+  pair: Pick<TransformPair, "target" | "captureProvider">,
+  requestedCaptureProviders?: string[]
+): boolean {
+  if (!requestedCaptureProviders) {
+    return true;
+  }
+
+  const captureProvider = pair.captureProvider ?? pair.target;
+  return requestedCaptureProviders.includes(captureProvider);
+}
+
 export function selectRequestedCases(
   caseNames: string[],
   requestedCases?: string[]
@@ -408,6 +428,7 @@ export function parseCaptureTransformArgs(args: string[]): {
   force: boolean;
   pair: { source: string; target: string } | undefined;
   cases: string[] | undefined;
+  captureProviders: string[] | undefined;
 } {
   const force = args.includes("--force");
   const pairIdx = args.indexOf("--pair");
@@ -420,22 +441,34 @@ export function parseCaptureTransformArgs(args: string[]): {
   const cases = casesArg
     ? casesArg.split(",").filter((caseName) => caseName.length > 0)
     : undefined;
+  const captureProvidersIdx = args.indexOf("--capture-providers");
+  const captureProvidersArg =
+    captureProvidersIdx !== -1 ? args[captureProvidersIdx + 1] : undefined;
+  const captureProviders = captureProvidersArg
+    ? captureProvidersArg.split(",").filter((provider) => provider.length > 0)
+    : undefined;
   const filter = args.find(
     (arg, index) =>
       !arg.startsWith("--") &&
       (pairIdx === -1 || index !== pairIdx + 1) &&
-      (casesIdx === -1 || index !== casesIdx + 1)
+      (casesIdx === -1 || index !== casesIdx + 1) &&
+      (captureProvidersIdx === -1 || index !== captureProvidersIdx + 1)
   );
 
-  return { filter, force, pair, cases };
+  return { filter, force, pair, cases, captureProviders };
 }
 
 async function main() {
-  const { filter, force, pair, cases } = parseCaptureTransformArgs(
-    process.argv.slice(2)
-  );
+  const { filter, force, pair, cases, captureProviders } =
+    parseCaptureTransformArgs(process.argv.slice(2));
 
-  const { failed } = await captureTransforms(filter, force, pair, cases);
+  const { failed } = await captureTransforms(
+    filter,
+    force,
+    pair,
+    cases,
+    captureProviders
+  );
   process.exit(failed > 0 ? 1 : 0);
 }
 

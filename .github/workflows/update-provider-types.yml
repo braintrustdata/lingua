@@ -891,7 +891,33 @@ jobs:
           CAPTURE_CASES: ${{ steps.capture_cases.outputs.cases }}
           GOOGLE_API_KEY: ${{ secrets.LINGUA_CAPTURE_GOOGLE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.LINGUA_CAPTURE_OPENAI_API_KEY }}
-        run: make capture-transforms CASES="$CAPTURE_CASES" FORCE=1
+        run: |
+          set -euo pipefail
+          capture_providers=()
+          if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+            capture_providers+=(anthropic)
+          fi
+          if [ -n "${AWS_BEARER_TOKEN_BEDROCK:-}" ]; then
+            capture_providers+=(bedrock)
+          fi
+          if [ -n "${GOOGLE_API_KEY:-}" ]; then
+            capture_providers+=(google)
+          fi
+          if [ -n "${OPENAI_API_KEY:-}" ]; then
+            capture_providers+=(chat-completions responses)
+          fi
+
+          if [ "${#capture_providers[@]}" -eq 0 ]; then
+            echo "No transform capture credentials are configured; skipping transform capture."
+            exit 0
+          fi
+
+          capture_provider_list=$(IFS=,; echo "${capture_providers[*]}")
+          echo "Capturing transforms with credentialed providers: $capture_provider_list"
+          make capture-transforms \
+            CASES="$CAPTURE_CASES" \
+            CAPTURE_PROVIDERS="$capture_provider_list" \
+            FORCE=1
 
       - name: Verify payload fixture sync
         id: payload_sync

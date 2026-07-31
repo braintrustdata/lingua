@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  isCaptureProviderSelected,
   parseCaptureTransformArgs,
   selectRequestedCases,
 } from "./capture-transforms";
@@ -11,6 +12,7 @@ describe("capture transform arguments", () => {
       force: true,
       pair: undefined,
       cases: undefined,
+      captureProviders: undefined,
     });
   });
 
@@ -27,6 +29,7 @@ describe("capture transform arguments", () => {
       force: true,
       pair: { source: "anthropic", target: "responses" },
       cases: undefined,
+      captureProviders: undefined,
     });
   });
 
@@ -42,7 +45,54 @@ describe("capture transform arguments", () => {
       force: true,
       pair: undefined,
       cases: ["streamParam", "streamOptionsParam"],
+      captureProviders: undefined,
     });
+  });
+
+  test("parses credentialed capture providers without treating them as a filter", () => {
+    expect(
+      parseCaptureTransformArgs([
+        "--capture-providers",
+        "anthropic,chat-completions,responses,google",
+        "--cases",
+        "streamParam",
+        "--force",
+      ])
+    ).toEqual({
+      filter: undefined,
+      force: true,
+      pair: undefined,
+      cases: ["streamParam"],
+      captureProviders: [
+        "anthropic",
+        "chat-completions",
+        "responses",
+        "google",
+      ],
+    });
+  });
+});
+
+describe("capture provider selection", () => {
+  test("keeps pairs whose actual capture provider is credentialed", () => {
+    expect(
+      isCaptureProviderSelected({ target: "anthropic" }, [
+        "anthropic",
+        "google",
+      ])
+    ).toBe(true);
+    expect(
+      isCaptureProviderSelected(
+        { target: "anthropic", captureProvider: "baseten" },
+        ["anthropic", "google"]
+      )
+    ).toBe(false);
+  });
+
+  test("keeps every pair when no credential filter is provided", () => {
+    expect(isCaptureProviderSelected({ target: "vertex-anthropic" })).toBe(
+      true
+    );
   });
 });
 

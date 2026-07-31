@@ -149,6 +149,20 @@ function getAllCases(options: CaptureOptions): CaseToRun[] {
   return cases;
 }
 
+export function findUnmatchedRequestedCases(
+  requestedCases: string[] | undefined,
+  matchedCaseNames: Iterable<string>
+): string[] {
+  if (!requestedCases) {
+    return [];
+  }
+
+  const matched = new Set(matchedCaseNames);
+  return [...new Set(requestedCases)].filter(
+    (caseName) => !matched.has(caseName)
+  );
+}
+
 async function captureProviderSnapshots(
   cases: CaseToRun[],
   options: CaptureOptions
@@ -269,9 +283,13 @@ async function main() {
     }
     return;
   }
-  if (options.cases && allCases.length === 0) {
+  const unmatchedRequestedCases = findUnmatchedRequestedCases(
+    options.cases,
+    allCases.map((case_) => case_.caseName)
+  );
+  if (unmatchedRequestedCases.length > 0) {
     throw new Error(
-      `None of the requested cases matched the selected providers: ${options.cases.join(",")}`
+      `Requested cases did not match the selected providers: ${unmatchedRequestedCases.join(",")}`
     );
   }
 

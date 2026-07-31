@@ -60,3 +60,13 @@ test("protects AGENTS.md in planning, implementation, and path policy", () => {
   assert.match(workflow, /Do not edit `plan\.md`, `AGENTS\.md`/);
   assert.match(workflow, /':\(glob\)\*\*\/AGENTS\.md'/);
 });
+
+test("limits transform capture to providers with configured credentials", () => {
+  assert.match(
+    workflow,
+    /capture_providers=\(\).*ANTHROPIC_API_KEY.*AWS_BEARER_TOKEN_BEDROCK.*GOOGLE_API_KEY.*OPENAI_API_KEY/s
+  );
+  assert.match(workflow, /CAPTURE_PROVIDERS="\$capture_provider_list"/);
+  assert.doesNotMatch(workflow, /GOOGLE_APPLICATION_CREDENTIALS:/);
+  assert.doesNotMatch(workflow, /VERTEX_PROJECT:/);
+});

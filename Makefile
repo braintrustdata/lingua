@@ -102,7 +102,7 @@ capture: lingua-wasm ## Capture payloads (snapshots + transforms + vitest snapsh
 	cd payloads && pnpm capture $(if $(FILTER),--filter $(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(FORCE),--force)
 
 capture-transforms: lingua-wasm ## Re-capture only transforms (e.g. make capture-transforms CASES=streamParam,toolsParam FORCE=1)
-	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(PAIR),--pair $(PAIR)) $(if $(FORCE),--force)
+	cd payloads && pnpm tsx scripts/transforms/capture-transforms.ts $(if $(FILTER),$(FILTER)) $(if $(CASES),--cases $(CASES)) $(if $(PAIR),--pair $(PAIR)) $(if $(CAPTURE_PROVIDERS),--capture-providers $(CAPTURE_PROVIDERS)) $(if $(FORCE),--force)
 
 update-snapshots: lingua-wasm ## Update vitest snapshots without recapturing
 	cd payloads && pnpm vitest run scripts/transforms -u
