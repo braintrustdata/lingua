@@ -1,0 +1,47 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe the audio you are given."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "Au revoir",
+          "thoughtSignature": "EoUGCoIGARFNMg95asf3ZvC/gfeVTXO7dojPEQSZc6cyXgyWwyzJznBcocmGw4lT7dfQzXpceXl28hlTfwQMDCsjXmT65N6J5Eikwq771+mAIrJyDle/PVGFHmDyQSUWad/sLGxs+IGhrtgErL+QR0hK6/S9IywDcKIx9U0mn4pOJXp85CBR+3t8/oj3VAK9MXtNaXky0DryFSfBbt7At9eTx/WPpbyA8mas50iu+PVYDYZeu+76Wqet4dDcDk0c0hZRYcYb4gq5oll+Rpgf7DcwruOMLPEZ0YrqFF6wcjmQrN5xsoSwH7hDrhXsNMwXHW1c2rn+xQDsUkpw+56Nuf0qtENFor7eQvfhXPuEICTxMp7dCYbHRGjQzl4ug3fl+vH3xAUaUhlJ1VfBDHZ4fDjejkDOVHeXPkP9a0yFgdePZyEAJQPReLrPqn7IS+yytQpJR1asHHg+PtFpA66db/Ix2hPN7Lj8Z++GuIaJ4ZgryGOBmo/YCesQoxr5woh6+N20nKcLaMHZV62LDqnqZ5eX7JgYld0FR53bdM17Cc2AszfU3AwParfnN7jUHQ5MCn1o3WsfxKJg0ThCc3OLtM+v1wbO/yuPgzQXsRhxxJYopqLWkQEgPpD4L4B7v1KGt40fjhPfuI4mYQnkaGeiHyLT/bbN317ajU/TTUyRrv2kFCrFlL409b0LTqdHRAQUTPv/zJr6BbN/PV9+FQpyYIccM3C5UYIql7z77z0h0uiobNAAAW9j3C99oY7SksGbeIlLGDFlUv8jgJ12ELsTaDSU3EekQKJutqDUJ4r4TsYKTZlBIJxs/PP8IFGnjUv5dPenPrWQuCwjpCDb4l0lPXdFJJvC5a1crDmoSZWudBH4dd/xAoO1LBdDa6wKX10yKoCgkKjOoi65+WUTrfqmbtfReMB93QaBDaBPPtU15j5Doo/XivIEeME789CiunyKrW2xdd+7oHbBgmvqOQVYO90DOTQUXrIj1JfqRjxEMwr4JZ4TU3vQHpi0tPkTEQ4Ba/Ts8DMFttw="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "adaptationPhrases": [
+        "Lingua"
+      ],
+      "customVocabulary": [
+        "Braintrust",
+        "Gemini"
+      ],
+      "diarization": true,
+      "wordTimestamp": true,
+      "languageHints": {
+        "languageCodes": [
+          "en-US"
+        ]
+      }
+    }
+  }
+}

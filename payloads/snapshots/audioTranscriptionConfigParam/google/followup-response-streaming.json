@@ -1,0 +1,244 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Since **\"Au revoir\"** means **\"Goodbye\"** in French, you"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 18,
+      "totalTokenCount": 459,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " could technically close this chat and go enjoy your day! 😉\n\nBut if you're not quite ready to go yet"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 42,
+      "totalTokenCount": 483,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", here are a few things we could do next:\n\n1. **More Transcriptions:** Send me another audio file"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 66,
+      "totalTokenCount": 507,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " (in French or any other language) and I'll transcribe or translate it for you.\n2. **Learn Some French"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 92,
+      "totalTokenCount": 533,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ":** We can practice conversational French, learn some common phrases, or work on vocabulary. \n3. **Move on to something"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 118,
+      "totalTokenCount": 559,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " else:** Ask me any question, get help with writing, brainstorming, coding, or whatever else is on your mind."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 142,
+      "totalTokenCount": 583,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n\nWhat would you like to do?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 20,
+      "candidatesTokenCount": 150,
+      "totalTokenCount": 591,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 20
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 225,
+      "candidatesTokenCount": 150,
+      "totalTokenCount": 796,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 225
+        }
+      ],
+      "thoughtsTokenCount": 421,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lCdsauLCNJOW_uMPnMOKuQ8"
+  }
+]

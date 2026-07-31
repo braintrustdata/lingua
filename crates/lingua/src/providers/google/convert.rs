@@ -35,13 +35,23 @@ use crate::util::media::{parse_base64_data_url, parse_file_metadata_from_url};
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
 
+/// Google `Part` fields carried in universal `provider_options`.
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
-struct GoogleAssistantPartProviderOptions {
+struct GooglePartProviderOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     executable_code: Option<ExecutableCode>,
     #[serde(skip_serializing_if = "Option::is_none")]
     code_execution_result: Option<CodeExecutionResult>,
+    /// `Part.mediaResolution`: Google's per-part media tokenization hint.
+    ///
+    /// Carried opaquely because it has no universal analogue — its `level` enum is
+    /// deliberately wider than `generationConfig.mediaResolution` (it adds
+    /// `MEDIA_RESOLUTION_ULTRA_HIGH`), so normalising the two would be lossy. The
+    /// value always originates from, and is written back into, the generated `Part`
+    /// field, so both boundaries stay typed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    media_resolution: Option<Value>,
 }
 
 // ============================================================================
@@ -135,16 +145,21 @@ fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
     }
 }
 
-fn provider_options_from_google_assistant_part(
+fn provider_options_from_google_part(
     executable_code: Option<ExecutableCode>,
     code_execution_result: Option<CodeExecutionResult>,
+    media_resolution: Option<Value>,
 ) -> Result<Option<ProviderOptions>, ConvertError> {
-    let metadata = GoogleAssistantPartProviderOptions {
+    let metadata = GooglePartProviderOptions {
         executable_code,
         code_execution_result,
+        media_resolution,
     };
 
-    if metadata.executable_code.is_none() && metadata.code_execution_result.is_none() {
+    if metadata.executable_code.is_none()
+        && metadata.code_execution_result.is_none()
+        && metadata.media_resolution.is_none()
+    {
         return Ok(None);
     }
 
@@ -160,14 +175,50 @@ fn provider_options_from_google_assistant_part(
     }
 }
 
-fn google_assistant_part_provider_options(
+/// Serializes `Part.mediaResolution` for carrying in universal `provider_options`.
+///
+/// The input is the generated `Part` field, so the emitted value is always a valid
+/// Google `mediaResolution`.
+fn google_part_media_resolution(part: &GooglePart) -> Result<Option<Value>, ConvertError> {
+    part.media_resolution
+        .as_ref()
+        .map(serde_json::to_value)
+        .transpose()
+        .map_err(|e| ConvertError::JsonSerializationFailed {
+            field: "media_resolution".to_string(),
+            error: e.to_string(),
+        })
+}
+
+/// Writes a carried `mediaResolution` back onto a Google `Part`.
+///
+/// Deserializing into the generated field validates the carried value and returns an
+/// explicit error instead of silently dropping an unusable hint.
+fn with_google_part_media_resolution(
+    mut part: GooglePart,
     provider_options: &Option<ProviderOptions>,
-) -> Option<GoogleAssistantPartProviderOptions> {
+) -> Result<GooglePart, ConvertError> {
+    let Some(media_resolution) =
+        google_part_provider_options(provider_options).and_then(|options| options.media_resolution)
+    else {
+        return Ok(part);
+    };
+
+    part.media_resolution = serde_json::from_value(media_resolution).map_err(|e| {
+        ConvertError::ContentConversionFailed {
+            reason: format!("Invalid Google part mediaResolution in provider_options: {e}"),
+        }
+    })?;
+
+    Ok(part)
+}
+
+fn google_part_provider_options(
+    provider_options: &Option<ProviderOptions>,
+) -> Option<GooglePartProviderOptions> {
     provider_options.as_ref().and_then(|opts| {
-        serde_json::from_value::<GoogleAssistantPartProviderOptions>(Value::Object(
-            opts.options.clone(),
-        ))
-        .ok()
+        serde_json::from_value::<GooglePartProviderOptions>(Value::Object(opts.options.clone()))
+            .ok()
     })
 }
 
@@ -251,6 +302,8 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut assistant_parts: Vec<AssistantContentPart> = Vec::new();
 
                 for part in &parts {
+                    let media_resolution = google_part_media_resolution(part)?;
+
                     if let Some(t) = &part.text {
                         if part.thought == Some(true) {
                             // Thinking part: thought=true marks model's internal reasoning
@@ -265,7 +318,11 @@ impl TryFromLLM<GoogleContent> for Message {
                                 text: t.clone(),
                                 encrypted_content: part.thought_signature.clone(),
                                 cache_control: None,
-                                provider_options: None,
+                                provider_options: provider_options_from_google_part(
+                                    None,
+                                    None,
+                                    media_resolution,
+                                )?,
                             }));
                         }
                     } else if let Some(executable_code) = &part.executable_code {
@@ -273,9 +330,10 @@ impl TryFromLLM<GoogleContent> for Message {
                             text: String::new(),
                             encrypted_content: None,
                             cache_control: None,
-                            provider_options: provider_options_from_google_assistant_part(
+                            provider_options: provider_options_from_google_part(
                                 Some(executable_code.clone()),
                                 None,
+                                media_resolution,
                             )?,
                         }));
                     } else if let Some(code_execution_result) = &part.code_execution_result {
@@ -283,9 +341,10 @@ impl TryFromLLM<GoogleContent> for Message {
                             text: String::new(),
                             encrypted_content: None,
                             cache_control: None,
-                            provider_options: provider_options_from_google_assistant_part(
+                            provider_options: provider_options_from_google_part(
                                 None,
                                 Some(code_execution_result.clone()),
+                                media_resolution,
                             )?,
                         }));
                     } else if let Some(fc) = &part.function_call {
@@ -330,7 +389,11 @@ impl TryFromLLM<GoogleContent> for Message {
                                     .mime_type
                                     .clone()
                                     .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string()),
-                                provider_options: None,
+                                provider_options: provider_options_from_google_part(
+                                    None,
+                                    None,
+                                    media_resolution,
+                                )?,
                             });
                         }
                     }
@@ -348,12 +411,18 @@ impl TryFromLLM<GoogleContent> for Message {
                 let mut tool_parts: Vec<ToolContentPart> = Vec::new();
 
                 for part in &parts {
+                    let media_resolution = google_part_media_resolution(part)?;
+
                     if let Some(t) = &part.text {
                         user_parts.push(UserContentPart::Text(TextContentPart {
                             text: t.clone(),
                             encrypted_content: None,
                             cache_control: None,
-                            provider_options: None,
+                            provider_options: provider_options_from_google_part(
+                                None,
+                                None,
+                                media_resolution,
+                            )?,
                         }));
                     } else if let Some(blob) = &part.inline_data {
                         if let Some(data) = &blob.data {
@@ -361,18 +430,20 @@ impl TryFromLLM<GoogleContent> for Message {
                                 .mime_type
                                 .clone()
                                 .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                            let provider_options =
+                                provider_options_from_google_part(None, None, media_resolution)?;
                             if mime_type.starts_with("image/") {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(data.clone()),
                                     media_type: Some(mime_type),
-                                    provider_options: None,
+                                    provider_options,
                                 });
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(data.clone()),
                                     filename: None,
                                     media_type: mime_type,
-                                    provider_options: None,
+                                    provider_options,
                                 });
                             }
                         }
@@ -382,18 +453,20 @@ impl TryFromLLM<GoogleContent> for Message {
                                 .mime_type
                                 .clone()
                                 .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
+                            let provider_options =
+                                provider_options_from_google_part(None, None, media_resolution)?;
                             if mime_type.starts_with("image/") {
                                 user_parts.push(UserContentPart::Image {
                                     image: Value::String(uri.clone()),
                                     media_type: Some(mime_type),
-                                    provider_options: None,
+                                    provider_options,
                                 });
                             } else {
                                 user_parts.push(UserContentPart::File {
                                     data: Value::String(uri.clone()),
                                     filename: None,
                                     media_type: mime_type,
-                                    provider_options: None,
+                                    provider_options,
                                 });
                             }
                         }
@@ -477,77 +550,89 @@ impl TryFromLLM<Message> for GoogleContent {
                         for part in parts {
                             match part {
                                 UserContentPart::Text(t) => {
-                                    converted.push(text_part(t.text));
+                                    converted.push(with_google_part_media_resolution(
+                                        text_part(t.text),
+                                        &t.provider_options,
+                                    )?);
                                 }
                                 UserContentPart::Image {
                                     image: Value::String(data),
                                     media_type,
-                                    ..
+                                    provider_options,
                                 } => {
-                                    if let Some(block) = parse_base64_data_url(&data) {
-                                        converted.push(GooglePart {
+                                    let part = if let Some(block) = parse_base64_data_url(&data) {
+                                        GooglePart {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
                                             }),
                                             ..Default::default()
-                                        });
+                                        }
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
                                         let mime_type =
                                             media_type.unwrap_or_else(|| mime_type_from_url(&data));
-                                        converted.push(GooglePart {
+                                        GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(mime_type),
                                             }),
                                             ..Default::default()
-                                        });
+                                        }
                                     } else {
                                         let mime_type = media_type
                                             .unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string());
-                                        converted.push(GooglePart {
+                                        GooglePart {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(mime_type),
                                                 data: Some(data),
                                             }),
                                             ..Default::default()
-                                        });
-                                    }
+                                        }
+                                    };
+                                    converted.push(with_google_part_media_resolution(
+                                        part,
+                                        &provider_options,
+                                    )?);
                                 }
                                 UserContentPart::File {
                                     data: Value::String(data),
                                     media_type,
+                                    provider_options,
                                     ..
                                 } => {
-                                    if let Some(block) = parse_base64_data_url(&data) {
-                                        converted.push(GooglePart {
+                                    let part = if let Some(block) = parse_base64_data_url(&data) {
+                                        GooglePart {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(block.media_type),
                                                 data: Some(block.data),
                                             }),
                                             ..Default::default()
-                                        });
+                                        }
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
-                                        converted.push(GooglePart {
+                                        GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
                                                 mime_type: Some(media_type),
                                             }),
                                             ..Default::default()
-                                        });
+                                        }
                                     } else {
-                                        converted.push(GooglePart {
+                                        GooglePart {
                                             inline_data: Some(GoogleBlob {
                                                 mime_type: Some(media_type),
                                                 data: Some(data),
                                             }),
                                             ..Default::default()
-                                        });
-                                    }
+                                        }
+                                    };
+                                    converted.push(with_google_part_media_resolution(
+                                        part,
+                                        &provider_options,
+                                    )?);
                                 }
                                 _ => {}
                             }
@@ -566,7 +651,7 @@ impl TryFromLLM<Message> for GoogleContent {
                             match p {
                                 AssistantContentPart::Text(t) => {
                                     if let Some(metadata) =
-                                        google_assistant_part_provider_options(&t.provider_options)
+                                        google_part_provider_options(&t.provider_options)
                                     {
                                         if let Some(executable_code) = metadata.executable_code {
                                             converted.push(GooglePart {
@@ -587,11 +672,14 @@ impl TryFromLLM<Message> for GoogleContent {
                                         }
                                     }
 
-                                    converted.push(GooglePart {
-                                        text: Some(t.text),
-                                        thought_signature: t.encrypted_content,
-                                        ..Default::default()
-                                    });
+                                    converted.push(with_google_part_media_resolution(
+                                        GooglePart {
+                                            text: Some(t.text),
+                                            thought_signature: t.encrypted_content,
+                                            ..Default::default()
+                                        },
+                                        &t.provider_options,
+                                    )?);
                                 }
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
@@ -637,19 +725,25 @@ impl TryFromLLM<Message> for GoogleContent {
                                     });
                                 }
                                 AssistantContentPart::File {
-                                    data, media_type, ..
+                                    data,
+                                    media_type,
+                                    provider_options,
+                                    ..
                                 } => {
                                     let data_str = match data {
                                         Value::String(s) => Some(s),
                                         _ => None,
                                     };
-                                    converted.push(GooglePart {
-                                        inline_data: Some(GoogleBlob {
-                                            data: data_str,
-                                            mime_type: Some(media_type),
-                                        }),
-                                        ..Default::default()
-                                    });
+                                    converted.push(with_google_part_media_resolution(
+                                        GooglePart {
+                                            inline_data: Some(GoogleBlob {
+                                                data: data_str,
+                                                mime_type: Some(media_type),
+                                            }),
+                                            ..Default::default()
+                                        },
+                                        &provider_options,
+                                    )?);
                                 }
                                 _ => {}
                             }
@@ -2115,7 +2209,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        AudioTranscriptionConfig, Category, ComputerUse, DisabledSafetyPolicy, Environment,
+        LanguageHints, Type,
     };
 
     #[test]
@@ -2259,5 +2354,154 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    #[test]
+    fn test_audio_transcription_config_wire_keys() {
+        // Pins the camelCase wire names of the newly reachable ASR config, including
+        // `customVocabulary` and the deprecated-but-still-valid `adaptationPhrases`.
+        let payload = json!({
+            "adaptationPhrases": ["Lingua"],
+            "customVocabulary": ["Gemini", "Braintrust"],
+            "diarization": true,
+            "wordTimestamp": true,
+            "languageAuto": {},
+            "languageHints": {"languageCodes": ["en-US", "es-ES"]}
+        });
+
+        let parsed: AudioTranscriptionConfig = serde_json::from_value(payload.clone()).unwrap();
+        assert_eq!(parsed.adaptation_phrases, Some(vec!["Lingua".to_string()]));
+        assert_eq!(
+            parsed.custom_vocabulary,
+            Some(vec!["Gemini".to_string(), "Braintrust".to_string()])
+        );
+        assert_eq!(parsed.diarization, Some(true));
+        assert_eq!(parsed.word_timestamp, Some(true));
+        assert_eq!(parsed.language_auto, Some(Map::new()));
+        assert_eq!(
+            parsed.language_hints,
+            Some(LanguageHints {
+                language_codes: Some(vec!["en-US".to_string(), "es-ES".to_string()]),
+            })
+        );
+
+        assert_eq!(serde_json::to_value(&parsed).unwrap(), payload);
+    }
+
+    #[test]
+    fn test_language_hints_is_never_default_constructed() {
+        // `languageCodes` is documented Required but generated as Option, so an empty
+        // LanguageHints serializes to `{}` — a payload Google rejects. Lingua must only
+        // ever echo what the caller sent, never synthesise one.
+        assert_eq!(
+            serde_json::to_value(LanguageHints::default()).unwrap(),
+            json!({})
+        );
+        assert_eq!(
+            serde_json::to_value(AudioTranscriptionConfig::default()).unwrap(),
+            json!({})
+        );
+    }
+
+    #[test]
+    fn test_part_media_resolution_wire_format() {
+        // Part.mediaResolution nests a single `level` key. Unlike its siblings the
+        // generated struct carries no `rename_all`, so this pins the wire name.
+        let parsed: GooglePart = serde_json::from_value(json!({
+            "text": "hi",
+            "mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}
+        }))
+        .unwrap();
+        assert!(parsed.media_resolution.is_some());
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(
+            reserialized["mediaResolution"],
+            json!({"level": "MEDIA_RESOLUTION_ULTRA_HIGH"})
+        );
+
+        // ULTRA_HIGH exists only at the part level; the generationConfig enum has no
+        // such value, which is why the two must never be normalised onto each other.
+        assert!(serde_json::from_value::<GenerationConfig>(
+            json!({"mediaResolution": "MEDIA_RESOLUTION_ULTRA_HIGH"})
+        )
+        .is_err());
+
+        // An unknown level is a deserialization error, not a silent None.
+        assert!(serde_json::from_value::<GooglePart>(json!({
+            "text": "hi",
+            "mediaResolution": {"level": "MEDIA_RESOLUTION_EXTREME"}
+        }))
+        .is_err());
+    }
+
+    /// Round-trips google contents through the universal representation.
+    fn google_contents_round_trip(contents: Value) -> Value {
+        let contents: Vec<GoogleContent> = serde_json::from_value(contents).unwrap();
+        let messages =
+            <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(contents).unwrap();
+        let back = <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(messages).unwrap();
+        serde_json::to_value(back).unwrap()
+    }
+
+    #[test]
+    fn test_part_media_resolution_survives_universal_round_trip() {
+        let contents = google_contents_round_trip(json!([{
+            "role": "user",
+            "parts": [
+                {
+                    "text": "Describe this image.",
+                    "mediaResolution": {"level": "MEDIA_RESOLUTION_LOW"}
+                },
+                {
+                    "inlineData": {"mimeType": "image/png", "data": "aGk="},
+                    "mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}
+                }
+            ]
+        }]));
+
+        let parts = &contents[0]["parts"];
+        assert_eq!(
+            parts[0]["mediaResolution"],
+            json!({"level": "MEDIA_RESOLUTION_LOW"})
+        );
+        assert_eq!(
+            parts[1]["mediaResolution"],
+            json!({"level": "MEDIA_RESOLUTION_ULTRA_HIGH"})
+        );
+    }
+
+    #[test]
+    fn test_part_media_resolution_is_absent_when_not_sent() {
+        let contents = google_contents_round_trip(json!([{
+            "role": "user",
+            "parts": [{"inlineData": {"mimeType": "image/png", "data": "aGk="}}]
+        }]));
+
+        assert_eq!(contents[0]["parts"][0].get("mediaResolution"), None);
+    }
+
+    #[test]
+    fn test_part_media_resolution_rejects_invalid_carried_value() {
+        let messages = vec![Message::User {
+            content: UserContent::Array(vec![UserContentPart::Text(TextContentPart {
+                text: "hi".to_string(),
+                encrypted_content: None,
+                cache_control: None,
+                provider_options: Some(ProviderOptions {
+                    options: match json!({"media_resolution": {"level": "NOT_A_LEVEL"}}) {
+                        Value::Object(map) => map,
+                        _ => unreachable!(),
+                    },
+                }),
+            })]),
+        }];
+
+        let error = <Vec<GoogleContent> as TryFromLLM<Vec<Message>>>::try_from(messages)
+            .expect_err("an invalid carried mediaResolution must be an explicit error");
+        assert!(
+            error.to_string().contains("mediaResolution"),
+            "error should name the offending field: {error}"
+        );
     }
 }

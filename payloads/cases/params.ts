@@ -4,6 +4,7 @@ import {
   FunctionCallingConfigMode,
   Modality,
   MediaResolution,
+  PartMediaResolutionLevel,
 } from "@google/genai";
 import OpenAI from "openai";
 import {
@@ -11,6 +12,7 @@ import {
   ChatCompletionSystemMessageWithCacheControl,
   ChatCompletionTextPartWithCacheControl,
   AnthropicMessageCreateParams,
+  GoogleGenerateContentRequest,
   TestCase,
   TestCaseCollection,
 } from "./types";
@@ -35,6 +37,31 @@ type ChatCompletionAssistantMessageWithReasoningSignature =
   OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
     reasoning_signature: string;
   };
+
+// 1x1 JPEG, used where a case needs real media bytes rather than a description.
+const TINY_IMAGE_BASE64 =
+  "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- @google/genai does not yet expose generationConfig.audioTranscriptionConfig.
+const googleAudioTranscriptionConfigRequest = {
+  contents: [
+    {
+      role: "user",
+      parts: [{ text: "Transcribe the audio you are given." }],
+    },
+  ],
+  generationConfig: {
+    audioTranscriptionConfig: {
+      // adaptationPhrases is deprecated upstream in favour of customVocabulary; both
+      // are set so a round-trip proves neither is rewritten into the other.
+      adaptationPhrases: ["Lingua"],
+      customVocabulary: ["Braintrust", "Gemini"],
+      diarization: true,
+      wordTimestamp: true,
+      languageHints: { languageCodes: ["en-US"] },
+    },
+  },
+} as unknown as GoogleGenerateContentRequest;
 
 const chatCompletionCacheControlTextPart = {
   type: "text",
@@ -3059,6 +3086,46 @@ export const paramsCases: TestCaseCollection = {
         mediaResolution: MediaResolution.MEDIA_RESOLUTION_LOW,
       },
     },
+    bedrock: null,
+  },
+
+  // Per-part media resolution is a separate axis from generationConfig.mediaResolution:
+  // it is set on an individual Part and its level enum additionally allows
+  // MEDIA_RESOLUTION_ULTRA_HIGH.
+  partMediaResolutionParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Describe this image briefly." },
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: TINY_IMAGE_BASE64,
+              },
+              mediaResolution: {
+                level: PartMediaResolutionLevel.MEDIA_RESOLUTION_ULTRA_HIGH,
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
+  },
+
+  // Audio transcription config moved onto the unary generateContent request. Sets both
+  // the deprecated adaptationPhrases and its replacement customVocabulary so a
+  // round-trip proves the two stay distinct.
+  audioTranscriptionConfigParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: googleAudioTranscriptionConfigRequest,
     bedrock: null,
   },
 

@@ -17,6 +17,10 @@ const providerIndex = process.argv.indexOf("--provider");
 const provider =
   providerIndex === -1 ? undefined : process.argv[providerIndex + 1];
 const supportedProviders = new Set(["anthropic", "google", "openai"]);
+// `git diff` cannot see new files, so a renamed generated type passes a plain diff
+// gate while its replacement is left uncommitted. `--check` regenerates and then
+// fails on ANY reported change under the generated trees, additions included.
+const checkOnly = process.argv.includes("--check");
 
 if (providerIndex !== -1 && !supportedProviders.has(provider)) {
   console.error(
@@ -24,6 +28,14 @@ if (providerIndex !== -1 && !supportedProviders.has(provider)) {
   );
   process.exit(2);
 }
+
+// Paths whose contents are fully derived from the generators.
+const generatedPaths = [
+  "bindings/typescript/src/generated",
+  ...[...supportedProviders].map(
+    (name) => `crates/lingua/src/providers/${name}/generated.rs`
+  ),
+];
 
 const generatedDir = provider ? join(generatedRoot, provider) : undefined;
 const backupDir = generatedDir
@@ -52,7 +64,7 @@ if (result.status === 0) {
   if (backupDir) {
     rmSync(backupDir, { recursive: true, force: true });
   }
-  process.exit(0);
+  process.exit(checkOnly ? reportGeneratedDrift() : 0);
 }
 
 if (generatedDir && backupDir) {
@@ -66,3 +78,48 @@ if (result.error) {
   console.error(`Failed to generate TypeScript bindings: ${result.error}`);
 }
 process.exit(result.status ?? 1);
+
+/**
+ * Reports whether the generated trees differ from what is committed.
+ *
+ * Uses `git status --porcelain` rather than `git diff` so untracked additions
+ * ("??" entries) fail too.
+ *
+ * @returns {number} process exit code
+ */
+function reportGeneratedDrift() {
+  const status = spawnSync(
+    "git",
+    ["status", "--porcelain", "--", ...generatedPaths],
+    { cwd: workspaceRoot, encoding: "utf8" }
+  );
+
+  if (status.status !== 0) {
+    console.error(
+      `Failed to inspect generated artifacts: ${
+        status.error ?? status.stderr ?? "unknown git error"
+      }`
+    );
+    return status.status ?? 1;
+  }
+
+  const entries = status.stdout
+    .split("\n")
+    .filter((line) => line.trim() !== "");
+  if (entries.length === 0) {
+    console.log("Generated artifacts are up to date.");
+    return 0;
+  }
+
+  console.error(
+    "Generated artifacts are out of date. Regenerate them and commit the result:"
+  );
+  for (const entry of entries) {
+    console.error(`  ${entry}`);
+  }
+  console.error(
+    "\nRun `make generate-all-providers` and `make generate-types`, then commit every\n" +
+      "change under the generated trees (including newly added files)."
+  );
+  return 1;
+}

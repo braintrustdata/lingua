@@ -1627,7 +1627,7 @@ fn generate_google_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
-    let essential_schemas = create_essential_google_schemas(spec);
+    let essential_schemas = create_essential_google_schemas(spec)?;
 
     let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
     let schema_json =
@@ -1688,7 +1688,9 @@ fn generate_google_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_google_schemas(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("schemas")
@@ -1707,7 +1709,7 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
             all_schemas,
             &mut essential_schemas,
             &mut processed,
-        );
+        )?;
     }
 
     // Convert all Discovery-format schemas to JSON Schema format
@@ -1732,7 +1734,34 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "definitions": fixed_schemas
     });
 
-    root_schema
+    Ok(root_schema)
+}
+
+/// Strips Google's internal proto package prefix from a Discovery schema id.
+///
+/// A few schemas are published under their proto package (`V1mainMediaResolution`,
+/// `V1mainTuningSnapshot`, ...). That prefix is not part of the public API and moves
+/// with upstream refactors, so generated Rust and TypeScript names would otherwise
+/// churn — and, worse, silently change meaning when a stripped name is already taken by
+/// another type.
+fn normalize_google_schema_id(schema_id: &str) -> &str {
+    const PROTO_PACKAGE_PREFIXES: &[&str] = &["V1main", "V1beta"];
+
+    for prefix in PROTO_PACKAGE_PREFIXES {
+        if let Some(public_name) = schema_id.strip_prefix(prefix) {
+            // Only strip when a type name actually follows, so ids such as `V1main`
+            // or `V1mainlike` are left alone.
+            if public_name
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_ascii_uppercase())
+            {
+                return public_name;
+            }
+        }
+    }
+
+    schema_id
 }
 
 fn add_google_schema_with_dependencies(
@@ -1740,20 +1769,25 @@ fn add_google_schema_with_dependencies(
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
     processed: &mut std::collections::HashSet<String>,
-) {
+) -> Result<(), Box<dyn std::error::Error>> {
     if processed.contains(type_name) {
-        return;
+        return Ok(());
     }
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
-        return;
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
+        return Ok(());
     };
+
+    let public_name = normalize_google_schema_id(type_name);
+    if public_name != type_name && all_schemas.contains_key(public_name) {
+        return Err(format!(
+            "Google Discovery schema '{type_name}' normalizes to '{public_name}', but the spec \
+             already defines a separate '{public_name}' schema. Refusing to pick a name silently."
+        )
+        .into());
+    }
 
     {
         // Strip top-level Discovery metadata fields (not valid JSON Schema)
@@ -1762,7 +1796,7 @@ fn add_google_schema_with_dependencies(
         if let Some(obj) = cleaned.as_object_mut() {
             obj.remove("id");
         }
-        essential_schemas.insert(type_name.to_string(), cleaned);
+        essential_schemas.insert(public_name.to_string(), cleaned);
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
@@ -1774,42 +1808,11 @@ fn add_google_schema_with_dependencies(
                 all_schemas,
                 essential_schemas,
                 processed,
-            );
+            )?;
         }
     }
-}
 
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
-    }
+    Ok(())
 }
 
 fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
@@ -1839,19 +1842,40 @@ fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections
     }
 }
 
+/// Note prepended to the description of anything Discovery marks `"deprecated": true`,
+/// so the deprecation survives into the generated Rust and TypeScript doc comments.
+const DISCOVERY_DEPRECATION_NOTE: &str = "Deprecated.";
+
+/// Returns the description a deprecated Discovery schema or property should carry.
+fn deprecated_discovery_description(description: Option<&str>) -> String {
+    match description {
+        Some(description) if description.starts_with("Deprecated") => description.to_string(),
+        Some(description) => format!("{DISCOVERY_DEPRECATION_NOTE} {description}"),
+        None => DISCOVERY_DEPRECATION_NOTE.to_string(),
+    }
+}
+
 fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_json::Value {
     match schema {
         serde_json::Value::Object(obj) => {
             let mut fixed_obj = serde_json::Map::new();
+            let is_deprecated = obj
+                .get("deprecated")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
 
             for (key, value) in obj {
                 if key == "$ref" {
-                    // Convert bare type name refs to JSON Schema #/definitions/ refs
+                    // Convert bare type name refs to JSON Schema #/definitions/ refs,
+                    // using the same public name the definition is registered under.
                     if let Some(ref_str) = value.as_str() {
                         if !ref_str.starts_with('#') {
                             fixed_obj.insert(
                                 key.clone(),
-                                serde_json::Value::String(format!("#/definitions/{}", ref_str)),
+                                serde_json::Value::String(format!(
+                                    "#/definitions/{}",
+                                    normalize_google_schema_id(ref_str)
+                                )),
                             );
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
@@ -1859,6 +1883,15 @@ fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_
                     } else {
                         fixed_obj.insert(key.clone(), value.clone());
                     }
+                } else if key == "deprecated" {
+                    // Discovery-only metadata. Folded into the description below so the
+                    // deprecation reaches consumers instead of being dropped.
+                    continue;
+                } else if key == "description" && is_deprecated {
+                    fixed_obj.insert(
+                        key.clone(),
+                        serde_json::Value::String(deprecated_discovery_description(value.as_str())),
+                    );
                 } else if key == "type" {
                     if let Some(type_str) = value.as_str() {
                         if type_str == "any" {
@@ -1876,6 +1909,13 @@ fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_
                 } else {
                     fixed_obj.insert(key.clone(), convert_discovery_schema_to_json_schema(value));
                 }
+            }
+
+            if is_deprecated && !fixed_obj.contains_key("description") {
+                fixed_obj.insert(
+                    "description".to_string(),
+                    serde_json::Value::String(deprecated_discovery_description(None)),
+                );
             }
 
             serde_json::Value::Object(fixed_obj)
@@ -2306,7 +2346,19 @@ pub struct Status {}
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, convert_discovery_schema_to_json_schema,
+        create_essential_google_schemas, extract_discovery_refs, normalize_google_schema_id,
+        preserve_google_public_enum_variant_names, serde_json,
+    };
+
+    fn discovery_spec() -> serde_json::Value {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../specs/google/discovery.json");
+        let spec = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+        serde_json::from_str(&spec).expect("discovery spec must be valid JSON")
+    }
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {
@@ -2333,5 +2385,164 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+
+    #[test]
+    fn normalizes_v1main_schema_id_to_public_name() {
+        assert_eq!(
+            normalize_google_schema_id("V1mainMediaResolution"),
+            "MediaResolution"
+        );
+        assert_eq!(
+            normalize_google_schema_id("V1betaTuningSnapshot"),
+            "TuningSnapshot"
+        );
+        // Untouched: no prefix, no type name after the prefix, or a lowercase tail.
+        assert_eq!(
+            normalize_google_schema_id("GenerationConfig"),
+            "GenerationConfig"
+        );
+        assert_eq!(normalize_google_schema_id("V1main"), "V1main");
+        assert_eq!(normalize_google_schema_id("V1mainly"), "V1mainly");
+    }
+
+    #[test]
+    fn google_schemas_are_registered_under_public_type_names() {
+        let schemas = create_essential_google_schemas(&discovery_spec())
+            .expect("checked-in spec must generate cleanly");
+        let definitions = schemas["definitions"]
+            .as_object()
+            .expect("definitions object");
+
+        // The proto package prefix must not leak into generated type names.
+        let prefixed: Vec<&String> = definitions
+            .keys()
+            .filter(|name| normalize_google_schema_id(name) != name.as_str())
+            .collect();
+        assert!(
+            prefixed.is_empty(),
+            "schemas registered under proto-package names: {prefixed:?}"
+        );
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert_eq!(
+            definitions["Part"]["properties"]["mediaResolution"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn v1main_normalization_errors_on_collision() {
+        let spec = serde_json::json!({
+            "schemas": {
+                "GenerateContentRequest": {
+                    "id": "GenerateContentRequest",
+                    "type": "object",
+                    "properties": {
+                        "prefixed": {"$ref": "V1mainThing"},
+                        "plain": {"$ref": "Thing"}
+                    }
+                },
+                "GenerateContentResponse": {
+                    "id": "GenerateContentResponse",
+                    "type": "object",
+                    "properties": {}
+                },
+                "V1mainThing": {"id": "V1mainThing", "type": "object", "properties": {}},
+                "Thing": {"id": "Thing", "type": "object", "properties": {}}
+            }
+        });
+
+        let error = create_essential_google_schemas(&spec)
+            .expect_err("a normalization collision must be an explicit error");
+        let message = error.to_string();
+        assert!(message.contains("V1mainThing"), "{message}");
+        assert!(message.contains("Thing"), "{message}");
+    }
+
+    #[test]
+    fn google_spec_supplies_every_reachable_schema() {
+        // No hardcoded fallback schema exists any more: the checked-in spec must resolve
+        // every $ref reachable from the request and response roots on its own.
+        let spec = discovery_spec();
+        let all_schemas = spec["schemas"].as_object().expect("schemas object");
+
+        let mut missing: Vec<String> = Vec::new();
+        let mut processed: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut pending = vec![
+            "GenerateContentRequest".to_string(),
+            "GenerateContentResponse".to_string(),
+        ];
+
+        while let Some(name) = pending.pop() {
+            if !processed.insert(name.clone()) {
+                continue;
+            }
+
+            let Some(schema) = all_schemas.get(&name) else {
+                missing.push(name);
+                continue;
+            };
+
+            let mut refs = std::collections::HashSet::new();
+            extract_discovery_refs(schema, &mut refs);
+            pending.extend(refs);
+        }
+
+        assert!(
+            missing.is_empty(),
+            "Discovery spec references schemas it does not define: {missing:?}"
+        );
+    }
+
+    #[test]
+    fn propagates_discovery_deprecated_to_description() {
+        let converted = convert_discovery_schema_to_json_schema(&serde_json::json!({
+            "type": "object",
+            "properties": {
+                "adaptationPhrases": {
+                    "deprecated": true,
+                    "description": "A list of phrases used for speech adaptation.",
+                    "type": "array",
+                    "items": {"type": "string"}
+                },
+                "customVocabulary": {
+                    "description": "A list of custom vocabulary phrases.",
+                    "type": "array",
+                    "items": {"type": "string"}
+                },
+                "undocumented": {"deprecated": true, "type": "boolean"}
+            }
+        }));
+
+        let properties = &converted["properties"];
+        assert_eq!(
+            properties["adaptationPhrases"]["description"],
+            "Deprecated. A list of phrases used for speech adaptation."
+        );
+        // The Discovery-only key must not reach quicktype.
+        assert_eq!(properties["adaptationPhrases"].get("deprecated"), None);
+        // Non-deprecated properties are untouched.
+        assert_eq!(
+            properties["customVocabulary"]["description"],
+            "A list of custom vocabulary phrases."
+        );
+        // A deprecated property without a description still gets the note.
+        assert_eq!(properties["undocumented"]["description"], "Deprecated.");
+    }
+
+    #[test]
+    fn deprecation_note_is_not_duplicated() {
+        let converted = convert_discovery_schema_to_json_schema(&serde_json::json!({
+            "deprecated": true,
+            "description": "Deprecated: Use `GenerateContentRequest.processing_options` instead.",
+            "type": "object",
+            "properties": {}
+        }));
+
+        assert_eq!(
+            converted["description"],
+            "Deprecated: Use `GenerateContentRequest.processing_options` instead."
+        );
     }
 }

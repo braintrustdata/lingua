@@ -1,0 +1,218 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Since the last image was completely black, here are a few ways we can proceed:\n\n1. **Upload a new image:**"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 26,
+      "totalTokenCount": 373,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " If you have a different photo, diagram, document, or screenshot you'd like me to describe, analyze, translate"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 50,
+      "totalTokenCount": 397,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": ", or answer questions about, please upload it!\n2. **Ask a text-based question:** You can ask me"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 75,
+      "totalTokenCount": 422,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " anything about writing, coding, science, history, brainstorming, or any other topic.\n3. **Let me know if the black image"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 103,
+      "totalTokenCount": 450,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " was a test:** If you were just testing the vision capabilities, let me know what you'd like to try next! "
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 129,
+      "totalTokenCount": 476,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "\n\nHow can I help you today?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 23,
+      "candidatesTokenCount": 137,
+      "totalTokenCount": 484,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 23
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 2366,
+      "candidatesTokenCount": 137,
+      "totalTokenCount": 2827,
+      "promptTokensDetails": [
+        {
+          "modality": "IMAGE",
+          "tokenCount": 2209
+        },
+        {
+          "modality": "TEXT",
+          "tokenCount": 157
+        }
+      ],
+      "thoughtsTokenCount": 324,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "lSdsaquoH62s1MkPu6KyqAY"
+  }
+]

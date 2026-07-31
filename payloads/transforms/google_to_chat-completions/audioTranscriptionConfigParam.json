@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-E7ZMMOVdA0V1ymBZtfliJ2yoTsIaB",
+  "object": "chat.completion",
+  "created": 1785472926,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I’m ready to transcribe, but I don’t see an audio file attached. Please provide the audio (upload the file or share a link) and I’ll transcribe it.\n\nTell me your preferences for the transcript:\n- Style: Verbatim (every utterance, including stutters and filler) or Clean (readable, punctuation normalized, minimal filler)\n- Speakers: Do you want speaker labels (e.g., Speaker 1, Speaker 2) if there are multiple people?\n- Timestamps: Include time codes? If yes, how often (every sentence, per speaker change, or at regular intervals like every 30 seconds)?\n- Output format: Plain text, or SRT/VTT for subtitles, or another format\n- Language/ dialect: Please specify if not standard English (or if there are multiple languages)\n\nIf you can’t attach a file, you can paste a short sample so I can show you the style, or share a link to the audio.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 976,
+    "total_tokens": 990,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 768,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

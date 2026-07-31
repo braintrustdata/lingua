@@ -1,6 +1,6 @@
 CARGO_MACHETE_VERSION ?= 0.9.2
 
-.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types generate-all-providers install-hooks install-wasm-tools setup precommit ensure-cargo-machete unused-deps fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
+.PHONY: all lingua-wasm typescript-types typescript python test test-payloads capture capture-transforms update-snapshots clean help generate-types check-generated-types generate-all-providers install-hooks install-wasm-tools setup precommit ensure-cargo-machete unused-deps fuzz-snapshots fuzz-snapshots-prune typed-boundary-check typed-boundary-check-branch
 
 all: typescript python ## Build all bindings
 
@@ -28,6 +28,10 @@ generate-all-providers: ## Regenerate types for all providers (anthropic, openai
 generate-types: ## Generate TypeScript types from Rust (via ts-rs)
 	@echo "Generating TypeScript types from Rust..."
 	@node scripts/regenerate-typescript-bindings.mjs $(if $(PROVIDER),--provider $(PROVIDER))
+
+check-generated-types: ## Fail if generated Rust/TypeScript artifacts drift from what is committed (untracked additions included)
+	@echo "Checking generated artifacts for drift..."
+	@node scripts/regenerate-typescript-bindings.mjs --check $(if $(PROVIDER),--provider $(PROVIDER))
 
 lingua-wasm: ## Build WASM package
 	@echo "Building WASM package..."

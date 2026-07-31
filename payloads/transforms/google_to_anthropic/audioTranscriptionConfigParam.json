@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CdZXF27QpRg4y3uQUe9zV",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I don't have any audio file attached to your message. Could you please share the audio you'd like me to transcribe? You can upload an audio file, and I'll do my best to transcribe it for you."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 16,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 49,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

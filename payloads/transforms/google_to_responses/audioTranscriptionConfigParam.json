@@ -1,0 +1,102 @@
+{
+  "id": "resp_01797acad9f300e3006a6c279f0db8819ea7b52eb45e3d1119",
+  "object": "response",
+  "created_at": 1785472927,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1785472928,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_01797acad9f300e3006a6c279f8524819eb95df9e452ccd2d1",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqbCehqNuYrADKrKORk1Dh2B1PXjxuqix_031wFtj0_lXaVi_LNeaywo69htFutx1L57kA-tXxBMkEG-g_1xHKs4_gWSYKoMgvgkcVEApE8GStQ1v5Wd_mZgMYvQY3O_j5gy-eNEtYshGiJ9xrobv-emndRApCCZqEEvJd6Yqe0o-0saDcnjYkjBvgjRl_swMzmkwA5WxYQXgeMhRBQhgKOC7SiLjmBbPQdU6Gwv2oPhf_RhZK5cI61r81u3RGznrMF_ZYyb402jPqPu6L2erJAQ39Rj2OrlHRTVFG_pm-frRwxVRTjuTcKpAolyL5edJ7vF6rAiQHuXQ-od8dCAlS6VqgH_bi-ByMQZSF8DkI9v4B5d8ZIiQIaFpEnPbSp6UHxrNzVrJKGnNxf2wkpek176CmO9F-zIYK9C_qm_HI_7aCxnEjA9C1UjScHRkwEqAEiq7wDNggm_wNBo-kUOsegz67kOoTf3xwQLc9yqaTOLvZIZPVf5h2PYUiCDtfqMS0DpIJPD84MNgkqjD4q46ylRNcXA6fe4w6PLuvq3YRimdGqfurouw5Q0ZjcUsvANi5CxCBJY53LC4baoTVHlYjitLkdai6o8sUDfXSd-heRQAJONy042ChQDZkM0yHR2biqUMYbeXig6-D8ANYNc7OrwOXFLkxB0WNdtxIn8jnLo5dLcen3swQkEnvuJGB7LZwYT9CfXwIynyQQK7IzHPJxE2fvyepthdh-NTvuihX6inn83QdVyS3geLc5bWUSrN0-RcIuN_4mfdWQZCJgdprZcvGOCYqwsX9-PZckb_I_ujZNIYj9EUj5xhkJYa4tfAede0IH_l6wmN7uK7vpG4MltLfo_PKPtQNPTbZv7kzA_rSr21cVXii1VN-UBfIe7FqVsrZOI7ySBISxKCuxjrssUbwyJ-StJDdemTfOYVbsXpbXfeFlUG4hEo_ewxQJ4cAGSFohZzuhlc3P1a9RFtSgp9bnKThtUI-bR6dbb6Q8yE4f3Gpcv_LXckxWVS5PBnwNrazZaGcD9wj-Zv4iHpuzPBKD3RzYLkvI1skFylYLeJXmn6Oy3KIz41k7_PTP4c5KgajHbozB252qf4-LwmpocdrLXJFilc7mFKIkbs_k8uRulcU9VDPc0Vxm8ioLAxfOJftPaHc8Z7OQuTZfa2gF1_QChE2g6Azi1Koh6RYKmEna8lyMDR6xRL_qezCu4yIi7Appr-yk993JgZfcwMNzSpypQ==",
+      "summary": []
+    },
+    {
+      "id": "msg_01797acad9f300e3006a6c279ff85c819ea8e9503a173e3602",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Please upload or attach the audio file you’d like transcribed."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 14,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 64,
+    "output_tokens_details": {
+      "reasoning_tokens": 45
+    },
+    "total_tokens": 78
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Please upload or attach the audio file you’d like transcribed."
+}

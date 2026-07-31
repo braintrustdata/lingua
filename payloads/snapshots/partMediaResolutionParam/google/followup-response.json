@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Since the previous image was completely black, there isn't any content to analyze. Depending on what you'd like to do, you can:\n\n1. **Upload a new image:** If you meant to share a different picture, please upload it, and I'll gladly describe or analyze it for you.\n2. **Ask a question:** You can ask me anything, whether it's about a specific topic, a creative writing prompt, coding help, or general information.\n3. **Start a new task:** Let me know if you need help planning, brainstorming, or solving a problem. \n\nHow would you like to proceed?",
+            "thoughtSignature": "EsgKCsUKARFNMg8jU8lDrOfHIGO0jjEb69QWKKUU9B9FUoA9E4OSJXa4w/ZDs6oe02SeRdjVNzf+kPP8AmOl+1SVX6v9uwNF72pUol1XEps0KK0i72SH4WCvHn4384Q+z+b3HSMO1IMfo5KiXzymeZkAb9A3Qn4EJl+xi0eTV4fjP8xQHOro5Dr4XQ5ZUMeDoHOTu6IUV7b3rl/YtaWvO/HtwJMmXQS0EjjbqMTZXjwbTodHgtYMToxbyaLMSv/L9fwxw+TmvcR1USGBNpZlImPOUjGk+IE2ZMPLlgv7+PW3xbDSW4LUTvrZXwFggGYcDIqcpTpjT8y8KtpHw8ivdfi3vdpCh5c3OrCI8xzJefwidkhZ7PTUEJYv9NS5PljyE3JK15qJNU6ZFbvYGUA5BNq1t/pUmmv5L07ESjszsFfDfZTCemF0FRZy9HHQgCQHs/slIsh/IrZ8f+AgPgWFo2uZ7LRHN4jgkToPtzn5+wxrEYa9KVmKLPAcUzXIOcOrbNyFCoYTA28+eBz/Vh691rkjo0OAqB6Ye9R/ZqHGqzwPYs0jRa1+9nx+vdNww6vge8r2PeEkxG49w0GpExMuJrgiAXjikw+Qbli501g1u82xzSGcbX6zuO6SGVPu9fYUhAuzmUQOrGXhbi1Wv7sxuh6WMK+QV7ymlTCgKDl/RkPOmL+jd46/TnKd5/b/rIItYwOwciyGcolmtVkSb0IW+1rChe3QcKdWcKDhbfKvbB6erAyUkS4VBtgkd+YeDsKCu+tVP13oTHPyUWIGKCFLmypMfW3gI4RpN0Iufo2lCuAjMa5b3EjNVsWyDWhiEgyppYnICys5ETydSy04eF5VvU/6WcyeLU7vtl0ZElHwejej/9Qz3t+t2hOzNHDeONn464OLR6FkyU4kQ6W4uLsTMLeea9cDDeAsPgja8C0y10GQPSDdAXE8Z0Q2oQ7R41MtYQDphwjDbKXkZ1yYZCJaDS7qJNR/41G7bV+UMeDssdQqIpMC/xddKKZsSsK2R6dlwSylEtCcw9wv3Ii070luZ1GlkImveeA8Tz77B+fQlaLmdAZu+WbpIPQlDy7FS0vdxTMBQLHWx9cwuWmPYOueVcKgS1IVE6DlCzsI3JydOkKqwRE+o1jKT6gdFE7OGqlGJs/x3Z0UhtbKTmByzWSgOIkGz1MojyUq2W8CaoqZACuJEGASnqhJyaiDv7r8QN+6WHwMZBnWkE1G93maprQzT3ug+ip3e0ue0gUeivKQf8ix/OPrsbaYWTlmGR4HqFIB/Il0QR3OfPD7qZg2LXcooy0f7QooSBRne/3ODwvtMwXclNeyWGyf34kELbee5VBFNzsyhk6goao8Eka0ZyYdvo3V45K/KPK5e82XYYEufiVMz17tCau+iBXc2HDQScYmWSg6nDr0oksfNSUDeju8YUbek/qAdmeFdezdXyiQCB3Bu9j0ZoLTd53v0P1mxs1hzu4MJgteFDa+oYspiOzo95Pqz0e94/+hO2bKx9GnMV9jkoZucRdQp8myTLTgeSaGglm9lRm556DVcNofu59dUN83I+6vpI4GstxB1Re2b/o7yYF0UZ8guBCRVRDsnetX5JUHeRvJcKWAQUsyKmqaufcIRjzqomvYst9c9oA+LpjGUWHWls5uA/Z468NoeDUD+bNfrojH45Qc7tzEkdmXgF/cCMrUSAj5bNWGFFe6fgO1piy8exa9bdSRvCaufJt/w8uhWSgSpd1T2j4D0Cr9SNAB4xEUiX6i0XoqhXjYiua5gaEPuKToIYI4QwP4IUA1B0JLc49CweAPAKU="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2366,
+    "candidatesTokenCount": 133,
+    "totalTokenCount": 2828,
+    "promptTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 2209
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 157
+      }
+    ],
+    "thoughtsTokenCount": 329,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "lSdsasTBHY29_uMP54XN-AE"
+}

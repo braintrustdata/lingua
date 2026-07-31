@@ -20,7 +20,9 @@ use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
     ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
-use crate::providers::google::params::GoogleParams;
+use crate::providers::google::params::{
+    unmapped_generation_config_fields, GoogleExtrasView, GoogleParams, GENERATION_CONFIG_EXTRAS_KEY,
+};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
@@ -54,6 +56,27 @@ impl GoogleResponseFormatView {
             .map(crate::universal::request::ResponseFormatConfig::from)
             .filter(|format| format.format_type.is_some())
     }
+}
+
+/// Reads the Google-only `generationConfig` fields carried in provider extras.
+///
+/// Returns an explicit error rather than dropping the fragment if it is not a valid
+/// Google `generationConfig`.
+fn carried_generation_config(
+    extras: &std::collections::HashMap<ProviderFormat, Map<String, Value>>,
+) -> Result<Option<GenerationConfig>, TransformError> {
+    let Some(google_extras) = extras.get(&ProviderFormat::Google) else {
+        return Ok(None);
+    };
+
+    let view: GoogleExtrasView = serde_json::from_value(Value::Object(google_extras.clone()))
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!(
+                "Google: extras carried an invalid '{GENERATION_CONFIG_EXTRAS_KEY}': {e}"
+            ))
+        })?;
+
+    Ok(view.generation_config)
 }
 
 fn is_discovery_only_message(message: &Message) -> bool {
@@ -225,12 +248,29 @@ impl ProviderAdapter for GoogleAdapter {
             extras: Default::default(),
         };
 
-        // Use extras captured automatically via #[serde(flatten)]
-        if !typed_params.extras.is_empty() {
-            params.extras.insert(
-                ProviderFormat::Google,
-                typed_params.extras.into_iter().collect(),
-            );
+        // Use extras captured automatically via #[serde(flatten)], plus the
+        // generationConfig fields that have no universal representation. Without the
+        // latter, every unmapped generationConfig field (audioTranscriptionConfig,
+        // speechConfig, candidateCount, ...) would be parsed and then dropped, because
+        // the flatten only sees top-level unknown keys.
+        let mut google_extras: Map<String, Value> = typed_params.extras.into_iter().collect();
+
+        if let Some(config) = &typed_params.generation_config {
+            let unmapped = unmapped_generation_config_fields(config).map_err(|e| {
+                TransformError::ToUniversalFailed(format!(
+                    "Google: failed to capture unmapped generationConfig fields: {e}"
+                ))
+            })?;
+            if !unmapped.is_empty() {
+                google_extras.insert(
+                    GENERATION_CONFIG_EXTRAS_KEY.to_string(),
+                    Value::Object(unmapped),
+                );
+            }
+        }
+
+        if !google_extras.is_empty() {
+            params.extras.insert(ProviderFormat::Google, google_extras);
         }
 
         Ok(UniversalRequest {
@@ -344,7 +384,10 @@ impl ProviderAdapter for GoogleAdapter {
             || has_reasoning
             || has_response_format;
 
-        if has_params {
+        // generationConfig fields with no universal representation, captured on import.
+        let carried_generation_config = carried_generation_config(&req.params.extras)?;
+
+        if has_params || carried_generation_config.is_some() {
             // Convert ReasoningConfig to Google's thinkingConfig
             // Use capabilities to determine whether to use thinkingLevel (Gemini 3) or thinkingBudget (Gemini 2.5)
             let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
@@ -408,15 +451,16 @@ impl ProviderAdapter for GoogleAdapter {
 
             let stop_sequences = req.params.stop.clone();
 
-            let mut config = GenerationConfig {
-                temperature: req.params.temperature,
-                top_p: req.params.top_p,
-                top_k: req.params.top_k,
-                max_output_tokens: req.params.output_token_budget(),
-                stop_sequences,
-                thinking_config,
-                ..Default::default()
-            };
+            // Start from the carried Google-only fields, then write every field lingua
+            // maps canonically. Carried fields never include a canonical key, so the
+            // merge cannot overwrite what lingua derives from UniversalParams.
+            let mut config = carried_generation_config.unwrap_or_default();
+            config.temperature = req.params.temperature;
+            config.top_p = req.params.top_p;
+            config.top_k = req.params.top_k;
+            config.max_output_tokens = req.params.output_token_budget();
+            config.stop_sequences = stop_sequences;
+            config.thinking_config = thinking_config;
 
             // Apply response format to generationConfig
             if let Some(format) = &req.params.response_format {
@@ -994,6 +1038,159 @@ mod tests {
             }]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    /// Round-trips a Google request through the universal representation and returns
+    /// the reconstructed Google payload.
+    fn google_round_trip(payload: Value) -> Value {
+        let adapter = GoogleAdapter;
+        let universal = adapter
+            .request_to_universal(payload)
+            .expect("request should convert to universal");
+        adapter
+            .request_from_universal(&universal)
+            .expect("request should convert back to Google")
+    }
+
+    fn reconstructed_generation_config(payload: Value) -> GenerationConfig {
+        let request: GenerateContentRequest = serde_json::from_value(google_round_trip(payload))
+            .expect("reconstructed request should deserialize");
+        request
+            .generation_config
+            .expect("reconstructed request should carry generationConfig")
+    }
+
+    #[test]
+    fn test_generation_config_audio_transcription_survives_universal_round_trip() {
+        let config = reconstructed_generation_config(json!({
+            "model": "gemini-2.5-flash",
+            "contents": [{"role": "user", "parts": [{"text": "Transcribe."}]}],
+            "generationConfig": {
+                "temperature": 0.25,
+                "maxOutputTokens": 64,
+                "audioTranscriptionConfig": {
+                    "adaptationPhrases": ["Lingua"],
+                    "customVocabulary": ["Gemini", "Braintrust"],
+                    "diarization": true,
+                    "wordTimestamp": true,
+                    "languageAuto": {},
+                    "languageHints": {"languageCodes": ["en-US", "es-ES"]}
+                }
+            }
+        }));
+
+        let transcription = config
+            .audio_transcription_config
+            .clone()
+            .expect("audioTranscriptionConfig must survive the round trip");
+        assert_eq!(
+            transcription.adaptation_phrases,
+            Some(vec!["Lingua".to_string()])
+        );
+        assert_eq!(
+            transcription.custom_vocabulary,
+            Some(vec!["Gemini".to_string(), "Braintrust".to_string()])
+        );
+        assert_eq!(transcription.diarization, Some(true));
+        assert_eq!(transcription.word_timestamp, Some(true));
+        assert_eq!(transcription.language_auto, Some(Map::new()));
+        assert_eq!(
+            transcription
+                .language_hints
+                .and_then(|hints| hints.language_codes),
+            Some(vec!["en-US".to_string(), "es-ES".to_string()])
+        );
+
+        // Canonical fields are still derived from UniversalParams, not duplicated or
+        // overwritten by the carried fragment.
+        assert_eq!(config.temperature, Some(0.25));
+        assert_eq!(config.max_output_tokens, Some(64));
+    }
+
+    #[test]
+    fn test_generation_config_passthrough_emits_config_without_canonical_params() {
+        // has_params is false here: the carried Google-only fields must still be emitted.
+        let config = reconstructed_generation_config(json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hi"}]}],
+            "generationConfig": {
+                "candidateCount": 2,
+                "speechConfig": {"languageCode": "en-US"}
+            }
+        }));
+
+        assert_eq!(config.candidate_count, Some(2));
+        assert_eq!(
+            config.speech_config.and_then(|c| c.language_code),
+            Some("en-US".to_string())
+        );
+        assert_eq!(config.temperature, None);
+        assert_eq!(config.max_output_tokens, None);
+    }
+
+    #[test]
+    fn test_deprecated_adaptation_phrases_round_trips_verbatim() {
+        // `adaptationPhrases` is deprecated upstream in favour of `customVocabulary`.
+        // Lingua must echo what the caller sent and never auto-migrate it.
+        let config = reconstructed_generation_config(json!({
+            "contents": [{"role": "user", "parts": [{"text": "Transcribe."}]}],
+            "generationConfig": {
+                "audioTranscriptionConfig": {"adaptationPhrases": ["Lingua"]}
+            }
+        }));
+
+        let transcription = config
+            .audio_transcription_config
+            .expect("audioTranscriptionConfig must survive the round trip");
+        assert_eq!(
+            transcription.adaptation_phrases,
+            Some(vec!["Lingua".to_string()])
+        );
+        assert_eq!(transcription.custom_vocabulary, None);
+    }
+
+    #[test]
+    fn test_google_never_synthesises_language_hints() {
+        let config = reconstructed_generation_config(json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hi"}]}],
+            "generationConfig": {
+                "audioTranscriptionConfig": {"diarization": true}
+            }
+        }));
+
+        let transcription = config
+            .audio_transcription_config
+            .expect("audioTranscriptionConfig must survive the round trip");
+        // Google rejects `languageHints: {}`; lingua must never invent one.
+        assert_eq!(transcription.language_hints, None);
+        assert_eq!(transcription.language_auto, None);
+    }
+
+    #[test]
+    fn test_google_rejects_invalid_carried_generation_config() {
+        let adapter = GoogleAdapter;
+        let mut universal = adapter
+            .request_to_universal(json!({
+                "contents": [{"role": "user", "parts": [{"text": "Hi"}]}]
+            }))
+            .expect("request should convert to universal");
+
+        universal.params.extras.insert(
+            ProviderFormat::Google,
+            [(
+                GENERATION_CONFIG_EXTRAS_KEY.to_string(),
+                json!({"candidateCount": "two"}),
+            )]
+            .into_iter()
+            .collect(),
+        );
+
+        let error = adapter
+            .request_from_universal(&universal)
+            .expect_err("an invalid carried generationConfig must be an explicit error");
+        assert!(
+            error.to_string().contains("generationConfig"),
+            "error should name the offending field: {error}"
+        );
     }
 
     #[test]

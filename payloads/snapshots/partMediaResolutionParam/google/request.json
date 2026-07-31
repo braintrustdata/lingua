@@ -1,0 +1,21 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Describe this image briefly."
+        },
+        {
+          "inlineData": {
+            "mimeType": "image/jpeg",
+            "data": "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q=="
+          },
+          "mediaResolution": {
+            "level": "MEDIA_RESOLUTION_ULTRA_HIGH"
+          }
+        }
+      ]
+    }
+  ]
+}

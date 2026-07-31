@@ -1,0 +1,68 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "This image is a solid, completely black square."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 6,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 51,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 35,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kydsarbwJZaW1MkP34aygAY"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EvoBCvcBARFNMg9dX+yXTH9HGQzEuTgstdu0+HNP3SLd/kjXjizmRJZPfJImkPqL6ckFbq13XXbL0dV3hQrHRKBorD4THRDCV4dIlyxHvHxp29C8jXnfPAxVxThd/6Xpjdzi/1r5Lg1gxTgJOAelf69Q5u/XDxGgZ9sPIxutIaaPcqAsVxRPTCcpxFdQ+VPyEQT+DfhQTFczJL/W8ePcSqOpondwP0AD4FXYboZ6GLQMR7TIzFBzwn23ZTBIB1IoOyiErMdPe5BFRENx2Whr+5gx+dNVZ5NU41S75Lj/tnvSvDeG8Wu166Bg8nddFql32zLMNQPzwyBjtkmAUw=="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 2215,
+      "candidatesTokenCount": 10,
+      "totalTokenCount": 2260,
+      "promptTokensDetails": [
+        {
+          "modality": "IMAGE",
+          "tokenCount": 2209
+        },
+        {
+          "modality": "TEXT",
+          "tokenCount": 6
+        }
+      ],
+      "thoughtsTokenCount": 35,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kydsarbwJZaW1MkP34aygAY"
+  }
+]

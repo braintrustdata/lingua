@@ -1,0 +1,30 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe the audio you are given."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "adaptationPhrases": [
+        "Lingua"
+      ],
+      "customVocabulary": [
+        "Braintrust",
+        "Gemini"
+      ],
+      "diarization": true,
+      "wordTimestamp": true,
+      "languageHints": {
+        "languageCodes": [
+          "en-US"
+        ]
+      }
+    }
+  }
+}

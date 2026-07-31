@@ -1,0 +1,94 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "My husband"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 2,
+      "totalTokenCount": 133,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 122,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kydsaqvEJaeY_uMPxYXFSA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " is currently looking for a job as a senior operations manager in London."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 147,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 122,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kydsaqvEJaeY_uMPxYXFSA"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EoQFCoEFARFNMg/oQ/venKUSEVOb2x1YLUgwadP4yIV8vyvL+SqqFvPTeIKbC4sAVwgtrfXvOR1o+jEe/ExKLNsxaEF+sZRyBcbNekh25+m8oo1f61F9eM0ytK104075M5jgP9qstWfkorFO1rUb/7SKSbkGZHzcKrpM3RD7oDFdo556t/pwHtdceevPTiLVwtR7DPhPGjQCDiULA7J2DUMwEQ8r+gzBJq0QeE28ukqAyPH9clBzwCLtpOjgmUWGDDgOEDqV+csE8PCG03gXYXoUwMppjQMOZ8PQ7RmRgY9txQocrBcyGgIcqFF/moh0IJdSBNJqOAXxoWexkuyCynk2A2zHXBJF93rvorBFu7w0vWQ19TkViSgB/qXsobyiABJvT4Z6BbqecGwu6qivA5D6WZjf51oqIoa/cjDygiHgyPs4Xf8s6uzP8OqhnYkldQNPvZn3KYr7kRtN0b2JpXs5x6/HPF/KolLemdH2OEzGO7/JKqdYsTRnwLY6XuVfdx5FGQxxUIfylBEUmIyDS9eGzYb/mbVO+YKX9BBb3ePvukjtQc9gT5p/fTUDFAtqfDntSW7V86swEycxHGrxLKykJYIZU4KlVZUW4xashR8PCufvEh8RMnyWM7vBBs9HbY4NH0G4Q4XrbAR1d10J+rX8FSSQ/G78T17b5JQbD9HrbxS+qGJqlejzaUqN2TKTC3sC/EaectJgQE+dFdjkUA/UJuztUaFXyf8ifzgNH+QCFciXRKsXiIyfwGjRjfUnU3oMpM5/H2aVuDvEYtaXVy5bj8gXO2oB0+35ygPDMSS71imrsuOiaLJndIVNE/h3XArpuaNCG3/omUHp6beUd5cdKn8waoc="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 9,
+      "candidatesTokenCount": 16,
+      "totalTokenCount": 147,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 9
+        }
+      ],
+      "thoughtsTokenCount": 122,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "kydsaqvEJaeY_uMPxYXFSA"
+  }
+]
