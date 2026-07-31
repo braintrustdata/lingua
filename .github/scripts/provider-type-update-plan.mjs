@@ -43,6 +43,7 @@ const FORBIDDEN_IMPLEMENTATION_TARGET_FRAGMENTS = [
   "pipelines/",
   "scripts/",
   "Makefile",
+  "AGENTS.md",
 ];
 const VERIFICATION_CHECKS = [
   "plan_coverage",
@@ -278,7 +279,7 @@ export function validatePlan(plan, expectedProvider) {
             errors,
             !targetsAutomationInfrastructure,
             `${path}.implementation_targets[${targetIndex}]`,
-            "must not target shared workflow, pipeline, script, or Makefile infrastructure"
+            "must not target shared workflow, pipeline, script, Makefile, or AGENTS.md infrastructure"
           );
         });
       }

@@ -102,13 +102,14 @@ for (const target of [
   "`pipelines/generate-provider-types.sh`: add a provider workaround",
   "`scripts/regenerate-typescript-bindings.mjs`: add a drift check",
   "`Makefile`: add a generated type target",
+  "`AGENTS.md`: add provider-specific generation instructions",
 ]) {
   test(`rejects shared automation implementation target ${target}`, () => {
     const plan = validPlan();
     plan.changes[0].implementation_targets.push(target);
     assert.match(
       validatePlan(plan, "anthropic").join("\n"),
-      /must not target shared workflow, pipeline, script, or Makefile infrastructure/
+      /must not target shared workflow, pipeline, script, Makefile, or AGENTS\.md infrastructure/
     );
   });
 }

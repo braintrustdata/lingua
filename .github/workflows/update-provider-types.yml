@@ -344,8 +344,8 @@ jobs:
             specification diff, not only compilation failures or generated Rust.
             Shared automation infrastructure is outside the scope of an automated
             provider update. Do not include `.github/**`, `pipelines/**`,
-            `scripts/**`, or `Makefile` in implementation targets. Provider type
-            generation fixes belong in `crates/generate-types`.
+            `scripts/**`, `Makefile`, or `AGENTS.md` in implementation targets.
+            Provider type generation fixes belong in `crates/generate-types`.
 
             Treat any provider semantic without a non-lossy universal
             representation as blocked and ask for a canonical representation
@@ -430,7 +430,7 @@ jobs:
             --model claude-opus-5
             --max-turns 160
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
-            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo fmt:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the implementation phase for provider `${{ matrix.provider }}`.
@@ -440,15 +440,23 @@ jobs:
             Implement every unblocked plan item, including focused tests and
             payload cases. Treat every change id listed in `plan.md`'s
             `blockers` array as out of scope: do not implement it, add a fixture
-            for it, or invent a workaround. Do not edit `plan.md`, any `generated.rs` file,
+            for it, or invent a workaround. Do not edit `plan.md`, `AGENTS.md`, or any
+            `generated.rs` file directly,
             `.github/**`, `pipelines/**`, `scripts/**`, or `Makefile`, and do not
             call a live provider API. Never add a `provider_options` marker or
             another opaque field solely to replay a provider semantic. If the
             universal model cannot represent a field non-lossily, stop without
             implementing that plan item. Resolve generated public-name collisions
             in `crates/generate-types`; do not accept internal prefixes such as
-            `V1Main...` in exported Rust or TypeScript names. Leave the completed
-            changes uncommitted.
+            `V1Main...` in exported Rust or TypeScript names.
+
+            If you change `crates/generate-types`, run
+            `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
+            generated Rust reflects the generator fix. Changes to `generated.rs`
+            are allowed only when produced by that command. Before finishing, run
+            focused provider and generator tests plus clippy for every crate you
+            changed. Do not report completion while a permitted deterministic
+            validation is failing. Leave the completed changes uncommitted.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -467,6 +475,12 @@ jobs:
           actual_digest=$(sha256sum "$plan_path" | awk '{print $1}')
           test "$actual_digest" = "$EXPECTED_PLAN_DIGEST"
 
+      - name: Regenerate Rust provider types after implementation
+        id: post_implementation_provider_types
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: make generate-provider-types PROVIDER="${{ matrix.provider }}"
+
       - name: Enforce provider update path policy
         id: path_policy
         if: steps.changes.outputs.has_changes == 'true'
@@ -475,6 +489,7 @@ jobs:
           set -euo pipefail
           changes=$(git status --porcelain -- \
             .github \
+            ':(glob)**/AGENTS.md' \
             Makefile \
             pipelines \
             scripts)
@@ -549,9 +564,263 @@ jobs:
           fi
           cargo test -p generate-types
 
+      - name: Validate build
+        id: build
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cargo build --all-features
+
+      - name: Run clippy
+        id: clippy
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Snapshot Braintrust trace for mechanical repair
+        id: mechanical_repair_task_trace
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          (
+            steps.post_implementation_provider_types.outcome != 'success' ||
+            steps.semantic_policy.outcome != 'success' ||
+            steps.post_implementation_ts_types.outcome != 'success' ||
+            steps.fmt.outcome != 'success' ||
+            steps.provider_tests.outcome != 'success' ||
+            steps.generator_tests.outcome != 'success' ||
+            steps.build.outcome != 'success' ||
+            steps.clippy.outcome != 'success'
+          )
+        continue-on-error: true
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: lingua-provider-type-updates
+          BRAINTRUST_PARENT_SPAN_ID: ${{ steps.braintrust_trace.outputs.span_id }}
+          BRAINTRUST_ROOT_SPAN_ID: ${{ steps.braintrust_trace.outputs.root_span_id }}
+          PROVIDER: ${{ matrix.provider }}
+          TRACE_PHASE: repair deterministic provider validation
+        run: |
+          set -euo pipefail
+          NODE_PATH="$(npm root -g)" node .github/scripts/braintrust-provider-types.mjs create-task-trace
+
+      - name: Repair deterministic provider validation
+        id: mechanical_repair
+        if: steps.mechanical_repair_task_trace.outcome != 'skipped'
+        continue-on-error: true
+        timeout-minutes: 35
+        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        with:
+          anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
+          github_token: ${{ github.token }}
+          display_report: "true"
+          plugin_marketplaces: |
+            https://github.com/braintrustdata/braintrust-claude-plugin.git
+          plugins: |
+            trace-claude-code@braintrust-claude-plugin
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_BASE_URL": "https://gateway.staging.braintrust.dev",
+                "ANTHROPIC_CUSTOM_HEADERS": "x-bt-project-name: automations-spend-control",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "TRACE_TO_BRAINTRUST": "${{ (steps.mechanical_repair_task_trace.outputs.root_span_id != '' || steps.braintrust_trace.outputs.root_span_id != '') && 'true' || 'false' }}",
+                "BRAINTRUST_CC_PROJECT": "lingua-provider-type-updates",
+                "BRAINTRUST_API_KEY": "${{ secrets.BRAINTRUST_API_KEY }}",
+                "CC_PARENT_SPAN_ID": "${{ steps.mechanical_repair_task_trace.outputs.span_id || steps.braintrust_trace.outputs.span_id }}",
+                "CC_ROOT_SPAN_ID": "${{ steps.mechanical_repair_task_trace.outputs.root_span_id || steps.braintrust_trace.outputs.root_span_id }}",
+                "PROVIDER_UPDATE_PLAN_PATH": "${{ runner.temp }}/provider-type-update-plan.json",
+                "BRAINTRUST_DEBUG": "false"
+              }
+            }
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 100
+            --add-dir "${{ runner.temp }}"
+            --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
+            --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo build:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(git diff:*),Bash(git status:*)"
+            --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
+          prompt: |
+            This is a single bounded mechanical repair pass for provider
+            `${{ matrix.provider }}`. Read `$PROVIDER_UPDATE_PLAN_PATH` and the
+            current diff. Fix only deterministic validation failures in already
+            unblocked implementation work. Every change id in the plan's
+            `blockers` array remains out of scope; do not implement it or invent
+            a workaround.
+
+            Initial validation outcomes:
+            - Rust provider regeneration: `${{ steps.post_implementation_provider_types.outcome }}`
+            - path policy: `${{ steps.path_policy.outcome }}`
+            - semantic policy: `${{ steps.semantic_policy.outcome }}`
+            - TypeScript regeneration: `${{ steps.post_implementation_ts_types.outcome }}`
+            - formatting: `${{ steps.fmt.outcome }}`
+            - provider tests: `${{ steps.provider_tests.outcome }}`
+            - generator tests: `${{ steps.generator_tests.outcome }}`
+            - build: `${{ steps.build.outcome }}`
+            - clippy: `${{ steps.clippy.outcome }}`
+
+            Re-run failed commands to obtain their exact diagnostics, then make
+            the smallest durable repair. Do not edit generated Rust directly;
+            repair `crates/generate-types` and run
+            `make generate-provider-types PROVIDER=${{ matrix.provider }}`.
+            Do not modify `plan.md`, `.github/**`, `pipelines/**`, `scripts/**`,
+            `Makefile`, or `AGENTS.md`. Do not call live provider APIs. Finish by
+            rerunning the focused commands you repaired. Leave changes
+            uncommitted.
+
+      - name: Regenerate Rust provider types after mechanical repair
+        id: post_repair_provider_types
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: make generate-provider-types PROVIDER="${{ matrix.provider }}"
+
+      - name: Recheck provider update path policy
+        id: post_repair_path_policy
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          changes=$(git status --porcelain -- \
+            .github \
+            ':(glob)**/AGENTS.md' \
+            Makefile \
+            pipelines \
+            scripts)
+          if [ -n "$changes" ]; then
+            echo "::error::Automated provider updates must not modify shared automation infrastructure"
+            printf '%s\n' "$changes"
+            exit 1
+          fi
+          echo "Provider update path policy passed."
+
+      - name: Recheck provider semantic policy
+        id: post_repair_semantic_policy
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+
+          provider_option_additions=$(
+            git diff --unified=0 -- crates/lingua/src/providers |
+              rg '^\+[^+].*provider_options' || true
+          )
+          if [ -n "$provider_option_additions" ]; then
+            echo "::error::Automated provider updates must not add provider_options round-trip plumbing"
+            printf '%s\n' "$provider_option_additions"
+            exit 1
+          fi
+
+          if [ "${{ matrix.provider }}" = "google" ]; then
+            prefixed_public_names=$(
+              git diff --unified=0 -- \
+                crates/lingua/src/providers/google/generated.rs \
+                bindings/typescript/src/generated/google |
+                rg '^\+[^+].*(pub (struct|enum|type) V1(Main|main)|Option<V1(Main|main)|Vec<V1(Main|main)|from "\./V1(Main|main))' ||
+                true
+            )
+            if [ -n "$prefixed_public_names" ]; then
+              echo "::error::Generated Google public API leaks an internal V1Main schema prefix"
+              printf '%s\n' "$prefixed_public_names"
+              exit 1
+            fi
+          fi
+
+          echo "Provider semantic policy passed."
+
+      - name: Regenerate TypeScript types after mechanical repair
+        id: post_repair_ts_types
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: make generate-types PROVIDER="${{ matrix.provider }}"
+
+      - name: Format code after mechanical repair
+        id: post_repair_fmt
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: cargo fmt --all
+
+      - name: Run focused provider tests after mechanical repair
+        id: post_repair_provider_tests
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: cargo test -p lingua "${{ matrix.provider }}"
+
+      - name: Run generator tests after mechanical repair
+        id: post_repair_generator_tests
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- crates/generate-types)" ]; then
+            echo "Generator sources are unchanged; no generator tests required."
+            exit 0
+          fi
+          cargo test -p generate-types
+
+      - name: Validate build after mechanical repair
+        id: post_repair_build
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: cargo build --all-features
+
+      - name: Run clippy after mechanical repair
+        id: post_repair_clippy
+        if: always() && steps.mechanical_repair.outcome != 'skipped'
+        continue-on-error: true
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check mechanical validation result
+        id: mechanical_validation
+        if: always() && steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          failures=()
+
+          require_success() {
+            if [ "$2" != "success" ]; then
+              failures+=("$1: $2")
+            fi
+          }
+
+          if [ "${{ steps.mechanical_repair.outcome }}" = "skipped" ]; then
+            echo "source=initial" >> "$GITHUB_OUTPUT"
+            require_success "Rust provider regeneration" "${{ steps.post_implementation_provider_types.outcome }}"
+            require_success "path policy" "${{ steps.path_policy.outcome }}"
+            require_success "semantic policy" "${{ steps.semantic_policy.outcome }}"
+            require_success "TypeScript regeneration" "${{ steps.post_implementation_ts_types.outcome }}"
+            require_success "formatting" "${{ steps.fmt.outcome }}"
+            require_success "provider tests" "${{ steps.provider_tests.outcome }}"
+            require_success "generator tests" "${{ steps.generator_tests.outcome }}"
+            require_success "build" "${{ steps.build.outcome }}"
+            require_success "clippy" "${{ steps.clippy.outcome }}"
+          else
+            echo "source=post-repair" >> "$GITHUB_OUTPUT"
+            require_success "mechanical repair action" "${{ steps.mechanical_repair.outcome }}"
+            require_success "Rust provider regeneration" "${{ steps.post_repair_provider_types.outcome }}"
+            require_success "path policy" "${{ steps.post_repair_path_policy.outcome }}"
+            require_success "semantic policy" "${{ steps.post_repair_semantic_policy.outcome }}"
+            require_success "TypeScript regeneration" "${{ steps.post_repair_ts_types.outcome }}"
+            require_success "formatting" "${{ steps.post_repair_fmt.outcome }}"
+            require_success "provider tests" "${{ steps.post_repair_provider_tests.outcome }}"
+            require_success "generator tests" "${{ steps.post_repair_generator_tests.outcome }}"
+            require_success "build" "${{ steps.post_repair_build.outcome }}"
+            require_success "clippy" "${{ steps.post_repair_clippy.outcome }}"
+          fi
+
+          if [ "${#failures[@]}" -ne 0 ]; then
+            echo "::error::Mechanical provider validation failed"
+            printf '  - %s\n' "${failures[@]}"
+            exit 1
+          fi
+
+          echo "Mechanical provider validation passed."
+
       - name: Build Lingua WASM for payload validation
         id: lingua_wasm
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: make lingua-wasm
 
@@ -626,45 +895,41 @@ jobs:
 
       - name: Verify payload fixture sync
         id: payload_sync
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: pnpm --dir payloads exec vitest run scripts/sync.test.ts
 
       - name: Run payload transform checks
         id: payload_tests
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: make test-payloads
 
-      - name: Validate build
-        id: build
-        if: steps.changes.outputs.has_changes == 'true'
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          cargo build --all-features
-
-      - name: Run clippy
-        id: clippy
-        if: steps.changes.outputs.has_changes == 'true'
-        continue-on-error: true
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
       - name: Check typed boundaries
         id: typed_boundary
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: make typed-boundary-check
 
       - name: Run cross-provider transform guard
         id: cross_provider
-        if: steps.changes.outputs.has_changes == 'true'
+        if: >-
+          steps.changes.outputs.has_changes == 'true' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures
 
       - name: Snapshot Braintrust trace for verification
         id: integration_verification_task_trace
-        if: steps.integration_implementation.outcome == 'success'
+        if: >-
+          steps.integration_implementation.outcome == 'success' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -679,7 +944,9 @@ jobs:
 
       - name: Verify generated provider integration
         id: integration_verification
-        if: steps.integration_implementation.outcome == 'success'
+        if: >-
+          steps.integration_implementation.outcome == 'success' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 45
         uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
@@ -723,17 +990,14 @@ jobs:
             Validation outcomes:
             - plan has human blockers: `${{ steps.plan_validation.outputs.has_blockers }}`
             - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
-            - provider update path policy: `${{ steps.path_policy.outcome }}`
-            - provider semantic policy: `${{ steps.semantic_policy.outcome }}`
-            - focused provider tests: `${{ steps.provider_tests.outcome }}`
-            - generator tests: `${{ steps.generator_tests.outcome }}`
+            - bounded mechanical repair: `${{ steps.mechanical_repair.outcome }}`
+            - mechanical validation source: `${{ steps.mechanical_validation.outputs.source }}`
+            - effective Rust generation, path and semantic policies, TypeScript generation, formatting, focused provider tests, generator tests, build, and clippy: `${{ steps.mechanical_validation.outcome }}`
             - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
             - live capture: openai `${{ steps.live_capture_openai.outcome }}`, anthropic `${{ steps.live_capture_anthropic.outcome }}`, google `${{ steps.live_capture_google.outcome }}`
             - planned transform capture: `${{ steps.transform_capture.outcome }}`
             - payload fixture sync: `${{ steps.payload_sync.outcome }}`
             - payload tests: `${{ steps.payload_tests.outcome }}`
-            - build: `${{ steps.build.outcome }}`
-            - clippy: `${{ steps.clippy.outcome }}`
             - typed boundary: `${{ steps.typed_boundary.outcome }}`
             - cross-provider guard: `${{ steps.cross_provider.outcome }}`
 
@@ -759,7 +1023,9 @@ jobs:
 
       - name: Validate integration verification report
         id: verification_report
-        if: steps.integration_implementation.outcome == 'success'
+        if: >-
+          steps.integration_implementation.outcome == 'success' &&
+          steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: |
           set -euo pipefail
@@ -841,12 +1107,18 @@ jobs:
             echo "- Human design blockers: ${{ steps.plan_validation.outputs.has_blockers }}"
             echo "- Claude focused implementation: ${{ steps.integration_implementation.outcome }}"
             echo "- Immutable plan revalidation: ${{ steps.post_implementation_plan.outcome }}"
-            echo "- Provider update path policy: ${{ steps.path_policy.outcome }}"
-            echo "- Provider semantic policy: ${{ steps.semantic_policy.outcome }}"
-            echo "- Post-implementation \`make generate-types PROVIDER=${{ matrix.provider }}\`: ${{ steps.post_implementation_ts_types.outcome }}"
-            echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
-            echo "- \`cargo test -p lingua ${{ matrix.provider }}\`: ${{ steps.provider_tests.outcome }}"
-            echo "- Conditional \`cargo test -p generate-types\`: ${{ steps.generator_tests.outcome }}"
+            echo "- Initial post-implementation Rust regeneration: ${{ steps.post_implementation_provider_types.outcome }}"
+            echo "- Initial provider update path policy: ${{ steps.path_policy.outcome }}"
+            echo "- Initial provider semantic policy: ${{ steps.semantic_policy.outcome }}"
+            echo "- Initial post-implementation TypeScript regeneration: ${{ steps.post_implementation_ts_types.outcome }}"
+            echo "- Initial formatting: ${{ steps.fmt.outcome }}"
+            echo "- Initial focused provider tests: ${{ steps.provider_tests.outcome }}"
+            echo "- Initial conditional generator tests: ${{ steps.generator_tests.outcome }}"
+            echo "- Initial build: ${{ steps.build.outcome }}"
+            echo "- Initial clippy: ${{ steps.clippy.outcome }}"
+            echo "- Bounded Claude mechanical repair: ${{ steps.mechanical_repair.outcome }}"
+            echo "- Effective mechanical validation source: ${{ steps.mechanical_validation.outputs.source }}"
+            echo "- Effective mechanical validation: ${{ steps.mechanical_validation.outcome }}"
             echo "- \`make lingua-wasm\`: ${{ steps.lingua_wasm.outcome }}"
             echo "- Planned live capture cases: \`${{ steps.capture_cases.outputs.cases }}\`"
             echo "- Live capture (OpenAI): ${{ steps.live_capture_openai.outcome }}"
@@ -855,8 +1127,6 @@ jobs:
             echo "- Planned cross-provider transform capture: ${{ steps.transform_capture.outcome }}"
             echo "- Payload fixture sync: ${{ steps.payload_sync.outcome }}"
             echo "- \`make test-payloads\`: ${{ steps.payload_tests.outcome }}"
-            echo "- \`cargo build --all-features\`: ${{ steps.build.outcome }}"
-            echo "- \`cargo clippy --all-targets --all-features -- -D warnings\`: ${{ steps.clippy.outcome }}"
             echo "- \`make typed-boundary-check\`: ${{ steps.typed_boundary.outcome }}"
             echo "- \`cargo test -p coverage-report --test cross_provider_test cross_provider_transformations_have_no_unexpected_failures\`: ${{ steps.cross_provider.outcome }}"
             echo "- Claude read-only verification: ${{ steps.integration_verification.outcome }}"
@@ -889,18 +1159,11 @@ jobs:
           require_success "plan staging" "${{ steps.stage_plan.outcome }}"
           require_success "implementation" "${{ steps.integration_implementation.outcome }}"
           require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
-          require_success "path policy" "${{ steps.path_policy.outcome }}"
-          require_success "semantic policy" "${{ steps.semantic_policy.outcome }}"
-          require_success "TypeScript regeneration" "${{ steps.post_implementation_ts_types.outcome }}"
-          require_success "formatting" "${{ steps.fmt.outcome }}"
-          require_success "provider tests" "${{ steps.provider_tests.outcome }}"
-          require_success "generator tests" "${{ steps.generator_tests.outcome }}"
+          require_success "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
           require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
           require_success "capture case extraction" "${{ steps.capture_cases.outcome }}"
           require_success "payload fixture sync" "${{ steps.payload_sync.outcome }}"
           require_success "payload tests" "${{ steps.payload_tests.outcome }}"
-          require_success "build" "${{ steps.build.outcome }}"
-          require_success "clippy" "${{ steps.clippy.outcome }}"
           require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
           require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
           require_success "read-only verification" "${{ steps.integration_verification.outcome }}"
@@ -967,7 +1230,7 @@ jobs:
           (
             (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
             steps.retry.outcome == 'failure' ||
-            (steps.ts_types.outcome == 'failure' && steps.post_implementation_ts_types.outcome != 'success') ||
+            (steps.ts_types.outcome == 'failure' && steps.mechanical_validation.outcome != 'success') ||
             (
               steps.changes.outputs.has_changes == 'true' &&
               (
@@ -976,12 +1239,7 @@ jobs:
                 steps.stage_plan.outcome != 'success' ||
                 steps.integration_implementation.outcome != 'success' ||
                 steps.post_implementation_plan.outcome != 'success' ||
-                steps.path_policy.outcome != 'success' ||
-                steps.semantic_policy.outcome != 'success' ||
-                steps.post_implementation_ts_types.outcome == 'failure' ||
-                steps.fmt.outcome == 'failure' ||
-                steps.provider_tests.outcome == 'failure' ||
-                steps.generator_tests.outcome != 'success' ||
+                steps.mechanical_validation.outcome != 'success' ||
                 steps.lingua_wasm.outcome == 'failure' ||
                 steps.capture_cases.outcome == 'failure' ||
                 (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
@@ -990,8 +1248,6 @@ jobs:
                 (steps.capture_cases.outputs.cases != '' && steps.transform_capture.outcome != 'success') ||
                 steps.payload_sync.outcome != 'success' ||
                 steps.payload_tests.outcome == 'failure' ||
-                steps.build.outcome == 'failure' ||
-                steps.clippy.outcome == 'failure' ||
                 steps.typed_boundary.outcome == 'failure' ||
                 steps.cross_provider.outcome == 'failure' ||
                 steps.integration_verification.outcome != 'success' ||
