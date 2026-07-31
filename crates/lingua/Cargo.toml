@@ -9,6 +9,10 @@ description = "Lingua - Universal message format for LLM APIs"
 keywords = ["llm", "ai", "openai", "anthropic", "api"]
 categories = ["api-bindings", "development-tools"]
 
+[package.metadata.braintrust.build-variants.all-providers]
+default-features = true
+features = ["bedrock"]
+
 [package.metadata.ts-rs]
 optional_option_fields = true
 
