@@ -4,20 +4,32 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { canonicalizeJsonFile, sortJsonKeys } from "./canonicalize-json.mjs";
+import {
+  canonicalizeJson,
+  canonicalizeJsonFile,
+  cleanupTempFile,
+} from "./canonicalize-json.mjs";
 
 test("sorts object keys recursively while preserving array order", () => {
-  assert.deepEqual(
-    sortJsonKeys({
-      z: { second: 2, first: 1 },
-      array: [{ z: 1, a: 2 }, "unchanged", 3],
-      a: true,
-    }),
+  assert.equal(
+    canonicalizeJson(
+      '{"z":{"second":2,"first":1},"array":[{"z":1,"a":2},"unchanged",3],"a":true}'
+    ),
+    `{
+  "a": true,
+  "array": [
     {
-      a: true,
-      array: [{ a: 2, z: 1 }, "unchanged", 3],
-      z: { first: 1, second: 2 },
-    }
+      "a": 2,
+      "z": 1
+    },
+    "unchanged",
+    3
+  ],
+  "z": {
+    "first": 1,
+    "second": 2
+  }
+}\n`
   );
 });
 
@@ -45,6 +57,21 @@ test("canonicalizes files atomically and is idempotent", async () => {
   }
 });
 
+test("canonicalizes JSON without changing number precision", () => {
+  const source =
+    '{"z":9007199254740993,"negativeZero":-0,"exponent":1e+400,"decimal":0.12345678901234567890123456789}';
+
+  assert.equal(
+    canonicalizeJson(source),
+    `{
+  "decimal": 0.12345678901234567890123456789,
+  "exponent": 1e+400,
+  "negativeZero": -0,
+  "z": 9007199254740993
+}\n`
+  );
+});
+
 test("leaves the original file untouched when JSON parsing fails", async () => {
   const directory = await mkdtemp(join(tmpdir(), "lingua-invalid-json-"));
   const filePath = join(directory, "discovery.json");
@@ -57,6 +84,37 @@ test("leaves the original file untouched when JSON parsing fails", async () => {
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test("ignores an expected missing temporary file during cleanup", async () => {
+  const originalError = new Error("write failed");
+  const missingError = Object.assign(new Error("file not found"), {
+    code: "ENOENT",
+  });
+
+  await cleanupTempFile("temporary.json", originalError, async () => {
+    throw missingError;
+  });
+});
+
+test("combines the original and cleanup errors", async () => {
+  const originalError = new Error("write failed");
+  const cleanupError = Object.assign(new Error("permission denied"), {
+    code: "EACCES",
+  });
+
+  await assert.rejects(
+    cleanupTempFile("temporary.json", originalError, async () => {
+      throw cleanupError;
+    }),
+    (error) => {
+      assert(error instanceof AggregateError);
+      assert.deepEqual(error.errors, [originalError, cleanupError]);
+      assert.match(error.message, /write failed/);
+      assert.match(error.message, /permission denied/);
+      return true;
+    }
+  );
 });
 
 test("the provider pipeline canonicalizes only the Google JSON spec", async () => {
@@ -74,7 +132,7 @@ test("the provider pipeline canonicalizes only the Google JSON spec", async () =
 test("the checked-in Google Discovery spec is canonical", async () => {
   const specPath = new URL("../specs/google/discovery.json", import.meta.url);
   const source = await readFile(specPath, "utf8");
-  const expected = `${JSON.stringify(sortJsonKeys(JSON.parse(source)), null, 2)}\n`;
+  const expected = canonicalizeJson(source);
 
   assert.equal(source, expected);
 });
