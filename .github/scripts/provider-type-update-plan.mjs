@@ -37,7 +37,13 @@ const PAYLOAD_SURFACES = [
   "universal_semantics",
   "cross_provider",
 ];
-const FORBIDDEN_IMPLEMENTATION_TARGET_PREFIXES = [".github/workflows/"];
+const FORBIDDEN_IMPLEMENTATION_TARGET_FRAGMENTS = [
+  ".github/workflows/",
+  ".github/scripts/",
+  "pipelines/",
+  "scripts/",
+  "Makefile",
+];
 const VERIFICATION_CHECKS = [
   "plan_coverage",
   "generated_source_integrity",
@@ -263,16 +269,16 @@ export function validatePlan(plan, expectedProvider) {
       );
       if (Array.isArray(change.implementation_targets)) {
         change.implementation_targets.forEach((target, targetIndex) => {
-          const targetsWorkflow =
+          const targetsAutomationInfrastructure =
             typeof target === "string" &&
-            FORBIDDEN_IMPLEMENTATION_TARGET_PREFIXES.some((prefix) =>
-              target.includes(prefix)
+            FORBIDDEN_IMPLEMENTATION_TARGET_FRAGMENTS.some((fragment) =>
+              target.includes(fragment)
             );
           push(
             errors,
-            !targetsWorkflow,
+            !targetsAutomationInfrastructure,
             `${path}.implementation_targets[${targetIndex}]`,
-            "must not target GitHub workflow definitions"
+            "must not target shared workflow, pipeline, script, or Makefile infrastructure"
           );
         });
       }

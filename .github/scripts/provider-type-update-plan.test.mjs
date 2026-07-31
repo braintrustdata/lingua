@@ -94,16 +94,22 @@ test("rejects a semantic change without payload coverage", () => {
   );
 });
 
-test("rejects implementation targets under GitHub workflows", () => {
-  const plan = validPlan();
-  plan.changes[0].implementation_targets.push(
-    "` .github/workflows/ci.yml`: generated type check"
-  );
-  assert.match(
-    validatePlan(plan, "anthropic").join("\n"),
-    /must not target GitHub workflow definitions/
-  );
-});
+for (const target of [
+  "`.github/workflows/ci.yml`: generated type check",
+  "`.github/scripts/provider-type-update-plan.mjs`: loosen validation",
+  "`pipelines/generate-provider-types.sh`: add a provider workaround",
+  "`scripts/regenerate-typescript-bindings.mjs`: add a drift check",
+  "`Makefile`: add a generated type target",
+]) {
+  test(`rejects shared automation implementation target ${target}`, () => {
+    const plan = validPlan();
+    plan.changes[0].implementation_targets.push(target);
+    assert.match(
+      validatePlan(plan, "anthropic").join("\n"),
+      /must not target shared workflow, pipeline, script, or Makefile infrastructure/
+    );
+  });
+}
 
 test("reports invalid implementation target types without throwing", () => {
   const plan = validPlan();

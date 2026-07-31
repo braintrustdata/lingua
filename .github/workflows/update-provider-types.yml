@@ -2,7 +2,10 @@ name: Update provider types
 
 on:
   schedule:
-    - cron: "0 10 * * 1"
+    # 09:00 PST / 10:00 PDT
+    - cron: "0 17 * * 1"
+    - cron: "0 17 * * 2"
+    - cron: "0 17 * * 3"
   workflow_dispatch:
     inputs:
       provider:
@@ -34,18 +37,41 @@ jobs:
       - name: Parse provider input
         id: providers
         env:
+          EVENT_NAME: ${{ github.event_name }}
           REQUESTED_PROVIDER: ${{ inputs.provider || 'all' }}
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
           set -euo pipefail
-          case "$REQUESTED_PROVIDER" in
+
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            case "$SCHEDULE" in
+              "0 17 * * 1")
+                provider="openai"
+                ;;
+              "0 17 * * 2")
+                provider="anthropic"
+                ;;
+              "0 17 * * 3")
+                provider="google"
+                ;;
+              *)
+                echo "Unknown provider update schedule: $SCHEDULE" >&2
+                exit 1
+                ;;
+            esac
+          else
+            provider="$REQUESTED_PROVIDER"
+          fi
+
+          case "$provider" in
             all)
               providers='["openai","anthropic","google"]'
               ;;
             openai|anthropic|google)
-              providers="[\"$REQUESTED_PROVIDER\"]"
+              providers="[\"$provider\"]"
               ;;
             *)
-              echo "Unknown provider: $REQUESTED_PROVIDER" >&2
+              echo "Unknown provider: $provider" >&2
               exit 1
               ;;
           esac
@@ -316,9 +342,17 @@ jobs:
             exact schema. Write only the final JSON plan to
             `$PROVIDER_UPDATE_PLAN_PATH`. The plan must inventory the complete
             specification diff, not only compilation failures or generated Rust.
-            GitHub workflow definitions are outside the scope of provider updates:
-            do not include `.github/workflows/**` in implementation targets.
-            Solve generation hygiene in the generator, scripts, or Makefile.
+            Shared automation infrastructure is outside the scope of an automated
+            provider update. Do not include `.github/**`, `pipelines/**`,
+            `scripts/**`, or `Makefile` in implementation targets. Provider type
+            generation fixes belong in `crates/generate-types`.
+
+            Treat any provider semantic without a non-lossy universal
+            representation as blocked and ask for a canonical representation
+            decision. Never plan a `provider_options` marker or other opaque
+            round-trip-only field. Audit generated public type names for upstream
+            naming collisions and internal prefixes; do not accept a prefixed
+            fallback such as `V1Main...` as a compatibility solution.
 
       - name: Validate integration plan
         id: plan_validation
@@ -394,8 +428,14 @@ jobs:
 
             Implement every unblocked plan item, including focused tests and
             payload cases. Do not edit `plan.md`, any `generated.rs` file,
-            `.github/workflows/**`, or call a live provider API. Leave the
-            completed changes uncommitted.
+            `.github/**`, `pipelines/**`, `scripts/**`, or `Makefile`, and do not
+            call a live provider API. Never add a `provider_options` marker or
+            another opaque field solely to replay a provider semantic. If the
+            universal model cannot represent a field non-lossily, stop without
+            implementing that plan item. Resolve generated public-name collisions
+            in `crates/generate-types`; do not accept internal prefixes such as
+            `V1Main...` in exported Rust or TypeScript names. Leave the completed
+            changes uncommitted.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -420,13 +460,51 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          changes=$(git status --porcelain -- .github/workflows)
+          changes=$(git status --porcelain -- \
+            .github \
+            Makefile \
+            pipelines \
+            scripts)
           if [ -n "$changes" ]; then
-            echo "::error::Provider update agents must not modify .github/workflows/**"
+            echo "::error::Automated provider updates must not modify shared automation infrastructure"
             printf '%s\n' "$changes"
             exit 1
           fi
           echo "Provider update path policy passed."
+
+      - name: Enforce provider semantic policy
+        id: semantic_policy
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+
+          provider_option_additions=$(
+            git diff --unified=0 -- crates/lingua/src/providers |
+              rg '^\+[^+].*provider_options' || true
+          )
+          if [ -n "$provider_option_additions" ]; then
+            echo "::error::Automated provider updates must not add provider_options round-trip plumbing"
+            printf '%s\n' "$provider_option_additions"
+            exit 1
+          fi
+
+          if [ "${{ matrix.provider }}" = "google" ]; then
+            prefixed_public_names=$(
+              git diff --unified=0 -- \
+                crates/lingua/src/providers/google/generated.rs \
+                bindings/typescript/src/generated/google |
+                rg '^\+[^+].*(pub (struct|enum|type) V1(Main|main)|Option<V1(Main|main)|Vec<V1(Main|main)|from "\./V1(Main|main))' ||
+                true
+            )
+            if [ -n "$prefixed_public_names" ]; then
+              echo "::error::Generated Google public API leaks an internal V1Main schema prefix"
+              printf '%s\n' "$prefixed_public_names"
+              exit 1
+            fi
+          fi
+
+          echo "Provider semantic policy passed."
 
       - name: Regenerate TypeScript types after implementation
         id: post_implementation_ts_types
@@ -632,6 +710,7 @@ jobs:
             Validation outcomes:
             - planned live capture cases: `${{ steps.capture_cases.outputs.cases }}`
             - provider update path policy: `${{ steps.path_policy.outcome }}`
+            - provider semantic policy: `${{ steps.semantic_policy.outcome }}`
             - focused provider tests: `${{ steps.provider_tests.outcome }}`
             - generator tests: `${{ steps.generator_tests.outcome }}`
             - Lingua WASM build: `${{ steps.lingua_wasm.outcome }}`
@@ -649,6 +728,9 @@ jobs:
             `$PROVIDER_UPDATE_VERIFICATION_PATH`. A failed or skipped required
             validation is a blocking finding. Live and transform capture are
             required only when the planned live capture case list is non-empty.
+            Treat any new `provider_options` round-trip marker, opaque replay-only
+            field, generated public-name collision, or leaked internal prefix such
+            as `V1Main...` as blocking even if compilation succeeds.
             Prioritize completing the report:
             use the validated plan, final diff, and deterministic validation
             outcomes as primary evidence; inspect only files needed to resolve
@@ -669,8 +751,7 @@ jobs:
         id: update_patch
         if: >-
           always() &&
-          steps.changes.outputs.has_changes == 'true' &&
-          steps.path_policy.outcome == 'success'
+          steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         run: |
           set -euo pipefail
@@ -725,6 +806,7 @@ jobs:
             echo "- Claude focused implementation: ${{ steps.integration_implementation.outcome }}"
             echo "- Immutable plan revalidation: ${{ steps.post_implementation_plan.outcome }}"
             echo "- Provider update path policy: ${{ steps.path_policy.outcome }}"
+            echo "- Provider semantic policy: ${{ steps.semantic_policy.outcome }}"
             echo "- Post-implementation \`make generate-types PROVIDER=${{ matrix.provider }}\`: ${{ steps.post_implementation_ts_types.outcome }}"
             echo "- \`cargo fmt --all\`: ${{ steps.fmt.outcome }}"
             echo "- \`cargo test -p lingua ${{ matrix.provider }}\`: ${{ steps.provider_tests.outcome }}"
@@ -745,13 +827,76 @@ jobs:
             echo "- Verification report validation: ${{ steps.verification_report.outcome }}"
             echo "- Recoverable binary patch archive: ${{ steps.update_patch.outcome }}"
             echo
-            echo "This PR is created even when validation fails so the generated update and repair attempt are available for manual follow-up."
+            echo "Only fully validated updates are published. Failed runs retain the exact binary patch in the workflow artifact for manual recovery."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
+
+      - name: Check publication readiness
+        id: publication_readiness
+        if: always() && steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          failures=()
+
+          require_success() {
+            if [ "$2" != "success" ]; then
+              failures+=("$1: $2")
+            fi
+          }
+
+          if [ "${{ steps.generate.outcome }}" != "success" ]; then
+            require_success "provider generation retry" "${{ steps.retry.outcome }}"
+          fi
+          require_success "integration plan" "${{ steps.integration_plan.outcome }}"
+          require_success "plan validation" "${{ steps.plan_validation.outcome }}"
+          require_success "plan staging" "${{ steps.stage_plan.outcome }}"
+          require_success "implementation" "${{ steps.integration_implementation.outcome }}"
+          require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
+          require_success "path policy" "${{ steps.path_policy.outcome }}"
+          require_success "semantic policy" "${{ steps.semantic_policy.outcome }}"
+          require_success "TypeScript regeneration" "${{ steps.post_implementation_ts_types.outcome }}"
+          require_success "formatting" "${{ steps.fmt.outcome }}"
+          require_success "provider tests" "${{ steps.provider_tests.outcome }}"
+          require_success "generator tests" "${{ steps.generator_tests.outcome }}"
+          require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
+          require_success "capture case extraction" "${{ steps.capture_cases.outcome }}"
+          require_success "payload fixture sync" "${{ steps.payload_sync.outcome }}"
+          require_success "payload tests" "${{ steps.payload_tests.outcome }}"
+          require_success "build" "${{ steps.build.outcome }}"
+          require_success "clippy" "${{ steps.clippy.outcome }}"
+          require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
+          require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
+          require_success "read-only verification" "${{ steps.integration_verification.outcome }}"
+          require_success "verification report" "${{ steps.verification_report.outcome }}"
+          require_success "recoverable patch" "${{ steps.update_patch.outcome }}"
+
+          if [ -n "${{ steps.capture_cases.outputs.cases }}" ]; then
+            require_success "planned transform capture" "${{ steps.transform_capture.outcome }}"
+            case "${{ matrix.provider }}" in
+              openai)
+                require_success "OpenAI live capture" "${{ steps.live_capture_openai.outcome }}"
+                ;;
+              anthropic)
+                require_success "Anthropic live capture" "${{ steps.live_capture_anthropic.outcome }}"
+                ;;
+              google)
+                require_success "Google live capture" "${{ steps.live_capture_google.outcome }}"
+                ;;
+            esac
+          fi
+
+          if [ "${#failures[@]}" -ne 0 ]; then
+            echo "::error::Provider update is not ready to publish"
+            printf '  - %s\n' "${failures[@]}"
+            exit 1
+          fi
+
+          echo "Provider update is ready to publish."
 
       - name: Create PR
         if: >-
           steps.changes.outputs.has_changes == 'true' &&
-          steps.path_policy.outcome == 'success'
+          steps.publication_readiness.outcome == 'success'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ github.token }}
@@ -779,6 +924,7 @@ jobs:
                 steps.integration_implementation.outcome != 'success' ||
                 steps.post_implementation_plan.outcome != 'success' ||
                 steps.path_policy.outcome != 'success' ||
+                steps.semantic_policy.outcome != 'success' ||
                 steps.post_implementation_ts_types.outcome == 'failure' ||
                 steps.fmt.outcome == 'failure' ||
                 steps.provider_tests.outcome == 'failure' ||
@@ -797,7 +943,8 @@ jobs:
                 steps.cross_provider.outcome == 'failure' ||
                 steps.integration_verification.outcome != 'success' ||
                 steps.verification_report.outcome != 'success' ||
-                steps.update_patch.outcome != 'success'
+                steps.update_patch.outcome != 'success' ||
+                steps.publication_readiness.outcome != 'success'
               )
             )
           )
@@ -808,8 +955,10 @@ jobs:
       - name: Summary
         run: |
           set -euo pipefail
-          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
-            echo "Provider types changed; PR creation step ran."
+          if [ "${{ steps.publication_readiness.outcome }}" = "success" ]; then
+            echo "Provider types changed, passed validation, and were published."
+          elif [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
+            echo "Provider types changed but were not published. Download the archived patch for manual recovery."
           elif [ "${{ steps.generate.outcome }}" = "failure" ]; then
             echo "Provider types are unchanged after a recovered generation failure."
           else
