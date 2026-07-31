@@ -101,7 +101,7 @@ download_provider_spec() {
     
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
         if [ "$PROVIDER" = "google" ]; then
-            node "$SCRIPT_DIR/canonicalize-json.mjs" "$SPEC_FILE"
+            cargo run --quiet --manifest-path "$PROJECT_ROOT/Cargo.toml" --bin canonicalize-json -- "$SPEC_FILE"
         fi
 
         echo "✅ Downloaded provider spec to: $SPEC_FILE"
