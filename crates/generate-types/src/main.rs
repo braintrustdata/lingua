@@ -1627,11 +1627,47 @@ fn generate_google_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
-    let essential_schemas = create_essential_google_schemas(spec);
+    let essential_schemas = create_essential_google_schemas(spec)?;
+    let processed_output = google_rust_source_from_essential_schemas(&essential_schemas)?;
 
-    let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
+    let dest_path = "crates/lingua/src/providers/google/generated.rs";
+
+    if let Some(parent) = std::path::Path::new(dest_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    std::fs::write(dest_path, &processed_output).expect("Failed to write generated types");
+
+    let _ = std::process::Command::new("cargo")
+        .args(["fmt", "--", dest_path])
+        .output();
+
+    println!("📝 Generated Google types to: {}", dest_path);
+    println!("✅ Google Discovery types generated and formatted");
+    Ok(())
+}
+
+/// Run quicktype over the reachable Google schemas and post-process its output into the
+/// source written to `generated.rs`.
+fn google_rust_source_from_essential_schemas(
+    essential_schemas: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    static SCHEMA_DIR_SEQUENCE: std::sync::atomic::AtomicUsize =
+        std::sync::atomic::AtomicUsize::new(0);
+    let sequence = SCHEMA_DIR_SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+    // quicktype derives the top-level type name from the input file name, so the file must
+    // always be called `google_schemas.json`. Only the containing directory varies, keeping
+    // concurrent callers isolated.
+    let temp_schema_dir = std::env::temp_dir().join(format!(
+        "lingua-google-schemas-{}-{sequence}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_schema_dir).expect("Failed to create temp schema dir");
+    let temp_schema_path = temp_schema_dir.join("google_schemas.json");
+
     let schema_json =
-        serde_json::to_string_pretty(&essential_schemas).expect("Failed to serialize schemas");
+        serde_json::to_string_pretty(essential_schemas).expect("Failed to serialize schemas");
     std::fs::write(&temp_schema_path, &schema_json).expect("Failed to write temp schema");
 
     let quicktype = quicktype_binary()?;
@@ -1667,52 +1703,63 @@ fn generate_google_types_with_quicktype(
         }
     };
 
-    let _ = std::fs::remove_file(&temp_schema_path);
+    let _ = std::fs::remove_dir_all(&temp_schema_dir);
 
     let processed_output = post_process_quicktype_output_for_google(&quicktype_output);
 
-    let dest_path = "crates/lingua/src/providers/google/generated.rs";
-
-    if let Some(parent) = std::path::Path::new(dest_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
+    let prefixed_names = google_public_names_with_internal_api_surface_prefix(&processed_output);
+    if !prefixed_names.is_empty() {
+        return Err(format!(
+            "generated Google types leak internal Discovery API-surface prefixes: {}. \
+             Extend normalize_google_schema_id instead of publishing these names.",
+            prefixed_names.join(", ")
+        )
+        .into());
     }
 
-    std::fs::write(dest_path, &processed_output).expect("Failed to write generated types");
-
-    let _ = std::process::Command::new("cargo")
-        .args(["fmt", "--", dest_path])
-        .output();
-
-    println!("📝 Generated Google types to: {}", dest_path);
-    println!("✅ Google Discovery types generated and formatted");
-    Ok(())
+    Ok(processed_output)
 }
 
-fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_google_schemas(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("schemas")
         .and_then(|s| s.as_object())
         .unwrap_or(&default_map);
 
-    let mut essential_schemas = serde_json::Map::new();
-    let mut processed = std::collections::HashSet::new();
+    let mut collected = GoogleSchemaCollection::default();
 
     // Root types for the Generative Language API
     let root_types = ["GenerateContentRequest", "GenerateContentResponse"];
 
     for root_type in &root_types {
-        add_google_schema_with_dependencies(
-            root_type,
-            all_schemas,
-            &mut essential_schemas,
-            &mut processed,
-        );
+        add_google_schema_with_dependencies(root_type, all_schemas, &mut collected);
+    }
+
+    if !collected.name_collisions.is_empty() {
+        return Err(format!(
+            "Google Discovery schema ids collide after stripping the internal API-surface prefix: {}. \
+             Pin the affected type names explicitly instead of stripping.",
+            collected.name_collisions.join("; ")
+        )
+        .into());
+    }
+
+    if !collected.missing_refs.is_empty() {
+        let missing: Vec<&str> = collected.missing_refs.iter().map(String::as_str).collect();
+        return Err(format!(
+            "Google Discovery spec references schemas it does not define: {}. \
+             Generation would silently drop these types.",
+            missing.join(", ")
+        )
+        .into());
     }
 
     // Convert all Discovery-format schemas to JSON Schema format
     let mut fixed_schemas = serde_json::Map::new();
-    for (name, schema) in essential_schemas {
+    for (name, schema) in collected.schemas {
         fixed_schemas.insert(name, convert_discovery_schema_to_json_schema(&schema));
     }
 
@@ -1732,28 +1779,50 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "definitions": fixed_schemas
     });
 
-    root_schema
+    Ok(root_schema)
+}
+
+/// Accumulator for the reachable slice of the Google Discovery `schemas` map.
+#[derive(Default)]
+struct GoogleSchemaCollection {
+    /// Reachable schemas keyed by the public type name they will be generated under.
+    schemas: serde_json::Map<String, serde_json::Value>,
+    /// Discovery schema ids already visited.
+    processed: std::collections::HashSet<String>,
+    /// Public type name -> the Discovery schema id it was taken from.
+    public_names: std::collections::HashMap<String, String>,
+    /// `$ref` targets with no schema body in the Discovery document.
+    missing_refs: std::collections::BTreeSet<String>,
+    /// Distinct Discovery schema ids that normalize to the same public type name.
+    name_collisions: Vec<String>,
 }
 
 fn add_google_schema_with_dependencies(
     type_name: &str,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
-    essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
-    processed: &mut std::collections::HashSet<String>,
+    collected: &mut GoogleSchemaCollection,
 ) {
-    if processed.contains(type_name) {
+    if collected.processed.contains(type_name) {
         return;
     }
 
-    processed.insert(type_name.to_string());
+    collected.processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
+        collected.missing_refs.insert(type_name.to_string());
         return;
     };
+
+    let public_name = normalize_google_schema_id(type_name).to_string();
+    if let Some(previous_id) = collected
+        .public_names
+        .insert(public_name.clone(), type_name.to_string())
+    {
+        collected.name_collisions.push(format!(
+            "{previous_id} and {type_name} both map to {public_name}"
+        ));
+        return;
+    }
 
     {
         // Strip top-level Discovery metadata fields (not valid JSON Schema)
@@ -1762,54 +1831,75 @@ fn add_google_schema_with_dependencies(
         if let Some(obj) = cleaned.as_object_mut() {
             obj.remove("id");
         }
-        essential_schemas.insert(type_name.to_string(), cleaned);
+        collected.schemas.insert(public_name, cleaned);
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
         extract_discovery_refs(&schema, &mut refs);
 
         for ref_name in refs {
-            add_google_schema_with_dependencies(
-                &ref_name,
-                all_schemas,
-                essential_schemas,
-                processed,
-            );
+            add_google_schema_with_dependencies(&ref_name, all_schemas, collected);
         }
     }
 }
 
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
+/// Google's Discovery document exposes a few schemas under an internal API-surface prefix
+/// (`V1mainMediaResolution`, `V1mainTuningSnapshot`). That prefix is an artefact of how the
+/// document is assembled upstream, not part of the API vocabulary, so it must not reach
+/// Lingua's public Rust or TypeScript names. Stripping it also keeps the public name stable
+/// if upstream moves a schema between API surfaces.
+fn normalize_google_schema_id(schema_id: &str) -> &str {
+    strip_google_internal_api_surface_prefix(schema_id).unwrap_or(schema_id)
+}
+
+/// API-surface words Google prefixes internal schema ids with, in both the Discovery
+/// spelling (`V1mainFoo`) and the PascalCased spelling quicktype derives from it (`V1MainFoo`).
+const GOOGLE_INTERNAL_API_SURFACE_WORDS: [&str; 6] =
+    ["Main", "main", "Beta", "beta", "Alpha", "alpha"];
+
+/// Returns the identifier with a leading `V<digits><surface>` prefix removed, or `None` when
+/// the identifier carries no such prefix.
+fn strip_google_internal_api_surface_prefix(identifier: &str) -> Option<&str> {
+    let after_v = identifier.strip_prefix('V')?;
+    let digits = after_v.chars().take_while(|c| c.is_ascii_digit()).count();
+    if digits == 0 {
+        return None;
     }
+
+    let after_version = &after_v[digits..];
+    GOOGLE_INTERNAL_API_SURFACE_WORDS
+        .iter()
+        .filter_map(|word| after_version.strip_prefix(word))
+        .find(|rest| rest.starts_with(|c: char| c.is_ascii_uppercase()))
+}
+
+/// Public type names that still carry an internal Discovery API-surface prefix.
+///
+/// Generation fails on any hit rather than publishing a name like `V1MainMediaResolution`
+/// in the generated Rust or in the TypeScript bindings derived from it.
+fn google_public_names_with_internal_api_surface_prefix(content: &str) -> Vec<String> {
+    let mut offenders = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        let Some(declared) = ["pub struct ", "pub enum ", "pub type "]
+            .iter()
+            .find_map(|keyword| trimmed.strip_prefix(keyword))
+        else {
+            continue;
+        };
+
+        let name = declared
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .next()
+            .unwrap_or_default();
+
+        if !name.is_empty() && strip_google_internal_api_surface_prefix(name).is_some() {
+            offenders.push(name.to_string());
+        }
+    }
+
+    offenders
 }
 
 fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
@@ -1846,12 +1936,16 @@ fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_
 
             for (key, value) in obj {
                 if key == "$ref" {
-                    // Convert bare type name refs to JSON Schema #/definitions/ refs
+                    // Convert bare type name refs to JSON Schema #/definitions/ refs,
+                    // following the same normalization applied to the definition keys.
                     if let Some(ref_str) = value.as_str() {
                         if !ref_str.starts_with('#') {
                             fixed_obj.insert(
                                 key.clone(),
-                                serde_json::Value::String(format!("#/definitions/{}", ref_str)),
+                                serde_json::Value::String(format!(
+                                    "#/definitions/{}",
+                                    normalize_google_schema_id(ref_str)
+                                )),
                             );
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
@@ -2306,7 +2400,12 @@ pub struct Status {}
 
 #[cfg(test)]
 mod google_post_process_tests {
-    use super::{add_type_enum_lowercase_aliases, preserve_google_public_enum_variant_names};
+    use super::{
+        add_type_enum_lowercase_aliases, create_essential_google_schemas,
+        google_public_names_with_internal_api_surface_prefix,
+        google_rust_source_from_essential_schemas, normalize_google_schema_id,
+        preserve_google_public_enum_variant_names, serde_json,
+    };
 
     #[test]
     fn preserves_string_variant_when_quicktype_renames_it() {
@@ -2333,5 +2432,213 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+
+    /// Minimal Discovery document mirroring the two media-resolution shapes: the named
+    /// `V1mainMediaResolution` schema referenced from `Part`, and the inline
+    /// `GenerationConfig.mediaResolution` enum that competes for the same public name.
+    fn media_resolution_discovery_spec() -> serde_json::Value {
+        serde_json::json!({
+            "schemas": {
+                "GenerateContentRequest": {
+                    "id": "GenerateContentRequest",
+                    "type": "object",
+                    "properties": {
+                        "contents": { "type": "array", "items": { "$ref": "Content" } },
+                        "generationConfig": { "$ref": "GenerationConfig" }
+                    }
+                },
+                "GenerateContentResponse": {
+                    "id": "GenerateContentResponse",
+                    "type": "object",
+                    "properties": { "modelVersion": { "type": "string" } }
+                },
+                "Content": {
+                    "id": "Content",
+                    "type": "object",
+                    "properties": {
+                        "parts": { "type": "array", "items": { "$ref": "Part" } }
+                    }
+                },
+                "Part": {
+                    "id": "Part",
+                    "type": "object",
+                    "properties": {
+                        "text": { "type": "string" },
+                        "mediaResolution": {
+                            "description": "Optional. Media resolution for the input media.",
+                            "$ref": "V1mainMediaResolution"
+                        }
+                    }
+                },
+                "V1mainMediaResolution": {
+                    "id": "V1mainMediaResolution",
+                    "description": "Media resolution for tokenization.",
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "description": "The tokenization quality used for given media.",
+                            "type": "string",
+                            "enum": [
+                                "MEDIA_RESOLUTION_UNSPECIFIED",
+                                "MEDIA_RESOLUTION_LOW",
+                                "MEDIA_RESOLUTION_MEDIUM",
+                                "MEDIA_RESOLUTION_HIGH",
+                                "MEDIA_RESOLUTION_ULTRA_HIGH"
+                            ]
+                        }
+                    }
+                },
+                "GenerationConfig": {
+                    "id": "GenerationConfig",
+                    "type": "object",
+                    "properties": {
+                        "mediaResolution": {
+                            "description": "Optional. If specified, the media resolution specified will be used.",
+                            "type": "string",
+                            "enum": [
+                                "MEDIA_RESOLUTION_UNSPECIFIED",
+                                "MEDIA_RESOLUTION_LOW",
+                                "MEDIA_RESOLUTION_MEDIUM",
+                                "MEDIA_RESOLUTION_HIGH"
+                            ]
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    #[test]
+    fn google_schema_ids_drop_internal_api_surface_prefix() {
+        assert_eq!(
+            normalize_google_schema_id("V1mainMediaResolution"),
+            "MediaResolution"
+        );
+        assert_eq!(
+            normalize_google_schema_id("V1MainMediaResolution"),
+            "MediaResolution"
+        );
+        assert_eq!(
+            normalize_google_schema_id("V1betaTuningSnapshot"),
+            "TuningSnapshot"
+        );
+        // Names that merely start with `V` or a version token are left untouched.
+        assert_eq!(normalize_google_schema_id("VideoMetadata"), "VideoMetadata");
+        assert_eq!(normalize_google_schema_id("V1Model"), "V1Model");
+        assert_eq!(normalize_google_schema_id("Content"), "Content");
+    }
+
+    #[test]
+    fn google_public_names_reject_internal_version_prefixes() {
+        let leaking = r#"pub struct V1MainMediaResolution {
+    pub level: Option<Level>,
+}
+pub enum V1betaThing {
+    A,
+}
+pub type V1AlphaAlias = Level;
+"#;
+
+        let offenders = google_public_names_with_internal_api_surface_prefix(leaking);
+        assert_eq!(
+            offenders,
+            vec![
+                "V1MainMediaResolution".to_string(),
+                "V1betaThing".to_string(),
+                "V1AlphaAlias".to_string(),
+            ]
+        );
+
+        let clean = r#"pub struct MediaResolution {
+    pub level: Option<Level>,
+}
+pub struct VideoMetadata {}
+pub enum MediaResolutionEnum {
+    MediaResolutionLow,
+}
+"#;
+        assert!(google_public_names_with_internal_api_surface_prefix(clean).is_empty());
+    }
+
+    #[test]
+    fn google_media_resolution_refs_follow_the_normalized_schema_id() {
+        let essential = create_essential_google_schemas(&media_resolution_discovery_spec())
+            .expect("essential schemas");
+        let definitions = essential
+            .get("definitions")
+            .and_then(|d| d.as_object())
+            .expect("definitions");
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+
+        let part_ref = definitions
+            .get("Part")
+            .and_then(|p| p.pointer("/properties/mediaResolution/$ref"))
+            .and_then(|r| r.as_str())
+            .expect("Part.mediaResolution $ref");
+        assert_eq!(part_ref, "#/definitions/MediaResolution");
+    }
+
+    #[test]
+    fn google_media_resolution_names_are_pinned_and_distinct() {
+        let essential = create_essential_google_schemas(&media_resolution_discovery_spec())
+            .expect("essential schemas");
+        let source =
+            google_rust_source_from_essential_schemas(&essential).expect("generated Rust source");
+
+        // The named Part-level schema keeps the established public struct name, and the
+        // inline GenerationConfig enum keeps its suffixed name, so neither public name is
+        // silently rebound to a structurally different type.
+        assert!(source.contains("pub struct MediaResolution {"));
+        assert!(source.contains("pub enum MediaResolutionEnum {"));
+        assert!(!source.contains("V1main"));
+        assert!(!source.contains("V1Main"));
+
+        // References follow the rename in both directions.
+        assert!(source.contains("pub media_resolution: Option<MediaResolution>"));
+        assert!(source.contains("pub media_resolution: Option<MediaResolutionEnum>"));
+
+        // quicktype derives the wrapper type name from the input file name, so that name must
+        // stay stable no matter how many times generation runs in one process.
+        assert!(source.contains("pub struct GoogleSchemas {"), "{source}");
+    }
+
+    #[test]
+    fn google_dangling_schema_refs_are_reported_instead_of_dropped() {
+        let mut spec = media_resolution_discovery_spec();
+        spec["schemas"]
+            .as_object_mut()
+            .expect("schemas")
+            .remove("V1mainMediaResolution");
+
+        let error = create_essential_google_schemas(&spec)
+            .expect_err("a dangling $ref must fail generation");
+        let message = error.to_string();
+        assert!(message.contains("V1mainMediaResolution"), "{message}");
+        assert!(message.contains("does not define"), "{message}");
+    }
+
+    #[test]
+    fn google_schema_id_normalization_collisions_are_reported() {
+        let mut spec = media_resolution_discovery_spec();
+        let schemas = spec["schemas"].as_object_mut().expect("schemas");
+        schemas.insert(
+            "MediaResolution".to_string(),
+            serde_json::json!({
+                "id": "MediaResolution",
+                "type": "object",
+                "properties": { "level": { "type": "string" } }
+            }),
+        );
+        schemas["Part"]["properties"]["legacyMediaResolution"] =
+            serde_json::json!({ "$ref": "MediaResolution" });
+
+        let error = create_essential_google_schemas(&spec)
+            .expect_err("colliding public names must fail generation");
+        let message = error.to_string();
+        assert!(message.contains("MediaResolution"), "{message}");
+        assert!(message.contains("collide"), "{message}");
     }
 }

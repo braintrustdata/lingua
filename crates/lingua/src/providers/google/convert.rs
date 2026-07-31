@@ -2115,8 +2115,53 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        Category, ComputerUse, DisabledSafetyPolicy, Environment, Level, MediaResolution,
+        MediaResolutionEnum, Type,
     };
+
+    #[test]
+    fn test_media_resolution_public_names_keep_distinct_wire_shapes() {
+        // `MediaResolution` is the per-part object carrying a `level`, and
+        // `MediaResolutionEnum` is the flat request-level string. Upstream renaming the
+        // Discovery schema id must never rebind one public name onto the other's shape:
+        // the two wire forms are not interchangeable.
+        let per_part = MediaResolution {
+            level: Some(Level::MediaResolutionUltraHigh),
+        };
+        assert_eq!(
+            serde_json::to_string(&per_part).unwrap(),
+            "{\"level\":\"MEDIA_RESOLUTION_ULTRA_HIGH\"}"
+        );
+        assert_eq!(
+            serde_json::from_str::<MediaResolution>("{\"level\":\"MEDIA_RESOLUTION_LOW\"}")
+                .unwrap(),
+            MediaResolution {
+                level: Some(Level::MediaResolutionLow),
+            }
+        );
+
+        assert_eq!(
+            serde_json::to_string(&MediaResolutionEnum::MediaResolutionLow).unwrap(),
+            "\"MEDIA_RESOLUTION_LOW\""
+        );
+        assert_eq!(
+            serde_json::from_str::<MediaResolutionEnum>("\"MEDIA_RESOLUTION_LOW\"").unwrap(),
+            MediaResolutionEnum::MediaResolutionLow
+        );
+
+        // Neither wire form deserializes as the other type.
+        assert!(serde_json::from_str::<MediaResolutionEnum>(
+            "{\"level\":\"MEDIA_RESOLUTION_LOW\"}"
+        )
+        .is_err());
+        assert!(serde_json::from_str::<Level>("{\"level\":\"MEDIA_RESOLUTION_LOW\"}").is_err());
+
+        // Only the per-part enum carries ULTRA_HIGH; the request-level enum omits it upstream.
+        assert!(serde_json::from_str::<Level>("\"MEDIA_RESOLUTION_ULTRA_HIGH\"").is_ok());
+        assert!(
+            serde_json::from_str::<MediaResolutionEnum>("\"MEDIA_RESOLUTION_ULTRA_HIGH\"").is_err()
+        );
+    }
 
     #[test]
     fn test_schema_type_string_wire_format_and_lowercase_alias() {
