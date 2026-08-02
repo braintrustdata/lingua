@@ -1,6 +1,6 @@
-import { defineConfig } from "tsup";
+import { type Options } from "tsup";
 
-export default defineConfig([
+export default [
   {
     entry: {
       index: "src/index.ts",
@@ -23,4 +23,4 @@ export default defineConfig([
     sourcemap: true,
     clean: false,
   },
-]);
+] satisfies Options[];
