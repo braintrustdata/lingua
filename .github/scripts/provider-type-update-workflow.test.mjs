@@ -36,6 +36,21 @@ test("lets the implementation agent regenerate and validate generator fixes", ()
   );
 });
 
+test("runs integration planning at medium effort", () => {
+  const planningStart = workflow.indexOf(
+    "- name: Plan generated provider integration"
+  );
+  const planningEnd = workflow.indexOf(
+    "- name: Validate integration plan",
+    planningStart
+  );
+  const planningStep = workflow.slice(planningStart, planningEnd);
+
+  assert.notEqual(planningStart, -1);
+  assert.notEqual(planningEnd, -1);
+  assert.match(planningStep, /--model claude-opus-5\s+--effort medium/);
+});
+
 test("uses one bounded repair pass and revalidates before publication", () => {
   assert.equal(
     workflow.match(/- name: Repair deterministic provider validation/g)?.length,
