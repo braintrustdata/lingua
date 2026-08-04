@@ -73,19 +73,21 @@ export type ChatCompletionCreateParams = Omit<
   >;
 };
 
-export type OpenAIResponseCreateParams = Omit<
-  OpenAI.Responses.ResponseCreateParams,
-  "service_tier"
-> & {
-  service_tier?:
-    | "auto"
-    | "default"
-    | "flex"
-    | "scale"
-    | "priority"
-    | "fast"
-    | null;
-};
+type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
+  ? Omit<T, "service_tier"> & {
+      service_tier?:
+        | "auto"
+        | "default"
+        | "flex"
+        | "scale"
+        | "priority"
+        | "fast"
+        | null;
+    }
+  : never;
+
+export type OpenAIResponseCreateParams =
+  OpenAIResponseCreateParamsWithExtendedServiceTier<OpenAI.Responses.ResponseCreateParams>;
 
 // Expectation-based validation for proxy compatibility tests
 // When present, capture.ts skips the case and validate.ts checks expectations

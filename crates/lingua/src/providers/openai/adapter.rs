@@ -764,6 +764,7 @@ impl ProviderAdapter for OpenAIAdapter {
                     | ServedServiceTier::Default
                     | ServedServiceTier::Fast
                     | ServedServiceTier::Flex
+                    | ServedServiceTier::OnDemand
                     | ServedServiceTier::Priority
                     | ServedServiceTier::Scale => Some(service_tier),
                     _ => None,
@@ -910,6 +911,7 @@ impl ProviderAdapter for OpenAIAdapter {
                     | ServedServiceTier::Default
                     | ServedServiceTier::Fast
                     | ServedServiceTier::Flex
+                    | ServedServiceTier::OnDemand
                     | ServedServiceTier::Priority
                     | ServedServiceTier::Scale => Some(service_tier),
                     _ => None,
@@ -1018,6 +1020,21 @@ mod tests {
         ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, UserContent,
     };
 
+    fn assert_on_demand_service_tier(value: Value) {
+        #[derive(Deserialize)]
+        struct ServiceTierView {
+            service_tier: Option<OpenAICompatibleServiceTier>,
+        }
+
+        let output: ServiceTierView = serde_json::from_value(value).unwrap();
+        assert!(matches!(
+            output.service_tier,
+            Some(OpenAICompatibleServiceTier::Extension(
+                OpenAICompatibleServiceTierExtension::OnDemand
+            ))
+        ));
+    }
+
     #[test]
     fn test_openai_detect_request() {
         let adapter = OpenAIAdapter;
@@ -1071,6 +1088,8 @@ mod tests {
             universal.served_service_tier,
             Some(ServedServiceTier::OnDemand)
         );
+
+        assert_on_demand_service_tier(adapter.stream_from_universal(&universal).unwrap());
     }
 
     #[test]
@@ -1097,6 +1116,8 @@ mod tests {
             universal.served_service_tier,
             Some(ServedServiceTier::OnDemand)
         );
+
+        assert_on_demand_service_tier(adapter.response_from_universal(&universal).unwrap());
     }
 
     #[test]
