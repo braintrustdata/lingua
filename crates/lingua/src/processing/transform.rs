@@ -839,6 +839,7 @@ fn response_to_stream_chunk(
     };
 
     UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
+        .with_served_service_tier(response.served_service_tier)
 }
 
 pub(crate) fn transform_stream_chunk_step(
@@ -1080,7 +1081,7 @@ where
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::{ResponseRequirement, UserContent, UserContentPart};
+    use crate::universal::{ResponseRequirement, ServedServiceTier, UserContent, UserContentPart};
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
@@ -2308,12 +2309,13 @@ mod tests {
                 }]),
             }],
             usage: None,
-            served_service_tier: None,
+            served_service_tier: Some(ServedServiceTier::Priority),
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
 
         let chunk = response_to_stream_chunk(response, ProviderFormat::Responses);
+        assert_eq!(chunk.served_service_tier, Some(ServedServiceTier::Priority));
         let output = crate::providers::openai::responses_adapter::ResponsesAdapter
             .stream_from_universal(&chunk)
             .unwrap();

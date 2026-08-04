@@ -34090,6 +34090,7 @@ exports[`responses → google > openaiServiceTierFastParam > request 1`] = `
     },
   ],
   "model": "gemini-3.5-flash",
+  "serviceTier": "priority",
 }
 `;
 
@@ -34117,6 +34118,7 @@ exports[`responses → google > openaiServiceTierFastParam > response 1`] = `
   ],
   "output_text": "hello",
   "parallel_tool_calls": false,
+  "service_tier": "priority",
   "status": "completed",
   "tool_choice": "none",
   "tools": [],
@@ -34125,11 +34127,11 @@ exports[`responses → google > openaiServiceTierFastParam > response 1`] = `
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 63,
+    "output_tokens": 75,
     "output_tokens_details": {
-      "reasoning_tokens": 62,
+      "reasoning_tokens": 74,
     },
-    "total_tokens": 68,
+    "total_tokens": 80,
   },
 }
 `;
