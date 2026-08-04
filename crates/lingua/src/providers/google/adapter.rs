@@ -484,12 +484,13 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
-        // Google may return an empty candidates array with promptFeedback when it blocks the
-        // prompt before generation.
-        payload
-            .get("candidates")
-            .and_then(Value::as_array)
-            .is_some()
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                || response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_some()
+        })
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {

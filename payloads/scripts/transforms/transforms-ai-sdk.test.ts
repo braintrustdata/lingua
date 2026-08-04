@@ -100,7 +100,9 @@ for (const pair of STREAMING_RESPONSES_TO_ANTHROPIC_PAIRS) {
         pair.target,
         caseName
       );
-      const skipReason = getFixtureSkipReason(responsePath, { streaming: true });
+      const skipReason = getFixtureSkipReason(responsePath, {
+        streaming: true,
+      });
 
       if (skipReason) {
         registerSkippedFixtureTest(pairLabel, caseName, skipReason);

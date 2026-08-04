@@ -2149,8 +2149,7 @@ mod tests {
     #[test]
     #[cfg(all(feature = "google", feature = "openai"))]
     fn test_transform_response_google_prompt_block_to_chat_completions() {
-        let input =
-            Bytes::from_static(br#"{"candidates":[],"promptFeedback":{"blockReason":"SAFETY"}}"#);
+        let input = Bytes::from_static(br#"{"promptFeedback":{"blockReason":"SAFETY"}}"#);
 
         let result = transform_response(input, ProviderFormat::ChatCompletions)
             .unwrap()
