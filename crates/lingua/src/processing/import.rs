@@ -198,11 +198,35 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
-        #[cfg(feature = "openai")]
-        let mut parsed_messages =
-            try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
-        #[cfg(not(feature = "openai"))]
+        // Native Anthropic thinking blocks must use the canonical parser so adjacent text
+        // metadata survives. Keep the existing parser order for every other role message.
+        #[cfg(feature = "anthropic")]
+        let mut parsed_messages = try_parse_anthropic_for_import(item)
+            .or_else(|| {
+                let wrapped_item = Value::Array(vec![item.clone()]);
+                try_parse_anthropic_for_import(&wrapped_item)
+            })
+            .filter(|messages| {
+                messages.iter().any(|message| {
+                    matches!(
+                        message,
+                        Message::Assistant {
+                            content: AssistantContent::Array(parts),
+                            ..
+                        } if parts.iter().any(|part| {
+                            matches!(part, AssistantContentPart::Reasoning { .. })
+                        })
+                    )
+                })
+            });
+        #[cfg(not(feature = "anthropic"))]
         let mut parsed_messages = None;
+
+        #[cfg(feature = "openai")]
+        if parsed_messages.is_none() {
+            parsed_messages =
+                try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
+        }
 
         if parsed_messages.is_none() {
             parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
@@ -322,6 +346,12 @@ enum LenientAssistantContentPartCompat {
         #[serde(default)]
         encrypted_content: Option<String>,
     },
+    #[serde(rename = "thinking")]
+    Thinking {
+        thinking: String,
+        #[serde(default)]
+        signature: Option<String>,
+    },
     #[serde(rename = "tool_call", alias = "tool-call", alias = "toolCall")]
     ToolCall {
         #[serde(alias = "toolCallId")]
@@ -374,10 +404,13 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         reasoning_signature,
     } = serde_json::from_value(item.clone()).ok()?;
 
-    if !content
-        .iter()
-        .any(|part| matches!(part, LenientAssistantContentPartCompat::Reasoning { .. }))
-    {
+    if !content.iter().any(|part| {
+        matches!(
+            part,
+            LenientAssistantContentPartCompat::Reasoning { .. }
+                | LenientAssistantContentPartCompat::Thinking { .. }
+        )
+    }) {
         return None;
     }
 
@@ -543,6 +576,13 @@ fn parse_lenient_assistant_content_part(
         } => Some(AssistantContentPart::Reasoning {
             text,
             encrypted_content,
+        }),
+        LenientAssistantContentPartCompat::Thinking {
+            thinking,
+            signature,
+        } => Some(AssistantContentPart::Reasoning {
+            text: thinking,
+            encrypted_content: signature,
         }),
         LenientAssistantContentPartCompat::ToolCall {
             tool_call_id,
@@ -797,6 +837,82 @@ mod tests {
                 ] if text == "internal reasoning" && visible == "visible answer"
             ));
         }
+    }
+
+    #[test]
+    fn lenient_import_maps_anthropic_thinking_to_reasoning() {
+        let message = parse_lenient_message_item(&crate::serde_json::json!({
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "thinking",
+                    "thinking": "internal reasoning",
+                    "signature": "reasoning-signature"
+                },
+                { "type": "text", "text": "visible answer" }
+            ]
+        }))
+        .expect("expected assistant message");
+
+        assert!(matches!(
+            message,
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } if matches!(
+                parts.as_slice(),
+                [
+                    AssistantContentPart::Reasoning {
+                        text,
+                        encrypted_content: Some(encrypted_content),
+                    },
+                    AssistantContentPart::Text(TextContentPart { text: visible, .. }),
+                ] if text == "internal reasoning"
+                    && encrypted_content == "reasoning-signature"
+                    && visible == "visible answer"
+            )
+        ));
+    }
+
+    #[test]
+    fn native_anthropic_thinking_preserves_adjacent_text_metadata() {
+        let parts = import_assistant_parts(crate::serde_json::json!([
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "thinking",
+                        "thinking": "internal reasoning",
+                        "signature": "reasoning-signature"
+                    },
+                    {
+                        "type": "text",
+                        "text": "visible answer",
+                        "cache_control": { "type": "ephemeral", "ttl": "1h" },
+                        "citations": { "enabled": true }
+                    }
+                ]
+            }
+        ]));
+
+        assert_eq!(
+            crate::serde_json::to_value(parts).expect("assistant parts should serialize"),
+            crate::serde_json::json!([
+                {
+                    "type": "reasoning",
+                    "text": "internal reasoning",
+                    "encrypted_content": "reasoning-signature"
+                },
+                {
+                    "type": "text",
+                    "text": "visible answer",
+                    "cache_control": { "type": "ephemeral", "ttl": "1h" },
+                    "provider_options": {
+                        "citations": { "enabled": true }
+                    }
+                }
+            ])
+        );
     }
 
     #[test]

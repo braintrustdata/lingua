@@ -1,0 +1,22 @@
+{
+  "expectedMessageCount": 3,
+  "expectedRolesInOrder": [
+    "system",
+    "user",
+    "assistant"
+  ],
+  "expectedAssistantContentPartTypes": [
+    [
+      "reasoning",
+      "text"
+    ]
+  ],
+  "expectedReasoningEncryptedContent": [
+    "anon_reasoning_signature"
+  ],
+  "mustContainText": [
+    "Tracing exposes an agent's execution flow",
+    "anon_reasoning_signature",
+    "Tracing helps debug the sequence of decisions"
+  ]
+}

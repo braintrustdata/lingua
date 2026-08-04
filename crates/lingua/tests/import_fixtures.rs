@@ -1,5 +1,6 @@
 use lingua::processing::{import_messages_from_spans, Span};
 use lingua::serde_json;
+use lingua::universal::{AssistantContent, AssistantContentPart};
 use lingua::Message;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -12,6 +13,8 @@ use std::path::{Path, PathBuf};
 struct ImportAssertionCase {
     expected_message_count: Option<usize>,
     expected_roles_in_order: Option<Vec<String>>,
+    expected_assistant_content_part_types: Option<Vec<Vec<String>>>,
+    expected_reasoning_encrypted_content: Option<Vec<Option<String>>>,
     must_contain_text: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     must_not_contain_text: Option<Vec<String>>,
@@ -154,9 +157,60 @@ fn infer_assertions_from_messages(messages: &[Message]) -> ImportAssertionCase {
     ImportAssertionCase {
         expected_message_count: Some(messages.len()),
         expected_roles_in_order: Some(roles),
+        expected_assistant_content_part_types: None,
+        expected_reasoning_encrypted_content: None,
         must_contain_text: Some(vec![]),
         must_not_contain_text: None,
     }
+}
+
+fn assistant_content_part_type(part: &AssistantContentPart) -> &'static str {
+    match part {
+        AssistantContentPart::Text(_) => "text",
+        AssistantContentPart::File { .. } => "file",
+        AssistantContentPart::Reasoning { .. } => "reasoning",
+        AssistantContentPart::ToolCall { .. } => "tool_call",
+        AssistantContentPart::Program { .. } => "program",
+        AssistantContentPart::ProgramOutput { .. } => "program_output",
+        AssistantContentPart::ToolDiscoveryCall { .. } => "tool_discovery_call",
+        AssistantContentPart::ToolResult { .. } => "tool_result",
+    }
+}
+
+fn assistant_content_part_types(messages: &[Message]) -> Vec<Vec<String>> {
+    messages
+        .iter()
+        .filter_map(|message| match message {
+            Message::Assistant { content, .. } => Some(match content {
+                AssistantContent::String(_) => vec!["string".to_string()],
+                AssistantContent::Array(parts) => parts
+                    .iter()
+                    .map(|part| assistant_content_part_type(part).to_string())
+                    .collect(),
+            }),
+            _ => None,
+        })
+        .collect()
+}
+
+fn reasoning_encrypted_content(messages: &[Message]) -> Vec<Option<String>> {
+    messages
+        .iter()
+        .filter_map(|message| match message {
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } => Some(parts),
+            _ => None,
+        })
+        .flatten()
+        .filter_map(|part| match part {
+            AssistantContentPart::Reasoning {
+                encrypted_content, ..
+            } => Some(encrypted_content.clone()),
+            _ => None,
+        })
+        .collect()
 }
 
 fn write_assertions_fixture(assertions_path: &Path, assertions: &ImportAssertionCase) {
@@ -246,6 +300,12 @@ fn test_import_cases_from_shared_fixtures() {
                 let updated = ImportAssertionCase {
                     expected_message_count: inferred.expected_message_count,
                     expected_roles_in_order: inferred.expected_roles_in_order,
+                    expected_assistant_content_part_types: existing
+                        .expected_assistant_content_part_types
+                        .clone(),
+                    expected_reasoning_encrypted_content: existing
+                        .expected_reasoning_encrypted_content
+                        .clone(),
                     must_contain_text: existing.must_contain_text.clone(),
                     must_not_contain_text: existing.must_not_contain_text.clone(),
                 };
@@ -287,6 +347,24 @@ fn test_import_cases_from_shared_fixtures() {
             assert_eq!(
                 actual_roles, expected_roles,
                 "message roles mismatch for case '{}'",
+                case_name
+            );
+        }
+
+        if let Some(expected_part_types) = assertions.expected_assistant_content_part_types {
+            assert_eq!(
+                assistant_content_part_types(&messages),
+                expected_part_types,
+                "assistant content part types mismatch for case '{}'",
+                case_name
+            );
+        }
+
+        if let Some(expected_encrypted_content) = assertions.expected_reasoning_encrypted_content {
+            assert_eq!(
+                reasoning_encrypted_content(&messages),
+                expected_encrypted_content,
+                "reasoning encrypted content mismatch for case '{}'",
                 case_name
             );
         }
