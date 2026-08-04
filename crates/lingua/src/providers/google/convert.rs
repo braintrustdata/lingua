@@ -2115,7 +2115,8 @@ mod tests {
     // serde round trip into and out of the generated types.
 
     use crate::providers::google::generated::{
-        Category, ComputerUse, DisabledSafetyPolicy, Environment, Type,
+        Category, ComputerUse, DisabledSafetyPolicy, Environment, Level, MediaResolution,
+        MediaResolutionEnum, Type,
     };
 
     #[test]
@@ -2259,5 +2260,69 @@ mod tests {
         let parsed: GenerationConfig =
             serde_json::from_value(json!({"enableAffectiveDialog": true})).unwrap();
         assert_eq!(parsed.enable_affective_dialog, Some(true));
+    }
+
+    #[test]
+    fn test_part_media_resolution_is_a_nested_level_object() {
+        // Google publishes the part-level schema under the internal Discovery id
+        // `V1mainMediaResolution`; the generator strips that surface prefix so the public
+        // name stays `MediaResolution`. Using it here as a struct with a `level` field
+        // fails to compile if the identifier ever comes to name the scalar enum instead.
+        let parsed: GooglePart = serde_json::from_value(json!({
+            "text": "hi",
+            "mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}
+        }))
+        .unwrap();
+        assert_eq!(
+            parsed.media_resolution,
+            Some(MediaResolution {
+                level: Some(Level::MediaResolutionUltraHigh),
+            })
+        );
+
+        let reserialized = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(
+            reserialized["mediaResolution"]["level"],
+            json!("MEDIA_RESOLUTION_ULTRA_HIGH")
+        );
+
+        // Omitting the field must not emit a null.
+        let bare: GooglePart = serde_json::from_value(json!({"text": "hi"})).unwrap();
+        assert_eq!(bare.media_resolution, None);
+        assert!(!serde_json::to_string(&bare)
+            .unwrap()
+            .contains("mediaResolution"));
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_is_a_scalar_enum() {
+        // The request-level field is a bare string enum, not the part-level object, so it
+        // must serialize to a scalar. Constructing it positionally as an enum guards the
+        // `MediaResolution`/`MediaResolutionEnum` name split.
+        let config = GenerationConfig {
+            media_resolution: Some(MediaResolutionEnum::MediaResolutionLow),
+            ..Default::default()
+        };
+        let value = serde_json::to_value(&config).unwrap();
+        assert_eq!(value["mediaResolution"], json!("MEDIA_RESOLUTION_LOW"));
+
+        let parsed: GenerationConfig =
+            serde_json::from_value(json!({"mediaResolution": "MEDIA_RESOLUTION_HIGH"})).unwrap();
+        assert_eq!(
+            parsed.media_resolution,
+            Some(MediaResolutionEnum::MediaResolutionHigh)
+        );
+
+        // The two enums are deliberately not interchangeable: the part-level `Level` has
+        // ULTRA_HIGH but GenerationConfig's inline enum does not, so any future
+        // part-to-request normalizer has to confront the asymmetry rather than assume it
+        // away.
+        assert_eq!(
+            serde_json::to_string(&Level::MediaResolutionUltraHigh).unwrap(),
+            "\"MEDIA_RESOLUTION_ULTRA_HIGH\""
+        );
+        assert!(
+            serde_json::from_str::<MediaResolutionEnum>("\"MEDIA_RESOLUTION_ULTRA_HIGH\"").is_err()
+        );
     }
 }

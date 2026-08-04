@@ -1747,11 +1747,7 @@ fn add_google_schema_with_dependencies(
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
         return;
     };
 
@@ -1762,7 +1758,18 @@ fn add_google_schema_with_dependencies(
         if let Some(obj) = cleaned.as_object_mut() {
             obj.remove("id");
         }
-        essential_schemas.insert(type_name.to_string(), cleaned);
+
+        let public_name = google_public_schema_name(type_name);
+        if let Some(existing) = essential_schemas.get(public_name) {
+            assert_eq!(
+                existing, &cleaned,
+                "Google Discovery schema `{}` maps to the public name `{}`, which is already \
+                 defined by a different schema. Resolve the collision in \
+                 google_public_schema_name before regenerating.",
+                type_name, public_name
+            );
+        }
+        essential_schemas.insert(public_name.to_string(), cleaned);
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
@@ -1779,36 +1786,21 @@ fn add_google_schema_with_dependencies(
     }
 }
 
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
+/// Internal API-surface prefix Google uses on some Discovery schema ids.
+const GOOGLE_DISCOVERY_SURFACE_PREFIX: &str = "V1main";
+
+/// Map a Google Discovery schema id to the public type name Lingua exposes.
+///
+/// Google publishes some schemas under an internal API-surface prefix
+/// (`V1mainMediaResolution`, `V1mainTuningSnapshot`). The prefix carries no semantic
+/// meaning - `V1mainTuningSnapshot` is byte-identical to `TuningSnapshot` apart from its
+/// id - and quicktype derives public Rust and TypeScript names verbatim from the id, so
+/// leaving it in place leaks `V1Main...` into Lingua's public surface. Strip it instead.
+/// Collisions are rejected by the caller rather than resolved silently.
+fn google_public_schema_name(discovery_id: &str) -> &str {
+    match discovery_id.strip_prefix(GOOGLE_DISCOVERY_SURFACE_PREFIX) {
+        Some(stripped) if stripped.starts_with(|c: char| c.is_ascii_uppercase()) => stripped,
+        _ => discovery_id,
     }
 }
 
@@ -1846,12 +1838,16 @@ fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_
 
             for (key, value) in obj {
                 if key == "$ref" {
-                    // Convert bare type name refs to JSON Schema #/definitions/ refs
+                    // Convert bare type name refs to JSON Schema #/definitions/ refs,
+                    // targeting the public name the definition was registered under.
                     if let Some(ref_str) = value.as_str() {
                         if !ref_str.starts_with('#') {
                             fixed_obj.insert(
                                 key.clone(),
-                                serde_json::Value::String(format!("#/definitions/{}", ref_str)),
+                                serde_json::Value::String(format!(
+                                    "#/definitions/{}",
+                                    google_public_schema_name(ref_str)
+                                )),
                             );
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
@@ -2333,5 +2329,159 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+}
+
+#[cfg(test)]
+mod google_schema_name_tests {
+    use super::serde_json;
+    use super::{
+        add_google_schema_with_dependencies, convert_discovery_schema_to_json_schema,
+        google_public_schema_name,
+    };
+
+    fn discovery_schemas(schemas: serde_json::Value) -> serde_json::Map<String, serde_json::Value> {
+        schemas
+            .as_object()
+            .expect("test schemas must be an object")
+            .clone()
+    }
+
+    fn collect(
+        root: &str,
+        all_schemas: &serde_json::Map<String, serde_json::Value>,
+    ) -> serde_json::Map<String, serde_json::Value> {
+        let mut essential = serde_json::Map::new();
+        let mut processed = std::collections::HashSet::new();
+        add_google_schema_with_dependencies(root, all_schemas, &mut essential, &mut processed);
+        essential
+    }
+
+    #[test]
+    fn strips_internal_surface_prefix_from_discovery_ids() {
+        assert_eq!(
+            google_public_schema_name("V1mainMediaResolution"),
+            "MediaResolution"
+        );
+        assert_eq!(
+            google_public_schema_name("V1mainTuningSnapshot"),
+            "TuningSnapshot"
+        );
+        // Names without the prefix, and names where the prefix is not followed by a new
+        // type name, are left exactly as published.
+        assert_eq!(google_public_schema_name("Part"), "Part");
+        assert_eq!(google_public_schema_name("V1main"), "V1main");
+        assert_eq!(google_public_schema_name("V1mainly"), "V1mainly");
+    }
+
+    #[test]
+    fn part_media_resolution_ref_targets_unprefixed_public_name() {
+        let all_schemas = discovery_schemas(serde_json::json!({
+            "Part": {
+                "id": "Part",
+                "type": "object",
+                "properties": {
+                    "mediaResolution": { "$ref": "V1mainMediaResolution" }
+                }
+            },
+            "V1mainMediaResolution": {
+                "id": "V1mainMediaResolution",
+                "type": "object",
+                "properties": {
+                    "level": { "type": "string", "enum": ["MEDIA_RESOLUTION_ULTRA_HIGH"] }
+                }
+            }
+        }));
+
+        let essential = collect("Part", &all_schemas);
+
+        // The definition is registered under the public name, so quicktype derives
+        // `MediaResolution` rather than leaking Google's `V1main` surface prefix.
+        assert!(essential.contains_key("MediaResolution"));
+        assert!(!essential.contains_key("V1mainMediaResolution"));
+
+        let part = convert_discovery_schema_to_json_schema(&essential["Part"]);
+        assert_eq!(
+            part["properties"]["mediaResolution"]["$ref"],
+            serde_json::json!("#/definitions/MediaResolution"),
+        );
+    }
+
+    #[test]
+    fn dangling_discovery_ref_is_not_backfilled_with_a_hand_authored_schema() {
+        let all_schemas = discovery_schemas(serde_json::json!({
+            "Part": {
+                "id": "Part",
+                "type": "object",
+                "properties": {
+                    "mediaResolution": { "$ref": "MediaResolution" }
+                }
+            }
+        }));
+
+        let essential = collect("Part", &all_schemas);
+
+        // Google now publishes the schema, so the generator must not resurrect a
+        // hand-authored stand-in; an unpublished $ref has to surface as a generation
+        // failure instead of silently diverging from upstream.
+        assert_eq!(essential.keys().collect::<Vec<_>>(), vec!["Part"]);
+    }
+
+    #[test]
+    fn prefixed_duplicate_of_an_identical_schema_collapses_onto_one_definition() {
+        let snapshot = serde_json::json!({
+            "type": "object",
+            "properties": { "step": { "type": "integer" } }
+        });
+        let mut prefixed = snapshot.clone();
+        prefixed["id"] = serde_json::json!("V1mainTuningSnapshot");
+        let mut plain = snapshot.clone();
+        plain["id"] = serde_json::json!("TuningSnapshot");
+
+        let all_schemas = discovery_schemas(serde_json::json!({
+            "Root": {
+                "id": "Root",
+                "type": "object",
+                "properties": {
+                    "a": { "$ref": "TuningSnapshot" },
+                    "b": { "$ref": "V1mainTuningSnapshot" }
+                }
+            },
+            "TuningSnapshot": plain,
+            "V1mainTuningSnapshot": prefixed
+        }));
+
+        let essential = collect("Root", &all_schemas);
+
+        assert!(essential.contains_key("TuningSnapshot"));
+        assert!(!essential.contains_key("V1mainTuningSnapshot"));
+        assert_eq!(essential["TuningSnapshot"], snapshot);
+    }
+
+    #[test]
+    #[should_panic(expected = "maps to the public name `TuningSnapshot`")]
+    fn prefixed_duplicate_that_diverges_fails_generation() {
+        let all_schemas = discovery_schemas(serde_json::json!({
+            "Root": {
+                "id": "Root",
+                "type": "object",
+                "properties": {
+                    "a": { "$ref": "TuningSnapshot" },
+                    "b": { "$ref": "V1mainTuningSnapshot" }
+                }
+            },
+            "TuningSnapshot": {
+                "id": "TuningSnapshot",
+                "type": "object",
+                "properties": { "step": { "type": "integer" } }
+            },
+            "V1mainTuningSnapshot": {
+                "id": "V1mainTuningSnapshot",
+                "type": "object",
+                "properties": { "step": { "type": "string" } }
+            }
+        }));
+
+        collect("Root", &all_schemas);
     }
 }
