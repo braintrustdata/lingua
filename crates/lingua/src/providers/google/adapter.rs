@@ -620,9 +620,13 @@ impl ProviderAdapter for GoogleAdapter {
     // =========================================================================
 
     fn detect_stream_response(&self, payload: &Value) -> bool {
-        // Google streaming uses the same format as non-streaming (candidates array)
-        // The response_to_universal detection already handles this
-        self.detect_response(payload)
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                && response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_none()
+        })
     }
 
     fn stream_to_universal(

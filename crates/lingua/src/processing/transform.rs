@@ -2163,6 +2163,21 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_transform_stream_chunk_google_prompt_block_to_chat_completions() {
+        let input =
+            Bytes::from_static(br#"{"candidates":[],"promptFeedback":{"blockReason":"SAFETY"}}"#);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions)
+            .unwrap()
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(response["choices"][0]["finish_reason"], "content_filter");
+        assert_eq!(response["choices"][0]["delta"]["role"], "assistant");
+    }
+
+    #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_detection_falls_back_to_full_response() {
         let payload = json!({
