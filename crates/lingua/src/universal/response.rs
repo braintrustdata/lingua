@@ -114,7 +114,7 @@ pub struct UniversalUsage {
 }
 
 /// Service tier reported by the provider that served a response.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ServedServiceTier {
     Auto,

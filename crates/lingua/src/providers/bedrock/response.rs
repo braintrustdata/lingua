@@ -383,10 +383,12 @@ pub struct BedrockStreamMessageStop {
     pub additional_model_response_fields: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BedrockStreamMetadata {
     pub usage: Option<BedrockTokenUsage>,
     pub metrics: Option<BedrockConverseMetrics>,
+    pub service_tier: Option<BedrockServiceTier>,
 }
 
 /// Streaming Converse API response event

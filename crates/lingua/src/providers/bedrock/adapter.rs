@@ -576,6 +576,8 @@ impl ProviderAdapter for BedrockAdapter {
                 )))
             }
             BedrockConverseStreamEvent::Metadata { metadata } => {
+                let served_service_tier =
+                    metadata.service_tier.map(served_service_tier_from_bedrock);
                 let usage = metadata
                     .usage
                     .map(serde_json::to_value)
@@ -583,14 +585,11 @@ impl ProviderAdapter for BedrockAdapter {
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?
                     .map(|u| UniversalUsage::from_provider_value(&u, self.format()));
 
-                if usage.is_some() {
-                    Ok(Some(UniversalStreamChunk::new(
-                        None,
-                        None,
-                        vec![],
-                        None,
-                        usage,
-                    )))
+                if usage.is_some() || served_service_tier.is_some() {
+                    Ok(Some(
+                        UniversalStreamChunk::new(None, None, vec![], None, usage)
+                            .with_served_service_tier(served_service_tier),
+                    ))
                 } else {
                     Ok(Some(UniversalStreamChunk::keep_alive()))
                 }
@@ -632,12 +631,33 @@ impl ProviderAdapter for BedrockAdapter {
             }));
         }
 
-        if let (true, Some(usage)) = (chunk.choices.is_empty(), &chunk.usage) {
-            return Ok(serde_json::json!({
-                "metadata": {
-                    "usage": usage.to_provider_value(self.format())
-                }
-            }));
+        if chunk.choices.is_empty()
+            && (chunk.usage.is_some() || chunk.served_service_tier.is_some())
+        {
+            let usage = chunk
+                .usage
+                .as_ref()
+                .map(|usage| serde_json::from_value(usage.to_provider_value(self.format())))
+                .transpose()
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            let service_tier =
+                chunk
+                    .served_service_tier
+                    .and_then(|service_tier| match service_tier {
+                        ServedServiceTier::Default => Some(BedrockServiceTierType::Default),
+                        ServedServiceTier::Flex => Some(BedrockServiceTierType::Flex),
+                        ServedServiceTier::Priority => Some(BedrockServiceTierType::Priority),
+                        ServedServiceTier::Reserved => Some(BedrockServiceTierType::Reserved),
+                        _ => None,
+                    });
+            let metadata = crate::providers::bedrock::response::BedrockStreamMetadata {
+                usage,
+                metrics: None,
+                service_tier: service_tier.map(|r#type| BedrockServiceTier { r#type }),
+            };
+            let value = serde_json::to_value(metadata)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            return Ok(serde_json::json!({ "metadata": value }));
         }
 
         if let Some(choice) = chunk.choices.first() {

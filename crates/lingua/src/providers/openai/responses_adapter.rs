@@ -588,6 +588,27 @@ struct ResponsesAlternateReasoningDelta {
     text: Option<String>,
 }
 
+fn stream_served_service_tier(
+    payload: &Value,
+) -> Result<Option<ServedServiceTier>, TransformError> {
+    #[derive(Deserialize)]
+    struct ResponseView {
+        service_tier: Option<ServiceTier>,
+    }
+    #[derive(Deserialize)]
+    struct StreamView {
+        response: Option<ResponseView>,
+    }
+
+    serde_json::from_value::<StreamView>(payload.clone())
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+        .map(|view| {
+            view.response
+                .and_then(|response| response.service_tier)
+                .map(served_service_tier_from_openai)
+        })
+}
+
 pub(crate) fn parse_responses_extras(
     extras: Option<&Map<String, Value>>,
 ) -> Result<OpenAIResponsesExtrasView, TransformError> {
@@ -1443,18 +1464,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("id"))
                     .and_then(Value::as_str)
                     .map(String::from);
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("stop".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({})),
+                            finish_reason: Some("stop".to_string()),
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.incomplete" => {
@@ -1464,18 +1489,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("usage"))
                     .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("length".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({})),
+                            finish_reason: Some("length".to_string()),
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.created" | "response.in_progress" => {
@@ -1505,18 +1534,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("usage"))
                     .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
-                        finish_reason: None,
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
+                            finish_reason: None,
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.output_item.added" => {
@@ -1644,6 +1677,25 @@ impl ProviderAdapter for ResponsesAdapter {
             if let Some(usage) = &chunk.usage {
                 if let Some(obj) = response.as_object_mut() {
                     obj.insert("usage".into(), usage.to_provider_value(self.format()));
+                }
+            }
+            if let Some(service_tier) =
+                chunk
+                    .served_service_tier
+                    .and_then(|service_tier| match service_tier {
+                        ServedServiceTier::Auto
+                        | ServedServiceTier::Default
+                        | ServedServiceTier::Fast
+                        | ServedServiceTier::Flex
+                        | ServedServiceTier::Priority
+                        | ServedServiceTier::Scale => Some(service_tier),
+                        _ => None,
+                    })
+            {
+                if let Some(obj) = response.as_object_mut() {
+                    let value = serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    obj.insert("service_tier".into(), value);
                 }
             }
 

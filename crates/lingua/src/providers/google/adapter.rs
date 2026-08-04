@@ -605,17 +605,22 @@ impl ProviderAdapter for GoogleAdapter {
             map.insert("modelVersion".into(), Value::String(model.clone()));
         }
 
-        if let Some(usage) = &resp.usage {
-            let mut metadata = UsageMetadata::from(usage);
-            metadata.service_tier =
-                resp.served_service_tier
-                    .and_then(|service_tier| match service_tier {
-                        ServedServiceTier::Flex => Some(ServiceTier::Flex),
-                        ServedServiceTier::Priority => Some(ServiceTier::Priority),
-                        ServedServiceTier::Standard => Some(ServiceTier::Standard),
-                        ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
-                        _ => None,
-                    });
+        let service_tier = resp
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Flex => Some(ServiceTier::Flex),
+                ServedServiceTier::Priority => Some(ServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTier::Standard),
+                ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
+                _ => None,
+            });
+        if resp.usage.is_some() || service_tier.is_some() {
+            let mut metadata = resp
+                .usage
+                .as_ref()
+                .map(UsageMetadata::from)
+                .unwrap_or_default();
+            metadata.service_tier = service_tier;
             let value = serde_json::to_value(&metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usageMetadata".into(), value);
@@ -741,10 +746,16 @@ impl ProviderAdapter for GoogleAdapter {
             .map(UniversalUsage::from);
         let model = typed_payload.model_version;
         let id = typed_payload.response_id;
+        let served_service_tier = typed_payload
+            .usage_metadata
+            .as_ref()
+            .and_then(|usage| usage.service_tier.clone())
+            .map(served_service_tier_from_google);
 
-        Ok(Some(UniversalStreamChunk::new(
-            id, model, choices, None, usage,
-        )))
+        Ok(Some(
+            UniversalStreamChunk::new(id, model, choices, None, usage)
+                .with_served_service_tier(served_service_tier),
+        ))
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
@@ -897,8 +908,22 @@ impl ProviderAdapter for GoogleAdapter {
         if let Some(ref model) = chunk.model {
             map.insert("modelVersion".into(), Value::String(model.clone()));
         }
-        if let Some(ref usage) = chunk.usage {
-            let metadata = UsageMetadata::from(usage);
+        let service_tier = chunk
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Flex => Some(ServiceTier::Flex),
+                ServedServiceTier::Priority => Some(ServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTier::Standard),
+                ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
+                _ => None,
+            });
+        if chunk.usage.is_some() || service_tier.is_some() {
+            let mut metadata = chunk
+                .usage
+                .as_ref()
+                .map(UsageMetadata::from)
+                .unwrap_or_default();
+            metadata.service_tier = service_tier;
             let value = serde_json::to_value(&metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usageMetadata".into(), value);

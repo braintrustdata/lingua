@@ -23,8 +23,9 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum,
-    ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice, ToolChoiceType,
+    ContentBlock, CreateMessageParams, EffortLevel, Message as AnthropicMessage, OutputConfig,
+    ServiceTierEnum, ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice,
+    ToolChoiceType, Usage,
 };
 use crate::providers::anthropic::params::AnthropicExtrasView;
 use crate::providers::anthropic::tool_discovery;
@@ -762,16 +763,16 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
-        if let Some(anthropic_tier) = req
-            .params
-            .service_tier
-            .as_deref()
-            .and_then(|tier| match tier {
-                "default" => Some("auto"),
-                "auto" | "standard_only" => Some(tier),
-                _ => None,
-            })
-        {
+        if let Some(service_tier) = req.params.service_tier.as_deref() {
+            let anthropic_tier = match service_tier {
+                "default" => "auto",
+                "auto" | "standard_only" => service_tier,
+                unsupported => {
+                    return Err(TransformError::FromUniversalFailed(format!(
+                        "Anthropic does not support service_tier '{unsupported}'"
+                    )));
+                }
+            };
             let value = serde_json::to_value(anthropic_tier)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             obj.insert("service_tier".into(), value);
@@ -841,13 +842,14 @@ impl ProviderAdapter for AnthropicAdapter {
 
         #[derive(Deserialize)]
         struct AnthropicResponseServiceTierView {
-            service_tier: Option<ServiceTierServiceTier>,
+            usage: Option<Usage>,
         }
 
         let served_service_tier =
             serde_json::from_value::<AnthropicResponseServiceTierView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
-                .service_tier
+                .usage
+                .and_then(|usage| usage.service_tier)
                 .map(served_service_tier_from_anthropic);
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
@@ -893,20 +895,20 @@ impl ProviderAdapter for AnthropicAdapter {
         map.insert("stop_reason".into(), Value::String(stop_reason));
 
         if let Some(usage) = &resp.usage {
-            map.insert("usage".into(), usage.to_provider_value(self.format()));
-        }
-        if let Some(service_tier) =
-            resp.served_service_tier
-                .and_then(|service_tier| match service_tier {
-                    ServedServiceTier::Batch
-                    | ServedServiceTier::Priority
-                    | ServedServiceTier::Standard => Some(service_tier),
-                    _ => None,
-                })
-        {
-            let value = serde_json::to_value(service_tier)
+            let mut usage: Usage =
+                serde_json::from_value(usage.to_provider_value(self.format()))
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            usage.service_tier =
+                resp.served_service_tier
+                    .and_then(|service_tier| match service_tier {
+                        ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
+                        ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
+                        ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
+                        _ => None,
+                    });
+            let value = serde_json::to_value(usage)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-            map.insert("service_tier".into(), value);
+            map.insert("usage".into(), value);
         }
 
         Ok(Value::Object(map))
@@ -1104,6 +1106,16 @@ impl ProviderAdapter for AnthropicAdapter {
                 let usage = message
                     .and_then(|m| m.get("usage"))
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                #[derive(Deserialize)]
+                struct MessageStartView {
+                    message: Option<AnthropicMessage>,
+                }
+                let served_service_tier =
+                    serde_json::from_value::<MessageStartView>(payload.clone())
+                        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                        .message
+                        .and_then(|message| message.usage.service_tier)
+                        .map(served_service_tier_from_anthropic);
                 let tool_call_delta = message_start_tool_use_part(&payload)
                     .map(|part| {
                         let arguments = part
@@ -1135,17 +1147,20 @@ impl ProviderAdapter for AnthropicAdapter {
                     });
 
                 // Return chunk with metadata but mark as role initialization
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(tool_call_delta),
-                        finish_reason: None,
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(tool_call_delta),
+                            finish_reason: None,
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "message_stop" => Ok(None),

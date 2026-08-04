@@ -853,7 +853,6 @@ impl ProviderAdapter for OpenAIAdapter {
                 usage.to_provider_value(ProviderFormat::ChatCompletions),
             );
         }
-
         Ok(Value::Object(map))
     }
 }

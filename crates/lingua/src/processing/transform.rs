@@ -1596,14 +1596,14 @@ mod tests {
             "service_tier": "fast"
         });
 
-        let result = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
-            .unwrap()
-            .result;
+        let error = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .expect_err("Anthropic must reject an unrepresentable service tier");
 
-        assert_eq!(result.source_format(), Some(ProviderFormat::Responses));
-        let output: Value = crate::serde_json::from_slice(&result.into_bytes()).unwrap();
-        assert!(output.get("messages").is_some());
-        assert!(output.get("service_tier").is_none());
+        assert!(matches!(
+            error,
+            TransformError::FromUniversalFailed(message)
+                if message == "Anthropic does not support service_tier 'fast'"
+        ));
     }
 
     #[test]
