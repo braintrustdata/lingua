@@ -49,6 +49,15 @@ fn served_service_tier_from_google(service_tier: ServiceTier) -> ServedServiceTi
     }
 }
 
+fn service_tier_to_string(service_tier: ServiceTier) -> String {
+    match service_tier {
+        ServiceTier::Flex => "flex".to_string(),
+        ServiceTier::Priority => "priority".to_string(),
+        ServiceTier::Standard => "standard".to_string(),
+        ServiceTier::Unspecified => "unspecified".to_string(),
+    }
+}
+
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GoogleResponseFormatView {
@@ -228,7 +237,7 @@ impl ProviderAdapter for GoogleAdapter {
             metadata: None,
             store: None,
             conversation_reference: None,
-            service_tier: None,
+            service_tier: typed_params.service_tier.map(service_tier_to_string),
             prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
@@ -1091,6 +1100,24 @@ mod tests {
             serde_json::from_value(reconstructed).expect("request should deserialize");
         assert!(reconstructed.contents.is_some());
         assert!(reconstructed.generation_config.is_some());
+    }
+
+    #[test]
+    fn test_google_request_preserves_service_tier() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }],
+            "serviceTier": "priority"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(universal.params.service_tier.as_deref(), Some("priority"));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(reconstructed["serviceTier"], json!("priority"));
     }
 
     #[test]
