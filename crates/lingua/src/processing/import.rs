@@ -322,6 +322,12 @@ enum LenientAssistantContentPartCompat {
         #[serde(default)]
         encrypted_content: Option<String>,
     },
+    #[serde(rename = "thinking")]
+    Thinking {
+        thinking: String,
+        #[serde(default)]
+        signature: Option<String>,
+    },
     #[serde(rename = "tool_call", alias = "tool-call", alias = "toolCall")]
     ToolCall {
         #[serde(alias = "toolCallId")]
@@ -374,10 +380,13 @@ fn try_parse_reasoning_assistant_message(item: &Value) -> Option<Message> {
         reasoning_signature,
     } = serde_json::from_value(item.clone()).ok()?;
 
-    if !content
-        .iter()
-        .any(|part| matches!(part, LenientAssistantContentPartCompat::Reasoning { .. }))
-    {
+    if !content.iter().any(|part| {
+        matches!(
+            part,
+            LenientAssistantContentPartCompat::Reasoning { .. }
+                | LenientAssistantContentPartCompat::Thinking { .. }
+        )
+    }) {
         return None;
     }
 
@@ -543,6 +552,13 @@ fn parse_lenient_assistant_content_part(
         } => Some(AssistantContentPart::Reasoning {
             text,
             encrypted_content,
+        }),
+        LenientAssistantContentPartCompat::Thinking {
+            thinking,
+            signature,
+        } => Some(AssistantContentPart::Reasoning {
+            text: thinking,
+            encrypted_content: signature,
         }),
         LenientAssistantContentPartCompat::ToolCall {
             tool_call_id,
@@ -797,6 +813,41 @@ mod tests {
                 ] if text == "internal reasoning" && visible == "visible answer"
             ));
         }
+    }
+
+    #[test]
+    fn lenient_import_maps_anthropic_thinking_to_reasoning() {
+        let message = parse_lenient_message_item(&crate::serde_json::json!({
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "thinking",
+                    "thinking": "internal reasoning",
+                    "signature": "reasoning-signature"
+                },
+                { "type": "text", "text": "visible answer" }
+            ]
+        }))
+        .expect("expected assistant message");
+
+        assert!(matches!(
+            message,
+            Message::Assistant {
+                content: AssistantContent::Array(parts),
+                ..
+            } if matches!(
+                parts.as_slice(),
+                [
+                    AssistantContentPart::Reasoning {
+                        text,
+                        encrypted_content: Some(encrypted_content),
+                    },
+                    AssistantContentPart::Text(TextContentPart { text: visible, .. }),
+                ] if text == "internal reasoning"
+                    && encrypted_content == "reasoning-signature"
+                    && visible == "visible answer"
+            )
+        ));
     }
 
     #[test]

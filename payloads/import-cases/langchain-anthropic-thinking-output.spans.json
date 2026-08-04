@@ -1,0 +1,40 @@
+[
+  {
+    "input": [
+      {
+        "content": "Think briefly, then answer in one concise sentence.",
+        "role": "system"
+      },
+      {
+        "content": "In one short sentence, what does tracing help debug in agent workflows?",
+        "role": "user"
+      }
+    ],
+    "metadata": {
+      "model": "claude-sonnet-4-5-20250929",
+      "provider": "anthropic",
+      "thinking": {
+        "budget_tokens": 1024,
+        "type": "enabled"
+      }
+    },
+    "output": {
+      "content": [
+        {
+          "signature": "anon_reasoning_signature",
+          "thinking": "Tracing exposes an agent's execution flow, including its decisions, tool calls, and reasoning steps, so unexpected behavior can be located.",
+          "type": "thinking"
+        },
+        {
+          "text": "Tracing helps debug the sequence of decisions, tool calls, and reasoning steps an agent takes during execution.",
+          "type": "text"
+        }
+      ],
+      "role": "assistant"
+    },
+    "span_attributes": {
+      "name": "anthropic.messages.create",
+      "type": "llm"
+    }
+  }
+]

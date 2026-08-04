@@ -68,6 +68,8 @@ Supported keys:
 
 - `expectedMessageCount` (number)
 - `expectedRolesInOrder` (string array)
+- `expectedAssistantContentPartTypes` (array of string arrays, one per assistant message)
+- `expectedReasoningEncryptedContent` (array of strings or nulls, one per reasoning part)
 - `mustContainText` (string array)
 - `mustNotContainText` (string array)
 
