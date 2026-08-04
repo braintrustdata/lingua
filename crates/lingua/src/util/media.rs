@@ -120,65 +120,69 @@ pub fn infer_mime_type_from_reference(filename: Option<&str>, url: Option<&str>)
         return Some(content_type);
     }
 
-    let name = filename.or_else(|| {
-        url_metadata
-            .as_ref()
-            .map(|metadata| metadata.filename.as_str())
-    })?;
+    let url_filename = url_metadata
+        .as_ref()
+        .map(|metadata| metadata.filename.as_str());
+
+    filename
+        .into_iter()
+        .chain(url_filename)
+        .find_map(mime_type_from_filename)
+        .map(str::to_string)
+}
+
+fn mime_type_from_filename(name: &str) -> Option<&'static str> {
     let extension = name.rsplit_once('.')?.1;
 
-    let mime_type =
-        if extension.eq_ignore_ascii_case("jpg") || extension.eq_ignore_ascii_case("jpeg") {
-            "image/jpeg"
-        } else if extension.eq_ignore_ascii_case("png") {
-            "image/png"
-        } else if extension.eq_ignore_ascii_case("webp") {
-            "image/webp"
-        } else if extension.eq_ignore_ascii_case("heic") {
-            "image/heic"
-        } else if extension.eq_ignore_ascii_case("heif") {
-            "image/heif"
-        } else if extension.eq_ignore_ascii_case("pdf") {
-            "application/pdf"
-        } else if extension.eq_ignore_ascii_case("txt") {
-            "text/plain"
-        } else if extension.eq_ignore_ascii_case("flv") {
-            "video/x-flv"
-        } else if extension.eq_ignore_ascii_case("mov") {
-            "video/quicktime"
-        } else if extension.eq_ignore_ascii_case("mp4") {
-            "video/mp4"
-        } else if extension.eq_ignore_ascii_case("mpeg") {
-            "video/mpeg"
-        } else if extension.eq_ignore_ascii_case("mpegs") {
-            "video/mpegs"
-        } else if extension.eq_ignore_ascii_case("mpg") {
-            "video/mpg"
-        } else if extension.eq_ignore_ascii_case("wmv") {
-            "video/wmv"
-        } else if extension.eq_ignore_ascii_case("3gp") || extension.eq_ignore_ascii_case("3gpp") {
-            "video/3gpp"
-        } else if extension.eq_ignore_ascii_case("aac") {
-            "audio/x-aac"
-        } else if extension.eq_ignore_ascii_case("flac") {
-            "audio/flac"
-        } else if extension.eq_ignore_ascii_case("mp3") {
-            "audio/mp3"
-        } else if extension.eq_ignore_ascii_case("m4a") {
-            "audio/m4a"
-        } else if extension.eq_ignore_ascii_case("mpga") {
-            "audio/mpga"
-        } else if extension.eq_ignore_ascii_case("ogg") {
-            "audio/ogg"
-        } else if extension.eq_ignore_ascii_case("pcm") {
-            "audio/pcm"
-        } else if extension.eq_ignore_ascii_case("wav") {
-            "audio/wav"
-        } else {
-            return None;
-        };
-
-    Some(mime_type.to_string())
+    if extension.eq_ignore_ascii_case("jpg") || extension.eq_ignore_ascii_case("jpeg") {
+        Some("image/jpeg")
+    } else if extension.eq_ignore_ascii_case("png") {
+        Some("image/png")
+    } else if extension.eq_ignore_ascii_case("webp") {
+        Some("image/webp")
+    } else if extension.eq_ignore_ascii_case("heic") {
+        Some("image/heic")
+    } else if extension.eq_ignore_ascii_case("heif") {
+        Some("image/heif")
+    } else if extension.eq_ignore_ascii_case("pdf") {
+        Some("application/pdf")
+    } else if extension.eq_ignore_ascii_case("txt") {
+        Some("text/plain")
+    } else if extension.eq_ignore_ascii_case("flv") {
+        Some("video/x-flv")
+    } else if extension.eq_ignore_ascii_case("mov") {
+        Some("video/quicktime")
+    } else if extension.eq_ignore_ascii_case("mp4") {
+        Some("video/mp4")
+    } else if extension.eq_ignore_ascii_case("mpeg") {
+        Some("video/mpeg")
+    } else if extension.eq_ignore_ascii_case("mpegs") {
+        Some("video/mpegs")
+    } else if extension.eq_ignore_ascii_case("mpg") {
+        Some("video/mpg")
+    } else if extension.eq_ignore_ascii_case("wmv") {
+        Some("video/wmv")
+    } else if extension.eq_ignore_ascii_case("3gp") || extension.eq_ignore_ascii_case("3gpp") {
+        Some("video/3gpp")
+    } else if extension.eq_ignore_ascii_case("aac") {
+        Some("audio/x-aac")
+    } else if extension.eq_ignore_ascii_case("flac") {
+        Some("audio/flac")
+    } else if extension.eq_ignore_ascii_case("mp3") {
+        Some("audio/mp3")
+    } else if extension.eq_ignore_ascii_case("m4a") {
+        Some("audio/m4a")
+    } else if extension.eq_ignore_ascii_case("mpga") {
+        Some("audio/mpga")
+    } else if extension.eq_ignore_ascii_case("ogg") {
+        Some("audio/ogg")
+    } else if extension.eq_ignore_ascii_case("pcm") {
+        Some("audio/pcm")
+    } else if extension.eq_ignore_ascii_case("wav") {
+        Some("audio/wav")
+    } else {
+        None
+    }
 }
 
 /// Parse file metadata from a URL.
@@ -896,6 +900,13 @@ mod tests {
                 Some("https://example.com/video/sample-5s.mp4?signature=abc")
             ),
             Some("video/mp4".to_string())
+        );
+        assert_eq!(
+            infer_mime_type_from_reference(
+                Some("audio"),
+                Some("https://example.com/audio/sample-3s.mp3")
+            ),
+            Some("audio/mp3".to_string())
         );
     }
 
