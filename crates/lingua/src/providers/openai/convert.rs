@@ -14,7 +14,7 @@ use crate::universal::{
     ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
     UserContentPart,
 };
-use crate::util::media::parse_base64_data_url;
+use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
@@ -931,21 +931,8 @@ pub(crate) fn responses_output_values_from_universal_context(
 }
 
 fn openai_media_type_from_reference(filename: Option<&str>, file_url: Option<&str>) -> String {
-    let extension = filename
-        .and_then(|name| name.rsplit('.').next().map(str::to_string))
-        .or_else(|| {
-            file_url
-                .and_then(|url| url.rsplit('/').next())
-                .and_then(|segment| segment.split('?').next())
-                .and_then(|name| name.rsplit('.').next())
-                .map(str::to_string)
-        });
-
-    match extension.as_deref() {
-        Some("txt") => "text/plain".to_string(),
-        Some("pdf") => "application/pdf".to_string(),
-        _ => "application/octet-stream".to_string(),
-    }
+    infer_mime_type_from_reference(filename, file_url)
+        .unwrap_or_else(|| "application/octet-stream".to_string())
 }
 
 fn openai_file_payload_from_data(
@@ -994,7 +981,12 @@ fn universal_file_payload_from_openai(
         });
     }
 
-    let media_type = openai_media_type_from_reference(filename.as_deref(), file_url.as_deref());
+    let reference_url = file_url.as_deref().or_else(|| {
+        file_data
+            .as_deref()
+            .filter(|data| data.starts_with("http://") || data.starts_with("https://"))
+    });
+    let media_type = openai_media_type_from_reference(filename.as_deref(), reference_url);
 
     if let Some(file_url) = file_url {
         return Ok((
@@ -1873,25 +1865,33 @@ impl TryFromLLM<UserContentPart> for openai::InputContent {
                 filename,
                 media_type,
                 provider_options,
-            } => match openai_file_payload_from_data(data, &media_type)? {
-                OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
-                    input_content_type: openai::InputItemContentListType::InputFile,
-                    file_url: Some(file_url),
-                    filename,
-                    ..Default::default()
-                },
-                OpenAIFilePayload::FileData(file_data) => {
-                    let filename =
-                        openai_filename_for_file(filename, &media_type, &provider_options);
+            } => {
+                if media_type.starts_with("audio/") || media_type.starts_with("video/") {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: format!("Lingua file content with MIME type {}", media_type),
+                        to: "OpenAI Responses input_file",
+                    });
+                }
 
-                    openai::InputContent {
+                match openai_file_payload_from_data(data, &media_type)? {
+                    OpenAIFilePayload::FileUrl(file_url) => openai::InputContent {
                         input_content_type: openai::InputItemContentListType::InputFile,
-                        file_data: Some(file_data),
-                        filename,
+                        file_url: Some(file_url),
                         ..Default::default()
+                    },
+                    OpenAIFilePayload::FileData(file_data) => {
+                        let filename =
+                            openai_filename_for_file(filename, &media_type, &provider_options);
+
+                        openai::InputContent {
+                            input_content_type: openai::InputItemContentListType::InputFile,
+                            file_data: Some(file_data),
+                            filename,
+                            ..Default::default()
+                        }
                     }
                 }
-            },
+            }
         })
     }
 }
@@ -6560,6 +6560,39 @@ mod tests {
     }
 
     #[test]
+    fn user_url_backed_file_omits_supplied_filename_for_responses() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/sample.pdf".to_string()),
+            filename: Some("sample.pdf".to_string()),
+            media_type: "application/pdf".to_string(),
+            provider_options: None,
+        };
+
+        let converted = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect("file should convert");
+
+        assert_eq!(
+            converted.file_url.as_deref(),
+            Some("https://example.com/sample.pdf")
+        );
+        assert!(converted.filename.is_none());
+    }
+
+    #[test]
+    fn user_audio_file_errors_for_responses() {
+        let input = UserContentPart::File {
+            data: serde_json::Value::String("https://example.com/sample.mp3".to_string()),
+            filename: Some("sample.mp3".to_string()),
+            media_type: "audio/mp3".to_string(),
+            provider_options: None,
+        };
+
+        let error = <openai::InputContent as TryFromLLM<UserContentPart>>::try_from(input)
+            .expect_err("Responses input_file does not support audio files");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    #[test]
     fn user_file_errors_for_non_string_data() {
         let input = UserContentPart::File {
             data: json!({ "not": "supported" }),
@@ -6962,6 +6995,35 @@ mod tests {
                 assert_eq!(data, serde_json::Value::String("Sample text.".to_string()));
                 assert_eq!(filename.as_deref(), Some("Doc.txt"));
                 assert_eq!(media_type, "text/plain");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn chat_completions_url_backed_file_infers_audio_mime_type_from_filename() {
+        let input = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::File,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: None,
+            file: Some(openai::File {
+                file_data: Some("https://example.com/media".to_string()),
+                file_id: None,
+                filename: Some("sample-3s.mp3".to_string()),
+            }),
+            refusal: None,
+        };
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(input)
+        .expect("file should import");
+
+        match converted {
+            UserContentPart::File { media_type, .. } => {
+                assert_eq!(media_type, "audio/mp3");
             }
             other => panic!("expected file content, got {:?}", other),
         }

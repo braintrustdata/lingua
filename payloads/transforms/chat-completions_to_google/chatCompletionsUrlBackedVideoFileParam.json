@@ -1,0 +1,36 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The video shows a sunny day in a park, with green trees, a paved path, a bench, and a road with cars and a bus driving by.",
+            "thoughtSignature": "ErEJCq4JARFNMg/1v3QXbOUa9j+rySyurg0hLmPRYc8P8P30WTGab6M/XG0f+oVFzuqO9qVYHGpLkuK9+6ndhLRa03Rp6fbtkO9KZBYU7OFKjdLnElVM/8QXhCu6otQjBk2TZBXAeTVENc7uVwbAnD91EAGVFaslUqKX9Hhk9d3CyUC/C7G6GHaK+ubOCNLXIsDWIYeIK0gbdge152zu4cqeRY8sWVfyz/gn/b3MDzsBK8VE/3BUGOnSJL5FxymnmrjCq6XKfXIsDTNGpWqkVM/JMoWq2jAEGDl4IJCpxD1vs+HFhE3ZNsAWxZRG0gMuHVS1MPiqxiOQ2d5Ut4dbhK1K2XxobBp3WrQi8o79X4cG38kuLa7JIf7gtS4QGUsDL0uJPgM23uHr8ilcOi9odQ/XIcqSQzeoMxeOIe+WgKhMjJyoYQIynf5GKoteRIeg1+x59YQmvlLiny3eZtadNpcvPtP4zbBtzrkYYq20Ktc/nn4nKYh+pBW9DZiqTplQIyxWMX1p4RFBY3yUreJTRxpKiI3t8NTJJzi/plfbjF/HPBzhw99N797TI6mRT+5SPE8ckcDnNMyuW2T199HrGD/yLANivBb6tgTmHtAgP3h0JiROtG88cILOxfcT//EcxTjd70zvwAMXrFvUxB9MmDeRrqAOc7S/YSV02x6e9my4VnQOQKcVxNRXIUNs4otsijYdKxm8lUGn35O9qZFD0ATxhN5UWjNj50apV+4xLlEgML/XowoPb8tYpUzAH3h4LZL7pEps++54bFC6df8DIR3/Rl11CwoW2k9doiWlJjSTAVsJMPPOlAHaXGSRhgtIILG3DTOx5+7G02lnhOzUwMBlKTD90Yp9YmmdcolRMastAbAGTJNdAkIdMd/tpmV4awOC9B7DZAFDjimo35f+mcoxZyTt2meMCUaR5k10bzU1U0SQ8Yq4AQmF/zsZfabDT+G3bY5NDpvx2JFuw+ivkYgQmNZVFyXV1QY+M0bESNnz3PxARxU9HZ8nHTzOAbd0jiiDKoK15eeiavxZvRq62bmjLEBbZw4UETJDwrG61p/tsGY8jA4tGmQ8TWpdLzuRA22XmsAXzFDWaHUE81YieTitDwzpaMMsINUh3+o9WC3ygsdQ/wDSjkAMTQBNUJ6sCWMgMQDp/Hd8oDN91f7dj20NITMMGYN8g1Gp6T6f/grLS/8XPujExEO+gBnY3zmb1bI7Wy/dfP4z3Acee0fD6ULrcOtfO78F+bgWDae+zE0B73vLA/G5aX7Okzv90ChllMzu35/JIpqEk0DOSf+Y1o3eJl9S9EgwmbRuPM7ZNX0aIvI+3N18B8B8WWm6nShgvAKBt2pebOIxfFmZoWlEF+rf6yTluprvUbKueokD1xuOKT5Nk2mA/pwEcZNQijZ/a61FqHZseNo9dWBDnfXp4MT9cBPnXnaOjLk3MRm1NUWKzmus7ni3PXH1J9+jApcYCkJBM6Ab1fl8uWGBC8MtRh6zFakQShmgTNH07imV20v+N6KllqM9iFx+WXYtDgcRBAcppSH3nWMszdsZ5Re8lQdc/+kaYqs3v9ehvDwL4e9DLhPTJG2d55phPz8Knv2inRYb1w=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 550,
+    "candidatesTokenCount": 32,
+    "totalTokenCount": 865,
+    "promptTokensDetails": [
+      {
+        "modality": "VIDEO",
+        "tokenCount": 539
+      },
+      {
+        "modality": "TEXT",
+        "tokenCount": 11
+      }
+    ],
+    "thoughtsTokenCount": 283,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "kD5yatX5Ku2g_uMP1_aqkAk"
+}

@@ -180,39 +180,51 @@ impl TryFromLLM<Message> for BedrockMessage {
             Message::User { content } => {
                 let blocks = match content {
                     UserContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
-                    UserContent::Array(parts) => parts
-                        .into_iter()
-                        .filter_map(|p| match p {
-                            UserContentPart::Text(t) => {
-                                Some(BedrockContentBlock::Text { text: t.text })
-                            }
-                            UserContentPart::Image {
-                                image, media_type, ..
-                            } => {
-                                if let Value::String(data) = image {
-                                    let format = media_type
-                                        .as_deref()
-                                        .and_then(|mt| mt.strip_prefix("image/"))
-                                        .map(|f| match f {
-                                            "png" => BedrockImageFormat::Png,
-                                            "gif" => BedrockImageFormat::Gif,
-                                            "webp" => BedrockImageFormat::Webp,
-                                            _ => BedrockImageFormat::Jpeg,
-                                        })
-                                        .unwrap_or(BedrockImageFormat::Jpeg);
-                                    Some(BedrockContentBlock::Image {
-                                        image: BedrockImageBlock {
-                                            format,
-                                            source: BedrockImageSource { bytes: data },
-                                        },
-                                    })
-                                } else {
-                                    None
+                    UserContent::Array(parts) => {
+                        if parts
+                            .iter()
+                            .any(|part| matches!(part, UserContentPart::File { .. }))
+                        {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: "Lingua file content".to_string(),
+                                to: "Bedrock Converse file input",
+                            });
+                        }
+
+                        parts
+                            .into_iter()
+                            .filter_map(|p| match p {
+                                UserContentPart::Text(t) => {
+                                    Some(BedrockContentBlock::Text { text: t.text })
                                 }
-                            }
-                            _ => None,
-                        })
-                        .collect(),
+                                UserContentPart::Image {
+                                    image, media_type, ..
+                                } => {
+                                    if let Value::String(data) = image {
+                                        let format = media_type
+                                            .as_deref()
+                                            .and_then(|mt| mt.strip_prefix("image/"))
+                                            .map(|f| match f {
+                                                "png" => BedrockImageFormat::Png,
+                                                "gif" => BedrockImageFormat::Gif,
+                                                "webp" => BedrockImageFormat::Webp,
+                                                _ => BedrockImageFormat::Jpeg,
+                                            })
+                                            .unwrap_or(BedrockImageFormat::Jpeg);
+                                        Some(BedrockContentBlock::Image {
+                                            image: BedrockImageBlock {
+                                                format,
+                                                source: BedrockImageSource { bytes: data },
+                                            },
+                                        })
+                                    } else {
+                                        None
+                                    }
+                                }
+                                _ => None,
+                            })
+                            .collect()
+                    }
                 };
                 (BedrockConversationRole::User, blocks)
             }
@@ -733,6 +745,22 @@ mod tests {
             BedrockContentBlock::Text { text } => assert_eq!(text, "Hello"),
             _ => panic!("Expected text block"),
         }
+    }
+
+    #[test]
+    fn test_message_to_bedrock_rejects_file_content() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: Value::String("https://example.com/sample.mp3".to_string()),
+                filename: Some("sample.mp3".to_string()),
+                media_type: "audio/mp3".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <BedrockMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Bedrock must not silently drop file content");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]

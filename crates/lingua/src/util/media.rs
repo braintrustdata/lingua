@@ -106,6 +106,81 @@ pub struct FileMetadata {
     pub content_type: Option<String>,
 }
 
+/// Infer a MIME type from a filename or HTTP(S) URL reference.
+///
+/// A content type encoded in a signed URL takes precedence over filename and
+/// path-extension inference.
+pub fn infer_mime_type_from_reference(filename: Option<&str>, url: Option<&str>) -> Option<String> {
+    let url_metadata = url.and_then(parse_file_metadata_from_url);
+
+    if let Some(content_type) = url_metadata
+        .as_ref()
+        .and_then(|metadata| metadata.content_type.clone())
+    {
+        return Some(content_type);
+    }
+
+    let name = filename.or_else(|| {
+        url_metadata
+            .as_ref()
+            .map(|metadata| metadata.filename.as_str())
+    })?;
+    let extension = name.rsplit_once('.')?.1;
+
+    let mime_type =
+        if extension.eq_ignore_ascii_case("jpg") || extension.eq_ignore_ascii_case("jpeg") {
+            "image/jpeg"
+        } else if extension.eq_ignore_ascii_case("png") {
+            "image/png"
+        } else if extension.eq_ignore_ascii_case("webp") {
+            "image/webp"
+        } else if extension.eq_ignore_ascii_case("heic") {
+            "image/heic"
+        } else if extension.eq_ignore_ascii_case("heif") {
+            "image/heif"
+        } else if extension.eq_ignore_ascii_case("pdf") {
+            "application/pdf"
+        } else if extension.eq_ignore_ascii_case("txt") {
+            "text/plain"
+        } else if extension.eq_ignore_ascii_case("flv") {
+            "video/x-flv"
+        } else if extension.eq_ignore_ascii_case("mov") {
+            "video/quicktime"
+        } else if extension.eq_ignore_ascii_case("mp4") {
+            "video/mp4"
+        } else if extension.eq_ignore_ascii_case("mpeg") {
+            "video/mpeg"
+        } else if extension.eq_ignore_ascii_case("mpegs") {
+            "video/mpegs"
+        } else if extension.eq_ignore_ascii_case("mpg") {
+            "video/mpg"
+        } else if extension.eq_ignore_ascii_case("wmv") {
+            "video/wmv"
+        } else if extension.eq_ignore_ascii_case("3gp") || extension.eq_ignore_ascii_case("3gpp") {
+            "video/3gpp"
+        } else if extension.eq_ignore_ascii_case("aac") {
+            "audio/x-aac"
+        } else if extension.eq_ignore_ascii_case("flac") {
+            "audio/flac"
+        } else if extension.eq_ignore_ascii_case("mp3") {
+            "audio/mp3"
+        } else if extension.eq_ignore_ascii_case("m4a") {
+            "audio/m4a"
+        } else if extension.eq_ignore_ascii_case("mpga") {
+            "audio/mpga"
+        } else if extension.eq_ignore_ascii_case("ogg") {
+            "audio/ogg"
+        } else if extension.eq_ignore_ascii_case("pcm") {
+            "audio/pcm"
+        } else if extension.eq_ignore_ascii_case("wav") {
+            "audio/wav"
+        } else {
+            return None;
+        };
+
+    Some(mime_type.to_string())
+}
+
 /// Parse file metadata from a URL.
 ///
 /// This handles:
@@ -807,5 +882,33 @@ mod tests {
         assert!(parse_file_metadata_from_url("not a url").is_none());
         assert!(parse_file_metadata_from_url("ftp://example.com/file").is_none());
         assert!(parse_file_metadata_from_url("https://example.com/").is_none());
+    }
+
+    #[test]
+    fn test_infer_mime_type_from_reference_uses_filename_and_url() {
+        assert_eq!(
+            infer_mime_type_from_reference(Some("sample-3s.MP3"), Some("https://example.com/file")),
+            Some("audio/mp3".to_string())
+        );
+        assert_eq!(
+            infer_mime_type_from_reference(
+                None,
+                Some("https://example.com/video/sample-5s.mp4?signature=abc")
+            ),
+            Some("video/mp4".to_string())
+        );
+    }
+
+    #[test]
+    fn test_infer_mime_type_from_reference_uses_signed_url_content_type() {
+        assert_eq!(
+            infer_mime_type_from_reference(
+                Some("sample.mp3"),
+                Some(
+                    "https://example.com/file?X-Amz-Expires=60&response-content-type=audio%2Fmpeg"
+                )
+            ),
+            Some("audio/mpeg".to_string())
+        );
     }
 }

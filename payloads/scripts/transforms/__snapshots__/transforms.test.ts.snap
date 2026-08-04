@@ -14349,6 +14349,106 @@ Please paste or provide the text you would like me to summarize, and I will glad
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Transcribe this audio clip.",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://samplelib.com/mp3/sample-3s.mp3",
+            "mimeType": "audio/mp3",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "(music)",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 205,
+    "completion_tokens_details": {
+      "reasoning_tokens": 202,
+    },
+    "prompt_tokens": 87,
+    "total_tokens": 292,
+  },
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Describe this video clip.",
+        },
+        {
+          "fileData": {
+            "fileUri": "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+            "mimeType": "video/mp4",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`chat-completions → google > chatCompletionsUrlBackedVideoFileParam > response 1`] = `
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "annotations": [],
+        "content": "The video shows a sunny day in a park, with green trees, a paved path, a bench, and a road with cars and a bus driving by.",
+        "role": "assistant",
+      },
+    },
+  ],
+  "created": 0,
+  "id": "chatcmpl-transformed",
+  "model": "gemini-3.5-flash",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 315,
+    "completion_tokens_details": {
+      "reasoning_tokens": 283,
+    },
+    "prompt_tokens": 550,
+    "total_tokens": 865,
+  },
+}
+`;
+
 exports[`chat-completions → google > complexReasoningRequest > request 1`] = `
 {
   "contents": [

@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Transcribe this audio clip."
+        },
+        {
+          "type": "file",
+          "file": {
+            "filename": "sample-3s.mp3",
+            "file_data": "https://samplelib.com/mp3/sample-3s.mp3"
+          }
+        }
+      ]
+    }
+  ]
+}

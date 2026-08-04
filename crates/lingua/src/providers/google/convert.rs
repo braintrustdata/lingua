@@ -30,7 +30,7 @@ use crate::universal::request::{
 };
 use crate::universal::response::{FinishReason, UniversalUsage};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
-use crate::util::media::{parse_base64_data_url, parse_file_metadata_from_url};
+use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
@@ -56,71 +56,7 @@ fn text_part(text: String) -> GooglePart {
 }
 
 fn mime_type_from_url(url: &str) -> String {
-    if let Some(metadata) = parse_file_metadata_from_url(url) {
-        if let Some(content_type) = metadata.content_type {
-            return content_type;
-        }
-
-        if let Some((_, extension)) = metadata.filename.rsplit_once('.') {
-            let mime_type = if extension.eq_ignore_ascii_case("jpg")
-                || extension.eq_ignore_ascii_case("jpeg")
-            {
-                Some("image/jpeg")
-            } else if extension.eq_ignore_ascii_case("png") {
-                Some("image/png")
-            } else if extension.eq_ignore_ascii_case("webp") {
-                Some("image/webp")
-            } else if extension.eq_ignore_ascii_case("heic") {
-                Some("image/heic")
-            } else if extension.eq_ignore_ascii_case("heif") {
-                Some("image/heif")
-            } else if extension.eq_ignore_ascii_case("pdf") {
-                Some("application/pdf")
-            } else if extension.eq_ignore_ascii_case("txt") {
-                Some("text/plain")
-            } else if extension.eq_ignore_ascii_case("flv") {
-                Some("video/x-flv")
-            } else if extension.eq_ignore_ascii_case("mov") {
-                Some("video/quicktime")
-            } else if extension.eq_ignore_ascii_case("mpeg") {
-                Some("video/mpeg")
-            } else if extension.eq_ignore_ascii_case("mpegs") {
-                Some("video/mpegs")
-            } else if extension.eq_ignore_ascii_case("mpg") {
-                Some("video/mpg")
-            } else if extension.eq_ignore_ascii_case("wmv") {
-                Some("video/wmv")
-            } else if extension.eq_ignore_ascii_case("3gp")
-                || extension.eq_ignore_ascii_case("3gpp")
-            {
-                Some("video/3gpp")
-            } else if extension.eq_ignore_ascii_case("aac") {
-                Some("audio/x-aac")
-            } else if extension.eq_ignore_ascii_case("flac") {
-                Some("audio/flac")
-            } else if extension.eq_ignore_ascii_case("mp3") {
-                Some("audio/mp3")
-            } else if extension.eq_ignore_ascii_case("m4a") {
-                Some("audio/m4a")
-            } else if extension.eq_ignore_ascii_case("mpga") {
-                Some("audio/mpga")
-            } else if extension.eq_ignore_ascii_case("ogg") {
-                Some("audio/ogg")
-            } else if extension.eq_ignore_ascii_case("pcm") {
-                Some("audio/pcm")
-            } else if extension.eq_ignore_ascii_case("wav") {
-                Some("audio/wav")
-            } else {
-                None
-            };
-
-            if let Some(mime_type) = mime_type {
-                return mime_type.to_string();
-            }
-        }
-    }
-
-    DEFAULT_MIME_TYPE.to_string()
+    infer_mime_type_from_reference(None, Some(url)).unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string())
 }
 
 fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
@@ -518,6 +454,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                 }
                                 UserContentPart::File {
                                     data: Value::String(data),
+                                    filename,
                                     media_type,
                                     ..
                                 } => {
@@ -532,10 +469,22 @@ impl TryFromLLM<Message> for GoogleContent {
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
+                                        let mime_type = if media_type == "application/octet-stream" {
+                                            infer_mime_type_from_reference(
+                                                filename.as_deref(),
+                                                Some(&data),
+                                            )
+                                        } else {
+                                            Some(media_type)
+                                        }
+                                        .ok_or_else(|| ConvertError::UnsupportedMapping {
+                                            from: "URL-backed file with an unknown MIME type".to_string(),
+                                            to: "Google fileData (provide a recognized filename or MIME-bearing data URL)",
+                                        })?;
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
-                                                mime_type: Some(media_type),
+                                                mime_type: Some(mime_type),
                                             }),
                                             ..Default::default()
                                         });
@@ -1490,6 +1439,59 @@ mod tests {
         );
         assert_eq!(file_data.mime_type.as_deref(), Some("application/pdf"));
         assert!(parts[0].inline_data.is_none());
+    }
+
+    #[test]
+    fn test_url_backed_file_infers_audio_and_video_mime_types() {
+        let message = Message::User {
+            content: UserContent::Array(vec![
+                UserContentPart::File {
+                    data: Value::String("https://example.com/audio".to_string()),
+                    filename: Some("sample-3s.mp3".to_string()),
+                    media_type: "application/octet-stream".to_string(),
+                    provider_options: None,
+                },
+                UserContentPart::File {
+                    data: Value::String("https://example.com/video/sample-5s.mp4".to_string()),
+                    filename: None,
+                    media_type: "application/octet-stream".to_string(),
+                    provider_options: None,
+                },
+            ]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        assert_eq!(
+            parts[0]
+                .file_data
+                .as_ref()
+                .and_then(|file_data| file_data.mime_type.as_deref()),
+            Some("audio/mp3")
+        );
+        assert_eq!(
+            parts[1]
+                .file_data
+                .as_ref()
+                .and_then(|file_data| file_data.mime_type.as_deref()),
+            Some("video/mp4")
+        );
+    }
+
+    #[test]
+    fn test_url_backed_file_with_unknown_mime_type_errors() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: Value::String("https://example.com/file".to_string()),
+                filename: None,
+                media_type: "application/octet-stream".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(message)
+            .expect_err("unknown URL-backed files should fail before the provider request");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]

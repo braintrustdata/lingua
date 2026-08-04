@@ -571,6 +571,63 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  chatCompletionsUrlBackedAudioFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Transcribe this audio clip.",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "sample-3s.mp3",
+                file_data: "https://samplelib.com/mp3/sample-3s.mp3",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsUrlBackedVideoFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Describe this video clip.",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "sample-5s.mp4",
+                file_data:
+                  "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   responsesFunctionCallOutputWithoutThoughtSignatureParam: {
     "chat-completions": null,
     responses: {
