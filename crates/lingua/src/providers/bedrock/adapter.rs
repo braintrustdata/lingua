@@ -79,7 +79,7 @@ fn served_service_tier_from_bedrock_wire(
 ) -> Option<ServedServiceTier> {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        return served_service_tier_from_bedrock(&service_tier.into());
+        served_service_tier_from_bedrock(&service_tier.into());
     }
 
     #[cfg(target_arch = "wasm32")]
