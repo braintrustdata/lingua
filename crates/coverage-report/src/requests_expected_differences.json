@@ -4,6 +4,7 @@
       "source": "*",
       "target": "*",
       "fields": [
+        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal across providers" },
         { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific (OpenAI uses response-level IDs, Anthropic uses message-level IDs, Bedrock has none)" },
         { "pattern": "params.reasoning.canonical", "reason": "Metadata indicating source format (effort vs budget_tokens) - changes when converting between providers with different canonical representations" }
       ]
@@ -195,102 +196,6 @@
     }
   ],
   "perTestCase": [
-    {
-      "testCase": "serviceTierParam",
-      "source": "Responses",
-      "target": "Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Responses",
-      "target": "Bedrock Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Responses",
-      "target": "Vertex Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Responses",
-      "target": "Google",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Google has no equivalent for the OpenAI default request tier" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Responses",
-      "target": "Bedrock",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Bedrock Converse has no equivalent for the OpenAI default request tier" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "ChatCompletions",
-      "target": "Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "ChatCompletions",
-      "target": "Bedrock Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "ChatCompletions",
-      "target": "Vertex Anthropic",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "OpenAI default is intentionally mapped to Anthropic auto" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "ChatCompletions",
-      "target": "Google",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Google has no equivalent for the OpenAI default request tier" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "ChatCompletions",
-      "target": "Bedrock",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Bedrock Converse has no equivalent for the OpenAI default request tier" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Anthropic",
-      "target": "Google",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Google has no equivalent for the Anthropic auto request tier" }
-      ]
-    },
-    {
-      "testCase": "serviceTierParam",
-      "source": "Anthropic",
-      "target": "Bedrock",
-      "fields": [
-        { "pattern": "params.service_tier", "reason": "Bedrock Converse has no equivalent for the Anthropic auto request tier" }
-      ]
-    },
     {
       "testCase": "responsesReasoningEffortMaxParam",
       "source": "Responses",
