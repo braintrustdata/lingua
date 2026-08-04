@@ -21,7 +21,7 @@ use crate::providers::openai::convert::{
     messages_to_chat_completion_messages, ChatCompletionRequestMessageExt,
     ChatCompletionResponseMessageExt,
 };
-use crate::providers::openai::generated::WebSearch;
+use crate::providers::openai::generated::{ServiceTier, WebSearch};
 use crate::providers::openai::params::{
     OpenAIChatExtrasView, OpenAIChatLegacyPromptParams, OpenAIChatParams, OpenAICompletionPrompt,
     OpenAIReasoningEffort,
@@ -40,7 +40,7 @@ use crate::universal::request::{
 };
 use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
 use crate::universal::{
-    parse_stop_sequences, UniversalParams, UniversalRequest, UniversalResponse,
+    parse_stop_sequences, ServedServiceTier, UniversalParams, UniversalRequest, UniversalResponse,
     UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
 };
 use serde::{de::IgnoredAny, Deserialize};
@@ -48,6 +48,17 @@ use std::collections::BTreeMap;
 use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
+
+pub(crate) fn served_service_tier_from_openai(service_tier: ServiceTier) -> ServedServiceTier {
+    match service_tier {
+        ServiceTier::Auto => ServedServiceTier::Auto,
+        ServiceTier::Default => ServedServiceTier::Default,
+        ServiceTier::Fast => ServedServiceTier::Fast,
+        ServiceTier::Flex => ServedServiceTier::Flex,
+        ServiceTier::Priority => ServedServiceTier::Priority,
+        ServiceTier::Scale => ServedServiceTier::Scale,
+    }
+}
 
 /// Adapter for OpenAI Chat Completions API.
 pub struct OpenAIAdapter;
@@ -628,6 +639,17 @@ impl ProviderAdapter for OpenAIAdapter {
 
         let finish_reason = finish_reasons.first().cloned();
 
+        #[derive(Deserialize)]
+        struct OpenAIResponseServiceTierView {
+            service_tier: Option<ServiceTier>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<OpenAIResponseServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .map(served_service_tier_from_openai);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -639,6 +661,7 @@ impl ProviderAdapter for OpenAIAdapter {
                 .map(String::from),
             messages,
             usage,
+            served_service_tier,
             finish_reason,
             finish_reasons,
         })
@@ -690,6 +713,23 @@ impl ProviderAdapter for OpenAIAdapter {
 
         if let Some(usage_val) = usage {
             map.insert("usage".into(), usage_val);
+        }
+        if let Some(service_tier) =
+            resp.served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Auto
+                    | ServedServiceTier::Default
+                    | ServedServiceTier::Fast
+                    | ServedServiceTier::Flex
+                    | ServedServiceTier::Priority
+                    | ServedServiceTier::Scale => Some(service_tier),
+                    _ => None,
+                })
+        {
+            map.insert(
+                "service_tier".into(),
+                Value::String(service_tier.as_str().to_string()),
+            );
         }
 
         Ok(Value::Object(map))
@@ -1113,6 +1153,7 @@ mod tests {
                 },
             ],
             usage: None,
+            served_service_tier: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };

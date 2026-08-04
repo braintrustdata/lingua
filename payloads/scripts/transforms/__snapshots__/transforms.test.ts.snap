@@ -2249,6 +2249,7 @@ Right, so the user offered a straightforward "hello world." No complex query the
   "id": "msg_transformed",
   "model": "gemini-2.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2292,6 +2293,7 @@ exports[`anthropic → google > anthropicMidConversationSystemMessage > response
   "id": "msg_transformed",
   "model": "gemini-2.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "max_tokens",
   "type": "message",
   "usage": {
@@ -2396,6 +2398,7 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2436,6 +2439,7 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2476,6 +2480,7 @@ exports[`anthropic → google > bedrockAnthropicContextManagementParam > respons
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2613,6 +2618,7 @@ exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > resp
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2661,6 +2667,7 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2708,6 +2715,7 @@ exports[`anthropic → google > chatCompletionsSystemCacheControlParam > respons
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -2971,6 +2979,7 @@ exports[`anthropic → google > fableTemperatureParam > response 1`] = `
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -3300,6 +3309,7 @@ Alright, a simple arithmetic question. They've given me "2 + 2." The user, being
   "id": "msg_transformed",
   "model": "gemini-2.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -3696,6 +3706,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -4123,6 +4134,7 @@ Therefore, my final output, based on my analysis and the desired user experience
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "end_turn",
   "type": "message",
   "usage": {
@@ -4182,6 +4194,7 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
   "id": "msg_transformed",
   "model": "gemini-3.5-flash",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "tool_use",
   "type": "message",
   "usage": {
@@ -4871,6 +4884,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "id": "msg_transformed",
   "model": "gemini-3-flash-preview",
   "role": "assistant",
+  "service_tier": "standard",
   "stop_reason": "tool_use",
   "type": "message",
   "usage": {
@@ -17726,6 +17740,7 @@ Once you provide the text, I’ll generate the summary in your chosen format and
   "id": "chatcmpl-0070295c6fa3899a006a2885cfbf5881a287efa197ea2ea6c2",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 1341,
     "completion_tokens_details": {
@@ -17818,6 +17833,7 @@ Brief note on method: counted digit occurrences separately for hour tens (H1), h
   "id": "chatcmpl-04b60d584009ea580069de77bd84e48194a2f9ac6eeb5de8d6",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 5648,
     "completion_tokens_details": {
@@ -17892,6 +17908,7 @@ If you’d like, I can apply 2048 tokens right now as a balanced default. Would 
   "id": "chatcmpl-0038cce6fceb0e88006a01faa00e5c8195921786d0852993cd",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 768,
     "completion_tokens_details": {
@@ -17937,6 +17954,7 @@ exports[`chat-completions → responses > fableTemperatureParam > response 1`] =
   "id": "chatcmpl-03405e803c9d6c6f006a288c9add2481999e664ea45ed23910",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 186,
     "completion_tokens_details": {
@@ -17982,6 +18000,7 @@ exports[`chat-completions → responses > frequencyPenaltyParam > response 1`] =
   "id": "chatcmpl-06e0381ec483a6f30069de77d488bc8190a5cda587306ce902",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 297,
     "completion_tokens_details": {
@@ -18059,6 +18078,7 @@ exports[`chat-completions → responses > functionToolsWithReasoningEffortParam 
   "id": "chatcmpl-084d44b731628f64006a021408541081938c4193815899068d",
   "model": "gpt-5.4-mini-2026-03-17",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 52,
     "completion_tokens_details": {
@@ -18139,6 +18159,7 @@ Would you like to see document counts or sample documents from any of these?",
   "id": "chatcmpl-0b84110d340c2d3c006a1f332124ac8199b234ca6f6df198ba",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 222,
     "completion_tokens_details": {
@@ -18193,6 +18214,7 @@ exports[`chat-completions → responses > imageUrlMimeTypeFallbackParam > respon
   "id": "chatcmpl-037275c675122e4e0069f24f93c408819f808282ec47178efe",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 511,
     "completion_tokens_details": {
@@ -18243,6 +18265,7 @@ exports[`chat-completions → responses > instructionsParam > response 1`] = `
   "id": "chatcmpl-095c8a54ae22a6970069de77d002588193b68457476b875cc1",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 152,
     "completion_tokens_details": {
@@ -18308,6 +18331,7 @@ exports[`chat-completions → responses > jsonSchemaFormatParam > response 1`] =
   "id": "chatcmpl-0c9355af589798e00069de77c6f91c819cb55d38911ab98c2f",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 1076,
     "completion_tokens_details": {
@@ -18377,6 +18401,7 @@ exports[`chat-completions → responses > jsonSchemaMinMaxItemsParam > response 
   "id": "chatcmpl-01e282344d60e4a90069de77c8658c819da459f27b571a09e0",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 514,
     "completion_tokens_details": {
@@ -18443,6 +18468,7 @@ exports[`chat-completions → responses > jsonSchemaMinimumMaximumParam > respon
   "id": "chatcmpl-0f8173028dacc0220069de77caacb081979dc59652c778748c",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 442,
     "completion_tokens_details": {
@@ -18527,6 +18553,7 @@ exports[`chat-completions → responses > jsonSchemaPrefixItemsParam > response 
   "id": "chatcmpl-065da34a90e48e570069de77c6f7c481a0855f02ab6707fb19",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 358,
     "completion_tokens_details": {
@@ -18572,6 +18599,7 @@ exports[`chat-completions → responses > logitBiasParam > response 1`] = `
   "id": "chatcmpl-07120462c5f72b130069de77dbe05c8194996efe7c17466bf5",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 153,
     "completion_tokens_details": {
@@ -18632,6 +18660,7 @@ exports[`chat-completions → responses > maxCompletionTokensParam > response 1`
   "id": "chatcmpl-024dec6805efbfa60069de77d75324819cb4f1ff38b2e4fb76",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 194,
     "completion_tokens_details": {
@@ -18683,6 +18712,7 @@ exports[`chat-completions → responses > metadataParam > response 1`] = `
   "id": "chatcmpl-0e0d391f15f5d8c20069de77d2414c819f93f24f79591b57f7",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 199,
     "completion_tokens_details": {
@@ -18737,6 +18767,7 @@ exports[`chat-completions → responses > multimodalRequest > response 1`] = `
   "id": "chatcmpl-0086eb9ffe0a766d0069de77bda510819db0c43e2717be6a27",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 256,
     "completion_tokens_details": {
@@ -18782,6 +18813,7 @@ exports[`chat-completions → responses > nMultipleCompletionsParam > response 1
   "id": "chatcmpl-019dd9c549130f600069de77d521ac819da519dd202e5d58dd",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 344,
     "completion_tokens_details": {
@@ -18844,6 +18876,7 @@ Would you like to share the policy now, or tell me your preferred length and aud
   "id": "chatcmpl-01ea2ae9a7dbf6ee006a1b4a17ec5c81a3b6d9fb8d538b970b",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 1122,
     "completion_tokens_details": {
@@ -18893,6 +18926,7 @@ exports[`chat-completions → responses > opus47AdaptiveThinkingReasoningEffortP
   "id": "chatcmpl-0187fd78f6b74ce8006a036c93aed8819d835490c32aa997dc",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 133,
     "completion_tokens_details": {
@@ -18968,6 +19002,7 @@ exports[`chat-completions → responses > parallelToolCallsDisabledParam > respo
   "id": "chatcmpl-0ad8e9a5d7556d3f0069de77cec5cc81939e2d941c298a41f3",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 219,
     "completion_tokens_details": {
@@ -19061,6 +19096,7 @@ Want an hourly forecast or precipitation chance for either city?",
   "id": "chatcmpl-02878e18227afc110069de77be8f2081a1969ebfad0b5f86d5",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 1025,
     "completion_tokens_details": {
@@ -19142,6 +19178,7 @@ If you prefer a non-throwing variant that returns an error object instead of thr
   "id": "chatcmpl-0f6744861744c5bd0069de77d7b2608197a7e0ef103aca47c5",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 1559,
     "completion_tokens_details": {
@@ -19187,6 +19224,7 @@ exports[`chat-completions → responses > presencePenaltyParam > response 1`] = 
   "id": "chatcmpl-08934d2b6a2678890069de77d49ecc819eb7946e0a45c9b3e0",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 192,
     "completion_tokens_details": {
@@ -19233,6 +19271,7 @@ exports[`chat-completions → responses > promptCacheKeyParam > response 1`] = `
   "id": "chatcmpl-0cf927c0890ff1570069de77d0f8388191a02ddf97e056e1df",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 196,
     "completion_tokens_details": {
@@ -19281,6 +19320,7 @@ exports[`chat-completions → responses > reasoningEffortLowParam > response 1`]
   "id": "chatcmpl-044db013f076382b0069de77c38648819f96262af1bc419c72",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 47,
     "prompt_tokens": 13,
@@ -19326,6 +19366,7 @@ exports[`chat-completions → responses > reasoningEffortMinimalParam > response
   "id": "chatcmpl-0c33e31a8fb1b4110069f453d59424819498a745fafb3f813b",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 25,
     "prompt_tokens": 13,
@@ -19370,6 +19411,7 @@ exports[`chat-completions → responses > reasoningEffortNoneParam > response 1`
   "id": "chatcmpl-0b34a7966c9d9b9d0069fa2f5f510481909c4dcc1c6bc2a8bc",
   "model": "gpt-5.2-2025-12-11",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 11,
     "prompt_tokens": 13,
@@ -19423,6 +19465,7 @@ Answer: 66 2/3 mph.",
   "id": "chatcmpl-016a96f2cfd55d630069de77bc379481979d3b1067f1975bc5",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 633,
     "completion_tokens_details": {
@@ -19468,6 +19511,7 @@ exports[`chat-completions → responses > reasoningRequestTruncated > response 1
   "id": "chatcmpl-0e466b8230ae67700069de77bc4b688190b8c958fc2a1f9ebe",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 64,
     "completion_tokens_details": {
@@ -19516,6 +19560,7 @@ exports[`chat-completions → responses > reasoningSummaryParam > response 1`] =
   "id": "chatcmpl-01b7262a370485190069de77c26d3881968d4e4596a3938d31",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 123,
     "completion_tokens_details": {
@@ -19561,6 +19606,7 @@ exports[`chat-completions → responses > reasoningWithOutput > response 1`] = `
   "id": "chatcmpl-0e61724c90af491c0069de77bdc448819cb32cebfd3e071c4f",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 629,
     "completion_tokens_details": {
@@ -19609,6 +19655,7 @@ exports[`chat-completions → responses > safetyIdentifierParam > response 1`] =
   "id": "chatcmpl-0be631c1ba357eac0069de77d2961c8196aeb8e132d4a15de4",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 281,
     "completion_tokens_details": {
@@ -19656,6 +19703,7 @@ Want a different range or another number?",
   "id": "chatcmpl-0fb355d3096e414c0069de77d9087c819480dc43355b663203",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 770,
     "completion_tokens_details": {
@@ -19702,6 +19750,7 @@ exports[`chat-completions → responses > serviceTierParam > response 1`] = `
   "id": "chatcmpl-0ce5ff7272e0e8520069de77d0f62881a191754ad8ea7509b1",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 269,
     "completion_tokens_details": {
@@ -19750,6 +19799,7 @@ exports[`chat-completions → responses > simpleRequest > response 1`] = `
   "id": "chatcmpl-0f2698b7e29f2a6b0069de77bc289c8193a8b487f3ad667e17",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 36,
     "prompt_tokens": 13,
@@ -19792,6 +19842,7 @@ exports[`chat-completions → responses > simpleRequestTruncated > response 1`] 
   "id": "chatcmpl-03bcf07c10b4dcde0069de77bc4f7c8194a03ca3c986b9f6bd",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 0,
     "prompt_tokens": 15,
@@ -19834,6 +19885,7 @@ exports[`chat-completions → responses > stopSequencesParam > response 1`] = `
   "id": "chatcmpl-0c3cb6816eb4da2b0069de77d61bd481958ead372aab26bf71",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 366,
     "completion_tokens_details": {
@@ -19880,6 +19932,7 @@ exports[`chat-completions → responses > storeDisabledParam > response 1`] = `
   "id": "chatcmpl-03a614b11f2ac8350169de77d05620819d984802d81c4a50c4",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 141,
     "completion_tokens_details": {
@@ -19935,6 +19988,7 @@ exports[`chat-completions → responses > systemMessageArrayContent > response 1
   "id": "chatcmpl-0adacc1fb45f65950069de77c21f848190b3c58e95303e969f",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 256,
     "completion_tokens_details": {
@@ -19998,6 +20052,7 @@ exports[`chat-completions → responses > textFormatJsonObjectParam > response 1
   "id": "chatcmpl-0babbd35216461bd0069de77c46738819295d6c00c268ba7af",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 244,
     "completion_tokens_details": {
@@ -20065,6 +20120,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaMissingRequiredPro
   "id": "chatcmpl-016f4883d0291359006a26eb5eee04819eb1833217fbb168c2",
   "model": "gpt-5.4-mini-2026-03-17",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 43,
     "prompt_tokens": 43,
@@ -20137,6 +20193,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaNullableUnionTypeG
   "id": "chatcmpl-020bd5fdbbf1a5b20069de8a20952c8196a0279dd728c70ce7",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 810,
     "completion_tokens_details": {
@@ -20205,6 +20262,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaParam > response 1
   "id": "chatcmpl-0b4bbc9b26da07460069de77c4ade481968c71ee975b0902e3",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 340,
     "completion_tokens_details": {
@@ -20274,6 +20332,7 @@ exports[`chat-completions → responses > textFormatJsonSchemaWithDescriptionPar
   "id": "chatcmpl-05787beef665d3610069de77c4f7f481a1ad59a17795fb6d1c",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 778,
     "completion_tokens_details": {
@@ -20324,6 +20383,7 @@ exports[`chat-completions → responses > textFormatTextParam > response 1`] = `
   "id": "chatcmpl-0cb1e837069522dc0069de77cb802481969c84d0029ab0ae13",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 152,
     "completion_tokens_details": {
@@ -20398,6 +20458,7 @@ exports[`chat-completions → responses > toolCallRequest > response 1`] = `
   "id": "chatcmpl-0edac9025f9fd7990069fb5b59a6a08190aa351eca7fec7549",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 411,
     "completion_tokens_details": {
@@ -20476,6 +20537,7 @@ exports[`chat-completions → responses > toolChoiceRequiredParam > response 1`]
   "id": "chatcmpl-0865a12cae8eba020069de77ccb77881a1bb84f8993a4b8e83",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 421,
     "completion_tokens_details": {
@@ -20557,6 +20619,7 @@ exports[`chat-completions → responses > toolChoiceRequiredWithReasoningParam >
   "id": "chatcmpl-0662c2f00f598b160069de77cd75d4819391a65765b52fa6fb",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 423,
     "completion_tokens_details": {
@@ -20602,6 +20665,7 @@ exports[`chat-completions → responses > topPParam > response 1`] = `
   "id": "chatcmpl-047b4f23007a07b70069dfbbe36840819db09dcb15f5b688da",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 193,
     "completion_tokens_details": {
@@ -20647,6 +20711,7 @@ exports[`chat-completions → responses > topPReasoningModelParam > response 1`]
   "id": "chatcmpl-031a4d1f0e194aca0069dea7360f48819cae730888cf583b07",
   "model": "gpt-5-nano-2025-08-07",
   "object": "chat.completion",
+  "service_tier": "default",
   "usage": {
     "completion_tokens": 136,
     "completion_tokens_details": {
@@ -29988,6 +30053,61 @@ exports[`responses → anthropic > openaiPromptCacheKeyParam > response 1`] = `
 }
 `;
 
+exports[`responses → anthropic > openaiServiceTierFastParam > request 1`] = `
+{
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "Reply with hello.",
+      "role": "user",
+    },
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+}
+`;
+
+exports[`responses → anthropic > openaiServiceTierFastParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_011Cdi1MFNLSDx7BWPUoR3Rv",
+  "incomplete_details": null,
+  "model": "claude-sonnet-4-5-20250929",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "hello",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "hello",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 11,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0,
+    },
+    "output_tokens": 4,
+    "output_tokens_details": {
+      "reasoning_tokens": 0,
+    },
+    "total_tokens": 15,
+  },
+}
+`;
+
 exports[`responses → anthropic > parallelToolCallsDisabledParam > request 1`] = `
 {
   "max_tokens": 4096,
@@ -33964,6 +34084,63 @@ exports[`responses → google > openaiPromptCacheKeyParam > response 1`] = `
       "reasoning_tokens": 404,
     },
     "total_tokens": 415,
+  },
+}
+`;
+
+exports[`responses → google > openaiServiceTierFastParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Reply with hello.",
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
+exports[`responses → google > openaiServiceTierFastParam > response 1`] = `
+{
+  "created_at": 0,
+  "id": "resp_transformed",
+  "incomplete_details": null,
+  "model": "gemini-3.5-flash",
+  "object": "response",
+  "output": [
+    {
+      "content": [
+        {
+          "annotations": [],
+          "text": "hello",
+          "type": "output_text",
+        },
+      ],
+      "id": "msg_transformed_item_0",
+      "role": "assistant",
+      "status": "completed",
+      "type": "message",
+    },
+  ],
+  "output_text": "hello",
+  "parallel_tool_calls": false,
+  "status": "completed",
+  "tool_choice": "none",
+  "tools": [],
+  "usage": {
+    "input_tokens": 5,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+    },
+    "output_tokens": 63,
+    "output_tokens_details": {
+      "reasoning_tokens": 62,
+    },
+    "total_tokens": 68,
   },
 }
 `;

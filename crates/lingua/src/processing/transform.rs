@@ -1589,6 +1589,25 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_responses_fast_service_tier_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.6-sol",
+            "input": [{"role": "user", "content": "Hello"}],
+            "service_tier": "fast"
+        });
+
+        let result = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .unwrap()
+            .result;
+
+        assert_eq!(result.source_format(), Some(ProviderFormat::Responses));
+        let output: Value = crate::serde_json::from_slice(&result.into_bytes()).unwrap();
+        assert!(output.get("messages").is_some());
+        assert!(output.get("service_tier").is_none());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_transform_request_responses_discovery_tools_to_anthropic() {
         let payload = json!({
             "model": "gpt-5.5",
@@ -2289,6 +2308,7 @@ mod tests {
                 }]),
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };

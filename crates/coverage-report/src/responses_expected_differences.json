@@ -1,11 +1,87 @@
 {
   "global": [
     {
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Google cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Bedrock Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Vertex Anthropic",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Anthropic cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Google cannot represent the OpenAI response default tier" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "OpenAI cannot represent the Google response standard or unspecified tiers" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "ChatCompletions",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "OpenAI cannot represent the Google response standard or unspecified tiers" }
+      ]
+    },
+    {
+      "source": "Google",
+      "target": "Bedrock",
+      "fields": [
+        { "pattern": "served_service_tier", "reason": "Bedrock Converse cannot represent the Google response standard or unspecified tiers" }
+      ]
+    },
+    {
       "source": "*",
       "target": "*",
       "fields": [
-        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific and represent different concepts across providers" },
-        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal" }
+        { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific and represent different concepts across providers" }
       ]
     },
     {

@@ -17,8 +17,8 @@ use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
 use crate::providers::bedrock::request::{BedrockInferenceConfiguration, BedrockMessage};
 use crate::providers::bedrock::response::{
-    BedrockConverseStreamEvent, BedrockStopReason, BedrockStreamContentBlockDeltaValue,
-    BedrockStreamContentBlockStartValue,
+    BedrockConverseStreamEvent, BedrockServiceTier, BedrockServiceTierType, BedrockStopReason,
+    BedrockStreamContentBlockDeltaValue, BedrockStreamContentBlockStartValue,
 };
 use crate::providers::bedrock::try_parse_bedrock;
 use crate::serde_json::{self, Map, Value};
@@ -27,13 +27,22 @@ use crate::universal::message::Message;
 use crate::universal::request::ReasoningConfig;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
-    TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UniversalUsage,
+    ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
+
+fn served_service_tier_from_bedrock(service_tier: BedrockServiceTier) -> ServedServiceTier {
+    match service_tier.r#type {
+        BedrockServiceTierType::Default => ServedServiceTier::Default,
+        BedrockServiceTierType::Flex => ServedServiceTier::Flex,
+        BedrockServiceTierType::Priority => ServedServiceTier::Priority,
+        BedrockServiceTierType::Reserved => ServedServiceTier::Reserved,
+    }
+}
 
 fn bedrock_stop_reason_to_finish_reason(stop_reason: &BedrockStopReason) -> &'static str {
     match stop_reason {
@@ -345,6 +354,18 @@ impl ProviderAdapter for BedrockAdapter {
             None => None,
         };
 
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct BedrockResponseServiceTierView {
+            service_tier: Option<BedrockServiceTier>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<BedrockResponseServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .map(served_service_tier_from_bedrock);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -353,6 +374,7 @@ impl ProviderAdapter for BedrockAdapter {
             model: None, // Bedrock doesn't include model in response
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -389,6 +411,22 @@ impl ProviderAdapter for BedrockAdapter {
 
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
+        }
+        if let Some(service_tier) =
+            resp.served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Default => Some(BedrockServiceTierType::Default),
+                    ServedServiceTier::Flex => Some(BedrockServiceTierType::Flex),
+                    ServedServiceTier::Priority => Some(BedrockServiceTierType::Priority),
+                    ServedServiceTier::Reserved => Some(BedrockServiceTierType::Reserved),
+                    _ => None,
+                })
+        {
+            let value = serde_json::to_value(BedrockServiceTier {
+                r#type: service_tier,
+            })
+            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("serviceTier".into(), value);
         }
 
         Ok(Value::Object(map))

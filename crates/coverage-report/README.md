@@ -90,10 +90,10 @@ Certain fields are intentionally lost during cross-provider transformations beca
   - **Anthropic/Bedrock**: Don't include timestamps
 - Represents when the response was generated, not part of actual content
 
-**Service tier** (`service_tier`):
-- OpenAI-specific billing tier indicating account level (`"default"` or `"scale"`)
-- Not present in other providers (Anthropic has different usage tracking structure)
-- This is API billing metadata, not universal content
+**Served service tier** (`served_service_tier`):
+- Universal response metadata for the tier that served a response
+- Preserved when both source and target formats can express the same tier
+- Marked as a limitation only for specific provider pairs with incompatible tier vocabularies
 
 **System fingerprint** (`system_fingerprint`):
 - OpenAI-specific system identifier for tracking backend changes

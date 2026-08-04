@@ -17,6 +17,7 @@ import {
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
+  OPENAI_SOL_MODEL,
   OPENAI_REASONING_NONE_MODEL,
   OPENAI_NON_REASONING_MODEL,
   OPENAI_MINI_REASONING_MODEL,
@@ -81,6 +82,18 @@ const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssist
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  openaiServiceTierFastParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_SOL_MODEL,
+      input: [{ role: "user", content: "Reply with hello." }],
+      service_tier: "fast",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   bedrockDocumentCitationStreamingParam: {
     "chat-completions": null,
     responses: null,

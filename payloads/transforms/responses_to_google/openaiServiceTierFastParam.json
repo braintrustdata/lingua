@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "hello",
+            "thoughtSignature": "EqkCCqYCARFNMg+5q97IFxwaQMQUl47HBgLmn3BQ7H8+B2iFId9kotgI83GEns4aZz9jBfKJpMUeCwHMceFvnqwPT/kwtnrBottq7LbedTKc9WEat2J1htg8lSDYYNpOu4HouHsQ5s4AHaroDVWcEPnNLyq5FsK75l5y1ZXDjSeJ7746vx0oNZ7lr63YxwmhLqeIUl+Un5kMfry9cFHTODtx+9pf30/L5cjN5tX57LJWucTKScU2pbMJwuJSR/pdFDE+DHt5TCSmKcEyqTjL4pyFOdWcfOmsjEzc8/aqAm+3w4xEIZBfmMk4aCafHfZ8URrC5NK8YKkAw4Df+OZee5vMRnE3ArIpXW8fxanMt0mwA3ohJgDJ0xfkU29VzHcvfQ+rALMPcREFyLq+"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 5,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 68,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 5
+      }
+    ],
+    "thoughtsTokenCount": 62,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "HRByaqqTEoGm_uMPuN_RmA0"
+}

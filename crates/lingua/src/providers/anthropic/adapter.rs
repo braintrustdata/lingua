@@ -23,8 +23,8 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum, Thinking,
-    ThinkingType, Tool, ToolChoice, ToolChoiceType,
+    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum,
+    ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice, ToolChoiceType,
 };
 use crate::providers::anthropic::params::AnthropicExtrasView;
 use crate::providers::anthropic::tool_discovery;
@@ -39,10 +39,10 @@ use crate::universal::request::{
 };
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
-    PLACEHOLDER_MODEL,
+    FinishReason, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
@@ -84,6 +84,14 @@ fn service_tier_to_string(service_tier: ServiceTierEnum) -> String {
     match service_tier {
         ServiceTierEnum::Auto => "auto".to_string(),
         ServiceTierEnum::StandardOnly => "standard_only".to_string(),
+    }
+}
+
+fn served_service_tier_from_anthropic(service_tier: ServiceTierServiceTier) -> ServedServiceTier {
+    match service_tier {
+        ServiceTierServiceTier::Batch => ServedServiceTier::Batch,
+        ServiceTierServiceTier::Priority => ServedServiceTier::Priority,
+        ServiceTierServiceTier::Standard => ServedServiceTier::Standard,
     }
 }
 
@@ -754,13 +762,16 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
-        // Add service_tier from canonical params
-        // Map OpenAI's "default" to Anthropic's "auto" (Anthropic only accepts "auto" or "standard_only")
-        if let Some(ref service_tier) = req.params.service_tier {
-            let anthropic_tier = match service_tier.as_str() {
-                "default" => "auto",
-                other => other,
-            };
+        if let Some(anthropic_tier) = req
+            .params
+            .service_tier
+            .as_deref()
+            .and_then(|tier| match tier {
+                "default" => Some("auto"),
+                "auto" | "standard_only" => Some(tier),
+                _ => None,
+            })
+        {
             obj.insert(
                 "service_tier".into(),
                 Value::String(anthropic_tier.to_string()),
@@ -829,6 +840,17 @@ impl ProviderAdapter for AnthropicAdapter {
             None => None,
         };
 
+        #[derive(Deserialize)]
+        struct AnthropicResponseServiceTierView {
+            service_tier: Option<ServiceTierServiceTier>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<AnthropicResponseServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .map(served_service_tier_from_anthropic);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -840,6 +862,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -872,6 +895,20 @@ impl ProviderAdapter for AnthropicAdapter {
 
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
+        }
+        if let Some(service_tier) =
+            resp.served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Batch
+                    | ServedServiceTier::Priority
+                    | ServedServiceTier::Standard => Some(service_tier),
+                    _ => None,
+                })
+        {
+            map.insert(
+                "service_tier".into(),
+                Value::String(service_tier.as_str().to_string()),
+            );
         }
 
         Ok(Value::Object(map))

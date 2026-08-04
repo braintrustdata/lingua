@@ -17,8 +17,8 @@ use crate::providers::google::capabilities::{
 use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
-    ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
+    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
@@ -30,14 +30,24 @@ use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
-    ReasoningConfig, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
+    ReasoningConfig, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    UserContent,
 };
 use serde::{Deserialize, Serialize};
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+fn served_service_tier_from_google(service_tier: ServiceTier) -> ServedServiceTier {
+    match service_tier {
+        ServiceTier::Flex => ServedServiceTier::Flex,
+        ServiceTier::Priority => ServedServiceTier::Priority,
+        ServiceTier::Standard => ServedServiceTier::Standard,
+        ServiceTier::Unspecified => ServedServiceTier::Unspecified,
+    }
+}
 
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -531,6 +541,11 @@ impl ProviderAdapter for GoogleAdapter {
         };
 
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
+        let served_service_tier = response
+            .usage_metadata
+            .as_ref()
+            .and_then(|usage| usage.service_tier.clone())
+            .map(served_service_tier_from_google);
 
         Ok(UniversalResponse {
             id: None, // Google doesn't include a top-level response ID
@@ -538,6 +553,7 @@ impl ProviderAdapter for GoogleAdapter {
             model: response.model_version,
             messages,
             usage,
+            served_service_tier,
             finish_reason,
             finish_reasons,
         })
@@ -590,7 +606,16 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         if let Some(usage) = &resp.usage {
-            let metadata = UsageMetadata::from(usage);
+            let mut metadata = UsageMetadata::from(usage);
+            metadata.service_tier =
+                resp.served_service_tier
+                    .and_then(|service_tier| match service_tier {
+                        ServedServiceTier::Flex => Some(ServiceTier::Flex),
+                        ServedServiceTier::Priority => Some(ServiceTier::Priority),
+                        ServedServiceTier::Standard => Some(ServiceTier::Standard),
+                        ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
+                        _ => None,
+                    });
             let value = serde_json::to_value(&metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usageMetadata".into(), value);

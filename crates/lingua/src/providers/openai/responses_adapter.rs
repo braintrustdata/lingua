@@ -14,7 +14,9 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::openai::adapter::parse_openai_chat_extras;
+use crate::providers::openai::adapter::{
+    parse_openai_chat_extras, served_service_tier_from_openai,
+};
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
     strip_unsupported_responses_prompt_cache_breakpoints,
@@ -26,7 +28,7 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, InputParam, Instructions,
-    OutputItemType, Prompt,
+    OutputItemType, Prompt, ServiceTier,
 };
 use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
@@ -40,10 +42,10 @@ use crate::universal::message::{
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
-    ConversationReference, ConversationReferenceType, FinishReason, TokenBudget, UniversalParams,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
-    PLACEHOLDER_MODEL,
+    ConversationReference, ConversationReferenceType, FinishReason, ServedServiceTier, TokenBudget,
+    UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -1190,6 +1192,17 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(|s| FinishReason::from_provider_string(s, ProviderFormat::Responses))
         };
 
+        #[derive(Deserialize)]
+        struct OpenAIResponsesServiceTierView {
+            service_tier: Option<ServiceTier>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<OpenAIResponsesServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .map(served_service_tier_from_openai);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -1201,6 +1214,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(String::from),
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -1257,6 +1271,23 @@ impl ProviderAdapter for ResponsesAdapter {
 
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
+        }
+        if let Some(service_tier) =
+            resp.served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Auto
+                    | ServedServiceTier::Default
+                    | ServedServiceTier::Fast
+                    | ServedServiceTier::Flex
+                    | ServedServiceTier::Priority
+                    | ServedServiceTier::Scale => Some(service_tier),
+                    _ => None,
+                })
+        {
+            map.insert(
+                "service_tier".into(),
+                Value::String(service_tier.as_str().to_string()),
+            );
         }
 
         Ok(Value::Object(map))
@@ -2128,6 +2159,7 @@ mod tests {
                 })],
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
@@ -2895,6 +2927,7 @@ mod tests {
                 id: None,
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
