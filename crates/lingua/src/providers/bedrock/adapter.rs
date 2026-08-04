@@ -17,8 +17,8 @@ use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
 use crate::providers::bedrock::request::{BedrockInferenceConfiguration, BedrockMessage};
 use crate::providers::bedrock::response::{
-    BedrockConverseStreamEvent, BedrockServiceTier, BedrockServiceTierType, BedrockStopReason,
-    BedrockStreamContentBlockDeltaValue, BedrockStreamContentBlockStartValue,
+    BedrockConverseStreamEvent, BedrockStopReason, BedrockStreamContentBlockDeltaValue,
+    BedrockStreamContentBlockStartValue,
 };
 use crate::providers::bedrock::try_parse_bedrock;
 use crate::serde_json::{self, Map, Value};
@@ -31,16 +31,52 @@ use crate::universal::{
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
+use aws_sdk_bedrockruntime::types::{ServiceTier, ServiceTierType};
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
 
-fn served_service_tier_from_bedrock(service_tier: BedrockServiceTier) -> ServedServiceTier {
-    match service_tier.r#type {
-        BedrockServiceTierType::Default => ServedServiceTier::Default,
-        BedrockServiceTierType::Flex => ServedServiceTier::Flex,
-        BedrockServiceTierType::Priority => ServedServiceTier::Priority,
-        BedrockServiceTierType::Reserved => ServedServiceTier::Reserved,
+fn served_service_tier_from_bedrock(service_tier: &ServiceTier) -> Option<ServedServiceTier> {
+    match <ServiceTierType as AsRef<str>>::as_ref(service_tier.r#type()) {
+        "default" => Some(ServedServiceTier::Default),
+        "flex" => Some(ServedServiceTier::Flex),
+        "priority" => Some(ServedServiceTier::Priority),
+        "reserved" => Some(ServedServiceTier::Reserved),
+        _ => None,
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct BedrockServiceTierWire {
+    r#type: String,
+}
+
+impl From<BedrockServiceTierWire> for ServiceTier {
+    fn from(value: BedrockServiceTierWire) -> Self {
+        ServiceTier::builder()
+            .r#type(ServiceTierType::from(&*value.r#type))
+            .build()
+            .expect("service tier type is required")
+    }
+}
+
+fn bedrock_service_tier_wire_from_universal(
+    service_tier: ServedServiceTier,
+) -> Option<BedrockServiceTierWire> {
+    match service_tier {
+        ServedServiceTier::Default => Some(BedrockServiceTierWire {
+            r#type: "default".to_string(),
+        }),
+        ServedServiceTier::Flex => Some(BedrockServiceTierWire {
+            r#type: "flex".to_string(),
+        }),
+        ServedServiceTier::Priority => Some(BedrockServiceTierWire {
+            r#type: "priority".to_string(),
+        }),
+        ServedServiceTier::Reserved => Some(BedrockServiceTierWire {
+            r#type: "reserved".to_string(),
+        }),
+        _ => None,
     }
 }
 
@@ -357,14 +393,14 @@ impl ProviderAdapter for BedrockAdapter {
         #[derive(serde::Deserialize)]
         #[serde(rename_all = "camelCase")]
         struct BedrockResponseServiceTierView {
-            service_tier: Option<BedrockServiceTier>,
+            service_tier: Option<BedrockServiceTierWire>,
         }
 
         let served_service_tier =
             serde_json::from_value::<BedrockResponseServiceTierView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                 .service_tier
-                .map(served_service_tier_from_bedrock);
+                .and_then(|service_tier| served_service_tier_from_bedrock(&service_tier.into()));
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -412,20 +448,12 @@ impl ProviderAdapter for BedrockAdapter {
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
-        if let Some(service_tier) =
-            resp.served_service_tier
-                .and_then(|service_tier| match service_tier {
-                    ServedServiceTier::Default => Some(BedrockServiceTierType::Default),
-                    ServedServiceTier::Flex => Some(BedrockServiceTierType::Flex),
-                    ServedServiceTier::Priority => Some(BedrockServiceTierType::Priority),
-                    ServedServiceTier::Reserved => Some(BedrockServiceTierType::Reserved),
-                    _ => None,
-                })
+        if let Some(service_tier) = resp
+            .served_service_tier
+            .and_then(bedrock_service_tier_wire_from_universal)
         {
-            let value = serde_json::to_value(BedrockServiceTier {
-                r#type: service_tier,
-            })
-            .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("serviceTier".into(), value);
         }
 
@@ -576,8 +604,7 @@ impl ProviderAdapter for BedrockAdapter {
                 )))
             }
             BedrockConverseStreamEvent::Metadata { metadata } => {
-                let served_service_tier =
-                    metadata.service_tier.map(served_service_tier_from_bedrock);
+                let served_service_tier = None;
                 let usage = metadata
                     .usage
                     .map(serde_json::to_value)
@@ -634,27 +661,30 @@ impl ProviderAdapter for BedrockAdapter {
         if chunk.choices.is_empty()
             && (chunk.usage.is_some() || chunk.served_service_tier.is_some())
         {
-            let usage = chunk
+            let usage: Option<crate::providers::bedrock::response::BedrockTokenUsage> = chunk
                 .usage
                 .as_ref()
                 .map(|usage| serde_json::from_value(usage.to_provider_value(self.format())))
                 .transpose()
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-            let service_tier =
-                chunk
-                    .served_service_tier
-                    .and_then(|service_tier| match service_tier {
-                        ServedServiceTier::Default => Some(BedrockServiceTierType::Default),
-                        ServedServiceTier::Flex => Some(BedrockServiceTierType::Flex),
-                        ServedServiceTier::Priority => Some(BedrockServiceTierType::Priority),
-                        ServedServiceTier::Reserved => Some(BedrockServiceTierType::Reserved),
-                        _ => None,
-                    });
-            let metadata = crate::providers::bedrock::response::BedrockStreamMetadata {
-                usage,
-                metrics: None,
-                service_tier: service_tier.map(|r#type| BedrockServiceTier { r#type }),
-            };
+            let mut metadata = serde_json::Map::new();
+            if let Some(usage) = usage {
+                metadata.insert(
+                    "usage".into(),
+                    serde_json::to_value(usage)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+            if let Some(service_tier) = chunk
+                .served_service_tier
+                .and_then(bedrock_service_tier_wire_from_universal)
+            {
+                metadata.insert(
+                    "serviceTier".into(),
+                    serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
             let value = serde_json::to_value(metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             return Ok(serde_json::json!({ "metadata": value }));

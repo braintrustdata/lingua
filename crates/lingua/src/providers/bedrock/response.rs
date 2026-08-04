@@ -36,24 +36,6 @@ pub struct ConverseResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(skip)]
     pub additional_model_response_fields: Option<serde_json::Value>,
-
-    /// Service tier that served the request.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_tier: Option<BedrockServiceTier>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-pub struct BedrockServiceTier {
-    pub r#type: BedrockServiceTierType,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-pub enum BedrockServiceTierType {
-    Default,
-    Flex,
-    Priority,
-    Reserved,
 }
 
 /// Converse output containing the generated message
@@ -388,7 +370,6 @@ pub struct BedrockStreamMessageStop {
 pub struct BedrockStreamMetadata {
     pub usage: Option<BedrockTokenUsage>,
     pub metrics: Option<BedrockConverseMetrics>,
-    pub service_tier: Option<BedrockServiceTier>,
 }
 
 /// Streaming Converse API response event
