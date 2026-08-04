@@ -32,7 +32,9 @@ use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
 };
 use crate::providers::openai::tool_parsing::parse_openai_responses_tools_array;
-use crate::providers::openai::{try_parse_responses, universal_to_responses_input};
+use crate::providers::openai::{
+    detect_responses_shape, try_parse_responses, universal_to_responses_input,
+};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
@@ -615,7 +617,7 @@ impl ProviderAdapter for ResponsesAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_responses(payload).is_ok()
+        try_parse_responses(payload).is_ok() || detect_responses_shape(payload).is_ok()
     }
 
     fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
@@ -1730,6 +1732,36 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_responses_detect_request_tolerates_unknown_enum_values() {
+        // GATE-6 guard: see the matching test on OpenAIAdapter. The Responses adapter is
+        // first in the registry, so also assert chat-shaped payloads stay unclaimed.
+        let adapter = ResponsesAdapter;
+        for (field, value) in [
+            ("service_tier", json!("some-future-tier")),
+            ("prompt_cache_retention", json!("some-future-retention")),
+            ("truncation", json!("some-future-truncation")),
+            ("include", json!(["some.future.include_value"])),
+        ] {
+            let payload = json!({
+                "model": "o1",
+                "input": [{"role": "user", "content": "Hello"}],
+                field: value,
+            });
+            assert!(
+                adapter.detect_request(&payload),
+                "detect_request rejected unknown {field} value"
+            );
+        }
+
+        let chat_payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "service_tier": "some-future-tier"
+        });
+        assert!(!adapter.detect_request(&chat_payload));
     }
 
     #[test]

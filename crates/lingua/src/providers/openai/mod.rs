@@ -28,7 +28,8 @@ pub mod test_chat_completions;
 
 // Re-export detection functions
 pub use detect::{
-    try_parse_openai, try_parse_openai_legacy_prompt, try_parse_responses, DetectionError,
+    detect_openai_shape, detect_responses_shape, try_parse_openai, try_parse_openai_legacy_prompt,
+    try_parse_responses, DetectionError,
 };
 
 // Re-export capability functions

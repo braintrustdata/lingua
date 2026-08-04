@@ -6,7 +6,9 @@ OpenAI chat completion format by attempting to deserialize into
 the OpenAI struct types.
 */
 
-use crate::providers::openai::generated::{CreateChatCompletionRequestClass, CreateResponseClass};
+use crate::providers::openai::generated::{
+    ChatCompletionRequestMessage, CreateChatCompletionRequestClass, CreateResponseClass, InputParam,
+};
 use crate::providers::openai::params::OpenAIChatLegacyPromptParams;
 use crate::serde_json::{self, Value};
 use thiserror::Error;
@@ -82,6 +84,72 @@ pub fn try_parse_responses(payload: &Value) -> Result<CreateResponseClass, Detec
 
     serde_json::from_value(payload.clone())
         .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))
+}
+
+/// Minimal structural view of a Chat Completions request.
+///
+/// Detection's job is format *discrimination*, not validation: it decides which adapter
+/// owns the payload, and its result is only ever consumed as a boolean. Deserializing the
+/// full `CreateChatCompletionRequestClass` couples that decision to every closed enum in
+/// the vendored OpenAI spec, so one out-of-enum value on a top-level pass-through
+/// parameter (`service_tier`, `verbosity`, `prompt_cache_retention`, ...) makes the
+/// gateway conclude it cannot identify the format at all — see GATE-6.
+///
+/// This view validates only what `OpenAIAdapter::request_to_universal` actually consumes:
+/// a `model` string and a well-formed `messages` array. Everything else is params, which
+/// `OpenAIChatParams` already handles permissively via `#[serde(flatten)] extras`.
+///
+/// Known residual: `ChatCompletionRequestMessage` itself contains closed enums (role,
+/// content-part types), so an out-of-enum value *inside* a message still fails detection.
+/// This fallback only decouples detection from top-level request parameters.
+#[derive(serde::Deserialize)]
+struct ChatCompletionsShape {
+    #[allow(dead_code)]
+    model: String,
+    messages: Vec<ChatCompletionRequestMessage>,
+}
+
+/// Structural (non-strict) Chat Completions detection.
+///
+/// Used only after `try_parse_openai` fails. Deliberately does NOT gate on enum-valued
+/// top-level pass-through parameters.
+pub fn detect_openai_shape(payload: &Value) -> Result<(), DetectionError> {
+    let shape: ChatCompletionsShape = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    if shape.messages.is_empty() {
+        return Err(DetectionError::DeserializationFailed(
+            "Not a Chat Completions payload: 'messages' is empty".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+/// Minimal structural view of a Responses request. See `ChatCompletionsShape`; the same
+/// residual applies to closed enums inside `InputParam` items.
+#[derive(serde::Deserialize)]
+struct ResponsesShape {
+    #[allow(dead_code)]
+    input: InputParam,
+}
+
+/// Structural (non-strict) Responses detection. See `detect_openai_shape`.
+///
+/// Unlike the Chat Completions adapter, the Responses adapter is registered *first* in
+/// the adapter registry, so leniency here widens what the highest-priority adapter can
+/// claim. The `input`-present / `messages`-absent discriminator below is therefore kept
+/// verbatim from `try_parse_responses`, and the only relaxation relative to the strict
+/// parse is tolerating out-of-enum values on known top-level parameters — the strict
+/// parse already ignores unknown fields, so no new payload *shape* becomes claimable.
+pub fn detect_responses_shape(payload: &Value) -> Result<(), DetectionError> {
+    if payload.get("input").is_none() || payload.get("messages").is_some() {
+        return Err(DetectionError::DeserializationFailed(
+            "Not a Responses API payload: missing 'input' field or has 'messages' field"
+                .to_string(),
+        ));
+    }
+    let _shape: ResponsesShape = serde_json::from_value(payload.clone())
+        .map_err(|e| DetectionError::DeserializationFailed(e.to_string()))?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -328,6 +396,131 @@ mod tests {
         assert!(result.is_ok());
         let parsed = result.unwrap();
         assert_eq!(parsed.model, "gpt-4");
+    }
+
+    #[test]
+    fn test_detect_openai_shape_accepts_out_of_enum_params() {
+        // GATE-6: unknown values on top-level pass-through params must not defeat
+        // format detection. These all fail the strict parse.
+        for (field, value) in [
+            ("service_tier", json!("fast")),
+            ("verbosity", json!("ultra")),
+            ("prompt_cache_retention", json!("7d")),
+            ("modalities", json!(["video"])),
+            ("reasoning_effort", json!("galactic")),
+        ] {
+            let payload = json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "Hello"}],
+                field: value,
+            });
+            assert!(
+                try_parse_openai(&payload).is_err(),
+                "expected strict parse to reject out-of-enum {field}; if it passes now, \
+                 the vendored spec caught up and this case no longer exercises the fallback"
+            );
+            assert!(
+                detect_openai_shape(&payload).is_ok(),
+                "structural detection rejected out-of-enum {field}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_detect_openai_shape_rejects_non_chat_payloads() {
+        // Missing model
+        assert!(detect_openai_shape(&json!({
+            "messages": [{"role": "user", "content": "Hello"}]
+        }))
+        .is_err());
+        // Missing messages (includes legacy prompt bodies — those stay owned by
+        // try_parse_openai_legacy_prompt)
+        assert!(detect_openai_shape(&json!({
+            "model": "gpt-4",
+            "prompt": "Hello"
+        }))
+        .is_err());
+        // Empty messages
+        assert!(detect_openai_shape(&json!({
+            "model": "gpt-4",
+            "messages": []
+        }))
+        .is_err());
+        // messages not an array
+        assert!(detect_openai_shape(&json!({
+            "model": "gpt-4",
+            "messages": "Hello"
+        }))
+        .is_err());
+        // Google-shaped payload
+        assert!(detect_openai_shape(&json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}]
+        }))
+        .is_err());
+    }
+
+    #[test]
+    fn test_detect_responses_shape_accepts_out_of_enum_params() {
+        for (field, value) in [
+            ("service_tier", json!("fast")),
+            ("prompt_cache_retention", json!("7d")),
+            ("truncation", json!("middle_out")),
+            ("include", json!(["not.a.real.include_value"])),
+        ] {
+            let payload = json!({
+                "model": "gpt-4",
+                "input": [{"role": "user", "content": "Hello"}],
+                field: value,
+            });
+            assert!(
+                try_parse_responses(&payload).is_err(),
+                "expected strict parse to reject out-of-enum {field}; if it passes now, \
+                 the vendored spec caught up and this case no longer exercises the fallback"
+            );
+            assert!(
+                detect_responses_shape(&payload).is_ok(),
+                "structural detection rejected out-of-enum {field}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_detect_responses_shape_preserves_discriminator() {
+        // Chat payloads (messages present) must never be claimed by the Responses shape —
+        // the Responses adapter is first in the registry, so this guard carries the
+        // cross-adapter safety argument.
+        assert!(detect_responses_shape(&json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}]
+        }))
+        .is_err());
+        assert!(detect_responses_shape(&json!({
+            "model": "gpt-4",
+            "input": [{"role": "user", "content": "Hello"}],
+            "messages": [{"role": "user", "content": "Hello"}]
+        }))
+        .is_err());
+        // Missing input
+        assert!(detect_responses_shape(&json!({"model": "gpt-4"})).is_err());
+    }
+
+    #[test]
+    fn test_try_parse_openai_strict_contract_unchanged() {
+        // The strict parse is still the validation surface (validation/openai.rs) —
+        // the structural fallback must not have loosened it.
+        let payload = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "service_tier": "fast"
+        });
+        assert!(try_parse_openai(&payload).is_err());
+
+        let in_enum = json!({
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "service_tier": "flex"
+        });
+        assert!(try_parse_openai(&in_enum).is_ok());
     }
 
     #[test]

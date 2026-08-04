@@ -28,7 +28,9 @@ use crate::providers::openai::params::{
 };
 use crate::providers::openai::responses_adapter::parse_responses_extras;
 use crate::providers::openai::tool_parsing::parse_openai_chat_tools_array;
-use crate::providers::openai::{try_parse_openai, try_parse_openai_legacy_prompt};
+use crate::providers::openai::{
+    detect_openai_shape, try_parse_openai, try_parse_openai_legacy_prompt,
+};
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::message::{
@@ -176,11 +178,17 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 
     fn detect_request(&self, payload: &Value) -> bool {
-        try_parse_openai(payload).is_ok() || try_parse_openai_legacy_prompt(payload).is_ok()
+        try_parse_openai(payload).is_ok()
+            || try_parse_openai_legacy_prompt(payload).is_ok()
+            || detect_openai_shape(payload).is_ok()
     }
 
     fn detect_passthrough_request(&self, payload: &Value) -> bool {
-        try_parse_openai(payload).is_ok()
+        // Native OpenAI passthrough must also accept out-of-enum pass-through params —
+        // the value is forwarded verbatim and OpenAI is the authority on whether it is
+        // valid. The structural fallback still rejects legacy prompt-only bodies (no
+        // `messages`), which is what this override exists to keep out of passthrough.
+        try_parse_openai(payload).is_ok() || detect_openai_shape(payload).is_ok()
     }
 
     fn request_requires_json_response(&self, payload: &Value) -> Result<bool, TransformError> {
@@ -922,6 +930,48 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_openai_detect_request_tolerates_unknown_enum_values() {
+        // GATE-6 guard: every closed unit-variant enum on a top-level Chat Completions
+        // param is a latent "Unable to detect request source format" 400 when OpenAI
+        // ships a value newer than the vendored spec. Detection must tolerate them.
+        let adapter = OpenAIAdapter;
+        for (field, value) in [
+            ("service_tier", json!("some-future-tier")),
+            ("verbosity", json!("some-future-verbosity")),
+            ("prompt_cache_retention", json!("some-future-retention")),
+            ("modalities", json!(["some-future-modality"])),
+            ("reasoning_effort", json!("some-future-effort")),
+        ] {
+            let payload = json!({
+                "model": "gpt-4",
+                "messages": [{"role": "user", "content": "Hello"}],
+                field: value,
+            });
+            assert!(
+                adapter.detect_request(&payload),
+                "detect_request rejected unknown {field} value"
+            );
+            assert!(
+                adapter.detect_passthrough_request(&payload),
+                "detect_passthrough_request rejected unknown {field} value"
+            );
+        }
+    }
+
+    #[test]
+    fn test_openai_detect_passthrough_rejects_legacy_prompt() {
+        // The passthrough override exists to keep legacy prompt-only bodies out of
+        // zero-copy passthrough; the structural fallback must not reopen that.
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "model": "gpt-3.5-turbo-instruct",
+            "prompt": "Hello"
+        });
+        assert!(adapter.detect_request(&payload));
+        assert!(!adapter.detect_passthrough_request(&payload));
     }
 
     #[test]
