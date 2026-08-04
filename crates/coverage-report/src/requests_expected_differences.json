@@ -1429,6 +1429,14 @@
       ]
     },
     {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
       "testCase": "chatCompletionsUrlBackedVideoFileParam",
       "source": "ChatCompletions",
       "target": "Google",
@@ -1450,6 +1458,14 @@
       "target": "Anthropic",
       "errors": [
         { "pattern": "URL-backed file with MIME type video/mp4 to Anthropic document input", "reason": "Anthropic document input does not support URL-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
       ]
     }
   ]
