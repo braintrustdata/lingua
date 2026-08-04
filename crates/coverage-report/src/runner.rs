@@ -1146,10 +1146,10 @@ impl<'a> CompareContext<'a> {
                     "auto" | "default" | "fast" | "flex" | "priority" | "scale"
                 ),
                 "Google" => matches!(tier, "flex" | "priority" | "standard" | "unspecified"),
-                "Anthropic" | "BedrockAnthropic" | "VertexAnthropic" => {
+                "Anthropic" | "Bedrock Anthropic" | "Vertex Anthropic" => {
                     matches!(tier, "batch" | "priority" | "standard")
                 }
-                "Converse" => matches!(tier, "default" | "flex" | "priority" | "reserved"),
+                "Bedrock" => matches!(tier, "default" | "flex" | "priority" | "reserved"),
                 _ => false,
             };
             if !supported {

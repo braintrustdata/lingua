@@ -304,6 +304,24 @@ impl ProviderAdapter for GoogleAdapter {
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
 
+        let service_tier =
+            req.params
+                .service_tier
+                .as_deref()
+                .and_then(|service_tier| match service_tier {
+                    "fast" | "priority" => Some(ServiceTier::Priority),
+                    "flex" => Some(ServiceTier::Flex),
+                    "standard" | "standard_only" => Some(ServiceTier::Standard),
+                    _ => None,
+                });
+        if let Some(service_tier) = service_tier {
+            obj.insert(
+                "serviceTier".into(),
+                serde_json::to_value(service_tier)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
+
         // Add systemInstruction if system messages were present
         if !system_contents.is_empty() {
             let system_text = system_contents
