@@ -484,11 +484,12 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
-        // Google response has candidates array (content may be missing for NO_IMAGE etc)
+        // Google may return an empty candidates array with promptFeedback when it blocks the
+        // prompt before generation.
         payload
             .get("candidates")
             .and_then(Value::as_array)
-            .is_some_and(|arr| !arr.is_empty())
+            .is_some()
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
@@ -523,6 +524,20 @@ impl ProviderAdapter for GoogleAdapter {
                 false
             }
         });
+
+        let prompt_was_blocked = response
+            .prompt_feedback
+            .as_ref()
+            .and_then(|feedback| feedback.block_reason.as_ref())
+            .is_some();
+
+        if prompt_was_blocked && messages.is_empty() {
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(vec![]),
+                id: None,
+            });
+            finish_reasons.push(FinishReason::ContentFilter);
+        }
 
         let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
