@@ -1051,7 +1051,7 @@ fn expand_responses_session_chunks(
         state.text_output_index,
         state.tool_output_index_offset,
         event_sequence_number,
-    );
+    )?;
     if has_reasoning {
         state.tool_output_index_offset = state.tool_output_index_offset.max(choice_index + 1);
     }

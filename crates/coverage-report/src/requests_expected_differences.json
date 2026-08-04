@@ -197,6 +197,30 @@
   ],
   "perTestCase": [
     {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Anthropic only accepts auto and standard_only request service tiers" }
+      ]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "BedrockAnthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Bedrock Anthropic follows Anthropic request service-tier support" }
+      ]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "VertexAnthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Vertex Anthropic follows Anthropic request service-tier support" }
+      ]
+    },
+    {
       "testCase": "responsesReasoningEffortMaxParam",
       "source": "Responses",
       "target": "ChatCompletions",

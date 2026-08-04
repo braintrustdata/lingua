@@ -33,6 +33,10 @@ pub struct UniversalResponse {
     /// Token usage statistics
     pub usage: Option<UniversalUsage>,
 
+    /// Service tier that served the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub served_service_tier: Option<ServedServiceTier>,
+
     /// Why the model stopped generating
     pub finish_reason: Option<FinishReason>,
 
@@ -107,6 +111,41 @@ pub struct UniversalUsage {
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
     pub completion_reasoning_tokens: Option<i64>,
+}
+
+/// Service tier reported by the provider that served a response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServedServiceTier {
+    Auto,
+    Default,
+    Fast,
+    Flex,
+    Priority,
+    Scale,
+    Standard,
+    StandardOnly,
+    Batch,
+    Reserved,
+    Unspecified,
+}
+
+impl ServedServiceTier {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Auto => "auto",
+            Self::Default => "default",
+            Self::Fast => "fast",
+            Self::Flex => "flex",
+            Self::Priority => "priority",
+            Self::Scale => "scale",
+            Self::Standard => "standard",
+            Self::StandardOnly => "standard_only",
+            Self::Batch => "batch",
+            Self::Reserved => "reserved",
+            Self::Unspecified => "unspecified",
+        }
+    }
 }
 
 /// Reason why the model stopped generating.
@@ -830,6 +869,7 @@ mod tests {
             model: None,
             messages: Vec::new(),
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Length, FinishReason::Stop],
         };
@@ -841,6 +881,7 @@ mod tests {
             model: None,
             messages: Vec::new(),
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::ToolCalls],
         };
@@ -864,6 +905,7 @@ mod tests {
                 },
             ],
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop, FinishReason::Stop],
         };
@@ -875,6 +917,7 @@ mod tests {
             model: None,
             messages: Vec::new(),
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
@@ -898,6 +941,7 @@ mod tests {
                 id: None,
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };

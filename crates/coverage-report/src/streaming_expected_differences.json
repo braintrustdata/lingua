@@ -184,6 +184,42 @@
   ],
   "perTestCase": [
     {
+      "testCase": "toolCallRequest", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "googleOpenAIModelTopKParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "googleToolSchemaNumericInt64Param", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "toolCallRequest", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage", "reason": "Google streaming metadata is emitted when converting the Responses service-tier event" }
+      ]
+    },
+    {
       "testCase": "toolCallRequest",
       "source": "ChatCompletions",
       "target": "Responses",

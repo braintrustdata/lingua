@@ -331,6 +331,17 @@ mod tests {
     }
 
     #[test]
+    fn test_try_parse_responses_with_fast_service_tier() {
+        let payload = json!({
+            "model": "gpt-5.6-sol",
+            "input": [{"role": "user", "content": "Hello"}],
+            "service_tier": "fast"
+        });
+
+        assert!(try_parse_responses(&payload).is_ok());
+    }
+
+    #[test]
     fn test_try_parse_openai_permissive_for_anthropic() {
         // Anthropic format with max_tokens but no system role in messages
         let payload = json!({

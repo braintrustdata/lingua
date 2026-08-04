@@ -7,7 +7,7 @@ structure as the canonical representation.
 */
 
 use crate::serde_json::{self, Value};
-use crate::universal::response::UniversalUsage;
+use crate::universal::response::{ServedServiceTier, UniversalUsage};
 use serde::{Deserialize, Serialize};
 
 /// A single choice in a streaming chunk.
@@ -95,6 +95,10 @@ pub struct UniversalStreamChunk {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub usage: Option<UniversalUsage>,
 
+    /// Service tier that served this streamed response.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub served_service_tier: Option<ServedServiceTier>,
+
     /// Internal flag for keep-alive events (not serialized)
     #[serde(skip)]
     keep_alive: bool,
@@ -115,8 +119,14 @@ impl UniversalStreamChunk {
             choices,
             created,
             usage,
+            served_service_tier: None,
             keep_alive: false,
         }
+    }
+
+    pub fn with_served_service_tier(mut self, service_tier: Option<ServedServiceTier>) -> Self {
+        self.served_service_tier = service_tier;
+        self
     }
 
     /// Create a keep-alive chunk that signals the stream is active but has no content.
@@ -132,6 +142,7 @@ impl UniversalStreamChunk {
             choices: Vec::new(),
             created: None,
             usage: None,
+            served_service_tier: None,
             keep_alive: true,
         }
     }

@@ -5,7 +5,9 @@ These structs use `#[serde(flatten)]` to automatically capture unknown fields,
 eliminating the need for explicit KNOWN_KEYS arrays.
 */
 
-use crate::providers::google::generated::{Content, GenerationConfig, Tool, ToolConfig};
+use crate::providers::google::generated::{
+    Content, GenerationConfig, ServiceTier, Tool, ToolConfig,
+};
 use crate::serde_json::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -36,6 +38,9 @@ pub struct GoogleParams {
 
     // === Caching ===
     pub cached_content: Option<String>,
+
+    // === Service tier ===
+    pub service_tier: Option<ServiceTier>,
 
     /// Unknown fields - automatically captured by serde flatten.
     /// These are provider-specific fields not in the canonical set.
