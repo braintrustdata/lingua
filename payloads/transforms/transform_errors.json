@@ -17,6 +17,10 @@
     "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
     "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input"
   },
+  "chat-completions_to_bedrock_streaming": {
+    "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
+    "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input"
+  },
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
     "webSearchToolParam": "Tool 'web_search_preview' of type 'web_search_preview' is not supported by anthropic",
