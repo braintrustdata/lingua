@@ -49,21 +49,47 @@ use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
 
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum OpenAICompatibleServiceTier {
+    OpenAI(ServiceTier),
+    Extension(OpenAICompatibleServiceTierExtension),
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum OpenAICompatibleServiceTierExtension {
+    OnDemand,
+}
+
 fn attach_stream_service_tier(
     payload: &Value,
     mut chunk: UniversalStreamChunk,
 ) -> Result<UniversalStreamChunk, TransformError> {
     #[derive(Deserialize)]
     struct OpenAIStreamServiceTierView {
-        service_tier: Option<ServiceTier>,
+        service_tier: Option<OpenAICompatibleServiceTier>,
     }
 
     chunk.served_service_tier =
         serde_json::from_value::<OpenAIStreamServiceTierView>(payload.clone())
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
             .service_tier
-            .map(served_service_tier_from_openai);
+            .map(served_service_tier_from_openai_compatible);
     Ok(chunk)
+}
+
+fn served_service_tier_from_openai_compatible(
+    service_tier: OpenAICompatibleServiceTier,
+) -> ServedServiceTier {
+    match service_tier {
+        OpenAICompatibleServiceTier::OpenAI(service_tier) => {
+            served_service_tier_from_openai(service_tier)
+        }
+        OpenAICompatibleServiceTier::Extension(OpenAICompatibleServiceTierExtension::OnDemand) => {
+            ServedServiceTier::OnDemand
+        }
+    }
 }
 
 pub(crate) fn served_service_tier_from_openai(service_tier: ServiceTier) -> ServedServiceTier {
@@ -658,14 +684,14 @@ impl ProviderAdapter for OpenAIAdapter {
 
         #[derive(Deserialize)]
         struct OpenAIResponseServiceTierView {
-            service_tier: Option<ServiceTier>,
+            service_tier: Option<OpenAICompatibleServiceTier>,
         }
 
         let served_service_tier =
             serde_json::from_value::<OpenAIResponseServiceTierView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                 .service_tier
-                .map(served_service_tier_from_openai);
+                .map(served_service_tier_from_openai_compatible);
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -1027,6 +1053,50 @@ mod tests {
         let output: StreamChunkView =
             serde_json::from_value(adapter.stream_from_universal(&universal).unwrap()).unwrap();
         assert_eq!(output.service_tier, Some(ServiceTier::Priority));
+    }
+
+    #[test]
+    fn test_openai_stream_accepts_on_demand_service_tier() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "model": "llama-3.1-8b-instant",
+            "service_tier": "on_demand",
+            "choices": []
+        });
+
+        let universal = adapter.stream_to_universal(payload).unwrap().unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::OnDemand)
+        );
+    }
+
+    #[test]
+    fn test_openai_response_accepts_on_demand_service_tier() {
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion",
+            "created": 1722960000,
+            "model": "llama-3.1-8b-instant",
+            "service_tier": "on_demand",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "hello"
+                },
+                "finish_reason": "stop"
+            }]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::OnDemand)
+        );
     }
 
     #[test]
