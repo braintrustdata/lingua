@@ -5,6 +5,7 @@
       "target": "*",
       "fields": [
         { "pattern": "created", "reason": "Provider-set timestamp with inconsistent field names (OpenAI: 'created', Responses: 'created_at', Anthropic: none)" },
+        { "pattern": "service_tier", "reason": "OpenAI-specific billing tier not present in other providers" },
         { "pattern": "system_fingerprint", "reason": "OpenAI-specific system identifier not universal" },
         { "pattern": "messages[*].id", "reason": "Message/response IDs vary by provider and represent different concepts" }
       ]
