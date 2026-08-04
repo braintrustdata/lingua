@@ -726,10 +726,9 @@ impl ProviderAdapter for OpenAIAdapter {
                     _ => None,
                 })
         {
-            map.insert(
-                "service_tier".into(),
-                Value::String(service_tier.as_str().to_string()),
-            );
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("service_tier".into(), value);
         }
 
         Ok(Value::Object(map))
