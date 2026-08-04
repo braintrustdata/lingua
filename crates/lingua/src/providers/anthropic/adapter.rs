@@ -1289,7 +1289,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|c| c.delta_view())
                 .is_none_or(|d| d.content.as_deref().is_none_or(str::is_empty));
 
-        let build_message_start = |chunk: &UniversalStreamChunk| -> Value {
+        let build_message_start = |chunk: &UniversalStreamChunk| -> Result<Value, TransformError> {
             let id = chunk
                 .id
                 .clone()
@@ -1308,24 +1308,40 @@ impl ProviderAdapter for AnthropicAdapter {
             // Always include usage — the SDK stores message_start.message as the
             // snapshot and later does snapshot.usage.output_tokens on message_delta.
             if let Some(obj) = message.as_object_mut() {
-                let usage_value = match &chunk.usage {
+                let mut usage_value = match &chunk.usage {
                     Some(usage) => usage.to_provider_value(ProviderFormat::Anthropic),
                     None => serde_json::json!({
                         "input_tokens": 0,
                         "output_tokens": 0
                     }),
                 };
+                let service_tier =
+                    chunk
+                        .served_service_tier
+                        .and_then(|service_tier| match service_tier {
+                            ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
+                            ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
+                            ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
+                            _ => None,
+                        });
+                if let (Some(usage), Some(service_tier)) =
+                    (usage_value.as_object_mut(), service_tier)
+                {
+                    let service_tier = serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    usage.insert("service_tier".into(), service_tier);
+                }
                 obj.insert("usage".into(), usage_value);
             }
 
-            serde_json::json!({
+            Ok(serde_json::json!({
                 "type": "message_start",
                 "message": message
-            })
+            }))
         };
 
         if is_initial_metadata {
-            let message_start = build_message_start(chunk);
+            let message_start = build_message_start(chunk)?;
 
             // Check if this chunk also carries reasoning content — emit
             // content_block_start + content_block_delta for thinking alongside message_start

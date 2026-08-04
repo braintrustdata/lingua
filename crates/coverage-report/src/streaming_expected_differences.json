@@ -4,6 +4,13 @@
       "source": "*",
       "target": "*",
       "fields": [
+        { "pattern": "served_service_tier", "reason": "Response service-tier vocabularies overlap only partially across providers" }
+      ]
+    },
+    {
+      "source": "*",
+      "target": "*",
+      "fields": [
         { "pattern": "created", "reason": "Provider-set timestamp with inconsistent field names (OpenAI: 'created', Responses: 'created_at', Anthropic: none)" },
         { "pattern": "service_tier", "reason": "OpenAI-specific billing tier not present in other providers" },
         { "pattern": "system_fingerprint", "reason": "OpenAI-specific system identifier not universal" },
@@ -183,6 +190,14 @@
     }
   ],
   "perTestCase": [
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage", "reason": "Google streaming metadata is emitted when converting the Responses service-tier event" }
+      ]
+    },
     {
       "testCase": "toolCallRequest",
       "source": "ChatCompletions",

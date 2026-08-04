@@ -278,7 +278,7 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
         .id
         .clone()
         .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-    let response = match &chunk.usage {
+    let mut response = match &chunk.usage {
         Some(usage) => serde_json::json!({
             "id": id,
             "object": "response",
@@ -295,6 +295,24 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
             "output": []
         }),
     };
+    if let Some(service_tier) =
+        chunk
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Auto
+                | ServedServiceTier::Default
+                | ServedServiceTier::Fast
+                | ServedServiceTier::Flex
+                | ServedServiceTier::Priority
+                | ServedServiceTier::Scale => Some(service_tier),
+                _ => None,
+            })
+    {
+        if let Some(response) = response.as_object_mut() {
+            let value = serde_json::to_value(service_tier).unwrap_or(Value::Null);
+            response.insert("service_tier".into(), value);
+        }
+    }
 
     serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
@@ -598,12 +616,18 @@ fn stream_served_service_tier(
     #[derive(Deserialize)]
     struct StreamView {
         response: Option<ResponseView>,
+        delta: Option<StreamDeltaView>,
+    }
+    #[derive(Deserialize)]
+    struct StreamDeltaView {
+        response: Option<ResponseView>,
     }
 
     serde_json::from_value::<StreamView>(payload.clone())
         .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
         .map(|view| {
             view.response
+                .or_else(|| view.delta.and_then(|delta| delta.response))
                 .and_then(|response| response.service_tier)
                 .map(served_service_tier_from_openai)
         })
@@ -1812,6 +1836,28 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_responses_alternate_stream_preserves_service_tier() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "object": "response.delta",
+            "delta": {
+                "type": "response.start",
+                "response": {
+                    "id": "resp_123",
+                    "model": "gpt-5.6-sol",
+                    "service_tier": "priority"
+                }
+            }
+        });
+
+        let universal = adapter.stream_to_universal(payload).unwrap().unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::Priority)
+        );
     }
 
     #[test]

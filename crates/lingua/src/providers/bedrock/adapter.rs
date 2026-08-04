@@ -31,11 +31,13 @@ use crate::universal::{
     UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
+#[cfg(not(target_arch = "wasm32"))]
 use aws_sdk_bedrockruntime::types::{ServiceTier, ServiceTierType};
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
 
+#[cfg(not(target_arch = "wasm32"))]
 fn served_service_tier_from_bedrock(service_tier: &ServiceTier) -> Option<ServedServiceTier> {
     match <ServiceTierType as AsRef<str>>::as_ref(service_tier.r#type()) {
         "default" => Some(ServedServiceTier::Default),
@@ -51,12 +53,42 @@ struct BedrockServiceTierWire {
     r#type: String,
 }
 
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BedrockStreamMetadataServiceTierView {
+    service_tier: Option<BedrockServiceTierWire>,
+}
+
+#[derive(serde::Deserialize)]
+struct BedrockStreamServiceTierView {
+    metadata: Option<BedrockStreamMetadataServiceTierView>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 impl From<BedrockServiceTierWire> for ServiceTier {
     fn from(value: BedrockServiceTierWire) -> Self {
         ServiceTier::builder()
             .r#type(ServiceTierType::from(&*value.r#type))
             .build()
             .expect("service tier type is required")
+    }
+}
+
+fn served_service_tier_from_bedrock_wire(
+    service_tier: BedrockServiceTierWire,
+) -> Option<ServedServiceTier> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        return served_service_tier_from_bedrock(&service_tier.into());
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    match &*service_tier.r#type {
+        "default" => Some(ServedServiceTier::Default),
+        "flex" => Some(ServedServiceTier::Flex),
+        "priority" => Some(ServedServiceTier::Priority),
+        "reserved" => Some(ServedServiceTier::Reserved),
+        _ => None,
     }
 }
 
@@ -400,7 +432,7 @@ impl ProviderAdapter for BedrockAdapter {
             serde_json::from_value::<BedrockResponseServiceTierView>(payload.clone())
                 .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
                 .service_tier
-                .and_then(|service_tier| served_service_tier_from_bedrock(&service_tier.into()));
+                .and_then(served_service_tier_from_bedrock_wire);
 
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
@@ -472,6 +504,12 @@ impl ProviderAdapter for BedrockAdapter {
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        let served_service_tier =
+            serde_json::from_value::<BedrockStreamServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .metadata
+                .and_then(|metadata| metadata.service_tier)
+                .and_then(served_service_tier_from_bedrock_wire);
         let event: BedrockConverseStreamEvent = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
@@ -604,7 +642,6 @@ impl ProviderAdapter for BedrockAdapter {
                 )))
             }
             BedrockConverseStreamEvent::Metadata { metadata } => {
-                let served_service_tier = None;
                 let usage = metadata
                     .usage
                     .map(serde_json::to_value)

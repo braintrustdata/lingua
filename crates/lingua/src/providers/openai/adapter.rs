@@ -49,6 +49,23 @@ use std::convert::TryInto;
 
 const OPENAI_CHAT_MIN_MAX_COMPLETION_TOKENS: i64 = 16;
 
+fn attach_stream_service_tier(
+    payload: &Value,
+    mut chunk: UniversalStreamChunk,
+) -> Result<UniversalStreamChunk, TransformError> {
+    #[derive(Deserialize)]
+    struct OpenAIStreamServiceTierView {
+        service_tier: Option<ServiceTier>,
+    }
+
+    chunk.served_service_tier =
+        serde_json::from_value::<OpenAIStreamServiceTierView>(payload.clone())
+            .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+            .service_tier
+            .map(served_service_tier_from_openai);
+    Ok(chunk)
+}
+
 pub(crate) fn served_service_tier_from_openai(service_tier: ServiceTier) -> ServedServiceTier {
     match service_tier {
         ServiceTier::Auto => ServedServiceTier::Auto,
@@ -787,7 +804,7 @@ impl ProviderAdapter for OpenAIAdapter {
         // Extract usage if present (usually only on final chunk)
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
-        Ok(Some(UniversalStreamChunk::new(
+        let result = Ok(Some(UniversalStreamChunk::new(
             payload.get("id").and_then(Value::as_str).map(String::from),
             payload
                 .get("model")
@@ -796,7 +813,13 @@ impl ProviderAdapter for OpenAIAdapter {
             choices,
             payload.get("created").and_then(Value::as_u64),
             usage,
-        )))
+        )));
+
+        result.and_then(|chunk| {
+            chunk
+                .map(|chunk| attach_stream_service_tier(&payload, chunk))
+                .transpose()
+        })
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
@@ -852,6 +875,23 @@ impl ProviderAdapter for OpenAIAdapter {
                 "usage".into(),
                 usage.to_provider_value(ProviderFormat::ChatCompletions),
             );
+        }
+        if let Some(service_tier) =
+            chunk
+                .served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Auto
+                    | ServedServiceTier::Default
+                    | ServedServiceTier::Fast
+                    | ServedServiceTier::Flex
+                    | ServedServiceTier::Priority
+                    | ServedServiceTier::Scale => Some(service_tier),
+                    _ => None,
+                })
+        {
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("service_tier".into(), value);
         }
         Ok(Value::Object(map))
     }
@@ -960,6 +1000,33 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_openai_stream_preserves_service_tier() {
+        #[derive(Deserialize)]
+        struct StreamChunkView {
+            service_tier: Option<ServiceTier>,
+        }
+
+        let adapter = OpenAIAdapter;
+        let payload = json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "model": "gpt-5.6-sol",
+            "service_tier": "priority",
+            "choices": []
+        });
+
+        let universal = adapter.stream_to_universal(payload).unwrap().unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::Priority)
+        );
+
+        let output: StreamChunkView =
+            serde_json::from_value(adapter.stream_from_universal(&universal).unwrap()).unwrap();
+        assert_eq!(output.service_tier, Some(ServiceTier::Priority));
     }
 
     #[test]

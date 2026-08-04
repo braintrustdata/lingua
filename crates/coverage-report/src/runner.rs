@@ -645,6 +645,7 @@ fn merge_universal_stream_chunks(
                 chunk.created,
                 chunk.usage.clone(),
             )
+            .with_served_service_tier(chunk.served_service_tier)
         });
 
         if target.id.is_none() {
@@ -658,6 +659,9 @@ fn merge_universal_stream_chunks(
         }
         if target.usage.is_none() {
             target.usage = chunk.usage;
+        }
+        if target.served_service_tier.is_none() {
+            target.served_service_tier = chunk.served_service_tier;
         }
 
         for mut choice in chunk.choices {
