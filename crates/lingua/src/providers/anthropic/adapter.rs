@@ -894,18 +894,36 @@ impl ProviderAdapter for AnthropicAdapter {
         );
         map.insert("stop_reason".into(), Value::String(stop_reason));
 
-        if let Some(usage) = &resp.usage {
-            let mut usage: Usage =
-                serde_json::from_value(usage.to_provider_value(self.format()))
-                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
-            usage.service_tier =
-                resp.served_service_tier
-                    .and_then(|service_tier| match service_tier {
-                        ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
-                        ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
-                        ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
-                        _ => None,
-                    });
+        let service_tier = resp
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
+                ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
+                _ => None,
+            });
+        let usage = match (&resp.usage, service_tier) {
+            (Some(usage), service_tier) => {
+                let mut usage: Usage =
+                    serde_json::from_value(usage.to_provider_value(self.format()))
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                usage.service_tier = service_tier;
+                Some(usage)
+            }
+            (None, Some(service_tier)) => Some(Usage {
+                cache_creation: None,
+                cache_creation_input_tokens: None,
+                cache_read_input_tokens: None,
+                inference_geo: None,
+                input_tokens: 0,
+                output_tokens: 0,
+                output_tokens_details: None,
+                server_tool_use: None,
+                service_tier: Some(service_tier),
+            }),
+            (None, None) => None,
+        };
+        if let Some(usage) = usage {
             let value = serde_json::to_value(usage)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usage".into(), value);
