@@ -1745,7 +1745,7 @@ impl ProviderAdapter for ResponsesAdapter {
             }
         }
         if has_finish {
-            return Ok(responses_terminal_stream_event(chunk, 0)?);
+            return responses_terminal_stream_event(chunk, 0);
         }
         if let Some(event) = stream_events.into_iter().next() {
             return Ok(event);
