@@ -198,11 +198,35 @@ fn try_parse_mixed_role_messages_for_import(data: &Value) -> Option<Vec<Message>
     let mut messages = Vec::new();
 
     for item in items {
-        #[cfg(feature = "openai")]
-        let mut parsed_messages =
-            try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
-        #[cfg(not(feature = "openai"))]
+        // Native Anthropic thinking blocks must use the canonical parser so adjacent text
+        // metadata survives. Keep the existing parser order for every other role message.
+        #[cfg(feature = "anthropic")]
+        let mut parsed_messages = try_parse_anthropic_for_import(item)
+            .or_else(|| {
+                let wrapped_item = Value::Array(vec![item.clone()]);
+                try_parse_anthropic_for_import(&wrapped_item)
+            })
+            .filter(|messages| {
+                messages.iter().any(|message| {
+                    matches!(
+                        message,
+                        Message::Assistant {
+                            content: AssistantContent::Array(parts),
+                            ..
+                        } if parts.iter().any(|part| {
+                            matches!(part, AssistantContentPart::Reasoning { .. })
+                        })
+                    )
+                })
+            });
+        #[cfg(not(feature = "anthropic"))]
         let mut parsed_messages = None;
+
+        #[cfg(feature = "openai")]
+        if parsed_messages.is_none() {
+            parsed_messages =
+                try_parse_reasoning_assistant_message(item).map(|message| vec![message]);
+        }
 
         if parsed_messages.is_none() {
             parsed_messages = try_parsers_in_order(item, &provider_parsers).or_else(|| {
@@ -848,6 +872,47 @@ mod tests {
                     && visible == "visible answer"
             )
         ));
+    }
+
+    #[test]
+    fn native_anthropic_thinking_preserves_adjacent_text_metadata() {
+        let parts = import_assistant_parts(crate::serde_json::json!([
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "thinking",
+                        "thinking": "internal reasoning",
+                        "signature": "reasoning-signature"
+                    },
+                    {
+                        "type": "text",
+                        "text": "visible answer",
+                        "cache_control": { "type": "ephemeral", "ttl": "1h" },
+                        "citations": { "enabled": true }
+                    }
+                ]
+            }
+        ]));
+
+        assert_eq!(
+            crate::serde_json::to_value(parts).expect("assistant parts should serialize"),
+            crate::serde_json::json!([
+                {
+                    "type": "reasoning",
+                    "text": "internal reasoning",
+                    "encrypted_content": "reasoning-signature"
+                },
+                {
+                    "type": "text",
+                    "text": "visible answer",
+                    "cache_control": { "type": "ephemeral", "ttl": "1h" },
+                    "provider_options": {
+                        "citations": { "enabled": true }
+                    }
+                }
+            ])
+        );
     }
 
     #[test]
