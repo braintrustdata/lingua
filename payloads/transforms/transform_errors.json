@@ -3,11 +3,23 @@
     "temperatureParam": "OpenAI rejected: 'temperature' is not supported with this model",
     "logprobsParam": "OpenAI rejected: logprobs are not supported with reasoning models",
     "chatCompletionsSystemCacheControlParam": "OpenAI Responses only supports request-level 30m cache TTLs and cannot preserve the per-block 1h TTL",
-    "chatCompletionsAssistantCacheControlParam": "Responses output_text cannot preserve assistant text cache control"
+    "chatCompletionsAssistantCacheControlParam": "Responses output_text cannot preserve assistant text cache control",
+    "chatCompletionsUrlBackedAudioFileParam": "OpenAI Responses input_file does not support audio files",
+    "chatCompletionsUrlBackedVideoFileParam": "OpenAI Responses input_file does not support video files"
+  },
+  "chat-completions_to_anthropic": {
+    "chatCompletionsUrlBackedAudioFileParam": "Anthropic document input does not support URL-backed audio files",
+    "chatCompletionsUrlBackedVideoFileParam": "Anthropic document input does not support URL-backed video files"
   },
   "chat-completions_to_bedrock": {
     "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
-    "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes"
+    "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
+    "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
+    "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input"
+  },
+  "chat-completions_to_bedrock_streaming": {
+    "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
+    "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input"
   },
   "responses_to_anthropic": {
     "reasoningRequestTruncated": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",

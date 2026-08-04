@@ -1,0 +1,21 @@
+{
+  "model": "gpt-5-nano",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Describe this video clip."
+        },
+        {
+          "type": "file",
+          "file": {
+            "filename": "sample-5s.mp4",
+            "file_data": "https://samplelib.com/lib/preview/mp4/sample-5s.mp4"
+          }
+        }
+      ]
+    }
+  ]
+}

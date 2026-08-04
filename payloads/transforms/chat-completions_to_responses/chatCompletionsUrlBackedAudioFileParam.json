@@ -1,0 +1,3 @@
+{
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert Lingua file content with MIME type audio/mp3 to OpenAI Responses input_file"
+}

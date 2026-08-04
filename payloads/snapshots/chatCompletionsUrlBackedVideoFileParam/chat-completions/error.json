@@ -1,0 +1,3 @@
+{
+  "error": "Error: 400 Invalid file data: 'messages[0].content[1].file.file_data'. Expected a base64-encoded data URL with an application/pdf MIME type (e.g. 'data:application/pdf;base64,SGVsbG8sIFdvcmxkIQ=='), but got a value without the 'data:' prefix."
+}
