@@ -5,8 +5,7 @@
       "target": "*",
       "fields": [
         { "pattern": "messages[*].id", "reason": "Message/response IDs are provider-specific and represent different concepts across providers" },
-        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal" },
-        { "pattern": "served_service_tier", "reason": "Response service-tier vocabularies overlap only partially across providers" }
+        { "pattern": "params.service_tier", "reason": "OpenAI-specific billing tier not universal" }
       ]
     },
     {
