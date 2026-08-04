@@ -484,11 +484,13 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
-        // Google response has candidates array (content may be missing for NO_IMAGE etc)
-        payload
-            .get("candidates")
-            .and_then(Value::as_array)
-            .is_some_and(|arr| !arr.is_empty())
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                || response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_some()
+        })
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
@@ -523,6 +525,20 @@ impl ProviderAdapter for GoogleAdapter {
                 false
             }
         });
+
+        let prompt_was_blocked = response
+            .prompt_feedback
+            .as_ref()
+            .and_then(|feedback| feedback.block_reason.as_ref())
+            .is_some();
+
+        if prompt_was_blocked && messages.is_empty() {
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(vec![]),
+                id: None,
+            });
+            finish_reasons.push(FinishReason::ContentFilter);
+        }
 
         let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
@@ -604,9 +620,13 @@ impl ProviderAdapter for GoogleAdapter {
     // =========================================================================
 
     fn detect_stream_response(&self, payload: &Value) -> bool {
-        // Google streaming uses the same format as non-streaming (candidates array)
-        // The response_to_universal detection already handles this
-        self.detect_response(payload)
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                && response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_none()
+        })
     }
 
     fn stream_to_universal(
