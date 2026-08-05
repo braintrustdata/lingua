@@ -27,7 +27,12 @@ getCaseNames(allTestCases).forEach((caseName) => {
   }
   const caseData = getCaseForProvider(allTestCases, caseName, "responses");
   if (caseData) {
-    openaiResponsesCases[caseName] = caseData;
+    // The OpenAI API accepts the `fast` service tier before the SDK type does.
+    // Keep the wider fixture type at authoring time and narrow only at the SDK boundary.
+    openaiResponsesCases[caseName] =
+      // TODO: Upgrade `openai` to >=7.2.0 and remove this assertion.
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- The SDK type does not yet include `fast`.
+      caseData as OpenAI.Responses.ResponseCreateParams;
   }
 });
 
