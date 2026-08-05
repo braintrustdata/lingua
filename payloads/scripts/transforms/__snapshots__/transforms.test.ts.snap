@@ -80,6 +80,9 @@ What would you like to do?",
     "cache_read_input_tokens": 0,
     "input_tokens": 158,
     "output_tokens": 1310,
+    "output_tokens_details": {
+      "thinking_tokens": 1216,
+    },
   },
 }
 `;
@@ -127,6 +130,9 @@ exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage 
     "cache_read_input_tokens": 0,
     "input_tokens": 51,
     "output_tokens": 16,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -207,6 +213,9 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
     "cache_read_input_tokens": 0,
     "input_tokens": 176,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -241,6 +250,9 @@ exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffo
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 74,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -277,6 +289,9 @@ What would you like to do? Tell me a topic, task, or even just a bit of context,
     "cache_read_input_tokens": 0,
     "input_tokens": 7,
     "output_tokens": 329,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -337,6 +352,9 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
     "cache_read_input_tokens": 0,
     "input_tokens": 74,
     "output_tokens": 6276,
+    "output_tokens_details": {
+      "thinking_tokens": 5632,
+    },
   },
 }
 `;
@@ -416,6 +434,9 @@ exports[`anthropic → chat-completions > imageContentParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 705,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -454,6 +475,9 @@ exports[`anthropic → chat-completions > instructionsParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 138,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -507,6 +531,9 @@ exports[`anthropic → chat-completions > jsonSchemaFormatParam > response 1`] =
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 798,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -541,6 +568,9 @@ exports[`anthropic → chat-completions > maxCompletionTokensParam > response 1`
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 139,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -576,6 +606,9 @@ exports[`anthropic → chat-completions > metadataParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 330,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -621,6 +654,9 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 99,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 300,
+    },
   },
 }
 `;
@@ -656,6 +692,9 @@ exports[`anthropic → chat-completions > opus47AdaptiveThinkingReasoningEffortP
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 74,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -713,6 +752,9 @@ exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam 
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 533,
+    "output_tokens_details": {
+      "thinking_tokens": 512,
+    },
   },
 }
 `;
@@ -769,6 +811,9 @@ exports[`anthropic → chat-completions > outputConfigJsonSchemaParam > response
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 661,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -825,6 +870,9 @@ exports[`anthropic → chat-completions > outputFormatJsonSchemaParam > response
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 213,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -885,6 +933,9 @@ exports[`anthropic → chat-completions > parallelToolCallsDisabledParam > respo
     "cache_read_input_tokens": 0,
     "input_tokens": 126,
     "output_tokens": 89,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -977,6 +1028,9 @@ Want hourly details, a 7-day outlook, or a Celsius conversion?",
     "cache_read_input_tokens": 0,
     "input_tokens": 229,
     "output_tokens": 310,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1020,6 +1074,9 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 16,
     "output_tokens": 267,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1090,6 +1147,9 @@ exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoPara
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 266,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1130,6 +1190,9 @@ Answer: 66 2/3 mph.",
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 454,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -1164,6 +1227,9 @@ exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 100,
+    "output_tokens_details": {
+      "thinking_tokens": 100,
+    },
   },
 }
 `;
@@ -1199,6 +1265,9 @@ exports[`anthropic → chat-completions > reasoningSummaryParam > response 1`] =
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 153,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1233,6 +1302,9 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 752,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -1268,6 +1340,9 @@ exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > res
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 906,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -1330,6 +1405,9 @@ What would you like to do next? For example, tell me a code search term, or ask 
     "cache_read_input_tokens": 0,
     "input_tokens": 120,
     "output_tokens": 664,
+    "output_tokens_details": {
+      "thinking_tokens": 512,
+    },
   },
 }
 `;
@@ -1365,6 +1443,9 @@ exports[`anthropic → chat-completions > safetyIdentifierParam > response 1`] =
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 275,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1400,6 +1481,9 @@ exports[`anthropic → chat-completions > serviceTierParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 139,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1434,6 +1518,9 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 203,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -1468,6 +1555,9 @@ exports[`anthropic → chat-completions > simpleRequestTruncated > response 1`] 
     "cache_read_input_tokens": 0,
     "input_tokens": 15,
     "output_tokens": 16,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -1551,6 +1641,9 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 300,
+    },
   },
 }
 `;
@@ -1642,6 +1735,9 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaParam > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 792,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -1698,6 +1794,9 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaWithDescriptionPar
     "cache_read_input_tokens": 0,
     "input_tokens": 45,
     "output_tokens": 917,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -1732,6 +1831,9 @@ exports[`anthropic → chat-completions > thinkingDisabledParam > response 1`] =
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 266,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -1792,6 +1894,9 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 148,
     "output_tokens": 154,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -1851,6 +1956,9 @@ exports[`anthropic → chat-completions > toolChoiceAnyParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 472,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -1906,6 +2014,9 @@ exports[`anthropic → chat-completions > toolChoiceAutoParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 451,
+    "output_tokens_details": {
+      "thinking_tokens": 384,
+    },
   },
 }
 `;
@@ -1967,6 +2078,9 @@ I’ll tailor the answer. If you’d rather check right away, you can search for
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 538,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -2031,6 +2145,9 @@ exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`]
     "cache_read_input_tokens": 0,
     "input_tokens": 123,
     "output_tokens": 279,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -2065,6 +2182,9 @@ exports[`anthropic → chat-completions > topKParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 147,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -2134,6 +2254,9 @@ exports[`anthropic → chat-completions > webSearchToolParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -2168,6 +2291,9 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
     "cache_read_input_tokens": 0,
     "input_tokens": 8,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -2254,6 +2380,9 @@ Right, so the user offered a straightforward "hello world." No complex query the
   "usage": {
     "input_tokens": 73,
     "output_tokens": 38,
+    "output_tokens_details": {
+      "thinking_tokens": 28,
+    },
     "service_tier": "standard",
   },
 }
@@ -2298,6 +2427,9 @@ exports[`anthropic → google > anthropicMidConversationSystemMessage > response
   "usage": {
     "input_tokens": 40,
     "output_tokens": 13,
+    "output_tokens_details": {
+      "thinking_tokens": 13,
+    },
     "service_tier": "standard",
   },
 }
@@ -2403,6 +2535,9 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "usage": {
     "input_tokens": 88,
     "output_tokens": 546,
+    "output_tokens_details": {
+      "thinking_tokens": 518,
+    },
     "service_tier": "standard",
   },
 }
@@ -2444,6 +2579,9 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
   "usage": {
     "input_tokens": 8,
     "output_tokens": 86,
+    "output_tokens_details": {
+      "thinking_tokens": 79,
+    },
     "service_tier": "standard",
   },
 }
@@ -2485,6 +2623,9 @@ exports[`anthropic → google > bedrockAnthropicContextManagementParam > respons
   "usage": {
     "input_tokens": 2,
     "output_tokens": 193,
+    "output_tokens_details": {
+      "thinking_tokens": 184,
+    },
     "service_tier": "standard",
   },
 }
@@ -2533,6 +2674,9 @@ exports[`anthropic → google > cacheControl1hParam > response 1`] = `
   "usage": {
     "input_tokens": 5,
     "output_tokens": 39,
+    "output_tokens_details": {
+      "thinking_tokens": 29,
+    },
   },
 }
 `;
@@ -2580,6 +2724,9 @@ exports[`anthropic → google > cacheControl5mParam > response 1`] = `
   "usage": {
     "input_tokens": 5,
     "output_tokens": 47,
+    "output_tokens_details": {
+      "thinking_tokens": 37,
+    },
   },
 }
 `;
@@ -2623,6 +2770,9 @@ exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > resp
   "usage": {
     "input_tokens": 15,
     "output_tokens": 620,
+    "output_tokens_details": {
+      "thinking_tokens": 579,
+    },
     "service_tier": "standard",
   },
 }
@@ -2720,6 +2870,9 @@ exports[`anthropic → google > chatCompletionsSystemCacheControlParam > respons
   "usage": {
     "input_tokens": 15,
     "output_tokens": 804,
+    "output_tokens_details": {
+      "thinking_tokens": 769,
+    },
     "service_tier": "standard",
   },
 }
@@ -2776,6 +2929,9 @@ Once you give me the code, I'll execute it and show you the output.",
   "usage": {
     "input_tokens": 3,
     "output_tokens": 976,
+    "output_tokens_details": {
+      "thinking_tokens": 839,
+    },
   },
 }
 `;
@@ -2896,6 +3052,9 @@ Now, let's count the occurrences of each digit (0-9) by looking at each position
   "usage": {
     "input_tokens": 75,
     "output_tokens": 4809,
+    "output_tokens_details": {
+      "thinking_tokens": 2753,
+    },
   },
 }
 `;
@@ -2944,6 +3103,9 @@ I need some content to work with!",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 538,
+    "output_tokens_details": {
+      "thinking_tokens": 511,
+    },
   },
 }
 `;
@@ -2984,6 +3146,9 @@ exports[`anthropic → google > fableTemperatureParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 159,
+    "output_tokens_details": {
+      "thinking_tokens": 150,
+    },
     "service_tier": "standard",
   },
 }
@@ -3033,6 +3198,9 @@ It's a vibrant and lively shade, often described as **lime green**, **spring gre
   "usage": {
     "input_tokens": 261,
     "output_tokens": 706,
+    "output_tokens_details": {
+      "thinking_tokens": 630,
+    },
   },
 }
 `;
@@ -3135,6 +3303,9 @@ exports[`anthropic → google > jsonSchemaFormatParam > response 1`] = `
   "usage": {
     "input_tokens": 17,
     "output_tokens": 118,
+    "output_tokens_details": {
+      "thinking_tokens": 92,
+    },
   },
 }
 `;
@@ -3175,6 +3346,9 @@ exports[`anthropic → google > maxCompletionTokensParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 19,
+    "output_tokens_details": {
+      "thinking_tokens": 17,
+    },
   },
 }
 `;
@@ -3215,6 +3389,9 @@ exports[`anthropic → google > metadataParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 17,
+    "output_tokens_details": {
+      "thinking_tokens": 15,
+    },
   },
 }
 `;
@@ -3261,6 +3438,9 @@ exports[`anthropic → google > multimodalRequest > response 1`] = `
   "usage": {
     "input_tokens": 267,
     "output_tokens": 296,
+    "output_tokens_details": {
+      "thinking_tokens": 285,
+    },
   },
 }
 `;
@@ -3314,6 +3494,9 @@ Alright, a simple arithmetic question. They've given me "2 + 2." The user, being
   "usage": {
     "input_tokens": 8,
     "output_tokens": 33,
+    "output_tokens_details": {
+      "thinking_tokens": 25,
+    },
     "service_tier": "standard",
   },
 }
@@ -3399,6 +3582,9 @@ That's it. It's a simple, direct mapping with no need for complex transformation
   "usage": {
     "input_tokens": 9,
     "output_tokens": 130,
+    "output_tokens_details": {
+      "thinking_tokens": 120,
+    },
   },
 }
 `;
@@ -3457,6 +3643,9 @@ exports[`anthropic → google > outputConfigJsonSchemaParam > response 1`] = `
   "usage": {
     "input_tokens": 9,
     "output_tokens": 117,
+    "output_tokens_details": {
+      "thinking_tokens": 104,
+    },
   },
 }
 `;
@@ -3515,6 +3704,9 @@ exports[`anthropic → google > outputFormatJsonSchemaParam > response 1`] = `
   "usage": {
     "input_tokens": 9,
     "output_tokens": 140,
+    "output_tokens_details": {
+      "thinking_tokens": 130,
+    },
   },
 }
 `;
@@ -3595,6 +3787,9 @@ exports[`anthropic → google > parallelToolCallsDisabledParam > response 1`] = 
   "usage": {
     "input_tokens": 39,
     "output_tokens": 88,
+    "output_tokens_details": {
+      "thinking_tokens": 58,
+    },
   },
 }
 `;
@@ -3759,6 +3954,9 @@ exports[`anthropic → google > promptCacheKeyParam > response 1`] = `
   "usage": {
     "input_tokens": 7,
     "output_tokens": 25,
+    "output_tokens_details": {
+      "thinking_tokens": 23,
+    },
   },
 }
 `;
@@ -3812,6 +4010,9 @@ Okay, here's the deal: a straightforward arithmetic question has been posed. Giv
   "usage": {
     "input_tokens": 8,
     "output_tokens": 24,
+    "output_tokens_details": {
+      "thinking_tokens": 17,
+    },
   },
 }
 `;
@@ -3865,6 +4066,9 @@ Alright, a seemingly straightforward arithmetic question has popped up. It appea
   "usage": {
     "input_tokens": 8,
     "output_tokens": 28,
+    "output_tokens_details": {
+      "thinking_tokens": 20,
+    },
   },
 }
 `;
@@ -3936,6 +4140,9 @@ Let's break down the journey:
   "usage": {
     "input_tokens": 37,
     "output_tokens": 891,
+    "output_tokens_details": {
+      "thinking_tokens": 541,
+    },
   },
 }
 `;
@@ -3976,6 +4183,9 @@ exports[`anthropic → google > reasoningRequestTruncated > response 1`] = `
   "usage": {
     "input_tokens": 37,
     "output_tokens": 96,
+    "output_tokens_details": {
+      "thinking_tokens": 92,
+    },
   },
 }
 `;
@@ -4029,6 +4239,9 @@ Alright, I've been presented with what looks like a straightforward arithmetic p
   "usage": {
     "input_tokens": 8,
     "output_tokens": 33,
+    "output_tokens_details": {
+      "thinking_tokens": 25,
+    },
   },
 }
 `;
@@ -4078,6 +4291,9 @@ However, the sky can also appear in many other colors depending on the time of d
   "usage": {
     "input_tokens": 7,
     "output_tokens": 497,
+    "output_tokens_details": {
+      "thinking_tokens": 287,
+    },
   },
 }
 `;
@@ -4139,6 +4355,9 @@ Therefore, my final output, based on my analysis and the desired user experience
   "usage": {
     "input_tokens": 8,
     "output_tokens": 105,
+    "output_tokens_details": {
+      "thinking_tokens": 97,
+    },
     "service_tier": "standard",
   },
 }
@@ -4199,6 +4418,9 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
   "usage": {
     "input_tokens": 30,
     "output_tokens": 357,
+    "output_tokens_details": {
+      "thinking_tokens": 347,
+    },
     "service_tier": "standard",
   },
 }
@@ -4240,6 +4462,9 @@ exports[`anthropic → google > safetyIdentifierParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 35,
+    "output_tokens_details": {
+      "thinking_tokens": 33,
+    },
   },
 }
 `;
@@ -4280,6 +4505,9 @@ exports[`anthropic → google > serviceTierParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 17,
+    "output_tokens_details": {
+      "thinking_tokens": 15,
+    },
   },
 }
 `;
@@ -4320,6 +4548,9 @@ exports[`anthropic → google > simpleRequest > response 1`] = `
   "usage": {
     "input_tokens": 8,
     "output_tokens": 40,
+    "output_tokens_details": {
+      "thinking_tokens": 32,
+    },
   },
 }
 `;
@@ -4399,6 +4630,9 @@ exports[`anthropic → google > stopSequencesParam > response 1`] = `
   "usage": {
     "input_tokens": 7,
     "output_tokens": 52,
+    "output_tokens_details": {
+      "thinking_tokens": 26,
+    },
   },
 }
 `;
@@ -4454,6 +4688,9 @@ SELECT
   "usage": {
     "input_tokens": 29,
     "output_tokens": 296,
+    "output_tokens_details": {
+      "thinking_tokens": 219,
+    },
   },
 }
 `;
@@ -4495,6 +4732,9 @@ exports[`anthropic → google > temperatureParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 28,
+    "output_tokens_details": {
+      "thinking_tokens": 26,
+    },
   },
 }
 `;
@@ -4549,6 +4789,9 @@ Please provide:
   "usage": {
     "input_tokens": 4,
     "output_tokens": 1019,
+    "output_tokens_details": {
+      "thinking_tokens": 835,
+    },
   },
 }
 `;
@@ -4604,6 +4847,9 @@ The more specific you are, the better I can assist you!",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 922,
+    "output_tokens_details": {
+      "thinking_tokens": 713,
+    },
   },
 }
 `;
@@ -4657,6 +4903,9 @@ The more information you give me, the better I can assist you!",
   "usage": {
     "input_tokens": 4,
     "output_tokens": 844,
+    "output_tokens_details": {
+      "thinking_tokens": 678,
+    },
   },
 }
 `;
@@ -4715,6 +4964,9 @@ exports[`anthropic → google > textFormatJsonSchemaParam > response 1`] = `
   "usage": {
     "input_tokens": 9,
     "output_tokens": 141,
+    "output_tokens_details": {
+      "thinking_tokens": 131,
+    },
   },
 }
 `;
@@ -4776,6 +5028,9 @@ exports[`anthropic → google > textFormatJsonSchemaWithDescriptionParam > respo
   "usage": {
     "input_tokens": 9,
     "output_tokens": 104,
+    "output_tokens_details": {
+      "thinking_tokens": 86,
+    },
   },
 }
 `;
@@ -4816,6 +5071,9 @@ exports[`anthropic → google > thinkingDisabledParam > response 1`] = `
   "usage": {
     "input_tokens": 5,
     "output_tokens": 22,
+    "output_tokens_details": {
+      "thinking_tokens": 21,
+    },
   },
 }
 `;
@@ -4889,6 +5147,9 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "usage": {
     "input_tokens": 73,
     "output_tokens": 68,
+    "output_tokens_details": {
+      "thinking_tokens": 49,
+    },
     "service_tier": "standard",
   },
 }
@@ -4962,6 +5223,9 @@ exports[`anthropic → google > toolChoiceAnyParam > response 1`] = `
   "usage": {
     "input_tokens": 37,
     "output_tokens": 150,
+    "output_tokens_details": {
+      "thinking_tokens": 137,
+    },
   },
 }
 `;
@@ -5030,6 +5294,9 @@ exports[`anthropic → google > toolChoiceAutoParam > response 1`] = `
   "usage": {
     "input_tokens": 37,
     "output_tokens": 86,
+    "output_tokens_details": {
+      "thinking_tokens": 74,
+    },
   },
 }
 `;
@@ -5098,6 +5365,9 @@ exports[`anthropic → google > toolChoiceNoneParam > response 1`] = `
   "usage": {
     "input_tokens": 37,
     "output_tokens": 604,
+    "output_tokens_details": {
+      "thinking_tokens": 558,
+    },
   },
 }
 `;
@@ -5173,6 +5443,9 @@ exports[`anthropic → google > toolChoiceRequiredParam > response 1`] = `
   "usage": {
     "input_tokens": 37,
     "output_tokens": 66,
+    "output_tokens_details": {
+      "thinking_tokens": 51,
+    },
   },
 }
 `;
@@ -5214,6 +5487,9 @@ exports[`anthropic → google > topKParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 18,
+    "output_tokens_details": {
+      "thinking_tokens": 16,
+    },
   },
 }
 `;
@@ -5255,6 +5531,9 @@ exports[`anthropic → google > topPParam > response 1`] = `
   "usage": {
     "input_tokens": 4,
     "output_tokens": 23,
+    "output_tokens_details": {
+      "thinking_tokens": 20,
+    },
   },
 }
 `;
@@ -5297,6 +5576,9 @@ exports[`anthropic → google > webSearchToolAdvancedParam > response 1`] = `
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 982,
+    },
   },
 }
 `;
@@ -5341,6 +5623,9 @@ Here's a rundown of the latest key developments:
   "usage": {
     "input_tokens": 4,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 980,
+    },
   },
 }
 `;
@@ -5381,6 +5666,9 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "usage": {
     "input_tokens": 3,
     "output_tokens": 1020,
+    "output_tokens_details": {
+      "thinking_tokens": 974,
+    },
   },
 }
 `;
@@ -5482,6 +5770,9 @@ Tell me your preferred language (or share another), and I’ll tailor it.",
     "cache_read_input_tokens": 0,
     "input_tokens": 77,
     "output_tokens": 2245,
+    "output_tokens_details": {
+      "thinking_tokens": 2048,
+    },
   },
 }
 `;
@@ -5606,6 +5897,9 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
     "cache_read_input_tokens": 0,
     "input_tokens": 92,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -5741,6 +6035,9 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
     "cache_read_input_tokens": 0,
     "input_tokens": 74,
     "output_tokens": 11642,
+    "output_tokens_details": {
+      "thinking_tokens": 11264,
+    },
   },
 }
 `;
@@ -5798,6 +6095,9 @@ Tell me the desired length and audience (e.g., plain language for a general audi
     "cache_read_input_tokens": 0,
     "input_tokens": 17,
     "output_tokens": 584,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -5837,6 +6137,9 @@ exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 249,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -5885,6 +6188,9 @@ exports[`anthropic → responses > imageContentParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 554,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -5929,6 +6235,9 @@ exports[`anthropic → responses > instructionsParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 218,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -5987,6 +6296,9 @@ exports[`anthropic → responses > jsonSchemaFormatParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 855,
+    "output_tokens_details": {
+      "thinking_tokens": 768,
+    },
   },
 }
 `;
@@ -6026,6 +6338,9 @@ exports[`anthropic → responses > maxCompletionTokensParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 300,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6068,6 +6383,9 @@ exports[`anthropic → responses > metadataParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 174,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6112,6 +6430,9 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 98,
     "output_tokens": 256,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6154,6 +6475,9 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 158,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6218,6 +6542,9 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > respo
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 343,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6279,6 +6606,9 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > response 1`] = 
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 318,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6340,6 +6670,9 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > response 1`] = 
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 364,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6403,6 +6736,9 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > response 1`]
     "cache_read_input_tokens": 0,
     "input_tokens": 122,
     "output_tokens": 159,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -6489,6 +6825,9 @@ Want a 7-day forecast or hourly details for either city?",
     "cache_read_input_tokens": 0,
     "input_tokens": 136,
     "output_tokens": 750,
+    "output_tokens_details": {
+      "thinking_tokens": 704,
+    },
   },
 }
 `;
@@ -6541,6 +6880,9 @@ exports[`anthropic → responses > promptCacheKeyParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 16,
     "output_tokens": 227,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -6625,6 +6967,9 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > res
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 351,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -6675,6 +7020,9 @@ Answer: 66 2/3 mph (about 66.7 mph).",
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 619,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -6710,6 +7058,9 @@ exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 38,
     "output_tokens": 64,
+    "output_tokens_details": {
+      "thinking_tokens": 64,
+    },
   },
 }
 `;
@@ -6752,6 +7103,9 @@ exports[`anthropic → responses > reasoningSummaryParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 264,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -6799,6 +7153,9 @@ If you tell me the time and location, I can describe what the sky would look lik
     "cache_read_input_tokens": 0,
     "input_tokens": 12,
     "output_tokens": 528,
+    "output_tokens_details": {
+      "thinking_tokens": 384,
+    },
   },
 }
 `;
@@ -6920,6 +7277,9 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
     "cache_read_input_tokens": 0,
     "input_tokens": 601,
     "output_tokens": 152,
+    "output_tokens_details": {
+      "thinking_tokens": 84,
+    },
   },
 }
 `;
@@ -6962,6 +7322,9 @@ exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 171,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7002,6 +7365,9 @@ exports[`anthropic → responses > serviceTierParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 174,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7041,6 +7407,9 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 13,
     "output_tokens": 155,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7134,6 +7503,9 @@ exports[`anthropic → responses > stopSequencesParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 338,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7179,6 +7551,9 @@ exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 11,
     "output_tokens": 256,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7254,6 +7629,9 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 282,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7315,6 +7693,9 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 389,
+    "output_tokens_details": {
+      "thinking_tokens": 320,
+    },
   },
 }
 `;
@@ -7354,6 +7735,9 @@ exports[`anthropic → responses > thinkingDisabledParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 10,
     "output_tokens": 163,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7417,6 +7801,9 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 66,
     "output_tokens": 297,
+    "output_tokens_details": {
+      "thinking_tokens": 256,
+    },
   },
 }
 `;
@@ -7479,6 +7866,9 @@ exports[`anthropic → responses > toolChoiceAnyParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 612,
+    "output_tokens_details": {
+      "thinking_tokens": 576,
+    },
   },
 }
 `;
@@ -7542,6 +7932,9 @@ Examples:
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 537,
+    "output_tokens_details": {
+      "thinking_tokens": 448,
+    },
   },
 }
 `;
@@ -7600,6 +7993,9 @@ exports[`anthropic → responses > toolChoiceNoneParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 664,
+    "output_tokens_details": {
+      "thinking_tokens": 576,
+    },
   },
 }
 `;
@@ -7665,6 +8061,9 @@ exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 41,
     "output_tokens": 265,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -7704,6 +8103,9 @@ exports[`anthropic → responses > topKParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 222,
+    "output_tokens_details": {
+      "thinking_tokens": 192,
+    },
   },
 }
 `;
@@ -7743,6 +8145,9 @@ exports[`anthropic → responses > topPParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 9,
     "output_tokens": 183,
+    "output_tokens_details": {
+      "thinking_tokens": 128,
+    },
   },
 }
 `;
@@ -7810,6 +8215,9 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
     "cache_read_input_tokens": 4224,
     "input_tokens": 5034,
     "output_tokens": 958,
+    "output_tokens_details": {
+      "thinking_tokens": 896,
+    },
   },
 }
 `;
@@ -7951,6 +8359,9 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 17489,
     "output_tokens": 872,
+    "output_tokens_details": {
+      "thinking_tokens": 640,
+    },
   },
 }
 `;
@@ -7998,6 +8409,9 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
     "cache_read_input_tokens": 0,
     "input_tokens": 4444,
     "output_tokens": 1024,
+    "output_tokens_details": {
+      "thinking_tokens": 1024,
+    },
   },
 }
 `;
@@ -14408,6 +14822,9 @@ exports[`chat-completions → google > chatCompletionsUrlBackedAudioFileParam > 
       "reasoning_tokens": 202,
     },
     "prompt_tokens": 87,
+    "prompt_tokens_details": {
+      "audio_tokens": 80,
+    },
     "total_tokens": 292,
   },
 }
@@ -21178,9 +21595,10 @@ Let me format this as the required JSON:",
   "modelVersion": "claude-sonnet-4-5-20250929",
   "usageMetadata": {
     "cachedContentTokenCount": 0,
-    "candidatesTokenCount": 199,
+    "candidatesTokenCount": 40,
     "promptTokenCount": 290,
     "serviceTier": "standard",
+    "thoughtsTokenCount": 159,
     "totalTokenCount": 489,
   },
 }
@@ -29280,7 +29698,7 @@ exports[`responses → anthropic > anthropicOpus5AdaptiveThinkingMaxEffortParam 
     },
     "output_tokens": 54,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 43,
     },
     "total_tokens": 67,
   },
@@ -31235,7 +31653,7 @@ To preserve reasoning state, I would document:
     },
     "output_tokens": 369,
     "output_tokens_details": {
-      "reasoning_tokens": 0,
+      "reasoning_tokens": 138,
     },
     "total_tokens": 416,
   },

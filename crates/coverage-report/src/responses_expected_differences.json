@@ -21,21 +21,29 @@
       "fields": [
         { "pattern": "messages[*].content[*].provider_options", "reason": "Responses API annotations/logprobs have no Google equivalent" },
         { "pattern": "messages[*].content[*].provider_executed", "reason": "Responses API provider_executed flag has no Google equivalent" },
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Google usage equivalent" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Google usage equivalent" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Google does not expose cache-write usage details" }
       ]
     },
     {
       "source": "Responses",
       "target": "ChatCompletions",
       "fields": [
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Chat Completions usage equivalent" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses API cache_write_tokens has no Chat Completions usage equivalent" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Responses API cache-write details have no Chat Completions usage equivalent" }
       ]
     },
     {
       "source": "Google",
       "target": "*",
       "fields": [
-        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" }
+        { "pattern": "messages[*].content[*].encrypted_content", "reason": "Google thoughtSignature doesn't roundtrip through other providers" },
+        { "pattern": "usage.input_details", "reason": "Other providers do not expose Google's complete input modality and tool-prompt breakdown" },
+        { "pattern": "usage.input_details.content_by_modality", "reason": "Other providers do not expose Google's complete input content modality breakdown" },
+        { "pattern": "usage.input_details.cached.by_modality", "reason": "Other providers do not expose Google's cached input modality breakdown" },
+        { "pattern": "usage.input_details.tool_prompt", "reason": "Other providers do not expose Google's tool-prompt token breakdown" },
+        { "pattern": "usage.output_details", "reason": "Other providers do not expose Google's complete output token details" },
+        { "pattern": "usage.output_details.content_by_modality", "reason": "Other providers do not expose Google's complete candidate modality breakdown" }
       ]
     },
     {
@@ -62,7 +70,8 @@
         { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
         { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
         { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage reports prompt tokens exclusive of cache buckets; ChatCompletions does not expose this semantic flag" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage reports prompt tokens exclusive of cache buckets; ChatCompletions does not expose this semantic flag" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Anthropic cache-write details have no Chat Completions usage equivalent" }
       ]
     },
     {
@@ -72,7 +81,8 @@
         { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
         { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
         { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage reports prompt tokens exclusive of cache buckets; Google does not expose this semantic flag" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage reports prompt tokens exclusive of cache buckets; Google does not expose this semantic flag" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Google does not expose cache-write usage details" }
       ]
     },
     {
@@ -90,8 +100,7 @@
       "target": "Anthropic",
       "fields": [
         { "pattern": "usage.prompt_tokens", "reason": "Anthropic-style usage reports input_tokens exclusive of cache buckets, while Responses usage reports inclusive prompt totals" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Responses does not expose this semantic flag" },
-        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Responses does not expose this semantic flag" }
       ]
     },
     {
@@ -99,24 +108,21 @@
       "target": "Anthropic",
       "fields": [
         { "pattern": "usage.prompt_tokens", "reason": "Anthropic-style usage reports input_tokens exclusive of cache buckets, while ChatCompletions usage reports inclusive prompt totals" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; ChatCompletions does not expose this semantic flag" },
-        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; ChatCompletions does not expose this semantic flag" }
       ]
     },
     {
       "source": "Google",
       "target": "Anthropic",
       "fields": [
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Google does not expose this semantic flag" },
-        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Google does not expose this semantic flag" }
       ]
     },
     {
       "source": "Bedrock",
       "target": "Anthropic",
       "fields": [
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Bedrock Converse does not expose this semantic flag" },
-        { "pattern": "usage.completion_reasoning_tokens", "reason": "Anthropic-style providers don't expose reasoning tokens separately (included in output_tokens)" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style usage follows exclusive prompt-token semantics; Bedrock Converse does not expose this semantic flag" }
       ]
     },
     {

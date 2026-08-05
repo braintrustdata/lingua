@@ -245,76 +245,6 @@ impl From<UniversalStreamDelta> for Value {
     }
 }
 
-// Implement Serialize for UniversalUsage to support streaming chunk serialization
-impl Serialize for UniversalUsage {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("UniversalUsage", 8)?;
-        if let Some(prompt) = self.prompt_tokens {
-            state.serialize_field("prompt_tokens", &prompt)?;
-        }
-        if let Some(completion) = self.completion_tokens {
-            state.serialize_field("completion_tokens", &completion)?;
-        }
-        if let Some(cached) = self.prompt_cached_tokens {
-            state.serialize_field("prompt_cached_tokens", &cached)?;
-        }
-        if let Some(cache_creation) = self.prompt_cache_creation_tokens {
-            state.serialize_field("prompt_cache_creation_tokens", &cache_creation)?;
-        }
-        if let Some(cache_creation_5m) = self.prompt_cache_creation_5m_tokens {
-            state.serialize_field("prompt_cache_creation_5m_tokens", &cache_creation_5m)?;
-        }
-        if let Some(cache_creation_1h) = self.prompt_cache_creation_1h_tokens {
-            state.serialize_field("prompt_cache_creation_1h_tokens", &cache_creation_1h)?;
-        }
-        if self.prompt_tokens_exclude_cache {
-            state.serialize_field(
-                "prompt_tokens_exclude_cache",
-                &self.prompt_tokens_exclude_cache,
-            )?;
-        }
-        if let Some(reasoning) = self.completion_reasoning_tokens {
-            state.serialize_field("completion_reasoning_tokens", &reasoning)?;
-        }
-        state.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for UniversalUsage {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        #[derive(Deserialize)]
-        struct Helper {
-            prompt_tokens: Option<i64>,
-            completion_tokens: Option<i64>,
-            prompt_cached_tokens: Option<i64>,
-            prompt_cache_creation_tokens: Option<i64>,
-            prompt_cache_creation_5m_tokens: Option<i64>,
-            prompt_cache_creation_1h_tokens: Option<i64>,
-            #[serde(default)]
-            prompt_tokens_exclude_cache: bool,
-            completion_reasoning_tokens: Option<i64>,
-        }
-        let helper = Helper::deserialize(deserializer)?;
-        Ok(UniversalUsage {
-            prompt_tokens: helper.prompt_tokens,
-            completion_tokens: helper.completion_tokens,
-            prompt_cached_tokens: helper.prompt_cached_tokens,
-            prompt_cache_creation_tokens: helper.prompt_cache_creation_tokens,
-            prompt_cache_creation_5m_tokens: helper.prompt_cache_creation_5m_tokens,
-            prompt_cache_creation_1h_tokens: helper.prompt_cache_creation_1h_tokens,
-            prompt_tokens_exclude_cache: helper.prompt_tokens_exclude_cache,
-            completion_reasoning_tokens: helper.completion_reasoning_tokens,
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -397,6 +327,64 @@ mod tests {
         assert_eq!(json["model"], "gpt-4");
         assert_eq!(json["created"], 1234567890);
         assert!(json.get("keep_alive").is_none()); // Should be skipped
+    }
+
+    #[test]
+    fn test_usage_details_roundtrip() {
+        let usage = UniversalUsage {
+            total_tokens: Some(5),
+            input_details: Some(crate::universal::response::InputTokenDetails {
+                content_by_modality: Some(vec![crate::universal::response::ModalityTokenCount {
+                    modality: Some(crate::universal::response::TokenModality::Text),
+                    token_count: Some(3),
+                }]),
+                tool_prompt: Some(crate::universal::response::TokenBreakdown {
+                    total_tokens: Some(2),
+                    by_modality: Some(vec![crate::universal::response::ModalityTokenCount {
+                        modality: Some(crate::universal::response::TokenModality::Text),
+                        token_count: Some(2),
+                    }]),
+                }),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let value = serde_json::to_value(&usage).unwrap();
+        assert_eq!(
+            value,
+            crate::serde_json::json!({
+                "total_tokens": 5,
+                "input_details": {
+                    "content_by_modality": [{
+                        "modality": "text",
+                        "token_count": 3
+                    }],
+                    "tool_prompt": {
+                        "total_tokens": 2,
+                        "by_modality": [{
+                            "modality": "text",
+                            "token_count": 2
+                        }]
+                    }
+                }
+            })
+        );
+        let roundtrip: UniversalUsage = serde_json::from_value(value).unwrap();
+
+        assert!(!roundtrip.prompt_tokens_exclude_cache);
+        assert_eq!(roundtrip.total_tokens, Some(5));
+        assert_eq!(roundtrip.input_details, usage.input_details);
+
+        let exclusive = UniversalUsage {
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+        let value = serde_json::to_value(exclusive).unwrap();
+        assert_eq!(
+            value,
+            crate::serde_json::json!({"prompt_tokens_exclude_cache": true})
+        );
     }
 
     #[test]

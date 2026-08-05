@@ -10,6 +10,7 @@ use crate::serde_json::{self, Value};
 use crate::universal::defaults::PLACEHOLDER_ID;
 use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 /// Universal response envelope for LLM API responses.
 ///
@@ -77,14 +78,71 @@ impl ParsableResponseInfo {
     }
 }
 
+/// A provider-independent token modality.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenModality {
+    Unspecified,
+    Text,
+    Image,
+    Audio,
+    Video,
+    Document,
+}
+
+/// Token count for one modality.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ModalityTokenCount {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modality: Option<TokenModality>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_count: Option<i64>,
+}
+
+/// A token subset with an optional modality breakdown.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TokenBreakdown {
+    pub total_tokens: Option<i64>,
+    pub by_modality: Option<Vec<ModalityTokenCount>>,
+}
+
+/// Detailed subsets of inclusive prompt/input usage.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct InputTokenDetails {
+    /// User/request content tokens by modality. Provider-generated tool prompts are separate.
+    pub content_by_modality: Option<Vec<ModalityTokenCount>>,
+    /// Cache-read tokens, which are included in `UniversalUsage::prompt_tokens`.
+    pub cached: Option<TokenBreakdown>,
+    /// Cache-write tokens, which are included in `UniversalUsage::prompt_tokens` when reported.
+    pub cache_creation: Option<TokenBreakdown>,
+    /// Provider-generated tool prompt tokens included in `UniversalUsage::prompt_tokens`.
+    pub tool_prompt: Option<TokenBreakdown>,
+}
+
+/// Detailed subsets of inclusive completion/output usage.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OutputTokenDetails {
+    /// Returned candidate content tokens by modality. Reasoning tokens are separate.
+    pub content_by_modality: Option<Vec<ModalityTokenCount>>,
+    /// Reasoning/thinking tokens included in `UniversalUsage::completion_tokens`.
+    pub reasoning: Option<TokenBreakdown>,
+}
+
 /// Token usage statistics.
-#[derive(Debug, Clone, Default)]
+#[skip_serializing_none]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct UniversalUsage {
-    /// Tokens in the prompt/input
+    /// Tokens in the prompt/input, including provider-generated tool prompts when reported.
     pub prompt_tokens: Option<i64>,
 
     /// Tokens in the completion/output
     pub completion_tokens: Option<i64>,
+
+    /// Total tokens. Preserves a provider-reported value or falls back to prompt plus completion.
+    pub total_tokens: Option<i64>,
 
     /// Cached tokens in the prompt (from prompt caching)
     pub prompt_cached_tokens: Option<i64>,
@@ -106,11 +164,18 @@ pub struct UniversalUsage {
     /// [`UniversalUsage::inclusive_prompt_tokens`]. Consumers that want an
     /// Anthropic-style exclusive input count must subtract the cache buckets
     /// when this is not set; see [`UniversalUsage::exclusive_prompt_tokens`].
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub prompt_tokens_exclude_cache: bool,
 
     /// Reasoning/thinking tokens used in the completion.
     /// `Some(n)` only when `n > 0`; otherwise `None`.
     pub completion_reasoning_tokens: Option<i64>,
+
+    /// Detailed prompt/input token subsets and modality breakdowns.
+    pub input_details: Option<InputTokenDetails>,
+
+    /// Detailed completion/output token subsets and modality breakdowns.
+    pub output_details: Option<OutputTokenDetails>,
 }
 
 /// Service tier reported by the provider that served a response.
@@ -482,6 +547,7 @@ struct AnthropicUsageView {
     cache_creation_input_tokens: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_optional_cache_creation")]
     cache_creation: Option<AnthropicCacheCreationView>,
+    output_tokens_details: Option<TypedUsageDetails<AnthropicOutputTokenDetailsView>>,
 }
 
 #[derive(Default, Deserialize)]
@@ -490,6 +556,12 @@ struct AnthropicCacheCreationView {
     ephemeral_5m_input_tokens: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_optional_i64")]
     ephemeral_1h_input_tokens: Option<i64>,
+}
+
+#[derive(Default, Deserialize)]
+struct AnthropicOutputTokenDetailsView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    thinking_tokens: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -537,22 +609,176 @@ fn anthropic_usage_view(usage: &Value) -> AnthropicUsageView {
 }
 
 #[derive(Debug, Default, Deserialize)]
-struct OpenAIResponsesUsageDetailsView {
+struct OpenAIChatUsageDetailsView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     cached_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    reasoning_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    audio_tokens: Option<i64>,
+}
+
+/// A typed optional usage-details object or its explicitly modeled malformed value.
+/// Malformed details do not invalidate independent aggregate counters.
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum TypedUsageDetails<T> {
+    Valid(T),
+    Malformed(Value),
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIChatUsageView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    prompt_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    completion_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    total_tokens: Option<i64>,
+    prompt_tokens_details: Option<TypedUsageDetails<OpenAIChatUsageDetailsView>>,
+    completion_tokens_details: Option<TypedUsageDetails<OpenAIChatUsageDetailsView>>,
+}
+
+fn openai_chat_usage_view(usage: &Value) -> OpenAIChatUsageView {
+    serde_json::from_value::<OpenAIChatUsageView>(usage.clone()).unwrap_or_default()
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct OpenAIResponsesUsageDetailsView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    cached_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     cache_write_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     reasoning_tokens: Option<i64>,
 }
 
 #[derive(Debug, Default, Deserialize)]
 struct OpenAIResponsesUsageView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
     output_tokens: Option<i64>,
-    input_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
-    output_tokens_details: Option<OpenAIResponsesUsageDetailsView>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    total_tokens: Option<i64>,
+    input_tokens_details: Option<TypedUsageDetails<OpenAIResponsesUsageDetailsView>>,
+    output_tokens_details: Option<TypedUsageDetails<OpenAIResponsesUsageDetailsView>>,
 }
 
 fn openai_responses_usage_view(usage: &Value) -> OpenAIResponsesUsageView {
     serde_json::from_value::<OpenAIResponsesUsageView>(usage.clone()).unwrap_or_default()
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ConverseUsageView {
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    output_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    total_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    cache_read_input_tokens: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_optional_i64")]
+    cache_write_input_tokens: Option<i64>,
+}
+
+fn converse_usage_view(usage: &Value) -> ConverseUsageView {
+    serde_json::from_value::<ConverseUsageView>(usage.clone()).unwrap_or_default()
+}
+
+fn sum_usage_counts(left: Option<i64>, right: Option<i64>) -> Option<i64> {
+    match (left, right) {
+        (Some(left), Some(right)) => Some(left.saturating_add(right)),
+        (Some(value), None) | (None, Some(value)) => Some(value),
+        (None, None) => None,
+    }
+}
+
+fn usage_token_breakdown(
+    total_tokens: Option<i64>,
+    by_modality: Option<Vec<ModalityTokenCount>>,
+) -> Option<TokenBreakdown> {
+    if total_tokens.is_none() && by_modality.is_none() {
+        return None;
+    }
+    Some(TokenBreakdown {
+        total_tokens,
+        by_modality,
+    })
+}
+
+fn single_modality_count(
+    modality: TokenModality,
+    token_count: Option<i64>,
+) -> Option<Vec<ModalityTokenCount>> {
+    token_count
+        .filter(|&token_count| token_count > 0)
+        .map(|token_count| {
+            vec![ModalityTokenCount {
+                modality: Some(modality),
+                token_count: Some(token_count),
+            }]
+        })
+}
+
+fn optional_input_details(details: InputTokenDetails) -> Option<InputTokenDetails> {
+    (details != InputTokenDetails::default()).then_some(details)
+}
+
+fn optional_output_details(details: OutputTokenDetails) -> Option<OutputTokenDetails> {
+    (details != OutputTokenDetails::default()).then_some(details)
+}
+
+fn modality_token_total(
+    details: Option<&[ModalityTokenCount]>,
+    modality: TokenModality,
+) -> Option<i64> {
+    let mut total = None;
+    for detail in details.unwrap_or_default() {
+        if detail.modality.as_ref() != Some(&modality) {
+            continue;
+        }
+        if let Some(token_count) = detail.token_count {
+            total = Some(total.unwrap_or(0_i64).saturating_add(token_count));
+        }
+    }
+    total
+}
+
+fn google_modality_name(modality: &TokenModality) -> &'static str {
+    match modality {
+        TokenModality::Unspecified => "MODALITY_UNSPECIFIED",
+        TokenModality::Text => "TEXT",
+        TokenModality::Image => "IMAGE",
+        TokenModality::Audio => "AUDIO",
+        TokenModality::Video => "VIDEO",
+        TokenModality::Document => "DOCUMENT",
+    }
+}
+
+fn google_modality_token_counts_value(details: Option<&[ModalityTokenCount]>) -> Option<Value> {
+    details.map(|details| {
+        Value::Array(
+            details
+                .iter()
+                .map(|detail| {
+                    let mut map = serde_json::Map::new();
+                    if let Some(modality) = detail.modality.as_ref() {
+                        map.insert(
+                            "modality".into(),
+                            Value::String(google_modality_name(modality).into()),
+                        );
+                    }
+                    if let Some(token_count) = detail.token_count {
+                        map.insert("tokenCount".into(), serde_json::json!(token_count));
+                    }
+                    Value::Object(map)
+                })
+                .collect(),
+        )
+    })
 }
 
 impl UniversalUsage {
@@ -568,33 +794,82 @@ impl UniversalUsage {
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
             ProviderFormat::ChatCompletions | ProviderFormat::Mistral | ProviderFormat::Unknown => {
+                let usage = openai_chat_usage_view(usage);
+                let prompt_details = match usage.prompt_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        OpenAIChatUsageDetailsView::default()
+                    }
+                    None => OpenAIChatUsageDetailsView::default(),
+                };
+                let completion_details = match usage.completion_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        OpenAIChatUsageDetailsView::default()
+                    }
+                    None => OpenAIChatUsageDetailsView::default(),
+                };
+                let reasoning_tokens = completion_details.reasoning_tokens.filter(|&v| v > 0);
+                let total_tokens = usage
+                    .total_tokens
+                    .or_else(|| sum_usage_counts(usage.prompt_tokens, usage.completion_tokens));
                 Self {
-                    prompt_tokens: usage.get("prompt_tokens").and_then(Value::as_i64),
-                    completion_tokens: usage.get("completion_tokens").and_then(Value::as_i64),
-                    prompt_cached_tokens: usage
-                        .get("prompt_tokens_details")
-                        .and_then(|d| d.get("cached_tokens"))
-                        .and_then(Value::as_i64),
-                    prompt_cache_creation_tokens: None, // OpenAI doesn't report cache creation tokens
+                    prompt_tokens: usage.prompt_tokens,
+                    completion_tokens: usage.completion_tokens,
+                    total_tokens,
+                    prompt_cached_tokens: prompt_details.cached_tokens,
+                    prompt_cache_creation_tokens: None,
                     prompt_cache_creation_5m_tokens: None,
                     prompt_cache_creation_1h_tokens: None,
                     // OpenAI's prompt_tokens already includes cached tokens
                     prompt_tokens_exclude_cache: false,
-                    // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
-                    completion_reasoning_tokens: usage
-                        .get("completion_tokens_details")
-                        .and_then(|d| d.get("reasoning_tokens"))
-                        .and_then(Value::as_i64)
-                        .filter(|&v| v > 0),
+                    completion_reasoning_tokens: reasoning_tokens,
+                    input_details: optional_input_details(InputTokenDetails {
+                        content_by_modality: single_modality_count(
+                            TokenModality::Audio,
+                            prompt_details.audio_tokens,
+                        ),
+                        cached: usage_token_breakdown(prompt_details.cached_tokens, None),
+                        cache_creation: None,
+                        tool_prompt: None,
+                    }),
+                    output_details: optional_output_details(OutputTokenDetails {
+                        content_by_modality: single_modality_count(
+                            TokenModality::Audio,
+                            completion_details.audio_tokens,
+                        ),
+                        reasoning: usage_token_breakdown(reasoning_tokens, None),
+                    }),
                 }
             }
             ProviderFormat::Responses => {
                 let usage = openai_responses_usage_view(usage);
-                let input_details = usage.input_tokens_details.unwrap_or_default();
-                let output_details = usage.output_tokens_details.unwrap_or_default();
+                let input_details = match usage.input_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        OpenAIResponsesUsageDetailsView::default()
+                    }
+                    None => OpenAIResponsesUsageDetailsView::default(),
+                };
+                let output_details = match usage.output_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        OpenAIResponsesUsageDetailsView::default()
+                    }
+                    None => OpenAIResponsesUsageDetailsView::default(),
+                };
+                let reasoning_tokens = output_details.reasoning_tokens.filter(|&v| v > 0);
+                let total_tokens = usage
+                    .total_tokens
+                    .or_else(|| sum_usage_counts(usage.input_tokens, usage.output_tokens));
                 Self {
                     prompt_tokens: usage.input_tokens,
                     completion_tokens: usage.output_tokens,
+                    total_tokens,
                     prompt_cached_tokens: input_details.cached_tokens,
                     prompt_cache_creation_tokens: input_details.cache_write_tokens,
                     prompt_cache_creation_5m_tokens: None,
@@ -602,7 +877,20 @@ impl UniversalUsage {
                     // OpenAI's input_tokens already includes cached tokens
                     prompt_tokens_exclude_cache: false,
                     // Treat 0 as None: 0 reasoning tokens means "no reasoning" = semantically None
-                    completion_reasoning_tokens: output_details.reasoning_tokens.filter(|&v| v > 0),
+                    completion_reasoning_tokens: reasoning_tokens,
+                    input_details: optional_input_details(InputTokenDetails {
+                        content_by_modality: None,
+                        cached: usage_token_breakdown(input_details.cached_tokens, None),
+                        cache_creation: usage_token_breakdown(
+                            input_details.cache_write_tokens,
+                            None,
+                        ),
+                        tool_prompt: None,
+                    }),
+                    output_details: optional_output_details(OutputTokenDetails {
+                        content_by_modality: None,
+                        reasoning: usage_token_breakdown(reasoning_tokens, None),
+                    }),
                 }
             }
             ProviderFormat::Anthropic
@@ -610,31 +898,76 @@ impl UniversalUsage {
             | ProviderFormat::VertexAnthropic => {
                 let usage = anthropic_usage_view(usage);
                 let cache_creation = usage.cache_creation.unwrap_or_default();
+                let cache_creation_tokens = usage.cache_creation_input_tokens.or_else(|| {
+                    sum_usage_counts(
+                        cache_creation.ephemeral_5m_input_tokens,
+                        cache_creation.ephemeral_1h_input_tokens,
+                    )
+                });
+                let inclusive_prompt = sum_usage_counts(
+                    sum_usage_counts(usage.input_tokens, usage.cache_read_input_tokens),
+                    cache_creation_tokens,
+                );
+                let reasoning_tokens = match usage.output_tokens_details {
+                    Some(TypedUsageDetails::Valid(details)) => details.thinking_tokens,
+                    Some(TypedUsageDetails::Malformed(value)) => {
+                        drop(value);
+                        None
+                    }
+                    None => None,
+                }
+                .filter(|&tokens| tokens > 0);
                 Self {
                     prompt_tokens: usage.input_tokens,
                     completion_tokens: usage.output_tokens,
+                    total_tokens: sum_usage_counts(inclusive_prompt, usage.output_tokens),
                     prompt_cached_tokens: usage.cache_read_input_tokens,
-                    prompt_cache_creation_tokens: usage.cache_creation_input_tokens,
+                    prompt_cache_creation_tokens: cache_creation_tokens,
                     prompt_cache_creation_5m_tokens: cache_creation.ephemeral_5m_input_tokens,
                     prompt_cache_creation_1h_tokens: cache_creation.ephemeral_1h_input_tokens,
                     // Anthropic's input_tokens excludes cache read/creation tokens
                     prompt_tokens_exclude_cache: true,
-                    completion_reasoning_tokens: None, // Anthropic doesn't expose thinking tokens separately
+                    completion_reasoning_tokens: reasoning_tokens,
+                    input_details: optional_input_details(InputTokenDetails {
+                        content_by_modality: None,
+                        cached: usage_token_breakdown(usage.cache_read_input_tokens, None),
+                        cache_creation: usage_token_breakdown(cache_creation_tokens, None),
+                        tool_prompt: None,
+                    }),
+                    output_details: optional_output_details(OutputTokenDetails {
+                        content_by_modality: None,
+                        reasoning: usage_token_breakdown(reasoning_tokens, None),
+                    }),
                 }
             }
-            ProviderFormat::Converse => Self {
-                prompt_tokens: usage.get("inputTokens").and_then(Value::as_i64),
-                completion_tokens: usage.get("outputTokens").and_then(Value::as_i64),
-                prompt_cached_tokens: usage.get("cacheReadInputTokens").and_then(Value::as_i64),
-                prompt_cache_creation_tokens: usage
-                    .get("cacheWriteInputTokens")
-                    .and_then(Value::as_i64),
-                prompt_cache_creation_5m_tokens: None,
-                prompt_cache_creation_1h_tokens: None,
-                // Converse's inputTokens excludes cache read/write tokens
-                prompt_tokens_exclude_cache: true,
-                completion_reasoning_tokens: None, // Bedrock doesn't expose thinking tokens separately
-            },
+            ProviderFormat::Converse => {
+                let usage = converse_usage_view(usage);
+                let inclusive_prompt = sum_usage_counts(
+                    sum_usage_counts(usage.input_tokens, usage.cache_read_input_tokens),
+                    usage.cache_write_input_tokens,
+                );
+                Self {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    total_tokens: usage
+                        .total_tokens
+                        .or_else(|| sum_usage_counts(inclusive_prompt, usage.output_tokens)),
+                    prompt_cached_tokens: usage.cache_read_input_tokens,
+                    prompt_cache_creation_tokens: usage.cache_write_input_tokens,
+                    prompt_cache_creation_5m_tokens: None,
+                    prompt_cache_creation_1h_tokens: None,
+                    // Converse's inputTokens excludes cache read/write tokens
+                    prompt_tokens_exclude_cache: true,
+                    completion_reasoning_tokens: None,
+                    input_details: optional_input_details(InputTokenDetails {
+                        content_by_modality: None,
+                        cached: usage_token_breakdown(usage.cache_read_input_tokens, None),
+                        cache_creation: usage_token_breakdown(usage.cache_write_input_tokens, None),
+                        tool_prompt: None,
+                    }),
+                    output_details: None,
+                }
+            }
             ProviderFormat::Google => unreachable!("Google usage is handled via typed From trait"),
         }
     }
@@ -648,32 +981,46 @@ impl UniversalUsage {
         if !self.prompt_tokens_exclude_cache {
             return self.prompt_tokens;
         }
+        let prompt_cached_tokens = self.prompt_cached_tokens_for_prompt_math();
         let prompt_cache_creation_tokens = self.prompt_cache_creation_tokens_for_prompt_math();
         if self.prompt_tokens.is_none()
-            && self.prompt_cached_tokens.is_none()
+            && prompt_cached_tokens.is_none()
             && prompt_cache_creation_tokens.is_none()
         {
             return None;
         }
         Some(
             self.prompt_tokens.unwrap_or(0)
-                + self.prompt_cached_tokens.unwrap_or(0)
+                + prompt_cached_tokens.unwrap_or(0)
                 + prompt_cache_creation_tokens.unwrap_or(0),
         )
     }
 
+    fn prompt_cached_tokens_for_prompt_math(&self) -> Option<i64> {
+        self.input_details
+            .as_ref()
+            .and_then(|details| details.cached.as_ref())
+            .and_then(|details| details.total_tokens)
+            .or(self.prompt_cached_tokens)
+    }
+
     fn prompt_cache_creation_tokens_for_prompt_math(&self) -> Option<i64> {
-        self.prompt_cache_creation_tokens.or_else(|| {
-            if self.prompt_cache_creation_5m_tokens.is_none()
-                && self.prompt_cache_creation_1h_tokens.is_none()
-            {
-                return None;
-            }
-            Some(
-                self.prompt_cache_creation_5m_tokens.unwrap_or(0)
-                    + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
-            )
-        })
+        self.input_details
+            .as_ref()
+            .and_then(|details| details.cache_creation.as_ref())
+            .and_then(|details| details.total_tokens)
+            .or(self.prompt_cache_creation_tokens)
+            .or_else(|| {
+                if self.prompt_cache_creation_5m_tokens.is_none()
+                    && self.prompt_cache_creation_1h_tokens.is_none()
+                {
+                    return None;
+                }
+                Some(
+                    self.prompt_cache_creation_5m_tokens.unwrap_or(0)
+                        + self.prompt_cache_creation_1h_tokens.unwrap_or(0),
+                )
+            })
     }
 
     pub fn exclusive_prompt_tokens(&self) -> Option<i64> {
@@ -683,7 +1030,7 @@ impl UniversalUsage {
         let prompt_tokens = self.prompt_tokens?;
         Some(
             (prompt_tokens
-                - self.prompt_cached_tokens.unwrap_or(0)
+                - self.prompt_cached_tokens_for_prompt_math().unwrap_or(0)
                 - self
                     .prompt_cache_creation_tokens_for_prompt_math()
                     .unwrap_or(0))
@@ -706,8 +1053,16 @@ impl UniversalUsage {
     pub fn to_provider_value(&self, provider: ProviderFormat) -> Value {
         let inclusive_prompt = self.inclusive_prompt_tokens();
         let prompt = inclusive_prompt.unwrap_or(0);
-        let provider_prompt = self.prompt_tokens.unwrap_or(0);
         let completion = self.completion_tokens.unwrap_or(0);
+        let total = self.total_tokens.unwrap_or(prompt + completion);
+        let input_details = self.input_details.as_ref();
+        let output_details = self.output_details.as_ref();
+        let cached_tokens = self.prompt_cached_tokens_for_prompt_math();
+        let cache_creation_tokens = self.prompt_cache_creation_tokens_for_prompt_math();
+        let reasoning_tokens = output_details
+            .and_then(|details| details.reasoning.as_ref())
+            .and_then(|details| details.total_tokens)
+            .or(self.completion_reasoning_tokens);
 
         match provider {
             // OpenAI, Mistral, and Unknown use OpenAI format
@@ -715,22 +1070,45 @@ impl UniversalUsage {
                 let mut map = serde_json::Map::new();
                 map.insert("prompt_tokens".into(), serde_json::json!(prompt));
                 map.insert("completion_tokens".into(), serde_json::json!(completion));
-                map.insert(
-                    "total_tokens".into(),
-                    serde_json::json!(prompt + completion),
-                );
+                map.insert("total_tokens".into(), serde_json::json!(total));
 
-                if let Some(cached_tokens) = self.prompt_cached_tokens {
+                let prompt_audio_tokens = modality_token_total(
+                    input_details.and_then(|details| details.content_by_modality.as_deref()),
+                    TokenModality::Audio,
+                );
+                let mut prompt_details = serde_json::Map::new();
+                if let Some(cached_tokens) = cached_tokens {
+                    prompt_details.insert("cached_tokens".into(), serde_json::json!(cached_tokens));
+                }
+                if let Some(audio_tokens) = prompt_audio_tokens {
+                    prompt_details.insert("audio_tokens".into(), serde_json::json!(audio_tokens));
+                }
+                if !prompt_details.is_empty() {
                     map.insert(
                         "prompt_tokens_details".into(),
-                        serde_json::json!({ "cached_tokens": cached_tokens }),
+                        Value::Object(prompt_details),
                     );
                 }
 
-                if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
+                let completion_audio_tokens = modality_token_total(
+                    output_details.and_then(|details| details.content_by_modality.as_deref()),
+                    TokenModality::Audio,
+                );
+                let mut completion_details = serde_json::Map::new();
+                if let Some(reasoning_tokens) = reasoning_tokens {
+                    completion_details.insert(
+                        "reasoning_tokens".into(),
+                        serde_json::json!(reasoning_tokens),
+                    );
+                }
+                if let Some(audio_tokens) = completion_audio_tokens {
+                    completion_details
+                        .insert("audio_tokens".into(), serde_json::json!(audio_tokens));
+                }
+                if !completion_details.is_empty() {
                     map.insert(
                         "completion_tokens_details".into(),
-                        serde_json::json!({ "reasoning_tokens": reasoning_tokens }),
+                        Value::Object(completion_details),
                     );
                 }
 
@@ -740,21 +1118,18 @@ impl UniversalUsage {
                 let mut map = serde_json::Map::new();
                 map.insert("input_tokens".into(), serde_json::json!(prompt));
                 map.insert("output_tokens".into(), serde_json::json!(completion));
-                map.insert(
-                    "total_tokens".into(),
-                    serde_json::json!(prompt + completion),
-                );
+                map.insert("total_tokens".into(), serde_json::json!(total));
 
-                let cached = self.prompt_cached_tokens.unwrap_or(0);
+                let cached = cached_tokens.unwrap_or(0);
                 let mut input_details = serde_json::Map::new();
                 input_details.insert("cached_tokens".into(), serde_json::json!(cached));
-                if let Some(cache_write) = self.prompt_cache_creation_tokens_for_prompt_math() {
+                if let Some(cache_write) = cache_creation_tokens {
                     input_details
                         .insert("cache_write_tokens".into(), serde_json::json!(cache_write));
                 }
                 map.insert("input_tokens_details".into(), Value::Object(input_details));
 
-                let reasoning = self.completion_reasoning_tokens.unwrap_or(0);
+                let reasoning = reasoning_tokens.unwrap_or(0);
                 map.insert(
                     "output_tokens_details".into(),
                     serde_json::json!({ "reasoning_tokens": reasoning }),
@@ -773,7 +1148,7 @@ impl UniversalUsage {
                     map.insert("output_tokens".into(), serde_json::json!(c));
                 }
 
-                if let Some(cache_creation) = self.prompt_cache_creation_tokens {
+                if let Some(cache_creation) = cache_creation_tokens {
                     map.insert(
                         "cache_creation_input_tokens".into(),
                         serde_json::json!(cache_creation),
@@ -795,48 +1170,111 @@ impl UniversalUsage {
                     );
                 }
 
-                if let Some(cache_read) = self.prompt_cached_tokens {
+                if let Some(cache_read) = cached_tokens {
                     map.insert(
                         "cache_read_input_tokens".into(),
                         serde_json::json!(cache_read),
                     );
                 }
-
-                Value::Object(map)
-            }
-            ProviderFormat::Converse => serde_json::json!({
-                "inputTokens": provider_prompt,
-                "outputTokens": completion
-            }),
-            ProviderFormat::Google => {
-                let mut map = serde_json::Map::new();
-
-                if let Some(p) = inclusive_prompt {
-                    map.insert("promptTokenCount".into(), serde_json::json!(p));
-                }
-                if let Some(c) = self.completion_tokens {
-                    map.insert("candidatesTokenCount".into(), serde_json::json!(c));
-                }
-
-                if inclusive_prompt.is_some() || self.completion_tokens.is_some() {
+                if let Some(reasoning_tokens) = reasoning_tokens {
                     map.insert(
-                        "totalTokenCount".into(),
-                        serde_json::json!(prompt + completion),
+                        "output_tokens_details".into(),
+                        serde_json::json!({ "thinking_tokens": reasoning_tokens }),
                     );
                 }
 
-                if let Some(cached_tokens) = self.prompt_cached_tokens {
+                Value::Object(map)
+            }
+            ProviderFormat::Converse => {
+                let mut map = serde_json::Map::new();
+                map.insert(
+                    "inputTokens".into(),
+                    serde_json::json!(self.exclusive_prompt_tokens().unwrap_or(0)),
+                );
+                map.insert("outputTokens".into(), serde_json::json!(completion));
+                map.insert("totalTokens".into(), serde_json::json!(total));
+                if let Some(cache_read) = cached_tokens {
+                    map.insert("cacheReadInputTokens".into(), serde_json::json!(cache_read));
+                }
+                if let Some(cache_write) = cache_creation_tokens {
+                    map.insert(
+                        "cacheWriteInputTokens".into(),
+                        serde_json::json!(cache_write),
+                    );
+                }
+                Value::Object(map)
+            }
+            ProviderFormat::Google => {
+                let mut map = serde_json::Map::new();
+                let tool_prompt = input_details.and_then(|details| details.tool_prompt.as_ref());
+                let tool_prompt_tokens = tool_prompt
+                    .and_then(|details| details.total_tokens)
+                    .unwrap_or(0);
+
+                if let Some(prompt) = inclusive_prompt {
+                    map.insert(
+                        "promptTokenCount".into(),
+                        serde_json::json!(prompt.saturating_sub(tool_prompt_tokens).max(0)),
+                    );
+                }
+                if let Some(completion) = self.completion_tokens {
+                    map.insert(
+                        "candidatesTokenCount".into(),
+                        serde_json::json!(completion
+                            .saturating_sub(reasoning_tokens.unwrap_or(0))
+                            .max(0)),
+                    );
+                }
+
+                if self.total_tokens.is_some()
+                    || inclusive_prompt.is_some()
+                    || self.completion_tokens.is_some()
+                {
+                    map.insert("totalTokenCount".into(), serde_json::json!(total));
+                }
+
+                if let Some(cached_tokens) = cached_tokens {
                     map.insert(
                         "cachedContentTokenCount".into(),
                         serde_json::json!(cached_tokens),
                     );
                 }
-
-                if let Some(reasoning_tokens) = self.completion_reasoning_tokens {
+                if let Some(cache_details) = input_details
+                    .and_then(|details| details.cached.as_ref())
+                    .and_then(|details| {
+                        google_modality_token_counts_value(details.by_modality.as_deref())
+                    })
+                {
+                    map.insert("cacheTokensDetails".into(), cache_details);
+                }
+                if let Some(reasoning_tokens) = reasoning_tokens {
                     map.insert(
                         "thoughtsTokenCount".into(),
                         serde_json::json!(reasoning_tokens),
                     );
+                }
+                if let Some(prompt_details) = google_modality_token_counts_value(
+                    input_details.and_then(|details| details.content_by_modality.as_deref()),
+                ) {
+                    map.insert("promptTokensDetails".into(), prompt_details);
+                }
+                if let Some(candidate_details) = google_modality_token_counts_value(
+                    output_details.and_then(|details| details.content_by_modality.as_deref()),
+                ) {
+                    map.insert("candidatesTokensDetails".into(), candidate_details);
+                }
+                if let Some(tool_prompt_tokens) =
+                    tool_prompt.and_then(|details| details.total_tokens)
+                {
+                    map.insert(
+                        "toolUsePromptTokenCount".into(),
+                        serde_json::json!(tool_prompt_tokens),
+                    );
+                }
+                if let Some(tool_prompt_details) = tool_prompt.and_then(|details| {
+                    google_modality_token_counts_value(details.by_modality.as_deref())
+                }) {
+                    map.insert("toolUsePromptTokensDetails".into(), tool_prompt_details);
                 }
 
                 Value::Object(map)
@@ -1092,6 +1530,48 @@ mod tests {
     }
 
     #[test]
+    fn test_converse_serializes_exclusive_prompt_tokens_with_cache_buckets() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(100),
+            completion_tokens: Some(25),
+            prompt_cached_tokens: Some(40),
+            prompt_cache_creation_tokens: Some(15),
+            prompt_tokens_exclude_cache: false,
+            ..Default::default()
+        };
+
+        let converse = usage.to_provider_value(ProviderFormat::Converse);
+        assert_eq!(converse["inputTokens"], 45);
+        assert_eq!(converse["outputTokens"], 25);
+        assert_eq!(converse["totalTokens"], 125);
+        assert_eq!(converse["cacheReadInputTokens"], 40);
+        assert_eq!(converse["cacheWriteInputTokens"], 15);
+
+        let roundtrip = UniversalUsage::from_provider_value(&converse, ProviderFormat::Converse);
+        assert_eq!(roundtrip.prompt_tokens, Some(45));
+        assert!(roundtrip.prompt_tokens_exclude_cache);
+        assert_eq!(roundtrip.inclusive_prompt_tokens(), Some(100));
+        assert_eq!(roundtrip.total_tokens, Some(125));
+    }
+
+    #[test]
+    fn test_converse_preserves_already_exclusive_prompt_tokens() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(45),
+            completion_tokens: Some(25),
+            prompt_cached_tokens: Some(40),
+            prompt_cache_creation_tokens: Some(15),
+            prompt_tokens_exclude_cache: true,
+            ..Default::default()
+        };
+
+        let converse = usage.to_provider_value(ProviderFormat::Converse);
+        assert_eq!(converse["inputTokens"], 45);
+        assert_eq!(converse["cacheReadInputTokens"], 40);
+        assert_eq!(converse["cacheWriteInputTokens"], 15);
+    }
+
+    #[test]
     fn test_exclusive_usage_stays_exclusive_for_anthropic_formats() {
         let usage = UniversalUsage {
             prompt_tokens: Some(10),
@@ -1161,6 +1641,247 @@ mod tests {
     }
 
     #[test]
+    fn test_google_provider_value_preserves_nested_usage_details() {
+        let usage = UniversalUsage {
+            prompt_tokens: Some(12),
+            completion_tokens: Some(8),
+            total_tokens: Some(20),
+            input_details: Some(InputTokenDetails {
+                content_by_modality: Some(vec![ModalityTokenCount {
+                    modality: Some(TokenModality::Text),
+                    token_count: Some(10),
+                }]),
+                cached: Some(TokenBreakdown {
+                    total_tokens: Some(4),
+                    by_modality: Some(vec![ModalityTokenCount {
+                        modality: Some(TokenModality::Text),
+                        token_count: Some(4),
+                    }]),
+                }),
+                cache_creation: None,
+                tool_prompt: Some(TokenBreakdown {
+                    total_tokens: Some(2),
+                    by_modality: Some(vec![ModalityTokenCount {
+                        modality: Some(TokenModality::Text),
+                        token_count: Some(2),
+                    }]),
+                }),
+            }),
+            output_details: Some(OutputTokenDetails {
+                content_by_modality: Some(vec![ModalityTokenCount {
+                    modality: Some(TokenModality::Audio),
+                    token_count: Some(5),
+                }]),
+                reasoning: Some(TokenBreakdown {
+                    total_tokens: Some(3),
+                    by_modality: None,
+                }),
+            }),
+            ..Default::default()
+        };
+
+        let google = usage.to_provider_value(ProviderFormat::Google);
+
+        assert_eq!(
+            google,
+            crate::serde_json::json!({
+                "promptTokenCount": 10,
+                "candidatesTokenCount": 5,
+                "totalTokenCount": 20,
+                "cachedContentTokenCount": 4,
+                "cacheTokensDetails": [{ "modality": "TEXT", "tokenCount": 4 }],
+                "thoughtsTokenCount": 3,
+                "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 10 }],
+                "candidatesTokensDetails": [{ "modality": "AUDIO", "tokenCount": 5 }],
+                "toolUsePromptTokenCount": 2,
+                "toolUsePromptTokensDetails": [{ "modality": "TEXT", "tokenCount": 2 }]
+            })
+        );
+    }
+
+    #[test]
+    fn test_openai_chat_malformed_counter_preserves_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "prompt_tokens": 10,
+            "completion_tokens": "invalid",
+            "total_tokens": 18,
+            "prompt_tokens_details": { "cached_tokens": 4 }
+        });
+
+        for provider in [ProviderFormat::ChatCompletions, ProviderFormat::Mistral] {
+            let usage = UniversalUsage::from_provider_value(&provider_usage, provider);
+
+            assert_eq!(usage.prompt_tokens, Some(10));
+            assert_eq!(usage.completion_tokens, None);
+            assert_eq!(usage.total_tokens, Some(18));
+            assert_eq!(usage.prompt_cached_tokens, Some(4));
+        }
+    }
+
+    #[test]
+    fn test_openai_chat_malformed_optional_details_preserve_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "prompt_tokens": 10,
+            "completion_tokens": 8,
+            "total_tokens": 18,
+            "prompt_tokens_details": "invalid",
+            "completion_tokens_details": { "reasoning_tokens": 2 }
+        });
+
+        let usage =
+            UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::ChatCompletions);
+
+        assert_eq!(usage.prompt_tokens, Some(10));
+        assert_eq!(usage.completion_tokens, Some(8));
+        assert_eq!(usage.total_tokens, Some(18));
+        assert_eq!(usage.input_details, None);
+        assert_eq!(usage.completion_reasoning_tokens, Some(2));
+    }
+
+    #[test]
+    fn test_openai_chat_usage_details_roundtrip() {
+        let provider_usage = crate::serde_json::json!({
+            "prompt_tokens": 10,
+            "completion_tokens": 8,
+            "total_tokens": 18,
+            "prompt_tokens_details": {
+                "cached_tokens": 4,
+                "audio_tokens": 3
+            },
+            "completion_tokens_details": {
+                "reasoning_tokens": 2,
+                "audio_tokens": 1
+            }
+        });
+
+        let usage =
+            UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::ChatCompletions);
+        assert_eq!(usage.total_tokens, Some(18));
+        assert_eq!(
+            usage
+                .input_details
+                .as_ref()
+                .and_then(|details| details.cached.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(4)
+        );
+        assert_eq!(
+            usage
+                .output_details
+                .as_ref()
+                .and_then(|details| details.reasoning.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(2)
+        );
+
+        let roundtrip = usage.to_provider_value(ProviderFormat::ChatCompletions);
+        assert_eq!(roundtrip, provider_usage);
+    }
+
+    #[test]
+    fn test_anthropic_malformed_output_details_preserve_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "cache_read_input_tokens": 20,
+            "output_tokens_details": "invalid"
+        });
+
+        let usage = UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::Anthropic);
+
+        assert_eq!(usage.prompt_tokens, Some(10));
+        assert_eq!(usage.completion_tokens, Some(5));
+        assert_eq!(usage.prompt_cached_tokens, Some(20));
+        assert_eq!(usage.completion_reasoning_tokens, None);
+    }
+
+    #[test]
+    fn test_anthropic_usage_details_include_cache_reasoning_and_total() {
+        let provider_usage = crate::serde_json::json!({
+            "input_tokens": 10,
+            "output_tokens": 5,
+            "cache_read_input_tokens": 20,
+            "cache_creation_input_tokens": 30,
+            "output_tokens_details": { "thinking_tokens": 2 }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::Anthropic);
+        assert_eq!(usage.total_tokens, Some(65));
+        assert_eq!(
+            usage
+                .input_details
+                .as_ref()
+                .and_then(|details| details.cache_creation.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(30)
+        );
+        assert_eq!(
+            usage
+                .output_details
+                .as_ref()
+                .and_then(|details| details.reasoning.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(2)
+        );
+
+        let roundtrip = usage.to_provider_value(ProviderFormat::Anthropic);
+        assert_eq!(roundtrip, provider_usage);
+    }
+
+    #[test]
+    fn test_openai_responses_malformed_counter_preserves_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "input_tokens": "invalid",
+            "output_tokens": 25,
+            "total_tokens": 125,
+            "output_tokens_details": { "reasoning_tokens": 5 }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_tokens, None);
+        assert_eq!(usage.completion_tokens, Some(25));
+        assert_eq!(usage.total_tokens, Some(125));
+        assert_eq!(usage.completion_reasoning_tokens, Some(5));
+    }
+
+    #[test]
+    fn test_converse_malformed_counter_preserves_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "inputTokens": 100,
+            "outputTokens": "invalid",
+            "totalTokens": 125,
+            "cacheReadInputTokens": 40
+        });
+
+        let usage = UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::Converse);
+
+        assert_eq!(usage.prompt_tokens, Some(100));
+        assert_eq!(usage.completion_tokens, None);
+        assert_eq!(usage.total_tokens, Some(125));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+    }
+
+    #[test]
+    fn test_openai_responses_malformed_input_details_preserve_valid_usage() {
+        let provider_usage = crate::serde_json::json!({
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "total_tokens": 125,
+            "input_tokens_details": "invalid",
+            "output_tokens_details": { "reasoning_tokens": 5 }
+        });
+
+        let usage = UniversalUsage::from_provider_value(&provider_usage, ProviderFormat::Responses);
+
+        assert_eq!(usage.prompt_tokens, Some(100));
+        assert_eq!(usage.completion_tokens, Some(25));
+        assert_eq!(usage.total_tokens, Some(125));
+        assert_eq!(usage.input_details, None);
+        assert_eq!(usage.completion_reasoning_tokens, Some(5));
+    }
+
+    #[test]
     fn test_openai_responses_cache_write_tokens() {
         let usage = crate::serde_json::json!({
             "input_tokens": 100,
@@ -1181,6 +1902,23 @@ mod tests {
         assert_eq!(usage.prompt_cached_tokens, Some(40));
         assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
         assert_eq!(usage.completion_reasoning_tokens, Some(5));
+        assert_eq!(usage.total_tokens, Some(125));
+        assert_eq!(
+            usage
+                .input_details
+                .as_ref()
+                .and_then(|details| details.cache_creation.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(15)
+        );
+        assert_eq!(
+            usage
+                .output_details
+                .as_ref()
+                .and_then(|details| details.reasoning.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(5)
+        );
 
         let responses = usage.to_provider_value(ProviderFormat::Responses);
         assert_eq!(responses["input_tokens_details"]["cached_tokens"], 40);
