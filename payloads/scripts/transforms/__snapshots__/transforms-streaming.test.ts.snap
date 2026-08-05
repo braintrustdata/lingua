@@ -413,7 +413,7 @@ event: content_block_stop
 data: {"index":0,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":158,"output_tokens":1423}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":158,"output_tokens":1423,"output_tokens_details":{"thinking_tokens":1280}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -426,7 +426,7 @@ exports[`streaming: anthropic → chat-completions > anthropicMidConversationSys
 data: {"message":{"content":[],"id":"chatcmpl-DmKoKHtVYgdxqBqvTor9wW6MsS9pY","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":51,"output_tokens":16}}
+data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":51,"output_tokens":16,"output_tokens_details":{"thinking_tokens":16}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -439,7 +439,7 @@ exports[`streaming: anthropic → chat-completions > anthropicMixedToolResultWit
 data: {"message":{"content":[],"id":"chatcmpl-Dp4RF3MuIGYlGOoQIJBvJ6q7UDIo9","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":176,"output_tokens":1024}}
+data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":176,"output_tokens":1024,"output_tokens_details":{"thinking_tokens":1024}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -545,7 +545,7 @@ event: content_block_stop
 data: {"index":0,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":13,"output_tokens":422}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":13,"output_tokens":422,"output_tokens_details":{"thinking_tokens":384}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -3466,7 +3466,7 @@ exports[`streaming: anthropic → chat-completions > simpleRequestTruncated > st
 data: {"message":{"content":[],"id":"chatcmpl-DSQdxzW4LeTU2buaGgT2o0rexbRw2","model":"gpt-5-nano-2025-08-07","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{}},"type":"message_start"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":15,"output_tokens":16}}
+data: {"delta":{"stop_reason":"max_tokens"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":15,"output_tokens":16,"output_tokens_details":{"thinking_tokens":16}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -3512,7 +3512,7 @@ event: content_block_stop
 data: {"index":0,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":9,"output_tokens":146}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":9,"output_tokens":146,"output_tokens_details":{"thinking_tokens":128}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -3568,7 +3568,7 @@ event: content_block_stop
 data: {"index":0,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"tool_use"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":148,"output_tokens":218}}
+data: {"delta":{"stop_reason":"tool_use"},"type":"message_delta","usage":{"cache_read_input_tokens":0,"input_tokens":148,"output_tokens":218,"output_tokens_details":{"thinking_tokens":192}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -3578,7 +3578,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → google > anthropicOpus5AdaptiveThinkingMaxEffortParam > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"daFnaoaWBrCGz7IPtPykgQ4","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":8,"output_tokens":91}},"type":"message_start"}
+data: {"message":{"content":[],"id":"daFnaoaWBrCGz7IPtPykgQ4","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":8,"output_tokens":91,"output_tokens_details":{"thinking_tokens":83}}},"type":"message_start"}
 
 event: content_block_start
 data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
@@ -3599,7 +3599,7 @@ event: content_block_stop
 data: {"index":1,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":8,"output_tokens":91}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":8,"output_tokens":91,"output_tokens_details":{"thinking_tokens":83}}}
 
 event: message_stop
 data: {"type":"message_stop"}
@@ -3609,7 +3609,7 @@ data: {"type":"message_stop"}
 
 exports[`streaming: anthropic → google > streamParam > streaming 1`] = `
 "event: message_start
-data: {"message":{"content":[],"id":"YqFnav24CdSb9MoPmp-Z0A0","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":4,"output_tokens":127}},"type":"message_start"}
+data: {"message":{"content":[],"id":"YqFnav24CdSb9MoPmp-Z0A0","model":"gemini-3.5-flash","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":4,"output_tokens":127,"output_tokens_details":{"thinking_tokens":125}}},"type":"message_start"}
 
 event: content_block_start
 data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
@@ -3633,7 +3633,7 @@ event: content_block_stop
 data: {"index":1,"type":"content_block_stop"}
 
 event: message_delta
-data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":4,"output_tokens":134}}
+data: {"delta":{"stop_reason":"end_turn"},"type":"message_delta","usage":{"input_tokens":4,"output_tokens":134,"output_tokens_details":{"thinking_tokens":125}}}
 
 event: message_stop
 data: {"type":"message_stop"}

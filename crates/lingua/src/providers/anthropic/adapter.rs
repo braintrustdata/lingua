@@ -910,17 +910,11 @@ impl ProviderAdapter for AnthropicAdapter {
                 usage.service_tier = service_tier;
                 Some(usage)
             }
-            (None, Some(service_tier)) => Some(Usage {
-                cache_creation: None,
-                cache_creation_input_tokens: None,
-                cache_read_input_tokens: None,
-                inference_geo: None,
-                input_tokens: 0,
-                output_tokens: 0,
-                output_tokens_details: None,
-                server_tool_use: None,
-                service_tier: Some(service_tier),
-            }),
+            (None, Some(_)) => {
+                return Err(TransformError::FromUniversalFailed(
+                    "Anthropic responses cannot encode a service tier without usage".to_string(),
+                ));
+            }
             (None, None) => None,
         };
         if let Some(usage) = usage {
@@ -1093,15 +1087,25 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
-                if finish_reason.is_some() || usage.is_some() {
+                if let Some(finish_reason) = finish_reason {
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
                             index: 0,
                             delta: Some(serde_json::json!({})),
-                            finish_reason,
+                            finish_reason: Some(finish_reason),
                         }],
+                        None,
+                        usage,
+                    )));
+                }
+
+                if usage.is_some() {
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![],
                         None,
                         usage,
                     )));
@@ -1745,6 +1749,29 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn response_rejects_service_tier_without_usage() {
+        let adapter = AnthropicAdapter;
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: Vec::new(),
+            usage: None,
+            served_service_tier: Some(ServedServiceTier::Standard),
+            finish_reason: None,
+            finish_reasons: Vec::new(),
+        };
+
+        let error = adapter.response_from_universal(&response).unwrap_err();
+        match error {
+            TransformError::FromUniversalFailed(reason) => {
+                assert!(reason.contains("service tier without usage"));
+            }
+            other => panic!("expected unsupported service tier mapping, got {other:?}"),
+        }
     }
 
     #[test]

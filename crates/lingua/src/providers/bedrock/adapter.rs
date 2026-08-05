@@ -780,6 +780,40 @@ mod tests {
     }
 
     #[test]
+    fn test_bedrock_streaming_usage_preserves_cache_buckets() {
+        let adapter = BedrockAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(100),
+                completion_tokens: Some(25),
+                total_tokens: Some(125),
+                prompt_cached_tokens: Some(40),
+                prompt_cache_creation_tokens: Some(15),
+                ..Default::default()
+            }),
+        );
+
+        let metadata = adapter.stream_from_universal(&chunk).unwrap();
+        assert_eq!(metadata["metadata"]["usage"]["inputTokens"], 45);
+        assert_eq!(metadata["metadata"]["usage"]["cacheReadInputTokens"], 40);
+        assert_eq!(metadata["metadata"]["usage"]["cacheWriteInputTokens"], 15);
+
+        let roundtrip = adapter
+            .stream_to_universal(metadata)
+            .unwrap()
+            .expect("metadata should produce a universal usage chunk");
+        let usage = roundtrip.usage.expect("roundtrip should preserve usage");
+        assert_eq!(usage.prompt_tokens, Some(45));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
+    }
+
+    #[test]
     fn test_bedrock_passthrough() {
         let adapter = BedrockAdapter;
         let payload = json!({
