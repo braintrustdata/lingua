@@ -1977,6 +1977,16 @@ impl TryFromLLM<AssistantContentPart> for openai::InputContent {
                 logprobs: Some(vec![]),
                 ..Default::default()
             },
+            AssistantContentPart::BuiltinToolCall { builtin_tool, .. } => {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: format!(
+                        "{} built-in tool call `{}`",
+                        builtin_tool.provider.label(),
+                        builtin_tool.builtin_type
+                    ),
+                    to: "OpenAI Responses input content",
+                });
+            }
             AssistantContentPart::ToolDiscoveryCall { .. } => {
                 return Err(ConvertError::UnsupportedInputType {
                     type_info: "AssistantContentPart::ToolDiscoveryCall must be converted as a Responses input item".to_string(),
@@ -2562,6 +2572,16 @@ impl TryFromLLM<Message> for openai::InputItem {
                                 discovery_result,
                             )?);
                         }
+                        ToolContentPart::BuiltinToolResult(tool_result) => {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: format!(
+                                    "{} built-in tool result `{}`",
+                                    tool_result.builtin_tool.provider.label(),
+                                    tool_result.builtin_tool.builtin_type
+                                ),
+                                to: "OpenAI Responses input item",
+                            });
+                        }
                     }
                 }
 
@@ -2835,6 +2855,16 @@ pub fn universal_to_responses_input(
                             result.push(tool_discovery::input_output_from_universal(
                                 discovery_result.clone(),
                             )?);
+                        }
+                        ToolContentPart::BuiltinToolResult(tool_result) => {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: format!(
+                                    "{} built-in tool result `{}`",
+                                    tool_result.builtin_tool.provider.label(),
+                                    tool_result.builtin_tool.builtin_type
+                                ),
+                                to: "OpenAI Responses input item",
+                            });
                         }
                     }
                 }
@@ -3772,6 +3802,16 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                     ..Default::default()
                                 });
                             }
+                            ToolContentPart::BuiltinToolResult(tool_result) => {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: format!(
+                                        "{} built-in tool result `{}`",
+                                        tool_result.builtin_tool.provider.label(),
+                                        tool_result.builtin_tool.builtin_type
+                                    ),
+                                    to: "OpenAI Responses output item",
+                                });
+                            }
                         }
                     }
                 }
@@ -4259,6 +4299,18 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                                 })?,
                                             ),
                                             ..Default::default()
+                                        });
+                                    }
+                                    AssistantContentPart::BuiltinToolCall {
+                                        builtin_tool, ..
+                                    } => {
+                                        return Err(ConvertError::UnsupportedMapping {
+                                            from: format!(
+                                                "{} built-in tool call `{}`",
+                                                builtin_tool.provider.label(),
+                                                builtin_tool.builtin_type
+                                            ),
+                                            to: "OpenAI Responses output item",
                                         });
                                     }
                                     AssistantContentPart::ToolDiscoveryCall {
@@ -4864,6 +4916,16 @@ impl TryFromLLM<Message> for ChatCompletionRequestMessageExt {
                     ToolContentPart::ToolDiscoveryResult(result) => {
                         tool_discovery_result_to_chat_completion_message(result)
                     }
+                    ToolContentPart::BuiltinToolResult(result) => {
+                        Err(ConvertError::UnsupportedMapping {
+                            from: format!(
+                                "{} built-in tool result `{}`",
+                                result.builtin_tool.provider.label(),
+                                result.builtin_tool.builtin_type
+                            ),
+                            to: "OpenAI Chat Completions tool message",
+                        })
+                    }
                 }
             }
             Message::AdditionalTools { .. } => Err(ConvertError::UnsupportedMapping {
@@ -4896,6 +4958,16 @@ pub(crate) fn messages_to_chat_completion_messages(
                             result.push(tool_discovery_result_to_chat_completion_message(
                                 discovery_result,
                             )?);
+                        }
+                        ToolContentPart::BuiltinToolResult(tool_result) => {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: format!(
+                                    "{} built-in tool result `{}`",
+                                    tool_result.builtin_tool.provider.label(),
+                                    tool_result.builtin_tool.builtin_type
+                                ),
+                                to: "OpenAI Chat Completions tool message",
+                            });
                         }
                     }
                 }
@@ -5151,6 +5223,16 @@ fn extract_content_tool_calls_and_reasoning(
                                 arguments: arguments.to_string(),
                             }),
                             custom: None,
+                        });
+                    }
+                    AssistantContentPart::BuiltinToolCall { builtin_tool, .. } => {
+                        return Err(ConvertError::UnsupportedMapping {
+                            from: format!(
+                                "{} built-in tool call `{}`",
+                                builtin_tool.provider.label(),
+                                builtin_tool.builtin_type
+                            ),
+                            to: "OpenAI Chat Completions assistant message",
                         });
                     }
                     AssistantContentPart::ToolDiscoveryCall {

@@ -65,6 +65,43 @@ struct GoogleResponseFormatView {
     config: Option<GenerationConfig>,
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GoogleProviderExtrasView {
+    generation_config: Option<GenerationConfig>,
+}
+
+fn unmapped_generation_config(config: &GenerationConfig) -> Option<GenerationConfig> {
+    let mut residual = config.clone();
+
+    residual.temperature = None;
+    residual.top_p = None;
+    residual.top_k = None;
+    residual.max_output_tokens = None;
+    residual.stop_sequences = None;
+    residual.thinking_config = None;
+    residual.response_mime_type = None;
+    residual.generation_config_response_json_schema = None;
+    residual.response_schema = Box::new(None);
+
+    (residual != GenerationConfig::default()).then_some(residual)
+}
+
+fn generation_config_from_extras(
+    params: &UniversalParams,
+) -> Result<Option<GenerationConfig>, TransformError> {
+    let Some(extras) = params.extras.get(&ProviderFormat::Google) else {
+        return Ok(None);
+    };
+    let view: GoogleProviderExtrasView = serde_json::from_value(Value::Object(extras.clone()))
+        .map_err(|e| {
+            TransformError::FromUniversalFailed(format!(
+                "Google provider extras must contain a typed generationConfig: {e}"
+            ))
+        })?;
+    Ok(view.generation_config)
+}
+
 impl GoogleResponseFormatView {
     fn response_format(&self) -> Option<crate::universal::request::ResponseFormatConfig> {
         self.generation_config
@@ -151,6 +188,11 @@ impl ProviderAdapter for GoogleAdapter {
 
         let messages = <Vec<Message> as TryFromLLM<Vec<GoogleContent>>>::try_from(contents)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
+
+        let residual_generation_config = typed_params
+            .generation_config
+            .as_ref()
+            .and_then(unmapped_generation_config);
 
         // Extract params from generationConfig (now typed in params struct)
         let (temperature, top_p, top_k, max_tokens, stop, reasoning) =
@@ -244,12 +286,19 @@ impl ProviderAdapter for GoogleAdapter {
             extras: Default::default(),
         };
 
-        // Use extras captured automatically via #[serde(flatten)]
-        if !typed_params.extras.is_empty() {
-            params.extras.insert(
-                ProviderFormat::Google,
-                typed_params.extras.into_iter().collect(),
+        // Preserve the typed, unmapped generationConfig remainder alongside unknown
+        // top-level fields. The key is the real Google field name, not a marker, and the
+        // canonical fields above are removed so there is only one source of truth.
+        let mut google_extras: Map<String, Value> = typed_params.extras.into_iter().collect();
+        if let Some(config) = residual_generation_config {
+            google_extras.insert(
+                "generationConfig".to_string(),
+                serde_json::to_value(config)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
             );
+        }
+        if !google_extras.is_empty() {
+            params.extras.insert(ProviderFormat::Google, google_extras);
         }
 
         Ok(UniversalRequest {
@@ -373,13 +422,15 @@ impl ProviderAdapter for GoogleAdapter {
             .as_ref()
             .map(|rf| rf.format_type.is_some())
             .unwrap_or(false);
+        let residual_generation_config = generation_config_from_extras(&req.params)?;
         let has_params = req.params.temperature.is_some()
             || req.params.top_p.is_some()
             || req.params.top_k.is_some()
             || req.params.output_token_budget().is_some()
             || req.params.stop.is_some()
             || has_reasoning
-            || has_response_format;
+            || has_response_format
+            || residual_generation_config.is_some();
 
         if has_params {
             // Convert ReasoningConfig to Google's thinkingConfig
@@ -445,15 +496,13 @@ impl ProviderAdapter for GoogleAdapter {
 
             let stop_sequences = req.params.stop.clone();
 
-            let mut config = GenerationConfig {
-                temperature: req.params.temperature,
-                top_p: req.params.top_p,
-                top_k: req.params.top_k,
-                max_output_tokens: req.params.output_token_budget(),
-                stop_sequences,
-                thinking_config,
-                ..Default::default()
-            };
+            let mut config = residual_generation_config.unwrap_or_default();
+            config.temperature = req.params.temperature;
+            config.top_p = req.params.top_p;
+            config.top_k = req.params.top_k;
+            config.max_output_tokens = req.params.output_token_budget();
+            config.stop_sequences = stop_sequences;
+            config.thinking_config = thinking_config;
 
             // Apply response format to generationConfig
             if let Some(format) = &req.params.response_format {
@@ -1076,6 +1125,7 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::google::generated::{AudioTranscriptionConfig, MediaResolutionEnum};
     use crate::providers::google::GenerateContentRequest;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
@@ -1270,6 +1320,53 @@ mod tests {
         let reconstructed: GenerateContentRequest =
             serde_json::from_value(reconstructed).expect("request should deserialize");
         assert!(reconstructed.contents.is_some());
+    }
+
+    #[test]
+    fn test_google_preserves_unmapped_typed_generation_config_fields() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Transcribe this."}]
+            }],
+            "generationConfig": {
+                "temperature": 0.7,
+                "mediaResolution": "MEDIA_RESOLUTION_LOW",
+                "audioTranscriptionConfig": {
+                    "customVocabulary": ["Lingua"],
+                    "diarization": true,
+                    "languageCodes": ["en-US"],
+                    "wordTimestamp": true
+                }
+            }
+        });
+
+        let mut universal = adapter.request_to_universal(payload).unwrap();
+        universal.params.temperature = Some(0.2);
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let config = reconstructed
+            .generation_config
+            .expect("generationConfig should be present");
+
+        assert_eq!(config.temperature, Some(0.2));
+        assert_eq!(
+            config.media_resolution,
+            Some(MediaResolutionEnum::MediaResolutionLow)
+        );
+        assert_eq!(
+            config.audio_transcription_config,
+            Some(AudioTranscriptionConfig {
+                custom_vocabulary: Some(vec!["Lingua".to_string()]),
+                diarization: Some(true),
+                language_codes: Some(vec!["en-US".to_string()]),
+                word_timestamp: Some(true),
+                ..Default::default()
+            })
+        );
     }
 
     #[test]

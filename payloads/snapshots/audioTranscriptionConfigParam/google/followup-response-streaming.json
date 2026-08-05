@@ -1,0 +1,184 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Listen very closely, because there won't be a second"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 27,
+      "candidatesTokenCount": 12,
+      "totalTokenCount": 486,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 27
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " explanation! 😉 \n\nIn all seriousness, what would you like to do next? You can:\n\n1. **"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 27,
+      "candidatesTokenCount": 36,
+      "totalTokenCount": 510,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 27
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "Upload another audio file** for me to transcribe or translate.\n2. **Analyze this clip** (e.g., identify"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 27,
+      "candidatesTokenCount": 62,
+      "totalTokenCount": 536,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 27
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " the voice, context, or tone).\n3. **Move on to something completely different** (ask a question, write"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 27,
+      "candidatesTokenCount": 87,
+      "totalTokenCount": 561,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 27
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " some code, brainstorm, etc.).\n\nHow can I help you from here?"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 27,
+      "candidatesTokenCount": 103,
+      "totalTokenCount": 577,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 27
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "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"
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 256,
+      "candidatesTokenCount": 103,
+      "totalTokenCount": 806,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 256
+        }
+      ],
+      "thoughtsTokenCount": 447,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "mcdzaqWPAvSEz7IPh7rOEQ"
+  }
+]

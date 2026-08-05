@@ -65,16 +65,22 @@
   },
   "google_to_anthropic": {
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not a lossless equivalent of Anthropic bash",
+    "googleProviderExecutedToolRoundtrip": "Expected: Google server-side ToolCall/ToolResponse history carries a Google ToolType identity that Anthropic cannot represent losslessly",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by anthropic",
     "reasoningSummaryParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)",
     "reasoningEffortLowParam": "Anthropic requires max_tokens > budget_tokens; min budget (1024) exceeds max_tokens (100)"
   },
   "google_to_chat-completions": {
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not supported by OpenAI Chat Completions",
+    "googleProviderExecutedToolRoundtrip": "Expected: Google server-side ToolCall/ToolResponse history carries a Google ToolType identity that OpenAI Chat Completions cannot represent losslessly",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by openai"
   },
   "google_to_responses": {
     "codeInterpreterToolParam": "Expected: Google code_execution is provider-specific and is not a lossless equivalent of OpenAI Responses code_interpreter",
+    "googleProviderExecutedToolRoundtrip": "Expected: Google server-side ToolCall/ToolResponse history carries a Google ToolType identity that OpenAI Responses cannot represent losslessly",
     "urlContextToolParam": "Tool 'url_context' of type 'url_context' is not supported by responses"
+  },
+  "google_to_chat-completions_streaming": {
+    "googleProviderExecutedToolRoundtrip": "Expected: Google server-side ToolCall/ToolResponse history carries a Google ToolType identity that OpenAI Chat Completions streaming cannot represent losslessly"
   }
 }

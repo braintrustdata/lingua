@@ -1,0 +1,35 @@
+{
+  "id": "chatcmpl-E9fME38UeB5EZLCHn4x3d7rTsaPZN",
+  "object": "chat.completion",
+  "created": 1785972638,
+  "model": "gpt-5-nano-2025-08-07",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I can transcribe it, but I don’t see an attached audio file yet. Please either upload the audio file here (MP3, WAV, M4A, etc.) or share a link to it.\n\nIf you upload, please also specify:\n- Language and any dialects\n- Transcript style: verbatim (including filler words like um, ah) or clean (remove most fillers)\n- Timestamps: include every 30 seconds, or at each speaker change, or none\n- Speaker labeling: use “Speaker 1 / Speaker 2” or provide names if known\n\nIf you can’t upload, you can also paste a short excerpt or provide a shareable link and I’ll transcribe from that.",
+        "refusal": null,
+        "annotations": []
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 667,
+    "total_tokens": 679,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 512,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": null
+}

@@ -188,6 +188,10 @@
   ],
   "perTestCase": [
     {
+      "testCase": "audioTranscriptionConfigParam", "source": "Google", "target": "*",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic-compatible content stream events have no message metadata envelope for Google service-tier metadata" }]
+    },
+    {
       "testCase": "toolCallRequest", "source": "ChatCompletions", "target": "Responses",
       "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
     },

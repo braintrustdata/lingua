@@ -17,14 +17,16 @@ use crate::providers::google::generated::{
     FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
     GenerateContentRequest, GenerateContentResponse, GenerationConfig,
     Modality as GoogleTokenModality, ModalityTokenCount as GoogleModalityTokenCount,
-    Part as GooglePart, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Part as GooglePart, Tool as GoogleTool, ToolCall as GoogleToolCall, ToolConfig,
+    ToolResponse as GoogleToolResponse, ToolType as GoogleToolType, UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
 use crate::universal::defaults::DEFAULT_MIME_TYPE;
 use crate::universal::message::{
-    AssistantContent, AssistantContentPart, Message, ProviderOptions, TextContentPart,
-    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
+    AssistantContent, AssistantContentPart, BuiltinToolIdentity, BuiltinToolResultContentPart,
+    Message, ProviderOptions, TextContentPart, ToolCallArguments, ToolContentPart,
+    ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
@@ -72,6 +74,49 @@ fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
             wrapped.insert("output".to_string(), value.clone());
             Some(wrapped)
         }
+    }
+}
+
+fn builtin_identity_from_google_tool_type(tool_type: &GoogleToolType) -> BuiltinToolIdentity {
+    let builtin_type = match tool_type {
+        GoogleToolType::FileSearch => "FILE_SEARCH",
+        GoogleToolType::GoogleMaps => "GOOGLE_MAPS",
+        GoogleToolType::GoogleSearchImage => "GOOGLE_SEARCH_IMAGE",
+        GoogleToolType::GoogleSearchWeb => "GOOGLE_SEARCH_WEB",
+        GoogleToolType::ToolTypeUnspecified => "TOOL_TYPE_UNSPECIFIED",
+        GoogleToolType::UrlContext => "URL_CONTEXT",
+    };
+    BuiltinToolIdentity {
+        provider: BuiltinToolProvider::Google,
+        builtin_type: builtin_type.to_string(),
+    }
+}
+
+fn google_tool_type_from_builtin_identity(
+    identity: &BuiltinToolIdentity,
+) -> Result<GoogleToolType, ConvertError> {
+    if identity.provider != BuiltinToolProvider::Google {
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!(
+                "{} built-in tool `{}`",
+                identity.provider.label(),
+                identity.builtin_type
+            ),
+            to: "Google server-side toolCall",
+        });
+    }
+
+    match identity.builtin_type.as_ref() {
+        "FILE_SEARCH" => Ok(GoogleToolType::FileSearch),
+        "GOOGLE_MAPS" => Ok(GoogleToolType::GoogleMaps),
+        "GOOGLE_SEARCH_IMAGE" => Ok(GoogleToolType::GoogleSearchImage),
+        "GOOGLE_SEARCH_WEB" => Ok(GoogleToolType::GoogleSearchWeb),
+        "TOOL_TYPE_UNSPECIFIED" => Ok(GoogleToolType::ToolTypeUnspecified),
+        "URL_CONTEXT" => Ok(GoogleToolType::UrlContext),
+        other => Err(ConvertError::UnsupportedMapping {
+            from: format!("Google built-in tool `{other}`"),
+            to: "Google ToolType",
+        }),
     }
 }
 
@@ -228,6 +273,26 @@ impl TryFromLLM<GoogleContent> for Message {
                                 Some(code_execution_result.clone()),
                             )?,
                         }));
+                    } else if let Some(tool_call) = &part.tool_call {
+                        let tool_call_id = tool_call.id.clone().ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
+                                field: "Part.toolCall.id".to_string(),
+                            }
+                        })?;
+                        let tool_type = tool_call.tool_type.as_ref().ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
+                                field: "Part.toolCall.toolType".to_string(),
+                            }
+                        })?;
+                        assistant_parts.push(AssistantContentPart::BuiltinToolCall {
+                            tool_call_id,
+                            tool_name: tool_call.tool_name.clone(),
+                            builtin_tool: builtin_identity_from_google_tool_type(tool_type),
+                            arguments: tool_call.args.clone().map(ToolCallArguments::Valid),
+                            status: None,
+                            provider_options: None,
+                            provider_executed: Some(true),
+                        });
                     } else if let Some(fc) = &part.function_call {
                         if let Some(tool_name) = &fc.name {
                             let args_value = match fc.args.as_ref() {
@@ -337,6 +402,30 @@ impl TryFromLLM<GoogleContent> for Message {
                                 });
                             }
                         }
+                    } else if let Some(tool_response) = &part.tool_response {
+                        let tool_call_id = tool_response.id.clone().ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
+                                field: "Part.toolResponse.id".to_string(),
+                            }
+                        })?;
+                        let tool_type = tool_response.tool_type.as_ref().ok_or_else(|| {
+                            ConvertError::MissingRequiredField {
+                                field: "Part.toolResponse.toolType".to_string(),
+                            }
+                        })?;
+                        tool_parts.push(ToolContentPart::BuiltinToolResult(
+                            BuiltinToolResultContentPart {
+                                tool_call_id,
+                                tool_name: None,
+                                builtin_tool: builtin_identity_from_google_tool_type(tool_type),
+                                output: tool_response
+                                    .response
+                                    .clone()
+                                    .map(Value::Object)
+                                    .unwrap_or(Value::Null),
+                                provider_options: None,
+                            },
+                        ));
                     } else if let Some(fr) = &part.function_response {
                         if let Some(tool_name) = &fr.name {
                             let output = match fr.response.as_ref() {
@@ -578,6 +667,46 @@ impl TryFromLLM<Message> for GoogleContent {
                                         ..Default::default()
                                     });
                                 }
+                                AssistantContentPart::BuiltinToolCall {
+                                    tool_call_id,
+                                    tool_name,
+                                    builtin_tool,
+                                    arguments,
+                                    provider_executed,
+                                    ..
+                                } => {
+                                    if provider_executed != Some(true) {
+                                        return Err(ConvertError::UnsupportedMapping {
+                                            from: "universal built-in tool call without provider_executed=true".to_string(),
+                                            to: "Google server-side toolCall",
+                                        });
+                                    }
+                                    let args = match arguments {
+                                        Some(ToolCallArguments::Valid(map)) => Some(map),
+                                        Some(ToolCallArguments::Invalid(_))
+                                        | Some(ToolCallArguments::Custom(_)) => {
+                                            return Err(ConvertError::UnsupportedMapping {
+                                                from: "non-object built-in tool arguments"
+                                                    .to_string(),
+                                                to: "Google ToolCall.args",
+                                            });
+                                        }
+                                        None => None,
+                                    };
+                                    converted.push(GooglePart {
+                                        tool_call: Some(GoogleToolCall {
+                                            args,
+                                            id: Some(tool_call_id),
+                                            tool_name,
+                                            tool_type: Some(
+                                                google_tool_type_from_builtin_identity(
+                                                    &builtin_tool,
+                                                )?,
+                                            ),
+                                        }),
+                                        ..Default::default()
+                                    });
+                                }
                                 AssistantContentPart::Reasoning {
                                     text,
                                     encrypted_content,
@@ -613,28 +742,43 @@ impl TryFromLLM<Message> for GoogleContent {
                 ("model".to_string(), parts)
             }
             Message::Tool { content } => {
-                let parts: Vec<GooglePart> = content
-                    .into_iter()
-                    .filter_map(|part| match part {
-                        ToolContentPart::ToolResult(result) => Some(result),
-                        ToolContentPart::ToolDiscoveryResult(_) => None,
-                    })
-                    .map(|result| {
-                        let response = value_to_map(&result.output);
-
-                        Ok(GooglePart {
-                            function_response: Some(GoogleFunctionResponse {
-                                id: Some(result.tool_call_id).filter(|s| {
-                                    !s.is_empty() && !s.starts_with(SYNTHETIC_CALL_ID_PREFIX)
+                let mut parts = Vec::new();
+                for part in content {
+                    match part {
+                        ToolContentPart::ToolResult(result) => {
+                            parts.push(GooglePart {
+                                function_response: Some(GoogleFunctionResponse {
+                                    id: Some(result.tool_call_id).filter(|s| {
+                                        !s.is_empty() && !s.starts_with(SYNTHETIC_CALL_ID_PREFIX)
+                                    }),
+                                    name: Some(result.tool_name),
+                                    response: value_to_map(&result.output),
+                                    ..Default::default()
                                 }),
-                                name: Some(result.tool_name),
-                                response,
                                 ..Default::default()
-                            }),
-                            ..Default::default()
-                        })
-                    })
-                    .collect::<Result<Vec<_>, ConvertError>>()?;
+                            });
+                        }
+                        ToolContentPart::BuiltinToolResult(result) => {
+                            if result.tool_name.is_some() {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: "named built-in tool result".to_string(),
+                                    to: "Google ToolResponse (which has no toolName field)",
+                                });
+                            }
+                            parts.push(GooglePart {
+                                tool_response: Some(GoogleToolResponse {
+                                    id: Some(result.tool_call_id),
+                                    response: value_to_map(&result.output),
+                                    tool_type: Some(google_tool_type_from_builtin_identity(
+                                        &result.builtin_tool,
+                                    )?),
+                                }),
+                                ..Default::default()
+                            });
+                        }
+                        ToolContentPart::ToolDiscoveryResult(_) => {}
+                    }
+                }
                 ("user".to_string(), parts)
             }
             Message::AdditionalTools { .. } => {
@@ -1876,6 +2020,89 @@ mod tests {
         assert_eq!(parts.len(), 1);
         let fc = parts[0].function_call.as_ref().unwrap();
         assert_eq!(fc.name.as_deref(), Some("get_weather"));
+    }
+
+    #[test]
+    fn test_google_provider_executed_tool_call_roundtrips_without_name() {
+        let original = GoogleContent {
+            role: Some("model".to_string()),
+            parts: Some(vec![GooglePart {
+                tool_call: Some(GoogleToolCall {
+                    args: Some(Map::from_iter([(
+                        "query".to_string(),
+                        Value::String("Lingua".to_string()),
+                    )])),
+                    id: Some("google-search-1".to_string()),
+                    tool_name: None,
+                    tool_type: Some(GoogleToolType::GoogleSearchWeb),
+                }),
+                ..Default::default()
+            }]),
+        };
+
+        let universal = <Message as TryFromLLM<GoogleContent>>::try_from(original.clone())
+            .expect("Google toolCall should import");
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal
+        else {
+            panic!("expected assistant content parts");
+        };
+        let AssistantContentPart::BuiltinToolCall {
+            tool_call_id,
+            tool_name,
+            builtin_tool,
+            provider_executed,
+            ..
+        } = &parts[0]
+        else {
+            panic!("expected a built-in tool call");
+        };
+        assert_eq!(tool_call_id, "google-search-1");
+        assert_eq!(tool_name, &None);
+        assert_eq!(builtin_tool.provider, BuiltinToolProvider::Google);
+        assert_eq!(builtin_tool.builtin_type, "GOOGLE_SEARCH_WEB");
+        assert_eq!(*provider_executed, Some(true));
+
+        let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
+            .expect("built-in tool call should export");
+        assert_eq!(roundtrip, original);
+    }
+
+    #[test]
+    fn test_google_provider_executed_tool_response_roundtrips() {
+        let original = GoogleContent {
+            role: Some("user".to_string()),
+            parts: Some(vec![GooglePart {
+                tool_response: Some(GoogleToolResponse {
+                    id: Some("google-search-1".to_string()),
+                    response: Some(Map::from_iter([(
+                        "result".to_string(),
+                        Value::String("Lingua".to_string()),
+                    )])),
+                    tool_type: Some(GoogleToolType::GoogleSearchWeb),
+                }),
+                ..Default::default()
+            }]),
+        };
+
+        let universal = <Message as TryFromLLM<GoogleContent>>::try_from(original.clone())
+            .expect("Google toolResponse should import");
+        let Message::Tool { content } = &universal else {
+            panic!("expected tool content");
+        };
+        let ToolContentPart::BuiltinToolResult(result) = &content[0] else {
+            panic!("expected a built-in tool result");
+        };
+        assert_eq!(result.tool_call_id, "google-search-1");
+        assert_eq!(result.tool_name, None);
+        assert_eq!(result.builtin_tool.provider, BuiltinToolProvider::Google);
+        assert_eq!(result.builtin_tool.builtin_type, "GOOGLE_SEARCH_WEB");
+
+        let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
+            .expect("built-in tool result should export");
+        assert_eq!(roundtrip, original);
     }
 
     #[test]

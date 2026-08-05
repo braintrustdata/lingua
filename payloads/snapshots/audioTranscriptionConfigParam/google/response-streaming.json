@@ -1,0 +1,94 @@
+[
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "What"
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 1,
+      "totalTokenCount": 179,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 171,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "l8dzaomcCrWez7IP677v6A8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": " do you call a developer who doesn't like to work in teams? \n\nAn independent variable."
+            }
+          ],
+          "role": "model"
+        },
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 22,
+      "totalTokenCount": 200,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 171,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "l8dzaomcCrWez7IP677v6A8"
+  },
+  {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "",
+              "thoughtSignature": "EsoGCscGARFNMg+AHL3b7UKBC1wwPkenWpCQgPhANmQ0ExTdOa/HBJX8R9Vtge8veQwOCBrVPv5VGaxpQrVjFGdPIg6+mJjJed4GxAgIuOqQRGoC1pMwbd/uZD5hAMnNt0sDCqnKo/sJAQ1WsG3K8y9VHZrvFp6bv/AWZbyM9+jCvX5mPOLID/ZxYJXqEk2bYFGjyC+syMomiRhu6ddQi4Aj73JT8ZtTUix7qZmZ9lHK6LVkqgFr5Peq0SwSK6mYrdQACljL1dGrQFXviiD3faOUUIlSb1B5oemtglOb8gpoj+LDZrWfPlYOWiMutufpsAb3rxFLEvNuEK0zowBoqnfRLKAgrfA5lVMrKgU9RdkqoO6cDqPc/SpKl+UZjj0rZxtBQBRt9wigw2GMlr+CxZjFliR1APWs8LSzAqT32k1maGcegZwru95wIEAMOO0Vn88dMxDzq7rrnwznMxfr+ox57jM6INPbcuIzQO2c6/2r2QQx7FAlWduzS9kLP8juRyoxm4oTDJmIU+1tbpyZ/UP35ThqWotsJfueU/z5Z2Cff+MPyvbd/YSIRW7VIhMQin3VXzHeYuSHBn/Oa40MB22eHnjsw7l5RaOhSGIbquBmA5Ym18+0ia3jdD4yMIYV+kHZldTov87nnAXUmysjP/5uQlKpYVUFMnF5jhOrXJxF0XPtD4/QYwtsxs8S84jdR3gwNEtf7XZ9SQpwP9DbhbGFA2clpbTr5132D0MACC3C0lWSXSxZv4ScK3rSJTcCgGKa9/9/K5nmVYxpM+TNrbA0B0+15930AW80iKs0EuqXDRP2l4yUmU3N6m1qvaxP9f/sY4QvUjc9AcRZ/aPbKXAjKtc5iZHuna/UsnNc+lWee6YywkbduD4J0paZFlco+tPQKKk/MNU75NtG6ba1iv3mvwiP7HDj0QVDcsqL4EA32t3893e/KWPZVkCwRFcUTETJsDLP3h+OqJOr47kaCYj7gA+Yut3xsLjm5e6lYM7c6Yj736ZxIvEOUKt9l0Gcn6UNw75XKTGavX5UI5dmZF0akbpRi+Ybiroj7k9R1Vq3TUch5mGCy1EGoT+JsMgGiFMlSgDfLFNB2Oc+eJqMk3yKUJfrVP4s3MZ22U4="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 7,
+      "candidatesTokenCount": 22,
+      "totalTokenCount": 200,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 7
+        }
+      ],
+      "thoughtsTokenCount": 171,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-3.5-flash",
+    "responseId": "l8dzaomcCrWez7IP677v6A8"
+  }
+]

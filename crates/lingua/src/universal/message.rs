@@ -1,5 +1,5 @@
 use crate::serde_json;
-use crate::universal::tools::UniversalTool;
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
@@ -116,6 +116,21 @@ pub enum AssistantContentPart {
         #[ts(optional)]
         provider_executed: Option<bool>,
     },
+    /// A provider-executed built-in tool call whose free-form name may be absent.
+    BuiltinToolCall {
+        tool_call_id: String,
+        #[ts(optional)]
+        tool_name: Option<String>,
+        builtin_tool: BuiltinToolIdentity,
+        #[ts(optional)]
+        arguments: Option<ToolCallArguments>,
+        #[ts(optional)]
+        status: Option<String>,
+        #[ts(optional)]
+        provider_options: Option<ProviderOptions>,
+        #[ts(optional)]
+        provider_executed: Option<bool>,
+    },
     Program {
         call_id: String,
         code: String,
@@ -226,6 +241,28 @@ pub struct ToolResultContentPart {
     pub provider_options: Option<ProviderOptions>,
 }
 
+/// Reusable result for a provider-executed built-in tool.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case", optional_fields)]
+pub struct BuiltinToolResultContentPart {
+    pub tool_call_id: String,
+    pub tool_name: Option<String>,
+    pub builtin_tool: BuiltinToolIdentity,
+    #[ts(type = "any")]
+    pub output: serde_json::Value,
+    pub provider_options: Option<ProviderOptions>,
+}
+
+/// Stable identity for a provider-executed built-in tool call or result.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export, rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub struct BuiltinToolIdentity {
+    pub provider: BuiltinToolProvider,
+    pub builtin_type: String,
+}
+
 /// Reusable text content part for tagged unions
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -269,6 +306,7 @@ pub enum CacheControlTtl {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ToolContentPart {
     ToolResult(ToolResultContentPart),
+    BuiltinToolResult(BuiltinToolResultContentPart),
     ToolDiscoveryResult(ToolDiscoveryResultContentPart),
 }
 

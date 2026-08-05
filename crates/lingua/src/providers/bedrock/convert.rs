@@ -229,6 +229,9 @@ impl TryFromLLM<Message> for BedrockMessage {
                 (BedrockConversationRole::User, blocks)
             }
             Message::Assistant { content, .. } => {
+                if let AssistantContent::Array(parts) = &content {
+                    reject_builtin_tool_calls(parts, "Bedrock Converse toolUse")?;
+                }
                 let blocks = match content {
                     AssistantContent::String(s) => vec![BedrockContentBlock::Text { text: s }],
                     AssistantContent::Array(parts) => parts
@@ -292,11 +295,25 @@ impl TryFromLLM<Message> for BedrockMessage {
 fn tool_result_blocks_from_content(
     content: Vec<ToolContentPart>,
 ) -> Result<Vec<BedrockContentBlock>, ConvertError> {
+    if let Some(result) = content.iter().find_map(|part| match part {
+        ToolContentPart::BuiltinToolResult(result) => Some(result),
+        _ => None,
+    }) {
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!(
+                "{} built-in tool result `{}`",
+                result.builtin_tool.provider.label(),
+                result.builtin_tool.builtin_type
+            ),
+            to: "Bedrock Converse toolResult",
+        });
+    }
+
     content
         .into_iter()
         .filter_map(|part| match part {
             ToolContentPart::ToolResult(result) => Some(result),
-            ToolContentPart::ToolDiscoveryResult(_) => None,
+            ToolContentPart::BuiltinToolResult(_) | ToolContentPart::ToolDiscoveryResult(_) => None,
         })
         .map(|result| {
             let content_text = match result.output {
@@ -317,6 +334,26 @@ fn tool_result_blocks_from_content(
             })
         })
         .collect()
+}
+
+fn reject_builtin_tool_calls(
+    parts: &[AssistantContentPart],
+    target: &'static str,
+) -> Result<(), ConvertError> {
+    if let Some(builtin_tool) = parts.iter().find_map(|part| match part {
+        AssistantContentPart::BuiltinToolCall { builtin_tool, .. } => Some(builtin_tool),
+        _ => None,
+    }) {
+        return Err(ConvertError::UnsupportedMapping {
+            from: format!(
+                "{} built-in tool call `{}`",
+                builtin_tool.provider.label(),
+                builtin_tool.builtin_type
+            ),
+            to: target,
+        });
+    }
+    Ok(())
 }
 
 fn is_tool_result_message(message: &BedrockMessage) -> bool {
@@ -588,6 +625,9 @@ impl TryFromLLM<Message> for BedrockOutputMessage {
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         match message {
             Message::Assistant { content, .. } => {
+                if let AssistantContent::Array(parts) = &content {
+                    reject_builtin_tool_calls(parts, "Bedrock output toolUse")?;
+                }
                 let blocks = match content {
                     AssistantContent::String(s) => {
                         vec![BedrockOutputContentBlock::Text { text: s }]

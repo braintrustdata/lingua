@@ -197,6 +197,14 @@
   ],
   "perTestCase": [
     {
+      "testCase": "googleProviderExecutedToolRoundtrip",
+      "source": "Google",
+      "target": "*",
+      "errors": [
+        { "pattern": "built-in tool", "reason": "Google server-side ToolCall/ToolResponse history carries a Google ToolType identity that other provider request formats cannot represent losslessly" }
+      ]
+    },
+    {
       "testCase": "openaiServiceTierFastParam",
       "source": "Responses",
       "target": "Anthropic",

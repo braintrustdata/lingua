@@ -1,0 +1,41 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe the attached audio."
+        }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        {
+          "text": "I will explain this thing one time and one time only.",
+          "thoughtSignature": "EukHCuYHARFNMg9EgA3yC4+TAi0LEEEzPFAxKBiHHK6PZ9HQTtUm2PoFj5YeXr2gTs+B9NyIhBKcO7Fou2bXTG6jF5sj2yqmx07WsGT75MlQRDJ8bE1bax3JUDlRg9C+6rilI3YQHPkCmNcPImsyCUuGSA9kn886BU/szbMISNVQOmnzvUe8TRlu9g6j5c9QiQkk+mhtgbv6HXPltLzMinvx9v8+/CmNuC5GaohdaR8s786WRj0U7tEib7LP9ijbMIsR7fL9RE3z1n43OuBzYkhZBHWDSalZnpVvQOJ/Ufvwv/DcRhVKIoJ3LBinu6A9ZnK/dyLcokxvjwgSuVEfCYR7rr9A69TFFmZshIhRtcBFQZ4fKp7sMg3PlCz8d12J/f5ueB9rWYcXP4Wxx76b/Lo/nHAqMex8hfKPRk414jujttNN+xGGg+rOVGwbAkGxSM/aHhBAeqGWoleX2mmPRKAu7uPCrKjlF++TMXIXDYT4ROpk8t0mjVa5wQjdoSi4siY50ITJqX9C3GVLs6OpBH4eImyuZ9vLElYP/Ep7dDCEO5QU58CBvNF7dWqT5jBbMi1toYeE0Qx4+5W8OY3KPP5F7M8e0CLnQfd4i7yIlawAmfn7xy++X+06IpNyBtAN2W2vhrF2PpcA0+wW2VeJmnqFDCvJNUVeIsddBzMq4wrcaXQWP3A0cSkll12LOfgX7v4Z61ZioC9gr2FznCx5eRavDrCavcJvaPR8rgsRM0Izw7LpzOsTe9r5ubxtn2ELvJlWXkrE3W3x+8ldK3yj/HIsD39gV8r1eEiZs0AaKqzcRlzMDs3DNO5ao2NCerHrHDrRi/Z7S7xiZ+gyHFajj7EcijF5eLnYMUOVkqi536iPGKaUSAg4wKfFjUi1+XwX5PTYBLcd/qRjPT3XTiBt+LjQejqkfEND9NlbW0lx68A1Vd0rQhJ8qXHkJ3DRvi7LSx8AjMOvuvwqE6UH0tU5VJdHbpMbicvbsVDaabc8LEb3nDmEZoVhw5Xiw5ciMwfPCW8Jhgi85BYnJuG+XEZJEwCOfpTM6aoUU7HpXHKVPN46PiC/o3wivOsNvCghhsQY0fYSCA8X/EoNBvWxxLfetI6vYXVh7Dw6G/PbZMxQYVEvXVYN7y8nlRznCTs7jUFysRHXkMCGJrTPfqkrD53094j9G/kATvyR2+PzHFE388q31vuMBGKKhe1Nrw0gcFsf5xqZn0Ym/l7e6umd6jtQjGSELnjTD0FBydR8m6f67Aq59xzQeJ8Ygy6c9RTxwHhZ26NZcEGgsveBanUPYuTOMYdG0FNwSuM6LO0yxytU9b0Okhmomoqm4J5FAEw="
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "customVocabulary": [
+        "Lingua"
+      ],
+      "diarization": true,
+      "languageCodes": [
+        "en-US"
+      ],
+      "wordTimestamp": true
+    }
+  }
+}

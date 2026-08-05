@@ -1,0 +1,24 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Transcribe the attached audio."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "audioTranscriptionConfig": {
+      "customVocabulary": [
+        "Lingua"
+      ],
+      "diarization": true,
+      "languageCodes": [
+        "en-US"
+      ],
+      "wordTimestamp": true
+    }
+  }
+}

@@ -185,6 +185,35 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                             }
                         }
                     }
+                    AssistantContentPart::BuiltinToolCall {
+                        tool_call_id,
+                        tool_name,
+                        builtin_tool,
+                        arguments,
+                        status,
+                        ..
+                    } => {
+                        "builtin_tool_call".hash(hasher);
+                        tool_call_id.hash(hasher);
+                        tool_name.hash(hasher);
+                        builtin_tool.hash(hasher);
+                        status.hash(hasher);
+                        match arguments {
+                            Some(crate::universal::ToolCallArguments::Valid(map)) => {
+                                "valid".hash(hasher);
+                                map.hash(hasher);
+                            }
+                            Some(crate::universal::ToolCallArguments::Invalid(s)) => {
+                                "invalid".hash(hasher);
+                                s.hash(hasher);
+                            }
+                            Some(crate::universal::ToolCallArguments::Custom(s)) => {
+                                "custom".hash(hasher);
+                                s.hash(hasher);
+                            }
+                            None => "none".hash(hasher),
+                        }
+                    }
                     AssistantContentPart::ToolDiscoveryCall {
                         tool_call_id,
                         discovery_tool_name,
@@ -282,6 +311,13 @@ fn hash_tool_content(content: &ToolContent, hasher: &mut DefaultHasher) {
                 result.tool_name.hash(hasher);
                 result.output.hash(hasher);
                 result.caller.hash(hasher);
+            }
+            crate::universal::ToolContentPart::BuiltinToolResult(result) => {
+                "builtin_tool_result".hash(hasher);
+                result.tool_call_id.hash(hasher);
+                result.tool_name.hash(hasher);
+                result.builtin_tool.hash(hasher);
+                result.output.hash(hasher);
             }
             crate::universal::ToolContentPart::ToolDiscoveryResult(result) => {
                 "tool_discovery_result".hash(hasher);

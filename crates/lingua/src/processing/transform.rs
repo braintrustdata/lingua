@@ -747,6 +747,29 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             }),
                         });
                     }
+                    AssistantContentPart::BuiltinToolCall {
+                        tool_call_id,
+                        tool_name,
+                        builtin_tool,
+                        arguments,
+                        ..
+                    } => {
+                        let tool_call_index = tool_calls.len() as u32;
+                        tool_calls.push(UniversalToolCallDelta {
+                            index: Some(tool_call_index),
+                            id: Some(tool_call_id.clone()),
+                            call_type: Some(format!(
+                                "builtin:{}:{}",
+                                builtin_tool.provider.label(),
+                                builtin_tool.builtin_type
+                            )),
+                            custom_tool_call: None,
+                            function: Some(UniversalToolFunctionDelta {
+                                name: tool_name.clone(),
+                                arguments: arguments.as_ref().map(ToString::to_string),
+                            }),
+                        });
+                    }
                     AssistantContentPart::File { .. }
                     | AssistantContentPart::ToolResult { .. }
                     | AssistantContentPart::ToolDiscoveryCall { .. }

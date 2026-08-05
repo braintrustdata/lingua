@@ -178,7 +178,7 @@ pub enum UniversalToolType {
 }
 
 /// Provider identity for built-in tool passthrough.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "snake_case")]
 pub enum BuiltinToolProvider {
@@ -186,6 +186,17 @@ pub enum BuiltinToolProvider {
     Responses,
     Google,
     Converse,
+}
+
+impl BuiltinToolProvider {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Anthropic => "anthropic",
+            Self::Responses => "responses",
+            Self::Google => "google",
+            Self::Converse => "converse",
+        }
+    }
 }
 
 // =============================================================================

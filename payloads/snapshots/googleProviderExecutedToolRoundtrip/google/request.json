@@ -1,0 +1,33 @@
+{
+  "contents": [
+    {
+      "role": "model",
+      "parts": [
+        {
+          "toolCall": {
+            "id": "google-search-1",
+            "toolName": "search_the_web",
+            "toolType": "GOOGLE_SEARCH_WEB",
+            "args": {
+              "query": "Lingua message format"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        {
+          "toolResponse": {
+            "id": "google-search-1",
+            "toolType": "GOOGLE_SEARCH_WEB",
+            "response": {
+              "result": "Lingua is a universal LLM message format."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

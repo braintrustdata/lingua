@@ -99,4 +99,31 @@ mod tests {
         // Custom field should be preserved
         assert_eq!(back.get("customField"), json.get("customField"));
     }
+
+    #[test]
+    fn test_google_params_roundtrip_preserves_audio_transcription_config() {
+        let config_json = json!({
+            "audioTranscriptionConfig": {
+                "customVocabulary": ["Lingua"],
+                "diarization": true,
+                "languageCodes": ["en-US"],
+                "wordTimestamp": true
+            }
+        });
+        let expected_config: GenerationConfig =
+            serde_json::from_value(config_json.clone()).unwrap();
+        let params: GoogleParams = serde_json::from_value(json!({
+            "contents": [{"role": "user", "parts": [{"text": "Transcribe this."}]}],
+            "generationConfig": config_json
+        }))
+        .unwrap();
+
+        assert!(params.extras.is_empty());
+        assert_eq!(params.generation_config.as_ref(), Some(&expected_config));
+
+        let roundtrip: GoogleParams =
+            serde_json::from_value(serde_json::to_value(&params).unwrap()).unwrap();
+        assert!(roundtrip.extras.is_empty());
+        assert_eq!(roundtrip.generation_config, Some(expected_config));
+    }
 }

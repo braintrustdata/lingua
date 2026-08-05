@@ -3132,6 +3132,29 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  audioTranscriptionConfigParam: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Transcribe the attached audio." }],
+        },
+      ],
+      generationConfig: {
+        audioTranscriptionConfig: {
+          customVocabulary: ["Lingua"],
+          diarization: true,
+          languageCodes: ["en-US"],
+          wordTimestamp: true,
+        },
+      },
+    },
+    bedrock: null,
+  },
+
   googleToolSchemaNumericInt64Param: (() => {
     const indexNameSchema: Record<string, unknown> = {
       type: Type.STRING,

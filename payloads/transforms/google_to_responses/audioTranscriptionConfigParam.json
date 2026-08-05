@@ -1,0 +1,102 @@
+{
+  "id": "resp_0dcc0d0837988a9f006a73c7a1f300819898ab073b840bb398",
+  "object": "response",
+  "created_at": 1785972642,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1785972644,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-terra",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_0dcc0d0837988a9f006a73c7a2cf8081988eab86972621055b",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqc8ekkMe4TGiPbVH5y865n6Vjjo1kNqU-e11_Ak5jCBUHNW-6slzouWAYAcZaRyREsO1SSlJlH_CFjAz_LT-pyGJvqAUL0Aa5V6pVUOu9N2Rggnq2IrvxJ_LNALAOTgLQO2u_zsNlocU6uWAJtbg3wdzlHKXEyaFoipKo9LIj5hqjeJVGe3Fs1TppwJXccaGXNRJUBD0HesazGzGcA9n4IfIyk5GJhBSe8_31RvxPsHueG0CxlDD_U9zBrwPasdvuyiHSg81xurEOFK6MlUdnglKcHJx4mcDamnjRu6KxhH2Bv_LV8vIChRnCpzfYvIdA19zqQHMS8HzGVN2JLbi3_d6zZkp6M46qXbnLGAUMqc5HsfeliP5x8KjnaYeguxRmQyPSiqsDrR1xZCrNkm6pyfWZfl_Vdh3zpJxCZOJCKvEBNALs2Ki-on3t4WSnX243KnyYKDY639CNdxrkM0_hUJSsVxKwV3A_6rUZeW1dCjUhINOj7qu8Jg0_7QdjbC5XaiGkgPSvjGoPCx4EOeICl4ljqA8R_OciLvoi2YrOF42FzqmeIOEB1hNX__bhhs_mMRyQsKNlAgT7YplDMVu3nG-2f1auJBwmYNIsb5Ky4herTB3jwVpDjll2GFoBGa6ALZKKl5Eczw2jhIdGe38nZYigioZ5tJD5SqU1u382i_i_8n9N8ncz9VA742Yca4LHwIe0KQ43G1s52F1ADRSZYVfGsZUv0PHVU12dMgeES6BHsi3LZNd3tZiUZIJD3AAVlfTvaon9esHJHwqFW8u6nne3yH27oDu0WHLXYXLLCaima2TQvOBo_qG8puJyGlw4fIh-9jRHvtLL9iXNfRzCrmV7eM20XMp3e9Vdylte-Z7Ycil4bgxIEQHlOhwoNYKS91lzLfOIzO62wKGx3iO4Newp6P2hnArs9YLKBrtPM_4gvENGXrIx7nvfi7lrOeHyyDihczRsGWDuhmZenCHE88mhH3TeloqLYS36-hUR4O4st2RAXGIbcbuLghNaM_AETJtV1RuiKkmrQ1KgGgeAy84DuaHeaniBpdTqGW9FqSzwOQyQoL3IvhMfPHUg4UlCnLdqadfDcRcq263dJkjYmGt_mfcsWppP13r1X6RZYLTUB3INGGIPkXwoJDX-VgyRqUHzp2pXRgaBZ179BvNpqFq3Qw==",
+      "summary": []
+    },
+    {
+      "id": "msg_0dcc0d0837988a9f006a73c7a33490819887b473713b965b83",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "I don’t see an audio attachment available here. Please upload the audio file, and I’ll transcribe it."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 12,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 66,
+    "output_tokens_details": {
+      "reasoning_tokens": 37
+    },
+    "total_tokens": 78
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "I don’t see an audio attachment available here. Please upload the audio file, and I’ll transcribe it."
+}

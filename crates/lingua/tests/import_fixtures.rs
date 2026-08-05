@@ -170,6 +170,7 @@ fn assistant_content_part_type(part: &AssistantContentPart) -> &'static str {
         AssistantContentPart::File { .. } => "file",
         AssistantContentPart::Reasoning { .. } => "reasoning",
         AssistantContentPart::ToolCall { .. } => "tool_call",
+        AssistantContentPart::BuiltinToolCall { .. } => "builtin_tool_call",
         AssistantContentPart::Program { .. } => "program",
         AssistantContentPart::ProgramOutput { .. } => "program_output",
         AssistantContentPart::ToolDiscoveryCall { .. } => "tool_discovery_call",

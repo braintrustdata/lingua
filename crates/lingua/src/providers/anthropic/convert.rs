@@ -1265,6 +1265,18 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     file_id: None,
                                 })
                                 },
+                                AssistantContentPart::BuiltinToolCall {
+                                    builtin_tool, ..
+                                } => {
+                                    return Err(ConvertError::UnsupportedMapping {
+                                        from: format!(
+                                            "{} built-in tool call `{}`",
+                                            builtin_tool.provider.label(),
+                                            builtin_tool.builtin_type
+                                        ),
+                                        to: "Anthropic assistant content",
+                                    });
+                                }
                                 AssistantContentPart::ToolDiscoveryCall {
                                 tool_call_id,
                                 discovery_tool_name,
@@ -1420,6 +1432,16 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     &discovery_result.tool_call_id,
                                 )),
                                 file_id: None,
+                            });
+                        }
+                        ToolContentPart::BuiltinToolResult(result) => {
+                            return Err(ConvertError::UnsupportedMapping {
+                                from: format!(
+                                    "{} built-in tool result `{}`",
+                                    result.builtin_tool.provider.label(),
+                                    result.builtin_tool.builtin_type
+                                ),
+                                to: "Anthropic tool_result",
                             });
                         }
                     }
@@ -1815,7 +1837,9 @@ fn split_mixed_tool_discovery_message(message: Message) -> Vec<Message> {
 
     for part in content {
         match part {
-            ToolContentPart::ToolResult(_) => tool_results.push(part),
+            ToolContentPart::ToolResult(_) | ToolContentPart::BuiltinToolResult(_) => {
+                tool_results.push(part)
+            }
             ToolContentPart::ToolDiscoveryResult(_) => discovery_results.push(part),
         }
     }
@@ -2182,6 +2206,16 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
+                                    });
+                                }
+                                AssistantContentPart::BuiltinToolCall { builtin_tool, .. } => {
+                                    return Err(ConvertError::UnsupportedMapping {
+                                        from: format!(
+                                            "{} built-in tool call `{}`",
+                                            builtin_tool.provider.label(),
+                                            builtin_tool.builtin_type
+                                        ),
+                                        to: "Anthropic response content",
                                     });
                                 }
                                 AssistantContentPart::ToolDiscoveryCall {

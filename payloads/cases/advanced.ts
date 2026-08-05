@@ -1,4 +1,4 @@
-import { Type, FunctionCallingConfigMode } from "@google/genai";
+import { Type, FunctionCallingConfigMode, ToolType } from "@google/genai";
 import { AnthropicMessageCreateParams, TestCaseCollection } from "./types";
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
@@ -497,6 +497,44 @@ export const advancedCases: TestCaseCollection = {
         type: "any",
       },
     },
+  },
+
+  googleProviderExecutedToolRoundtrip: {
+    "chat-completions": null,
+    responses: null,
+    anthropic: null,
+    google: {
+      contents: [
+        {
+          role: "model",
+          parts: [
+            {
+              toolCall: {
+                id: "google-search-1",
+                toolName: "search_the_web",
+                toolType: ToolType.GOOGLE_SEARCH_WEB,
+                args: { query: "Lingua message format" },
+              },
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              toolResponse: {
+                id: "google-search-1",
+                toolType: ToolType.GOOGLE_SEARCH_WEB,
+                response: {
+                  result: "Lingua is a universal LLM message format.",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    bedrock: null,
   },
 
   glmToolCallWithLeadingTextRequest: {

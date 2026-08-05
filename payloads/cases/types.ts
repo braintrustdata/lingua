@@ -1,16 +1,47 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import type { Content, GenerateContentConfig, Tool } from "@google/genai";
+import type {
+  AudioTranscriptionConfig,
+  Content,
+  GenerateContentConfig,
+  Part,
+  Tool,
+  ToolCall,
+} from "@google/genai";
 import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
+
+// Compatibility types for fields present in the latest Google API schema but
+// not yet represented completely by the installed @google/genai SDK types.
+export interface GoogleProviderToolCall extends ToolCall {
+  toolName?: string;
+}
+
+export interface GoogleProviderPart extends Omit<Part, "toolCall"> {
+  toolCall?: GoogleProviderToolCall;
+}
+
+export interface GoogleProviderContent extends Omit<Content, "parts"> {
+  parts?: GoogleProviderPart[];
+}
+
+export interface GoogleAudioTranscriptionConfig extends AudioTranscriptionConfig {
+  customVocabulary?: string[];
+  diarization?: boolean;
+  wordTimestamp?: boolean;
+}
+
+export interface GoogleGenerateContentConfig extends GenerateContentConfig {
+  audioTranscriptionConfig?: GoogleAudioTranscriptionConfig;
+}
 
 // Google Gemini API request type (matching the js-genai library)
 export interface GoogleGenerateContentRequest {
   model?: string;
-  contents: Content[];
-  generationConfig?: GenerateContentConfig;
+  contents: GoogleProviderContent[];
+  generationConfig?: GoogleGenerateContentConfig;
   tools?: Tool[];
   toolConfig?: Record<string, unknown>;
-  systemInstruction?: Content;
+  systemInstruction?: GoogleProviderContent;
 }
 
 // Re-export Bedrock type for convenience

@@ -1,0 +1,27 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CdkUM3nyF7wivEAbqkkNS",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "I apologize, but I don't see any audio file attached to your message. Could you please try uploading the audio file again?\n\nOnce you've attached the audio file, I'll be happy to transcribe it for you."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 52,
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}
