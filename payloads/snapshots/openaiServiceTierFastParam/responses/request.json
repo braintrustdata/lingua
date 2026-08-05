@@ -1,0 +1,10 @@
+{
+  "model": "gpt-5.6-sol",
+  "input": [
+    {
+      "role": "user",
+      "content": "Reply with hello."
+    }
+  ],
+  "service_tier": "fast"
+}

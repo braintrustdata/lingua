@@ -30,7 +30,9 @@ pub use request::{
     SummaryMode, TokenBudget, ToolChoiceConfig, ToolChoiceMode, UniversalParams, UniversalRequest,
 };
 pub use response::{
-    FinishReason, ParsableResponseInfo, ResponseRequirement, UniversalResponse, UniversalUsage,
+    FinishReason, InputTokenDetails, ModalityTokenCount, OutputTokenDetails, ParsableResponseInfo,
+    ResponseRequirement, ServedServiceTier, TokenBreakdown, TokenModality, UniversalResponse,
+    UniversalUsage,
 };
 pub use stream::{
     UniversalReasoningDelta, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,

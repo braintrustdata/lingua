@@ -14,7 +14,9 @@ use crate::processing::adapters::{
     insert_opt_bool, insert_opt_f64, insert_opt_i64, ProviderAdapter,
 };
 use crate::processing::transform::TransformError;
-use crate::providers::openai::adapter::parse_openai_chat_extras;
+use crate::providers::openai::adapter::{
+    parse_openai_chat_extras, served_service_tier_from_openai,
+};
 use crate::providers::openai::capabilities::{
     apply_model_transforms, clamp_reasoning_effort_for_model,
     strip_unsupported_responses_prompt_cache_breakpoints,
@@ -26,7 +28,7 @@ use crate::providers::openai::convert::{
 };
 use crate::providers::openai::generated::{
     InputItem, InputItemContent, InputItemRole, InputItemType, InputParam, Instructions,
-    OutputItemType, Prompt,
+    OutputItemType, Prompt, ServiceTier,
 };
 use crate::providers::openai::params::{
     OpenAIReasoning, OpenAIResponsesExtrasView, OpenAIResponsesParams,
@@ -40,10 +42,10 @@ use crate::universal::message::{
 };
 use crate::universal::tools::tools_to_responses_value;
 use crate::universal::{
-    ConversationReference, ConversationReferenceType, FinishReason, TokenBudget, UniversalParams,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
-    PLACEHOLDER_MODEL,
+    ConversationReference, ConversationReferenceType, FinishReason, ServedServiceTier, TokenBudget,
+    UniversalParams, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 use std::convert::TryInto;
@@ -71,7 +73,9 @@ fn system_text(message: &Message) -> Option<&str> {
 /// Adapter for OpenAI Responses API (used by reasoning models like o1).
 pub struct ResponsesAdapter;
 
-pub(crate) fn responses_stream_events_from_universal(chunk: &UniversalStreamChunk) -> Vec<Value> {
+pub(crate) fn responses_stream_events_from_universal(
+    chunk: &UniversalStreamChunk,
+) -> Result<Vec<Value>, TransformError> {
     responses_stream_events_from_universal_with_output_index_offset(chunk, None, 0, 0)
 }
 
@@ -80,9 +84,9 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     text_output_index: Option<u32>,
     tool_output_index_offset: u32,
     sequence_number: u64,
-) -> Vec<Value> {
+) -> Result<Vec<Value>, TransformError> {
     let Some(choice) = chunk.choices.first() else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
 
     let mut events = Vec::new();
@@ -203,10 +207,13 @@ pub(crate) fn responses_stream_events_from_universal_with_output_index_offset(
     }
 
     if choice.finish_reason.is_some() {
-        events.push(responses_terminal_stream_event(chunk, next_sequence_number));
+        events.push(responses_terminal_stream_event(
+            chunk,
+            next_sequence_number,
+        )?);
     }
 
-    events
+    Ok(events)
 }
 
 fn custom_tool_call_item_id(output_index: u32) -> String {
@@ -257,7 +264,10 @@ pub(crate) fn responses_created_stream_event_from_universal(
     })
 }
 
-fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number: u64) -> Value {
+fn responses_terminal_stream_event(
+    chunk: &UniversalStreamChunk,
+    sequence_number: u64,
+) -> Result<Value, TransformError> {
     let finish_reason = chunk.choices.first().and_then(|c| c.finish_reason.as_ref());
     let status = match finish_reason {
         Some(reason)
@@ -276,7 +286,7 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
         .id
         .clone()
         .unwrap_or_else(|| format!("resp_{}", PLACEHOLDER_ID));
-    let response = match &chunk.usage {
+    let mut response = match &chunk.usage {
         Some(usage) => serde_json::json!({
             "id": id,
             "object": "response",
@@ -293,12 +303,31 @@ fn responses_terminal_stream_event(chunk: &UniversalStreamChunk, sequence_number
             "output": []
         }),
     };
+    if let Some(service_tier) =
+        chunk
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Auto
+                | ServedServiceTier::Default
+                | ServedServiceTier::Fast
+                | ServedServiceTier::Flex
+                | ServedServiceTier::Priority
+                | ServedServiceTier::Scale => Some(service_tier),
+                _ => None,
+            })
+    {
+        if let Some(response) = response.as_object_mut() {
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            response.insert("service_tier".into(), value);
+        }
+    }
 
-    serde_json::json!({
+    Ok(serde_json::json!({
         "type": if status == "completed" { "response.completed" } else { "response.incomplete" },
         "response": response,
         "sequence_number": sequence_number
-    })
+    }))
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -584,6 +613,33 @@ struct ResponsesAlternateReasoningDeltaEvent {
 #[derive(Debug, Deserialize, Default)]
 struct ResponsesAlternateReasoningDelta {
     text: Option<String>,
+}
+
+fn stream_served_service_tier(
+    payload: &Value,
+) -> Result<Option<ServedServiceTier>, TransformError> {
+    #[derive(Deserialize)]
+    struct ResponseView {
+        service_tier: Option<ServiceTier>,
+    }
+    #[derive(Deserialize)]
+    struct StreamView {
+        response: Option<ResponseView>,
+        delta: Option<StreamDeltaView>,
+    }
+    #[derive(Deserialize)]
+    struct StreamDeltaView {
+        response: Option<ResponseView>,
+    }
+
+    serde_json::from_value::<StreamView>(payload.clone())
+        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))
+        .map(|view| {
+            view.response
+                .or_else(|| view.delta.and_then(|delta| delta.response))
+                .and_then(|response| response.service_tier)
+                .map(served_service_tier_from_openai)
+        })
 }
 
 pub(crate) fn parse_responses_extras(
@@ -1190,6 +1246,17 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(|s| FinishReason::from_provider_string(s, ProviderFormat::Responses))
         };
 
+        #[derive(Deserialize)]
+        struct OpenAIResponsesServiceTierView {
+            service_tier: Option<ServiceTier>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<OpenAIResponsesServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .map(served_service_tier_from_openai);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -1201,6 +1268,7 @@ impl ProviderAdapter for ResponsesAdapter {
                 .map(String::from),
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -1257,6 +1325,22 @@ impl ProviderAdapter for ResponsesAdapter {
 
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
+        }
+        if let Some(service_tier) =
+            resp.served_service_tier
+                .and_then(|service_tier| match service_tier {
+                    ServedServiceTier::Auto
+                    | ServedServiceTier::Default
+                    | ServedServiceTier::Fast
+                    | ServedServiceTier::Flex
+                    | ServedServiceTier::Priority
+                    | ServedServiceTier::Scale => Some(service_tier),
+                    _ => None,
+                })
+        {
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("service_tier".into(), value);
         }
 
         Ok(Value::Object(map))
@@ -1413,18 +1497,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("id"))
                     .and_then(Value::as_str)
                     .map(String::from);
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("stop".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({})),
+                            finish_reason: Some("stop".to_string()),
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.incomplete" => {
@@ -1434,18 +1522,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("usage"))
                     .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    None,
-                    None,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({})),
-                        finish_reason: Some("length".to_string()),
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({})),
+                            finish_reason: Some("length".to_string()),
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.created" | "response.in_progress" => {
@@ -1475,18 +1567,22 @@ impl ProviderAdapter for ResponsesAdapter {
                     .and_then(|r| r.get("usage"))
                     .filter(|u| !u.is_null())
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                let served_service_tier = stream_served_service_tier(&payload)?;
 
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
-                        finish_reason: None,
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(serde_json::json!({"role": "assistant", "content": ""})),
+                            finish_reason: None,
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "response.output_item.added" => {
@@ -1616,6 +1712,25 @@ impl ProviderAdapter for ResponsesAdapter {
                     obj.insert("usage".into(), usage.to_provider_value(self.format()));
                 }
             }
+            if let Some(service_tier) =
+                chunk
+                    .served_service_tier
+                    .and_then(|service_tier| match service_tier {
+                        ServedServiceTier::Auto
+                        | ServedServiceTier::Default
+                        | ServedServiceTier::Fast
+                        | ServedServiceTier::Flex
+                        | ServedServiceTier::Priority
+                        | ServedServiceTier::Scale => Some(service_tier),
+                        _ => None,
+                    })
+            {
+                if let Some(obj) = response.as_object_mut() {
+                    let value = serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    obj.insert("service_tier".into(), value);
+                }
+            }
 
             return Ok(serde_json::json!({
                 "type": "response.created",
@@ -1623,14 +1738,14 @@ impl ProviderAdapter for ResponsesAdapter {
             }));
         }
 
-        let stream_events = responses_stream_events_from_universal(chunk);
+        let stream_events = responses_stream_events_from_universal(chunk)?;
         if has_reasoning {
             if let Some(event) = stream_events.first() {
                 return Ok(event.clone());
             }
         }
         if has_finish {
-            return Ok(responses_terminal_stream_event(chunk, 0));
+            return responses_terminal_stream_event(chunk, 0);
         }
         if let Some(event) = stream_events.into_iter().next() {
             return Ok(event);
@@ -1730,6 +1845,28 @@ mod tests {
             "input": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_responses_alternate_stream_preserves_service_tier() {
+        let adapter = ResponsesAdapter;
+        let payload = json!({
+            "object": "response.delta",
+            "delta": {
+                "type": "response.start",
+                "response": {
+                    "id": "resp_123",
+                    "model": "gpt-5.6-sol",
+                    "service_tier": "priority"
+                }
+            }
+        });
+
+        let universal = adapter.stream_to_universal(payload).unwrap().unwrap();
+        assert_eq!(
+            universal.served_service_tier,
+            Some(ServedServiceTier::Priority)
+        );
     }
 
     #[test]
@@ -2128,6 +2265,7 @@ mod tests {
                 })],
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
@@ -2895,6 +3033,7 @@ mod tests {
                 id: None,
             }],
             usage: None,
+            served_service_tier: None,
             finish_reason: Some(FinishReason::Stop),
             finish_reasons: vec![FinishReason::Stop],
         };
@@ -3580,7 +3719,7 @@ mod tests {
             Some("exec")
         );
         assert_eq!(
-            responses_stream_events_from_universal(&start_chunk),
+            responses_stream_events_from_universal(&start_chunk).unwrap(),
             vec![json!({
                 "type": "response.output_item.added",
                 "output_index": 7,
@@ -3635,7 +3774,7 @@ mod tests {
             "sequence_number": 0
         });
         assert_eq!(
-            responses_stream_events_from_universal(&delta_chunk),
+            responses_stream_events_from_universal(&delta_chunk).unwrap(),
             vec![expected_custom_tool_delta.clone()]
         );
 
@@ -3766,7 +3905,7 @@ mod tests {
             None,
         );
 
-        let events = responses_stream_events_from_universal(&chunk);
+        let events = responses_stream_events_from_universal(&chunk).unwrap();
         let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
         let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
         assert_eq!(
@@ -3863,7 +4002,7 @@ mod tests {
             None,
         );
 
-        let events = responses_stream_events_from_universal(&chunk);
+        let events = responses_stream_events_from_universal(&chunk).unwrap();
         let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
         let tool_start: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
         let tool_args: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
@@ -3922,7 +4061,7 @@ mod tests {
             None,
         );
 
-        let events = responses_stream_events_from_universal(&chunk);
+        let events = responses_stream_events_from_universal(&chunk).unwrap();
         let reasoning: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
         let text: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
         let tool_start: StreamEvent = serde_json::from_value(events[2].clone()).unwrap();
@@ -3980,7 +4119,7 @@ mod tests {
             None,
         );
 
-        let events = responses_stream_events_from_universal(&chunk);
+        let events = responses_stream_events_from_universal(&chunk).unwrap();
         let tool_start: StreamEvent = serde_json::from_value(events[0].clone()).unwrap();
         let tool_args: StreamEvent = serde_json::from_value(events[1].clone()).unwrap();
 

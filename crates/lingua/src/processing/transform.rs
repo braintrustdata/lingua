@@ -839,6 +839,7 @@ fn response_to_stream_chunk(
     };
 
     UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
+        .with_served_service_tier(response.served_service_tier)
 }
 
 pub(crate) fn transform_stream_chunk_step(
@@ -1080,7 +1081,7 @@ where
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::{ResponseRequirement, UserContent, UserContentPart};
+    use crate::universal::{ResponseRequirement, ServedServiceTier, UserContent, UserContentPart};
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
@@ -1585,6 +1586,25 @@ mod tests {
         assert!(output.get("max_tokens").is_some());
         // Should have messages
         assert!(output.get("messages").is_some());
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_transform_request_responses_fast_service_tier_to_anthropic() {
+        let payload = json!({
+            "model": "gpt-5.6-sol",
+            "input": [{"role": "user", "content": "Hello"}],
+            "service_tier": "fast"
+        });
+
+        let error = transform_request(to_bytes(&payload), ProviderFormat::Anthropic, None)
+            .expect_err("Anthropic must reject an unrepresentable service tier");
+
+        assert!(matches!(
+            error,
+            TransformError::FromUniversalFailed(message)
+                if message == "Anthropic does not support service_tier 'fast'"
+        ));
     }
 
     #[test]
@@ -2147,6 +2167,37 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_transform_response_google_prompt_block_to_chat_completions() {
+        let input = Bytes::from_static(br#"{"promptFeedback":{"blockReason":"SAFETY"}}"#);
+
+        let result = transform_response(input, ProviderFormat::ChatCompletions)
+            .unwrap()
+            .result
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(response["choices"][0]["finish_reason"], "content_filter");
+        assert_eq!(response["choices"][0]["message"]["role"], "assistant");
+        assert!(response["choices"][0]["message"]["content"].is_null());
+    }
+
+    #[test]
+    #[cfg(all(feature = "google", feature = "openai"))]
+    fn test_transform_stream_chunk_google_prompt_block_to_chat_completions() {
+        let input =
+            Bytes::from_static(br#"{"candidates":[],"promptFeedback":{"blockReason":"SAFETY"}}"#);
+
+        let result = transform_stream_chunk(input, ProviderFormat::ChatCompletions)
+            .unwrap()
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(response["choices"][0]["finish_reason"], "content_filter");
+        assert_eq!(response["choices"][0]["delta"]["role"], "assistant");
+    }
+
+    #[test]
     #[cfg(all(feature = "openai", feature = "anthropic"))]
     fn test_stream_detection_falls_back_to_full_response() {
         let payload = json!({
@@ -2289,11 +2340,13 @@ mod tests {
                 }]),
             }],
             usage: None,
+            served_service_tier: Some(ServedServiceTier::Priority),
             finish_reason: None,
             finish_reasons: Vec::new(),
         };
 
         let chunk = response_to_stream_chunk(response, ProviderFormat::Responses);
+        assert_eq!(chunk.served_service_tier, Some(ServedServiceTier::Priority));
         let output = crate::providers::openai::responses_adapter::ResponsesAdapter
             .stream_from_universal(&chunk)
             .unwrap();

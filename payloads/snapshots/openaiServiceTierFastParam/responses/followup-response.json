@@ -1,0 +1,102 @@
+{
+  "id": "resp_03fa4860aab1cb38006a72101bad80819c9cc5f62974cf215b",
+  "object": "response",
+  "created_at": 1785860123,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1785860124,
+  "error": null,
+  "frequency_penalty": 0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "max_tool_calls": null,
+  "model": "gpt-5.6-sol",
+  "moderation": null,
+  "output": [
+    {
+      "id": "rs_03fa4860aab1cb38006a72101c2aa4819c9d55dd3c94e2f614",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqchAdrOmHi3_48I3Y-SBi2Ss9HBmIm_Y9GVKJY5v3iLedXMcLkC4gNHwA0TN8meY3wC1b4sYY0BYafiXaylTQWePpfYq5kAOFpmAmRZY3Wewvs8iD4_1jHXqT0UOWuvVU3wjtJ7uRwbt6hMxzC_I6QHx_T_oooDsOls0_HYlG4vOTpwSHIgHfFT0J9FwJOUbA27pmxLqJp0iXl6OzB7GSgdh0N2XCqrAUpzHcKx6q8xekYcQbAHFf8nwOCgxaVy_U_Cox9wLZSBsS2NBsUE195-eM3BuMgv-OUX5668SHP68rXWSXzOppd7PXcUtkbQxznRgHWBRRxOGs8OXtbeoxjerqNMQBd-ibnkZ7OIXS7Bs9V-By4R_Lac-DF6OR9El_PnoZjnmDOMYFZ9IiGSTg4WeidneN_5BbmW4Ci530oaTknBQAsS-mJCPbGw19t2WTQgHqeun0libJ97J_6pZ46vU-GwrVmd_NLosgH2tAo-P5lrq9v2rjQ-eVzPkC935ZCrd5GG_NXdq95iVzMF_44-Q4waBFs92SdsP1825B8F1JEa9wUyASSIxH-AfCt1i62HdT7CQT1EQp3Qx2TWX_WgAnXGDBoupCxpQ3_I2rUR0V-E1WAbVibSPfjhMSgAJMqXrbSScDLVaIUxL8BRGyX7kzVF0mrRCJ5Hz_teh_It6OV_Lr6QCstFobMvO_kJvLt5hwGRYzO4YkmM3LqHd4qh_wOlnwbTiOOE6n3DospVHVaiqeFymKr9xQ2TXoQfutzERAflFLmNwvE1iclxlY82dPEE3Qpp3QwEuHiJ_N3qNwvLW658ndptjtbrg53ERF1apOsXmBT9C8kZlGMZP64XThOdtC8PD-jWsTzbqgNFpu5U3tszxbtxrp1x1tL6a9cmv1sT6l_xBGP1BBkEPsmvdk2SK2oGBYXAbCtNSdWPOx-SHHK37nJ04xWF3-Jfq866N0aSGNCAuetLQQkgcFV0kH21tP6W39xBp7GlTwS-QiGvBmokfCVkd3aOh8lt3U8jNBtDT8d57jwCbXrrhDtcL2kw==",
+      "summary": []
+    },
+    {
+      "id": "msg_03fa4860aab1cb38006a72101c6c64819c9143048f6eedd40b",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Tell me what you’d like help with—ask a question, describe a task, or share a goal."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": "24h",
+  "reasoning": {
+    "context": "all_turns",
+    "effort": "medium",
+    "mode": "standard",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "priority",
+  "store": true,
+  "temperature": 1,
+  "text": {
+    "format": {
+      "type": "text"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tool_usage": {
+    "image_gen": {
+      "input_tokens": 0,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "output_tokens": 0,
+      "output_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 0
+      },
+      "total_tokens": 0
+    },
+    "web_search": {
+      "num_requests": 0
+    }
+  },
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 28,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 53,
+    "output_tokens_details": {
+      "reasoning_tokens": 25
+    },
+    "total_tokens": 81
+  },
+  "user": null,
+  "metadata": {},
+  "output_text": "Tell me what you’d like help with—ask a question, describe a task, or share a goal."
+}

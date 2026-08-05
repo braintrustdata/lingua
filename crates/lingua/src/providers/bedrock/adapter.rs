@@ -27,13 +27,90 @@ use crate::universal::message::Message;
 use crate::universal::request::ReasoningConfig;
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
 use crate::universal::{
-    TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UniversalUsage,
+    ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use aws_sdk_bedrockruntime::types::{ServiceTier, ServiceTierType};
 
 /// Adapter for Amazon Bedrock Converse API.
 pub struct BedrockAdapter;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn served_service_tier_from_bedrock(service_tier: &ServiceTier) -> Option<ServedServiceTier> {
+    match <ServiceTierType as AsRef<str>>::as_ref(service_tier.r#type()) {
+        "default" => Some(ServedServiceTier::Default),
+        "flex" => Some(ServedServiceTier::Flex),
+        "priority" => Some(ServedServiceTier::Priority),
+        "reserved" => Some(ServedServiceTier::Reserved),
+        _ => None,
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct BedrockServiceTierWire {
+    r#type: String,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BedrockStreamMetadataServiceTierView {
+    service_tier: Option<BedrockServiceTierWire>,
+}
+
+#[derive(serde::Deserialize)]
+struct BedrockStreamServiceTierView {
+    metadata: Option<BedrockStreamMetadataServiceTierView>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<BedrockServiceTierWire> for ServiceTier {
+    fn from(value: BedrockServiceTierWire) -> Self {
+        ServiceTier::builder()
+            .r#type(ServiceTierType::from(&*value.r#type))
+            .build()
+            .expect("service tier type is required")
+    }
+}
+
+fn served_service_tier_from_bedrock_wire(
+    service_tier: BedrockServiceTierWire,
+) -> Option<ServedServiceTier> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        served_service_tier_from_bedrock(&service_tier.into())
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    match &*service_tier.r#type {
+        "default" => Some(ServedServiceTier::Default),
+        "flex" => Some(ServedServiceTier::Flex),
+        "priority" => Some(ServedServiceTier::Priority),
+        "reserved" => Some(ServedServiceTier::Reserved),
+        _ => None,
+    }
+}
+
+fn bedrock_service_tier_wire_from_universal(
+    service_tier: ServedServiceTier,
+) -> Option<BedrockServiceTierWire> {
+    match service_tier {
+        ServedServiceTier::Default => Some(BedrockServiceTierWire {
+            r#type: "default".to_string(),
+        }),
+        ServedServiceTier::Flex => Some(BedrockServiceTierWire {
+            r#type: "flex".to_string(),
+        }),
+        ServedServiceTier::Priority => Some(BedrockServiceTierWire {
+            r#type: "priority".to_string(),
+        }),
+        ServedServiceTier::Reserved => Some(BedrockServiceTierWire {
+            r#type: "reserved".to_string(),
+        }),
+        _ => None,
+    }
+}
 
 fn bedrock_stop_reason_to_finish_reason(stop_reason: &BedrockStopReason) -> &'static str {
     match stop_reason {
@@ -345,6 +422,18 @@ impl ProviderAdapter for BedrockAdapter {
             None => None,
         };
 
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct BedrockResponseServiceTierView {
+            service_tier: Option<BedrockServiceTierWire>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<BedrockResponseServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .service_tier
+                .and_then(served_service_tier_from_bedrock_wire);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -353,6 +442,7 @@ impl ProviderAdapter for BedrockAdapter {
             model: None, // Bedrock doesn't include model in response
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -390,6 +480,14 @@ impl ProviderAdapter for BedrockAdapter {
         if let Some(usage) = &resp.usage {
             map.insert("usage".into(), usage.to_provider_value(self.format()));
         }
+        if let Some(service_tier) = resp
+            .served_service_tier
+            .and_then(bedrock_service_tier_wire_from_universal)
+        {
+            let value = serde_json::to_value(service_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("serviceTier".into(), value);
+        }
 
         Ok(Value::Object(map))
     }
@@ -406,6 +504,12 @@ impl ProviderAdapter for BedrockAdapter {
         &self,
         payload: Value,
     ) -> Result<Option<UniversalStreamChunk>, TransformError> {
+        let served_service_tier =
+            serde_json::from_value::<BedrockStreamServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .metadata
+                .and_then(|metadata| metadata.service_tier)
+                .and_then(served_service_tier_from_bedrock_wire);
         let event: BedrockConverseStreamEvent = serde_json::from_value(payload)
             .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?;
 
@@ -545,14 +649,11 @@ impl ProviderAdapter for BedrockAdapter {
                     .map_err(|e| TransformError::SerializationFailed(e.to_string()))?
                     .map(|u| UniversalUsage::from_provider_value(&u, self.format()));
 
-                if usage.is_some() {
-                    Ok(Some(UniversalStreamChunk::new(
-                        None,
-                        None,
-                        vec![],
-                        None,
-                        usage,
-                    )))
+                if usage.is_some() || served_service_tier.is_some() {
+                    Ok(Some(
+                        UniversalStreamChunk::new(None, None, vec![], None, usage)
+                            .with_served_service_tier(served_service_tier),
+                    ))
                 } else {
                     Ok(Some(UniversalStreamChunk::keep_alive()))
                 }
@@ -594,12 +695,36 @@ impl ProviderAdapter for BedrockAdapter {
             }));
         }
 
-        if let (true, Some(usage)) = (chunk.choices.is_empty(), &chunk.usage) {
-            return Ok(serde_json::json!({
-                "metadata": {
-                    "usage": usage.to_provider_value(self.format())
-                }
-            }));
+        if chunk.choices.is_empty()
+            && (chunk.usage.is_some() || chunk.served_service_tier.is_some())
+        {
+            let usage: Option<crate::providers::bedrock::response::BedrockTokenUsage> = chunk
+                .usage
+                .as_ref()
+                .map(|usage| serde_json::from_value(usage.to_provider_value(self.format())))
+                .transpose()
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            let mut metadata = serde_json::Map::new();
+            if let Some(usage) = usage {
+                metadata.insert(
+                    "usage".into(),
+                    serde_json::to_value(usage)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+            if let Some(service_tier) = chunk
+                .served_service_tier
+                .and_then(bedrock_service_tier_wire_from_universal)
+            {
+                metadata.insert(
+                    "serviceTier".into(),
+                    serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+                );
+            }
+            let value = serde_json::to_value(metadata)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            return Ok(serde_json::json!({ "metadata": value }));
         }
 
         if let Some(choice) = chunk.choices.first() {
@@ -652,6 +777,40 @@ mod tests {
             }]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn test_bedrock_streaming_usage_preserves_cache_buckets() {
+        let adapter = BedrockAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![],
+            None,
+            Some(UniversalUsage {
+                prompt_tokens: Some(100),
+                completion_tokens: Some(25),
+                total_tokens: Some(125),
+                prompt_cached_tokens: Some(40),
+                prompt_cache_creation_tokens: Some(15),
+                ..Default::default()
+            }),
+        );
+
+        let metadata = adapter.stream_from_universal(&chunk).unwrap();
+        assert_eq!(metadata["metadata"]["usage"]["inputTokens"], 45);
+        assert_eq!(metadata["metadata"]["usage"]["cacheReadInputTokens"], 40);
+        assert_eq!(metadata["metadata"]["usage"]["cacheWriteInputTokens"], 15);
+
+        let roundtrip = adapter
+            .stream_to_universal(metadata)
+            .unwrap()
+            .expect("metadata should produce a universal usage chunk");
+        let usage = roundtrip.usage.expect("roundtrip should preserve usage");
+        assert_eq!(usage.prompt_tokens, Some(45));
+        assert_eq!(usage.prompt_cached_tokens, Some(40));
+        assert_eq!(usage.prompt_cache_creation_tokens, Some(15));
+        assert_eq!(usage.inclusive_prompt_tokens(), Some(100));
     }
 
     #[test]

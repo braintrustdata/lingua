@@ -42,7 +42,8 @@
         { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
         { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
         { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; ChatCompletions does not expose this semantic flag" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; ChatCompletions does not expose this semantic flag" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Anthropic cache-write details have no Chat Completions streaming equivalent" }
       ]
     },
     {
@@ -52,7 +53,8 @@
         { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Only Anthropic-style providers report cache creation tokens" },
         { "pattern": "usage.prompt_cache_creation_5m_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
         { "pattern": "usage.prompt_cache_creation_1h_tokens", "reason": "Only Anthropic-style providers report split cache creation TTL buckets" },
-        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; Google does not expose this semantic flag" }
+        { "pattern": "usage.prompt_tokens_exclude_cache", "reason": "Anthropic-style streaming usage reports prompt tokens exclusive of cache buckets; Google does not expose this semantic flag" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Google streaming does not expose cache-write usage details" }
       ]
     },
     {
@@ -98,14 +100,16 @@
       "source": "Responses",
       "target": "ChatCompletions",
       "fields": [
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; ChatCompletions streaming has no cache-write token field" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; ChatCompletions streaming has no cache-write token field" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Responses cache-write details have no Chat Completions streaming equivalent" }
       ]
     },
     {
       "source": "Responses",
       "target": "Google",
       "fields": [
-        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; Google streaming has no cache-write token field" }
+        { "pattern": "usage.prompt_cache_creation_tokens", "reason": "Responses streaming usage can report input_tokens_details.cache_write_tokens; Google streaming has no cache-write token field" },
+        { "pattern": "usage.input_details.cache_creation", "reason": "Responses cache-write details have no Google streaming equivalent" }
       ]
     },
     {
@@ -183,6 +187,42 @@
     }
   ],
   "perTestCase": [
+    {
+      "testCase": "toolCallRequest", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "toolChoiceRequiredWithReasoningParam", "source": "ChatCompletions", "target": "Responses",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Responses tool-call stream events have no response metadata envelope" }]
+    },
+    {
+      "testCase": "googleOpenAIModelTopKParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "googleToolSchemaNumericInt64Param", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "toolCallRequest", "source": "Google", "target": "Anthropic",
+      "fields": [{ "pattern": "served_service_tier", "reason": "Anthropic content stream events have no message metadata envelope" }]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "Google",
+      "fields": [
+        { "pattern": "usage", "reason": "Google streaming metadata is emitted when converting the Responses service-tier event" }
+      ]
+    },
     {
       "testCase": "toolCallRequest",
       "source": "ChatCompletions",

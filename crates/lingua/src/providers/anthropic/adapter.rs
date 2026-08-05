@@ -23,8 +23,9 @@ use crate::providers::anthropic::detect::{
     system_messages_are_supported_and_well_placed, try_parse_anthropic_source,
 };
 use crate::providers::anthropic::generated::{
-    ContentBlock, CreateMessageParams, EffortLevel, OutputConfig, ServiceTierEnum, Thinking,
-    ThinkingType, Tool, ToolChoice, ToolChoiceType,
+    ContentBlock, CreateMessageParams, EffortLevel, Message as AnthropicMessage, OutputConfig,
+    ServiceTierEnum, ServiceTierServiceTier, Thinking, ThinkingType, Tool, ToolChoice,
+    ToolChoiceType, Usage,
 };
 use crate::providers::anthropic::params::AnthropicExtrasView;
 use crate::providers::anthropic::tool_discovery;
@@ -39,10 +40,10 @@ use crate::universal::request::{
 };
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
-    FinishReason, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, PLACEHOLDER_ID,
-    PLACEHOLDER_MODEL,
+    FinishReason, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
@@ -84,6 +85,14 @@ fn service_tier_to_string(service_tier: ServiceTierEnum) -> String {
     match service_tier {
         ServiceTierEnum::Auto => "auto".to_string(),
         ServiceTierEnum::StandardOnly => "standard_only".to_string(),
+    }
+}
+
+fn served_service_tier_from_anthropic(service_tier: ServiceTierServiceTier) -> ServedServiceTier {
+    match service_tier {
+        ServiceTierServiceTier::Batch => ServedServiceTier::Batch,
+        ServiceTierServiceTier::Priority => ServedServiceTier::Priority,
+        ServiceTierServiceTier::Standard => ServedServiceTier::Standard,
     }
 }
 
@@ -754,17 +763,19 @@ impl ProviderAdapter for AnthropicAdapter {
             }
         }
 
-        // Add service_tier from canonical params
-        // Map OpenAI's "default" to Anthropic's "auto" (Anthropic only accepts "auto" or "standard_only")
-        if let Some(ref service_tier) = req.params.service_tier {
-            let anthropic_tier = match service_tier.as_str() {
+        if let Some(service_tier) = req.params.service_tier.as_deref() {
+            let anthropic_tier = match service_tier {
                 "default" => "auto",
-                other => other,
+                "auto" | "standard_only" => service_tier,
+                unsupported => {
+                    return Err(TransformError::FromUniversalFailed(format!(
+                        "Anthropic does not support service_tier '{unsupported}'"
+                    )));
+                }
             };
-            obj.insert(
-                "service_tier".into(),
-                Value::String(anthropic_tier.to_string()),
-            );
+            let value = serde_json::to_value(anthropic_tier)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            obj.insert("service_tier".into(), value);
         }
 
         // Merge back provider-specific extras (only for Anthropic)
@@ -829,6 +840,18 @@ impl ProviderAdapter for AnthropicAdapter {
             None => None,
         };
 
+        #[derive(Deserialize)]
+        struct AnthropicResponseServiceTierView {
+            usage: Option<Usage>,
+        }
+
+        let served_service_tier =
+            serde_json::from_value::<AnthropicResponseServiceTierView>(payload.clone())
+                .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                .usage
+                .and_then(|usage| usage.service_tier)
+                .map(served_service_tier_from_anthropic);
+
         let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
         Ok(UniversalResponse {
@@ -840,6 +863,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .map(String::from),
             messages,
             usage,
+            served_service_tier,
             finish_reason: finish_reason.clone(),
             finish_reasons: finish_reason.into_iter().collect(),
         })
@@ -870,8 +894,33 @@ impl ProviderAdapter for AnthropicAdapter {
         );
         map.insert("stop_reason".into(), Value::String(stop_reason));
 
-        if let Some(usage) = &resp.usage {
-            map.insert("usage".into(), usage.to_provider_value(self.format()));
+        let service_tier = resp
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
+                ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
+                _ => None,
+            });
+        let usage = match (&resp.usage, service_tier) {
+            (Some(usage), service_tier) => {
+                let mut usage: Usage =
+                    serde_json::from_value(usage.to_provider_value(self.format()))
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                usage.service_tier = service_tier;
+                Some(usage)
+            }
+            (None, Some(_)) => {
+                return Err(TransformError::FromUniversalFailed(
+                    "Anthropic responses cannot encode a service tier without usage".to_string(),
+                ));
+            }
+            (None, None) => None,
+        };
+        if let Some(usage) = usage {
+            let value = serde_json::to_value(usage)
+                .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+            map.insert("usage".into(), value);
         }
 
         Ok(Value::Object(map))
@@ -1038,15 +1087,25 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 let usage = UniversalUsage::extract_from_response(&payload, self.format());
 
-                if finish_reason.is_some() || usage.is_some() {
+                if let Some(finish_reason) = finish_reason {
                     return Ok(Some(UniversalStreamChunk::new(
                         None,
                         None,
                         vec![UniversalStreamChoice {
                             index: 0,
                             delta: Some(serde_json::json!({})),
-                            finish_reason,
+                            finish_reason: Some(finish_reason),
                         }],
+                        None,
+                        usage,
+                    )));
+                }
+
+                if usage.is_some() {
+                    return Ok(Some(UniversalStreamChunk::new(
+                        None,
+                        None,
+                        vec![],
                         None,
                         usage,
                     )));
@@ -1069,6 +1128,16 @@ impl ProviderAdapter for AnthropicAdapter {
                 let usage = message
                     .and_then(|m| m.get("usage"))
                     .map(|u| UniversalUsage::from_provider_value(u, self.format()));
+                #[derive(Deserialize)]
+                struct MessageStartView {
+                    message: Option<AnthropicMessage>,
+                }
+                let served_service_tier =
+                    serde_json::from_value::<MessageStartView>(payload.clone())
+                        .map_err(|e| TransformError::ToUniversalFailed(e.to_string()))?
+                        .message
+                        .and_then(|message| message.usage.service_tier)
+                        .map(served_service_tier_from_anthropic);
                 let tool_call_delta = message_start_tool_use_part(&payload)
                     .map(|part| {
                         let arguments = part
@@ -1100,17 +1169,20 @@ impl ProviderAdapter for AnthropicAdapter {
                     });
 
                 // Return chunk with metadata but mark as role initialization
-                Ok(Some(UniversalStreamChunk::new(
-                    id,
-                    model,
-                    vec![UniversalStreamChoice {
-                        index: 0,
-                        delta: Some(tool_call_delta),
-                        finish_reason: None,
-                    }],
-                    None,
-                    usage,
-                )))
+                Ok(Some(
+                    UniversalStreamChunk::new(
+                        id,
+                        model,
+                        vec![UniversalStreamChoice {
+                            index: 0,
+                            delta: Some(tool_call_delta),
+                            finish_reason: None,
+                        }],
+                        None,
+                        usage,
+                    )
+                    .with_served_service_tier(served_service_tier),
+                ))
             }
 
             "message_stop" => Ok(None),
@@ -1239,7 +1311,7 @@ impl ProviderAdapter for AnthropicAdapter {
                 .and_then(|c| c.delta_view())
                 .is_none_or(|d| d.content.as_deref().is_none_or(str::is_empty));
 
-        let build_message_start = |chunk: &UniversalStreamChunk| -> Value {
+        let build_message_start = |chunk: &UniversalStreamChunk| -> Result<Value, TransformError> {
             let id = chunk
                 .id
                 .clone()
@@ -1258,24 +1330,40 @@ impl ProviderAdapter for AnthropicAdapter {
             // Always include usage — the SDK stores message_start.message as the
             // snapshot and later does snapshot.usage.output_tokens on message_delta.
             if let Some(obj) = message.as_object_mut() {
-                let usage_value = match &chunk.usage {
+                let mut usage_value = match &chunk.usage {
                     Some(usage) => usage.to_provider_value(ProviderFormat::Anthropic),
                     None => serde_json::json!({
                         "input_tokens": 0,
                         "output_tokens": 0
                     }),
                 };
+                let service_tier =
+                    chunk
+                        .served_service_tier
+                        .and_then(|service_tier| match service_tier {
+                            ServedServiceTier::Batch => Some(ServiceTierServiceTier::Batch),
+                            ServedServiceTier::Priority => Some(ServiceTierServiceTier::Priority),
+                            ServedServiceTier::Standard => Some(ServiceTierServiceTier::Standard),
+                            _ => None,
+                        });
+                if let (Some(usage), Some(service_tier)) =
+                    (usage_value.as_object_mut(), service_tier)
+                {
+                    let service_tier = serde_json::to_value(service_tier)
+                        .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
+                    usage.insert("service_tier".into(), service_tier);
+                }
                 obj.insert("usage".into(), usage_value);
             }
 
-            serde_json::json!({
+            Ok(serde_json::json!({
                 "type": "message_start",
                 "message": message
-            })
+            }))
         };
 
         if is_initial_metadata {
-            let message_start = build_message_start(chunk);
+            let message_start = build_message_start(chunk)?;
 
             // Check if this chunk also carries reasoning content — emit
             // content_block_start + content_block_delta for thinking alongside message_start
@@ -1661,6 +1749,29 @@ mod tests {
             "messages": [{"role": "user", "content": "Hello"}]
         });
         assert!(adapter.detect_request(&payload));
+    }
+
+    #[test]
+    fn response_rejects_service_tier_without_usage() {
+        let adapter = AnthropicAdapter;
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: Vec::new(),
+            usage: None,
+            served_service_tier: Some(ServedServiceTier::Standard),
+            finish_reason: None,
+            finish_reasons: Vec::new(),
+        };
+
+        let error = adapter.response_from_universal(&response).unwrap_err();
+        match error {
+            TransformError::FromUniversalFailed(reason) => {
+                assert!(reason.contains("service tier without usage"));
+            }
+            other => panic!("expected unsupported service tier mapping, got {other:?}"),
+        }
     }
 
     #[test]

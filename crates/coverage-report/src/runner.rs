@@ -645,6 +645,7 @@ fn merge_universal_stream_chunks(
                 chunk.created,
                 chunk.usage.clone(),
             )
+            .with_served_service_tier(chunk.served_service_tier)
         });
 
         if target.id.is_none() {
@@ -658,6 +659,9 @@ fn merge_universal_stream_chunks(
         }
         if target.usage.is_none() {
             target.usage = chunk.usage;
+        }
+        if target.served_service_tier.is_none() {
+            target.served_service_tier = chunk.served_service_tier;
         }
 
         for mut choice in chunk.choices {
@@ -1132,6 +1136,30 @@ impl<'a> CompareContext<'a> {
             self.include_global_expected_differences,
         )
     }
+
+    fn is_expected_with_value(&self, field: &str, value: &Value) -> Option<String> {
+        if field == "served_service_tier" {
+            let tier = value.as_str()?;
+            let supported = match self.target {
+                "Responses" | "ChatCompletions" => matches!(
+                    tier,
+                    "auto" | "default" | "fast" | "flex" | "priority" | "scale"
+                ),
+                "Google" => matches!(tier, "flex" | "priority" | "standard" | "unspecified"),
+                "Anthropic" | "Bedrock Anthropic" | "Vertex Anthropic" => {
+                    matches!(tier, "batch" | "priority" | "standard")
+                }
+                "Bedrock" => matches!(tier, "default" | "flex" | "priority" | "reserved"),
+                _ => false,
+            };
+            if !supported {
+                return Some(
+                    "Target provider does not support this served service tier".to_string(),
+                );
+            }
+        }
+        self.is_expected(field)
+    }
 }
 
 /// Compare two JSON values and produce a RoundtripDiff.
@@ -1239,7 +1267,9 @@ fn compare_recursive(
                     format!("{}.{}", path, key)
                 };
                 // Track expected differences as limitations
-                if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
+                if let Some(reason) =
+                    context.and_then(|ctx| ctx.is_expected_with_value(&field_path, &orig[*key]))
+                {
                     let before = lingua::serde_json::to_string(&truncate_large_values(
                         orig[*key].clone(),
                         200,
@@ -1264,7 +1294,9 @@ fn compare_recursive(
                     format!("{}.{}", path, key)
                 };
                 // Track expected differences as limitations
-                if let Some(reason) = context.and_then(|ctx| ctx.is_expected(&field_path)) {
+                if let Some(reason) =
+                    context.and_then(|ctx| ctx.is_expected_with_value(&field_path, &round[*key]))
+                {
                     let after = lingua::serde_json::to_string(&truncate_large_values(
                         round[*key].clone(),
                         200,
@@ -1331,7 +1363,8 @@ fn compare_recursive(
             let after =
                 lingua::serde_json::to_string(&truncate_large_values(roundtripped.clone(), 200))
                     .unwrap_or_else(|_| "?".to_string());
-            if let Some(reason) = context.and_then(|ctx| ctx.is_expected(path)) {
+            if let Some(reason) = context.and_then(|ctx| ctx.is_expected_with_value(path, original))
+            {
                 diff.expected_diffs
                     .push((path.to_string(), before, after, reason.to_string()));
             } else {

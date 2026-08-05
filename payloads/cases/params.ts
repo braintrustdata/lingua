@@ -17,6 +17,7 @@ import {
 import {
   OPENAI_CHAT_COMPLETIONS_MODEL,
   OPENAI_RESPONSES_MODEL,
+  OPENAI_SOL_MODEL,
   OPENAI_REASONING_NONE_MODEL,
   OPENAI_NON_REASONING_MODEL,
   OPENAI_MINI_REASONING_MODEL,
@@ -81,6 +82,18 @@ const googleToolCallThoughtSignatureReplayAssistantMessage: ChatCompletionAssist
 // Each test case exercises specific parameters with bidirectional mappings where possible
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
+  openaiServiceTierFastParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_SOL_MODEL,
+      input: [{ role: "user", content: "Reply with hello." }],
+      service_tier: "fast",
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   bedrockDocumentCitationStreamingParam: {
     "chat-completions": null,
     responses: null,
@@ -566,6 +579,63 @@ export const paramsCases: TestCaseCollection = {
         },
       ],
     },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsUrlBackedAudioFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Transcribe this audio clip.",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "sample-3s.mp3",
+                file_data: "https://samplelib.com/mp3/sample-3s.mp3",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
+  chatCompletionsUrlBackedVideoFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Describe this video clip.",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "sample-5s.mp4",
+                file_data:
+                  "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
     anthropic: null,
     google: null,
     bedrock: null,

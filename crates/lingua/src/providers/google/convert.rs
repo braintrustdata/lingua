@@ -15,8 +15,9 @@ use crate::providers::google::generated::{
     Content as GoogleContent, ExecutableCode, FileData as GoogleFileData,
     FinishReason as GoogleFinishReason, FunctionCall as GoogleFunctionCall, FunctionCallingConfig,
     FunctionCallingConfigMode, FunctionDeclaration, FunctionResponse as GoogleFunctionResponse,
-    GenerateContentRequest, GenerateContentResponse, GenerationConfig, Part as GooglePart,
-    Tool as GoogleTool, ToolConfig, UsageMetadata,
+    GenerateContentRequest, GenerateContentResponse, GenerationConfig,
+    Modality as GoogleTokenModality, ModalityTokenCount as GoogleModalityTokenCount,
+    Part as GooglePart, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
@@ -28,9 +29,12 @@ use crate::universal::message::{
 use crate::universal::request::{
     JsonSchemaConfig, ResponseFormatConfig, ResponseFormatType, ToolChoiceConfig, ToolChoiceMode,
 };
-use crate::universal::response::{FinishReason, UniversalUsage};
+use crate::universal::response::{
+    FinishReason, InputTokenDetails, ModalityTokenCount, OutputTokenDetails, TokenBreakdown,
+    TokenModality, UniversalUsage,
+};
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
-use crate::util::media::{parse_base64_data_url, parse_file_metadata_from_url};
+use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
@@ -56,71 +60,7 @@ fn text_part(text: String) -> GooglePart {
 }
 
 fn mime_type_from_url(url: &str) -> String {
-    if let Some(metadata) = parse_file_metadata_from_url(url) {
-        if let Some(content_type) = metadata.content_type {
-            return content_type;
-        }
-
-        if let Some((_, extension)) = metadata.filename.rsplit_once('.') {
-            let mime_type = if extension.eq_ignore_ascii_case("jpg")
-                || extension.eq_ignore_ascii_case("jpeg")
-            {
-                Some("image/jpeg")
-            } else if extension.eq_ignore_ascii_case("png") {
-                Some("image/png")
-            } else if extension.eq_ignore_ascii_case("webp") {
-                Some("image/webp")
-            } else if extension.eq_ignore_ascii_case("heic") {
-                Some("image/heic")
-            } else if extension.eq_ignore_ascii_case("heif") {
-                Some("image/heif")
-            } else if extension.eq_ignore_ascii_case("pdf") {
-                Some("application/pdf")
-            } else if extension.eq_ignore_ascii_case("txt") {
-                Some("text/plain")
-            } else if extension.eq_ignore_ascii_case("flv") {
-                Some("video/x-flv")
-            } else if extension.eq_ignore_ascii_case("mov") {
-                Some("video/quicktime")
-            } else if extension.eq_ignore_ascii_case("mpeg") {
-                Some("video/mpeg")
-            } else if extension.eq_ignore_ascii_case("mpegs") {
-                Some("video/mpegs")
-            } else if extension.eq_ignore_ascii_case("mpg") {
-                Some("video/mpg")
-            } else if extension.eq_ignore_ascii_case("wmv") {
-                Some("video/wmv")
-            } else if extension.eq_ignore_ascii_case("3gp")
-                || extension.eq_ignore_ascii_case("3gpp")
-            {
-                Some("video/3gpp")
-            } else if extension.eq_ignore_ascii_case("aac") {
-                Some("audio/x-aac")
-            } else if extension.eq_ignore_ascii_case("flac") {
-                Some("audio/flac")
-            } else if extension.eq_ignore_ascii_case("mp3") {
-                Some("audio/mp3")
-            } else if extension.eq_ignore_ascii_case("m4a") {
-                Some("audio/m4a")
-            } else if extension.eq_ignore_ascii_case("mpga") {
-                Some("audio/mpga")
-            } else if extension.eq_ignore_ascii_case("ogg") {
-                Some("audio/ogg")
-            } else if extension.eq_ignore_ascii_case("pcm") {
-                Some("audio/pcm")
-            } else if extension.eq_ignore_ascii_case("wav") {
-                Some("audio/wav")
-            } else {
-                None
-            };
-
-            if let Some(mime_type) = mime_type {
-                return mime_type.to_string();
-            }
-        }
-    }
-
-    DEFAULT_MIME_TYPE.to_string()
+    infer_mime_type_from_reference(None, Some(url)).unwrap_or_else(|| DEFAULT_MIME_TYPE.to_string())
 }
 
 fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
@@ -518,6 +458,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                 }
                                 UserContentPart::File {
                                     data: Value::String(data),
+                                    filename,
                                     media_type,
                                     ..
                                 } => {
@@ -532,10 +473,22 @@ impl TryFromLLM<Message> for GoogleContent {
                                     } else if data.starts_with("http://")
                                         || data.starts_with("https://")
                                     {
+                                        let mime_type = if media_type == "application/octet-stream" {
+                                            infer_mime_type_from_reference(
+                                                filename.as_deref(),
+                                                Some(&data),
+                                            )
+                                        } else {
+                                            Some(media_type)
+                                        }
+                                        .ok_or_else(|| ConvertError::UnsupportedMapping {
+                                            from: "URL-backed file with an unknown MIME type".to_string(),
+                                            to: "Google fileData (provide a recognized filename or MIME-bearing data URL)",
+                                        })?;
                                         converted.push(GooglePart {
                                             file_data: Some(GoogleFileData {
                                                 file_uri: Some(data),
-                                                mime_type: Some(media_type),
+                                                mime_type: Some(mime_type),
                                             }),
                                             ..Default::default()
                                         });
@@ -1258,16 +1211,135 @@ impl From<&GoogleFinishReason> for FinishReason {
     }
 }
 
+impl From<&GoogleTokenModality> for TokenModality {
+    fn from(modality: &GoogleTokenModality) -> Self {
+        match modality {
+            GoogleTokenModality::ModalityUnspecified => Self::Unspecified,
+            GoogleTokenModality::Text => Self::Text,
+            GoogleTokenModality::Image => Self::Image,
+            GoogleTokenModality::Audio => Self::Audio,
+            GoogleTokenModality::Video => Self::Video,
+            GoogleTokenModality::Document => Self::Document,
+        }
+    }
+}
+
+impl From<&TokenModality> for GoogleTokenModality {
+    fn from(modality: &TokenModality) -> Self {
+        match modality {
+            TokenModality::Unspecified => Self::ModalityUnspecified,
+            TokenModality::Text => Self::Text,
+            TokenModality::Image => Self::Image,
+            TokenModality::Audio => Self::Audio,
+            TokenModality::Video => Self::Video,
+            TokenModality::Document => Self::Document,
+        }
+    }
+}
+
+impl From<&GoogleModalityTokenCount> for ModalityTokenCount {
+    fn from(detail: &GoogleModalityTokenCount) -> Self {
+        Self {
+            modality: detail.modality.as_ref().map(TokenModality::from),
+            token_count: detail.token_count,
+        }
+    }
+}
+
+impl From<&ModalityTokenCount> for GoogleModalityTokenCount {
+    fn from(detail: &ModalityTokenCount) -> Self {
+        Self {
+            modality: detail.modality.as_ref().map(GoogleTokenModality::from),
+            token_count: detail.token_count,
+        }
+    }
+}
+
+fn modality_token_counts_from_google(
+    details: &Option<Vec<GoogleModalityTokenCount>>,
+) -> Option<Vec<ModalityTokenCount>> {
+    details
+        .as_ref()
+        .map(|details| details.iter().map(ModalityTokenCount::from).collect())
+}
+
+fn modality_token_counts_to_google(
+    details: &Option<Vec<ModalityTokenCount>>,
+) -> Option<Vec<GoogleModalityTokenCount>> {
+    details
+        .as_ref()
+        .map(|details| details.iter().map(GoogleModalityTokenCount::from).collect())
+}
+
+fn sum_optional_token_counts(left: Option<i64>, right: Option<i64>) -> Option<i64> {
+    match (left, right) {
+        (Some(left), Some(right)) => Some(left.saturating_add(right)),
+        (Some(value), None) | (None, Some(value)) => Some(value),
+        (None, None) => None,
+    }
+}
+
+fn token_breakdown(
+    total_tokens: Option<i64>,
+    by_modality: Option<Vec<ModalityTokenCount>>,
+) -> Option<TokenBreakdown> {
+    if total_tokens.is_none() && by_modality.is_none() {
+        return None;
+    }
+    Some(TokenBreakdown {
+        total_tokens,
+        by_modality,
+    })
+}
+
+fn google_input_token_details(usage: &UsageMetadata) -> Option<InputTokenDetails> {
+    let details = InputTokenDetails {
+        content_by_modality: modality_token_counts_from_google(&usage.prompt_tokens_details),
+        cached: token_breakdown(
+            usage.cached_content_token_count,
+            modality_token_counts_from_google(&usage.cache_tokens_details),
+        ),
+        cache_creation: None,
+        tool_prompt: token_breakdown(
+            usage.tool_use_prompt_token_count,
+            modality_token_counts_from_google(&usage.tool_use_prompt_tokens_details),
+        ),
+    };
+    (details != InputTokenDetails::default()).then_some(details)
+}
+
+fn google_output_token_details(usage: &UsageMetadata) -> Option<OutputTokenDetails> {
+    let details = OutputTokenDetails {
+        content_by_modality: modality_token_counts_from_google(&usage.candidates_tokens_details),
+        reasoning: token_breakdown(usage.thoughts_token_count, None),
+    };
+    (details != OutputTokenDetails::default()).then_some(details)
+}
+
 impl From<&UsageMetadata> for UniversalUsage {
     fn from(usage: &UsageMetadata) -> Self {
         let candidates = usage.candidates_token_count.unwrap_or(0);
         let thoughts = usage.thoughts_token_count.unwrap_or(0);
+        // Google reports provider-generated tool prompts separately, but includes them in
+        // totalTokenCount. Universal prompt_tokens follows the inclusive input convention.
+        let prompt_tokens =
+            sum_optional_token_counts(usage.prompt_token_count, usage.tool_use_prompt_token_count);
+        // In the universal format, completion_tokens includes reasoning (matching OpenAI convention).
+        // Google separates candidatesTokenCount and thoughtsTokenCount, so we add them.
+        let completion_tokens = candidates.saturating_add(thoughts);
+        let has_component_count = usage.prompt_token_count.is_some()
+            || usage.tool_use_prompt_token_count.is_some()
+            || usage.candidates_token_count.is_some()
+            || usage.thoughts_token_count.is_some();
+        let total_tokens = usage.total_token_count.or_else(|| {
+            has_component_count
+                .then_some(prompt_tokens.unwrap_or(0).saturating_add(completion_tokens))
+        });
 
         Self {
-            prompt_tokens: usage.prompt_token_count,
-            // In the universal format, completion_tokens includes reasoning (matching OpenAI convention).
-            // Google separates candidatesTokenCount and thoughtsTokenCount, so we add them.
-            completion_tokens: Some(candidates + thoughts),
+            prompt_tokens,
+            completion_tokens: Some(completion_tokens),
+            total_tokens,
             prompt_cached_tokens: usage.cached_content_token_count,
             prompt_cache_creation_tokens: None,
             prompt_cache_creation_5m_tokens: None,
@@ -1275,6 +1347,8 @@ impl From<&UsageMetadata> for UniversalUsage {
             // Google's promptTokenCount includes cachedContentTokenCount
             prompt_tokens_exclude_cache: false,
             completion_reasoning_tokens: usage.thoughts_token_count,
+            input_details: google_input_token_details(usage),
+            output_details: google_output_token_details(usage),
         }
     }
 }
@@ -1282,16 +1356,45 @@ impl From<&UsageMetadata> for UniversalUsage {
 impl From<&UniversalUsage> for UsageMetadata {
     fn from(usage: &UniversalUsage) -> Self {
         let prompt = usage.inclusive_prompt_tokens();
+        let input_details = usage.input_details.as_ref();
+        let output_details = usage.output_details.as_ref();
+        let tool_prompt = input_details
+            .and_then(|details| details.tool_prompt.as_ref())
+            .and_then(|details| details.total_tokens)
+            .unwrap_or(0);
         let completion = usage.completion_tokens.unwrap_or(0);
-        let reasoning = usage.completion_reasoning_tokens.unwrap_or(0);
+        let reasoning_tokens = output_details
+            .and_then(|details| details.reasoning.as_ref())
+            .and_then(|details| details.total_tokens)
+            .or(usage.completion_reasoning_tokens);
+        let reasoning = reasoning_tokens.unwrap_or(0);
 
         Self {
-            prompt_token_count: prompt,
+            // Universal prompt_tokens includes tool prompts; Google exposes that bucket separately.
+            prompt_token_count: prompt.map(|prompt| (prompt - tool_prompt).max(0)),
             // Google's candidatesTokenCount excludes thoughts, so subtract reasoning
             candidates_token_count: Some((completion - reasoning).max(0)),
-            cached_content_token_count: usage.prompt_cached_tokens,
-            thoughts_token_count: usage.completion_reasoning_tokens,
-            total_token_count: Some(prompt.unwrap_or(0) + completion),
+            cached_content_token_count: input_details
+                .and_then(|details| details.cached.as_ref())
+                .and_then(|details| details.total_tokens)
+                .or(usage.prompt_cached_tokens),
+            cache_tokens_details: input_details
+                .and_then(|details| details.cached.as_ref())
+                .and_then(|details| modality_token_counts_to_google(&details.by_modality)),
+            candidates_tokens_details: output_details
+                .and_then(|details| modality_token_counts_to_google(&details.content_by_modality)),
+            prompt_tokens_details: input_details
+                .and_then(|details| modality_token_counts_to_google(&details.content_by_modality)),
+            thoughts_token_count: reasoning_tokens,
+            tool_use_prompt_token_count: input_details
+                .and_then(|details| details.tool_prompt.as_ref())
+                .and_then(|details| details.total_tokens),
+            tool_use_prompt_tokens_details: input_details
+                .and_then(|details| details.tool_prompt.as_ref())
+                .and_then(|details| modality_token_counts_to_google(&details.by_modality)),
+            total_token_count: usage
+                .total_tokens
+                .or(Some(prompt.unwrap_or(0) + completion)),
             ..Default::default()
         }
     }
@@ -1323,6 +1426,159 @@ mod tests {
         property_ordering: Option<Vec<String>>,
         #[serde(default)]
         properties: std::collections::HashMap<String, JsonSchemaPropertyView>,
+    }
+
+    #[test]
+    fn test_google_usage_metadata_matches_documented_wire_shape() {
+        let documented = json!({
+            "promptTokenCount": 10,
+            "cachedContentTokenCount": 4,
+            "candidatesTokenCount": 5,
+            "toolUsePromptTokenCount": 2,
+            "thoughtsTokenCount": 3,
+            "totalTokenCount": 20,
+            "promptTokensDetails": [
+                { "modality": "TEXT", "tokenCount": 6 },
+                { "modality": "IMAGE", "tokenCount": 4 }
+            ],
+            "cacheTokensDetails": [{ "modality": "TEXT", "tokenCount": 4 }],
+            "candidatesTokensDetails": [{ "modality": "AUDIO", "tokenCount": 5 }],
+            "toolUsePromptTokensDetails": [{ "modality": "TEXT", "tokenCount": 2 }],
+            "serviceTier": "priority"
+        });
+
+        let metadata: UsageMetadata = serde_json::from_value(documented.clone())
+            .expect("documented UsageMetadata should deserialize");
+        let serialized = serde_json::to_value(&metadata).expect("UsageMetadata should serialize");
+        assert_eq!(serialized, documented);
+
+        let universal = UniversalUsage::from(&metadata);
+        assert_eq!(universal.prompt_tokens, Some(12));
+        assert_eq!(universal.completion_tokens, Some(8));
+        assert_eq!(universal.total_tokens, Some(20));
+        assert_eq!(
+            universal.input_details,
+            Some(InputTokenDetails {
+                content_by_modality: Some(vec![
+                    ModalityTokenCount {
+                        modality: Some(TokenModality::Text),
+                        token_count: Some(6),
+                    },
+                    ModalityTokenCount {
+                        modality: Some(TokenModality::Image),
+                        token_count: Some(4),
+                    },
+                ]),
+                cached: Some(TokenBreakdown {
+                    total_tokens: Some(4),
+                    by_modality: Some(vec![ModalityTokenCount {
+                        modality: Some(TokenModality::Text),
+                        token_count: Some(4),
+                    }]),
+                }),
+                cache_creation: None,
+                tool_prompt: Some(TokenBreakdown {
+                    total_tokens: Some(2),
+                    by_modality: Some(vec![ModalityTokenCount {
+                        modality: Some(TokenModality::Text),
+                        token_count: Some(2),
+                    }]),
+                }),
+            })
+        );
+        assert_eq!(
+            universal.output_details,
+            Some(OutputTokenDetails {
+                content_by_modality: Some(vec![ModalityTokenCount {
+                    modality: Some(TokenModality::Audio),
+                    token_count: Some(5),
+                }]),
+                reasoning: Some(TokenBreakdown {
+                    total_tokens: Some(3),
+                    by_modality: None,
+                }),
+            })
+        );
+
+        let roundtrip = UsageMetadata::from(&universal);
+        assert_eq!(
+            roundtrip.prompt_tokens_details,
+            metadata.prompt_tokens_details
+        );
+        assert_eq!(
+            roundtrip.cache_tokens_details,
+            metadata.cache_tokens_details
+        );
+        assert_eq!(
+            roundtrip.candidates_tokens_details,
+            metadata.candidates_tokens_details
+        );
+        assert_eq!(
+            roundtrip.tool_use_prompt_tokens_details,
+            metadata.tool_use_prompt_tokens_details
+        );
+        assert_eq!(roundtrip.prompt_token_count, Some(10));
+        assert_eq!(roundtrip.candidates_token_count, Some(5));
+        assert_eq!(roundtrip.thoughts_token_count, Some(3));
+        assert_eq!(roundtrip.tool_use_prompt_token_count, Some(2));
+        assert_eq!(roundtrip.total_token_count, Some(20));
+    }
+
+    #[test]
+    fn test_google_usage_metadata_tool_prompt_tokens_are_input_tokens() {
+        let metadata: UsageMetadata = serde_json::from_value(json!({
+            "promptTokenCount": 9,
+            "toolUsePromptTokenCount": 96,
+            "candidatesTokenCount": 55,
+            "thoughtsTokenCount": 32,
+            "totalTokenCount": 192
+        }))
+        .expect("captured code-interpreter usage should deserialize");
+
+        let universal = UniversalUsage::from(&metadata);
+        assert_eq!(universal.prompt_tokens, Some(105));
+        assert_eq!(universal.completion_tokens, Some(87));
+        assert_eq!(universal.total_tokens, Some(192));
+        assert_eq!(universal.completion_reasoning_tokens, Some(32));
+        assert_eq!(
+            universal
+                .input_details
+                .as_ref()
+                .and_then(|details| details.tool_prompt.as_ref())
+                .and_then(|details| details.total_tokens),
+            Some(96)
+        );
+        assert_eq!(
+            universal.prompt_tokens.unwrap() + universal.completion_tokens.unwrap(),
+            192
+        );
+
+        let roundtrip = UsageMetadata::from(&universal);
+        assert_eq!(roundtrip.prompt_token_count, Some(9));
+        assert_eq!(roundtrip.tool_use_prompt_token_count, Some(96));
+        assert_eq!(roundtrip.candidates_token_count, Some(55));
+        assert_eq!(roundtrip.thoughts_token_count, Some(32));
+        assert_eq!(roundtrip.total_token_count, Some(192));
+    }
+
+    #[test]
+    fn test_google_usage_metadata_derives_missing_total() {
+        let metadata: UsageMetadata = serde_json::from_value(json!({
+            "promptTokenCount": 9,
+            "toolUsePromptTokenCount": 96,
+            "candidatesTokenCount": 55,
+            "thoughtsTokenCount": 32
+        }))
+        .expect("Google usage without totalTokenCount should deserialize");
+
+        let universal = UniversalUsage::from(&metadata);
+
+        assert_eq!(universal.prompt_tokens, Some(105));
+        assert_eq!(universal.completion_tokens, Some(87));
+        assert_eq!(universal.total_tokens, Some(192));
+
+        let empty = UniversalUsage::from(&UsageMetadata::default());
+        assert_eq!(empty.total_tokens, None);
     }
 
     #[test]
@@ -1490,6 +1746,59 @@ mod tests {
         );
         assert_eq!(file_data.mime_type.as_deref(), Some("application/pdf"));
         assert!(parts[0].inline_data.is_none());
+    }
+
+    #[test]
+    fn test_url_backed_file_infers_audio_and_video_mime_types() {
+        let message = Message::User {
+            content: UserContent::Array(vec![
+                UserContentPart::File {
+                    data: Value::String("https://example.com/audio".to_string()),
+                    filename: Some("sample-3s.mp3".to_string()),
+                    media_type: "application/octet-stream".to_string(),
+                    provider_options: None,
+                },
+                UserContentPart::File {
+                    data: Value::String("https://example.com/video/sample-5s.mp4".to_string()),
+                    filename: None,
+                    media_type: "application/octet-stream".to_string(),
+                    provider_options: None,
+                },
+            ]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let parts = content.parts.unwrap();
+        assert_eq!(
+            parts[0]
+                .file_data
+                .as_ref()
+                .and_then(|file_data| file_data.mime_type.as_deref()),
+            Some("audio/mp3")
+        );
+        assert_eq!(
+            parts[1]
+                .file_data
+                .as_ref()
+                .and_then(|file_data| file_data.mime_type.as_deref()),
+            Some("video/mp4")
+        );
+    }
+
+    #[test]
+    fn test_url_backed_file_with_unknown_mime_type_errors() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: Value::String("https://example.com/file".to_string()),
+                filename: None,
+                media_type: "application/octet-stream".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <GoogleContent as TryFromLLM<Message>>::try_from(message)
+            .expect_err("unknown URL-backed files should fail before the provider request");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]

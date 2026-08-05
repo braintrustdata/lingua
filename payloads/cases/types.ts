@@ -73,6 +73,22 @@ export type ChatCompletionCreateParams = Omit<
   >;
 };
 
+type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
+  ? Omit<T, "service_tier"> & {
+      service_tier?:
+        | "auto"
+        | "default"
+        | "flex"
+        | "scale"
+        | "priority"
+        | "fast"
+        | null;
+    }
+  : never;
+
+export type OpenAIResponseCreateParams =
+  OpenAIResponseCreateParamsWithExtendedServiceTier<OpenAI.Responses.ResponseCreateParams>;
+
 // Expectation-based validation for proxy compatibility tests
 // When present, capture.ts skips the case and validate.ts checks expectations
 export interface TestExpectation {
@@ -90,7 +106,7 @@ export interface TestExpectation {
 // Well-defined types for test cases
 export interface TestCase {
   "chat-completions": ChatCompletionCreateParams | null;
-  responses: OpenAI.Responses.ResponseCreateParams | null;
+  responses: OpenAIResponseCreateParams | null;
   anthropic: AnthropicMessageCreateParams | null;
   google: GoogleGenerateContentRequest | null;
   bedrock: BedrockConverseRequest | null;

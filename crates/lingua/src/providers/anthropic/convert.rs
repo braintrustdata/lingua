@@ -873,6 +873,38 @@ impl TryFromLLM<Message> for generated::InputMessage {
                 let anthropic_content = match content {
                     UserContent::String(text) => generated::MessageContent::PurpleString(text),
                     UserContent::Array(parts) => {
+                        for part in &parts {
+                            let UserContentPart::File {
+                                data: Value::String(data),
+                                media_type,
+                                ..
+                            } = part
+                            else {
+                                continue;
+                            };
+
+                            let is_url = data.starts_with("http://") || data.starts_with("https://");
+
+                            if is_url
+                                && !matches!(&**media_type, "application/pdf" | "text/plain")
+                            {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: format!(
+                                        "URL-backed file with MIME type {}",
+                                        media_type
+                                    ),
+                                    to: "Anthropic document input",
+                                });
+                            }
+
+                            if media_type.starts_with("audio/") || media_type.starts_with("video/") {
+                                return Err(ConvertError::UnsupportedMapping {
+                                    from: format!("Lingua file content with MIME type {}", media_type),
+                                    to: "Anthropic document input",
+                                });
+                            }
+                        }
+
                         let blocks = parts
                             .into_iter()
                             .filter_map(|part| match part {
@@ -3416,6 +3448,38 @@ mod tests {
         } else {
             panic!("Expected InputContentBlockArray");
         }
+    }
+
+    #[test]
+    fn test_url_backed_audio_file_errors_for_anthropic() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: serde_json::Value::String("https://example.com/sample.mp3".to_string()),
+                filename: Some("sample.mp3".to_string()),
+                media_type: "audio/mp3".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Anthropic does not support URL-backed audio documents");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+    }
+
+    #[test]
+    fn test_base64_audio_file_errors_for_anthropic() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: serde_json::Value::String("c2FtcGxlIGF1ZGlv".to_string()),
+                filename: Some("sample.mp3".to_string()),
+                media_type: "audio/mp3".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Anthropic does not support audio documents");
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
     }
 
     #[test]

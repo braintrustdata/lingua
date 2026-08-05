@@ -197,6 +197,30 @@
   ],
   "perTestCase": [
     {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Anthropic only accepts auto and standard_only request service tiers" }
+      ]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "BedrockAnthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Bedrock Anthropic follows Anthropic request service-tier support" }
+      ]
+    },
+    {
+      "testCase": "openaiServiceTierFastParam",
+      "source": "Responses",
+      "target": "VertexAnthropic",
+      "errors": [
+        { "pattern": "Anthropic does not support service_tier 'fast'", "reason": "Vertex Anthropic follows Anthropic request service-tier support" }
+      ]
+    },
+    {
       "testCase": "responsesReasoningEffortMaxParam",
       "source": "Responses",
       "target": "ChatCompletions",
@@ -1402,6 +1426,70 @@
         { "pattern": "messages[*].content[*].custom_tool_call", "reason": "Google does not expose the OpenAI Responses custom-tool marker" },
         { "pattern": "messages[*].content[*].arguments.type", "reason": "Google function-call arguments cannot retain the custom argument kind" },
         { "pattern": "messages[*].content[*].arguments.value", "reason": "Google function-call arguments cannot preserve free-form custom tool input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the remote URI and inferred audio MIME type" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type audio/mp3 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support audio files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "URL-backed file with MIME type audio/mp3 to Anthropic document input", "reason": "Anthropic document input does not support URL-backed audio files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedAudioFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the remote URI and inferred video MIME type" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "URL-backed file with MIME type video/mp4 to Anthropic document input", "reason": "Anthropic document input does not support URL-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsUrlBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
       ]
     }
   ]

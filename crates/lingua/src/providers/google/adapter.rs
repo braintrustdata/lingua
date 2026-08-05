@@ -17,8 +17,8 @@ use crate::providers::google::capabilities::{
 use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
-    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ThinkingConfig,
-    ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
+    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
@@ -30,14 +30,33 @@ use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
-    ReasoningConfig, TokenBudget, UniversalParams, UniversalReasoningDelta, UniversalRequest,
-    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
-    UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage, UserContent,
+    ReasoningConfig, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
+    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
+    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
+    UserContent,
 };
 use serde::{Deserialize, Serialize};
 
 /// Adapter for Google AI GenerateContent API.
 pub struct GoogleAdapter;
+
+fn served_service_tier_from_google(service_tier: ServiceTier) -> ServedServiceTier {
+    match service_tier {
+        ServiceTier::Flex => ServedServiceTier::Flex,
+        ServiceTier::Priority => ServedServiceTier::Priority,
+        ServiceTier::Standard => ServedServiceTier::Standard,
+        ServiceTier::Unspecified => ServedServiceTier::Unspecified,
+    }
+}
+
+fn service_tier_to_string(service_tier: ServiceTier) -> String {
+    match service_tier {
+        ServiceTier::Flex => "flex".to_string(),
+        ServiceTier::Priority => "priority".to_string(),
+        ServiceTier::Standard => "standard".to_string(),
+        ServiceTier::Unspecified => "unspecified".to_string(),
+    }
+}
 
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -218,7 +237,7 @@ impl ProviderAdapter for GoogleAdapter {
             metadata: None,
             store: None,
             conversation_reference: None,
-            service_tier: None,
+            service_tier: typed_params.service_tier.map(service_tier_to_string),
             prompt_cache_key: None,
             logprobs: None,
             top_logprobs: None,
@@ -293,6 +312,24 @@ impl ProviderAdapter for GoogleAdapter {
             serde_json::to_value(google_contents)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
         );
+
+        let service_tier =
+            req.params
+                .service_tier
+                .as_deref()
+                .and_then(|service_tier| match service_tier {
+                    "fast" | "priority" => Some(ServiceTier::Priority),
+                    "flex" => Some(ServiceTier::Flex),
+                    "standard" | "standard_only" => Some(ServiceTier::Standard),
+                    _ => None,
+                });
+        if let Some(service_tier) = service_tier {
+            obj.insert(
+                "serviceTier".into(),
+                serde_json::to_value(service_tier)
+                    .map_err(|e| TransformError::SerializationFailed(e.to_string()))?,
+            );
+        }
 
         // Add systemInstruction if system messages were present
         if !system_contents.is_empty() {
@@ -484,11 +521,13 @@ impl ProviderAdapter for GoogleAdapter {
     }
 
     fn detect_response(&self, payload: &Value) -> bool {
-        // Google response has candidates array (content may be missing for NO_IMAGE etc)
-        payload
-            .get("candidates")
-            .and_then(Value::as_array)
-            .is_some_and(|arr| !arr.is_empty())
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                || response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_some()
+        })
     }
 
     fn response_to_universal(&self, payload: Value) -> Result<UniversalResponse, TransformError> {
@@ -524,6 +563,20 @@ impl ProviderAdapter for GoogleAdapter {
             }
         });
 
+        let prompt_was_blocked = response
+            .prompt_feedback
+            .as_ref()
+            .and_then(|feedback| feedback.block_reason.as_ref())
+            .is_some();
+
+        if prompt_was_blocked && messages.is_empty() {
+            messages.push(Message::Assistant {
+                content: AssistantContent::Array(vec![]),
+                id: None,
+            });
+            finish_reasons.push(FinishReason::ContentFilter);
+        }
+
         let finish_reason = if has_tool_calls {
             Some(FinishReason::ToolCalls)
         } else {
@@ -531,6 +584,11 @@ impl ProviderAdapter for GoogleAdapter {
         };
 
         let usage = response.usage_metadata.as_ref().map(UniversalUsage::from);
+        let served_service_tier = response
+            .usage_metadata
+            .as_ref()
+            .and_then(|usage| usage.service_tier.clone())
+            .map(served_service_tier_from_google);
 
         Ok(UniversalResponse {
             id: None, // Google doesn't include a top-level response ID
@@ -538,6 +596,7 @@ impl ProviderAdapter for GoogleAdapter {
             model: response.model_version,
             messages,
             usage,
+            served_service_tier,
             finish_reason,
             finish_reasons,
         })
@@ -589,8 +648,22 @@ impl ProviderAdapter for GoogleAdapter {
             map.insert("modelVersion".into(), Value::String(model.clone()));
         }
 
-        if let Some(usage) = &resp.usage {
-            let metadata = UsageMetadata::from(usage);
+        let service_tier = resp
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Flex => Some(ServiceTier::Flex),
+                ServedServiceTier::Priority => Some(ServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTier::Standard),
+                ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
+                _ => None,
+            });
+        if resp.usage.is_some() || service_tier.is_some() {
+            let mut metadata = resp
+                .usage
+                .as_ref()
+                .map(UsageMetadata::from)
+                .unwrap_or_default();
+            metadata.service_tier = service_tier;
             let value = serde_json::to_value(&metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usageMetadata".into(), value);
@@ -604,9 +677,13 @@ impl ProviderAdapter for GoogleAdapter {
     // =========================================================================
 
     fn detect_stream_response(&self, payload: &Value) -> bool {
-        // Google streaming uses the same format as non-streaming (candidates array)
-        // The response_to_universal detection already handles this
-        self.detect_response(payload)
+        serde_json::from_value::<GenerateContentResponse>(payload.clone()).is_ok_and(|response| {
+            response.candidates.is_some()
+                && response
+                    .prompt_feedback
+                    .and_then(|feedback| feedback.block_reason)
+                    .is_none()
+        })
     }
 
     fn stream_to_universal(
@@ -716,10 +793,16 @@ impl ProviderAdapter for GoogleAdapter {
             .map(UniversalUsage::from);
         let model = typed_payload.model_version;
         let id = typed_payload.response_id;
+        let served_service_tier = typed_payload
+            .usage_metadata
+            .as_ref()
+            .and_then(|usage| usage.service_tier.clone())
+            .map(served_service_tier_from_google);
 
-        Ok(Some(UniversalStreamChunk::new(
-            id, model, choices, None, usage,
-        )))
+        Ok(Some(
+            UniversalStreamChunk::new(id, model, choices, None, usage)
+                .with_served_service_tier(served_service_tier),
+        ))
     }
 
     fn stream_from_universal(&self, chunk: &UniversalStreamChunk) -> Result<Value, TransformError> {
@@ -872,8 +955,22 @@ impl ProviderAdapter for GoogleAdapter {
         if let Some(ref model) = chunk.model {
             map.insert("modelVersion".into(), Value::String(model.clone()));
         }
-        if let Some(ref usage) = chunk.usage {
-            let metadata = UsageMetadata::from(usage);
+        let service_tier = chunk
+            .served_service_tier
+            .and_then(|service_tier| match service_tier {
+                ServedServiceTier::Flex => Some(ServiceTier::Flex),
+                ServedServiceTier::Priority => Some(ServiceTier::Priority),
+                ServedServiceTier::Standard => Some(ServiceTier::Standard),
+                ServedServiceTier::Unspecified => Some(ServiceTier::Unspecified),
+                _ => None,
+            });
+        if chunk.usage.is_some() || service_tier.is_some() {
+            let mut metadata = chunk
+                .usage
+                .as_ref()
+                .map(UsageMetadata::from)
+                .unwrap_or_default();
+            metadata.service_tier = service_tier;
             let value = serde_json::to_value(&metadata)
                 .map_err(|e| TransformError::SerializationFailed(e.to_string()))?;
             map.insert("usageMetadata".into(), value);
@@ -1023,6 +1120,24 @@ mod tests {
             serde_json::from_value(reconstructed).expect("request should deserialize");
         assert!(reconstructed.contents.is_some());
         assert!(reconstructed.generation_config.is_some());
+    }
+
+    #[test]
+    fn test_google_request_preserves_service_tier() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": "Hello"}]
+            }],
+            "serviceTier": "priority"
+        });
+
+        let universal = adapter.request_to_universal(payload).unwrap();
+        assert_eq!(universal.params.service_tier.as_deref(), Some("priority"));
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        assert_eq!(reconstructed["serviceTier"], json!("priority"));
     }
 
     #[test]
