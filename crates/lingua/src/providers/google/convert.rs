@@ -287,6 +287,7 @@ impl TryFromLLM<GoogleContent> for Message {
                             builtin_tool: builtin_identity_from_google_tool_type(tool_type),
                             arguments: tool_call.args.clone().map(ToolCallArguments::Valid),
                             status: None,
+                            encrypted_content: part.thought_signature.clone(),
                             provider_options: None,
                             provider_executed: Some(true),
                         });
@@ -664,6 +665,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     tool_name,
                                     builtin_tool,
                                     arguments,
+                                    encrypted_content,
                                     provider_executed,
                                     ..
                                 } => {
@@ -696,6 +698,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                                 )?,
                                             ),
                                         }),
+                                        thought_signature: encrypted_content,
                                         ..Default::default()
                                     });
                                 }
@@ -2028,6 +2031,7 @@ mod tests {
                     tool_name: None,
                     tool_type: Some(GoogleToolType::GoogleSearchWeb),
                 }),
+                thought_signature: Some("google_builtin_signature".to_string()),
                 ..Default::default()
             }]),
         };
@@ -2045,6 +2049,7 @@ mod tests {
             tool_call_id,
             tool_name,
             builtin_tool,
+            encrypted_content,
             provider_executed,
             ..
         } = &parts[0]
@@ -2055,6 +2060,10 @@ mod tests {
         assert_eq!(tool_name, &None);
         assert_eq!(builtin_tool.provider, BuiltinToolProvider::Google);
         assert_eq!(builtin_tool.builtin_type, "GOOGLE_SEARCH_WEB");
+        assert_eq!(
+            encrypted_content.as_deref(),
+            Some("google_builtin_signature")
+        );
         assert_eq!(*provider_executed, Some(true));
 
         let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)

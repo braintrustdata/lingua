@@ -128,6 +128,8 @@ pub enum AssistantContentPart {
         #[ts(optional)]
         status: Option<String>,
         #[ts(optional)]
+        encrypted_content: Option<String>,
+        #[ts(optional)]
         provider_options: Option<ProviderOptions>,
         #[ts(optional)]
         provider_executed: Option<bool>,

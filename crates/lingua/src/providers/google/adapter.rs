@@ -645,9 +645,13 @@ impl ProviderAdapter for GoogleAdapter {
                 ..
             } = m
             {
-                parts
-                    .iter()
-                    .any(|p| matches!(p, AssistantContentPart::ToolCall { .. }))
+                parts.iter().any(|p| {
+                    matches!(
+                        p,
+                        AssistantContentPart::ToolCall { .. }
+                            | AssistantContentPart::BuiltinToolCall { .. }
+                    )
+                })
             } else {
                 false
             }
@@ -1779,6 +1783,48 @@ mod tests {
         let back_typed: GenerateContentResponse =
             serde_json::from_value(back).expect("response should deserialize");
         assert_eq!(back_typed.model_version.as_deref(), Some("gemini-1.5"));
+    }
+
+    #[test]
+    fn test_google_response_builtin_tool_call_sets_tool_calls_finish_reason() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "candidates": [{
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "thoughtSignature": "google_builtin_signature",
+                        "toolCall": {
+                            "toolType": "GOOGLE_SEARCH_WEB",
+                            "args": {"query": "Lingua"}
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let universal = adapter.response_to_universal(payload).unwrap();
+
+        assert_eq!(universal.finish_reason, Some(FinishReason::ToolCalls));
+        assert_eq!(universal.finish_reasons, vec![FinishReason::Stop]);
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal.messages[0]
+        else {
+            panic!("expected assistant content parts");
+        };
+        let AssistantContentPart::BuiltinToolCall {
+            encrypted_content, ..
+        } = &parts[0]
+        else {
+            panic!("expected built-in tool call");
+        };
+        assert_eq!(
+            encrypted_content.as_deref(),
+            Some("google_builtin_signature")
+        );
     }
 
     #[test]

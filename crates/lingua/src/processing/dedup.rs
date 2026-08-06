@@ -191,6 +191,7 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         builtin_tool,
                         arguments,
                         status,
+                        encrypted_content,
                         ..
                     } => {
                         "builtin_tool_call".hash(hasher);
@@ -198,6 +199,7 @@ fn hash_assistant_content(content: &AssistantContent, hasher: &mut DefaultHasher
                         tool_name.hash(hasher);
                         builtin_tool.hash(hasher);
                         status.hash(hasher);
+                        encrypted_content.hash(hasher);
                         match arguments {
                             Some(crate::universal::ToolCallArguments::Valid(map)) => {
                                 "valid".hash(hasher);

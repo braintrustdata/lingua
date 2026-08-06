@@ -777,6 +777,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         tool_name,
                         builtin_tool,
                         arguments,
+                        encrypted_content,
                         ..
                     } => {
                         let tool_call_index = tool_calls.len() as u32;
@@ -794,6 +795,9 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                                 arguments: arguments.as_ref().map(ToString::to_string),
                             }),
                         });
+                        if reasoning_signature.is_none() {
+                            reasoning_signature = encrypted_content.clone();
+                        }
                     }
                     AssistantContentPart::File { .. }
                     | AssistantContentPart::ToolResult { .. }

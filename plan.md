@@ -7,6 +7,8 @@
 - The Google adapter lifts a small canonical subset of `generationConfig` and discards every other typed field, including `audioTranscriptionConfig` and request-level `mediaResolution`.
 - Google streaming conversion only inspects `Part.functionCall`, so native `Part.toolCall` chunks are silently reduced to empty assistant deltas and may receive the wrong finish reason.
 - Google declares built-in `ToolCall.id` and `ToolResponse.id` optional, but the universal built-in parts currently require a string and the converter rejects valid provider payloads with no ID.
+- Non-streaming Google built-in tool calls discard `Part.thoughtSignature`, so replaying provider-executed call history can fail Gemini signature validation.
+- Non-streaming response finish-reason detection recognizes only ordinary function calls, so a built-in call paired with Google `STOP` is incorrectly classified as a completed turn.
 
 ## Target files
 
@@ -27,6 +29,8 @@
 - Dedicated universal builtin-tool call and result parts carry an optional free-form name plus a typed identity (`provider` and `builtin_type`). Google server-side tool calls/results round-trip with `provider_executed: true` without fabricating a function name, while ordinary function-tool parts remain source-compatible.
 - Built-in call/result correlation IDs are optional so a missing Google ID round-trips as absent rather than being rejected or synthesized. Real IDs remain unchanged.
 - Native Google streaming `toolCall` parts become typed universal built-in tool-call deltas, set the `tool_calls` finish reason, and round-trip back to Google. Streaming targets that cannot represent the built-in identity fail explicitly instead of treating it as a function call.
+- Built-in calls carry optional opaque `encrypted_content`, allowing Google `thoughtSignature` values to survive non-streaming and full-response streaming roundtrips.
+- Non-streaming responses containing either ordinary or built-in tool calls use the canonical `ToolCalls` finish reason.
 - Providers that cannot represent a provider-executed builtin return an explicit unsupported-mapping error instead of silently dropping it.
 - Google-to-universal preserves only the unmapped, typed remainder of `generationConfig` in Google-scoped extras. Universal-to-Google starts from that typed remainder and lets canonical fields override it, avoiding duplicate sources of truth.
 - The accepted REST `audioTranscriptionConfig` subtree and request-level `mediaResolution` survive Google round trips byte-for-byte at the semantic JSON level.
@@ -37,6 +41,8 @@
 - Add Google converter tests for named and unnamed provider-executed builtin calls and responses.
 - Add Google converter tests for built-in calls and responses with absent IDs.
 - Add Google streaming tests for typed built-in call conversion, absent-ID preservation, Google roundtrip, finish-reason handling, and explicit rejection by non-Google targets.
+- Add a Google built-in call test with `thoughtSignature` and assert exact non-streaming roundtrip preservation.
+- Add a Google response test proving a built-in call overrides provider `STOP` with canonical `ToolCalls`.
 - Add Google params/adapter tests proving unmapped `generationConfig` fields survive while canonical temperature/reasoning/response-format values take precedence.
 - Keep payload cases `googleProviderExecutedToolRoundtrip` and `audioTranscriptionConfigParam`; recapture after the logic fix.
 - Update existing universal/provider tests for optional tool names and builtin identities.
