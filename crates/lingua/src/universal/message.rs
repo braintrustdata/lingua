@@ -118,7 +118,8 @@ pub enum AssistantContentPart {
     },
     /// A provider-executed built-in tool call whose free-form name may be absent.
     BuiltinToolCall {
-        tool_call_id: String,
+        #[ts(optional)]
+        tool_call_id: Option<String>,
         #[ts(optional)]
         tool_name: Option<String>,
         builtin_tool: BuiltinToolIdentity,
@@ -246,7 +247,7 @@ pub struct ToolResultContentPart {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "snake_case", optional_fields)]
 pub struct BuiltinToolResultContentPart {
-    pub tool_call_id: String,
+    pub tool_call_id: Option<String>,
     pub tool_name: Option<String>,
     pub builtin_tool: BuiltinToolIdentity,
     #[ts(type = "any")]

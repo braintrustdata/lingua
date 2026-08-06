@@ -5,7 +5,8 @@ use std::collections::BTreeMap;
 use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::adapter_for_format;
 use crate::processing::transform::{
-    serialize_stream_value, transform_stream_chunk_step, TransformError, TransformResult,
+    ensure_stream_builtin_tools_supported, serialize_stream_value, transform_stream_chunk_step,
+    TransformError, TransformResult,
 };
 #[cfg(feature = "openai")]
 use crate::providers::openai::responses_adapter::{
@@ -1701,6 +1702,10 @@ pub fn parse_stream_event(
             is_keep_alive,
             is_final,
         });
+    }
+
+    if let Some(universal) = &universal_opt {
+        ensure_stream_builtin_tools_supported(universal, target_format)?;
     }
 
     let target_adapter = adapter_for_format(target_format)

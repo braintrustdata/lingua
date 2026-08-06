@@ -5,4 +5,4 @@ import type { ProviderOptions } from "./ProviderOptions";
 /**
  * Reusable result for a provider-executed built-in tool.
  */
-export type BuiltinToolResultContentPart = { tool_call_id: string, tool_name?: string, builtin_tool: BuiltinToolIdentity, output: any, provider_options?: ProviderOptions, };
+export type BuiltinToolResultContentPart = { tool_call_id?: string, tool_name?: string, builtin_tool: BuiltinToolIdentity, output: any, provider_options?: ProviderOptions, };

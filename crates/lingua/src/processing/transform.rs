@@ -699,6 +699,31 @@ pub(crate) fn serialize_stream_value(value: &Value) -> Result<Bytes, TransformEr
     )?))
 }
 
+pub(crate) fn ensure_stream_builtin_tools_supported(
+    chunk: &UniversalStreamChunk,
+    target_format: ProviderFormat,
+) -> Result<(), TransformError> {
+    if target_format == ProviderFormat::Google {
+        return Ok(());
+    }
+
+    let builtin_call_type = chunk
+        .choices
+        .iter()
+        .filter_map(UniversalStreamChoice::delta_view)
+        .flat_map(|delta| delta.tool_calls)
+        .filter_map(|tool_call| tool_call.call_type)
+        .find(|call_type| call_type.starts_with("builtin:"));
+
+    if let Some(call_type) = builtin_call_type {
+        return Err(TransformError::FromUniversalFailed(format!(
+            "target format {target_format:?} cannot represent streaming built-in tool call `{call_type}`"
+        )));
+    }
+
+    Ok(())
+}
+
 fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStreamDelta {
     match content {
         AssistantContent::String(text) => UniversalStreamDelta {
@@ -757,7 +782,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         let tool_call_index = tool_calls.len() as u32;
                         tool_calls.push(UniversalToolCallDelta {
                             index: Some(tool_call_index),
-                            id: Some(tool_call_id.clone()),
+                            id: tool_call_id.clone(),
                             call_type: Some(format!(
                                 "builtin:{}:{}",
                                 builtin_tool.provider.label(),
@@ -900,6 +925,10 @@ pub(crate) fn transform_stream_chunk_step(
             event_type,
             is_passthrough: true,
         });
+    }
+
+    if let Some(universal_chunk) = &universal {
+        ensure_stream_builtin_tools_supported(universal_chunk, target_format)?;
     }
 
     let target_adapter = adapter_for_format(target_format)

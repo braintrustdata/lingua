@@ -5,6 +5,8 @@
 - Google Discovery schema ids can move between public and internal `V1main` names, allowing quicktype collision resolution to silently swap the public `MediaResolution` struct and enum names.
 - `Part.toolCall` and `Part.toolResponse` are omitted by the Google content converter. The universal tool-call/result shapes require a function name and have no typed provider-executed builtin identity, so preserving Google’s optional `toolName` and `toolType` is impossible today.
 - The Google adapter lifts a small canonical subset of `generationConfig` and discards every other typed field, including `audioTranscriptionConfig` and request-level `mediaResolution`.
+- Google streaming conversion only inspects `Part.functionCall`, so native `Part.toolCall` chunks are silently reduced to empty assistant deltas and may receive the wrong finish reason.
+- Google declares built-in `ToolCall.id` and `ToolResponse.id` optional, but the universal built-in parts currently require a string and the converter rejects valid provider payloads with no ID.
 
 ## Target files
 
@@ -23,6 +25,8 @@
 
 - `V1main` Discovery ids normalize to stable public names, while the GenerationConfig scalar enum remains `MediaResolutionEnum`; generation fails loudly on real normalized-name collisions.
 - Dedicated universal builtin-tool call and result parts carry an optional free-form name plus a typed identity (`provider` and `builtin_type`). Google server-side tool calls/results round-trip with `provider_executed: true` without fabricating a function name, while ordinary function-tool parts remain source-compatible.
+- Built-in call/result correlation IDs are optional so a missing Google ID round-trips as absent rather than being rejected or synthesized. Real IDs remain unchanged.
+- Native Google streaming `toolCall` parts become typed universal built-in tool-call deltas, set the `tool_calls` finish reason, and round-trip back to Google. Streaming targets that cannot represent the built-in identity fail explicitly instead of treating it as a function call.
 - Providers that cannot represent a provider-executed builtin return an explicit unsupported-mapping error instead of silently dropping it.
 - Google-to-universal preserves only the unmapped, typed remainder of `generationConfig` in Google-scoped extras. Universal-to-Google starts from that typed remainder and lets canonical fields override it, avoiding duplicate sources of truth.
 - The accepted REST `audioTranscriptionConfig` subtree and request-level `mediaResolution` survive Google round trips byte-for-byte at the semantic JSON level.
@@ -31,6 +35,8 @@
 
 - Keep the existing generator normalization/collision tests and media-resolution compile-time serialization guards.
 - Add Google converter tests for named and unnamed provider-executed builtin calls and responses.
+- Add Google converter tests for built-in calls and responses with absent IDs.
+- Add Google streaming tests for typed built-in call conversion, absent-ID preservation, Google roundtrip, finish-reason handling, and explicit rejection by non-Google targets.
 - Add Google params/adapter tests proving unmapped `generationConfig` fields survive while canonical temperature/reasoning/response-format values take precedence.
 - Keep payload cases `googleProviderExecutedToolRoundtrip` and `audioTranscriptionConfigParam`; recapture after the logic fix.
 - Update existing universal/provider tests for optional tool names and builtin identities.

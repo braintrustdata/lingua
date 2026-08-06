@@ -77,7 +77,9 @@ fn value_to_map(value: &Value) -> Option<Map<String, Value>> {
     }
 }
 
-fn builtin_identity_from_google_tool_type(tool_type: &GoogleToolType) -> BuiltinToolIdentity {
+pub(super) fn builtin_identity_from_google_tool_type(
+    tool_type: &GoogleToolType,
+) -> BuiltinToolIdentity {
     let builtin_type = match tool_type {
         GoogleToolType::FileSearch => "FILE_SEARCH",
         GoogleToolType::GoogleMaps => "GOOGLE_MAPS",
@@ -92,7 +94,7 @@ fn builtin_identity_from_google_tool_type(tool_type: &GoogleToolType) -> Builtin
     }
 }
 
-fn google_tool_type_from_builtin_identity(
+pub(super) fn google_tool_type_from_builtin_identity(
     identity: &BuiltinToolIdentity,
 ) -> Result<GoogleToolType, ConvertError> {
     if identity.provider != BuiltinToolProvider::Google {
@@ -274,18 +276,13 @@ impl TryFromLLM<GoogleContent> for Message {
                             )?,
                         }));
                     } else if let Some(tool_call) = &part.tool_call {
-                        let tool_call_id = tool_call.id.clone().ok_or_else(|| {
-                            ConvertError::MissingRequiredField {
-                                field: "Part.toolCall.id".to_string(),
-                            }
-                        })?;
                         let tool_type = tool_call.tool_type.as_ref().ok_or_else(|| {
                             ConvertError::MissingRequiredField {
                                 field: "Part.toolCall.toolType".to_string(),
                             }
                         })?;
                         assistant_parts.push(AssistantContentPart::BuiltinToolCall {
-                            tool_call_id,
+                            tool_call_id: tool_call.id.clone(),
                             tool_name: tool_call.tool_name.clone(),
                             builtin_tool: builtin_identity_from_google_tool_type(tool_type),
                             arguments: tool_call.args.clone().map(ToolCallArguments::Valid),
@@ -403,11 +400,6 @@ impl TryFromLLM<GoogleContent> for Message {
                             }
                         }
                     } else if let Some(tool_response) = &part.tool_response {
-                        let tool_call_id = tool_response.id.clone().ok_or_else(|| {
-                            ConvertError::MissingRequiredField {
-                                field: "Part.toolResponse.id".to_string(),
-                            }
-                        })?;
                         let tool_type = tool_response.tool_type.as_ref().ok_or_else(|| {
                             ConvertError::MissingRequiredField {
                                 field: "Part.toolResponse.toolType".to_string(),
@@ -415,7 +407,7 @@ impl TryFromLLM<GoogleContent> for Message {
                         })?;
                         tool_parts.push(ToolContentPart::BuiltinToolResult(
                             BuiltinToolResultContentPart {
-                                tool_call_id,
+                                tool_call_id: tool_response.id.clone(),
                                 tool_name: None,
                                 builtin_tool: builtin_identity_from_google_tool_type(tool_type),
                                 output: tool_response
@@ -696,7 +688,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                     converted.push(GooglePart {
                                         tool_call: Some(GoogleToolCall {
                                             args,
-                                            id: Some(tool_call_id),
+                                            id: tool_call_id,
                                             tool_name,
                                             tool_type: Some(
                                                 google_tool_type_from_builtin_identity(
@@ -767,7 +759,7 @@ impl TryFromLLM<Message> for GoogleContent {
                             }
                             parts.push(GooglePart {
                                 tool_response: Some(GoogleToolResponse {
-                                    id: Some(result.tool_call_id),
+                                    id: result.tool_call_id,
                                     response: value_to_map(&result.output),
                                     tool_type: Some(google_tool_type_from_builtin_identity(
                                         &result.builtin_tool,
@@ -2059,7 +2051,7 @@ mod tests {
         else {
             panic!("expected a built-in tool call");
         };
-        assert_eq!(tool_call_id, "google-search-1");
+        assert_eq!(tool_call_id.as_deref(), Some("google-search-1"));
         assert_eq!(tool_name, &None);
         assert_eq!(builtin_tool.provider, BuiltinToolProvider::Google);
         assert_eq!(builtin_tool.builtin_type, "GOOGLE_SEARCH_WEB");
@@ -2095,13 +2087,82 @@ mod tests {
         let ToolContentPart::BuiltinToolResult(result) = &content[0] else {
             panic!("expected a built-in tool result");
         };
-        assert_eq!(result.tool_call_id, "google-search-1");
+        assert_eq!(result.tool_call_id.as_deref(), Some("google-search-1"));
         assert_eq!(result.tool_name, None);
         assert_eq!(result.builtin_tool.provider, BuiltinToolProvider::Google);
         assert_eq!(result.builtin_tool.builtin_type, "GOOGLE_SEARCH_WEB");
 
         let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
             .expect("built-in tool result should export");
+        assert_eq!(roundtrip, original);
+    }
+
+    #[test]
+    fn test_google_provider_executed_tool_call_roundtrips_without_id() {
+        let original = GoogleContent {
+            role: Some("model".to_string()),
+            parts: Some(vec![GooglePart {
+                tool_call: Some(GoogleToolCall {
+                    args: Some(Map::from_iter([(
+                        "query".to_string(),
+                        Value::String("Lingua".to_string()),
+                    )])),
+                    id: None,
+                    tool_name: Some("search_the_web".to_string()),
+                    tool_type: Some(GoogleToolType::GoogleSearchWeb),
+                }),
+                ..Default::default()
+            }]),
+        };
+
+        let universal = <Message as TryFromLLM<GoogleContent>>::try_from(original.clone())
+            .expect("Google toolCall without an ID should import");
+        let Message::Assistant {
+            content: AssistantContent::Array(parts),
+            ..
+        } = &universal
+        else {
+            panic!("expected assistant content parts");
+        };
+        let AssistantContentPart::BuiltinToolCall { tool_call_id, .. } = &parts[0] else {
+            panic!("expected a built-in tool call");
+        };
+        assert_eq!(tool_call_id, &None);
+
+        let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
+            .expect("built-in tool call without an ID should export");
+        assert_eq!(roundtrip, original);
+    }
+
+    #[test]
+    fn test_google_provider_executed_tool_response_roundtrips_without_id() {
+        let original = GoogleContent {
+            role: Some("user".to_string()),
+            parts: Some(vec![GooglePart {
+                tool_response: Some(GoogleToolResponse {
+                    id: None,
+                    response: Some(Map::from_iter([(
+                        "result".to_string(),
+                        Value::String("Lingua".to_string()),
+                    )])),
+                    tool_type: Some(GoogleToolType::GoogleSearchWeb),
+                }),
+                ..Default::default()
+            }]),
+        };
+
+        let universal = <Message as TryFromLLM<GoogleContent>>::try_from(original.clone())
+            .expect("Google toolResponse without an ID should import");
+        let Message::Tool { content } = &universal else {
+            panic!("expected tool content");
+        };
+        let ToolContentPart::BuiltinToolResult(result) = &content[0] else {
+            panic!("expected a built-in tool result");
+        };
+        assert_eq!(result.tool_call_id, None);
+
+        let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
+            .expect("built-in tool result without an ID should export");
         assert_eq!(roundtrip, original);
     }
 

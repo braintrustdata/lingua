@@ -1,3 +1,3 @@
 {
-  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert google built-in tool result `GOOGLE_SEARCH_WEB` to Anthropic tool_result"
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert google built-in tool call `GOOGLE_SEARCH_WEB` to Anthropic assistant content"
 }

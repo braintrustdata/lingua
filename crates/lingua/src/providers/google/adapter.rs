@@ -14,19 +14,25 @@ use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
     effort_to_thinking_level, thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
 };
-use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
+use crate::providers::google::convert::{
+    builtin_identity_from_google_tool_type, google_tool_type_from_builtin_identity,
+    SYNTHETIC_CALL_ID_PREFIX,
+};
 use crate::providers::google::detect::try_parse_google;
 use crate::providers::google::generated::{
     Content as GoogleContent, GenerateContentResponse, GenerationConfig, ServiceTier,
-    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolConfig, UsageMetadata,
+    ThinkingConfig, ThinkingLevel, Tool as GoogleTool, ToolCall as GoogleToolCall, ToolConfig,
+    UsageMetadata,
 };
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
+use crate::universal::message::{
+    AssistantContent, AssistantContentPart, BuiltinToolIdentity, Message,
+};
 use crate::universal::reasoning::{budget_to_effort, effort_to_budget, MIN_THINKING_BUDGET};
 use crate::universal::request::ToolChoiceConfig;
-use crate::universal::tools::UniversalTool;
+use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
 use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
@@ -144,6 +150,41 @@ struct GoogleStreamPart {
     thought_signature: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     function_call: Option<Map<String, Value>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tool_call: Option<GoogleToolCall>,
+}
+
+fn builtin_stream_call_type(identity: &BuiltinToolIdentity) -> String {
+    format!(
+        "builtin:{}:{}",
+        identity.provider.label(),
+        identity.builtin_type
+    )
+}
+
+fn builtin_identity_from_stream_call_type(
+    call_type: Option<&str>,
+) -> Result<Option<BuiltinToolIdentity>, TransformError> {
+    let Some(call_type) = call_type else {
+        return Ok(None);
+    };
+    let Some(encoded_identity) = call_type.strip_prefix("builtin:") else {
+        return Ok(None);
+    };
+    let Some((provider, builtin_type)) = encoded_identity.split_once(':') else {
+        return Err(TransformError::FromUniversalFailed(format!(
+            "invalid built-in stream tool-call type `{call_type}`"
+        )));
+    };
+    if provider != BuiltinToolProvider::Google.label() {
+        return Err(TransformError::FromUniversalFailed(format!(
+            "Google streaming cannot represent {provider} built-in tool `{builtin_type}`"
+        )));
+    }
+    Ok(Some(BuiltinToolIdentity {
+        provider: BuiltinToolProvider::Google,
+        builtin_type: builtin_type.to_string(),
+    }))
 }
 
 impl ProviderAdapter for GoogleAdapter {
@@ -775,35 +816,55 @@ impl ProviderAdapter for GoogleAdapter {
 
             let response_id = typed_payload.response_id.as_deref();
             let mut tool_call_index = 0_u32;
-            let tool_calls: Vec<UniversalToolCallDelta> = parts
-                .iter()
-                .filter_map(|part| {
-                    part.function_call.as_ref().map(|function_call| {
-                        let index = tool_call_index;
-                        tool_call_index += 1;
-                        UniversalToolCallDelta {
-                            index: Some(index),
-                            id: function_call.id.clone().or_else(|| {
-                                Some(match response_id {
-                                    Some(response_id) => {
-                                        format!("{SYNTHETIC_CALL_ID_PREFIX}{response_id}_{index}")
-                                    }
-                                    None => format!("{SYNTHETIC_CALL_ID_PREFIX}{index}"),
-                                })
-                            }),
-                            call_type: Some("function".to_string()),
-                            custom_tool_call: None,
-                            function: Some(UniversalToolFunctionDelta {
-                                name: function_call.name.clone(),
-                                arguments: function_call
-                                    .args
-                                    .as_ref()
-                                    .map(|args| Value::Object(args.clone()).to_string()),
-                            }),
-                        }
-                    })
-                })
-                .collect();
+            let mut tool_calls = Vec::new();
+            for part in &parts {
+                if let Some(function_call) = &part.function_call {
+                    let index = tool_call_index;
+                    tool_call_index += 1;
+                    tool_calls.push(UniversalToolCallDelta {
+                        index: Some(index),
+                        id: function_call.id.clone().or_else(|| {
+                            Some(match response_id {
+                                Some(response_id) => {
+                                    format!("{SYNTHETIC_CALL_ID_PREFIX}{response_id}_{index}")
+                                }
+                                None => format!("{SYNTHETIC_CALL_ID_PREFIX}{index}"),
+                            })
+                        }),
+                        call_type: Some("function".to_string()),
+                        custom_tool_call: None,
+                        function: Some(UniversalToolFunctionDelta {
+                            name: function_call.name.clone(),
+                            arguments: function_call
+                                .args
+                                .as_ref()
+                                .map(|args| Value::Object(args.clone()).to_string()),
+                        }),
+                    });
+                } else if let Some(tool_call) = &part.tool_call {
+                    let tool_type = tool_call.tool_type.as_ref().ok_or_else(|| {
+                        TransformError::ToUniversalFailed(
+                            "Google streaming Part.toolCall is missing toolType".to_string(),
+                        )
+                    })?;
+                    let identity = builtin_identity_from_google_tool_type(tool_type);
+                    let index = tool_call_index;
+                    tool_call_index += 1;
+                    tool_calls.push(UniversalToolCallDelta {
+                        index: Some(index),
+                        id: tool_call.id.clone(),
+                        call_type: Some(builtin_stream_call_type(&identity)),
+                        custom_tool_call: None,
+                        function: Some(UniversalToolFunctionDelta {
+                            name: tool_call.tool_name.clone(),
+                            arguments: tool_call
+                                .args
+                                .as_ref()
+                                .map(|args| Value::Object(args.clone()).to_string()),
+                        }),
+                    });
+                }
+            }
 
             let finish_reason = candidate
                 .finish_reason
@@ -868,17 +929,15 @@ impl ProviderAdapter for GoogleAdapter {
                     .as_ref()
                     .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
-                let has_function_call_part = delta.as_ref().is_some_and(|d| {
-                    d.tool_calls
-                        .iter()
-                        .any(|tool_call| tool_call.function.is_some())
-                });
+                let has_tool_call_part = delta
+                    .as_ref()
+                    .is_some_and(|d| !d.tool_calls.is_empty());
                 let text_reasoning_signature = delta
                     .as_ref()
                     .and_then(|d| d.reasoning_signature.as_deref())
                     .filter(|_| {
                         delta.as_ref().is_none_or(|d| {
-                            !has_function_call_part && (!text.is_empty() || d.reasoning.is_empty())
+                            !has_tool_call_part && (!text.is_empty() || d.reasoning.is_empty())
                         })
                     });
 
@@ -894,7 +953,7 @@ impl ProviderAdapter for GoogleAdapter {
                         d.reasoning_signature.as_deref().filter(|_| {
                             !reasoning_texts.is_empty()
                                 && text.is_empty()
-                                && !has_function_call_part
+                                && !has_tool_call_part
                         });
 
                     for (index, text) in reasoning_texts.iter().enumerate() {
@@ -924,9 +983,46 @@ impl ProviderAdapter for GoogleAdapter {
                     parts.push(text_part);
                 }
 
-                // Add functionCall parts from tool_calls
+                // Add functionCall or provider-executed toolCall parts from tool_calls.
                 if let Some(ref d) = delta {
                     for tc in &d.tool_calls {
+                        if let Some(identity) = builtin_identity_from_stream_call_type(
+                            tc.call_type.as_deref(),
+                        )? {
+                            let args = tc
+                                .function
+                                .as_ref()
+                                .and_then(|function| function.arguments.as_deref())
+                                .map(|arguments| {
+                                    serde_json::from_str::<Map<String, Value>>(arguments).map_err(
+                                        |error| {
+                                            TransformError::FromUniversalFailed(format!(
+                                                "Google built-in stream tool arguments must be an object: {error}"
+                                            ))
+                                        },
+                                    )
+                                })
+                                .transpose()?;
+                            let mut part = GoogleStreamPart {
+                                tool_call: Some(GoogleToolCall {
+                                    args,
+                                    id: tc.id.clone(),
+                                    tool_name: tc
+                                        .function
+                                        .as_ref()
+                                        .and_then(|function| function.name.clone()),
+                                    tool_type: Some(google_tool_type_from_builtin_identity(
+                                        &identity,
+                                    )?),
+                                }),
+                                ..Default::default()
+                            };
+                            if let Some(ref signature) = d.reasoning_signature {
+                                part.thought_signature = Some(signature.clone());
+                            }
+                            parts.push(part);
+                            continue;
+                        }
                         if let Some(ref func) = tc.function {
                             let mut function_call = Map::new();
                             if let Some(ref name) = func.name {
@@ -1725,6 +1821,82 @@ mod tests {
         );
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
+    }
+
+    #[test]
+    fn test_google_stream_builtin_tool_call_roundtrips_without_id() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_builtin_123",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [{
+                        "toolCall": {
+                            "toolName": "search_the_web",
+                            "toolType": "GOOGLE_SEARCH_WEB",
+                            "args": {"query": "Lingua"}
+                        }
+                    }]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload.clone())
+            .unwrap()
+            .expect("stream chunk should be present");
+        let choice = chunk.choices.first().expect("choice should be present");
+        let delta = choice.delta_view().expect("delta should be present");
+        let tool_call = delta
+            .tool_calls
+            .first()
+            .expect("built-in tool call should be present");
+
+        assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
+        assert_eq!(tool_call.index, Some(0));
+        assert_eq!(tool_call.id, None);
+        assert_eq!(
+            tool_call.call_type.as_deref(),
+            Some("builtin:google:GOOGLE_SEARCH_WEB")
+        );
+        let function = tool_call
+            .function
+            .as_ref()
+            .expect("built-in call metadata should be present");
+        assert_eq!(function.name.as_deref(), Some("search_the_web"));
+        assert_eq!(function.arguments.as_deref(), Some(r#"{"query":"Lingua"}"#));
+
+        let roundtrip = adapter
+            .stream_from_universal(&chunk)
+            .expect("built-in stream tool call should export to Google");
+        let roundtrip: GenerateContentResponse =
+            serde_json::from_value(roundtrip).expect("stream response should deserialize");
+        let roundtrip_candidates = roundtrip.candidates.unwrap();
+        let roundtrip_call = roundtrip_candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .and_then(|parts| parts.first())
+            .and_then(|part| part.tool_call.as_ref())
+            .expect("roundtrip should contain toolCall");
+        assert_eq!(roundtrip_call.id, None);
+        assert_eq!(roundtrip_call.tool_name.as_deref(), Some("search_the_web"));
+        assert_eq!(
+            roundtrip_call.tool_type,
+            Some(crate::providers::google::generated::ToolType::GoogleSearchWeb)
+        );
+
+        let error = crate::processing::transform::transform_stream_chunk(
+            bytes::Bytes::from(serde_json::to_vec(&payload).unwrap()),
+            ProviderFormat::ChatCompletions,
+        )
+        .expect_err("non-Google stream target must reject Google built-in identity");
+        assert!(error
+            .to_string()
+            .contains("cannot represent streaming built-in tool call"));
     }
 
     #[test]

@@ -510,7 +510,6 @@ export const advancedCases: TestCaseCollection = {
           parts: [
             {
               toolCall: {
-                id: "google-search-1",
                 toolName: "search_the_web",
                 toolType: ToolType.GOOGLE_SEARCH_WEB,
                 args: { query: "Lingua message format" },
@@ -523,7 +522,6 @@ export const advancedCases: TestCaseCollection = {
           parts: [
             {
               toolResponse: {
-                id: "google-search-1",
                 toolType: ToolType.GOOGLE_SEARCH_WEB,
                 response: {
                   result: "Lingua is a universal LLM message format.",
