@@ -873,9 +873,11 @@ impl Router {
             && spec.requires_responses_api()
         {
             ProviderFormat::Responses
-        } else if provider.id() == "azure" && catalog_format == ProviderFormat::Anthropic {
-            // Anthropic on Azure only supports the messages format and isn’t
-            // interchangeable with other APIs.
+        } else if matches!(provider.id(), "azure" | "azure_ai_gateway")
+            && catalog_format == ProviderFormat::Anthropic
+        {
+            // Anthropic on Azure and Azure AI Gateway only supports the messages
+            // format and isn’t interchangeable with other APIs.
             ProviderFormat::Anthropic
         } else if provider.id() == "anthropic" {
             // Native Anthropic has two endpoints: /v1/messages (Anthropic format) and the
