@@ -1,5 +1,6 @@
 pub(crate) mod anthropic;
 mod azure;
+mod azure_ai_gateway;
 mod bedrock;
 mod body_model;
 mod databricks;
@@ -10,6 +11,7 @@ mod vertex;
 
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
 pub use azure::{AzureConfig, AzureProvider};
+pub use azure_ai_gateway::AzureAiGatewayProvider;
 pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
 pub(crate) use body_model::rewrite_body_model_if_required;
