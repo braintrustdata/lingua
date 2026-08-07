@@ -1,0 +1,28 @@
+{
+  "output": {
+    "message": {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Hi! 👋 How can I help you today?"
+        }
+      ]
+    }
+  },
+  "stopReason": "end_turn",
+  "usage": {
+    "inputTokens": 11,
+    "outputTokens": 17,
+    "totalTokens": 28,
+    "cacheReadInputTokens": 0
+  },
+  "metrics": {
+    "latencyMs": 1240
+  },
+  "$metadata": {
+    "httpStatusCode": 200,
+    "requestId": "4aba0d89-0326-4ea0-b177-398b60b03a5a",
+    "attempts": 1,
+    "totalRetryDelay": 0
+  }
+}

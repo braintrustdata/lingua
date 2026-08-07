@@ -304,6 +304,15 @@ export function getTargetModelForCase(
     return targetCase.model;
   }
 
+  if (
+    targetCase &&
+    typeof targetCase === "object" &&
+    "modelId" in targetCase &&
+    typeof targetCase.modelId === "string"
+  ) {
+    return targetCase.modelId;
+  }
+
   return TARGET_MODELS[targetFormat];
 }
 

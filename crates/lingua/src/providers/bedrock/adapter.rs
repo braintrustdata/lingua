@@ -12,6 +12,7 @@ use crate::capabilities::ProviderFormat;
 use crate::error::ConvertError;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
+use crate::providers::anthropic::capabilities;
 use crate::providers::anthropic::generated::Thinking;
 use crate::providers::bedrock::convert::universal_to_bedrock_messages;
 use crate::providers::bedrock::params::BedrockParams;
@@ -289,21 +290,27 @@ impl ProviderAdapter for BedrockAdapter {
             .and_then(|v| v.get("type"))
             .and_then(|t| t.as_str())
             .is_some_and(|t| t == "enabled");
-        let temperature = if reasoning_enabled {
+        let strip_sampling_params = capabilities::model_needs_transforms(model_id);
+        let temperature = if reasoning_enabled || strip_sampling_params {
             None
         } else {
             req.params.temperature
         };
+        let top_p = if strip_sampling_params {
+            None
+        } else {
+            req.params.top_p
+        };
 
         let has_params = temperature.is_some()
-            || req.params.top_p.is_some()
+            || top_p.is_some()
             || req.params.output_token_budget().is_some()
             || req.params.stop.is_some();
 
         if has_params {
             let config = BedrockInferenceConfiguration {
                 temperature,
-                top_p: req.params.top_p,
+                top_p,
                 max_tokens: req.params.output_token_budget().map(|t| t as i32),
                 stop_sequences: req.params.stop.clone(),
             };
@@ -1014,6 +1021,28 @@ mod tests {
             inference_config.get("temperature").is_none(),
             "Temperature should be omitted when thinking is enabled"
         );
+    }
+
+    #[test]
+    fn test_bedrock_anthropic_opus_4_8_strips_sampling_params() {
+        let adapter = BedrockAdapter;
+        let universal = UniversalRequest {
+            model: Some("global.anthropic.claude-opus-4-8".to_string()),
+            messages: vec![],
+            params: UniversalParams {
+                temperature: Some(0.7),
+                top_p: Some(0.9),
+                token_budget: Some(TokenBudget::OutputTokens(4096)),
+                ..Default::default()
+            },
+        };
+
+        let reconstructed = adapter.request_from_universal(&universal).unwrap();
+        let inference_config = reconstructed.get("inferenceConfig").unwrap();
+
+        assert!(inference_config.get("temperature").is_none());
+        assert!(inference_config.get("topP").is_none());
+        assert_eq!(inference_config.get("maxTokens").unwrap(), 4096);
     }
 
     #[test]

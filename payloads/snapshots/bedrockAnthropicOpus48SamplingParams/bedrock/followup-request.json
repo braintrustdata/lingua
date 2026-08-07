@@ -1,0 +1,29 @@
+{
+  "modelId": "global.anthropic.claude-opus-4-8",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Say hi."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "Hi! 👋 How can I help you today?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What should I do next?"
+        }
+      ]
+    }
+  ]
+}

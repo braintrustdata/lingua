@@ -1,0 +1,10 @@
+{
+  "model": "global.anthropic.claude-opus-4-8",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Say hi."
+    }
+  ],
+  "temperature": 0.7
+}
