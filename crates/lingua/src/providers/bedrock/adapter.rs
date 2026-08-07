@@ -1037,12 +1037,13 @@ mod tests {
             },
         };
 
-        let reconstructed = adapter.request_from_universal(&universal).unwrap();
-        let inference_config = reconstructed.get("inferenceConfig").unwrap();
+        let reconstructed: BedrockParams =
+            serde_json::from_value(adapter.request_from_universal(&universal).unwrap()).unwrap();
+        let inference_config = reconstructed.inference_config.unwrap();
 
-        assert!(inference_config.get("temperature").is_none());
-        assert!(inference_config.get("topP").is_none());
-        assert_eq!(inference_config.get("maxTokens").unwrap(), 4096);
+        assert_eq!(inference_config.temperature, None);
+        assert_eq!(inference_config.top_p, None);
+        assert_eq!(inference_config.max_tokens, Some(4096));
     }
 
     #[test]
