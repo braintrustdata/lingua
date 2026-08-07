@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Hi there! How can I help you today?",
+            "thoughtSignature": "ErMDCrADARFNMg9O+GvONejhRUSn+gtuR1+5BDjzmoJA+UH7Qkf72pACAA9mJsRoiglY+bZF7cj7JJUHxgLjfR/ZuDJoz8hMQ0yXKKAmRXblmgrK0VLJH4HRQ/7sCX5wy3dk9Jv/RcaMA3j+eXrcmjSLPbYHWEIEayb6BjcCOBWBcP3Xk+lpYdDCNGetoAxO0WDhKcQ0teR8BBmQR9v5bhJXgQWarqe7+gPGIBtaWLhTbfbSkCqQRpqAfaz04V66e6M0+UU1xfd2MmcEBcYBbcxq/5YVDkzPueWPmjwNgjSoji9xcWzPQ3dROfBjIVubvswvLIkYafTNJXtENLQbKTSXitcM++SegYxII2fgQh01U2CazXytx6WVYc8AkgiWWGC2RJFFsbfSWpSZ09uci7jC2G2zcdaa50Mh4Ciy0M6lgIb2TcqjpnkS4v6bHPq3+yxc04c2uWbyh/m9Qt5lO6u8nD/+0E9Lih8f70jWzOZO+Zqg9yIE/cus6yBeY35dah/Z0akDEkvY2ursvZdDPNshGko+DujGUhv/VSZUZJy7sxchU6+xw0JeGCsGNGuNa79wfyY9"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 4,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 120,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 4
+      }
+    ],
+    "thoughtsTokenCount": 106,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "Ai52aozrGMiO_PUPheHf4AU"
+}
