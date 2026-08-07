@@ -783,7 +783,7 @@ impl ProviderAdapter for GoogleAdapter {
             let text = text_segments.join("");
             let reasoning_signature = parts
                 .iter()
-                .filter(|part| part.tool_call.is_none())
+                .filter(|part| part.function_call.is_none() && part.tool_call.is_none())
                 .find_map(|part| part.thought_signature.clone());
 
             let response_id = typed_payload.response_id.as_deref();
@@ -806,7 +806,7 @@ impl ProviderAdapter for GoogleAdapter {
                         call_type: Some("function".to_string()),
                         custom_tool_call: None,
                         builtin_tool: None,
-                        encrypted_content: None,
+                        encrypted_content: part.thought_signature.clone(),
                         function: Some(UniversalToolFunctionDelta {
                             name: function_call.name.clone(),
                             arguments: function_call
@@ -908,7 +908,11 @@ impl ProviderAdapter for GoogleAdapter {
                 let text_reasoning_signature = delta
                     .as_ref()
                     .and_then(|d| d.reasoning_signature.as_deref())
-                    .filter(|_| delta.as_ref().is_none_or(|d| !text.is_empty() || d.reasoning.is_empty()));
+                    .filter(|_| {
+                        delta.as_ref().is_none_or(|d| {
+                            !text.is_empty() || (d.reasoning.is_empty() && d.tool_calls.is_empty())
+                        })
+                    });
 
                 if let Some(ref d) = delta {
                     let reasoning_texts: Vec<&str> = d
@@ -952,6 +956,18 @@ impl ProviderAdapter for GoogleAdapter {
 
                 // Add functionCall or provider-executed toolCall parts from tool_calls.
                 if let Some(ref d) = delta {
+                    let ordinary_function_call_count = d
+                        .tool_calls
+                        .iter()
+                        .filter(|tool_call| {
+                            tool_call.builtin_tool.is_none() && tool_call.function.is_some()
+                        })
+                        .count();
+                    let shared_function_signature = (text.is_empty()
+                        && d.reasoning.is_empty()
+                        && ordinary_function_call_count == 1)
+                        .then_some(d.reasoning_signature.as_ref())
+                        .flatten();
                     for tc in &d.tool_calls {
                         if let Some(identity) = tc.builtin_tool.as_ref() {
                             let args = tc
@@ -1007,7 +1023,9 @@ impl ProviderAdapter for GoogleAdapter {
                                 function_call: Some(function_call),
                                 ..Default::default()
                             };
-                            if let Some(ref signature) = d.reasoning_signature {
+                            if let Some(signature) =
+                                tc.encrypted_content.as_ref().or(shared_function_signature)
+                            {
                                 part.thought_signature = Some(signature.clone());
                             }
                             parts.push(part);
@@ -1822,13 +1840,235 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
-        assert_eq!(
-            delta.reasoning_signature.as_deref(),
-            Some("thought_signature_123")
-        );
+        assert_eq!(delta.reasoning_signature.as_deref(), None);
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
-        assert_eq!(tool_call.encrypted_content, None);
+        assert_eq!(
+            tool_call.encrypted_content.as_deref(),
+            Some("thought_signature_123")
+        );
+    }
+
+    #[test]
+    fn test_google_stream_preserves_signatures_for_text_and_function_call() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_ambiguous_text_signature",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "Calling a function",
+                            "thoughtSignature": "text_signature"
+                        },
+                        {
+                            "thoughtSignature": "function_signature",
+                            "functionCall": {
+                                "name": "lookup",
+                                "args": {"query": "Lingua"}
+                            }
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let delta = chunk.choices[0]
+            .delta_view()
+            .expect("delta should be present");
+        assert_eq!(delta.reasoning_signature.as_deref(), Some("text_signature"));
+        assert_eq!(
+            delta.tool_calls[0].encrypted_content.as_deref(),
+            Some("function_signature")
+        );
+
+        let roundtrip = adapter
+            .stream_from_universal(&chunk)
+            .expect("signed parts should export to Google");
+        let typed: GenerateContentResponse =
+            serde_json::from_value(roundtrip).expect("stream response should deserialize");
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("roundtrip should contain parts");
+        let signatures: Vec<_> = parts
+            .iter()
+            .map(|part| part.thought_signature.as_deref())
+            .collect();
+        assert_eq!(
+            signatures,
+            vec![Some("text_signature"), Some("function_signature")]
+        );
+    }
+
+    #[test]
+    fn test_google_stream_preserves_signatures_for_parallel_function_calls() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_ambiguous_function_signature",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "thoughtSignature": "first_function_signature",
+                            "functionCall": {
+                                "name": "first_lookup",
+                                "args": {"query": "Lingua"}
+                            }
+                        },
+                        {
+                            "thoughtSignature": "second_function_signature",
+                            "functionCall": {
+                                "name": "second_lookup",
+                                "args": {"query": "Braintrust"}
+                            }
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let delta = chunk.choices[0]
+            .delta_view()
+            .expect("delta should be present");
+        assert_eq!(delta.reasoning_signature, None);
+        let signatures: Vec<_> = delta
+            .tool_calls
+            .iter()
+            .map(|tool_call| tool_call.encrypted_content.as_deref())
+            .collect();
+        assert_eq!(
+            signatures,
+            vec![
+                Some("first_function_signature"),
+                Some("second_function_signature")
+            ]
+        );
+
+        let roundtrip = adapter
+            .stream_from_universal(&chunk)
+            .expect("parallel signed calls should export to Google");
+        let typed: GenerateContentResponse =
+            serde_json::from_value(roundtrip).expect("stream response should deserialize");
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("roundtrip should contain parts");
+        let signatures: Vec<_> = parts
+            .iter()
+            .map(|part| part.thought_signature.as_deref())
+            .collect();
+        assert_eq!(
+            signatures,
+            vec![
+                Some("first_function_signature"),
+                Some("second_function_signature")
+            ]
+        );
+    }
+
+    #[test]
+    fn test_google_stream_promotes_shared_signature_only_for_lone_function_call() {
+        let adapter = GoogleAdapter;
+        let function_call = UniversalToolCallDelta {
+            index: Some(0),
+            id: Some("call_1".to_string()),
+            call_type: Some("function".to_string()),
+            function: Some(UniversalToolFunctionDelta {
+                name: Some("lookup".to_string()),
+                arguments: Some("{}".to_string()),
+            }),
+            ..Default::default()
+        };
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    role: Some("assistant".to_string()),
+                    content: Some(String::new()),
+                    tool_calls: vec![function_call.clone()],
+                    reasoning_signature: Some("shared_signature".to_string()),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let payload = adapter
+            .stream_from_universal(&chunk)
+            .expect("lone signed function call should export");
+        let typed: GenerateContentResponse =
+            serde_json::from_value(payload).expect("stream response should deserialize");
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("roundtrip should contain parts");
+        assert_eq!(parts.len(), 1);
+        assert!(parts[0].function_call.is_some());
+        assert_eq!(
+            parts[0].thought_signature.as_deref(),
+            Some("shared_signature")
+        );
+
+        let mixed_chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    role: Some("assistant".to_string()),
+                    content: Some("Calling a function".to_string()),
+                    tool_calls: vec![function_call],
+                    reasoning_signature: Some("text_signature".to_string()),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let payload = adapter
+            .stream_from_universal(&mixed_chunk)
+            .expect("mixed signed text and function call should export");
+        let typed: GenerateContentResponse =
+            serde_json::from_value(payload).expect("stream response should deserialize");
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("roundtrip should contain parts");
+        assert_eq!(parts.len(), 2);
+        assert_eq!(
+            parts[0].thought_signature.as_deref(),
+            Some("text_signature")
+        );
+        assert_eq!(parts[1].thought_signature, None);
     }
 
     #[test]

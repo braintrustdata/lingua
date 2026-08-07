@@ -41,7 +41,8 @@ use crate::universal::request::{
 use crate::universal::tools::{tools_to_openai_chat_value, BuiltinToolProvider, UniversalTool};
 use crate::universal::{
     parse_stop_sequences, ServedServiceTier, UniversalParams, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalUsage, PLACEHOLDER_MODEL,
+    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalUsage,
+    PLACEHOLDER_MODEL,
 };
 use serde::{de::IgnoredAny, Deserialize};
 use std::collections::BTreeMap;
@@ -869,7 +870,9 @@ impl ProviderAdapter for OpenAIAdapter {
                     "delta".into(),
                     c.delta
                         .clone()
-                        .map(chat_stream_delta_from_universal)
+                        .map(|delta| {
+                            chat_stream_delta_from_universal(delta, c.delta_view().as_ref())
+                        })
                         .unwrap_or(Value::Object(Map::new())),
                 );
                 let finish_reason_val = match &c.finish_reason {
@@ -925,7 +928,24 @@ impl ProviderAdapter for OpenAIAdapter {
     }
 }
 
-fn chat_stream_delta_from_universal(mut delta: Value) -> Value {
+fn chat_stream_delta_from_universal(
+    mut delta: Value,
+    typed_delta: Option<&UniversalStreamDelta>,
+) -> Value {
+    let promoted_signature = typed_delta.and_then(|delta| {
+        (delta.reasoning_signature.is_none()
+            && delta.content.as_deref().is_none_or(str::is_empty)
+            && delta.reasoning.is_empty()
+            && delta.tool_calls.len() == 1
+            && delta.tool_calls[0].builtin_tool.is_none())
+        .then(|| delta.tool_calls[0].encrypted_content.clone())
+        .flatten()
+    });
+
+    if let (Some(delta), Some(signature)) = (delta.as_object_mut(), promoted_signature) {
+        delta.insert("reasoning_signature".to_string(), Value::String(signature));
+    }
+
     if let Some(tool_calls) = delta
         .as_object_mut()
         .and_then(|delta| delta.get_mut("tool_calls"))
@@ -934,6 +954,8 @@ fn chat_stream_delta_from_universal(mut delta: Value) -> Value {
         for tool_call in tool_calls {
             if let Some(tool_call) = tool_call.as_object_mut() {
                 tool_call.remove("custom_tool_call");
+                tool_call.remove("builtin_tool");
+                tool_call.remove("encrypted_content");
             }
         }
     }
@@ -1179,7 +1201,7 @@ mod tests {
     }
 
     #[test]
-    fn test_openai_stream_from_universal_omits_custom_tool_call_marker() {
+    fn test_openai_stream_from_universal_omits_universal_tool_metadata() {
         let adapter = OpenAIAdapter;
         let chunk = UniversalStreamChunk::new(
             None,
@@ -1194,6 +1216,7 @@ mod tests {
                         "id": "call_1",
                         "type": "function",
                         "custom_tool_call": true,
+                        "encrypted_content": "provider-signature",
                         "function": {
                             "name": "exec",
                             "arguments": ""
@@ -1217,6 +1240,7 @@ mod tests {
                     "delta": {
                         "role": "assistant",
                         "content": null,
+                        "reasoning_signature": "provider-signature",
                         "tool_calls": [{
                             "index": 0,
                             "id": "call_1",

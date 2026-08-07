@@ -442,6 +442,14 @@ impl TryFromLLM<GoogleContent> for Message {
                     }
                 }
 
+                if !user_parts.is_empty() && !tool_parts.is_empty() {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "mixed Google user content containing ordinary user parts and tool responses"
+                            .to_string(),
+                        to: "a single universal message",
+                    });
+                }
+
                 if !tool_parts.is_empty() {
                     Ok(Message::Tool {
                         content: tool_parts,
@@ -2104,6 +2112,35 @@ mod tests {
         let roundtrip = <GoogleContent as TryFromLLM<Message>>::try_from(universal)
             .expect("built-in tool result should export");
         assert_eq!(roundtrip, original);
+    }
+
+    #[test]
+    fn test_google_mixed_user_and_tool_response_is_rejected_without_dropping_content() {
+        let original = GoogleContent {
+            role: Some("user".to_string()),
+            parts: Some(vec![
+                text_part("Use this provider result when answering.".to_string()),
+                GooglePart {
+                    tool_response: Some(GoogleToolResponse {
+                        id: Some("google-search-1".to_string()),
+                        response: Some(Map::from_iter([(
+                            "result".to_string(),
+                            Value::String("Lingua".to_string()),
+                        )])),
+                        tool_type: Some(GoogleToolType::GoogleSearchWeb),
+                    }),
+                    ..Default::default()
+                },
+            ]),
+        };
+
+        let error = <Message as TryFromLLM<GoogleContent>>::try_from(original)
+            .expect_err("mixed user and tool-response parts must not be silently truncated");
+
+        assert!(matches!(error, ConvertError::UnsupportedMapping { .. }));
+        assert!(error.to_string().contains(
+            "mixed Google user content containing ordinary user parts and tool responses"
+        ));
     }
 
     #[test]

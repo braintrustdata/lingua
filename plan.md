@@ -11,6 +11,8 @@
 - Non-streaming response finish-reason detection recognizes only ordinary function calls, so a built-in call paired with Google `STOP` is incorrectly classified as a completed turn.
 - Universal streaming encodes provider-executed built-in identity inside the open-ended tool-call `type` string, which leaks an internal marker and can misclassify a legitimate type with the same prefix.
 - Google streaming collapses every part-level `thoughtSignature` into one chunk-level signature, so multiple signed tool calls can receive the wrong or duplicated signature on export.
+- A Google `user` content containing both ordinary user parts and tool responses is collapsed to only `Message::Tool`, silently deleting the text/image/file prompt parts.
+- Ordinary Google streaming function calls still share chunk-level signature storage, so a signed mixed text/reasoning + function-call chunk cannot preserve which original part owned the signature.
 
 ## Target files
 
@@ -22,6 +24,8 @@
 - `crates/lingua/src/providers/google/convert.rs`
 - `crates/lingua/src/providers/google/adapter.rs`
 - `crates/lingua/src/providers/google/params.rs`
+- `crates/lingua/src/processing/transform.rs`
+- `crates/lingua/src/providers/openai/adapter.rs`
 - `payloads/cases/advanced.ts`
 - `payloads/cases/params.ts`
 - Generated TypeScript universal bindings produced by `make generate-types`
@@ -34,7 +38,10 @@
 - Built-in call/result correlation IDs are optional so a missing Google ID round-trips as absent rather than being rejected or synthesized. Real IDs remain unchanged.
 - Native Google streaming `toolCall` parts become typed universal built-in tool-call deltas, set the `tool_calls` finish reason, and round-trip back to Google. Streaming targets that cannot represent the built-in identity fail explicitly instead of treating it as a function call.
 - Universal tool-call deltas carry optional typed built-in identity and per-call encrypted content. The open-ended `type` field contains only a stable discriminator, never encoded provider semantics.
-- Google streaming preserves each function or built-in call's `thoughtSignature` on that call. Text/reasoning signatures remain chunk-level and are never copied onto tool calls.
+- Google streaming preserves each ordinary function or built-in call's `thoughtSignature` on that call. Text/reasoning signatures remain chunk-level and are never copied onto tool calls.
+- Mixed Google user/tool-response content fails explicitly at conversion instead of silently dropping user parts until the universal model supports an order-preserving mixed representation.
+- Chat Completions streaming strips universal-only per-call signature and built-in identity fields before emitting provider wire output.
+- A lone signed function call with no text/reasoning may promote between chunk-level and per-call storage for compatibility; mixed or parallel chunks never share that fallback.
 - Built-in calls carry optional opaque `encrypted_content`, allowing Google `thoughtSignature` values to survive non-streaming and full-response streaming roundtrips.
 - Non-streaming responses containing either ordinary or built-in tool calls use the canonical `ToolCalls` finish reason.
 - Providers that cannot represent a provider-executed builtin return an explicit unsupported-mapping error instead of silently dropping it.
@@ -48,11 +55,14 @@
 - Add Google converter tests for built-in calls and responses with absent IDs.
 - Add Google streaming tests for typed built-in call conversion, absent-ID preservation, Google roundtrip, finish-reason handling, and explicit rejection by non-Google targets.
 - Add Google streaming tests for multiple independently signed built-in calls and a separately signed text part.
+- Add a Google converter test proving mixed user parts and built-in results return a descriptive unsupported-mapping error.
+- Add Google streaming tests proving signed text + ordinary function calls and parallel signed ordinary calls preserve independent signatures.
+- Add stream-synthesis and Chat Completions serialization tests for per-call signature ownership without provider-wire leakage.
 - Add universal stream serialization and stream-merge tests for typed built-in identity and per-call encrypted content.
 - Add a Google built-in call test with `thoughtSignature` and assert exact non-streaming roundtrip preservation.
 - Add a Google response test proving a built-in call overrides provider `STOP` with canonical `ToolCalls`.
 - Add Google params/adapter tests proving unmapped `generationConfig` fields survive while canonical temperature/reasoning/response-format values take precedence.
-- Keep payload cases `googleProviderExecutedToolRoundtrip` and `audioTranscriptionConfigParam`; recapture after the logic fix.
+- Keep payload cases `googleProviderExecutedToolRoundtrip` and `audioTranscriptionConfigParam`; recapture after the logic fix. The intentionally unsupported mixed user/tool-response shape remains a converter unit regression because payload cases must round-trip through the universal model.
 - Update existing universal/provider tests for optional tool names and builtin identities.
 
 ## Expected-diff impact

@@ -769,15 +769,12 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             custom_tool_call: matches!(arguments, ToolCallArguments::Custom(_))
                                 .then_some(true),
                             builtin_tool: None,
-                            encrypted_content: None,
+                            encrypted_content: encrypted_content.clone(),
                             function: Some(UniversalToolFunctionDelta {
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
                             }),
                         });
-                        if reasoning_signature.is_none() {
-                            reasoning_signature = encrypted_content.clone();
-                        }
                     }
                     AssistantContentPart::BuiltinToolCall {
                         tool_call_id,
@@ -1139,7 +1136,9 @@ where
 mod tests {
     use super::*;
     use crate::serde_json::json;
-    use crate::universal::{ResponseRequirement, ServedServiceTier, UserContent, UserContentPart};
+    use crate::universal::{
+        FinishReason, ResponseRequirement, ServedServiceTier, UserContent, UserContentPart,
+    };
 
     fn to_bytes(value: &Value) -> Bytes {
         Bytes::from(crate::serde_json::to_vec(value).unwrap())
@@ -2414,6 +2413,67 @@ mod tests {
         assert_eq!(output["item"]["input"], json!(""));
         assert_eq!(output["item"]["call_id"], json!("call_custom"));
         assert_eq!(output["item"]["name"], json!("exec"));
+    }
+
+    #[test]
+    fn test_response_to_stream_chunk_preserves_tool_call_signatures_per_call() {
+        let response = UniversalResponse {
+            id: None,
+            id_format: None,
+            model: Some("gemini-3.5-flash".to_string()),
+            messages: vec![Message::Assistant {
+                id: None,
+                content: AssistantContent::Array(vec![
+                    AssistantContentPart::Reasoning {
+                        text: "Choosing tools".to_string(),
+                        encrypted_content: Some("reasoning-signature".to_string()),
+                    },
+                    AssistantContentPart::ToolCall {
+                        tool_call_id: "call_1".to_string(),
+                        tool_name: "first".to_string(),
+                        arguments: ToolCallArguments::from("{}".to_string()),
+                        status: None,
+                        caller: None,
+                        encrypted_content: Some("first-signature".to_string()),
+                        provider_options: None,
+                        provider_executed: None,
+                    },
+                    AssistantContentPart::ToolCall {
+                        tool_call_id: "call_2".to_string(),
+                        tool_name: "second".to_string(),
+                        arguments: ToolCallArguments::from("{}".to_string()),
+                        status: None,
+                        caller: None,
+                        encrypted_content: Some("second-signature".to_string()),
+                        provider_options: None,
+                        provider_executed: None,
+                    },
+                ]),
+            }],
+            usage: None,
+            served_service_tier: None,
+            finish_reason: Some(FinishReason::ToolCalls),
+            finish_reasons: vec![FinishReason::ToolCalls],
+        };
+
+        let chunk = response_to_stream_chunk(response, ProviderFormat::Google);
+        let delta = chunk.choices[0]
+            .delta_view()
+            .expect("delta should be present");
+
+        assert_eq!(
+            delta.reasoning_signature.as_deref(),
+            Some("reasoning-signature")
+        );
+        let signatures: Vec<_> = delta
+            .tool_calls
+            .iter()
+            .map(|tool_call| tool_call.encrypted_content.as_deref())
+            .collect();
+        assert_eq!(
+            signatures,
+            vec![Some("first-signature"), Some("second-signature")]
+        );
     }
 
     #[test]
