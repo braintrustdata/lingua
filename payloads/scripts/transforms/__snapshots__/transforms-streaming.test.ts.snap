@@ -3785,26 +3785,6 @@ data: {"type":"message_stop"}
 "
 `;
 
-exports[`streaming: chat-completions → anthropic > bedrockAnthropicOpus48SamplingParams > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_011CdottKxyiYniEgPeXjXAN","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":1,"prompt_tokens":10,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":11}}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"Hi","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"!","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":" How can I help you today?","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"object":"chat.completion.chunk","usage":{"completion_tokens":12,"prompt_tokens":10,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":22}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → anthropic > complexReasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"msg_01Jbqq7pu2VC5ixYeKCSgU7y","model":"claude-sonnet-4-5-20250929","object":"chat.completion.chunk","usage":{"completion_tokens":4,"prompt_tokens":80,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":84}}
 
@@ -4989,16 +4969,16 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → bedrock > bedrockAnthropicOpus48SamplingParams > streaming 1`] = `
+exports[`streaming: chat-completions → bedrock > bedrockAnthropicOpus48SamplingParam > streaming 1`] = `
 "data: {"choices":[],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":"Hi!","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[{"delta":{"content":" ","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":"👋 How can I help you","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":"👋 How can I help you today","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
-data: {"choices":[{"delta":{"content":" today?","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
+data: {"choices":[{"delta":{"content":"?","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
 
 data: {"choices":[],"object":"chat.completion.chunk"}
 
@@ -7449,18 +7429,6 @@ data: [DONE]
 "
 `;
 
-exports[`streaming: chat-completions → google > bedrockAnthropicOpus48SamplingParams > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"Hi there! How can I help you today","role":"assistant"},"finish_reason":null,"index":0}],"id":"1il2auaCBLu2_uMP9u_A0As","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":101,"completion_tokens_details":{"reasoning_tokens":92},"prompt_tokens":4,"total_tokens":105}}
-
-data: {"choices":[{"delta":{"content":"?","role":"assistant"},"finish_reason":null,"index":0}],"id":"1il2auaCBLu2_uMP9u_A0As","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":102,"completion_tokens_details":{"reasoning_tokens":92},"prompt_tokens":4,"total_tokens":106}}
-
-data: {"choices":[{"delta":{"content":"","reasoning_signature":"EskDCsYDARFNMg8LPu1bSZ5mnFwGiI+LPDuyVrQf8wFPiXExAdEyMRXs272ngzAtY/qYnQK2/noXNzVEZrrp+7/L45Vpwl4k6ol6+UsiALgPuN3IvfUuUXUmlsEnby3+8tqXjxiu9CvierfpztfzE3OsXIuYl7smjUs5FEu5x0vde3bYDxYQygbRVOQU7xKBxSfTsRrsOwNghLDrIHrw+fN0FPwVHZ8nlezaoXhHnQxLAVlq3wvBF9xsVRJScuvhWXU+YgQ43EJdo+ZShI/Ue8y+XIh12sKkiQf6E9EQxdsstpVA+8/QzJAsF/CRQUOFjoAnsZDv/LUdg9mUrgdhkswoZMfKQ/Bvw5t7nvs6IcPtT4XGgozT6h2GDWF/oRHZFnJwS84/+aDp69o+DdTlAzlzEFeIttVKgPswrapZdeG0g6OQ+30GmSJl4922eZ3xho9y/Tuu9iWjDeOXHPwidw8Crfdd6U626EneHE0UEc2OGxHiVOruEAgzedE6JvixJ109+IE7mC3ZOnjEwfa7IQHhruOIgXBycKeWm3HLLBuRYHXnNV6McqqdlbkeomPll8+sGp39O4gklAXlAabrR6RHtQeb1LZ0ZrECxA==","role":"assistant"},"finish_reason":"stop","index":0}],"id":"1il2auaCBLu2_uMP9u_A0As","model":"gemini-3.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":102,"completion_tokens_details":{"reasoning_tokens":92},"prompt_tokens":4,"total_tokens":106}}
-
-data: [DONE]
-
-"
-`;
-
 exports[`streaming: chat-completions → google > complexReasoningRequest > streaming 1`] = `
 "data: {"choices":[{"delta":{"content":"Let's break this down systematically.\\n\\nA digital clock displays times in","role":"assistant"},"finish_reason":null,"index":0}],"id":"8jr6aYKJCLKd1MkP5tvE4AI","model":"gemini-2.5-flash","object":"chat.completion.chunk","usage":{"completion_tokens":2805,"completion_tokens_details":{"reasoning_tokens":2790},"prompt_tokens":75,"total_tokens":2880}}
 
@@ -7649,32 +7617,6 @@ exports[`streaming: chat-completions → google > toolCallRequest > streaming 1`
 "data: {"choices":[{"delta":{"content":"","reasoning_signature":"EjQKMgEMOdbHTgRYBNQtNR9sgWEfwUGQbNhOHU2bfSEWtjUB1Kts3fgqhmTPxXykxpRU+kAn","role":"assistant","tool_calls":[{"function":{"arguments":"{\\"location\\":\\"San Francisco, CA\\"}","name":"get_weather"},"id":"xvpg3q0n","index":0,"type":"function"}]},"finish_reason":null,"index":0}],"id":"YVv7abiQBKW-_uMP26n_QA","model":"gemini-3-flash-preview","object":"chat.completion.chunk","usage":{"completion_tokens":19,"prompt_tokens":73,"total_tokens":92}}
 
 data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":"stop","index":0}],"id":"YVv7abiQBKW-_uMP26n_QA","model":"gemini-3-flash-preview","object":"chat.completion.chunk","usage":{"completion_tokens":19,"prompt_tokens":73,"total_tokens":92}}
-
-data: [DONE]
-
-"
-`;
-
-exports[`streaming: chat-completions → responses > bedrockAnthropicOpus48SamplingParams > streaming 1`] = `
-"data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_078108eb4f6b550e006a7629d60bc481a1ad493880b3f8dc5f","model":"gpt-5.6-terra","object":"chat.completion.chunk","service_tier":"auto"}
-
-data: {"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"id":"resp_078108eb4f6b550e006a7629d60bc481a1ad493880b3f8dc5f","model":"gpt-5.6-terra","object":"chat.completion.chunk","service_tier":"auto"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"Hi","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{"content":"!","role":"assistant"},"finish_reason":null,"index":0}],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[],"object":"chat.completion.chunk"}
-
-data: {"choices":[{"delta":{},"finish_reason":"stop","index":0}],"id":"resp_078108eb4f6b550e006a7629d60bc481a1ad493880b3f8dc5f","model":"gpt-5.6-terra","object":"chat.completion.chunk","service_tier":"default","usage":{"completion_tokens":6,"prompt_tokens":9,"prompt_tokens_details":{"cached_tokens":0},"total_tokens":15}}
 
 data: [DONE]
 

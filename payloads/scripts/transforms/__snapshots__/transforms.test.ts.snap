@@ -8416,7 +8416,7 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
 }
 `;
 
-exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParams > request 1`] = `
+exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParam > request 1`] = `
 {
   "max_tokens": 4096,
   "messages": [
@@ -8430,7 +8430,7 @@ exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParams >
 }
 `;
 
-exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParams > response 1`] = `
+exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParam > response 1`] = `
 {
   "choices": [
     {
@@ -8444,7 +8444,7 @@ exports[`chat-completions → anthropic > bedrockAnthropicOpus48SamplingParams >
     },
   ],
   "created": 0,
-  "id": "chatcmpl-011CdottDqdgY31gWu8d6Edz",
+  "id": "chatcmpl-011CdovF623Jm1vN5qyVJ7UF",
   "model": "claude-sonnet-4-5-20250929",
   "object": "chat.completion",
   "usage": {
@@ -11567,7 +11567,7 @@ exports[`chat-completions → anthropic > topPReasoningModelParam > response 1`]
 }
 `;
 
-exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParams > request 1`] = `
+exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParam > request 1`] = `
 {
   "messages": [
     {
@@ -11583,7 +11583,7 @@ exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParams > r
 }
 `;
 
-exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParams > response 1`] = `
+exports[`chat-completions → bedrock > bedrockAnthropicOpus48SamplingParam > response 1`] = `
 {
   "choices": [
     {
@@ -14714,7 +14714,7 @@ exports[`chat-completions → bedrock > topPReasoningModelParam > response 1`] =
 }
 `;
 
-exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParams > request 1`] = `
+exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParam > request 1`] = `
 {
   "contents": [
     {
@@ -14734,7 +14734,7 @@ exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParams > re
 }
 `;
 
-exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParams > response 1`] = `
+exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParam > response 1`] = `
 {
   "choices": [
     {
@@ -14752,12 +14752,12 @@ exports[`chat-completions → google > bedrockAnthropicOpus48SamplingParams > re
   "model": "gemini-3.5-flash",
   "object": "chat.completion",
   "usage": {
-    "completion_tokens": 86,
+    "completion_tokens": 116,
     "completion_tokens_details": {
-      "reasoning_tokens": 76,
+      "reasoning_tokens": 106,
     },
     "prompt_tokens": 4,
-    "total_tokens": 90,
+    "total_tokens": 120,
   },
 }
 `;
@@ -18323,7 +18323,7 @@ exports[`chat-completions → google > topPReasoningModelParam > response 1`] = 
 }
 `;
 
-exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParams > request 1`] = `
+exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParam > request 1`] = `
 {
   "input": [
     {
@@ -18336,7 +18336,7 @@ exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParams >
 }
 `;
 
-exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParams > response 1`] = `
+exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParam > response 1`] = `
 {
   "choices": [
     {
@@ -18350,7 +18350,7 @@ exports[`chat-completions → responses > bedrockAnthropicOpus48SamplingParams >
     },
   ],
   "created": 0,
-  "id": "chatcmpl-0b03505ac56632ce006a7629d4b11c819e936c17a8ab868db8",
+  "id": "chatcmpl-06f639bd05fe5cbe006a762e0271b4819db3a540687ab0bc83",
   "model": "gpt-5.6-terra",
   "object": "chat.completion",
   "service_tier": "default",

@@ -7,7 +7,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "Hi! "
+        "text": "Hi!"
       },
       "contentBlockIndex": 0
     }
@@ -15,7 +15,7 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": "👋 How can I help you"
+        "text": " "
       },
       "contentBlockIndex": 0
     }
@@ -23,7 +23,15 @@
   {
     "contentBlockDelta": {
       "delta": {
-        "text": " today?"
+        "text": "👋 How can I help you today"
+      },
+      "contentBlockIndex": 0
+    }
+  },
+  {
+    "contentBlockDelta": {
+      "delta": {
+        "text": "?"
       },
       "contentBlockIndex": 0
     }
@@ -46,7 +54,7 @@
         "totalTokens": 28
       },
       "metrics": {
-        "latencyMs": 1291
+        "latencyMs": 1355
       }
     }
   }

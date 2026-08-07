@@ -2306,9 +2306,9 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
-  bedrockAnthropicOpus48SamplingParams: {
+  bedrockAnthropicOpus48SamplingParam: {
     "chat-completions": {
-      model: "global.anthropic.claude-opus-4-8",
+      model: OPENAI_NON_REASONING_MODEL,
       messages: [{ role: "user", content: "Say hi." }],
       temperature: 0.7,
     },
