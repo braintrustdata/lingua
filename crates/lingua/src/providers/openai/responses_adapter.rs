@@ -562,6 +562,7 @@ fn responses_tool_call_start_chunk(
                         name: Some(name.to_string()),
                         arguments: Some(String::new()),
                     }),
+                    ..Default::default()
                 }]
             })),
             finish_reason: None,
@@ -591,6 +592,7 @@ fn responses_tool_call_arguments_delta_chunk(
                         name: None,
                         arguments: Some(arguments),
                     }),
+                    ..Default::default()
                 }]
             })),
             finish_reason: None,

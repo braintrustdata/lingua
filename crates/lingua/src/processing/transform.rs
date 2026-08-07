@@ -707,17 +707,18 @@ pub(crate) fn ensure_stream_builtin_tools_supported(
         return Ok(());
     }
 
-    let builtin_call_type = chunk
+    let builtin_tool = chunk
         .choices
         .iter()
         .filter_map(UniversalStreamChoice::delta_view)
         .flat_map(|delta| delta.tool_calls)
-        .filter_map(|tool_call| tool_call.call_type)
-        .find(|call_type| call_type.starts_with("builtin:"));
+        .find_map(|tool_call| tool_call.builtin_tool);
 
-    if let Some(call_type) = builtin_call_type {
+    if let Some(builtin_tool) = builtin_tool {
         return Err(TransformError::FromUniversalFailed(format!(
-            "target format {target_format:?} cannot represent streaming built-in tool call `{call_type}`"
+            "target format {target_format:?} cannot represent streaming {} built-in tool `{}`",
+            builtin_tool.provider.label(),
+            builtin_tool.builtin_type
         )));
     }
 
@@ -757,6 +758,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         tool_call_id,
                         tool_name,
                         arguments,
+                        encrypted_content,
                         ..
                     } => {
                         let tool_call_index = tool_calls.len() as u32;
@@ -766,11 +768,16 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             call_type: Some("function".to_string()),
                             custom_tool_call: matches!(arguments, ToolCallArguments::Custom(_))
                                 .then_some(true),
+                            builtin_tool: None,
+                            encrypted_content: None,
                             function: Some(UniversalToolFunctionDelta {
                                 name: Some(tool_name.clone()),
                                 arguments: Some(arguments.to_string()),
                             }),
                         });
+                        if reasoning_signature.is_none() {
+                            reasoning_signature = encrypted_content.clone();
+                        }
                     }
                     AssistantContentPart::BuiltinToolCall {
                         tool_call_id,
@@ -784,20 +791,15 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         tool_calls.push(UniversalToolCallDelta {
                             index: Some(tool_call_index),
                             id: tool_call_id.clone(),
-                            call_type: Some(format!(
-                                "builtin:{}:{}",
-                                builtin_tool.provider.label(),
-                                builtin_tool.builtin_type
-                            )),
+                            call_type: Some("builtin_tool_call".to_string()),
                             custom_tool_call: None,
+                            builtin_tool: Some(builtin_tool.clone()),
+                            encrypted_content: encrypted_content.clone(),
                             function: Some(UniversalToolFunctionDelta {
                                 name: tool_name.clone(),
                                 arguments: arguments.as_ref().map(ToString::to_string),
                             }),
                         });
-                        if reasoning_signature.is_none() {
-                            reasoning_signature = encrypted_content.clone();
-                        }
                     }
                     AssistantContentPart::File { .. }
                     | AssistantContentPart::ToolResult { .. }

@@ -799,6 +799,12 @@ fn merge_tool_call_deltas(
             if incoming_tool_call.call_type.is_some() {
                 existing_tool_call.call_type = incoming_tool_call.call_type;
             }
+            if incoming_tool_call.builtin_tool.is_some() {
+                existing_tool_call.builtin_tool = incoming_tool_call.builtin_tool;
+            }
+            if incoming_tool_call.encrypted_content.is_some() {
+                existing_tool_call.encrypted_content = incoming_tool_call.encrypted_content;
+            }
             match (
                 &mut existing_tool_call.function,
                 incoming_tool_call.function,
@@ -1489,6 +1495,59 @@ mod tests {
                 .as_ref()
                 .and_then(|function| function.arguments.as_deref()),
             Some("{\"q\":\"camera\"}")
+        );
+    }
+
+    #[test]
+    fn merge_stream_chunks_preserves_builtin_identity_and_per_call_signature() {
+        let merged = merge_universal_stream_chunks(vec![
+            stream_chunk(
+                0,
+                Some(json!({
+                    "tool_calls": [{
+                        "index": 0,
+                        "type": "builtin_tool_call",
+                        "builtin_tool": {
+                            "provider": "google",
+                            "builtin_type": "GOOGLE_SEARCH_WEB"
+                        },
+                        "encrypted_content": "search_signature"
+                    }]
+                })),
+                None,
+            ),
+            stream_chunk(
+                0,
+                Some(json!({
+                    "tool_calls": [{
+                        "index": 0,
+                        "function": {
+                            "arguments": "{\"query\":\"Lingua\"}"
+                        }
+                    }]
+                })),
+                Some("tool_calls"),
+            ),
+        ])
+        .expect("chunks should merge");
+
+        let delta: UniversalStreamDelta =
+            lingua::serde_json::from_value(merged.choices[0].delta.clone().unwrap()).unwrap();
+        let tool_call = &delta.tool_calls[0];
+        assert_eq!(
+            tool_call.builtin_tool.as_ref().unwrap().provider,
+            lingua::universal::BuiltinToolProvider::Google
+        );
+        assert_eq!(
+            tool_call.encrypted_content.as_deref(),
+            Some("search_signature")
+        );
+        assert_eq!(
+            tool_call
+                .function
+                .as_ref()
+                .and_then(|function| function.arguments.as_deref()),
+            Some("{\"query\":\"Lingua\"}")
         );
     }
 }

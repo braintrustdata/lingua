@@ -7,6 +7,7 @@ structure as the canonical representation.
 */
 
 use crate::serde_json::{self, Value};
+use crate::universal::message::BuiltinToolIdentity;
 use crate::universal::response::{ServedServiceTier, UniversalUsage};
 use serde::{Deserialize, Serialize};
 
@@ -51,6 +52,12 @@ pub struct UniversalToolCallDelta {
     pub call_type: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_tool_call: Option<bool>,
+    /// Typed identity for provider-executed built-in calls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub builtin_tool: Option<BuiltinToolIdentity>,
+    /// Opaque provider data that must be replayed with this specific call.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encrypted_content: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub function: Option<UniversalToolFunctionDelta>,
 }
@@ -404,5 +411,48 @@ mod tests {
         assert_eq!(parsed.reasoning.len(), 1);
         assert_eq!(parsed.reasoning[0].content.as_deref(), Some("thought"));
         assert_eq!(parsed.reasoning_signature.as_deref(), Some("sig_123"));
+    }
+
+    #[test]
+    fn test_stream_delta_builtin_tool_identity_and_signature_from_into_value() {
+        use crate::universal::tools::BuiltinToolProvider;
+
+        let delta = UniversalStreamDelta {
+            tool_calls: vec![UniversalToolCallDelta {
+                index: Some(0),
+                call_type: Some("builtin_tool_call".to_string()),
+                builtin_tool: Some(BuiltinToolIdentity {
+                    provider: BuiltinToolProvider::Google,
+                    builtin_type: "GOOGLE_SEARCH_WEB".to_string(),
+                }),
+                encrypted_content: Some("call_signature".to_string()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let value = Value::from(delta);
+        assert_eq!(
+            value["tool_calls"][0]["builtin_tool"],
+            crate::serde_json::json!({
+                "provider": "google",
+                "builtin_type": "GOOGLE_SEARCH_WEB"
+            })
+        );
+        assert_eq!(
+            value["tool_calls"][0]["encrypted_content"],
+            "call_signature"
+        );
+
+        let parsed: UniversalStreamDelta = serde_json::from_value(value).unwrap();
+        let tool_call = &parsed.tool_calls[0];
+        assert_eq!(
+            tool_call.builtin_tool.as_ref().unwrap().provider,
+            BuiltinToolProvider::Google
+        );
+        assert_eq!(
+            tool_call.encrypted_content.as_deref(),
+            Some("call_signature")
+        );
     }
 }

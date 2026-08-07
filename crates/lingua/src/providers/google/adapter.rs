@@ -27,12 +27,10 @@ use crate::providers::google::generated::{
 use crate::providers::google::params::GoogleParams;
 use crate::serde_json::{self, Map, Value};
 use crate::universal::convert::TryFromLLM;
-use crate::universal::message::{
-    AssistantContent, AssistantContentPart, BuiltinToolIdentity, Message,
-};
+use crate::universal::message::{AssistantContent, AssistantContentPart, Message};
 use crate::universal::reasoning::{budget_to_effort, effort_to_budget, MIN_THINKING_BUDGET};
 use crate::universal::request::ToolChoiceConfig;
-use crate::universal::tools::{BuiltinToolProvider, UniversalTool};
+use crate::universal::tools::UniversalTool;
 use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
@@ -152,39 +150,6 @@ struct GoogleStreamPart {
     function_call: Option<Map<String, Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tool_call: Option<GoogleToolCall>,
-}
-
-fn builtin_stream_call_type(identity: &BuiltinToolIdentity) -> String {
-    format!(
-        "builtin:{}:{}",
-        identity.provider.label(),
-        identity.builtin_type
-    )
-}
-
-fn builtin_identity_from_stream_call_type(
-    call_type: Option<&str>,
-) -> Result<Option<BuiltinToolIdentity>, TransformError> {
-    let Some(call_type) = call_type else {
-        return Ok(None);
-    };
-    let Some(encoded_identity) = call_type.strip_prefix("builtin:") else {
-        return Ok(None);
-    };
-    let Some((provider, builtin_type)) = encoded_identity.split_once(':') else {
-        return Err(TransformError::FromUniversalFailed(format!(
-            "invalid built-in stream tool-call type `{call_type}`"
-        )));
-    };
-    if provider != BuiltinToolProvider::Google.label() {
-        return Err(TransformError::FromUniversalFailed(format!(
-            "Google streaming cannot represent {provider} built-in tool `{builtin_type}`"
-        )));
-    }
-    Ok(Some(BuiltinToolIdentity {
-        provider: BuiltinToolProvider::Google,
-        builtin_type: builtin_type.to_string(),
-    }))
 }
 
 impl ProviderAdapter for GoogleAdapter {
@@ -816,7 +781,10 @@ impl ProviderAdapter for GoogleAdapter {
                 }
             }
             let text = text_segments.join("");
-            let reasoning_signature = parts.iter().find_map(|part| part.thought_signature.clone());
+            let reasoning_signature = parts
+                .iter()
+                .filter(|part| part.tool_call.is_none())
+                .find_map(|part| part.thought_signature.clone());
 
             let response_id = typed_payload.response_id.as_deref();
             let mut tool_call_index = 0_u32;
@@ -837,6 +805,8 @@ impl ProviderAdapter for GoogleAdapter {
                         }),
                         call_type: Some("function".to_string()),
                         custom_tool_call: None,
+                        builtin_tool: None,
+                        encrypted_content: None,
                         function: Some(UniversalToolFunctionDelta {
                             name: function_call.name.clone(),
                             arguments: function_call
@@ -857,8 +827,10 @@ impl ProviderAdapter for GoogleAdapter {
                     tool_calls.push(UniversalToolCallDelta {
                         index: Some(index),
                         id: tool_call.id.clone(),
-                        call_type: Some(builtin_stream_call_type(&identity)),
+                        call_type: Some("builtin_tool_call".to_string()),
                         custom_tool_call: None,
+                        builtin_tool: Some(identity),
+                        encrypted_content: part.thought_signature.clone(),
                         function: Some(UniversalToolFunctionDelta {
                             name: tool_call.tool_name.clone(),
                             arguments: tool_call
@@ -933,17 +905,10 @@ impl ProviderAdapter for GoogleAdapter {
                     .as_ref()
                     .and_then(|d| d.content.as_deref())
                     .unwrap_or("");
-                let has_tool_call_part = delta
-                    .as_ref()
-                    .is_some_and(|d| !d.tool_calls.is_empty());
                 let text_reasoning_signature = delta
                     .as_ref()
                     .and_then(|d| d.reasoning_signature.as_deref())
-                    .filter(|_| {
-                        delta.as_ref().is_none_or(|d| {
-                            !has_tool_call_part && (!text.is_empty() || d.reasoning.is_empty())
-                        })
-                    });
+                    .filter(|_| delta.as_ref().is_none_or(|d| !text.is_empty() || d.reasoning.is_empty()));
 
                 if let Some(ref d) = delta {
                     let reasoning_texts: Vec<&str> = d
@@ -955,9 +920,7 @@ impl ProviderAdapter for GoogleAdapter {
                         .collect();
                     let thought_reasoning_signature =
                         d.reasoning_signature.as_deref().filter(|_| {
-                            !reasoning_texts.is_empty()
-                                && text.is_empty()
-                                && !has_tool_call_part
+                            !reasoning_texts.is_empty() && text.is_empty()
                         });
 
                     for (index, text) in reasoning_texts.iter().enumerate() {
@@ -990,9 +953,7 @@ impl ProviderAdapter for GoogleAdapter {
                 // Add functionCall or provider-executed toolCall parts from tool_calls.
                 if let Some(ref d) = delta {
                     for tc in &d.tool_calls {
-                        if let Some(identity) = builtin_identity_from_stream_call_type(
-                            tc.call_type.as_deref(),
-                        )? {
+                        if let Some(identity) = tc.builtin_tool.as_ref() {
                             let args = tc
                                 .function
                                 .as_ref()
@@ -1016,12 +977,12 @@ impl ProviderAdapter for GoogleAdapter {
                                         .as_ref()
                                         .and_then(|function| function.name.clone()),
                                     tool_type: Some(google_tool_type_from_builtin_identity(
-                                        &identity,
+                                        identity,
                                     )?),
                                 }),
                                 ..Default::default()
                             };
-                            if let Some(ref signature) = d.reasoning_signature {
+                            if let Some(ref signature) = tc.encrypted_content {
                                 part.thought_signature = Some(signature.clone());
                             }
                             parts.push(part);
@@ -1867,6 +1828,7 @@ mod tests {
         );
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id.as_deref(), Some("call_response_123_0"));
+        assert_eq!(tool_call.encrypted_content, None);
     }
 
     #[test]
@@ -1879,6 +1841,7 @@ mod tests {
                 "content": {
                     "role": "model",
                     "parts": [{
+                        "thoughtSignature": "builtin_signature",
                         "toolCall": {
                             "toolName": "search_the_web",
                             "toolType": "GOOGLE_SEARCH_WEB",
@@ -1904,9 +1867,17 @@ mod tests {
         assert_eq!(choice.finish_reason.as_deref(), Some("tool_calls"));
         assert_eq!(tool_call.index, Some(0));
         assert_eq!(tool_call.id, None);
+        assert_eq!(tool_call.call_type.as_deref(), Some("builtin_tool_call"));
         assert_eq!(
-            tool_call.call_type.as_deref(),
-            Some("builtin:google:GOOGLE_SEARCH_WEB")
+            tool_call.builtin_tool.as_ref(),
+            Some(&crate::universal::message::BuiltinToolIdentity {
+                provider: crate::universal::tools::BuiltinToolProvider::Google,
+                builtin_type: "GOOGLE_SEARCH_WEB".to_string(),
+            })
+        );
+        assert_eq!(
+            tool_call.encrypted_content.as_deref(),
+            Some("builtin_signature")
         );
         let function = tool_call
             .function
@@ -1921,13 +1892,20 @@ mod tests {
         let roundtrip: GenerateContentResponse =
             serde_json::from_value(roundtrip).expect("stream response should deserialize");
         let roundtrip_candidates = roundtrip.candidates.unwrap();
-        let roundtrip_call = roundtrip_candidates[0]
+        let roundtrip_part = roundtrip_candidates[0]
             .content
             .as_ref()
             .and_then(|content| content.parts.as_ref())
             .and_then(|parts| parts.first())
-            .and_then(|part| part.tool_call.as_ref())
+            .expect("roundtrip should contain a part");
+        let roundtrip_call = roundtrip_part
+            .tool_call
+            .as_ref()
             .expect("roundtrip should contain toolCall");
+        assert_eq!(
+            roundtrip_part.thought_signature.as_deref(),
+            Some("builtin_signature")
+        );
         assert_eq!(roundtrip_call.id, None);
         assert_eq!(roundtrip_call.tool_name.as_deref(), Some("search_the_web"));
         assert_eq!(
@@ -1942,7 +1920,85 @@ mod tests {
         .expect_err("non-Google stream target must reject Google built-in identity");
         assert!(error
             .to_string()
-            .contains("cannot represent streaming built-in tool call"));
+            .contains("cannot represent streaming google built-in tool"));
+    }
+
+    #[test]
+    fn test_google_stream_preserves_signatures_per_builtin_tool_call() {
+        let adapter = GoogleAdapter;
+        let payload = json!({
+            "responseId": "response_builtin_signatures",
+            "candidates": [{
+                "index": 0,
+                "content": {
+                    "role": "model",
+                    "parts": [
+                        {
+                            "text": "Calling provider tools",
+                            "thoughtSignature": "text_signature"
+                        },
+                        {
+                            "thoughtSignature": "search_signature",
+                            "toolCall": {
+                                "toolType": "GOOGLE_SEARCH_WEB",
+                                "args": {"query": "Lingua"}
+                            }
+                        },
+                        {
+                            "thoughtSignature": "maps_signature",
+                            "toolCall": {
+                                "toolType": "GOOGLE_MAPS",
+                                "args": {"query": "San Francisco"}
+                            }
+                        }
+                    ]
+                },
+                "finishReason": "STOP"
+            }]
+        });
+
+        let chunk = adapter
+            .stream_to_universal(payload)
+            .unwrap()
+            .expect("stream chunk should be present");
+        let delta = chunk.choices[0]
+            .delta_view()
+            .expect("delta should be present");
+
+        assert_eq!(delta.reasoning_signature.as_deref(), Some("text_signature"));
+        assert_eq!(delta.tool_calls.len(), 2);
+        assert_eq!(
+            delta.tool_calls[0].encrypted_content.as_deref(),
+            Some("search_signature")
+        );
+        assert_eq!(
+            delta.tool_calls[1].encrypted_content.as_deref(),
+            Some("maps_signature")
+        );
+
+        let roundtrip = adapter
+            .stream_from_universal(&chunk)
+            .expect("signed built-in calls should export to Google");
+        let typed: GenerateContentResponse =
+            serde_json::from_value(roundtrip).expect("stream response should deserialize");
+        let candidates = typed.candidates.unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .expect("roundtrip should contain parts");
+        let signatures: Vec<_> = parts
+            .iter()
+            .map(|part| part.thought_signature.as_deref())
+            .collect();
+        assert_eq!(
+            signatures,
+            vec![
+                Some("text_signature"),
+                Some("search_signature"),
+                Some("maps_signature")
+            ]
+        );
     }
 
     #[test]

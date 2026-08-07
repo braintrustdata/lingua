@@ -9,11 +9,15 @@
 - Google declares built-in `ToolCall.id` and `ToolResponse.id` optional, but the universal built-in parts currently require a string and the converter rejects valid provider payloads with no ID.
 - Non-streaming Google built-in tool calls discard `Part.thoughtSignature`, so replaying provider-executed call history can fail Gemini signature validation.
 - Non-streaming response finish-reason detection recognizes only ordinary function calls, so a built-in call paired with Google `STOP` is incorrectly classified as a completed turn.
+- Universal streaming encodes provider-executed built-in identity inside the open-ended tool-call `type` string, which leaks an internal marker and can misclassify a legitimate type with the same prefix.
+- Google streaming collapses every part-level `thoughtSignature` into one chunk-level signature, so multiple signed tool calls can receive the wrong or duplicated signature on export.
 
 ## Target files
 
 - `crates/generate-types/src/main.rs`
 - `crates/lingua/src/universal/message.rs`
+- `crates/lingua/src/universal/stream.rs`
+- `crates/lingua/src/processing/transform.rs`
 - Provider adapters and import helpers that construct or consume universal tool calls/results
 - `crates/lingua/src/providers/google/convert.rs`
 - `crates/lingua/src/providers/google/adapter.rs`
@@ -29,6 +33,8 @@
 - Dedicated universal builtin-tool call and result parts carry an optional free-form name plus a typed identity (`provider` and `builtin_type`). Google server-side tool calls/results round-trip with `provider_executed: true` without fabricating a function name, while ordinary function-tool parts remain source-compatible.
 - Built-in call/result correlation IDs are optional so a missing Google ID round-trips as absent rather than being rejected or synthesized. Real IDs remain unchanged.
 - Native Google streaming `toolCall` parts become typed universal built-in tool-call deltas, set the `tool_calls` finish reason, and round-trip back to Google. Streaming targets that cannot represent the built-in identity fail explicitly instead of treating it as a function call.
+- Universal tool-call deltas carry optional typed built-in identity and per-call encrypted content. The open-ended `type` field contains only a stable discriminator, never encoded provider semantics.
+- Google streaming preserves each function or built-in call's `thoughtSignature` on that call. Text/reasoning signatures remain chunk-level and are never copied onto tool calls.
 - Built-in calls carry optional opaque `encrypted_content`, allowing Google `thoughtSignature` values to survive non-streaming and full-response streaming roundtrips.
 - Non-streaming responses containing either ordinary or built-in tool calls use the canonical `ToolCalls` finish reason.
 - Providers that cannot represent a provider-executed builtin return an explicit unsupported-mapping error instead of silently dropping it.
@@ -41,6 +47,8 @@
 - Add Google converter tests for named and unnamed provider-executed builtin calls and responses.
 - Add Google converter tests for built-in calls and responses with absent IDs.
 - Add Google streaming tests for typed built-in call conversion, absent-ID preservation, Google roundtrip, finish-reason handling, and explicit rejection by non-Google targets.
+- Add Google streaming tests for multiple independently signed built-in calls and a separately signed text part.
+- Add universal stream serialization and stream-merge tests for typed built-in identity and per-call encrypted content.
 - Add a Google built-in call test with `thoughtSignature` and assert exact non-streaming roundtrip preservation.
 - Add a Google response test proving a built-in call overrides provider `STOP` with canonical `ToolCalls`.
 - Add Google params/adapter tests proving unmapped `generationConfig` fields survive while canonical temperature/reasoning/response-format values take precedence.
