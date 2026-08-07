@@ -110,7 +110,7 @@ impl AzureAiGatewayProvider {
         }
         let status = response.status();
         let headers = response.headers().clone();
-        let text = response.text().await.unwrap_or_default();
+        let text = response.text().await?;
         Err(Error::Provider {
             provider: "azure_ai_gateway".to_string(),
             source: anyhow::anyhow!("HTTP {status}: {text}"),
@@ -164,7 +164,7 @@ impl Provider for AzureAiGatewayProvider {
         }
         let status = response.status();
         let headers = response.headers().clone();
-        let text = response.text().await.unwrap_or_default();
+        let text = response.text().await?;
         Err(Error::Provider {
             provider: "azure_ai_gateway".to_string(),
             source: anyhow::anyhow!("HTTP {status}: {text}"),

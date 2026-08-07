@@ -873,11 +873,14 @@ impl Router {
             && spec.requires_responses_api()
         {
             ProviderFormat::Responses
-        } else if matches!(provider.id(), "azure" | "azure_ai_gateway")
-            && catalog_format == ProviderFormat::Anthropic
-        {
-            // Anthropic on Azure and Azure AI Gateway only supports the messages
-            // format and isn’t interchangeable with other APIs.
+        } else if provider.id() == "azure_ai_gateway" {
+            // Azure AI Gateway has distinct endpoints for each provider format.
+            // Preserve the catalog transport rather than selecting a route from
+            // the caller's requested output format.
+            catalog_format
+        } else if provider.id() == "azure" && catalog_format == ProviderFormat::Anthropic {
+            // Anthropic on Azure only supports the messages format and isn’t
+            // interchangeable with other APIs.
             ProviderFormat::Anthropic
         } else if provider.id() == "anthropic" {
             // Native Anthropic has two endpoints: /v1/messages (Anthropic format) and the
@@ -2705,6 +2708,37 @@ mod tests {
         assert_eq!(routes.len(), 1);
         let (_, _, _, _, format) = routes[0];
         assert_eq!(format, ProviderFormat::ChatCompletions);
+    }
+
+    #[test]
+    fn azure_ai_gateway_preserves_chat_completions_transport_for_anthropic_output() {
+        let model = "gpt-5-mini";
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(model.into(), openai_spec(model, ModelFlavor::Chat));
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .add_provider(
+                "azure_ai_gateway",
+                FakeProvider {
+                    name: "azure_ai_gateway",
+                    formats: vec![
+                        ProviderFormat::ChatCompletions,
+                        ProviderFormat::Responses,
+                        ProviderFormat::Anthropic,
+                    ],
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+
+        let routes = router
+            .resolve_provider_routes(model, ProviderFormat::Anthropic, &[])
+            .expect("resolves");
+
+        assert_eq!(routes.len(), 1);
+        assert_eq!(routes[0].format, ProviderFormat::ChatCompletions);
     }
 
     #[test]
