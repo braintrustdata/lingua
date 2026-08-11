@@ -12,24 +12,23 @@ use crate::error::{Error, Result};
 
 use super::body_model::rewrite_body_model_if_required;
 
+const MAX_REMOTE_MEDIA_BYTES: usize = 5 * 1024 * 1024;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct RemoteMediaPolicy {
     pub(crate) inline_images: bool,
     pub(crate) inline_files: bool,
-    pub(crate) max_bytes: usize,
 }
 
 impl RemoteMediaPolicy {
     pub(crate) const GOOGLE: Self = Self {
         inline_images: true,
         inline_files: true,
-        max_bytes: 20 * 1024 * 1024,
     };
 
     pub(crate) const BEDROCK: Self = Self {
         inline_images: true,
         inline_files: false,
-        max_bytes: 5 * 1024 * 1024,
     };
 
     pub(crate) fn for_format(format: ProviderFormat) -> Option<Self> {
@@ -61,13 +60,13 @@ pub(crate) async fn prepare_request_with_remote_media(
     policy: RemoteMediaPolicy,
 ) -> Result<PreparedRemoteMediaRequest> {
     prepare_request_with_remote_media_and_fetch(body, spec, format, policy, |url| {
-        Box::pin(fetch_remote_media_as_base64(url, policy.max_bytes))
+        Box::pin(fetch_remote_media_as_base64(url))
     })
     .await
 }
 
-async fn fetch_remote_media_as_base64(url: &str, max_bytes: usize) -> Result<MediaBlock> {
-    lingua::util::media::convert_media_to_base64(url, None, Some(max_bytes))
+async fn fetch_remote_media_as_base64(url: &str) -> Result<MediaBlock> {
+    lingua::util::media::convert_media_to_base64(url, None, Some(MAX_REMOTE_MEDIA_BYTES))
         .await
         .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
 }
