@@ -531,7 +531,8 @@ fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> 
 
     for message in messages {
         let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
-            && matches!(message, Message::Assistant { .. });
+            && matches!(message, Message::Assistant { .. })
+            && !is_reasoning_only_response_message(&message);
 
         if !should_merge {
             merged.push(message);
@@ -2188,6 +2189,59 @@ mod tests {
         assert_eq!(response["choices"][0]["finish_reason"], "content_filter");
         assert_eq!(response["choices"][0]["message"]["role"], "assistant");
         assert!(response["choices"][0]["message"]["content"].is_null());
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_responses_distinct_reasoning_signatures_to_chat_completions() {
+        let payload = json!({
+            "id": "resp_123",
+            "object": "response",
+            "model": "gpt-5.6-luna",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "reasoning",
+                    "id": "rs_1",
+                    "summary": [],
+                    "encrypted_content": "signature_one"
+                },
+                {
+                    "type": "reasoning",
+                    "id": "rs_2",
+                    "summary": [],
+                    "encrypted_content": "signature_two"
+                },
+                {
+                    "type": "function_call",
+                    "id": "fc_1",
+                    "call_id": "call_1",
+                    "name": "lookup_weather",
+                    "arguments": "{}"
+                }
+            ]
+        });
+
+        let result = transform_response(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect("distinct reasoning signatures should remain separate choices")
+            .result
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(response["choices"].as_array().map(Vec::len), Some(2));
+        assert_eq!(
+            response["choices"][0]["message"]["reasoning_signature"],
+            "signature_one"
+        );
+        assert!(response["choices"][0]["message"]["tool_calls"].is_null());
+        assert_eq!(
+            response["choices"][1]["message"]["reasoning_signature"],
+            "signature_two"
+        );
+        assert_eq!(
+            response["choices"][1]["message"]["tool_calls"][0]["function"]["name"],
+            "lookup_weather"
+        );
     }
 
     #[test]

@@ -1,0 +1,49 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "id": "msg_011CdwjbNSZgoZAPxe7AL6Yi",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "thinking",
+      "thinking": "<thinking>\nThe user wants me to call both weather tools exactly once in parallel. They want:\n1. Weather in New York (using get_new_york_weather)\n2. Weather in Los Angeles (using get_los_angeles_weather)\n\nSince these two calls are independent of each other (no dependencies), I can make both calls in the same function_calls block. Both functions don't require any parameters.",
+      "signature": "Eu8ECpQBCBAYAipAHXvHmgRwREdhlJ3fEW1piOZb8yKcpxZCQ7nazslio2T+M1+bz/GWkkXSLSKDXG07yuwrNP+I9ZeFDjMnoMj2IzIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMa+ewXwewFEqKqB4wGgztwF/SbWpD/QWvLjkiMI90E1OUFI2SLNCXT957aJBtsAkLjhwU9/KdJmo2fFcew99KLczrX50HykrZVQIuaiqHA6l/vv3CE5l6SElCzYFbDbYTecX1Bv+zRQVrCXDbfN59cVa2VlvbmRoF4ydMT1VQs51ASw/FyxQgOkLlXYpJ/pSnh73iMsAyYPD3eESpsDxNJn3J0UjDHLyXNCvxkVECBKPOmOn4jhkT+mVlEG4h024n8O1fzMp27MSs7pId/46Mx2Wc6w6zkMEmVjj1ddU1mu5oNPd7zHjMId7tKDQ12eg64xdtfn91sFp0z/GFq02aLNVwSFiiDNPZF9czoBrELXts/rS8ei4qWJd+ptI6+tw+zbyCFUmJ7l8pW4HoqG3fe6NNzYSnwM9KaFHfavG9IAEID6h336znvAT+2467uMUqYGElv58Wj3p9noDIoZf0PXy3Qzb7ILKpqe6KPzHseoej2IEx8p59b0BFMboFYADz5UP0kxS+haDdT9VwRjKIvqDgG9XQoUEoK6GhPSu1B0FLuOeXxXICfnrmqucOzF96Ih5uyEV9psub9xEheaONpBLId6N4+K4v37j7DbMpOJzNAoz+FjkYAQ=="
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01L4fNRnzLNNrGmtZsNrFo52",
+      "name": "get_new_york_weather",
+      "input": {},
+      "caller": {
+        "type": "direct"
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "toolu_01L5qHBwzbNeU7tVTyPoDhng",
+      "name": "get_los_angeles_weather",
+      "input": {},
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "stop_details": null,
+  "usage": {
+    "input_tokens": 661,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 174,
+    "output_tokens_details": {
+      "thinking_tokens": 96
+    },
+    "service_tier": "standard",
+    "inference_geo": "not_available"
+  }
+}

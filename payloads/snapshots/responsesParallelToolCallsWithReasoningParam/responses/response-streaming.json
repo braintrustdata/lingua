@@ -1,0 +1,422 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_05e0a5e0350796a0006a7b9f4e2478819db202e96f5dc393b1",
+      "object": "response",
+      "created_at": 1786486606,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather in New York.",
+          "name": "get_new_york_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "function",
+          "description": "Get the current weather in Los Angeles.",
+          "name": "get_los_angeles_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_05e0a5e0350796a0006a7b9f4e2478819db202e96f5dc393b1",
+      "object": "response",
+      "created_at": 1786486606,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather in New York.",
+          "name": "get_new_york_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "function",
+          "description": "Get the current weather in Los Angeles.",
+          "name": "get_los_angeles_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_05e0a5e0350796a0006a7b9f4eb2d4819daafb3538ba1b02e6",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqe59O7wlrPCxYdF8Q5cL27RNrq3u8ZKYvcU5QJLvelovu5FFMyjHs-bSMczO6oyhmVcsyeUSF1mxuJ5p09tSJq1S5FaiXI6hDyntgKQV77Y-eIabNaLtJKB7_5HNRSm_qSfmhDkar4MLop4466VdyDPJ-4oi7gqcrZAz6o8WBpdTb540LWtdfjTV3GGGK4UZV_8qwS1ivKImgIQ8v-QVUodK2Oku_Fn4zfSdMq8xMY27cXzn8KUbntoAQ17_rPBcUQgk4TufSjcUzQnbzDmqwg9TeKhYO3RVzuwiRxD16webZP2uBaFNq-FRhDRmwC0BsnR7QE3lIBNQVlj3St_-uvHy-RDoa8GoelzIkq5Thdxrz--S7W-uEWG_qtZgafcvomtkycE8c8ViuS_8AGj7is7XJ-cl5i_mypcxtVk97koWnoomq_NhI5Zs76pVXzbXC4X25tRGhuu4cxcKPSz-Tu4s-7xe7wsb6mGwAz-S4hsKkFZuoCK-b2Qv17c_062BqJoHAFu8BwPDmFMaK9A-ab-PgyGpiKeidVSBg-tjVlj7XgSm_4ivd0Vti3ObYuAHzNP8ZHkSnyPg7RNKTaOka_X5tFeL-7nPZqxcSYD4wXUJ9M4rCR7JbMxLdkXEO5JE1fshb-CqFNsS1Q82HzmLYO0MOfYa5MzENyx9Nt8j9UjJbx0Q_sJwkOj2B4J5PI1_1i4xNUHafoK5ZIfpBTbeu1a5cugcxslIkHTnJFKP0Ee8MORxKSyRUoMpMY6efbo_zFDqEc5bMLRI364NH1jXUFidobDcOKcolpK4-LrX-sh0mp8Wajz8aUfFJg3U6bk6SLyNjdlkarSktwoyZM1n8_IkPhC1g5igyRRO6e-Oyn9vpPQ7WZElY8Aeeq32hu4maLaxB5YwGzLafeVY2k6G5t-ozPg==",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_05e0a5e0350796a0006a7b9f4eb2d4819daafb3538ba1b02e6",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqe59PpUqY7aVi2guMk97O-FFmF1Qf6gUpmd3EsEJ3l2Q9SX55K2Wu0S68QcfRgDjMB81ADq30TrDNg2rflO0q53EB2uCCHgIGhXk7uG8iuok2aRcU43B06lGUrya7RWKsQgTzsKEVqNg2IPUREAyRGYNR08b5LB0WQkbp1FH6z44vCOALL5un1MYQaLWFZ7zCj350Li5NUOJMgIsEgjI5UHSnG2otwDBaRe6JiKGGjeLVJyxNsFmqUHdRPB2-NJ4JECxYmRNSqpCuzETSLTioSbsvneR7uAoT0EfIIXVEs-gWyQfMCiKKqCi-L1fj4n5xRgOsoWDiUP0ZoFN9JkgKOEfjV2DLpfH9O5Vo4alz8hIiVNRVQsQ_hpF5mk-ryCb9smryN59PTrKwaWZrMAypN-M3_tQS1LBdNVeAPHELxghKdBWDfhfdZXruqlhDQbgogrFjbMWC6qcIa0gRJzM35s_zkXmLWjmeEigNWNTl9Z_XIC95ur6EORHoGZMailugOmleXR5WhCp8y8ijcgi2w3giDlzXA1SQ3zQfWSqUK5kX2DQuuc6pdl-MWbLkYxZSfkfe9ZPDPIJbf5cQJtt-CilWAdmvhXm3Og0haFjZ6LtrJANCLuD2CzeFuPeswlSh7psqQJMSOGrkVoXn91RXJAnswHk_-BA8-pbSOUbsOjC8UbUC2KczcNwhz9CHZaH0em45ExkU5vWucCTSgNPUAZJdNo6kseNscXvPreXY87wws4vrfffOsAQYY0wdg4o94gIp6C6tTojqbE4HiITiNHws4Y8E9QIMmlihgew8tyUSkjv-amTajO1Tx9XOSJ1pLEKA4K23WUapO2bZd_uq0mY-xULpq0dEXCWVEWDdtahwpIVpgEqxee7JtfNnVcfwsaRq8xq8zla0bQbUN_5byFsSOiPXVW5L-_lVhUm-Krwj6-Dxcmp1L07dwDTOGrjGztsb_f5EEiyYbVh33IRRXVMvEKp7i-rAQ7NrVaa_jHjYThU=",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_05e0a5e0350796a0006a7b9f4f3748819d853581beb1daccce",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_Sm9jgcgoP1jz6fxO6Unl7twZ",
+      "name": "get_new_york_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{}",
+    "item_id": "fc_05e0a5e0350796a0006a7b9f4f3748819d853581beb1daccce",
+    "obfuscation": "diYX0Plv63HBvU",
+    "output_index": 1,
+    "sequence_number": 5
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{}",
+    "item_id": "fc_05e0a5e0350796a0006a7b9f4f3748819d853581beb1daccce",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_05e0a5e0350796a0006a7b9f4f3748819d853581beb1daccce",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{}",
+      "call_id": "call_Sm9jgcgoP1jz6fxO6Unl7twZ",
+      "name": "get_new_york_weather"
+    },
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "fc_05e0a5e0350796a0006a7b9f4f3758819d93f41037ed1dbe7a",
+      "type": "function_call",
+      "status": "in_progress",
+      "arguments": "",
+      "call_id": "call_7cl6VbhtFare1EseddU9tzmg",
+      "name": "get_los_angeles_weather"
+    },
+    "output_index": 2,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.function_call_arguments.delta",
+    "delta": "{}",
+    "item_id": "fc_05e0a5e0350796a0006a7b9f4f3758819d93f41037ed1dbe7a",
+    "obfuscation": "HtFQdWRgoN6UxD",
+    "output_index": 2,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.function_call_arguments.done",
+    "arguments": "{}",
+    "item_id": "fc_05e0a5e0350796a0006a7b9f4f3758819d93f41037ed1dbe7a",
+    "output_index": 2,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "fc_05e0a5e0350796a0006a7b9f4f3758819d93f41037ed1dbe7a",
+      "type": "function_call",
+      "status": "completed",
+      "arguments": "{}",
+      "call_id": "call_7cl6VbhtFare1EseddU9tzmg",
+      "name": "get_los_angeles_weather"
+    },
+    "output_index": 2,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_05e0a5e0350796a0006a7b9f4e2478819db202e96f5dc393b1",
+      "object": "response",
+      "created_at": 1786486606,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1786486607,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-terra",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_05e0a5e0350796a0006a7b9f4eb2d4819daafb3538ba1b02e6",
+          "type": "reasoning",
+          "content": [],
+          "encrypted_content": "gAAAAABqe59PK0_WBP7YixHxMwi5anabSk702W_t5JVvLb3lNHPCI0bZRJ0o-Lpn7kia0HjvqD0DaUUzt0yhwUQUHLa5QaexrPz6mjTBfW6GxvdhdjjoN-3CDAaSs7gOHHkFAybcib7kg6PaOfiniRjhNvEv8jZHLZSlRoQ3K1B29l6crTNQ6JGBmDxrrsOeG-aT7BJ9yaxGIp82swOil8PA76SDGF0WznUa4kBaaNybtJgfG-foqLbZATic4YmbIY8OWD22U89nLBmaRzEgUNA3UYO9z8mqXVl1VxY8VLg4FyQFFVMC8xVwqHwIg93Bv0Te41s7Q43KPr1pZKcYaE-Oj4G-aobF8dTGIKK5s3qaBG9CQb9ip11ebXUfNh0ismN49IZSOQdVg3UsMctY13h3B8HLcmXhJI4daA2HOWG-_lg9u8GSETjSVybobV9SX_AU-6VGvuizEz6G3PnZaNgwx6UwEECH_h67luAKrxsZg0Awd2zkzYBArVlaNfv634aYIs00-v0uRCa9y1Y4_Gkv2yRbxtDq8CRyT16x6QNaUALd3lhhcTQNJCSHZPl8mzn_05Wh0FoJQpvRA-pmYJWrN1Bop7ab2qnfMBOD99063-Aq_uRRUKpIVEo8dbBqMj-Nq2ATa9EWoQTckjQJRfMg6nCEMFK3KAc_r4_6_49UP2yOzhvmKk-BkS14cKLZuVwW3VqYmtgc2MI26v3JaDkIgiwJMcmY86H5ccRsPfPombaodM_CmOCFToiec-Vl8Qoqkfs4yucRe8h6E6toGHAz9KvCFjJobbpl3cgamjRn4Aa1IDMb8ftxtR_DzZSFw0O4g8iqjpwQWP29A5lyKTC6fR895UT-YhwMTaCYAB36JhPNrlpaagbGT7_SZmcW6B0Nt5oNx7sn30lfkhAZWqAXJ7xdqhVTNG5KhBtft1nWUlG286WpzsMhZTvqXhcXG_ZvIUQd8vsrmaUSLHtI4h9SGHU98roeEcnpLNPZ8SQOcFgrcTF_Quw=",
+          "summary": []
+        },
+        {
+          "id": "fc_05e0a5e0350796a0006a7b9f4f3748819d853581beb1daccce",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{}",
+          "call_id": "call_Sm9jgcgoP1jz6fxO6Unl7twZ",
+          "name": "get_new_york_weather"
+        },
+        {
+          "id": "fc_05e0a5e0350796a0006a7b9f4f3758819d93f41037ed1dbe7a",
+          "type": "function_call",
+          "status": "completed",
+          "arguments": "{}",
+          "call_id": "call_7cl6VbhtFare1EseddU9tzmg",
+          "name": "get_los_angeles_weather"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "medium",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [
+        {
+          "type": "function",
+          "description": "Get the current weather in New York.",
+          "name": "get_new_york_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        },
+        {
+          "type": "function",
+          "description": "Get the current weather in Los Angeles.",
+          "name": "get_los_angeles_weather",
+          "output_schema": null,
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      ],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 85,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 69,
+        "output_tokens_details": {
+          "reasoning_tokens": 17
+        },
+        "total_tokens": 154
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 12
+  }
+]

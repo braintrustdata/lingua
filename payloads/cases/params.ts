@@ -2005,6 +2005,49 @@ export const paramsCases: TestCaseCollection = {
     bedrock: null,
   },
 
+  responsesParallelToolCallsWithReasoningParam: {
+    "chat-completions": null,
+    responses: {
+      model: OPENAI_RESPONSES_MODEL,
+      input: [
+        {
+          role: "user",
+          content:
+            "Call both tools exactly once in parallel. First get the weather in New York, then get the weather in Los Angeles.",
+        },
+      ],
+      reasoning: { effort: "medium" },
+      parallel_tool_calls: true,
+      tools: [
+        {
+          type: "function",
+          name: "get_new_york_weather",
+          description: "Get the current weather in New York.",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+        },
+        {
+          type: "function",
+          name: "get_los_angeles_weather",
+          description: "Get the current weather in Los Angeles.",
+          strict: true,
+          parameters: {
+            type: "object",
+            properties: {},
+            additionalProperties: false,
+          },
+        },
+      ],
+    },
+    anthropic: null,
+    google: null,
+    bedrock: null,
+  },
+
   googleToolCallThoughtSignatureReplayParam: {
     "chat-completions": {
       model: OPENAI_CHAT_COMPLETIONS_MODEL,

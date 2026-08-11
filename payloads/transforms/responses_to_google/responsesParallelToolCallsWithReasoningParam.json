@@ -1,0 +1,48 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "**Parallel Weather Queries**\n\nOkay, so the user wants me to fetch weather data from two locations, New York and Los Angeles, and they've been very clear – \"exactly once in parallel.\" I need to execute those calls *concurrently*, regardless of the order in the prompt, so that they're both retrieved simultaneously. The order New York, then Los Angeles, must be overridden, for the paramount request to call them in parallel.\n\nRight, I've got two tools available, `get_new_york_weather` and `get_los_angeles_weather`. Looking at their definitions, they don't seem to require any parameters, which simplifies things. Excellent.\n\nTherefore, I'll generate the appropriate tool calls, one for each city, and submit them in a single turn.\n\nHere are the tool calls that I will submit:\n*   `default_api:get_new_york_weather`\n*   `default_api:get_los_angeles_weather`\n\n\n",
+            "thought": true
+          },
+          {
+            "functionCall": {
+              "name": "get_new_york_weather",
+              "args": {},
+              "id": "6nmur7x7"
+            },
+            "thoughtSignature": "EvgGCvUGARFNMg+O2cEVApLmV9hlmVK0bOvpAzz+OXrz1W4r0tb/wiMoIwaVrO2Xk1yhWx9GUiEWlDzreEQp1bCYR4d+sEFxy4FPJO3V84cVH7P0EAtXvqvQljlbyRfnpBwW2PDR0fj4g9BIvSTKLCVrNcKPhuBQbglVmZz2xPg/+Qnp+3taYebXzd7Wwv91Ob1yzBoDtvkHXmNryGIl0RAEsi2rh6BPDBfuegZyzWP1v28dwJ1CqoMaeWzBevqEMmZJD2Y5JXD+MSBdpLPQhwlDPwgYLedPIt7aedWJ9CsulrnTJD8GhZJZa9YWDFtvHkpGa2o03O353ZIfCalBnwtjbY2Np81Por909d63jaLR/prtSjUV6ExNnMD8kb6/99gZLJ5hENMiSmXX9cknXMs2jC3/b7h+ofSXP2BcBewIwOngvwvRCjDh7NHTew0D+Cr8txXZzeZsy6EnPaFp+n5Th0l/d9oA6sTCrdRY3XFiR++8GeLQZ83M86UHpjjG4OLHUVICiHocD6LW/TLxKlsmOTY9nKFRRDXbGrlTi29MDc7vT5QP1cpNTkbBRM0iyqMww6gSdUWvbGaAKT/kUnOag/KISDn77R7hYOWn7qmgpc75+eh7NCFce8H2FIFM8dvQceMK5a/rwjYO25iudHPv8V76QHSoBVYi+R3AtMTWuL9zlWLecuCgY40bIPqbHwYw3h7TPpry0q5Elntdi9W3jMGT9Pp0Q6ahVrTVsRPdRPfocfBGIeha2ivgO7+AQHJgo3pBGcFOiYt5YUqI3b/aYLxNeQDgidUyP1yix5Spb3puaOJEZFhdWK5aIiCTmMdh0kZ3kMOtvSyQl6sN4F0aOBGsrEyIEidaFJ2CQnGY3SJA8JOvwx2YTp3wkPx1vwq/fBjg+EsTvwgbiEnsfzywnMleuTqC5r3wAOwK2FoOAgoXNDhKlgvFrLu+YYeHDIsXKpiEiLED/GtsBg1IrUBWCyI66YsDJfbR77mbFCHLkr+6RN3bZIPhluSg/YbhsgwYXZAUZnwDX7Ch4Gy8KyjGQ6fqcXj1/0L6VYPWPhnFStyhyy++mnBxWw830IvrS9a25F8Ds1ohAOsg0Fy6XYIoFj0gKMW64rqLfhcFUvaRuCOrzZGf0QzqOMu182f3T/7QiI2/deGSfw6BSKJK9VV9un6/LMHNNeL/"
+          },
+          {
+            "functionCall": {
+              "name": "get_los_angeles_weather",
+              "args": {},
+              "id": "xdyl73oc"
+            }
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 92,
+    "candidatesTokenCount": 29,
+    "totalTokenCount": 349,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 92
+      }
+    ],
+    "thoughtsTokenCount": 228,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.5-flash",
+  "responseId": "UZ97arGMBNSY-8YPrOvgsAc"
+}
