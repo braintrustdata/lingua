@@ -106,7 +106,14 @@ pub struct FileMetadata {
     pub content_type: Option<String>,
 }
 
-/// Infer a MIME type from a filename or HTTP(S) URL reference.
+/// Return whether a media reference can be sent to a provider as a remote URI.
+pub fn is_remote_media_uri(reference: &str) -> bool {
+    url::Url::parse(reference)
+        .map(|parsed| matches!(parsed.scheme(), "http" | "https" | "gs"))
+        .unwrap_or(false)
+}
+
+/// Infer a MIME type from a filename or supported remote URI reference.
 ///
 /// A content type encoded in a signed URL takes precedence over filename and
 /// path-extension inference.
@@ -188,7 +195,7 @@ fn mime_type_from_filename(name: &str) -> Option<&'static str> {
 /// Parse file metadata from a URL.
 ///
 /// This handles:
-/// - Regular HTTP(S) URLs: extracts filename from path
+/// - Regular HTTP(S) URLs and GCS URIs: extracts filename from path
 /// - S3 presigned URLs: extracts filename from response-content-disposition
 ///
 /// Returns `None` if the URL cannot be parsed or doesn't contain a filename.
@@ -201,8 +208,7 @@ pub fn parse_file_metadata_from_url(url: &str) -> Option<FileMetadata> {
     // Try to parse as URL
     let parsed = url::Url::parse(url).ok()?;
 
-    // If the URL is not http(s), file cannot be accessed
-    if parsed.scheme() != "http" && parsed.scheme() != "https" {
+    if !matches!(parsed.scheme(), "http" | "https" | "gs") {
         return None;
     }
 
@@ -881,6 +887,17 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_file_metadata_from_gcs_uri() {
+        let metadata =
+            parse_file_metadata_from_url("gs://lingua-test-bucket/media/sample-200mb.mp4").unwrap();
+        assert_eq!(metadata.filename, "sample-200mb.mp4");
+        assert!(metadata.content_type.is_none());
+        assert!(is_remote_media_uri(
+            "gs://lingua-test-bucket/media/sample-200mb.mp4"
+        ));
+    }
+
+    #[test]
     fn test_parse_file_metadata_from_url_invalid() {
         assert!(parse_file_metadata_from_url("").is_none());
         assert!(parse_file_metadata_from_url("not a url").is_none());
@@ -907,6 +924,13 @@ mod tests {
                 Some("https://example.com/audio/sample-3s.mp3")
             ),
             Some("audio/mp3".to_string())
+        );
+        assert_eq!(
+            infer_mime_type_from_reference(
+                None,
+                Some("gs://lingua-test-bucket/video/sample-200mb.mp4")
+            ),
+            Some("video/mp4".to_string())
         );
     }
 

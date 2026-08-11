@@ -34,7 +34,9 @@ use crate::universal::response::{
     TokenModality, UniversalUsage,
 };
 use crate::universal::tools::{BuiltinToolProvider, UniversalTool, UniversalToolType};
-use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
+use crate::util::media::{
+    infer_mime_type_from_reference, is_remote_media_uri, parse_base64_data_url,
+};
 
 /// Prefix for synthetic tool call IDs generated when Google omits them.
 pub(super) const SYNTHETIC_CALL_ID_PREFIX: &str = "call_";
@@ -432,9 +434,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             }),
                                             ..Default::default()
                                         });
-                                    } else if data.starts_with("http://")
-                                        || data.starts_with("https://")
-                                    {
+                                    } else if is_remote_media_uri(&data) {
                                         let mime_type =
                                             media_type.unwrap_or_else(|| mime_type_from_url(&data));
                                         converted.push(GooglePart {
@@ -470,9 +470,7 @@ impl TryFromLLM<Message> for GoogleContent {
                                             }),
                                             ..Default::default()
                                         });
-                                    } else if data.starts_with("http://")
-                                        || data.starts_with("https://")
-                                    {
+                                    } else if is_remote_media_uri(&data) {
                                         let mime_type = if media_type == "application/octet-stream" {
                                             infer_mime_type_from_reference(
                                                 filename.as_deref(),
@@ -1783,6 +1781,28 @@ mod tests {
                 .and_then(|file_data| file_data.mime_type.as_deref()),
             Some("video/mp4")
         );
+    }
+
+    #[test]
+    fn test_gcs_backed_video_file_emits_google_file_data() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::File {
+                data: Value::String("gs://lingua-test-bucket/sample-200mb.mp4".to_string()),
+                filename: None,
+                media_type: "application/octet-stream".to_string(),
+                provider_options: None,
+            }]),
+        };
+
+        let content = <GoogleContent as TryFromLLM<Message>>::try_from(message).unwrap();
+        let part = &content.parts.unwrap()[0];
+        let file_data = part.file_data.as_ref().expect("file_data should exist");
+        assert_eq!(
+            file_data.file_uri.as_deref(),
+            Some("gs://lingua-test-bucket/sample-200mb.mp4")
+        );
+        assert_eq!(file_data.mime_type.as_deref(), Some("video/mp4"));
+        assert!(part.inline_data.is_none());
     }
 
     #[test]

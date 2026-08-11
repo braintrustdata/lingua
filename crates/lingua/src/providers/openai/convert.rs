@@ -14,7 +14,9 @@ use crate::universal::{
     ToolDiscoveryResultContentPart, ToolDiscoveryResultItem, ToolResultContentPart, UserContent,
     UserContentPart,
 };
-use crate::util::media::{infer_mime_type_from_reference, parse_base64_data_url};
+use crate::util::media::{
+    infer_mime_type_from_reference, is_remote_media_uri, parse_base64_data_url,
+};
 use base64::Engine;
 use serde::de::Deserializer;
 use serde::{Deserialize, Serialize};
@@ -984,7 +986,7 @@ fn universal_file_payload_from_openai(
     let reference_url = file_url.as_deref().or_else(|| {
         file_data
             .as_deref()
-            .filter(|data| data.starts_with("http://") || data.starts_with("https://"))
+            .filter(|data| is_remote_media_uri(data))
     });
     let media_type = openai_media_type_from_reference(filename.as_deref(), reference_url);
 
@@ -7024,6 +7026,43 @@ mod tests {
         match converted {
             UserContentPart::File { media_type, .. } => {
                 assert_eq!(media_type, "audio/mp3");
+            }
+            other => panic!("expected file content, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn chat_completions_gcs_backed_file_preserves_uri_and_infers_video_mime_type() {
+        let input = openai::ChatCompletionRequestMessageContentPart {
+            text: None,
+            content_part_type: openai::PurpleType::File,
+            prompt_cache_breakpoint: None,
+            image_url: None,
+            input_audio: None,
+            file: Some(openai::File {
+                file_data: Some("gs://lingua-test-bucket/sample-200mb.mp4".to_string()),
+                file_id: None,
+                filename: None,
+            }),
+            refusal: None,
+        };
+
+        let converted = <UserContentPart as TryFromLLM<
+            openai::ChatCompletionRequestMessageContentPart,
+        >>::try_from(input)
+        .expect("GCS-backed file should import");
+
+        match converted {
+            UserContentPart::File {
+                data, media_type, ..
+            } => {
+                assert_eq!(
+                    data,
+                    serde_json::Value::String(
+                        "gs://lingua-test-bucket/sample-200mb.mp4".to_string()
+                    )
+                );
+                assert_eq!(media_type, "video/mp4");
             }
             other => panic!("expected file content, got {:?}", other),
         }
