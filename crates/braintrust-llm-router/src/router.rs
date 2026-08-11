@@ -15,7 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
+    enable_streaming_payload, prepare_bedrock_request, prepare_google_request,
+    requires_bedrock_request_preparation, requires_google_request_preparation,
     rewrite_body_model_if_required, ClientHeaders, Provider,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
@@ -241,6 +242,17 @@ async fn prepare_provider_request(
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
     if requires_bedrock_request_preparation(format) {
         let prepared = prepare_bedrock_request(body, spec, format).await?;
+        return Ok((
+            prepared.bytes,
+            Some(format),
+            format,
+            prepared.requires_json_response,
+            false,
+        ));
+    }
+
+    if requires_google_request_preparation(format) {
+        let prepared = prepare_google_request(body, spec, format).await?;
         return Ok((
             prepared.bytes,
             Some(format),

@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::pin::Pin;
 use std::time::Duration;
 
 use crate::auth::AuthConfig;
@@ -8,10 +10,159 @@ use crate::providers::ClientHeaders;
 use crate::streaming::{sse_stream, RawResponseStream};
 use async_trait::async_trait;
 use bytes::Bytes;
-use lingua::ProviderFormat;
+use lingua::processing::{adapter_for_format, adapters};
+use lingua::universal::message::{Message, UserContent, UserContentPart};
+use lingua::util::media::MediaBlock;
+use lingua::{ProviderFormat, TransformError};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Url;
 use reqwest_middleware::ClientWithMiddleware;
+
+use super::body_model::rewrite_body_model_if_required;
+
+const GOOGLE_REMOTE_MEDIA_MAX_BYTES: usize = 20 * 1024 * 1024;
+
+type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Send + 'a>>;
+
+fn is_remote_media_url(value: &str) -> bool {
+    value.starts_with("http://") || value.starts_with("https://")
+}
+
+#[derive(Debug)]
+pub(crate) struct PreparedGoogleRequest {
+    pub(crate) bytes: Bytes,
+    pub(crate) requires_json_response: bool,
+}
+
+pub(crate) fn requires_google_request_preparation(format: ProviderFormat) -> bool {
+    format == ProviderFormat::Google
+}
+
+async fn fetch_remote_media_as_base64(url: &str) -> Result<MediaBlock> {
+    lingua::util::media::convert_media_to_base64(url, None, Some(GOOGLE_REMOTE_MEDIA_MAX_BYTES))
+        .await
+        .map_err(|e| Error::InvalidRequest(format!("failed to fetch media URL {url}: {e}")))
+}
+
+pub(crate) async fn prepare_google_request(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+) -> Result<PreparedGoogleRequest> {
+    prepare_google_request_with_fetch(body, spec, format, |url| {
+        Box::pin(fetch_remote_media_as_base64(url))
+    })
+    .await
+}
+
+async fn prepare_google_request_with_fetch<F>(
+    body: Bytes,
+    spec: &ModelSpec,
+    format: ProviderFormat,
+    fetch: F,
+) -> Result<PreparedGoogleRequest>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    if !requires_google_request_preparation(format) {
+        return Ok(PreparedGoogleRequest {
+            bytes: body,
+            requires_json_response: false,
+        });
+    }
+
+    let parsed = lingua::parse_json_body(body)?;
+    let payload = parsed.value;
+    let body = parsed.bytes;
+    let source_adapter = adapters()
+        .iter()
+        .map(|adapter| adapter.as_ref())
+        .find(|adapter| adapter.detect_request(&payload))
+        .ok_or(TransformError::UnableToDetectRequestFormat)?;
+    let requires_json_response = source_adapter
+        .request_requires_json_response(&payload)
+        .map_err(Error::from)?;
+
+    if source_adapter.format() == format {
+        return Ok(PreparedGoogleRequest {
+            bytes: rewrite_body_model_if_required(body, format, &spec.model),
+            requires_json_response,
+        });
+    }
+
+    let mut request = source_adapter.request_to_universal(payload)?;
+    inline_remote_media_with_fetch(&mut request, fetch).await?;
+    request.model = Some(spec.model.clone());
+
+    let target_adapter =
+        adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
+    target_adapter.apply_defaults(&mut request);
+    let prepared = target_adapter.request_from_universal(&request)?;
+    let bytes = lingua::serde_json::to_vec(&prepared)
+        .map(Bytes::from)
+        .map_err(Error::LinguaJson)?;
+
+    Ok(PreparedGoogleRequest {
+        bytes,
+        requires_json_response,
+    })
+}
+
+async fn inline_remote_media_with_fetch<F>(
+    request: &mut lingua::UniversalRequest,
+    mut fetch: F,
+) -> Result<()>
+where
+    F: for<'a> FnMut(&'a str) -> FetchMediaFuture<'a>,
+{
+    for message in &mut request.messages {
+        let content = match message {
+            Message::System { content }
+            | Message::Developer { content }
+            | Message::User { content } => content,
+            Message::Assistant { .. } | Message::Tool { .. } | Message::AdditionalTools { .. } => {
+                continue;
+            }
+        };
+        let UserContent::Array(parts) = content else {
+            continue;
+        };
+
+        for part in parts {
+            match part {
+                UserContentPart::Image {
+                    image, media_type, ..
+                } => {
+                    let Some(url) = image.as_str().map(str::to_string) else {
+                        continue;
+                    };
+                    if !is_remote_media_url(&url) {
+                        continue;
+                    }
+                    let media_block = fetch(&url).await?;
+                    *image = lingua::serde_json::Value::String(media_block.data);
+                    *media_type = Some(media_block.media_type);
+                }
+                UserContentPart::File {
+                    data, media_type, ..
+                } => {
+                    let Some(url) = data.as_str().map(str::to_string) else {
+                        continue;
+                    };
+                    if !is_remote_media_url(&url) {
+                        continue;
+                    }
+                    let media_block = fetch(&url).await?;
+                    *data = lingua::serde_json::Value::String(media_block.data);
+                    *media_type = media_block.media_type;
+                }
+                UserContentPart::Text(_) => {}
+            }
+        }
+    }
+
+    Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct GoogleConfig {
@@ -316,6 +467,103 @@ mod tests {
             header: Some("x-goog-api-key".into()),
             prefix: None,
         }
+    }
+
+    #[tokio::test]
+    async fn prepare_google_request_inlines_remote_responses_file() {
+        let body = Bytes::from(
+            serde_json::to_vec(&json!({
+                "model": "gemini-3.1-pro-preview",
+                "input": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": "Read this PDF."},
+                        {
+                            "type": "input_file",
+                            "filename": "sample.pdf",
+                            "file_url": "https://example.com/sample.pdf"
+                        }
+                    ]
+                }]
+            }))
+            .expect("json"),
+        );
+
+        let prepared = prepare_google_request_with_fetch(
+            body,
+            &spec("gemini-3.1-pro-preview"),
+            ProviderFormat::Google,
+            |url| {
+                assert_eq!(url, "https://example.com/sample.pdf");
+                Box::pin(async {
+                    Ok(MediaBlock {
+                        media_type: "application/pdf".into(),
+                        data: "cGRm".into(),
+                    })
+                })
+            },
+        )
+        .await
+        .expect("prepare request");
+
+        let request: lingua::providers::google::GenerateContentRequest =
+            serde_json::from_slice(&prepared.bytes).expect("google request");
+        let contents = request.contents.as_ref().expect("contents");
+        let parts = contents[0].parts.as_ref().expect("parts");
+
+        assert_eq!(parts[1].file_data, None);
+        let inline_data = parts[1].inline_data.as_ref().expect("inline data");
+        assert_eq!(inline_data.data.as_deref(), Some("cGRm"));
+        assert_eq!(inline_data.mime_type.as_deref(), Some("application/pdf"));
+    }
+
+    #[tokio::test]
+    async fn prepare_google_request_does_not_fetch_data_or_gcs_urls() {
+        let body = Bytes::from(
+            serde_json::to_vec(&json!({
+                "model": "gemini-3.1-pro-preview",
+                "input": [{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_file",
+                            "filename": "inline.pdf",
+                            "file_data": "data:application/pdf;base64,cGRm"
+                        },
+                        {
+                            "type": "input_file",
+                            "filename": "stored.pdf",
+                            "file_url": "gs://bucket/stored.pdf"
+                        }
+                    ]
+                }]
+            }))
+            .expect("json"),
+        );
+
+        let prepared = prepare_google_request_with_fetch(
+            body,
+            &spec("gemini-3.1-pro-preview"),
+            ProviderFormat::Google,
+            |_url| Box::pin(async { panic!("should not fetch a non-HTTP media URL") }),
+        )
+        .await
+        .expect("prepare request");
+
+        let request: lingua::providers::google::GenerateContentRequest =
+            serde_json::from_slice(&prepared.bytes).expect("google request");
+        let contents = request.contents.as_ref().expect("contents");
+        let parts = contents[0].parts.as_ref().expect("parts");
+
+        let inline_data = parts[0].inline_data.as_ref().expect("inline data");
+        assert!(inline_data.data.is_some());
+        assert_eq!(
+            parts[1]
+                .file_data
+                .as_ref()
+                .and_then(|file_data| file_data.file_uri.as_deref()),
+            Some("gs://bucket/stored.pdf")
+        );
     }
 
     #[test]

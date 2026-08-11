@@ -16,6 +16,7 @@ pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_prepa
 pub use bedrock::{BedrockConfig, BedrockProvider};
 pub(crate) use body_model::rewrite_body_model_if_required;
 pub use databricks::{DatabricksConfig, DatabricksProvider};
+pub(crate) use google::{prepare_google_request, requires_google_request_preparation};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
 pub use openai::{
