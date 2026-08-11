@@ -162,22 +162,34 @@ fn normalize_openai_model_name(model: &str) -> String {
     }
 }
 
+// OpenAI uses dotted point releases (gpt-5.6), while Databricks catalogs the
+// same model families with dashed IDs (databricks-gpt-5-6). Extract the point
+// release so both forms select the same reasoning-effort family below.
+fn gpt_5_point_release_suffix(model: &str) -> Option<&str> {
+    model
+        .strip_prefix("gpt-5.")
+        .or_else(|| model.strip_prefix("databricks-gpt-5-"))
+}
+
 fn reasoning_effort_family_for_model(model: &str) -> Option<EffortFamily> {
     let model = normalize_openai_model_name(model);
+    let point_release = gpt_5_point_release_suffix(&model);
 
-    if model.starts_with("gpt-5.6") {
+    if point_release.is_some_and(|release| release.starts_with('6')) {
         Some(EffortFamily::NoneLowMediumHighXhighMax)
-    } else if model.starts_with("gpt-5.4") || model.starts_with("gpt-5.2") {
-        if model.starts_with("gpt-5.2-codex") {
+    } else if point_release
+        .is_some_and(|release| release.starts_with('4') || release.starts_with('2'))
+    {
+        if point_release.is_some_and(|release| release.starts_with("2-codex")) {
             Some(EffortFamily::LowMediumHighXhigh)
         } else {
             Some(EffortFamily::NoneLowMediumHighXhigh)
         }
-    } else if model.starts_with("gpt-5.3-codex") {
+    } else if point_release.is_some_and(|release| release.starts_with("3-codex")) {
         Some(EffortFamily::LowMediumHighXhigh)
-    } else if model.starts_with("gpt-5.1-codex") {
+    } else if point_release.is_some_and(|release| release.starts_with("1-codex")) {
         Some(EffortFamily::LowMediumHigh)
-    } else if model.starts_with("gpt-5.1") {
+    } else if point_release.is_some_and(|release| release.starts_with('1')) {
         Some(EffortFamily::NoneLowMediumHigh)
     } else if model.starts_with("gpt-5-nano")
         || model.starts_with("gpt-5-mini")
@@ -500,6 +512,16 @@ mod tests {
                 ReasoningEffort::Xhigh,
             ),
             ("gpt-5.2", ReasoningEffort::None, ReasoningEffort::None),
+            (
+                "databricks-gpt-5-6-luna",
+                ReasoningEffort::None,
+                ReasoningEffort::None,
+            ),
+            (
+                "databricks-gpt-5-1",
+                ReasoningEffort::Xhigh,
+                ReasoningEffort::High,
+            ),
             ("gpt-5.1", ReasoningEffort::Xhigh, ReasoningEffort::High),
             (
                 "gpt-5.1-codex",
