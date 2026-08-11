@@ -1491,6 +1491,54 @@
       "errors": [
         { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
       ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Google",
+      "fields": [
+        { "pattern": "messages[*].content[*].filename", "reason": "Google fileData has no filename field; it preserves the GCS URI and inferred video MIME type for Vertex" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to OpenAI Responses input_file", "reason": "OpenAI Responses input_file does not support video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Anthropic document input does not support GCS-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock",
+      "errors": [
+        { "pattern": "Lingua file content to Bedrock Converse file input", "reason": "Bedrock Converse does not support Lingua file input" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Bedrock Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Bedrock Anthropic does not support URL-backed video files" }
+      ]
+    },
+    {
+      "testCase": "chatCompletionsGcsBackedVideoFileParam",
+      "source": "ChatCompletions",
+      "target": "Vertex Anthropic",
+      "errors": [
+        { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Vertex Anthropic does not support URL-backed video files" }
+      ]
     }
   ]
 }

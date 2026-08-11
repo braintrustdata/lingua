@@ -30,6 +30,7 @@ import {
   GOOGLE_TTS_MODEL,
   BEDROCK_MODEL,
   BEDROCK_ANTHROPIC_MODEL,
+  VERTEX_GOOGLE_MODEL,
 } from "./models";
 
 type ChatCompletionAssistantMessageWithReasoningSignature =
@@ -639,6 +640,51 @@ export const paramsCases: TestCaseCollection = {
     anthropic: null,
     google: null,
     bedrock: null,
+  },
+
+  chatCompletionsGcsBackedVideoFileParam: {
+    "chat-completions": {
+      model: OPENAI_CHAT_COMPLETIONS_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Describe this video clip.",
+            },
+            {
+              type: "file",
+              file: {
+                filename: "sample-200mb.mp4",
+                file_data: "gs://lingua-test-bucket/sample-200mb.mp4",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    responses: null,
+    anthropic: null,
+    google: null,
+    bedrock: null,
+    "vertex-google": {
+      model: VERTEX_GOOGLE_MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Describe this video clip." },
+            {
+              fileData: {
+                fileUri: "gs://lingua-test-bucket/sample-200mb.mp4",
+                mimeType: "video/mp4",
+              },
+            },
+          ],
+        },
+      ],
+    },
   },
 
   responsesFunctionCallOutputWithoutThoughtSignatureParam: {

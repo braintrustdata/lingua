@@ -14858,6 +14858,28 @@ exports[`chat-completions → google > chatCompletionsAssistantCacheControlParam
 }
 `;
 
+exports[`chat-completions → google > chatCompletionsGcsBackedVideoFileParam > request 1`] = `
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Describe this video clip.",
+        },
+        {
+          "fileData": {
+            "fileUri": "gs://lingua-test-bucket/sample-200mb.mp4",
+            "mimeType": "video/mp4",
+          },
+        },
+      ],
+      "role": "user",
+    },
+  ],
+  "model": "gemini-3.5-flash",
+}
+`;
+
 exports[`chat-completions → google > chatCompletionsSystemCacheControlParam > request 1`] = `
 {
   "contents": [
