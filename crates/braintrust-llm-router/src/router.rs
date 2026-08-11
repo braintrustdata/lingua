@@ -15,9 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_bedrock_request, prepare_google_request,
-    requires_bedrock_request_preparation, requires_google_request_preparation,
-    rewrite_body_model_if_required, ClientHeaders, Provider,
+    enable_streaming_payload, prepare_request_with_remote_media, rewrite_body_model_if_required,
+    ClientHeaders, Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -240,19 +239,8 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
-    if requires_bedrock_request_preparation(format) {
-        let prepared = prepare_bedrock_request(body, spec, format).await?;
-        return Ok((
-            prepared.bytes,
-            Some(format),
-            format,
-            prepared.requires_json_response,
-            false,
-        ));
-    }
-
-    if requires_google_request_preparation(format) {
-        let prepared = prepare_google_request(body, spec, format).await?;
+    if let Some(policy) = RemoteMediaPolicy::for_format(format) {
+        let prepared = prepare_request_with_remote_media(body, spec, format, policy).await?;
         return Ok((
             prepared.bytes,
             Some(format),

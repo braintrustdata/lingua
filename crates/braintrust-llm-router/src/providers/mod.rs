@@ -7,22 +7,22 @@ mod databricks;
 mod google;
 mod mistral;
 mod openai;
+mod remote_media;
 mod vertex;
 
 pub use anthropic::{AnthropicConfig, AnthropicProvider};
 pub use azure::{AzureConfig, AzureProvider};
 pub use azure_ai_gateway::AzureAiGatewayProvider;
-pub(crate) use bedrock::{prepare_bedrock_request, requires_bedrock_request_preparation};
 pub use bedrock::{BedrockConfig, BedrockProvider};
 pub(crate) use body_model::rewrite_body_model_if_required;
 pub use databricks::{DatabricksConfig, DatabricksProvider};
-pub(crate) use google::{prepare_google_request, requires_google_request_preparation};
 pub use google::{GoogleConfig, GoogleProvider};
 pub use mistral::{MistralConfig, MistralProvider};
 pub use openai::{
     is_openai_compatible, openai_compatible_endpoint, OpenAICompatibleEndpoint, OpenAIConfig,
     OpenAIProvider,
 };
+pub(crate) use remote_media::{prepare_request_with_remote_media, RemoteMediaPolicy};
 pub use vertex::{VertexConfig, VertexProvider};
 
 use async_trait::async_trait;
