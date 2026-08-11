@@ -15,8 +15,8 @@ use crate::catalog::{
 use crate::client::ClientSettings;
 use crate::error::{Error, Result};
 use crate::providers::{
-    enable_streaming_payload, prepare_bedrock_request, requires_bedrock_request_preparation,
-    rewrite_body_model_if_required, ClientHeaders, Provider,
+    enable_streaming_payload, prepare_request_with_remote_media, rewrite_body_model_if_required,
+    ClientHeaders, Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
 use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
@@ -239,14 +239,14 @@ async fn prepare_provider_request(
     stream: bool,
     options: RequestPreparationOptions,
 ) -> Result<(Bytes, Option<ProviderFormat>, ProviderFormat, bool, bool)> {
-    if requires_bedrock_request_preparation(format) {
-        let prepared = prepare_bedrock_request(body, spec, format).await?;
+    if let Some(policy) = RemoteMediaPolicy::for_format(format) {
+        let prepared = prepare_request_with_remote_media(body, spec, format, policy).await?;
         return Ok((
             prepared.bytes,
-            Some(format),
+            prepared.detected_format,
             format,
             prepared.requires_json_response,
-            false,
+            prepared.lingua_passthrough,
         ));
     }
 
@@ -1660,18 +1660,21 @@ mod tests {
             available_providers: vec!["google".to_string()],
         };
 
-        let (payload, _, actual_format, _, _) = prepare_provider_request(
-            body,
-            &spec,
-            ProviderFormat::Google,
-            false,
-            RequestPreparationOptions::default(),
-        )
-        .await
-        .expect("request prepares");
+        let (payload, detected_format, actual_format, _, lingua_passthrough) =
+            prepare_provider_request(
+                body,
+                &spec,
+                ProviderFormat::Google,
+                false,
+                RequestPreparationOptions::default(),
+            )
+            .await
+            .expect("request prepares");
         let parsed: Value = serde_json::from_slice(&payload).expect("valid request json");
 
         assert_eq!(actual_format, ProviderFormat::Google);
+        assert_eq!(detected_format, None);
+        assert!(lingua_passthrough);
         assert_eq!(
             parsed.get("model").and_then(Value::as_str),
             Some("models/gemini-2.5-flash")

@@ -409,6 +409,16 @@ fn strip_claude_code_attribution(req: &mut UniversalRequest) {
     }
 }
 
+/// Apply target-specific request normalization to a universal request.
+pub fn normalize_universal_request_for_target(
+    request: &mut UniversalRequest,
+    target_format: ProviderFormat,
+) {
+    if !target_format_is_anthropic(target_format) {
+        strip_claude_code_attribution(request);
+    }
+}
+
 pub fn transform_request(
     input: Bytes,
     target_format: ProviderFormat,
@@ -465,9 +475,7 @@ pub fn transform_request(
         universal.model = Some(model.to_string());
     }
 
-    if !target_format_is_anthropic(target_format) {
-        strip_claude_code_attribution(&mut universal);
-    }
+    normalize_universal_request_for_target(&mut universal, target_format);
 
     // Apply target provider defaults (e.g., Anthropic's required max_tokens)
     target_adapter.apply_defaults(&mut universal);
