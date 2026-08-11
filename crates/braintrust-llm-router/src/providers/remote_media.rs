@@ -2,7 +2,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 use bytes::Bytes;
-use lingua::processing::{adapter_for_format, adapters};
+use lingua::processing::{adapter_for_format, adapters, normalize_universal_request_for_target};
 use lingua::universal::message::{Message, UserContent, UserContentPart};
 use lingua::util::media::MediaBlock;
 use lingua::{ProviderFormat, TransformError};
@@ -50,7 +50,9 @@ type FetchMediaFuture<'a> = Pin<Box<dyn Future<Output = Result<MediaBlock>> + Se
 #[derive(Debug)]
 pub(crate) struct PreparedRemoteMediaRequest {
     pub(crate) bytes: Bytes,
+    pub(crate) detected_format: Option<ProviderFormat>,
     pub(crate) requires_json_response: bool,
+    pub(crate) lingua_passthrough: bool,
 }
 
 pub(crate) async fn prepare_request_with_remote_media(
@@ -96,13 +98,16 @@ where
     if source_adapter.format() == format {
         return Ok(PreparedRemoteMediaRequest {
             bytes: rewrite_body_model_if_required(body, format, &spec.model),
+            detected_format: None,
             requires_json_response,
+            lingua_passthrough: true,
         });
     }
 
     let mut request = source_adapter.request_to_universal(payload)?;
-    inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
     request.model = Some(spec.model.clone());
+    normalize_universal_request_for_target(&mut request, format);
+    inline_remote_media_with_fetch(&mut request, policy, fetch).await?;
 
     let target_adapter =
         adapter_for_format(format).ok_or(TransformError::UnsupportedTargetFormat(format))?;
@@ -114,7 +119,9 @@ where
 
     Ok(PreparedRemoteMediaRequest {
         bytes,
+        detected_format: Some(source_adapter.format()),
         requires_json_response,
+        lingua_passthrough: false,
     })
 }
 
@@ -265,6 +272,9 @@ mod tests {
         .await
         .expect("prepare request");
 
+        assert_eq!(prepared.detected_format, Some(ProviderFormat::Responses));
+        assert!(!prepared.lingua_passthrough);
+
         let request: lingua::providers::google::GenerateContentRequest =
             lingua::serde_json::from_slice(&prepared.bytes).expect("google request");
         let contents = request.contents.as_ref().expect("contents");
@@ -326,5 +336,35 @@ mod tests {
                 .and_then(|file_data| file_data.file_uri.as_deref()),
             Some("gs://bucket/stored.pdf")
         );
+    }
+
+    #[tokio::test]
+    async fn google_policy_strips_claude_code_attribution() {
+        let body = Bytes::from(
+            lingua::serde_json::to_vec(&json!({
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 1024,
+                "system": [{
+                    "type": "text",
+                    "text": "x-anthropic-billing-header: cc_version=1.2.3; cch=changing-hash;"
+                }],
+                "messages": [{"role": "user", "content": "Hello."}]
+            }))
+            .expect("json"),
+        );
+
+        let prepared = prepare_request_with_remote_media_and_fetch(
+            body,
+            &google_spec("gemini-3.1-pro-preview"),
+            ProviderFormat::Google,
+            RemoteMediaPolicy::GOOGLE,
+            |_url| Box::pin(async { panic!("request has no remote media") }),
+        )
+        .await
+        .expect("prepare request");
+
+        let text = String::from_utf8(prepared.bytes.to_vec()).expect("UTF-8 JSON");
+        assert!(!text.contains("x-anthropic-billing-header"));
+        assert!(!text.contains("changing-hash"));
     }
 }
