@@ -376,8 +376,10 @@ fn parse_assistant_content(
                         serde_json::from_value::<LangChainContentPartCompat>(value).ok()
                     })
                     .collect();
-                let fallback_signature = find_text_signature(&parsed_parts);
-                for parsed in parsed_parts {
+                let fallback_signatures: Vec<_> = (0..parsed_parts.len())
+                    .map(|index| adjacent_text_signature(&parsed_parts, index))
+                    .collect();
+                for (index, parsed) in parsed_parts.into_iter().enumerate() {
                     match parsed {
                         LangChainContentPartCompat::Text { text, .. } => {
                             parts.push(AssistantContentPart::Text(TextContentPart {
@@ -408,7 +410,7 @@ fn parse_assistant_content(
                                 thinking,
                                 signature,
                                 extras,
-                                &fallback_signature,
+                                fallback_signatures[index].clone(),
                             ));
                         }
                         _ => {}
@@ -444,8 +446,10 @@ fn parse_assistant_content(
                     serde_json::from_value::<LangChainContentPartCompat>(value).ok()
                 })
                 .collect();
-            let fallback_signature = find_text_signature(&parsed_parts);
-            for parsed in parsed_parts {
+            let fallback_signatures: Vec<_> = (0..parsed_parts.len())
+                .map(|index| adjacent_text_signature(&parsed_parts, index))
+                .collect();
+            for (index, parsed) in parsed_parts.into_iter().enumerate() {
                 match parsed {
                     LangChainContentPartCompat::Text { text, .. } => {
                         parts.push(AssistantContentPart::Text(TextContentPart {
@@ -464,7 +468,7 @@ fn parse_assistant_content(
                             thinking,
                             signature,
                             extras,
-                            &fallback_signature,
+                            fallback_signatures[index].clone(),
                         ));
                     }
                     // When tool_calls is non-empty, ToolUse blocks in content[] are the
@@ -500,26 +504,32 @@ fn parse_assistant_content(
     }
 }
 
-fn find_text_signature(parts: &[LangChainContentPartCompat]) -> Option<String> {
-    parts.iter().find_map(|part| match part {
-        LangChainContentPartCompat::Text { extras, .. } => {
-            extras.as_ref().and_then(|extras| extras.signature.clone())
-        }
-        _ => None,
-    })
+fn adjacent_text_signature(
+    parts: &[LangChainContentPartCompat],
+    thinking_index: usize,
+) -> Option<String> {
+    [thinking_index.checked_add(1), thinking_index.checked_sub(1)]
+        .into_iter()
+        .flatten()
+        .find_map(|index| match parts.get(index) {
+            Some(LangChainContentPartCompat::Text { extras, .. }) => {
+                extras.as_ref().and_then(|extras| extras.signature.clone())
+            }
+            _ => None,
+        })
 }
 
 fn reasoning_part(
     text: String,
     signature: Option<String>,
     extras: Option<LangChainContentPartExtrasCompat>,
-    fallback_signature: &Option<String>,
+    fallback_signature: Option<String>,
 ) -> AssistantContentPart {
     AssistantContentPart::Reasoning {
         text,
         encrypted_content: signature
             .or_else(|| extras.and_then(|extras| extras.signature))
-            .or_else(|| fallback_signature.clone()),
+            .or(fallback_signature),
     }
 }
 
@@ -732,6 +742,12 @@ mod tests {
                             "extras": {"signature": "signature-value"},
                             "text": "visible answer",
                             "type": "text"
+                        },
+                        {"thinking": "more reasoning", "type": "thinking"},
+                        {
+                            "extras": {"signature": "second-signature"},
+                            "text": "more visible answer",
+                            "type": "text"
                         }
                     ],
                     "id": "message-id",
@@ -765,6 +781,18 @@ mod tests {
             &parts[1],
             AssistantContentPart::Text(TextContentPart { text, .. })
                 if text == "visible answer"
+        ));
+        assert!(matches!(
+            &parts[2],
+            AssistantContentPart::Reasoning {
+                text,
+                encrypted_content: Some(signature),
+            } if text == "more reasoning" && signature == "second-signature"
+        ));
+        assert!(matches!(
+            &parts[3],
+            AssistantContentPart::Text(TextContentPart { text, .. })
+                if text == "more visible answer"
         ));
     }
 
