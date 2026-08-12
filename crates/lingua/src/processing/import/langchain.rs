@@ -120,7 +120,17 @@ struct OpenAiFunctionCompat {
 #[serde(tag = "type")]
 enum LangChainContentPartCompat {
     #[serde(rename = "text", alias = "input_text", alias = "output_text")]
-    Text { text: String },
+    Text {
+        text: String,
+        #[serde(default)]
+        extras: Option<LangChainContentPartExtrasCompat>,
+    },
+    #[serde(rename = "thinking")]
+    Thinking {
+        thinking: String,
+        #[serde(default)]
+        extras: Option<LangChainContentPartExtrasCompat>,
+    },
     #[serde(rename = "image_url")]
     ImageUrl { image_url: LangChainImageUrlCompat },
     #[serde(rename = "image")]
@@ -133,6 +143,12 @@ enum LangChainContentPartCompat {
         name: String,
         input: Value,
     },
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct LangChainContentPartExtrasCompat {
+    #[serde(default)]
+    signature: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -250,7 +266,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                     continue;
                 };
                 match parsed {
-                    LangChainContentPartCompat::Text { text } => {
+                    LangChainContentPartCompat::Text { text, .. } => {
                         converted_parts.push(UserContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
@@ -293,6 +309,7 @@ fn parse_user_content(value: Value) -> Option<UserContent> {
                         });
                     }
                     LangChainContentPartCompat::ToolUse { .. } => {}
+                    LangChainContentPartCompat::Thinking { .. } => {}
                 }
             }
             if converted_parts.is_empty() {
@@ -351,13 +368,16 @@ fn parse_assistant_content(
             Value::String(text) => Some(AssistantContent::String(text)),
             Value::Array(values) => {
                 let mut parts = Vec::new();
-                for value in values {
-                    let parsed = serde_json::from_value::<LangChainContentPartCompat>(value);
-                    let Ok(parsed) = parsed else {
-                        continue;
-                    };
+                let parsed_parts: Vec<_> = values
+                    .into_iter()
+                    .filter_map(|value| {
+                        serde_json::from_value::<LangChainContentPartCompat>(value).ok()
+                    })
+                    .collect();
+                let fallback_signature = find_text_signature(&parsed_parts);
+                for parsed in parsed_parts {
                     match parsed {
-                        LangChainContentPartCompat::Text { text } => {
+                        LangChainContentPartCompat::Text { text, .. } => {
                             parts.push(AssistantContentPart::Text(TextContentPart {
                                 text,
                                 encrypted_content: None,
@@ -376,6 +396,9 @@ fn parse_assistant_content(
                                 status: None,
                                 provider_executed: None,
                             });
+                        }
+                        LangChainContentPartCompat::Thinking { thinking, extras } => {
+                            parts.push(reasoning_part(thinking, extras, &fallback_signature));
                         }
                         _ => {}
                     }
@@ -404,19 +427,25 @@ fn parse_assistant_content(
             }
         }
         Value::Array(values) => {
-            for value in values {
-                let parsed = serde_json::from_value::<LangChainContentPartCompat>(value);
-                let Ok(parsed) = parsed else {
-                    continue;
-                };
+            let parsed_parts: Vec<_> = values
+                .into_iter()
+                .filter_map(|value| {
+                    serde_json::from_value::<LangChainContentPartCompat>(value).ok()
+                })
+                .collect();
+            let fallback_signature = find_text_signature(&parsed_parts);
+            for parsed in parsed_parts {
                 match parsed {
-                    LangChainContentPartCompat::Text { text } => {
+                    LangChainContentPartCompat::Text { text, .. } => {
                         parts.push(AssistantContentPart::Text(TextContentPart {
                             text,
                             encrypted_content: None,
                             cache_control: None,
                             provider_options: None,
                         }));
+                    }
+                    LangChainContentPartCompat::Thinking { thinking, extras } => {
+                        parts.push(reasoning_part(thinking, extras, &fallback_signature));
                     }
                     // When tool_calls is non-empty, ToolUse blocks in content[] are the
                     // same tool calls in provider format (Anthropic/Bedrock). Skip them
@@ -448,6 +477,28 @@ fn parse_assistant_content(
         None
     } else {
         Some(AssistantContent::Array(parts))
+    }
+}
+
+fn find_text_signature(parts: &[LangChainContentPartCompat]) -> Option<String> {
+    parts.iter().find_map(|part| match part {
+        LangChainContentPartCompat::Text { extras, .. } => {
+            extras.as_ref().and_then(|extras| extras.signature.clone())
+        }
+        _ => None,
+    })
+}
+
+fn reasoning_part(
+    text: String,
+    extras: Option<LangChainContentPartExtrasCompat>,
+    fallback_signature: &Option<String>,
+) -> AssistantContentPart {
+    AssistantContentPart::Reasoning {
+        text,
+        encrypted_content: extras
+            .and_then(|extras| extras.signature)
+            .or_else(|| fallback_signature.clone()),
     }
 }
 
@@ -642,5 +693,57 @@ mod tests {
 
         assert_eq!(text_parts.len(), 1, "expected one text part");
         assert_eq!(tool_call_parts.len(), 1, "expected one tool call part");
+    }
+
+    #[test]
+    fn imports_langchain_llm_result_thinking_with_text_signature() {
+        let input = crate::serde_json::json!({
+            "generations": [[{
+                "generation_info": {
+                    "finish_reason": "STOP",
+                    "model_name": "gemini-3-flash-preview"
+                },
+                "message": {
+                    "additional_kwargs": {},
+                    "content": [
+                        {"thinking": "blah blah blah", "type": "thinking"},
+                        {
+                            "extras": {"signature": "signature-value"},
+                            "text": "visible answer",
+                            "type": "text"
+                        }
+                    ],
+                    "id": "message-id",
+                    "response_metadata": {},
+                    "type": "ai"
+                },
+                "text": "visible answer",
+                "type": "ChatGeneration"
+            }]],
+            "llm_output": {},
+            "type": "LLMResult"
+        });
+
+        let messages =
+            try_parse_langchain_for_import(&input).expect("expected LangChain result to parse");
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+
+        assert!(matches!(
+            &parts[0],
+            AssistantContentPart::Reasoning {
+                text,
+                encrypted_content: Some(signature),
+            } if text == "blah blah blah" && signature == "signature-value"
+        ));
+        assert!(matches!(
+            &parts[1],
+            AssistantContentPart::Text(TextContentPart { text, .. })
+                if text == "visible answer"
+        ));
     }
 }
