@@ -164,12 +164,6 @@ pub enum ReasoningSignature {
 
 impl ReasoningSignature {
     fn from_values(values: Vec<String>) -> Option<Self> {
-        let values = values.into_iter().fold(Vec::new(), |mut unique, value| {
-            if !unique.contains(&value) {
-                unique.push(value);
-            }
-            unique
-        });
         match values.len() {
             0 => None,
             1 => values.into_iter().next().map(Self::Single),
@@ -413,10 +407,32 @@ pub(crate) fn assistant_content_parts_from_openai_tool_calls(
     tool_calls: Vec<openai::ToolCall>,
     reasoning_signature: Option<String>,
 ) -> Vec<AssistantContentPart> {
-    assistant_content_parts_from_openai_tool_calls_with_signatures(
-        tool_calls,
-        reasoning_signature.into_iter().cycle(),
-    )
+    assistant_content_parts_from_openai_tool_calls_with_signatures(tool_calls, reasoning_signature)
+}
+
+fn tool_call_reasoning_signatures(
+    reasoning_signature: &Option<ReasoningSignature>,
+    reasoning_emitted: bool,
+    tool_call_count: usize,
+) -> Result<Vec<String>, ConvertError> {
+    match reasoning_signature {
+        Some(ReasoningSignature::Single(signature)) if !reasoning_emitted => {
+            Ok(vec![signature.clone()])
+        }
+        Some(ReasoningSignature::Multiple(signatures)) if !reasoning_emitted => {
+            if signatures.len() != tool_call_count {
+                return Err(ConvertError::ContentConversionFailed {
+                    reason: format!(
+                        "reasoning_signature contains {} entries for {} function tool calls",
+                        signatures.len(),
+                        tool_call_count
+                    ),
+                });
+            }
+            Ok(signatures.clone())
+        }
+        _ => Ok(vec![]),
+    }
 }
 
 fn assistant_content_parts_from_openai_tool_calls_with_signatures<I>(
@@ -3950,7 +3966,16 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                                         text,
                                         encrypted_content,
                                     } => {
-                                        // Accumulate reasoning summaries
+                                        if encrypted_content.is_some() && has_pending_reasoning {
+                                            flush_reasoning(
+                                                &mut result,
+                                                &mut pending_reasoning_summaries,
+                                                &mut pending_encrypted_content,
+                                                &mut has_pending_reasoning,
+                                                &mut id_used,
+                                                &id,
+                                            );
+                                        }
                                         has_pending_reasoning = true;
                                         if !text.is_empty() {
                                             pending_reasoning_summaries.push(openai::SummaryText {
@@ -4486,11 +4511,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     .clone()
                     .map(ReasoningSignature::into_values)
                     .unwrap_or_default();
-                let tool_call_signature = match &msg.reasoning_signature {
-                    Some(ReasoningSignature::Single(signature)) => Some(signature.clone()),
-                    Some(ReasoningSignature::Multiple(_)) | None => None,
-                };
-                let has_reasoning = msg.reasoning.is_some();
+                let mut reasoning_emitted = false;
 
                 // Add reasoning FIRST if present (natural model output order)
                 // Note: We preserve empty reasoning strings because the presence of the
@@ -4501,6 +4522,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                             text: reasoning,
                             encrypted_content: None,
                         });
+                        reasoning_emitted = true;
                     } else {
                         content_parts.extend(reasoning_signatures.iter().enumerate().map(
                             |(index, signature)| AssistantContentPart::Reasoning {
@@ -4512,6 +4534,7 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                                 encrypted_content: Some(signature.clone()),
                             },
                         ));
+                        reasoning_emitted = true;
                     }
                 }
 
@@ -4567,24 +4590,20 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = msg.tool_calls {
-                    if let Some(tool_call_signature) = tool_call_signature {
-                        content_parts.extend(assistant_content_parts_from_openai_tool_calls(
+                    let tool_call_signatures = tool_call_reasoning_signatures(
+                        &msg.reasoning_signature,
+                        reasoning_emitted,
+                        tool_calls
+                            .iter()
+                            .filter(|tool_call| tool_call.function.is_some())
+                            .count(),
+                    )?;
+                    content_parts.extend(
+                        assistant_content_parts_from_openai_tool_calls_with_signatures(
                             tool_calls,
-                            Some(tool_call_signature),
-                        ));
-                    } else {
-                        let tool_call_signatures = if !has_reasoning {
-                            reasoning_signatures
-                        } else {
-                            Vec::new()
-                        };
-                        content_parts.extend(
-                            assistant_content_parts_from_openai_tool_calls_with_signatures(
-                                tool_calls,
-                                tool_call_signatures,
-                            ),
-                        );
-                    }
+                            tool_call_signatures,
+                        ),
+                    );
                 }
 
                 let content = assistant_content_from_parts(content_parts);
@@ -5353,11 +5372,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                     .clone()
                     .map(ReasoningSignature::into_values)
                     .unwrap_or_default();
-                let tool_call_signature = match &msg.reasoning_signature {
-                    Some(ReasoningSignature::Single(signature)) => Some(signature.clone()),
-                    Some(ReasoningSignature::Multiple(_)) | None => None,
-                };
-                let has_reasoning = msg.reasoning.is_some();
+                let mut reasoning_emitted = false;
 
                 // Add reasoning FIRST if present (natural model output order: think first, respond after)
                 // Note: We preserve empty reasoning strings because the presence of the
@@ -5368,6 +5383,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                             text: reasoning,
                             encrypted_content: None,
                         });
+                        reasoning_emitted = true;
                     } else {
                         content_parts.extend(reasoning_signatures.iter().enumerate().map(
                             |(index, signature)| AssistantContentPart::Reasoning {
@@ -5379,6 +5395,7 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                                 encrypted_content: Some(signature.clone()),
                             },
                         ));
+                        reasoning_emitted = true;
                     }
                 }
 
@@ -5396,15 +5413,15 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = &msg.base.tool_calls {
-                    let tool_call_signatures = if !has_reasoning {
-                        reasoning_signatures
-                    } else {
-                        Vec::new()
-                    };
-                    let mut tool_call_signatures = tool_call_signature
-                        .into_iter()
-                        .cycle()
-                        .chain(tool_call_signatures);
+                    let mut tool_call_signatures = tool_call_reasoning_signatures(
+                        &msg.reasoning_signature,
+                        reasoning_emitted,
+                        tool_calls
+                            .iter()
+                            .filter(|tool_call| tool_call.function.is_some())
+                            .count(),
+                    )?
+                    .into_iter();
                     for tool_call in tool_calls {
                         if let Some(function) = &tool_call.function {
                             content_parts.push(AssistantContentPart::ToolCall {
@@ -6584,6 +6601,118 @@ mod tests {
         assert_eq!(
             roundtrip.reasoning_signature,
             Some(ReasoningSignature::Single("signature_123".to_string()))
+        );
+    }
+
+    #[test]
+    fn response_message_preserves_duplicate_positional_tool_signatures() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "reasoning_signature": ["signature_one", "signature_one", "signature_two"],
+            "tool_calls": [
+                { "id": "call_1", "type": "function", "function": { "name": "first", "arguments": "{}" } },
+                { "id": "call_2", "type": "function", "function": { "name": "second", "arguments": "{}" } },
+                { "id": "call_3", "type": "function", "function": { "name": "third", "arguments": "{}" } }
+            ]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_one".to_string(),
+                "signature_one".to_string(),
+                "signature_two".to_string(),
+            ]))
+        );
+    }
+
+    #[test]
+    fn empty_request_reasoning_replays_positional_tool_signatures() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": [],
+            "reasoning_signature": ["signature_123"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat request should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect("chat request should convert to universal message");
+
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        assert!(matches!(
+            &parts[0],
+            AssistantContentPart::ToolCall { encrypted_content, .. }
+                if encrypted_content.as_deref() == Some("signature_123")
+        ));
+    }
+
+    #[test]
+    fn request_rejects_unmatched_positional_tool_signatures() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning_signature": ["signature_one", "signature_two"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat request should deserialize");
+
+        let error = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect_err("unmatched signatures should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn responses_output_keeps_reasoning_signatures_in_separate_items() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first reasoning step".to_string(),
+                    encrypted_content: Some("signature_one".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second reasoning step".to_string(),
+                    encrypted_content: Some("signature_two".to_string()),
+                },
+            ]),
+            id: Some("msg_123".to_string()),
+        };
+
+        let output_items =
+            <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(vec![message])
+                .expect("universal message should convert to Responses output");
+
+        assert_eq!(output_items.len(), 2);
+        assert_eq!(output_items[0].id.as_deref(), Some("msg_123"));
+        assert_ne!(output_items[1].id, output_items[0].id);
+        assert_eq!(
+            output_items
+                .iter()
+                .filter_map(|item| item.encrypted_content.clone())
+                .collect::<Vec<_>>(),
+            vec!["signature_one".to_string(), "signature_two".to_string()]
         );
     }
 
