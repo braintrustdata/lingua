@@ -407,7 +407,10 @@ pub(crate) fn assistant_content_parts_from_openai_tool_calls(
     tool_calls: Vec<openai::ToolCall>,
     reasoning_signature: Option<String>,
 ) -> Vec<AssistantContentPart> {
-    assistant_content_parts_from_openai_tool_calls_with_signatures(tool_calls, reasoning_signature)
+    assistant_content_parts_from_openai_tool_calls_with_signatures(
+        tool_calls,
+        reasoning_signature.into_iter().cycle(),
+    )
 }
 
 fn tool_call_reasoning_signatures(
@@ -456,6 +459,16 @@ fn combined_reasoning_signature(
             reason: "tool calls have mixed signed and unsigned reasoning_signature slots"
                 .to_string(),
         });
+    }
+    let shared_signature = reasoning_signatures
+        .first()
+        .filter(|signature| {
+            reasoning_signatures.iter().all(|value| value == *signature)
+                && signed_tool_calls.iter().all(|value| value == *signature)
+        })
+        .cloned();
+    if let Some(shared_signature) = shared_signature {
+        return Ok(Some(ReasoningSignature::Single(shared_signature)));
     }
     if !reasoning_signatures.is_empty() && !signed_tool_calls.is_empty() {
         return Err(ConvertError::ContentConversionFailed {
@@ -6450,6 +6463,35 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(tool_call.as_deref(), Some("thought_signature_123"));
+    }
+
+    #[test]
+    fn shared_tool_call_signature_applies_to_every_tool_call() {
+        let tool_calls: Vec<openai::ToolCall> = serde_json::from_value(json!([
+            {
+                "id": "call_1",
+                "type": "function",
+                "function": { "name": "first", "arguments": "{}" }
+            },
+            {
+                "id": "call_2",
+                "type": "function",
+                "function": { "name": "second", "arguments": "{}" }
+            }
+        ]))
+        .expect("tool calls should deserialize");
+
+        let parts = assistant_content_parts_from_openai_tool_calls(
+            tool_calls,
+            Some("shared_signature".to_string()),
+        );
+        assert!(parts.iter().all(|part| {
+            matches!(
+                part,
+                AssistantContentPart::ToolCall { encrypted_content, .. }
+                    if encrypted_content.as_deref() == Some("shared_signature")
+            )
+        }));
     }
 
     #[test]
