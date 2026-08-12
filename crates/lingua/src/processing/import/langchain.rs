@@ -129,6 +129,8 @@ enum LangChainContentPartCompat {
     Thinking {
         thinking: String,
         #[serde(default)]
+        signature: Option<String>,
+        #[serde(default)]
         extras: Option<LangChainContentPartExtrasCompat>,
     },
     #[serde(rename = "image_url")]
@@ -397,8 +399,17 @@ fn parse_assistant_content(
                                 provider_executed: None,
                             });
                         }
-                        LangChainContentPartCompat::Thinking { thinking, extras } => {
-                            parts.push(reasoning_part(thinking, extras, &fallback_signature));
+                        LangChainContentPartCompat::Thinking {
+                            thinking,
+                            signature,
+                            extras,
+                        } => {
+                            parts.push(reasoning_part(
+                                thinking,
+                                signature,
+                                extras,
+                                &fallback_signature,
+                            ));
                         }
                         _ => {}
                     }
@@ -444,8 +455,17 @@ fn parse_assistant_content(
                             provider_options: None,
                         }));
                     }
-                    LangChainContentPartCompat::Thinking { thinking, extras } => {
-                        parts.push(reasoning_part(thinking, extras, &fallback_signature));
+                    LangChainContentPartCompat::Thinking {
+                        thinking,
+                        signature,
+                        extras,
+                    } => {
+                        parts.push(reasoning_part(
+                            thinking,
+                            signature,
+                            extras,
+                            &fallback_signature,
+                        ));
                     }
                     // When tool_calls is non-empty, ToolUse blocks in content[] are the
                     // same tool calls in provider format (Anthropic/Bedrock). Skip them
@@ -491,13 +511,14 @@ fn find_text_signature(parts: &[LangChainContentPartCompat]) -> Option<String> {
 
 fn reasoning_part(
     text: String,
+    signature: Option<String>,
     extras: Option<LangChainContentPartExtrasCompat>,
     fallback_signature: &Option<String>,
 ) -> AssistantContentPart {
     AssistantContentPart::Reasoning {
         text,
-        encrypted_content: extras
-            .and_then(|extras| extras.signature)
+        encrypted_content: signature
+            .or_else(|| extras.and_then(|extras| extras.signature))
             .or_else(|| fallback_signature.clone()),
     }
 }
@@ -744,6 +765,38 @@ mod tests {
             &parts[1],
             AssistantContentPart::Text(TextContentPart { text, .. })
                 if text == "visible answer"
+        ));
+    }
+
+    #[test]
+    fn imports_langchain_thinking_with_top_level_signature() {
+        let input = crate::serde_json::json!([{
+            "type": "AIMessage",
+            "content": [
+                {
+                    "thinking": "internal reasoning",
+                    "signature": "reasoning-signature",
+                    "type": "thinking"
+                },
+                {"text": "visible answer", "type": "text"}
+            ]
+        }]);
+
+        let messages =
+            try_parse_langchain_for_import(&input).expect("expected LangChain message to parse");
+        let Message::Assistant { content, .. } = &messages[0] else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+
+        assert!(matches!(
+            &parts[0],
+            AssistantContentPart::Reasoning {
+                text,
+                encrypted_content: Some(signature),
+            } if text == "internal reasoning" && signature == "reasoning-signature"
         ));
     }
 }
