@@ -457,6 +457,13 @@ fn combined_reasoning_signature(
                 .to_string(),
         });
     }
+    if !reasoning_signatures.is_empty() && !signed_tool_calls.is_empty() {
+        return Err(ConvertError::ContentConversionFailed {
+            reason:
+                "reasoning_signature cannot preserve distinct reasoning and tool-call provenance"
+                    .to_string(),
+        });
+    }
     reasoning_signatures.extend(signed_tool_calls);
     Ok(ReasoningSignature::from_values(reasoning_signatures))
 }
@@ -6762,6 +6769,36 @@ mod tests {
 
         let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
             .expect_err("mixed signature slots should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn response_message_rejects_mixed_reasoning_and_tool_signature_provenance() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "reasoning".to_string(),
+                    encrypted_content: Some("reasoning_signature".to_string()),
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_123".to_string(),
+                    tool_name: "lookup".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("tool_signature".to_string()),
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+            .expect_err("mixed signature provenance should fail conversion");
         assert!(matches!(
             error,
             ConvertError::ContentConversionFailed { .. }
