@@ -531,8 +531,7 @@ fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> 
 
     for message in messages {
         let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
-            && matches!(message, Message::Assistant { .. })
-            && !is_reasoning_only_response_message(&message);
+            && matches!(message, Message::Assistant { .. });
 
         if !should_merge {
             merged.push(message);
@@ -2223,23 +2222,18 @@ mod tests {
         });
 
         let result = transform_response(to_bytes(&payload), ProviderFormat::ChatCompletions)
-            .expect("distinct reasoning signatures should remain separate choices")
+            .expect("distinct reasoning signatures should be preserved")
             .result
             .into_bytes();
         let response: Value = crate::serde_json::from_slice(&result).unwrap();
 
-        assert_eq!(response["choices"].as_array().map(Vec::len), Some(2));
+        assert_eq!(response["choices"].as_array().map(Vec::len), Some(1));
         assert_eq!(
             response["choices"][0]["message"]["reasoning_signature"],
-            "signature_one"
-        );
-        assert!(response["choices"][0]["message"]["tool_calls"].is_null());
-        assert_eq!(
-            response["choices"][1]["message"]["reasoning_signature"],
-            "signature_two"
+            json!(["signature_one", "signature_two"])
         );
         assert_eq!(
-            response["choices"][1]["message"]["tool_calls"][0]["function"]["name"],
+            response["choices"][0]["message"]["tool_calls"][0]["function"]["name"],
             "lookup_weather"
         );
     }

@@ -1,13 +1,13 @@
 {
-  "id": "resp_081a680e40ed4718006a7b9f4ff528819fb639cabcc552147a",
+  "id": "resp_0ebca526ada016db006a7cc9c7fbec819c9e18652b82e7208b",
   "object": "response",
-  "created_at": 1786486608,
+  "created_at": 1786563016,
   "status": "completed",
   "background": false,
   "billing": {
     "payer": "developer"
   },
-  "completed_at": 1786486608,
+  "completed_at": 1786563017,
   "error": null,
   "frequency_penalty": 0,
   "incomplete_details": null,
@@ -18,7 +18,7 @@
   "moderation": null,
   "output": [
     {
-      "id": "msg_081a680e40ed4718006a7b9f507c90819f8160f34d00f356b1",
+      "id": "msg_0ebca526ada016db006a7cc9c90000819cbe8356ee89edcc6a",
       "type": "message",
       "status": "completed",
       "content": [
@@ -103,7 +103,7 @@
   "top_p": 0.98,
   "truncation": "disabled",
   "usage": {
-    "input_tokens": 194,
+    "input_tokens": 186,
     "input_tokens_details": {
       "cache_write_tokens": 0,
       "cached_tokens": 0
@@ -112,7 +112,7 @@
     "output_tokens_details": {
       "reasoning_tokens": 0
     },
-    "total_tokens": 211
+    "total_tokens": 203
   },
   "user": null,
   "metadata": {},

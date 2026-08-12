@@ -35,7 +35,7 @@ import {
 
 type ChatCompletionAssistantMessageWithReasoningSignature =
   OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam & {
-    reasoning_signature: string;
+    reasoning_signature: string | string[];
   };
 
 const chatCompletionCacheControlTextPart = {

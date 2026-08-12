@@ -2,9 +2,9 @@
   {
     "type": "response.created",
     "response": {
-      "id": "resp_081a680e40ed4718006a7b9f4feb9c819fb37b56013e05a2bf",
+      "id": "resp_0ebca526ada016db006a7cc9c7f804819cb62082aa52b77c86",
       "object": "response",
-      "created_at": 1786486607,
+      "created_at": 1786563016,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -95,9 +95,9 @@
   {
     "type": "response.in_progress",
     "response": {
-      "id": "resp_081a680e40ed4718006a7b9f4feb9c819fb37b56013e05a2bf",
+      "id": "resp_0ebca526ada016db006a7cc9c7f804819cb62082aa52b77c86",
       "object": "response",
-      "created_at": 1786486607,
+      "created_at": 1786563016,
       "status": "in_progress",
       "background": false,
       "completed_at": null,
@@ -188,7 +188,7 @@
   {
     "type": "response.output_item.added",
     "item": {
-      "id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+      "id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
       "type": "message",
       "status": "in_progress",
       "content": [],
@@ -201,7 +201,7 @@
   {
     "type": "response.content_part.added",
     "content_index": 0,
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "output_index": 0,
     "part": {
       "type": "output_text",
@@ -215,9 +215,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "New",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "7vaMPRt2zxdxX",
+    "obfuscation": "0mRcs8nXpUHrs",
     "output_index": 0,
     "sequence_number": 4
   },
@@ -225,9 +225,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " York",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "ry0zHzGIS9A",
+    "obfuscation": "dTKicvwcP6b",
     "output_index": 0,
     "sequence_number": 5
   },
@@ -235,9 +235,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": ":",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "Ilc4ngMCi0GXMky",
+    "obfuscation": "HhZRB85AkG1UgZV",
     "output_index": 0,
     "sequence_number": 6
   },
@@ -245,9 +245,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " ",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "PzPa4RunRDF2kX7",
+    "obfuscation": "N2NaVa5kQ5BiB8f",
     "output_index": 0,
     "sequence_number": 7
   },
@@ -255,9 +255,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "71",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "h58qwkkhiBuZcD",
+    "obfuscation": "VzQWzUyb9BqEcj",
     "output_index": 0,
     "sequence_number": 8
   },
@@ -265,9 +265,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "°F",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "xp9upWMuIRMU8D",
+    "obfuscation": "e1W2FI9EmhmkLV",
     "output_index": 0,
     "sequence_number": 9
   },
@@ -275,9 +275,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "  \n",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "8eq53IPCWIl9U",
+    "obfuscation": "qR0zHbxkzY7Ei",
     "output_index": 0,
     "sequence_number": 10
   },
@@ -285,9 +285,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "Los",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "pOGFzjwbht1CD",
+    "obfuscation": "PDwdW5ZpNSEdz",
     "output_index": 0,
     "sequence_number": 11
   },
@@ -295,9 +295,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " Angeles",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "acjCFZeN",
+    "obfuscation": "dq7YWCKE",
     "output_index": 0,
     "sequence_number": 12
   },
@@ -305,9 +305,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": ":",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "NUwhyFqhFUznHED",
+    "obfuscation": "7eagA7XVzJ92hZZ",
     "output_index": 0,
     "sequence_number": 13
   },
@@ -315,9 +315,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": " ",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "Xj2Xpk6kIz5KsLE",
+    "obfuscation": "eauJThuBl32XAo9",
     "output_index": 0,
     "sequence_number": 14
   },
@@ -325,9 +325,9 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "71",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "FkJbTPAF5e2FqO",
+    "obfuscation": "LVi9F316qUARyV",
     "output_index": 0,
     "sequence_number": 15
   },
@@ -335,16 +335,16 @@
     "type": "response.output_text.delta",
     "content_index": 0,
     "delta": "°F",
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
-    "obfuscation": "k1kDW6jq24zRdB",
+    "obfuscation": "SafyQHFdznVqiD",
     "output_index": 0,
     "sequence_number": 16
   },
   {
     "type": "response.output_text.done",
     "content_index": 0,
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "logprobs": [],
     "output_index": 0,
     "sequence_number": 17,
@@ -353,7 +353,7 @@
   {
     "type": "response.content_part.done",
     "content_index": 0,
-    "item_id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+    "item_id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
     "output_index": 0,
     "part": {
       "type": "output_text",
@@ -366,7 +366,7 @@
   {
     "type": "response.output_item.done",
     "item": {
-      "id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+      "id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
       "type": "message",
       "status": "completed",
       "content": [
@@ -386,12 +386,12 @@
   {
     "type": "response.completed",
     "response": {
-      "id": "resp_081a680e40ed4718006a7b9f4feb9c819fb37b56013e05a2bf",
+      "id": "resp_0ebca526ada016db006a7cc9c7f804819cb62082aa52b77c86",
       "object": "response",
-      "created_at": 1786486607,
+      "created_at": 1786563016,
       "status": "completed",
       "background": false,
-      "completed_at": 1786486608,
+      "completed_at": 1786563016,
       "error": null,
       "frequency_penalty": 0,
       "incomplete_details": null,
@@ -402,7 +402,7 @@
       "moderation": null,
       "output": [
         {
-          "id": "msg_081a680e40ed4718006a7b9f5060f4819fa70b28ee47b568f2",
+          "id": "msg_0ebca526ada016db006a7cc9c89a48819c8ceef59b3a971b75",
           "type": "message",
           "status": "completed",
           "content": [
@@ -487,7 +487,7 @@
       "top_p": 0.98,
       "truncation": "disabled",
       "usage": {
-        "input_tokens": 194,
+        "input_tokens": 186,
         "input_tokens_details": {
           "cache_write_tokens": 0,
           "cached_tokens": 0
@@ -496,7 +496,7 @@
         "output_tokens_details": {
           "reasoning_tokens": 0
         },
-        "total_tokens": 211
+        "total_tokens": 203
       },
       "user": null,
       "metadata": {}

@@ -32209,23 +32209,21 @@ exports[`responses → anthropic > responsesParallelToolCallsWithReasoningParam 
 exports[`responses → anthropic > responsesParallelToolCallsWithReasoningParam > response 1`] = `
 {
   "created_at": 0,
-  "id": "resp_011CdwjbNSZgoZAPxe7AL6Yi",
+  "id": "resp_011CdyQgQfCdXu4Atti2jyx8",
   "incomplete_details": null,
   "model": "claude-sonnet-4-5-20250929",
   "object": "response",
   "output": [
     {
       "content": [],
-      "encrypted_content": "Eu8ECpQBCBAYAipAHXvHmgRwREdhlJ3fEW1piOZb8yKcpxZCQ7nazslio2T+M1+bz/GWkkXSLSKDXG07yuwrNP+I9ZeFDjMnoMj2IzIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMa+ewXwewFEqKqB4wGgztwF/SbWpD/QWvLjkiMI90E1OUFI2SLNCXT957aJBtsAkLjhwU9/KdJmo2fFcew99KLczrX50HykrZVQIuaiqHA6l/vv3CE5l6SElCzYFbDbYTecX1Bv+zRQVrCXDbfN59cVa2VlvbmRoF4ydMT1VQs51ASw/FyxQgOkLlXYpJ/pSnh73iMsAyYPD3eESpsDxNJn3J0UjDHLyXNCvxkVECBKPOmOn4jhkT+mVlEG4h024n8O1fzMp27MSs7pId/46Mx2Wc6w6zkMEmVjj1ddU1mu5oNPd7zHjMId7tKDQ12eg64xdtfn91sFp0z/GFq02aLNVwSFiiDNPZF9czoBrELXts/rS8ei4qWJd+ptI6+tw+zbyCFUmJ7l8pW4HoqG3fe6NNzYSnwM9KaFHfavG9IAEID6h336znvAT+2467uMUqYGElv58Wj3p9noDIoZf0PXy3Qzb7ILKpqe6KPzHseoej2IEx8p59b0BFMboFYADz5UP0kxS+haDdT9VwRjKIvqDgG9XQoUEoK6GhPSu1B0FLuOeXxXICfnrmqucOzF96Ih5uyEV9psub9xEheaONpBLId6N4+K4v37j7DbMpOJzNAoz+FjkYAQ==",
+      "encrypted_content": "Es8ECpQBCBAYAipA//yR0RzUKbEn7qUINKOND+lHWhb4JaSROFL3JizV/c8pKTWhv1p1JijtnUqYotGMHLV0sapg8Ta8TBCkvx2VwTIaY2xhdWRlLXNvbm5ldC00LTUtMjAyNTA5Mjk4AEIIdGhpbmtpbmdaJDI3Nzk2NjY4LTczNTEtNDBhYy1hY2M0LTAyNGFlZTg5OTVhNRIMJW4X7frjem8Y1I3jGgx14cFNhKRi8fppiVQiMKqaO5s806SjugO3UUcTUheYa+On5c8bdy5G7cmo31DWjt+y8dGB7MSDtjc8IETZGSrnAtiM00Dgwy7iRaIEYardSXF+4gGYhwidl1n+kaphuSbPG9Kj6V1ivb3vVcVoa4OOskUE8iIlI3nhBzLRl3AG3i2wVf+BOEykCCRU30lIkUiUqS+yiDIzcGOg2+ktxlKNifFhNXtjHYtZqWZ3GysYa7Rg3hE44pvmA6MvKXcjgG1lFWCyo+IBwleJLEYpuhokWMD64Mlct7v+KWpkO6a6QEnbk7kb120bwMosh31bnBdypH0l/qxAOI7rPo5jqidlB5f354xXUO4wXHEzhGto6WHfrqMdM6ET3WAbnBKBZppvoEogB6CiVXGBOaBjx2hHyJLhYwPdics5TH5Dve+JDHgxmfkk7YYYdhMKAAo0h8CuGVeOkMONhtRRg0w9o2lOGSDbCoQUeGp3tFyRDtf06J69VBJrrNd7nno9HhoFmyanYfTaJbhw7wh8wpE3H5rrYj1q4a0cCJDPzLP/vdyQjNDIIhir+i9xGAE=",
       "id": "msg_transformed_item_0",
       "summary": [
         {
           "text": "<thinking>
-The user wants me to call both weather tools exactly once in parallel. They want:
-1. Weather in New York (using get_new_york_weather)
-2. Weather in Los Angeles (using get_los_angeles_weather)
+The user wants me to call both weather tools exactly once in parallel. They mention "First get the weather in New York, then get the weather in Los Angeles" but they also say "in parallel", which means I should make both calls in the same function_calls block.
 
-Since these two calls are independent of each other (no dependencies), I can make both calls in the same function_calls block. Both functions don't require any parameters.",
+Both tools don't have any parameters, so I can call them both at once.",
           "type": "summary_text",
         },
       ],
@@ -32233,7 +32231,7 @@ Since these two calls are independent of each other (no dependencies), I can mak
     },
     {
       "arguments": "{}",
-      "call_id": "toolu_01L4fNRnzLNNrGmtZsNrFo52",
+      "call_id": "toolu_012kNyfcK7Y9KmPK6kZJVhVs",
       "id": "msg_transformed_item_1",
       "name": "get_new_york_weather",
       "status": "completed",
@@ -32241,7 +32239,7 @@ Since these two calls are independent of each other (no dependencies), I can mak
     },
     {
       "arguments": "{}",
-      "call_id": "toolu_01L5qHBwzbNeU7tVTyPoDhng",
+      "call_id": "toolu_01FpMVxt1oaC1vC6cwC6XpcA",
       "id": "msg_transformed_item_2",
       "name": "get_los_angeles_weather",
       "status": "completed",
@@ -32259,11 +32257,11 @@ Since these two calls are independent of each other (no dependencies), I can mak
       "cache_write_tokens": 0,
       "cached_tokens": 0,
     },
-    "output_tokens": 174,
+    "output_tokens": 155,
     "output_tokens_details": {
-      "reasoning_tokens": 96,
+      "reasoning_tokens": 84,
     },
-    "total_tokens": 835,
+    "total_tokens": 816,
   },
 }
 `;
@@ -36680,17 +36678,13 @@ exports[`responses → google > responsesParallelToolCallsWithReasoningParam > r
       "id": "msg_transformed_item_0",
       "summary": [
         {
-          "text": "**Parallel Weather Queries**
+          "text": "**My Plan for Parallel Weather Data Retrieval**
 
-Okay, so the user wants me to fetch weather data from two locations, New York and Los Angeles, and they've been very clear – "exactly once in parallel." I need to execute those calls *concurrently*, regardless of the order in the prompt, so that they're both retrieved simultaneously. The order New York, then Los Angeles, must be overridden, for the paramount request to call them in parallel.
+Okay, here's the game plan. The user is requesting weather information from two cities: New York and Los Angeles. They want both data points simultaneously, which means I need to make two calls in parallel. While the user uses the word "then", and it might sound slightly contradictory with "parallel," the system's design allows me to handle this through a single, parallel tool call response.
 
-Right, I've got two tools available, \`get_new_york_weather\` and \`get_los_angeles_weather\`. Looking at their definitions, they don't seem to require any parameters, which simplifies things. Excellent.
+Now, let's look at the tools. I've confirmed that both \`get_new_york_weather\` and \`get_los_angeles_weather\` are the right tools, and, thankfully, they're both incredibly straightforward. No parameters are needed for either.
 
-Therefore, I'll generate the appropriate tool calls, one for each city, and submit them in a single turn.
-
-Here are the tool calls that I will submit:
-*   \`default_api:get_new_york_weather\`
-*   \`default_api:get_los_angeles_weather\`
+Therefore, I'll construct a response that includes calls to *both* of these tools. That should get us the weather data the user is seeking, and efficiently!
 
 
 ",
@@ -36701,7 +36695,7 @@ Here are the tool calls that I will submit:
     },
     {
       "arguments": "{}",
-      "call_id": "6nmur7x7",
+      "call_id": "call_671341",
       "id": "msg_transformed_item_1",
       "name": "get_new_york_weather",
       "status": "completed",
@@ -36709,7 +36703,7 @@ Here are the tool calls that I will submit:
     },
     {
       "arguments": "{}",
-      "call_id": "xdyl73oc",
+      "call_id": "call_671342",
       "id": "msg_transformed_item_2",
       "name": "get_los_angeles_weather",
       "status": "completed",
@@ -36726,11 +36720,11 @@ Here are the tool calls that I will submit:
     "input_tokens_details": {
       "cached_tokens": 0,
     },
-    "output_tokens": 257,
+    "output_tokens": 220,
     "output_tokens_details": {
-      "reasoning_tokens": 228,
+      "reasoning_tokens": 191,
     },
-    "total_tokens": 349,
+    "total_tokens": 312,
   },
 }
 `;

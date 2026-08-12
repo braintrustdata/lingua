@@ -4,22 +4,22 @@
       "content": {
         "parts": [
           {
-            "text": "**Parallel Weather Queries**\n\nOkay, so the user wants me to fetch weather data from two locations, New York and Los Angeles, and they've been very clear – \"exactly once in parallel.\" I need to execute those calls *concurrently*, regardless of the order in the prompt, so that they're both retrieved simultaneously. The order New York, then Los Angeles, must be overridden, for the paramount request to call them in parallel.\n\nRight, I've got two tools available, `get_new_york_weather` and `get_los_angeles_weather`. Looking at their definitions, they don't seem to require any parameters, which simplifies things. Excellent.\n\nTherefore, I'll generate the appropriate tool calls, one for each city, and submit them in a single turn.\n\nHere are the tool calls that I will submit:\n*   `default_api:get_new_york_weather`\n*   `default_api:get_los_angeles_weather`\n\n\n",
+            "text": "**My Plan for Parallel Weather Data Retrieval**\n\nOkay, here's the game plan. The user is requesting weather information from two cities: New York and Los Angeles. They want both data points simultaneously, which means I need to make two calls in parallel. While the user uses the word \"then\", and it might sound slightly contradictory with \"parallel,\" the system's design allows me to handle this through a single, parallel tool call response.\n\nNow, let's look at the tools. I've confirmed that both `get_new_york_weather` and `get_los_angeles_weather` are the right tools, and, thankfully, they're both incredibly straightforward. No parameters are needed for either.\n\nTherefore, I'll construct a response that includes calls to *both* of these tools. That should get us the weather data the user is seeking, and efficiently!\n\n\n",
             "thought": true
           },
           {
             "functionCall": {
               "name": "get_new_york_weather",
               "args": {},
-              "id": "6nmur7x7"
+              "id": "call_671341"
             },
-            "thoughtSignature": "EvgGCvUGARFNMg+O2cEVApLmV9hlmVK0bOvpAzz+OXrz1W4r0tb/wiMoIwaVrO2Xk1yhWx9GUiEWlDzreEQp1bCYR4d+sEFxy4FPJO3V84cVH7P0EAtXvqvQljlbyRfnpBwW2PDR0fj4g9BIvSTKLCVrNcKPhuBQbglVmZz2xPg/+Qnp+3taYebXzd7Wwv91Ob1yzBoDtvkHXmNryGIl0RAEsi2rh6BPDBfuegZyzWP1v28dwJ1CqoMaeWzBevqEMmZJD2Y5JXD+MSBdpLPQhwlDPwgYLedPIt7aedWJ9CsulrnTJD8GhZJZa9YWDFtvHkpGa2o03O353ZIfCalBnwtjbY2Np81Por909d63jaLR/prtSjUV6ExNnMD8kb6/99gZLJ5hENMiSmXX9cknXMs2jC3/b7h+ofSXP2BcBewIwOngvwvRCjDh7NHTew0D+Cr8txXZzeZsy6EnPaFp+n5Th0l/d9oA6sTCrdRY3XFiR++8GeLQZ83M86UHpjjG4OLHUVICiHocD6LW/TLxKlsmOTY9nKFRRDXbGrlTi29MDc7vT5QP1cpNTkbBRM0iyqMww6gSdUWvbGaAKT/kUnOag/KISDn77R7hYOWn7qmgpc75+eh7NCFce8H2FIFM8dvQceMK5a/rwjYO25iudHPv8V76QHSoBVYi+R3AtMTWuL9zlWLecuCgY40bIPqbHwYw3h7TPpry0q5Elntdi9W3jMGT9Pp0Q6ahVrTVsRPdRPfocfBGIeha2ivgO7+AQHJgo3pBGcFOiYt5YUqI3b/aYLxNeQDgidUyP1yix5Spb3puaOJEZFhdWK5aIiCTmMdh0kZ3kMOtvSyQl6sN4F0aOBGsrEyIEidaFJ2CQnGY3SJA8JOvwx2YTp3wkPx1vwq/fBjg+EsTvwgbiEnsfzywnMleuTqC5r3wAOwK2FoOAgoXNDhKlgvFrLu+YYeHDIsXKpiEiLED/GtsBg1IrUBWCyI66YsDJfbR77mbFCHLkr+6RN3bZIPhluSg/YbhsgwYXZAUZnwDX7Ch4Gy8KyjGQ6fqcXj1/0L6VYPWPhnFStyhyy++mnBxWw830IvrS9a25F8Ds1ohAOsg0Fy6XYIoFj0gKMW64rqLfhcFUvaRuCOrzZGf0QzqOMu182f3T/7QiI2/deGSfw6BSKJK9VV9un6/LMHNNeL/"
+            "thoughtSignature": "EpcHCpQHARFNMg9t+o72PKHRh4OuZ9Qg+GP9c9qCGS7E9lT0SE9tWYUl0gPV3B0c5jTZchWF9TQCkEANcBgHZ6KdO9y2UK0U2/SQqBgdraSMOCmoN33G2yINGTzlYJOxI0rIM3uYJ3/KwY+3KvIhfdInnleOa0sjKThasX3DgMc/Xo5VLOJrskyEI9zVBrcKysTgWtYLXGIBDVDk/HmBv7m/nO30hzXw0H1vzb7MpnuwyYvbUK/Qc6gN9dnTjSgItj33xYpAMvlaB/s4Sw5CwX3G76JhuJ9FL53cfoSKUH86t8pyTcxQReNhiOkvUrI4DMIuut8uQw3IZZGAvqO8abjoWfjo1Jb4m0r+/9+XQEGk/qQZkciWmxaSRGMgtRAexyayk3XxKq06jb953hhrnSXR3JtBgb3x9SXbBRH39r92ofntS/NaCqtGOYvG7Vehqw720aI5cHKnc/CtEG8zeetUT+RJbdq+pOPayFcXGsm9H46XdqxaxdHj4OK/syQBRo3lpakcuqUCAsC+ZHO4bubdXqkhFdRgs3GM+l2YfDXvXx719YRyFaV7re+VQO2VsFTbwa+46HYfuJ6lXrcduIxvxUgBVtwfSH9QQV4yLzV7chWzm6FXBDsMW7Up+TjWgGlh1Zl1E32H15dvPvO6EYGDCIutrqFkXJ42R7GecrsRItcP+3+PSl9g6kKBTKu2lVlsIdRVe781+NcfX/+KHPwYiUxvARF/2cbb0qU0E7gSLzcGsqRjBwY/lTGhyHa/1I6fEHhokM9sI4nsf2spreaCdaqBZoToP6TQrIDIFIvIgOwF98ZYFjeCdarKrPsoUpzAncQcejrqcWI+RxTxbb3HFHAoYVqWhGnABfkcIx0Eo6MegWlbTilP3PZF6y8/S2gOlqEg3PYsRc8kzslww2XJmQilF62Vz48zKJckLjtuV5jY0M7fdsjrNCpbmkkF4PRHU9+ys09W7ywatoJ5fxV1JMODc/A12JeIxUlX6fFF/hgEsPWRNpKQCzHGmYWN4Bl8pYC5jHBt7/Q6Pe7giokVKVqoP4ckOQla9+ks/AAfkSgRL/4AR9zoNJFybbqz99tBJE5erNYpN/yRVTvKWX9WCJI9zaXa1/Tv5HdS1Yc4fN+sW0l5mpYT9pDwvUWKeslI+WHKjlU+JfelEqhGv3ModTmdlkjnEeL03e0C/PzygjNOD5yyEi+fKGojD48ncgxNA/b7JT96vw=="
           },
           {
             "functionCall": {
               "name": "get_los_angeles_weather",
               "args": {},
-              "id": "xdyl73oc"
+              "id": "call_671342"
             }
           }
         ],
@@ -33,16 +33,16 @@
   "usageMetadata": {
     "promptTokenCount": 92,
     "candidatesTokenCount": 29,
-    "totalTokenCount": 349,
+    "totalTokenCount": 312,
     "promptTokensDetails": [
       {
         "modality": "TEXT",
         "tokenCount": 92
       }
     ],
-    "thoughtsTokenCount": 228,
+    "thoughtsTokenCount": 191,
     "serviceTier": "standard"
   },
   "modelVersion": "gemini-3.5-flash",
-  "responseId": "UZ97arGMBNSY-8YPrOvgsAc"
+  "responseId": "ycl8ao37Jq-hjrEPsqnQUQ"
 }
