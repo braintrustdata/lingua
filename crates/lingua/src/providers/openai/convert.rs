@@ -417,6 +417,14 @@ fn tool_call_reasoning_signatures(
 ) -> Result<Vec<String>, ConvertError> {
     match reasoning_signature {
         Some(ReasoningSignature::Single(signature)) if !reasoning_emitted => {
+            if tool_call_count != 1 {
+                return Err(ConvertError::ContentConversionFailed {
+                    reason: format!(
+                        "scalar reasoning_signature cannot be associated with {} function tool calls",
+                        tool_call_count
+                    ),
+                });
+            }
             Ok(vec![signature.clone()])
         }
         Some(ReasoningSignature::Multiple(signatures)) if !reasoning_emitted => {
@@ -433,6 +441,24 @@ fn tool_call_reasoning_signatures(
         }
         _ => Ok(vec![]),
     }
+}
+
+fn combined_reasoning_signature(
+    mut reasoning_signatures: Vec<String>,
+    tool_call_signatures: Vec<Option<String>>,
+) -> Result<Option<ReasoningSignature>, ConvertError> {
+    let signed_tool_calls = tool_call_signatures
+        .iter()
+        .filter_map(|signature| signature.clone())
+        .collect::<Vec<_>>();
+    if !signed_tool_calls.is_empty() && signed_tool_calls.len() != tool_call_signatures.len() {
+        return Err(ConvertError::ContentConversionFailed {
+            reason: "tool calls have mixed signed and unsigned reasoning_signature slots"
+                .to_string(),
+        });
+    }
+    reasoning_signatures.extend(signed_tool_calls);
+    Ok(ReasoningSignature::from_values(reasoning_signatures))
 }
 
 fn assistant_content_parts_from_openai_tool_calls_with_signatures<I>(
@@ -5195,6 +5221,7 @@ fn extract_content_tool_calls_and_reasoning(
     let mut tool_calls = Vec::new();
     let mut reasoning_parts = Vec::new();
     let mut reasoning_signatures = Vec::new();
+    let mut tool_call_signatures = Vec::new();
 
     match content {
         AssistantContent::String(text) => {
@@ -5227,9 +5254,7 @@ fn extract_content_tool_calls_and_reasoning(
                         encrypted_content,
                         ..
                     } => {
-                        if let Some(encrypted_content) = encrypted_content {
-                            reasoning_signatures.push(encrypted_content);
-                        }
+                        tool_call_signatures.push(encrypted_content);
                         tool_calls.push(openai::ToolCall {
                             id: tool_call_id,
                             tool_call_type: openai::FluffyType::Function,
@@ -5289,7 +5314,7 @@ fn extract_content_tool_calls_and_reasoning(
         text_content,
         tool_calls_option,
         reasoning,
-        ReasoningSignature::from_values(reasoning_signatures),
+        combined_reasoning_signature(reasoning_signatures, tool_call_signatures)?,
     ))
 }
 
@@ -5469,7 +5494,7 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
 
                         // Extract reasoning from parts and concatenate, preserving signatures.
                         let mut reasonings: Vec<String> = Vec::new();
-                        let mut signatures = Vec::new();
+                        let mut reasoning_signatures = Vec::new();
                         for part in parts {
                             if let AssistantContentPart::Reasoning {
                                 text,
@@ -5478,13 +5503,14 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             {
                                 reasonings.push(text.clone());
                                 if let Some(encrypted_content) = encrypted_content {
-                                    signatures.push(encrypted_content.clone());
+                                    reasoning_signatures.push(encrypted_content.clone());
                                 }
                             }
                         }
 
                         // Extract tool calls from parts
                         let mut tool_calls: Vec<openai::ToolCall> = Vec::new();
+                        let mut tool_call_signatures = Vec::new();
                         for part in parts {
                             if let AssistantContentPart::ToolCall {
                                 tool_call_id,
@@ -5494,9 +5520,7 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                                 ..
                             } = part
                             {
-                                if let Some(encrypted_content) = encrypted_content {
-                                    signatures.push(encrypted_content.clone());
-                                }
+                                tool_call_signatures.push(encrypted_content.clone());
                                 tool_calls.push(openai::ToolCall {
                                     id: tool_call_id.clone(),
                                     tool_call_type: openai::FluffyType::Function,
@@ -5531,7 +5555,10 @@ impl TryFromLLM<&Message> for ChatCompletionResponseMessageExt {
                             content_text,
                             tool_calls_option,
                             reasoning,
-                            ReasoningSignature::from_values(signatures),
+                            combined_reasoning_signature(
+                                reasoning_signatures,
+                                tool_call_signatures,
+                            )?,
                         )
                     }
                 };
@@ -6678,6 +6705,63 @@ mod tests {
 
         let error = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
             .expect_err("unmatched signatures should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn request_rejects_scalar_signature_for_multiple_tool_calls() {
+        let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning_signature": "signature_123",
+            "tool_calls": [
+                { "id": "call_1", "type": "function", "function": { "name": "first", "arguments": "{}" } },
+                { "id": "call_2", "type": "function", "function": { "name": "second", "arguments": "{}" } }
+            ]
+        }))
+        .expect("chat request should deserialize");
+
+        let error = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect_err("ambiguous scalar signature should fail conversion");
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+    }
+
+    #[test]
+    fn response_message_rejects_mixed_tool_signature_slots() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_1".to_string(),
+                    tool_name: "first".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: None,
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+                AssistantContentPart::ToolCall {
+                    tool_call_id: "call_2".to_string(),
+                    tool_name: "second".to_string(),
+                    arguments: ToolCallArguments::from("{}".to_string()),
+                    encrypted_content: Some("signature_123".to_string()),
+                    provider_options: None,
+                    status: None,
+                    caller: None,
+                    provider_executed: None,
+                },
+            ]),
+            id: None,
+        };
+
+        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+            .expect_err("mixed signature slots should fail conversion");
         assert!(matches!(
             error,
             ConvertError::ContentConversionFailed { .. }

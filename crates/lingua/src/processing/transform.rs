@@ -511,26 +511,11 @@ pub fn request_to_universal(input: Bytes) -> Result<UniversalRequest, TransformE
 // Response transformation
 // ============================================================================
 
-fn is_reasoning_only_response_message(msg: &Message) -> bool {
-    match msg {
-        Message::Assistant {
-            content: AssistantContent::Array(parts),
-            ..
-        } => {
-            !parts.is_empty()
-                && parts
-                    .iter()
-                    .all(|part| matches!(part, AssistantContentPart::Reasoning { .. }))
-        }
-        _ => false,
-    }
-}
-
 fn merge_responses_output_parts_for_chat_completions(messages: Vec<Message>) -> Vec<Message> {
     let mut merged = Vec::with_capacity(messages.len());
 
     for message in messages {
-        let should_merge = matches!(merged.last(), Some(prev) if is_reasoning_only_response_message(prev))
+        let should_merge = matches!(merged.last(), Some(Message::Assistant { .. }))
             && matches!(message, Message::Assistant { .. });
 
         if !should_merge {
@@ -2206,6 +2191,16 @@ mod tests {
                     "encrypted_content": "signature_one"
                 },
                 {
+                    "type": "message",
+                    "id": "msg_1",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [{
+                        "type": "output_text",
+                        "text": "I found the forecast."
+                    }]
+                },
+                {
                     "type": "reasoning",
                     "id": "rs_2",
                     "summary": [],
@@ -2235,6 +2230,10 @@ mod tests {
         assert_eq!(
             response["choices"][0]["message"]["tool_calls"][0]["function"]["name"],
             "lookup_weather"
+        );
+        assert_eq!(
+            response["choices"][0]["message"]["content"],
+            "I found the forecast."
         );
     }
 
