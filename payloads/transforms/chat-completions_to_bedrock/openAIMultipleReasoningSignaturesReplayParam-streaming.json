@@ -1,4 +1,0 @@
-{
-  "error": "Token is expired. To refresh this SSO session run 'aws sso login' with the corresponding profile.",
-  "name": "CredentialsProviderError"
-}
