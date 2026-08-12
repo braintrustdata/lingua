@@ -1539,6 +1539,14 @@
       "errors": [
         { "pattern": "Lingua file content with MIME type video/mp4 to Anthropic document input", "reason": "Vertex Anthropic does not support URL-backed video files" }
       ]
+    },
+    {
+      "testCase": "openAIMultipleReasoningSignaturesReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "fields": [
+        { "pattern": "messages.length", "reason": "Responses replays each encrypted reasoning signature as a separate reasoning input item" }
+      ]
     }
   ]
 }

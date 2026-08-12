@@ -4504,7 +4504,11 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                     } else {
                         content_parts.extend(reasoning_signatures.iter().enumerate().map(
                             |(index, signature)| AssistantContentPart::Reasoning {
-                                text: (index == 0).then(|| reasoning.clone()).unwrap_or_default(),
+                                text: if index == 0 {
+                                    reasoning.clone()
+                                } else {
+                                    String::new()
+                                },
                                 encrypted_content: Some(signature.clone()),
                             },
                         ));
@@ -4569,9 +4573,11 @@ impl TryFromLLM<ChatCompletionRequestMessageExt> for Message {
                             Some(tool_call_signature),
                         ));
                     } else {
-                        let tool_call_signatures = (!has_reasoning)
-                            .then_some(reasoning_signatures)
-                            .unwrap_or_default();
+                        let tool_call_signatures = if !has_reasoning {
+                            reasoning_signatures
+                        } else {
+                            Vec::new()
+                        };
                         content_parts.extend(
                             assistant_content_parts_from_openai_tool_calls_with_signatures(
                                 tool_calls,
@@ -5240,7 +5246,13 @@ fn extract_content_tool_calls_and_reasoning(
         }
     }
 
-    let text_content = chat_completion_assistant_text_content(text_parts)?;
+    let text_content = match chat_completion_assistant_text_content(text_parts)? {
+        Some(content) => Some(content),
+        None if !reasoning_parts.is_empty() => {
+            Some(ChatCompletionRequestMessageContentExt::String(String::new()))
+        }
+        None => None,
+    };
 
     let tool_calls_option = if tool_calls.is_empty() {
         None
@@ -5359,7 +5371,11 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
                     } else {
                         content_parts.extend(reasoning_signatures.iter().enumerate().map(
                             |(index, signature)| AssistantContentPart::Reasoning {
-                                text: (index == 0).then(|| reasoning.clone()).unwrap_or_default(),
+                                text: if index == 0 {
+                                    reasoning.clone()
+                                } else {
+                                    String::new()
+                                },
                                 encrypted_content: Some(signature.clone()),
                             },
                         ));
@@ -5380,11 +5396,15 @@ impl TryFromLLM<ChatCompletionResponseMessageExt> for Message {
 
                 // Add tool calls if present
                 if let Some(tool_calls) = &msg.base.tool_calls {
-                    let mut tool_call_signatures = tool_call_signature.into_iter().cycle().chain(
-                        (!has_reasoning)
-                            .then_some(reasoning_signatures)
-                            .unwrap_or_default(),
-                    );
+                    let tool_call_signatures = if !has_reasoning {
+                        reasoning_signatures
+                    } else {
+                        Vec::new()
+                    };
+                    let mut tool_call_signatures = tool_call_signature
+                        .into_iter()
+                        .cycle()
+                        .chain(tool_call_signatures);
                     for tool_call in tool_calls {
                         if let Some(function) = &tool_call.function {
                             content_parts.push(AssistantContentPart::ToolCall {
@@ -6482,6 +6502,13 @@ mod tests {
             reasoning_signatures,
             vec!["signature_one".to_string(), "signature_two".to_string()]
         );
+
+        let chat_request = messages_to_chat_completion_messages(vec![reparsed.clone()])
+            .expect("universal message should convert to chat history");
+        assert!(matches!(
+            chat_request[0].content,
+            Some(ChatCompletionRequestMessageContentExt::String(ref text)) if text.is_empty()
+        ));
 
         let responses_input = universal_to_responses_input(&[reparsed])
             .expect("universal message should convert to Responses input");
