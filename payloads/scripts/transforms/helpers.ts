@@ -368,7 +368,12 @@ function getTransformCandidateCases(
     if (filter && !caseName.includes(filter)) return false;
     const sourceCase = getCaseForProvider(allTestCases, caseName, pair.source);
     const testCase = allTestCases[caseName];
-    return sourceCase != null && !testCase?.expect;
+    return (
+      sourceCase != null &&
+      !testCase?.expect &&
+      (!testCase?.transform_targets ||
+        testCase.transform_targets.includes(pair.target))
+    );
   });
 }
 

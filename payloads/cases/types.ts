@@ -117,6 +117,8 @@ export interface TestCase {
   baseten?: ChatCompletionCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
+  // Restrict capture and transform tests to target providers relevant to this case.
+  transform_targets?: ProviderType[];
 }
 
 // Collection of test cases organized by name

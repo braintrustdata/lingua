@@ -2875,9 +2875,7 @@ pub fn universal_to_responses_input(
                     }
                     AssistantContent::Array(parts) => {
                         // Categorize all parts into separate collections
-                        let mut reasoning_parts: Vec<openai::SummaryText> = vec![];
-                        let mut has_reasoning = false;
-                        let mut encrypted_content = None;
+                        let mut reasoning_items: Vec<(String, Option<String>)> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut sequenced_items: Vec<ResponsesSequencedInputItem> = vec![];
 
@@ -2887,14 +2885,7 @@ pub fn universal_to_responses_input(
                                     text,
                                     encrypted_content: ec,
                                 } => {
-                                    has_reasoning = true;
-                                    encrypted_content = ec.clone();
-                                    if !text.is_empty() {
-                                        reasoning_parts.push(openai::SummaryText {
-                                            text: text.clone(),
-                                            summary_text_type: openai::SummaryType::SummaryText,
-                                        });
-                                    }
+                                    reasoning_items.push((text.clone(), ec.clone()));
                                 }
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
@@ -2992,15 +2983,25 @@ pub fn universal_to_responses_input(
                             }
                         }
 
-                        // 1. Emit reasoning item if any reasoning part existed (even with empty text)
-                        if has_reasoning {
+                        // 1. Emit one reasoning item for every reasoning part. Each encrypted
+                        // signature belongs to its own Responses item and must not be coalesced.
+                        let has_reasoning = !reasoning_items.is_empty();
+                        for (text, encrypted_content) in reasoning_items {
+                            let summary = Some(if text.is_empty() {
+                                vec![]
+                            } else {
+                                vec![openai::SummaryText {
+                                    text,
+                                    summary_text_type: openai::SummaryType::SummaryText,
+                                }]
+                            });
                             result.push(openai::InputItem {
                                 role: None,
                                 content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
                                 id: id.clone(),
-                                summary: Some(reasoning_parts),
-                                encrypted_content: encrypted_content.clone(),
+                                summary,
+                                encrypted_content,
                                 ..Default::default()
                             });
                         }
@@ -6450,7 +6451,7 @@ mod tests {
             <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(chat_request)
                 .expect("chat history should convert to universal message");
 
-        let Message::Assistant { content, .. } = reparsed else {
+        let Message::Assistant { content, .. } = &reparsed else {
             panic!("expected assistant message");
         };
         let AssistantContent::Array(parts) = content else {
@@ -6468,6 +6469,18 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(
             reasoning_signatures,
+            vec!["signature_one".to_string(), "signature_two".to_string()]
+        );
+
+        let responses_input = universal_to_responses_input(&[reparsed])
+            .expect("universal message should convert to Responses input");
+        let replayed_signatures = responses_input
+            .iter()
+            .filter(|item| item.input_item_type == Some(openai::InputItemType::Reasoning))
+            .filter_map(|item| item.encrypted_content.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            replayed_signatures,
             vec!["signature_one".to_string(), "signature_two".to_string()]
         );
     }
