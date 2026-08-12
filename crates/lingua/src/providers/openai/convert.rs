@@ -164,6 +164,12 @@ pub enum ReasoningSignature {
 
 impl ReasoningSignature {
     fn from_values(values: Vec<String>) -> Option<Self> {
+        let values = values.into_iter().fold(Vec::new(), |mut unique, value| {
+            if !unique.contains(&value) {
+                unique.push(value);
+            }
+            unique
+        });
         match values.len() {
             0 => None,
             1 => values.into_iter().next().map(Self::Single),
@@ -2875,7 +2881,7 @@ pub fn universal_to_responses_input(
                     }
                     AssistantContent::Array(parts) => {
                         // Categorize all parts into separate collections
-                        let mut reasoning_items: Vec<(String, Option<String>)> = vec![];
+                        let mut reasoning_items: Vec<(Vec<String>, Option<String>)> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut sequenced_items: Vec<ResponsesSequencedInputItem> = vec![];
 
@@ -2885,7 +2891,12 @@ pub fn universal_to_responses_input(
                                     text,
                                     encrypted_content: ec,
                                 } => {
-                                    reasoning_items.push((text.clone(), ec.clone()));
+                                    if ec.is_some() || reasoning_items.is_empty() {
+                                        reasoning_items.push((vec![text.clone()], ec.clone()));
+                                    } else if let Some((summaries, _)) = reasoning_items.last_mut()
+                                    {
+                                        summaries.push(text.clone());
+                                    }
                                 }
                                 AssistantContentPart::ToolCall {
                                     tool_call_id,
@@ -2983,18 +2994,18 @@ pub fn universal_to_responses_input(
                             }
                         }
 
-                        // 1. Emit one reasoning item for every reasoning part. Each encrypted
-                        // signature belongs to its own Responses item and must not be coalesced.
                         let has_reasoning = !reasoning_items.is_empty();
-                        for (text, encrypted_content) in reasoning_items {
-                            let summary = Some(if text.is_empty() {
-                                vec![]
-                            } else {
-                                vec![openai::SummaryText {
-                                    text,
-                                    summary_text_type: openai::SummaryType::SummaryText,
-                                }]
-                            });
+                        for (summaries, encrypted_content) in reasoning_items {
+                            let summary = Some(
+                                summaries
+                                    .into_iter()
+                                    .filter(|text| !text.is_empty())
+                                    .map(|text| openai::SummaryText {
+                                        text,
+                                        summary_text_type: openai::SummaryType::SummaryText,
+                                    })
+                                    .collect(),
+                            );
                             result.push(openai::InputItem {
                                 role: None,
                                 content: Some(openai::InputItemContent::InputContentArray(vec![])),
@@ -6482,6 +6493,70 @@ mod tests {
         assert_eq!(
             replayed_signatures,
             vec!["signature_one".to_string(), "signature_two".to_string()]
+        );
+    }
+
+    #[test]
+    fn responses_reasoning_summaries_round_trip_in_one_item() {
+        let input_items: Vec<openai::InputItem> = serde_json::from_value(json!([
+            {
+                "type": "reasoning",
+                "id": "rs_123",
+                "summary": [
+                    { "type": "summary_text", "text": "first summary" },
+                    { "type": "summary_text", "text": "second summary" }
+                ],
+                "encrypted_content": "signature_123"
+            }
+        ]))
+        .expect("reasoning input should deserialize");
+
+        let messages = <Vec<Message> as TryFromLLM<Vec<openai::InputItem>>>::try_from(input_items)
+            .expect("reasoning input should convert to universal messages");
+        let roundtrip = universal_to_responses_input(&messages)
+            .expect("universal messages should convert back to Responses input");
+
+        assert_eq!(roundtrip.len(), 1);
+        assert_eq!(roundtrip[0].id.as_deref(), Some("rs_123"));
+        assert_eq!(
+            roundtrip[0].encrypted_content.as_deref(),
+            Some("signature_123")
+        );
+        assert_eq!(
+            roundtrip[0]
+                .summary
+                .as_ref()
+                .expect("reasoning summary should be present")
+                .iter()
+                .map(|summary| summary.text.clone())
+                .collect::<Vec<_>>(),
+            vec!["first summary".to_string(), "second summary".to_string()]
+        );
+    }
+
+    #[test]
+    fn response_message_deduplicates_shared_reasoning_and_tool_signature() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "reasoning",
+            "reasoning_signature": "signature_123",
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Single("signature_123".to_string()))
         );
     }
 
