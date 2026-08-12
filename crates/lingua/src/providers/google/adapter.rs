@@ -1086,7 +1086,6 @@ fn add_dummy_thought_signatures_for_transferred_function_call_history(messages: 
 mod tests {
     use super::*;
     use crate::providers::google::GenerateContentRequest;
-    use crate::providers::openai::OpenAIAdapter;
     use crate::serde_json::json;
     use crate::universal::request::ToolChoiceMode;
     use crate::universal::ReasoningEffort;
@@ -1227,24 +1226,27 @@ mod tests {
         assert_eq!(thinking_config.thinking_level, None);
     }
 
+    // A universal request with reasoning explicitly off (enabled: false), as the
+    // prompt UI opt-out and the reasoning_budget: 0 workaround both produce.
+    fn gemini_reasoning_off(model: &str) -> UniversalRequest {
+        let mut universal = GoogleAdapter
+            .request_to_universal(json!({
+                "model": model,
+                "contents": [{"role": "user", "parts": [{"text": "hi"}]}]
+            }))
+            .unwrap();
+        universal.params.reasoning = Some(ReasoningConfig {
+            enabled: Some(false),
+            ..Default::default()
+        });
+        universal
+    }
+
     // BT-4707: explicit reasoning opt-out on 2.5 Flash must send thinkingBudget: 0.
     #[test]
     fn test_google_flash_reasoning_off_emits_thinking_budget_zero() {
-        let openai = OpenAIAdapter;
-        let google = GoogleAdapter;
-        let universal = openai
-            .request_to_universal(json!({
-                "model": "gemini-2.5-flash",
-                "messages": [{"role": "user", "content": "hi"}],
-                "reasoning_enabled": false
-            }))
-            .unwrap();
-        assert_eq!(
-            universal.params.reasoning.as_ref().unwrap().enabled,
-            Some(false)
-        );
-
-        let reconstructed = google.request_from_universal(&universal).unwrap();
+        let universal = gemini_reasoning_off("gemini-2.5-flash");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
         let reconstructed: GenerateContentRequest =
             serde_json::from_value(reconstructed).expect("request should deserialize");
         let thinking_config = reconstructed
@@ -1259,17 +1261,8 @@ mod tests {
     // 2.5 Pro can't disable thinking (rejects 0), so no thinkingConfig is emitted.
     #[test]
     fn test_google_pro_reasoning_off_does_not_emit_budget_zero() {
-        let openai = OpenAIAdapter;
-        let google = GoogleAdapter;
-        let universal = openai
-            .request_to_universal(json!({
-                "model": "gemini-2.5-pro",
-                "messages": [{"role": "user", "content": "hi"}],
-                "reasoning_enabled": false
-            }))
-            .unwrap();
-
-        let reconstructed = google.request_from_universal(&universal).unwrap();
+        let universal = gemini_reasoning_off("gemini-2.5-pro");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
         let reconstructed: GenerateContentRequest =
             serde_json::from_value(reconstructed).expect("request should deserialize");
 
