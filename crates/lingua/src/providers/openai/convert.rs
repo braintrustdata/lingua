@@ -415,14 +415,12 @@ pub(crate) fn assistant_content_parts_from_openai_tool_calls(
 
 fn tool_call_reasoning_signatures(
     reasoning_signature: &Option<ReasoningSignature>,
-    reasoning_emitted: bool,
+    _reasoning_emitted: bool,
     tool_call_count: usize,
 ) -> Result<Vec<String>, ConvertError> {
     match reasoning_signature {
-        Some(ReasoningSignature::Single(signature)) if !reasoning_emitted => {
-            Ok(vec![signature.clone(); tool_call_count])
-        }
-        Some(ReasoningSignature::Multiple(signatures)) if !reasoning_emitted => {
+        Some(ReasoningSignature::Single(signature)) => Ok(vec![signature.clone(); tool_call_count]),
+        Some(ReasoningSignature::Multiple(signatures)) if !_reasoning_emitted => {
             if signatures.len() != tool_call_count {
                 return Err(ConvertError::ContentConversionFailed {
                     reason: format!(
@@ -6453,6 +6451,51 @@ mod tests {
             .expect("tool call should be present");
 
         assert_eq!(tool_call.as_deref(), Some("thought_signature_123"));
+    }
+
+    #[test]
+    fn request_scalar_reasoning_signature_applies_to_reasoning_and_tool_calls() {
+        let value = json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "thinking",
+            "reasoning_signature": "thought_signature_123",
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "get_summary", "arguments": "{}" }
+            }]
+        });
+
+        let parsed: ChatCompletionRequestMessageExt = serde_json::from_value(value).unwrap();
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(parsed)
+            .expect("scalar signature should apply to reasoning and tool calls");
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant array content");
+        };
+        let signatures = parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::Reasoning {
+                    encrypted_content, ..
+                }
+                | AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                } => encrypted_content.clone(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            signatures,
+            vec![
+                "thought_signature_123".to_string(),
+                "thought_signature_123".to_string(),
+            ]
+        );
     }
 
     #[test]

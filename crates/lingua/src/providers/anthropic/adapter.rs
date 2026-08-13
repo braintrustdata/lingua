@@ -41,9 +41,9 @@ use crate::universal::request::{
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     FinishReason, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
-    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
@@ -1431,6 +1431,16 @@ impl ProviderAdapter for AnthropicAdapter {
         // Content deltas
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta_view) = choice.delta_view() {
+                if matches!(
+                    delta_view.reasoning_signature,
+                    Some(UniversalReasoningSignature::Multiple(_))
+                ) {
+                    return Err(TransformError::FromUniversalFailed(
+                        "multiple reasoning signatures cannot be represented in one Anthropic stream content block"
+                            .to_string(),
+                    ));
+                }
+
                 // Reasoning / thinking delta
                 if !delta_view.reasoning.is_empty() {
                     let thinking = delta_view
@@ -1813,7 +1823,7 @@ mod tests {
     }
 
     #[test]
-    fn test_stream_from_universal_preserves_multiple_reasoning_signatures() {
+    fn test_stream_from_universal_rejects_multiple_reasoning_signatures() {
         let adapter = AnthropicAdapter;
         let chunk = UniversalStreamChunk::new(
             None,
@@ -1833,22 +1843,10 @@ mod tests {
             None,
         );
 
-        let output = adapter.stream_from_universal(&chunk).unwrap();
-        assert_eq!(
-            output,
-            json!([
-                {
-                    "type": "content_block_delta",
-                    "index": 0,
-                    "delta": {"type": "signature_delta", "signature": "signature_one"}
-                },
-                {
-                    "type": "content_block_delta",
-                    "index": 0,
-                    "delta": {"type": "signature_delta", "signature": "signature_two"}
-                }
-            ])
-        );
+        let error = adapter.stream_from_universal(&chunk).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("multiple reasoning signatures cannot be represented"));
     }
 
     #[test]

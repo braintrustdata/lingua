@@ -815,6 +815,19 @@ impl ProviderAdapter for GoogleAdapter {
             .map(|c| {
                 let delta = c.delta_view();
 
+                if delta.as_ref().is_some_and(|d| {
+                    !d.reasoning.is_empty()
+                        && matches!(
+                            d.reasoning_signature,
+                            Some(UniversalReasoningSignature::Multiple(_))
+                        )
+                }) {
+                    return Err(TransformError::FromUniversalFailed(
+                        "multiple reasoning signatures cannot be represented with one Google thought stream delta"
+                            .to_string(),
+                    ));
+                }
+
                 // Build parts array from text and tool_calls
                 let mut parts: Vec<GoogleStreamPart> = Vec::new();
 
@@ -2023,6 +2036,36 @@ mod tests {
                 "signature_two".to_string(),
             ]))
         );
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_rejects_multiple_reasoning_signatures() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    reasoning: vec![UniversalReasoningDelta {
+                        content: Some("thinking".to_string()),
+                    }],
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let error = adapter.stream_from_universal(&chunk).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("multiple reasoning signatures cannot be represented"));
     }
 
     #[test]
