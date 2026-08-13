@@ -3048,7 +3048,9 @@ pub fn universal_to_responses_input(
                         }
 
                         let has_reasoning = !reasoning_items.is_empty();
-                        for (summaries, encrypted_content) in reasoning_items {
+                        for (index, (summaries, encrypted_content)) in
+                            reasoning_items.into_iter().enumerate()
+                        {
                             let summary = Some(
                                 summaries
                                     .into_iter()
@@ -3063,7 +3065,7 @@ pub fn universal_to_responses_input(
                                 role: None,
                                 content: Some(openai::InputItemContent::InputContentArray(vec![])),
                                 input_item_type: Some(openai::InputItemType::Reasoning),
-                                id: id.clone(),
+                                id: if index == 0 { id.clone() } else { None },
                                 summary,
                                 encrypted_content,
                                 ..Default::default()
@@ -6650,6 +6652,30 @@ mod tests {
             replayed_signatures,
             vec!["signature_one".to_string(), "signature_two".to_string()]
         );
+    }
+
+    #[test]
+    fn responses_input_assigns_assistant_id_to_first_split_reasoning_item() {
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first reasoning step".to_string(),
+                    encrypted_content: Some("signature_one".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second reasoning step".to_string(),
+                    encrypted_content: Some("signature_two".to_string()),
+                },
+            ]),
+            id: Some("msg_123".to_string()),
+        };
+
+        let input_items = universal_to_responses_input(&[message])
+            .expect("universal message should convert to Responses input");
+
+        assert_eq!(input_items.len(), 2);
+        assert_eq!(input_items[0].id.as_deref(), Some("msg_123"));
+        assert_eq!(input_items[1].id, None);
     }
 
     #[test]
