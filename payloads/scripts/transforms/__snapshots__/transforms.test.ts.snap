@@ -19599,32 +19599,14 @@ exports[`chat-completions → responses > openAIMultipleReasoningSignaturesRepla
       "index": 0,
       "message": {
         "annotations": [],
-        "content": "",
-        "reasoning": "",
-        "reasoning_signature": "gAAAAABqfN1R2Dd00guAg_WWbpjW70i-Y3V7H_hR27-i6PwKZkJL0AZOYRvTlGJk5Lc6EQRLvQI3MsHyGIxRWYhb9o-tePpqMpN_XjIhqcNn2DdApO5u7T6Xcxiz-RFMg6SNmuv-T8RjJQmYcwnOexS_ZH1g7vJSb3flIhIvF-_zjMabFT9D7wUULWITBLokhXTJOcBb_0WDshd7cLZ6RaGYrGPQfgh3x8CsMlXjUnwCQnbw8O6DzFk-m1Cq0n0QbV6YahRCWqa2FazAVc92zgd2iOfD25ENjstzkxFuZsBc7dwZ7cNrD_wfwXBrdSy6Er3M1MFQhlPViNeljAK1gTxKRqjYF0DbG3MbviVIZzJQtCPnV6BuotixSBPDR49ilJ0oxMk4RhbiwpzLRs9M9N12-G1ZGlTqpYaIRL84e9DiiWxKtoIFfm6VXTIFI1Yws-Xw1NyPNWqVJthH7zVk9BO602ZiLSlGif4RZmEjq9ppzGIg9cACZReoR7pZBvf2vYYolOp9Epo8z5vtdXCSlXaeLThu3gwID8mQkn0mtt7HclaPHyN5R4pBEsNzXoZbYHWHs_RsCRQ7UBim3aT9BV1K_aueVUmVZIkEQV6vjw6TNbsdGDi5CUL5dOVXcde4AihZvkpiWQWNMQuyOEukKftMLB4LcFr-RFsCHnHxvTB580_-JU7b2QC6gNEFkcST69O8EZ0vfKErTpV_4A3I7-xLcp5liCHQjwktkZvdouYjdJqnUDDGABa5d3hxEi3b8aLBzWSjMmULf7ddCOl6CLk2KSJgM_lOwxLq_UtJmu-I7qLLylh1HQcubwM-3GRaOlDmiar0p-_8jDmPdRFs7-I1dt-XNA64zQ5Q0X1lQcVm7UJrBKPPJA_WUyXxsex-_ySsbNMnp9E6IbUjguR1ScIMsIpdfCo6rOdVzRtY6ik8x1kEcK5gSOyrtsJEa9zqwuK5fxLoIecM2WXCtgMMw86yi-FYnfzXTXbmEEdOklVNzUStsRC5KkXVxJ0D3XxFTHQCxHxvYiX8So5-YMpGCMwmDZHnjL6u_nIoBxLJBEaDY5JrjdCiMJkkdZnpwnXfipiWhLRIgv5ouye0zRKe5QQ1FSBIpq4eZelt8uhJKD3wx9yInZbVxGOTuVahh0RJ_6sV1shgxyG9A3btB1zGEiM-OOSALr5b7hlva8Bt76D3blbXWGelvZh3hh_dVWBdN9BOyFQxrqWJsK2WCt-E3_xRoycXg5DoPU-81a2--Ms-A4sXIsbOWIOawVd7J9g8tJyOWph3CmD7Xhk8yxCGd2t9Lo068ODxNbgEd-40n7qOV1-32gcG0djt9tGPdkZ0DwLVUT5k3xsxN3M8RF_masKLdRf6htdVC-417R8qUo0cW7fk2pKW-LGF_iW063OV_N6H-viVV_Dx--8BXynBstgbVnY1iGdRIxg3-aFDGqDX84EhRojfOH72E5jJFX_8QFszs53XZ_LXKF261dVVOoH5KU2Ctbxp5BbZaU9jolhHODeoBanLj8xN4flXZ2RfjFDqt27XU_i8_SmFWhHcoYwGuEUvJasRvHU-S6owxc0X8i5f5QuIfq87GbVkCSzWl9tkwDAH5e9SNTcoasu-lRoOfGUwgZE_WvLcHnNHl6tG0eKNZMxjadWAWJSz97rnkD4mWi8IRKlBzS-Mkojv7H2e4mMEYv2mw5kYc5znq8HUldsjlSqM6FLq5-nYoCX3qH7SlYi3MFlCgOSmW748-qRjOsMg5ed3dFsbpDoUeKCpeQawAy35XobdBCQ2LEcqP3dIGCHfY7NdEbOhxZwnc2UimG8Wy_QHmA==",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 1,
-      "message": {
-        "annotations": [],
         "content": " to=record_research  code
-{"country":"Kazakhstan","capital":"Astana","population":21108323}",
+{"country":"Kazakhstan","capital":"Astana","population":21108323}Research context received.",
         "reasoning": "",
-        "reasoning_signature": "gAAAAABqfN1RyiWIw-3HamUJACXwKZ4g0zZ25GiJBz70CXmGwZzC9L6WmTtkNpNSaoXH_yhKFpN7CRO7hc87bBY3Gl9oYaNIzvo_gSse2zf1Avnax7NMykHgsUJd5V8NEOGe_e75kGnbgdtGx86d3EwNl8IO-2Giz2M4LNX8QjcULGONp2oRl9s5RuvYOtI5yFQMs41he2MqrG7sPdyDjsobn4iqdjbs6wVWPTatPacbHPhajZ4Whd3GYAZTHjDYGhyATzDxAa2xEA22x9d6jZqFix4w2mJ4s9NgxhHZwZfTqUALsbR7ycEBfxVW-Ddw3vEgaelSm5BsvQDvzguMmP_NWRAluc3OFy2mYM0zXUrfXCAezDpbVGTj4zXhCSOMlfGzFosWM-aJBuui-V0j_pdLDZzBTLqYRws7eIBgT9osVNdqAh0WD6raYYcx_YLyTeuFUOKxBqxFtpSg2ZoTerR3tORZL8m_jKCWuR0abYiyC8pVaGXREEm0sQR6qXmKU1DkfB2OkGl9W9tDN-DKGB4fai757Ym-IU3H_iRNfa7XAka_yO_pOWxE063ftfyQ5kFMxNz-LWf1nQ2X_T7cvQfRZzfstkwT1YfWeTjJy04wbixFhyJqvB-pkzASJZ0dtNY2LeWsKEjDKqXUBO_xEVBQhvYf8khfyiSOsiJS80aQZc6HKYTZWhAitdWbTHQfwP3Y1AyBuKu0rKu-qiy161oVp0WN9OjFrSgZimXFV9Z53bjfSGYNOtVUutYgw6LwZ0hlvozcqccPV_cbZCcUM-pbIPK2Oe_D2W1CwliiSmatKR29v8E0-CuDMdJYt674460TyM6QdrvXTD61rq4-qGQd_gx8Rry4BSVG0BttJoASJrZ56ZJPpwveU6gY77qrrX6TDcVrgrLMXznwgxNoMOYwNGXTKMUTIM1EiW8f4GuPnMwPyFLnI-yYSIp9e9h_Zmdy3PLLc9rmqBJfKNu68BpzYMx2iH7vs9Oip6u06dB9ceSTruhKtTcgEpiv6k9lcVMYm0_f4w7uMgFtEYCBpI-8xuUIswtndBoFzvRSI1KmMbFHeJth_5GyUefDJDB_YcY5VtVuO0qGrhgVzOkfiotzYkjV7QzVclK1JO-UYf190r3sVgCMozGaIyDjPGQKLTqQjabpuMAXBA_XqvwgScH_TMVS-UoHByUnA4ycu0s9AP1kSLS_SbtmQkjfYAvr-XJ7CY-47CBoBR4vTawZ3NukmRCzEhgIsYvIoC2Yx_vyDTUd8Ox4aiT4FXwNykgcfTQId7v1pmpp",
-        "role": "assistant",
-      },
-    },
-    {
-      "finish_reason": "stop",
-      "index": 2,
-      "message": {
-        "annotations": [],
-        "content": "Research context received.",
-        "reasoning": "",
-        "reasoning_signature": "gAAAAABqfN1RcSPNssE9gJb3fOo_xs_sRuPRTdOL_r2LuZ9yb6yr0FeNzhyUPlxszD4m7VQTrXYhGW5mLS1qWB3fRlyNai7sSaiAIrbnPCFOa86EC0hktxqPRgIUY9AW3TsmDPMyk8OkriJ2YnIqT7xwz1VVUc5M8vT_rOG-lpUCKH2dt9Yi4KZQST-_8nuWL7mryzN0HX-ZU7WY9QDt9OSjgAF3Qx3JOSHjv_xYxJUBgUqhkUrpq-loFOg2sronCi-n4p63L87pS51nj4Znbkbm8lyr2RjkJ1NTv9zEhp0KMvGpyUp-Jmw6R7qLhkHigsmakK2gqgyhhZ7Ub3YG3d3Z9hYWka1r409ruMs36U5ueg-aUaSFT2KpEe6Ln7-ZCjWveBE-Ub8X62OP_zVoOP1ao_PSTNT9dIlJa-ng5G3SoZe8gi4LbwHeBJkKrbxad9IURKwHPhc3d7WvzZBzo2oFdh1t01ZvNWsFQiLN1qqMbXausyzTiSOfPRCVt5w7sd0xIGlVqddxXr4VlcCmfln55HJnzjnXvMCXPZXINifyoohvjPKAUhJtV_6BrZY7OuUnfuaa3uQ7OdwVs-Un2w8NSSUacornr3mtshTjKP1SJx1tKg8tHkmh7YPFuv7q2adVsBNmz0857Ygkgcgzw0rQeC4pRSMBc8NJ7dp6-MuRqktPYZD16Fs37u7mnzqr4myIBfUY0hkHohUJLtTBNigwefmHJUT0N0fEl06nYfNE9BN0PP9d3KisB2YVG5Yylh6euwjG9I_lxAhm8-OATYKd5eDICHuuO8rz0WuKlJG1JpUPFyA3n5XTOr8JqWqeH4DJ3pl6ol8uymxodGmHa6IVD1SggBKpoRLl34rrJrNg1T8SwRrFybzhn2_2lNCyot4TJQRmRyMf62TxJTImBJAb5rY_hj7sm7baqN75tqXRar2fw5ziBW5VvOWVU_OJUvCZ07mXwdI7ZD7fn36SCwkS-xF6P6dSQ2sYOPC50RMWVCC-d-92nQC-j2fJAr20xfljHe9322HBSrSJeNYCdUwoz6ZjD9Dz0OYglYLCfJAhx_ixxClCrukjlOFI6yZ3lQak78ceMYBjqssqYR8_6d7HKo89-eUZAlg_y3_SgKQTp5iZentLDg_9xakoC0dgfUR8CAYHXa-V7TdeR1yTXBwAgMLMs4LSdqHEjvdYwSFk7oYeA_ZaDy-hVlyZKj_EdCicBXQztNnLJdMTDGfEFztfrBZIK6okCvz2eS0zdpoqDbEUXSEZmiEiDtO82wx4j2moGNcqyZJtqF1rpIcviCuB9tzMcBvoKGoxBFRq9bd4KP7t_q5RrJ8egQC_OBLwvcC3k_oVDst7d-DPxzn5J5d1IyxbChXNAis63RrmcLg2WnXge9xvEQg=",
+        "reasoning_signature": [
+          "gAAAAABqfN1R2Dd00guAg_WWbpjW70i-Y3V7H_hR27-i6PwKZkJL0AZOYRvTlGJk5Lc6EQRLvQI3MsHyGIxRWYhb9o-tePpqMpN_XjIhqcNn2DdApO5u7T6Xcxiz-RFMg6SNmuv-T8RjJQmYcwnOexS_ZH1g7vJSb3flIhIvF-_zjMabFT9D7wUULWITBLokhXTJOcBb_0WDshd7cLZ6RaGYrGPQfgh3x8CsMlXjUnwCQnbw8O6DzFk-m1Cq0n0QbV6YahRCWqa2FazAVc92zgd2iOfD25ENjstzkxFuZsBc7dwZ7cNrD_wfwXBrdSy6Er3M1MFQhlPViNeljAK1gTxKRqjYF0DbG3MbviVIZzJQtCPnV6BuotixSBPDR49ilJ0oxMk4RhbiwpzLRs9M9N12-G1ZGlTqpYaIRL84e9DiiWxKtoIFfm6VXTIFI1Yws-Xw1NyPNWqVJthH7zVk9BO602ZiLSlGif4RZmEjq9ppzGIg9cACZReoR7pZBvf2vYYolOp9Epo8z5vtdXCSlXaeLThu3gwID8mQkn0mtt7HclaPHyN5R4pBEsNzXoZbYHWHs_RsCRQ7UBim3aT9BV1K_aueVUmVZIkEQV6vjw6TNbsdGDi5CUL5dOVXcde4AihZvkpiWQWNMQuyOEukKftMLB4LcFr-RFsCHnHxvTB580_-JU7b2QC6gNEFkcST69O8EZ0vfKErTpV_4A3I7-xLcp5liCHQjwktkZvdouYjdJqnUDDGABa5d3hxEi3b8aLBzWSjMmULf7ddCOl6CLk2KSJgM_lOwxLq_UtJmu-I7qLLylh1HQcubwM-3GRaOlDmiar0p-_8jDmPdRFs7-I1dt-XNA64zQ5Q0X1lQcVm7UJrBKPPJA_WUyXxsex-_ySsbNMnp9E6IbUjguR1ScIMsIpdfCo6rOdVzRtY6ik8x1kEcK5gSOyrtsJEa9zqwuK5fxLoIecM2WXCtgMMw86yi-FYnfzXTXbmEEdOklVNzUStsRC5KkXVxJ0D3XxFTHQCxHxvYiX8So5-YMpGCMwmDZHnjL6u_nIoBxLJBEaDY5JrjdCiMJkkdZnpwnXfipiWhLRIgv5ouye0zRKe5QQ1FSBIpq4eZelt8uhJKD3wx9yInZbVxGOTuVahh0RJ_6sV1shgxyG9A3btB1zGEiM-OOSALr5b7hlva8Bt76D3blbXWGelvZh3hh_dVWBdN9BOyFQxrqWJsK2WCt-E3_xRoycXg5DoPU-81a2--Ms-A4sXIsbOWIOawVd7J9g8tJyOWph3CmD7Xhk8yxCGd2t9Lo068ODxNbgEd-40n7qOV1-32gcG0djt9tGPdkZ0DwLVUT5k3xsxN3M8RF_masKLdRf6htdVC-417R8qUo0cW7fk2pKW-LGF_iW063OV_N6H-viVV_Dx--8BXynBstgbVnY1iGdRIxg3-aFDGqDX84EhRojfOH72E5jJFX_8QFszs53XZ_LXKF261dVVOoH5KU2Ctbxp5BbZaU9jolhHODeoBanLj8xN4flXZ2RfjFDqt27XU_i8_SmFWhHcoYwGuEUvJasRvHU-S6owxc0X8i5f5QuIfq87GbVkCSzWl9tkwDAH5e9SNTcoasu-lRoOfGUwgZE_WvLcHnNHl6tG0eKNZMxjadWAWJSz97rnkD4mWi8IRKlBzS-Mkojv7H2e4mMEYv2mw5kYc5znq8HUldsjlSqM6FLq5-nYoCX3qH7SlYi3MFlCgOSmW748-qRjOsMg5ed3dFsbpDoUeKCpeQawAy35XobdBCQ2LEcqP3dIGCHfY7NdEbOhxZwnc2UimG8Wy_QHmA==",
+          "gAAAAABqfN1RyiWIw-3HamUJACXwKZ4g0zZ25GiJBz70CXmGwZzC9L6WmTtkNpNSaoXH_yhKFpN7CRO7hc87bBY3Gl9oYaNIzvo_gSse2zf1Avnax7NMykHgsUJd5V8NEOGe_e75kGnbgdtGx86d3EwNl8IO-2Giz2M4LNX8QjcULGONp2oRl9s5RuvYOtI5yFQMs41he2MqrG7sPdyDjsobn4iqdjbs6wVWPTatPacbHPhajZ4Whd3GYAZTHjDYGhyATzDxAa2xEA22x9d6jZqFix4w2mJ4s9NgxhHZwZfTqUALsbR7ycEBfxVW-Ddw3vEgaelSm5BsvQDvzguMmP_NWRAluc3OFy2mYM0zXUrfXCAezDpbVGTj4zXhCSOMlfGzFosWM-aJBuui-V0j_pdLDZzBTLqYRws7eIBgT9osVNdqAh0WD6raYYcx_YLyTeuFUOKxBqxFtpSg2ZoTerR3tORZL8m_jKCWuR0abYiyC8pVaGXREEm0sQR6qXmKU1DkfB2OkGl9W9tDN-DKGB4fai757Ym-IU3H_iRNfa7XAka_yO_pOWxE063ftfyQ5kFMxNz-LWf1nQ2X_T7cvQfRZzfstkwT1YfWeTjJy04wbixFhyJqvB-pkzASJZ0dtNY2LeWsKEjDKqXUBO_xEVBQhvYf8khfyiSOsiJS80aQZc6HKYTZWhAitdWbTHQfwP3Y1AyBuKu0rKu-qiy161oVp0WN9OjFrSgZimXFV9Z53bjfSGYNOtVUutYgw6LwZ0hlvozcqccPV_cbZCcUM-pbIPK2Oe_D2W1CwliiSmatKR29v8E0-CuDMdJYt674460TyM6QdrvXTD61rq4-qGQd_gx8Rry4BSVG0BttJoASJrZ56ZJPpwveU6gY77qrrX6TDcVrgrLMXznwgxNoMOYwNGXTKMUTIM1EiW8f4GuPnMwPyFLnI-yYSIp9e9h_Zmdy3PLLc9rmqBJfKNu68BpzYMx2iH7vs9Oip6u06dB9ceSTruhKtTcgEpiv6k9lcVMYm0_f4w7uMgFtEYCBpI-8xuUIswtndBoFzvRSI1KmMbFHeJth_5GyUefDJDB_YcY5VtVuO0qGrhgVzOkfiotzYkjV7QzVclK1JO-UYf190r3sVgCMozGaIyDjPGQKLTqQjabpuMAXBA_XqvwgScH_TMVS-UoHByUnA4ycu0s9AP1kSLS_SbtmQkjfYAvr-XJ7CY-47CBoBR4vTawZ3NukmRCzEhgIsYvIoC2Yx_vyDTUd8Ox4aiT4FXwNykgcfTQId7v1pmpp",
+          "gAAAAABqfN1RcSPNssE9gJb3fOo_xs_sRuPRTdOL_r2LuZ9yb6yr0FeNzhyUPlxszD4m7VQTrXYhGW5mLS1qWB3fRlyNai7sSaiAIrbnPCFOa86EC0hktxqPRgIUY9AW3TsmDPMyk8OkriJ2YnIqT7xwz1VVUc5M8vT_rOG-lpUCKH2dt9Yi4KZQST-_8nuWL7mryzN0HX-ZU7WY9QDt9OSjgAF3Qx3JOSHjv_xYxJUBgUqhkUrpq-loFOg2sronCi-n4p63L87pS51nj4Znbkbm8lyr2RjkJ1NTv9zEhp0KMvGpyUp-Jmw6R7qLhkHigsmakK2gqgyhhZ7Ub3YG3d3Z9hYWka1r409ruMs36U5ueg-aUaSFT2KpEe6Ln7-ZCjWveBE-Ub8X62OP_zVoOP1ao_PSTNT9dIlJa-ng5G3SoZe8gi4LbwHeBJkKrbxad9IURKwHPhc3d7WvzZBzo2oFdh1t01ZvNWsFQiLN1qqMbXausyzTiSOfPRCVt5w7sd0xIGlVqddxXr4VlcCmfln55HJnzjnXvMCXPZXINifyoohvjPKAUhJtV_6BrZY7OuUnfuaa3uQ7OdwVs-Un2w8NSSUacornr3mtshTjKP1SJx1tKg8tHkmh7YPFuv7q2adVsBNmz0857Ygkgcgzw0rQeC4pRSMBc8NJ7dp6-MuRqktPYZD16Fs37u7mnzqr4myIBfUY0hkHohUJLtTBNigwefmHJUT0N0fEl06nYfNE9BN0PP9d3KisB2YVG5Yylh6euwjG9I_lxAhm8-OATYKd5eDICHuuO8rz0WuKlJG1JpUPFyA3n5XTOr8JqWqeH4DJ3pl6ol8uymxodGmHa6IVD1SggBKpoRLl34rrJrNg1T8SwRrFybzhn2_2lNCyot4TJQRmRyMf62TxJTImBJAb5rY_hj7sm7baqN75tqXRar2fw5ziBW5VvOWVU_OJUvCZ07mXwdI7ZD7fn36SCwkS-xF6P6dSQ2sYOPC50RMWVCC-d-92nQC-j2fJAr20xfljHe9322HBSrSJeNYCdUwoz6ZjD9Dz0OYglYLCfJAhx_ixxClCrukjlOFI6yZ3lQak78ceMYBjqssqYR8_6d7HKo89-eUZAlg_y3_SgKQTp5iZentLDg_9xakoC0dgfUR8CAYHXa-V7TdeR1yTXBwAgMLMs4LSdqHEjvdYwSFk7oYeA_ZaDy-hVlyZKj_EdCicBXQztNnLJdMTDGfEFztfrBZIK6okCvz2eS0zdpoqDbEUXSEZmiEiDtO82wx4j2moGNcqyZJtqF1rpIcviCuB9tzMcBvoKGoxBFRq9bd4KP7t_q5RrJ8egQC_OBLwvcC3k_oVDst7d-DPxzn5J5d1IyxbChXNAis63RrmcLg2WnXge9xvEQg=",
+        ],
         "role": "assistant",
       },
     },
@@ -29405,15 +29387,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29432,15 +29405,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29465,15 +29429,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29492,15 +29447,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 3,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29519,15 +29465,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 4,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29550,15 +29487,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 5,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29577,15 +29505,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 6,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29608,15 +29527,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 7,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29635,15 +29545,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 8,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29662,15 +29563,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 9,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29689,15 +29581,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 10,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29716,15 +29599,6 @@ exports[`google → responses > webSearchToolAdvancedParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 11,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29769,7 +29643,7 @@ If you’d like, I can:
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 12,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",
@@ -29831,15 +29705,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 0,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29862,15 +29727,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 1,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29893,15 +29749,6 @@ exports[`google → responses > webSearchToolParam > response 1`] = `
               "name": "web_search",
             },
           },
-        ],
-        "role": "model",
-      },
-      "finishReason": "STOP",
-      "index": 2,
-    },
-    {
-      "content": {
-        "parts": [
           {
             "text": "",
             "thought": true,
@@ -29926,7 +29773,7 @@ If you’d like, I can pull the exact blog posts or press releases for any of th
         "role": "model",
       },
       "finishReason": "STOP",
-      "index": 3,
+      "index": 0,
     },
   ],
   "modelVersion": "gpt-5-nano-2025-08-07",

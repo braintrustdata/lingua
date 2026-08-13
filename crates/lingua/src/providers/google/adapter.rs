@@ -722,7 +722,10 @@ impl ProviderAdapter for GoogleAdapter {
                 }
             }
             let text = text_segments.join("");
-            let reasoning_signature = parts.iter().find_map(|part| part.thought_signature.clone());
+            let reasoning_signatures = parts
+                .iter()
+                .filter_map(|part| part.thought_signature.clone())
+                .collect::<Vec<_>>();
 
             let response_id = typed_payload.response_id.as_deref();
             let mut tool_call_index = 0_u32;
@@ -777,7 +780,7 @@ impl ProviderAdapter for GoogleAdapter {
                 content: Some(text),
                 tool_calls,
                 reasoning,
-                reasoning_signature: reasoning_signature.map(Into::into),
+                reasoning_signature: UniversalReasoningSignature::from_values(reasoning_signatures),
             };
 
             choices.push(UniversalStreamChoice {
@@ -856,15 +859,21 @@ impl ProviderAdapter for GoogleAdapter {
                 } else {
                     None
                 };
-                let text_reasoning_signature = delta
+                let text_reasoning_signatures = delta
                     .as_ref()
                     .and_then(|d| d.reasoning_signature.as_ref())
-                    .and_then(UniversalReasoningSignature::first)
+                    .map(|signature| match signature {
+                        UniversalReasoningSignature::Single(signature) => vec![signature.clone()],
+                        UniversalReasoningSignature::Multiple(signatures) => signatures.clone(),
+                    })
+                    .unwrap_or_default()
+                    .into_iter()
                     .filter(|_| {
                         delta.as_ref().is_none_or(|d| {
                             !has_function_call_part && (!text.is_empty() || d.reasoning.is_empty())
                         })
-                    });
+                    })
+                    .collect::<Vec<_>>();
 
                 if let Some(ref d) = delta {
                     let reasoning_texts: Vec<&str> = d
@@ -900,13 +909,27 @@ impl ProviderAdapter for GoogleAdapter {
                 }
 
                 // Add text part if present, carrying thoughtSignature when there are no tool calls
-                if !text.is_empty() || text_reasoning_signature.is_some() {
+                if text_reasoning_signatures.len() > 1 {
+                    for signature in &text_reasoning_signatures {
+                        parts.push(GoogleStreamPart {
+                            text: Some(String::new()),
+                            thought: Some(true),
+                            thought_signature: Some(signature.clone()),
+                            ..Default::default()
+                        });
+                    }
+                }
+
+                if !text.is_empty() || text_reasoning_signatures.len() == 1 {
                     let mut text_part = GoogleStreamPart {
                         text: Some(text.to_string()),
                         ..Default::default()
                     };
-                    if let Some(signature) = text_reasoning_signature {
+                    if text_reasoning_signatures.len() == 1 {
+                        let signature = text_reasoning_signatures.first();
+                        if let Some(signature) = signature {
                         text_part.thought_signature = Some(signature.to_string());
+                        }
                     }
                     parts.push(text_part);
                 }
@@ -1948,6 +1971,58 @@ mod tests {
         assert_eq!(parts.len(), 2);
         assert_eq!(parts[0].thought_signature.as_deref(), Some("signature_one"));
         assert_eq!(parts[1].thought_signature.as_deref(), Some("signature_two"));
+    }
+
+    #[test]
+    fn test_google_stream_from_universal_preserves_multiple_visible_text_signatures() {
+        let adapter = GoogleAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    content: Some("visible text".to_string()),
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let output = adapter.stream_from_universal(&chunk).unwrap();
+        let typed: GenerateContentResponse = serde_json::from_value(output).unwrap();
+        let candidates = typed.candidates.as_ref().unwrap();
+        let parts = candidates[0]
+            .content
+            .as_ref()
+            .and_then(|content| content.parts.as_ref())
+            .unwrap();
+
+        assert_eq!(parts.len(), 3);
+        assert_eq!(parts[0].thought_signature.as_deref(), Some("signature_one"));
+        assert_eq!(parts[1].thought_signature.as_deref(), Some("signature_two"));
+        assert_eq!(parts[2].text.as_deref(), Some("visible text"));
+
+        let roundtripped = adapter
+            .stream_to_universal(serde_json::to_value(typed).unwrap())
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            roundtripped.choices[0]
+                .delta_view()
+                .unwrap()
+                .reasoning_signature,
+            Some(UniversalReasoningSignature::Multiple(vec![
+                "signature_one".to_string(),
+                "signature_two".to_string(),
+            ]))
+        );
     }
 
     #[test]

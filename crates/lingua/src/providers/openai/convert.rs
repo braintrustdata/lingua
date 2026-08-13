@@ -446,12 +446,6 @@ fn combined_reasoning_signature(
         .iter()
         .filter_map(|signature| signature.clone())
         .collect::<Vec<_>>();
-    if !signed_tool_calls.is_empty() && signed_tool_calls.len() != tool_call_signatures.len() {
-        return Err(ConvertError::ContentConversionFailed {
-            reason: "tool calls have mixed signed and unsigned reasoning_signature slots"
-                .to_string(),
-        });
-    }
     let shared_signature = if signed_tool_calls.is_empty() {
         None
     } else {
@@ -6818,7 +6812,7 @@ mod tests {
     }
 
     #[test]
-    fn response_message_rejects_mixed_tool_signature_slots() {
+    fn response_message_preserves_mixed_tool_signature_slots_as_scalar() {
         let message = Message::Assistant {
             content: AssistantContent::Array(vec![
                 AssistantContentPart::ToolCall {
@@ -6845,12 +6839,14 @@ mod tests {
             id: None,
         };
 
-        let error = <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
-            .expect_err("mixed signature slots should fail conversion");
-        assert!(matches!(
-            error,
-            ConvertError::ContentConversionFailed { .. }
-        ));
+        let converted =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("mixed signature slots should preserve the legacy scalar signature");
+
+        assert_eq!(
+            converted.reasoning_signature,
+            Some(ReasoningSignature::Single("signature_123".to_string()))
+        );
     }
 
     #[test]
