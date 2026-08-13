@@ -465,6 +465,9 @@ fn combined_reasoning_signature(
                     .to_string(),
         });
     }
+    if !reasoning_signatures.is_empty() && !tool_call_signatures.is_empty() {
+        return Ok(Some(ReasoningSignature::Multiple(reasoning_signatures)));
+    }
     reasoning_signatures.extend(signed_tool_calls);
     Ok(ReasoningSignature::from_values(reasoning_signatures))
 }
@@ -6711,6 +6714,55 @@ mod tests {
             roundtrip.reasoning_signature,
             Some(ReasoningSignature::Single("signature_123".to_string()))
         );
+    }
+
+    #[test]
+    fn response_message_preserves_reasoning_only_signature_vector_with_tool_call() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": "reasoning",
+            "reasoning_signature": ["signature_123"],
+            "tool_calls": [{
+                "id": "call_123",
+                "type": "function",
+                "function": { "name": "lookup", "arguments": "{}" }
+            }]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_123".to_string()
+            ]))
+        );
+
+        let replayed: ChatCompletionResponseMessageExt = serde_json::from_value(
+            serde_json::to_value(roundtrip).expect("chat response should serialize"),
+        )
+        .expect("serialized chat response should deserialize");
+        let replayed_message =
+            <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(replayed)
+                .expect("serialized chat response should preserve signature provenance");
+        let Message::Assistant { content, .. } = replayed_message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        assert!(matches!(
+            &parts[1],
+            AssistantContentPart::ToolCall {
+                encrypted_content: None,
+                ..
+            }
+        ));
     }
 
     #[test]
