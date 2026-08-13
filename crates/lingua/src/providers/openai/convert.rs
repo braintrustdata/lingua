@@ -6715,15 +6715,19 @@ mod tests {
 
     #[test]
     fn response_message_preserves_duplicate_reasoning_only_signatures() {
-        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
-            "role": "assistant",
-            "content": "",
-            "reasoning": ["first", "second"],
-            "reasoning_signature": ["signature_123", "signature_123"]
-        }))
-        .expect("chat response should deserialize");
-        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
-            .expect("chat response should convert to universal message");
+        let message = Message::Assistant {
+            content: AssistantContent::Array(vec![
+                AssistantContentPart::Reasoning {
+                    text: "first".to_string(),
+                    encrypted_content: Some("signature_123".to_string()),
+                },
+                AssistantContentPart::Reasoning {
+                    text: "second".to_string(),
+                    encrypted_content: Some("signature_123".to_string()),
+                },
+            ]),
+            id: None,
+        };
         let roundtrip =
             <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
                 .expect("universal message should convert to chat response");

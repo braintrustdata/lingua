@@ -1384,6 +1384,12 @@ fn expand_anthropic_session_chunks(
         .into_iter()
         .filter(|signature| !signature.is_empty())
         .collect::<Vec<_>>();
+    if reasoning_signatures.len() > 1 {
+        return Err(TransformError::FromUniversalFailed(
+            "multiple reasoning signatures cannot be represented in one Anthropic stream content block"
+                .to_string(),
+        ));
+    }
     let has_reasoning = reasoning_text.is_some() || !reasoning_signatures.is_empty();
     let is_initial_tool_call = delta_view
         .as_ref()
@@ -3603,6 +3609,45 @@ mod tests {
                 .and_then(Value::as_str),
             Some("Hello from Vertex")
         );
+    }
+
+    #[test]
+    #[cfg(all(feature = "openai", feature = "anthropic"))]
+    fn test_stream_session_rejects_full_response_with_multiple_reasoning_signatures_for_anthropic()
+    {
+        let mut session = StreamTransformSession::new(ProviderFormat::Anthropic);
+        let full_response = to_bytes(&json!({
+            "id": "resp_test",
+            "object": "response",
+            "model": "gpt-5.6-luna",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "reasoning",
+                    "id": "rs_1",
+                    "summary": [],
+                    "encrypted_content": "signature_one"
+                },
+                {
+                    "type": "reasoning",
+                    "id": "rs_2",
+                    "summary": [],
+                    "encrypted_content": "signature_two"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_1",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [{"type": "output_text", "text": "Hello"}]
+                }
+            ]
+        }));
+
+        let error = session.push(full_response).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("multiple reasoning signatures cannot be represented"));
     }
 
     #[test]
