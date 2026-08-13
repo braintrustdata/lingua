@@ -8982,7 +8982,9 @@ exports[`chat-completions → anthropic > functionToolsWithReasoningEffortParam 
       "message": {
         "annotations": [],
         "reasoning": "The user is asking about the weather in Tokyo. I have a function called \`get_weather\` that takes a location as a parameter. I should call this function with "Tokyo" as the location.",
-        "reasoning_signature": "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ==",
+        "reasoning_signature": [
+          "EvwCCmQIDRgCKkCJMREbp5e2miiIK0hFIPNRvo3++TX0UIQO458y2Uohnt66xyIE2vrHFRru0PGiuzpuOtupXgLk2Djqm0+dWdBsMhpjbGF1ZGUtc29ubmV0LTQtNS0yMDI1MDkyOTgAEgxLhf9ngwOWnW8as9oaDDGyvqX4CzkkByZnjiIwWhb/nE7s3LIw89DrbLfaKD9ysU+7Emk0ri23bCBc+xqnzX2CT+J99W0/oCP5y40+KsUBjaxRWkJpOiG7mQgtPec39Q7YeLHo40W7YjTRaHxQEJ5icNagqZb1o8zFy1kfvtJzhfwglw+PykorFRyhK3zNy2i9gMFA9oTjHRHwWkMELMcBRJ2ihtE8uJYBfJIvLIznRMhrmJqlO3rs3RzqGzlqXaFXbLHxKEoJ2MhHemuMCu+PoGrUeE6DeMGn35KAM9323KgUuvKYDaJ9huexKfm6LjPn5M+4YSCQH/lBTb8zgD4Exu1WUzUFxAByXuOQ+2H4AihMT14YAQ==",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
@@ -12087,7 +12089,9 @@ exports[`chat-completions → bedrock > functionToolsWithReasoningEffortParam > 
       "message": {
         "annotations": [],
         "reasoning": "The user is asking for the weather in Tokyo. I have a get_weather function available that takes a location parameter. I should call this function with "Tokyo" as the location.",
-        "reasoning_signature": "EtoCCkgIDRABGAIqQCp5kPHtLqmDVjEU1Zv3wAnGh1gZeqzCMJgWVSY6ZXnprXCKZKRMtFyIhIfPj1/TUHz1bwfwHk1ktnf+da71Rj0SDNI+JPizVhPh7SeE6xoM7h7Mc0rPCZie/OPpIjCIjE6ZqqCfWwIRUCXkI2DahOwTolpJYz4RggN71Qtva3XyvKzr5zAD+bgjwii8jkIqvwGlAljnNfVai2uhnx2BDTlfn1CrnW3KPx0aT/NeMys/hmvUUz+w1hRyyt1d2dCyqvy4cJ8ADymGYORJaaNfN8+/DTaH9Kci/nD64Z6jj56aZClwQtfWK0jGbqCiD5AjZXAgQxUYs+a70kTLlosH8Cqgc26iaFximTfkhrX+oel9r/taIr6DxRPhkrA4fktM6Q2Cu8eALkxDntJdyIHJsLq66G0BXsXoEVi3vQsJEeKWJ9YiGNFIMroI5WMt/xYh1hgB",
+        "reasoning_signature": [
+          "EtoCCkgIDRABGAIqQCp5kPHtLqmDVjEU1Zv3wAnGh1gZeqzCMJgWVSY6ZXnprXCKZKRMtFyIhIfPj1/TUHz1bwfwHk1ktnf+da71Rj0SDNI+JPizVhPh7SeE6xoM7h7Mc0rPCZie/OPpIjCIjE6ZqqCfWwIRUCXkI2DahOwTolpJYz4RggN71Qtva3XyvKzr5zAD+bgjwii8jkIqvwGlAljnNfVai2uhnx2BDTlfn1CrnW3KPx0aT/NeMys/hmvUUz+w1hRyyt1d2dCyqvy4cJ8ADymGYORJaaNfN8+/DTaH9Kci/nD64Z6jj56aZClwQtfWK0jGbqCiD5AjZXAgQxUYs+a70kTLlosH8Cqgc26iaFximTfkhrX+oel9r/taIr6DxRPhkrA4fktM6Q2Cu8eALkxDntJdyIHJsLq66G0BXsXoEVi3vQsJEeKWJ9YiGNFIMroI5WMt/xYh1hgB",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
@@ -14590,7 +14594,9 @@ exports[`chat-completions → bedrock > toolChoiceRequiredWithReasoningParam > r
       "message": {
         "annotations": [],
         "reasoning": "The user is asking for the weather in Tokyo. I have a function \`get_weather\` that takes a location parameter. I have all the information I need to make this call - the location is "Tokyo".",
-        "reasoning_signature": "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ==",
+        "reasoning_signature": [
+          "EucCCkgIDRABGAIqQAVP+i+cJzqSYyYHxPKrYUgPgj1X+ltC16m/jyx9jFI8JmVgNtha9raswII+jSaMwTg4Y5c7Z0TH0XiX+h/v0XASDKNPlL6befq+LPPkYxoMnymImVNFr8YtVjCUIjASs8+luJ6+WfwdLkcVHqy0Kz99n0FhzZSj1OcD2sUoMNwOMk7DDikY8Nzt5tGF9pAqzAEGEpywO2jdhPbQr6Bwx2TTTm24HHU3VGmYEidK5A/Dd0iiqa/mODX3eNjIisrGm722oJykQ0pZ83yl/KmpSQNdV6I8P/kFGhNOT0w1mjI4jYnrHm/i19QsgItVO2HmehYNwOzxsL5vZnVA7Vr9YwZ8mi6lQCrtCgyZGv0LTFT3X6Wmp8zho5uTcJt0oPazaJx56GsEJooBl8tUmrrE+q+HHgZf/yOq+6F2eL1iSMA4vUuzE+QE+a5Wh9dYXxh8QeBek7/9sSPIqXn90FkYAQ==",
+        ],
         "role": "assistant",
         "tool_calls": [
           {
