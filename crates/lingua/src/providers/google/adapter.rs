@@ -12,7 +12,8 @@ use crate::capabilities::ProviderFormat;
 use crate::processing::adapters::ProviderAdapter;
 use crate::processing::transform::TransformError;
 use crate::providers::google::capabilities::{
-    effort_to_thinking_level, thinking_level_to_effort, GoogleCapabilities, GoogleThinkingStyle,
+    effort_to_thinking_level, supports_disabling_thinking, thinking_level_to_effort,
+    GoogleCapabilities, GoogleThinkingStyle,
 };
 use crate::providers::google::convert::SYNTHETIC_CALL_ID_PREFIX;
 use crate::providers::google::detect::try_parse_google;
@@ -361,12 +362,8 @@ impl ProviderAdapter for GoogleAdapter {
         }
 
         // Build generationConfig if any params are set
-        let has_reasoning = req
-            .params
-            .reasoning
-            .as_ref()
-            .map(|r| !r.is_effectively_disabled())
-            .unwrap_or(false);
+        // Present even when disabled so an opt-out still builds generationConfig.
+        let has_reasoning = req.params.reasoning.is_some();
         let has_response_format = req
             .params
             .response_format
@@ -385,11 +382,23 @@ impl ProviderAdapter for GoogleAdapter {
             // Convert ReasoningConfig to Google's thinkingConfig
             // Use capabilities to determine whether to use thinkingLevel (Gemini 3) or thinkingBudget (Gemini 2.5)
             let thinking_config = req.params.reasoning.as_ref().and_then(|r| {
+                let caps = GoogleCapabilities::detect(req.model.as_deref());
+
                 if r.is_effectively_disabled() {
+                    // An explicit opt-out must send thinkingBudget: 0, otherwise
+                    // Google defaults thinking on. Gated to models that accept 0.
+                    if r.enabled == Some(false)
+                        && caps.thinking_style == GoogleThinkingStyle::ThinkingBudget
+                        && supports_disabling_thinking(req.model.as_deref())
+                    {
+                        return Some(ThinkingConfig {
+                            include_thoughts: Some(false),
+                            thinking_budget: Some(0),
+                            thinking_level: None,
+                        });
+                    }
                     return None;
                 }
-
-                let caps = GoogleCapabilities::detect(req.model.as_deref());
 
                 match caps.thinking_style {
                     GoogleThinkingStyle::ThinkingLevelBased => {
@@ -1215,6 +1224,55 @@ mod tests {
         assert_eq!(thinking_config.include_thoughts, Some(true));
         assert_eq!(thinking_config.thinking_budget, None);
         assert_eq!(thinking_config.thinking_level, None);
+    }
+
+    // A universal request with reasoning explicitly off (enabled: false), as the
+    // prompt UI opt-out and the reasoning_budget: 0 workaround both produce.
+    fn gemini_reasoning_off(model: &str) -> UniversalRequest {
+        let mut universal = GoogleAdapter
+            .request_to_universal(json!({
+                "model": model,
+                "contents": [{"role": "user", "parts": [{"text": "hi"}]}]
+            }))
+            .unwrap();
+        universal.params.reasoning = Some(ReasoningConfig {
+            enabled: Some(false),
+            ..Default::default()
+        });
+        universal
+    }
+
+    // BT-4707: explicit reasoning opt-out on 2.5 Flash must send thinkingBudget: 0.
+    #[test]
+    fn test_google_flash_reasoning_off_emits_thinking_budget_zero() {
+        let universal = gemini_reasoning_off("gemini-2.5-flash");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+        let thinking_config = reconstructed
+            .generation_config
+            .and_then(|config| config.thinking_config)
+            .expect("thinkingConfig should be present for an explicit opt-out on Flash");
+
+        assert_eq!(thinking_config.thinking_budget, Some(0));
+        assert_eq!(thinking_config.include_thoughts, Some(false));
+    }
+
+    // 2.5 Pro can't disable thinking (rejects 0), so no thinkingConfig is emitted.
+    #[test]
+    fn test_google_pro_reasoning_off_does_not_emit_budget_zero() {
+        let universal = gemini_reasoning_off("gemini-2.5-pro");
+        let reconstructed = GoogleAdapter.request_from_universal(&universal).unwrap();
+        let reconstructed: GenerateContentRequest =
+            serde_json::from_value(reconstructed).expect("request should deserialize");
+
+        assert!(
+            reconstructed
+                .generation_config
+                .and_then(|config| config.thinking_config)
+                .is_none(),
+            "Pro must not receive a thinkingBudget: 0"
+        );
     }
 
     #[test]

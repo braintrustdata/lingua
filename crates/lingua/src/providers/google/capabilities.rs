@@ -70,6 +70,25 @@ impl GoogleCapabilities {
     }
 }
 
+/// Whether the model accepts `thinkingBudget: 0` to turn thinking off.
+///
+/// Only Gemini 2.5 Flash / Flash-Lite accept 0. Gemini 2.5 Pro requires a
+/// minimum budget of 128 and rejects 0, so it cannot be disabled. Flash
+/// multimodal variants (image / TTS / audio) have no thinkingConfig and error
+/// if one is sent, so they are excluded.
+pub fn supports_disabling_thinking(model: Option<&str>) -> bool {
+    let Some(model) = model else {
+        return false;
+    };
+    let model = normalize_google_model_id(model).to_ascii_lowercase();
+    if !model.starts_with("gemini-2.5-flash") {
+        return false;
+    }
+    !["image", "tts", "audio"]
+        .iter()
+        .any(|kw| model.contains(kw))
+}
+
 fn normalize_google_model_id(model: &str) -> &str {
     model
         .strip_prefix("publishers/google/models/")
@@ -148,6 +167,39 @@ mod tests {
             GoogleCapabilities::detect(Some("gemini-2.0-flash")).thinking_style,
             GoogleThinkingStyle::ThinkingBudget
         );
+    }
+
+    #[test]
+    fn test_supports_disabling_thinking() {
+        // 2.5 Flash / Flash-Lite accept thinkingBudget: 0.
+        assert!(supports_disabling_thinking(Some("gemini-2.5-flash")));
+        assert!(supports_disabling_thinking(Some("gemini-2.5-flash-lite")));
+        assert!(supports_disabling_thinking(Some(
+            "gemini-2.5-flash-preview-05-20"
+        )));
+        assert!(supports_disabling_thinking(Some("Gemini-2.5-Flash")));
+        assert!(supports_disabling_thinking(Some(
+            "publishers/google/models/gemini-2.5-flash"
+        )));
+        assert!(supports_disabling_thinking(Some("models/gemini-2.5-flash")));
+
+        // 2.5 Pro requires a minimum budget of 128 and cannot be disabled.
+        assert!(!supports_disabling_thinking(Some("gemini-2.5-pro")));
+        // 2.0 has no thinking config; Gemini 3 uses thinkingLevel.
+        assert!(!supports_disabling_thinking(Some("gemini-2.0-flash")));
+        assert!(!supports_disabling_thinking(Some("gemini-3-flash-preview")));
+        assert!(!supports_disabling_thinking(None));
+        // Flash multimodal variants have no thinking config.
+        assert!(!supports_disabling_thinking(Some("gemini-2.5-flash-image")));
+        assert!(!supports_disabling_thinking(Some(
+            "gemini-2.5-flash-image-preview"
+        )));
+        assert!(!supports_disabling_thinking(Some(
+            "gemini-2.5-flash-preview-tts"
+        )));
+        assert!(!supports_disabling_thinking(Some(
+            "gemini-2.5-flash-preview-native-audio-dialog"
+        )));
     }
 
     #[test]
