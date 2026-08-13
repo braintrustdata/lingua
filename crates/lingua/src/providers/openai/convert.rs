@@ -460,13 +460,17 @@ fn combined_reasoning_signature(
                 .to_string(),
         });
     }
-    let shared_signature = reasoning_signatures
-        .first()
-        .filter(|signature| {
-            reasoning_signatures.iter().all(|value| value == *signature)
-                && signed_tool_calls.iter().all(|value| value == *signature)
-        })
-        .cloned();
+    let shared_signature = if signed_tool_calls.is_empty() {
+        None
+    } else {
+        reasoning_signatures
+            .first()
+            .filter(|signature| {
+                reasoning_signatures.iter().all(|value| value == *signature)
+                    && signed_tool_calls.iter().all(|value| value == *signature)
+            })
+            .cloned()
+    };
     if let Some(shared_signature) = shared_signature {
         return Ok(Some(ReasoningSignature::Single(shared_signature)));
     }
@@ -6677,6 +6681,30 @@ mod tests {
         assert_eq!(
             roundtrip.reasoning_signature,
             Some(ReasoningSignature::Single("signature_123".to_string()))
+        );
+    }
+
+    #[test]
+    fn response_message_preserves_duplicate_reasoning_only_signatures() {
+        let response: ChatCompletionResponseMessageExt = serde_json::from_value(json!({
+            "role": "assistant",
+            "content": "",
+            "reasoning": ["first", "second"],
+            "reasoning_signature": ["signature_123", "signature_123"]
+        }))
+        .expect("chat response should deserialize");
+        let message = <Message as TryFromLLM<ChatCompletionResponseMessageExt>>::try_from(response)
+            .expect("chat response should convert to universal message");
+        let roundtrip =
+            <ChatCompletionResponseMessageExt as TryFromLLM<&Message>>::try_from(&message)
+                .expect("universal message should convert to chat response");
+
+        assert_eq!(
+            roundtrip.reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "signature_123".to_string(),
+                "signature_123".to_string(),
+            ]))
         );
     }
 

@@ -595,7 +595,7 @@ impl ProviderAdapter for BedrockAdapter {
                                         }]
                                     })
                                     .unwrap_or_default(),
-                                reasoning_signature: reasoning_content.signature,
+                                reasoning_signature: reasoning_content.signature.map(Into::into),
                                 ..Default::default()
                             })),
                             finish_reason: None,

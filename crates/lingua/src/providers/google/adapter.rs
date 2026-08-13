@@ -31,9 +31,9 @@ use crate::universal::ToolContentPart;
 use crate::universal::{
     extract_system_messages, flatten_consecutive_messages, FinishReason, ReasoningCanonical,
     ReasoningConfig, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
-    UserContent,
+    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
+    UniversalToolFunctionDelta, UniversalUsage, UserContent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -777,7 +777,7 @@ impl ProviderAdapter for GoogleAdapter {
                 content: Some(text),
                 tool_calls,
                 reasoning,
-                reasoning_signature,
+                reasoning_signature: reasoning_signature.map(Into::into),
             };
 
             choices.push(UniversalStreamChoice {
@@ -826,7 +826,8 @@ impl ProviderAdapter for GoogleAdapter {
                 });
                 let text_reasoning_signature = delta
                     .as_ref()
-                    .and_then(|d| d.reasoning_signature.as_deref())
+                    .and_then(|d| d.reasoning_signature.as_ref())
+                    .and_then(UniversalReasoningSignature::first)
                     .filter(|_| {
                         delta.as_ref().is_none_or(|d| {
                             !has_function_call_part && (!text.is_empty() || d.reasoning.is_empty())
@@ -842,7 +843,10 @@ impl ProviderAdapter for GoogleAdapter {
                         })
                         .collect();
                     let thought_reasoning_signature =
-                        d.reasoning_signature.as_deref().filter(|_| {
+                        d.reasoning_signature
+                            .as_ref()
+                            .and_then(UniversalReasoningSignature::first)
+                            .filter(|_| {
                             !reasoning_texts.is_empty()
                                 && text.is_empty()
                                 && !has_function_call_part
@@ -897,8 +901,12 @@ impl ProviderAdapter for GoogleAdapter {
                                 function_call: Some(function_call),
                                 ..Default::default()
                             };
-                            if let Some(ref signature) = d.reasoning_signature {
-                                part.thought_signature = Some(signature.clone());
+                            if let Some(signature) = d
+                                .reasoning_signature
+                                .as_ref()
+                                .and_then(UniversalReasoningSignature::first)
+                            {
+                                part.thought_signature = Some(signature.to_string());
                             }
                             parts.push(part);
                         }

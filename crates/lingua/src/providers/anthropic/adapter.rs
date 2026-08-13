@@ -1054,7 +1054,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     }
                     let delta = UniversalStreamDelta {
                         role: Some("assistant".to_string()),
-                        reasoning_signature: Some(signature.to_string()),
+                        reasoning_signature: Some(signature.to_string().into()),
                         ..Default::default()
                     };
 
@@ -1452,7 +1452,10 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 // Signature delta
                 if let Some(signature) = delta_view.reasoning_signature {
-                    if !signature.is_empty() {
+                    for signature in signature.into_values() {
+                        if signature.is_empty() {
+                            continue;
+                        }
                         return Ok(serde_json::json!({
                             "type": "content_block_delta",
                             "index": choice.index,

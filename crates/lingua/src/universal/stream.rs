@@ -41,6 +41,43 @@ pub struct UniversalReasoningDelta {
     pub content: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum UniversalReasoningSignature {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+impl UniversalReasoningSignature {
+    pub fn first(&self) -> Option<&str> {
+        match self {
+            Self::Single(value) => Some(value),
+            Self::Multiple(values) => values.first().map(String::as_str),
+        }
+    }
+
+    pub fn into_values(self) -> Vec<String> {
+        match self {
+            Self::Single(value) => vec![value],
+            Self::Multiple(values) => values,
+        }
+    }
+
+    pub fn from_values(values: Vec<String>) -> Option<Self> {
+        match values.len() {
+            0 => None,
+            1 => values.into_iter().next().map(Self::Single),
+            _ => Some(Self::Multiple(values)),
+        }
+    }
+}
+
+impl From<String> for UniversalReasoningSignature {
+    fn from(value: String) -> Self {
+        Self::Single(value)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UniversalToolCallDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -66,7 +103,7 @@ pub struct UniversalStreamDelta {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reasoning: Vec<UniversalReasoningDelta>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reasoning_signature: Option<String>,
+    pub reasoning_signature: Option<UniversalReasoningSignature>,
 }
 
 /// A normalized streaming chunk following OpenAI's format.
@@ -239,7 +276,16 @@ impl From<UniversalStreamDelta> for Value {
             map.insert("reasoning".into(), value);
         }
         if let Some(signature) = delta.reasoning_signature {
-            map.insert("reasoning_signature".into(), Value::String(signature));
+            let signature = match signature {
+                UniversalReasoningSignature::Single(signature) => Value::String(signature),
+                UniversalReasoningSignature::Multiple(signatures) => Value::Array(
+                    signatures.into_iter().map(Value::String).collect(),
+                ),
+            };
+            map.insert(
+                "reasoning_signature".into(),
+                signature,
+            );
         }
         Value::Object(map)
     }
@@ -394,7 +440,7 @@ mod tests {
             reasoning: vec![UniversalReasoningDelta {
                 content: Some("thought".to_string()),
             }],
-            reasoning_signature: Some("sig_123".to_string()),
+            reasoning_signature: Some("sig_123".to_string().into()),
             ..Default::default()
         };
 
@@ -403,6 +449,9 @@ mod tests {
         assert_eq!(parsed.role.as_deref(), Some("assistant"));
         assert_eq!(parsed.reasoning.len(), 1);
         assert_eq!(parsed.reasoning[0].content.as_deref(), Some("thought"));
-        assert_eq!(parsed.reasoning_signature.as_deref(), Some("sig_123"));
+        assert_eq!(
+            parsed.reasoning_signature,
+            Some(UniversalReasoningSignature::Single("sig_123".to_string()))
+        );
     }
 }

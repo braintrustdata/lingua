@@ -15,7 +15,7 @@ use crate::providers::openai::responses_adapter::{
     ResponsesToolItem,
 };
 use crate::serde_json::Value;
-use crate::universal::UniversalStreamChunk;
+use crate::universal::{UniversalReasoningSignature, UniversalStreamChunk};
 
 static EMPTY_JSON: Bytes = Bytes::from_static(b"{}");
 static SSE_DATA_PREFIX: &[u8] = b"data: ";
@@ -1376,11 +1376,15 @@ fn expand_anthropic_session_chunks(
             .collect::<String>();
         (!text.is_empty()).then_some(text)
     });
-    let reasoning_signature = delta_view
+    let reasoning_signatures = delta_view
         .as_ref()
-        .and_then(|d| d.reasoning_signature.as_deref())
-        .filter(|signature| !signature.is_empty());
-    let has_reasoning = reasoning_text.is_some() || reasoning_signature.is_some();
+        .and_then(|d| d.reasoning_signature.clone())
+        .map(UniversalReasoningSignature::into_values)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|signature| !signature.is_empty())
+        .collect::<Vec<_>>();
+    let has_reasoning = reasoning_text.is_some() || !reasoning_signatures.is_empty();
     let is_initial_tool_call = delta_view
         .as_ref()
         .and_then(|d| d.tool_calls.first())
@@ -1438,7 +1442,7 @@ fn expand_anthropic_session_chunks(
                 "content_block_delta".to_string(),
             ));
         }
-        if let Some(signature) = reasoning_signature {
+        for signature in reasoning_signatures {
             out.push(StreamOutputChunk::with_event(
                 serialize_stream_value(&crate::serde_json::json!({
                     "type": "content_block_delta",

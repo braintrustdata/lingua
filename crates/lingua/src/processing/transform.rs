@@ -24,8 +24,8 @@ use crate::serde_json::Value;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, TextContentPart,
     ToolCallArguments, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta,
-    UniversalToolFunctionDelta, UserContent, UserContentPart,
+    UniversalReasoningSignature, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -703,7 +703,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
             let mut text = String::new();
             let mut reasoning = Vec::new();
             let mut tool_calls = Vec::new();
-            let mut reasoning_signature = None;
+            let mut reasoning_signatures = Vec::new();
 
             for part in parts {
                 match part {
@@ -717,8 +717,8 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         reasoning.push(UniversalReasoningDelta {
                             content: Some(text.clone()),
                         });
-                        if reasoning_signature.is_none() {
-                            reasoning_signature = encrypted_content.clone();
+                        if let Some(encrypted_content) = encrypted_content {
+                            reasoning_signatures.push(encrypted_content.clone());
                         }
                     }
                     AssistantContentPart::ToolCall {
@@ -753,7 +753,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                 content: (!text.is_empty()).then_some(text),
                 tool_calls,
                 reasoning,
-                reasoning_signature,
+                reasoning_signature: UniversalReasoningSignature::from_values(reasoning_signatures),
             }
         }
     }
@@ -772,6 +772,7 @@ fn merge_assistant_stream_deltas(deltas: Vec<UniversalStreamDelta>) -> Universal
         ..Default::default()
     };
     let mut text = String::new();
+    let mut reasoning_signatures = Vec::new();
     for delta in deltas {
         if let Some(content) = delta.content {
             text.push_str(&content);
@@ -781,11 +782,12 @@ fn merge_assistant_stream_deltas(deltas: Vec<UniversalStreamDelta>) -> Universal
             tool_call.index = Some(merged.tool_calls.len() as u32);
             merged.tool_calls.push(tool_call);
         }
-        if merged.reasoning_signature.is_none() {
-            merged.reasoning_signature = delta.reasoning_signature;
+        if let Some(reasoning_signature) = delta.reasoning_signature {
+            reasoning_signatures.extend(reasoning_signature.into_values());
         }
     }
     merged.content = (!text.is_empty()).then_some(text);
+    merged.reasoning_signature = UniversalReasoningSignature::from_values(reasoning_signatures);
     merged
 }
 
@@ -2234,6 +2236,51 @@ mod tests {
         assert_eq!(
             response["choices"][0]["message"]["content"],
             "I found the forecast."
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_stream_chunk_preserves_all_response_reasoning_signatures() {
+        let payload = json!({
+            "id": "resp_123",
+            "object": "response",
+            "model": "gpt-5.6-luna",
+            "status": "completed",
+            "output": [
+                {
+                    "type": "reasoning",
+                    "id": "rs_1",
+                    "summary": [],
+                    "encrypted_content": "signature_one"
+                },
+                {
+                    "type": "reasoning",
+                    "id": "rs_2",
+                    "summary": [],
+                    "encrypted_content": "signature_two"
+                },
+                {
+                    "type": "message",
+                    "id": "msg_1",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [{
+                        "type": "output_text",
+                        "text": "I found the forecast."
+                    }]
+                }
+            ]
+        });
+
+        let result = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect("all reasoning signatures should be preserved in the stream fallback")
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(
+            response["choices"][0]["delta"]["reasoning_signature"],
+            json!(["signature_one", "signature_two"])
         );
     }
 
