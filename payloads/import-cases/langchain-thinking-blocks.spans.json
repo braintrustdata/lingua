@@ -20,9 +20,6 @@
                   "type": "thinking"
                 },
                 {
-                  "extras": {
-                    "signature": "adjacent-to-top-level-signature"
-                  },
                   "text": "First visible answer.",
                   "type": "text"
                 },
@@ -45,9 +42,6 @@
                   "type": "thinking"
                 },
                 {
-                  "extras": {
-                    "signature": "adjacent-to-extras-signature"
-                  },
                   "text": "Third visible answer.",
                   "type": "text"
                 }
