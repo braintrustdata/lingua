@@ -420,15 +420,7 @@ fn tool_call_reasoning_signatures(
 ) -> Result<Vec<String>, ConvertError> {
     match reasoning_signature {
         Some(ReasoningSignature::Single(signature)) if !reasoning_emitted => {
-            if tool_call_count != 1 {
-                return Err(ConvertError::ContentConversionFailed {
-                    reason: format!(
-                        "scalar reasoning_signature cannot be associated with {} function tool calls",
-                        tool_call_count
-                    ),
-                });
-            }
-            Ok(vec![signature.clone()])
+            Ok(vec![signature.clone(); tool_call_count])
         }
         Some(ReasoningSignature::Multiple(signatures)) if !reasoning_emitted => {
             if signatures.len() != tool_call_count {
@@ -6789,7 +6781,7 @@ mod tests {
     }
 
     #[test]
-    fn request_rejects_scalar_signature_for_multiple_tool_calls() {
+    fn request_scalar_signature_applies_to_multiple_tool_calls() {
         let request: ChatCompletionRequestMessageExt = serde_json::from_value(json!({
             "role": "assistant",
             "content": "",
@@ -6801,12 +6793,28 @@ mod tests {
         }))
         .expect("chat request should deserialize");
 
-        let error = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
-            .expect_err("ambiguous scalar signature should fail conversion");
-        assert!(matches!(
-            error,
-            ConvertError::ContentConversionFailed { .. }
-        ));
+        let message = <Message as TryFromLLM<ChatCompletionRequestMessageExt>>::try_from(request)
+            .expect("scalar signature should apply to every tool call");
+        let Message::Assistant { content, .. } = message else {
+            panic!("expected assistant message");
+        };
+        let AssistantContent::Array(parts) = content else {
+            panic!("expected assistant content parts");
+        };
+        let signatures = parts
+            .iter()
+            .filter_map(|part| match part {
+                AssistantContentPart::ToolCall {
+                    encrypted_content, ..
+                } => encrypted_content.clone(),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            signatures,
+            vec!["signature_123".to_string(), "signature_123".to_string()]
+        );
     }
 
     #[test]
