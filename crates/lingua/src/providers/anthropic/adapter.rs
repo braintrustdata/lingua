@@ -1452,18 +1452,25 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 // Signature delta
                 if let Some(signature) = delta_view.reasoning_signature {
-                    for signature in signature.into_values() {
-                        if signature.is_empty() {
-                            continue;
-                        }
-                        return Ok(serde_json::json!({
-                            "type": "content_block_delta",
-                            "index": choice.index,
-                            "delta": {
-                                "type": "signature_delta",
-                                "signature": signature
-                            }
-                        }));
+                    let signatures = signature
+                        .into_values()
+                        .into_iter()
+                        .filter(|signature| !signature.is_empty())
+                        .map(|signature| {
+                            serde_json::json!({
+                                "type": "content_block_delta",
+                                "index": choice.index,
+                                "delta": {
+                                    "type": "signature_delta",
+                                    "signature": signature
+                                }
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    match signatures.as_slice() {
+                        [] => {}
+                        [signature] => return Ok(signature.clone()),
+                        _ => return Ok(Value::Array(signatures)),
                     }
                 }
             }
@@ -1700,6 +1707,7 @@ mod tests {
     use super::*;
     use crate::providers::anthropic::generated::System;
     use crate::serde_json::json;
+    use crate::universal::UniversalReasoningSignature;
     use serde::Deserialize;
 
     #[derive(Debug, Deserialize)]
@@ -1802,6 +1810,45 @@ mod tests {
             "claude-3-5-sonnet-20241022"
         );
         assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_stream_from_universal_preserves_multiple_reasoning_signatures() {
+        let adapter = AnthropicAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let output = adapter.stream_from_universal(&chunk).unwrap();
+        assert_eq!(
+            output,
+            json!([
+                {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": {"type": "signature_delta", "signature": "signature_one"}
+                },
+                {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": {"type": "signature_delta", "signature": "signature_two"}
+                }
+            ])
+        );
     }
 
     #[test]
@@ -3419,7 +3466,12 @@ mod tests {
         assert!(!chunk.is_keep_alive());
         let choice = chunk.choices.first().expect("choice must exist");
         let delta = choice.delta_view().expect("delta must exist");
-        assert_eq!(delta.reasoning_signature.as_deref(), Some("sig_abc123"));
+        assert_eq!(
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single(
+                "sig_abc123".to_string()
+            ))
+        );
     }
 
     #[test]

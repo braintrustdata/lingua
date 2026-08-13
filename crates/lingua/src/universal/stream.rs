@@ -278,14 +278,11 @@ impl From<UniversalStreamDelta> for Value {
         if let Some(signature) = delta.reasoning_signature {
             let signature = match signature {
                 UniversalReasoningSignature::Single(signature) => Value::String(signature),
-                UniversalReasoningSignature::Multiple(signatures) => Value::Array(
-                    signatures.into_iter().map(Value::String).collect(),
-                ),
+                UniversalReasoningSignature::Multiple(signatures) => {
+                    Value::Array(signatures.into_iter().map(Value::String).collect())
+                }
             };
-            map.insert(
-                "reasoning_signature".into(),
-                signature,
-            );
+            map.insert("reasoning_signature".into(), signature);
         }
         Value::Object(map)
     }

@@ -23,8 +23,8 @@ use crate::serde_json;
 use crate::serde_json::Value;
 use crate::universal::{
     AssistantContent, AssistantContentPart, Message, ParsableResponseInfo, TextContentPart,
-    ToolCallArguments, UniversalReasoningDelta, UniversalRequest, UniversalResponse,
-    UniversalReasoningSignature, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
+    ToolCallArguments, UniversalReasoningDelta, UniversalReasoningSignature, UniversalRequest,
+    UniversalResponse, UniversalStreamChoice, UniversalStreamChunk, UniversalStreamDelta,
     UniversalToolCallDelta, UniversalToolFunctionDelta, UserContent, UserContentPart,
 };
 use serde::de::DeserializeOwned;
