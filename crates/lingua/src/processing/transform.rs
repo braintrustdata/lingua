@@ -725,8 +725,12 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         tool_call_id,
                         tool_name,
                         arguments,
+                        encrypted_content,
                         ..
                     } => {
+                        if let Some(encrypted_content) = encrypted_content {
+                            reasoning_signatures.push(encrypted_content.clone());
+                        }
                         let tool_call_index = tool_calls.len() as u32;
                         tool_calls.push(UniversalToolCallDelta {
                             index: Some(tool_call_index),
@@ -2275,6 +2279,47 @@ mod tests {
 
         let result = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
             .expect("all reasoning signatures should be preserved in the stream fallback")
+            .into_bytes();
+        let response: Value = crate::serde_json::from_slice(&result).unwrap();
+
+        assert_eq!(
+            response["choices"][0]["delta"]["reasoning_signature"],
+            json!(["signature_one", "signature_two"])
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_stream_chunk_preserves_chat_tool_call_reasoning_signatures() {
+        let payload = json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion",
+            "model": "gpt-5.6-luna",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "reasoning_signature": ["signature_one", "signature_two"],
+                    "tool_calls": [
+                        {
+                            "id": "call_1",
+                            "type": "function",
+                            "function": { "name": "first_tool", "arguments": "{}" }
+                        },
+                        {
+                            "id": "call_2",
+                            "type": "function",
+                            "function": { "name": "second_tool", "arguments": "{}" }
+                        }
+                    ]
+                },
+                "finish_reason": "tool_calls"
+            }]
+        });
+
+        let result = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect("tool-call signatures should be preserved in the stream fallback")
             .into_bytes();
         let response: Value = crate::serde_json::from_slice(&result).unwrap();
 
