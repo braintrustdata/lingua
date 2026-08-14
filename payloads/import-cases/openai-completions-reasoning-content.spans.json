@@ -1,0 +1,18 @@
+[
+  {
+    "input": [
+      { "role": "user", "content": "How many r's are in strawberry?" }
+    ],
+    "output": [
+      {
+        "index": 0,
+        "finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "reasoning_content": "Let me count the letters in strawberry: s-t-r-a-w-b-e-r-r-y. The r's are at positions 3, 8, and 9.",
+          "content": "There are 3 r's in strawberry."
+        }
+      }
+    ]
+  }
+]
