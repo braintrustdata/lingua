@@ -1,0 +1,562 @@
+[
+  {
+    "type": "response.created",
+    "response": {
+      "id": "resp_08728d6ef76ad15a006a7cdbab3e8881a288766dc38e28b73e",
+      "object": "response",
+      "created_at": 1786567595,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-luna",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "xhigh",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 0
+  },
+  {
+    "type": "response.in_progress",
+    "response": {
+      "id": "resp_08728d6ef76ad15a006a7cdbab3e8881a288766dc38e28b73e",
+      "object": "response",
+      "created_at": 1786567595,
+      "status": "in_progress",
+      "background": false,
+      "completed_at": null,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-luna",
+      "moderation": null,
+      "output": [],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "xhigh",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "auto",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": null,
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 1
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "rs_08728d6ef76ad15a006a7cdbabb56c81a28fb190fc18f9740b",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqfNur2ZB5hbVUregY4Oi3pF7ZUFTy74W7ICcdYC_wuESRPM7RxX-Uq04v3Z1j2e3dnLhzkbXSrwUPGfRClazpMQ5L0WGYfh6tDFoBQoAfhD18Oj7kuE_pdRD7w7zU59tQG6F4z2AJLMpazMwJMMGeSDZpEJggz9a_O4tn74eSA721nvwDOqm82ARshKqea0en7j9dgKI0PgsGUBPk5pOwOWLwsCyCj-p7LFHMvHSYnSpUswhwPks0WqC-ox-sX4-UPqXosfk2lpCuJvMThsXoHGTLO_5fp8L1bQvg_I5g6I_5nmQeOWp4SwPFTp5anyi9NJ9HP8-E3bjGH6PgkbvNOp8hsGEth2cOp3OAD8sEJp6eppz5SBrv5oxbFB2CWCIP5_opnA-f2BNRo-sBSi8mYylvjw7Qtp66xbnTkiUsLrHnL_jzvLgNlq5Jsqp8OktdOOSwDmfH2PtWPWdPZWMsP0kUfwULg7m68kkyUeqKHCTorzr_1ytMmIVDISQZO36AGfjyIly2SYypCJKIe11ucmlmxatST4m6z6O7cFiDoHrKxIHq8SFjoqTrm3ZneZpQ5cJQEOyTg2NGLZT37dOT2W7fSh2OwhwMOv3Chz_gbmQdiQRUFuYkBNz7HKxvG5yfaqw2JXaAOrlkZS5laIrsepqnPUFJdJNQ_bkuZBR0p45YbOQHyAn3hrJlyyeGTMddUQt7Va16QQW0F60VjZOdCv1t43otK5CxCiQpssYqECMxvINoJL7ovj94_nZlC_obfV8fmkA5lph-oHWvQps-Rynvx6YSKCdtkLJ1JCjnfWr1xhn_WOIzXPbePtthY0R4sXxWL6TY3QjVKPmvoBbmbdoKPlJkPlSjj2RNYQN-GbznjpOy9CWWCAEX-xDF4ObyMYEVfHTJ8hGCwjzwNQhx8ltx2w==",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 2
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "rs_08728d6ef76ad15a006a7cdbabb56c81a28fb190fc18f9740b",
+      "type": "reasoning",
+      "content": [],
+      "encrypted_content": "gAAAAABqfNurq_N4w245MD0vig5m-LhprvAaVEBC1pnkkV8AggzdSMxynOWdf_lrNXk-EZupMFHfGIESvt4R26voXfUtDfyi7sY_c2p-CccguCHBza3H_1hmwA-ZvFQ1DFceZpgrGukrQ1lsLaRbMtIsVjUtTPf7z4QzdlfoZ9bTaWXNzKJscfT_8LcLiKirWnRWu3fLcxZX4FVJEQwya6SspWYeiThKTxmEdEoKKdg2zHH0YalKds0il9-VGU4CPc2ZCUt6UG6ysTKHV77GDjPyFM_ZEeqk6kasM-xTl7jTsuCZeDTbEk9cD5rMa7R0PEcGrgaHgkyqMrOzqcsuLnbA26s7YuQloCMabKFmvmi2pxeOLj_BllHe6M3G4gweT5LNZbjiRapg-lBb93vgTFnFEpBIRPprSqAEZ_VfQ_luAl3vzU6p3YgH2w2MrS-X7S_U8ThxabMy2a8ZVVKv0Yfncc942WLue9G9ONS8vGfrtNEXvXaY8FuYScxL1xkiPbHRyMknh8ZyvDwQvUaX161n1mgkqtbNsoBAARkqF_i6NsMMMlYJ2PSNoGLg1EAKIRVpKUoH434zFvYRyuJu2Oqx2AHwnBtF2ZfuXXBjCT_741T3c2CAY2_pg6HbpOd07uDMzmnZ7N8N1tyR1E83a77DLlI63kyRKMriEu0_3lc9nDYXorhIf-odFYM_mXbxSK6mIxw_AMv2eROMj5PP7LxVCGvYMlm6Dw0MWzWo7i7Q1rE1kFyA2EuqOKkLtvbuVCjlnh2C9geFF9Dwa3f1lJYSaUM8kqrFh9ZPfJrqBgAlC7dYW8qtFrMZpQqdzSU5dgC_qIn2CIn0dChlLd6r9ai1n1NKZzgV_5thYvbcT6ufPG3BSoNbhJ6XuNyiLwcAfPpou7VAZZmlmJJ1T67DejBkKf8_cOREBfFnI9mMdv0PiWf5SMR6ROlpqc3BfpKKo8XWv92PVg_QTVxGDSFCvjU1vWyaF3H3HxEFgoo4v-SHuQTO7tNB6Dhd3PGZgoEfnyG4AGG4fFb0",
+      "summary": []
+    },
+    "output_index": 0,
+    "sequence_number": 3
+  },
+  {
+    "type": "response.output_item.added",
+    "item": {
+      "id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+      "type": "message",
+      "status": "in_progress",
+      "content": [],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 4
+  },
+  {
+    "type": "response.content_part.added",
+    "content_index": 0,
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": ""
+    },
+    "sequence_number": 5
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "Next",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "RAOB7ZDIWK4F",
+    "output_index": 1,
+    "sequence_number": 6
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "JrsoA7rOVEXCD5F",
+    "output_index": 1,
+    "sequence_number": 7
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " you",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "mV83RYOYWASv",
+    "output_index": 1,
+    "sequence_number": 8
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " could",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "CCXoQpnJyN",
+    "output_index": 1,
+    "sequence_number": 9
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " verify",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "BmDvbYTD3",
+    "output_index": 1,
+    "sequence_number": 10
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "xZtKD2b90pkh",
+    "output_index": 1,
+    "sequence_number": 11
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " population",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "3nXA0",
+    "output_index": 1,
+    "sequence_number": 12
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": "’s",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "uwP1sBg4Idjp7Y",
+    "output_index": 1,
+    "sequence_number": 13
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " source",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "bu8qjucwP",
+    "output_index": 1,
+    "sequence_number": 14
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " and",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "PGFIVl8pI20m",
+    "output_index": 1,
+    "sequence_number": 15
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " date",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "MrECGAs8pRi",
+    "output_index": 1,
+    "sequence_number": 16
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ",",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "Vkk2AeOya6fRwJf",
+    "output_index": 1,
+    "sequence_number": 17
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " then",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "jUzctgJGG47",
+    "output_index": 1,
+    "sequence_number": 18
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " use",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "1Io9zAFnRBQY",
+    "output_index": 1,
+    "sequence_number": 19
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " the",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "Doqi74rxawrm",
+    "output_index": 1,
+    "sequence_number": 20
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " recorded",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "dWB0qfa",
+    "output_index": 1,
+    "sequence_number": 21
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " information",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "HLDA",
+    "output_index": 1,
+    "sequence_number": 22
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " in",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "JZ1OMqXWKG2OI",
+    "output_index": 1,
+    "sequence_number": 23
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " your",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "ZQ9xcFYs6hP",
+    "output_index": 1,
+    "sequence_number": 24
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " report",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "2XIov1Uac",
+    "output_index": 1,
+    "sequence_number": 25
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " or",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "SsWVMcwHtG2Nf",
+    "output_index": 1,
+    "sequence_number": 26
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": " analysis",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "glhkYod",
+    "output_index": 1,
+    "sequence_number": 27
+  },
+  {
+    "type": "response.output_text.delta",
+    "content_index": 0,
+    "delta": ".",
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "obfuscation": "kFEo9CtOBeMhLwL",
+    "output_index": 1,
+    "sequence_number": 28
+  },
+  {
+    "type": "response.output_text.done",
+    "content_index": 0,
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "logprobs": [],
+    "output_index": 1,
+    "sequence_number": 29,
+    "text": "Next, you could verify the population’s source and date, then use the recorded information in your report or analysis."
+  },
+  {
+    "type": "response.content_part.done",
+    "content_index": 0,
+    "item_id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+    "output_index": 1,
+    "part": {
+      "type": "output_text",
+      "annotations": [],
+      "logprobs": [],
+      "text": "Next, you could verify the population’s source and date, then use the recorded information in your report or analysis."
+    },
+    "sequence_number": 30
+  },
+  {
+    "type": "response.output_item.done",
+    "item": {
+      "id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "Next, you could verify the population’s source and date, then use the recorded information in your report or analysis."
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    },
+    "output_index": 1,
+    "sequence_number": 31
+  },
+  {
+    "type": "response.completed",
+    "response": {
+      "id": "resp_08728d6ef76ad15a006a7cdbab3e8881a288766dc38e28b73e",
+      "object": "response",
+      "created_at": 1786567595,
+      "status": "completed",
+      "background": false,
+      "completed_at": 1786567596,
+      "error": null,
+      "frequency_penalty": 0,
+      "incomplete_details": null,
+      "instructions": null,
+      "max_output_tokens": null,
+      "max_tool_calls": null,
+      "model": "gpt-5.6-luna",
+      "moderation": null,
+      "output": [
+        {
+          "id": "rs_08728d6ef76ad15a006a7cdbabb56c81a28fb190fc18f9740b",
+          "type": "reasoning",
+          "content": [],
+          "encrypted_content": "gAAAAABqfNusQOlJuexVCAjzowFDMkJ4HPrSCnFtUWicqXfEBkNTmnl6XxS_6vzkmIleFtSlPLi8I2iql94NZAzS8ePv2pDTgXWu0bNso2OR012bIusGaJ9Xk8SuixNdUFfEPfizrQoK099-KPX8wR0CI3WMzlZsdsC-RhbrOYwYH1KO_bCy2vK_Z6mpsrtPq2_-UtSAZl-cn3vd_Qx8SrJpuag4NL9ZdoW_ABkes0k2WNgKOENR-qusqvUjRRGkpohlnVCFjpItyuon4M5nnSFA9qd-obIJ51cLVAcd7kOqkNNwVIT6gJIOjreVDIqpDUuvZ3bQgyLF7-SX6YPy9sZjXwHuqqPCQWqSqfALGAqGQFSbG4vms-GJKYEJGLx-65Jdu6HLc_GmgLpSLN_M-rd2WlPtXkXaPkzHvTJwy7bqJcsUJYtRb3Za0uc2eK34JvMlup4Ni0xoBz7bj56MI0Xy6YvG3hGpb62SE9WL9FtD-XZQHPa1oAHmoMZz8BuW4gZRHAL2n6DbacL8NAgihj-cqQeXr6Poc16xuTDenPPC-lJjPeIwoqhNwMcDH9mH0Cb5_rtjjb9CMRXr2LUBu8P2ZIxR2KxfW4z8_KduCWSfe-dfB71oH6dBEAVKo-x6ZD7lTtEpmbr9Qf72C4ooOwdBgsWzRIuD6n6QbWP4fiMdjeH6rOs5SKNCc7AQ0Pidb_t-dwZYSVZU-m9qs3VCy6srGVHO8bYEAY7QBQIZhBiqIwDfEXhkDZ8nqtTXRhrtHcqIljYbUfenHtHPDAEV3wswscISlVxHdEup4Fe5v-1KWo71ekh3B4WFCYv-xz-xBumBH_3sa4BA1NEVViy0wtdxK1mm_sTLH-iYhSL6666ES-5Aoo3NzBWXbUKcQwJEGJd0yZmZuScsfX4v9zzhmRwjAdeRDLNtrpCXb4Sx5kMZ-A7QSIxZooF8jtBCA22DkvioGQChwrT9f7NxSRF7DYaYVGxNFyj-ecum5sds1AuWDydaKclJWllGbXORzdZPTFE1flDtIWaa",
+          "summary": []
+        },
+        {
+          "id": "msg_08728d6ef76ad15a006a7cdbabf5e481a28394be8e3fae3345",
+          "type": "message",
+          "status": "completed",
+          "content": [
+            {
+              "type": "output_text",
+              "annotations": [],
+              "logprobs": [],
+              "text": "Next, you could verify the population’s source and date, then use the recorded information in your report or analysis."
+            }
+          ],
+          "phase": "final_answer",
+          "role": "assistant"
+        }
+      ],
+      "parallel_tool_calls": true,
+      "presence_penalty": 0,
+      "previous_response_id": null,
+      "prompt_cache_key": null,
+      "prompt_cache_retention": "24h",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "xhigh",
+        "mode": "standard",
+        "summary": null
+      },
+      "safety_identifier": null,
+      "service_tier": "default",
+      "store": true,
+      "temperature": 1,
+      "text": {
+        "format": {
+          "type": "text"
+        },
+        "verbosity": "medium"
+      },
+      "tool_choice": "auto",
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "input_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "output_tokens": 0,
+          "output_tokens_details": {
+            "image_tokens": 0,
+            "text_tokens": 0
+          },
+          "total_tokens": 0
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "tools": [],
+      "top_logprobs": 0,
+      "top_p": 0.98,
+      "truncation": "disabled",
+      "usage": {
+        "input_tokens": 926,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 47,
+        "output_tokens_details": {
+          "reasoning_tokens": 18
+        },
+        "total_tokens": 973
+      },
+      "user": null,
+      "metadata": {}
+    },
+    "sequence_number": 32
+  }
+]

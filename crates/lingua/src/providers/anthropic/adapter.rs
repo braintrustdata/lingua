@@ -41,9 +41,9 @@ use crate::universal::request::{
 use crate::universal::tools::{UniversalTool, UniversalToolType};
 use crate::universal::{
     FinishReason, ServedServiceTier, TokenBudget, UniversalParams, UniversalReasoningDelta,
-    UniversalRequest, UniversalResponse, UniversalStreamChoice, UniversalStreamChunk,
-    UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta, UniversalUsage,
-    PLACEHOLDER_ID, PLACEHOLDER_MODEL,
+    UniversalReasoningSignature, UniversalRequest, UniversalResponse, UniversalStreamChoice,
+    UniversalStreamChunk, UniversalStreamDelta, UniversalToolCallDelta, UniversalToolFunctionDelta,
+    UniversalUsage, PLACEHOLDER_ID, PLACEHOLDER_MODEL,
 };
 use serde::Deserialize;
 
@@ -1054,7 +1054,7 @@ impl ProviderAdapter for AnthropicAdapter {
                     }
                     let delta = UniversalStreamDelta {
                         role: Some("assistant".to_string()),
-                        reasoning_signature: Some(signature.to_string()),
+                        reasoning_signature: Some(signature.to_string().into()),
                         ..Default::default()
                     };
 
@@ -1431,6 +1431,16 @@ impl ProviderAdapter for AnthropicAdapter {
         // Content deltas
         if let Some(choice) = chunk.choices.first() {
             if let Some(delta_view) = choice.delta_view() {
+                if matches!(
+                    delta_view.reasoning_signature,
+                    Some(UniversalReasoningSignature::Multiple(_))
+                ) {
+                    return Err(TransformError::FromUniversalFailed(
+                        "multiple reasoning signatures cannot be represented in one Anthropic stream content block"
+                            .to_string(),
+                    ));
+                }
+
                 // Reasoning / thinking delta
                 if !delta_view.reasoning.is_empty() {
                     let thinking = delta_view
@@ -1452,15 +1462,25 @@ impl ProviderAdapter for AnthropicAdapter {
 
                 // Signature delta
                 if let Some(signature) = delta_view.reasoning_signature {
-                    if !signature.is_empty() {
-                        return Ok(serde_json::json!({
-                            "type": "content_block_delta",
-                            "index": choice.index,
-                            "delta": {
-                                "type": "signature_delta",
-                                "signature": signature
-                            }
-                        }));
+                    let signatures = signature
+                        .into_values()
+                        .into_iter()
+                        .filter(|signature| !signature.is_empty())
+                        .map(|signature| {
+                            serde_json::json!({
+                                "type": "content_block_delta",
+                                "index": choice.index,
+                                "delta": {
+                                    "type": "signature_delta",
+                                    "signature": signature
+                                }
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    match signatures.as_slice() {
+                        [] => {}
+                        [signature] => return Ok(signature.clone()),
+                        _ => return Ok(Value::Array(signatures)),
                     }
                 }
             }
@@ -1697,6 +1717,7 @@ mod tests {
     use super::*;
     use crate::providers::anthropic::generated::System;
     use crate::serde_json::json;
+    use crate::universal::UniversalReasoningSignature;
     use serde::Deserialize;
 
     #[derive(Debug, Deserialize)]
@@ -1799,6 +1820,33 @@ mod tests {
             "claude-3-5-sonnet-20241022"
         );
         assert_eq!(reconstructed.get("max_tokens").unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_stream_from_universal_rejects_multiple_reasoning_signatures() {
+        let adapter = AnthropicAdapter;
+        let chunk = UniversalStreamChunk::new(
+            None,
+            None,
+            vec![UniversalStreamChoice {
+                index: 0,
+                delta: Some(Value::from(UniversalStreamDelta {
+                    reasoning_signature: Some(UniversalReasoningSignature::Multiple(vec![
+                        "signature_one".to_string(),
+                        "signature_two".to_string(),
+                    ])),
+                    ..Default::default()
+                })),
+                finish_reason: None,
+            }],
+            None,
+            None,
+        );
+
+        let error = adapter.stream_from_universal(&chunk).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("multiple reasoning signatures cannot be represented"));
     }
 
     #[test]
@@ -3416,7 +3464,12 @@ mod tests {
         assert!(!chunk.is_keep_alive());
         let choice = chunk.choices.first().expect("choice must exist");
         let delta = choice.delta_view().expect("delta must exist");
-        assert_eq!(delta.reasoning_signature.as_deref(), Some("sig_abc123"));
+        assert_eq!(
+            delta.reasoning_signature,
+            Some(UniversalReasoningSignature::Single(
+                "sig_abc123".to_string()
+            ))
+        );
     }
 
     #[test]
