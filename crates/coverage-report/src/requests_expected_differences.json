@@ -197,6 +197,54 @@
   ],
   "perTestCase": [
     {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolCallRequest",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolChoiceAnyParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolChoiceRequiredParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "toolModeValidatedParam",
+      "source": "Google",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "Google thought signatures attached to tool calls have no representable OpenAI Responses input form." }
+      ]
+    },
+    {
+      "testCase": "googleToolCallThoughtSignatureReplayParam",
+      "source": "ChatCompletions",
+      "target": "Responses",
+      "errors": [
+        { "pattern": "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls", "reason": "The Chat Completions replay form preserves a Google tool-call thought signature that has no representable OpenAI Responses input form." }
+      ]
+    },
+    {
       "testCase": "openaiServiceTierFastParam",
       "source": "Responses",
       "target": "Anthropic",
