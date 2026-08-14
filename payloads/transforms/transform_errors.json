@@ -11,17 +11,20 @@
   "chat-completions_to_anthropic": {
     "chatCompletionsUrlBackedAudioFileParam": "Anthropic document input does not support URL-backed audio files",
     "chatCompletionsUrlBackedVideoFileParam": "Anthropic document input does not support URL-backed video files",
-    "chatCompletionsGcsBackedVideoFileParam": "Anthropic document input does not support URL-backed video files"
+    "chatCompletionsGcsBackedVideoFileParam": "Anthropic document input does not support URL-backed video files",
+    "openAIMultipleReasoningSignaturesReplayParam": "Anthropic cannot replay OpenAI encrypted reasoning signatures; reasoning signatures are provider-issued and no lossless Anthropic equivalent exists."
   },
   "chat-completions_to_google": {
-    "chatCompletionsGcsBackedVideoFileParam": "Gemini API requires FileService registration for GCS URIs; direct gs:// fileData is supported by Vertex only"
+    "chatCompletionsGcsBackedVideoFileParam": "Gemini API requires FileService registration for GCS URIs; direct gs:// fileData is supported by Vertex only",
+    "openAIMultipleReasoningSignaturesReplayParam": "Google cannot replay OpenAI encrypted reasoning signatures; thought signatures are provider-issued and no lossless Google equivalent exists."
   },
   "chat-completions_to_bedrock": {
     "multimodalRequest": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
     "imageUrlMimeTypeFallbackParam": "Bedrock rejected transformed OpenAI image URL content because Converse expects image bytes",
     "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
     "chatCompletionsUrlBackedVideoFileParam": "Bedrock Converse does not support file input",
-    "chatCompletionsGcsBackedVideoFileParam": "Bedrock Converse does not support file input"
+    "chatCompletionsGcsBackedVideoFileParam": "Bedrock Converse does not support file input",
+    "openAIMultipleReasoningSignaturesReplayParam": "Bedrock Converse cannot replay OpenAI encrypted reasoning signatures; they are OpenAI-issued provider metadata with no lossless Bedrock equivalent."
   },
   "chat-completions_to_bedrock_streaming": {
     "chatCompletionsUrlBackedAudioFileParam": "Bedrock Converse does not support file input",
@@ -37,12 +40,14 @@
     "responsesGpt56ReasoningMaxProContextParam": "Anthropic requires max_tokens > thinking.budget_tokens; transformed GPT-5.6 max reasoning maps to an equal 4096 token budget",
     "responsesProgrammaticToolCallingToolsParam": "Tool 'get_inventory' of type 'output_schema' is not supported by anthropic",
     "responsesCustomToolCallStreamingParam": "Tool 'write_release_note' of type 'custom' is not supported by anthropic",
-    "openaiServiceTierFastParam": "Anthropic does not support service_tier 'fast'"
+    "openaiServiceTierFastParam": "Anthropic does not support service_tier 'fast'",
+    "openAIMultipleReasoningSignaturesReplayParam": "Anthropic cannot replay OpenAI Responses encrypted reasoning content; reasoning signatures are provider-issued and no lossless Anthropic equivalent exists."
   },
   "responses_to_google": {
     "responsesAdditionalToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no universal representation",
     "responsesAdditionalToolsMultipleToolsParam": "Expected: Responses additional_tools is a mid-conversation tool definition item with no Google equivalent",
-    "responsesProgrammaticToolCallingToolsParam": "Tool 'get_inventory' of type 'allowed_callers' is not supported by google"
+    "responsesProgrammaticToolCallingToolsParam": "Tool 'get_inventory' of type 'allowed_callers' is not supported by google",
+    "openAIMultipleReasoningSignaturesReplayParam": "Google cannot replay OpenAI Responses encrypted reasoning content; thought signatures are provider-issued and no lossless Google equivalent exists."
   },
   "anthropic_to_chat-completions": {
     "codeInterpreterToolParam": "Expected: Anthropic bash is provider-specific and is not supported by OpenAI Chat Completions",

@@ -101,18 +101,19 @@ const openAIMultipleReasoningSignaturesReplayAssistantMessage: ChatCompletionAss
 // Note: temperature, top_p, and logprobs are not supported with reasoning models (gpt-5-nano)
 export const paramsCases: TestCaseCollection = {
   openAIMultipleReasoningSignaturesReplayParam: {
-    transform_targets: ["responses"],
     "chat-completions": {
       model: "gpt-5.6-luna",
       messages: [
         {
           role: "user",
-          content: "Perform these steps in order: (1) use web search to find the current capital of Kazakhstan; (2) after that search completes, use web search again to find its current population; (3) call record_research with the country, capital, and population. Do not answer before the function call, and do not combine the two searches.",
+          content:
+            "Perform these steps in order: (1) use web search to find the current capital of Kazakhstan; (2) after that search completes, use web search again to find its current population; (3) call record_research with the country, capital, and population. Do not answer before the function call, and do not combine the two searches.",
         },
         openAIMultipleReasoningSignaturesReplayAssistantMessage,
         {
           role: "user",
-          content: "Now provide a concise confirmation that the prior research context was received.",
+          content:
+            "Now provide a concise confirmation that the prior research context was received.",
         },
       ],
     },
@@ -121,17 +122,19 @@ export const paramsCases: TestCaseCollection = {
       input: [
         {
           role: "user",
-          content: "Perform these steps in order: (1) use web search to find the current capital of Kazakhstan; (2) after that search completes, use web search again to find its current population; (3) call record_research with the country, capital, and population. Do not answer before the function call, and do not combine the two searches.",
+          content:
+            "Perform these steps in order: (1) use web search to find the current capital of Kazakhstan; (2) after that search completes, use web search again to find its current population; (3) call record_research with the country, capital, and population. Do not answer before the function call, and do not combine the two searches.",
         },
         ...openAIMultipleReasoningSignatures.map((encrypted_content) => ({
-          type: "reasoning",
+          type: "reasoning" as const,
           content: [],
           summary: [],
           encrypted_content,
         })),
         {
           role: "user",
-          content: "Now provide a concise confirmation that the prior research context was received.",
+          content:
+            "Now provide a concise confirmation that the prior research context was received.",
         },
       ],
       reasoning: { effort: "xhigh" },

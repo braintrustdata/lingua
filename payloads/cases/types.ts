@@ -73,8 +73,25 @@ export type ChatCompletionCreateParams = Omit<
   >;
 };
 
+// The Responses API accepts replayed encrypted reasoning items without an ID,
+// although the SDK's response-object type requires one.
+type OpenAIResponseReasoningReplayItem = Omit<
+  OpenAI.Responses.ResponseReasoningItem,
+  "id"
+> & {
+  id?: string;
+};
+
+type OpenAIResponseInputItem =
+  | Exclude<
+      OpenAI.Responses.ResponseInputItem,
+      OpenAI.Responses.ResponseReasoningItem
+    >
+  | OpenAIResponseReasoningReplayItem;
+
 type OpenAIResponseCreateParamsWithExtendedServiceTier<T> = T extends unknown
-  ? Omit<T, "service_tier"> & {
+  ? Omit<T, "input" | "service_tier"> & {
+      input?: string | OpenAIResponseInputItem[];
       service_tier?:
         | "auto"
         | "default"
@@ -117,8 +134,6 @@ export interface TestCase {
   baseten?: ChatCompletionCreateParams | null;
   // Optional expectations for proxy compatibility tests
   expect?: TestExpectation;
-  // Restrict capture and transform tests to target providers relevant to this case.
-  transform_targets?: ProviderType[];
 }
 
 // Collection of test cases organized by name
