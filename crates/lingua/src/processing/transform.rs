@@ -692,18 +692,22 @@ pub(crate) fn serialize_stream_value(value: &Value) -> Result<Bytes, TransformEr
     )?))
 }
 
-fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStreamDelta {
+fn assistant_content_to_stream_delta(
+    content: &AssistantContent,
+) -> Result<UniversalStreamDelta, TransformError> {
     match content {
-        AssistantContent::String(text) => UniversalStreamDelta {
+        AssistantContent::String(text) => Ok(UniversalStreamDelta {
             role: Some("assistant".to_string()),
             content: Some(text.clone()),
             ..Default::default()
-        },
+        }),
         AssistantContent::Array(parts) => {
             let mut text = String::new();
             let mut reasoning = Vec::new();
             let mut tool_calls = Vec::new();
             let mut reasoning_signatures = Vec::new();
+            let mut has_reasoning_signature = false;
+            let mut has_tool_call_signature = false;
 
             for part in parts {
                 match part {
@@ -718,6 +722,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                             content: Some(text.clone()),
                         });
                         if let Some(encrypted_content) = encrypted_content {
+                            has_reasoning_signature = true;
                             reasoning_signatures.push(encrypted_content.clone());
                         }
                     }
@@ -729,6 +734,7 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                         ..
                     } => {
                         if let Some(encrypted_content) = encrypted_content {
+                            has_tool_call_signature = true;
                             reasoning_signatures.push(encrypted_content.clone());
                         }
                         let tool_call_index = tool_calls.len() as u32;
@@ -752,13 +758,19 @@ fn assistant_content_to_stream_delta(content: &AssistantContent) -> UniversalStr
                 }
             }
 
-            UniversalStreamDelta {
+            if has_reasoning_signature && has_tool_call_signature {
+                return Err(TransformError::FromUniversalFailed(
+                    "full-response stream fallback cannot represent encrypted reasoning signatures attached to both reasoning and tool-call parts".to_string(),
+                ));
+            }
+
+            Ok(UniversalStreamDelta {
                 role: Some("assistant".to_string()),
                 content: (!text.is_empty()).then_some(text),
                 tool_calls,
                 reasoning,
                 reasoning_signature: UniversalReasoningSignature::from_values(reasoning_signatures),
-            }
+            })
         }
     }
 }
@@ -798,7 +810,7 @@ fn merge_assistant_stream_deltas(deltas: Vec<UniversalStreamDelta>) -> Universal
 fn response_to_stream_chunk(
     response: UniversalResponse,
     source_format: ProviderFormat,
-) -> UniversalStreamChunk {
+) -> Result<UniversalStreamChunk, TransformError> {
     let finish_reason = response.finish_reason.as_ref().map(ToString::to_string);
     let assistant_deltas = response
         .messages
@@ -810,13 +822,15 @@ fn response_to_stream_chunk(
             | Message::User { .. }
             | Message::Tool { .. }
             | Message::AdditionalTools { .. } => None,
-        });
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     // Formats without `n > 1` return one turn whose output items each become an
     // assistant message. Stream synthesis consumes a single choice, so those
     // items must be merged or everything after the first one is dropped.
     let choices = if format_uses_multiple_choices(source_format) {
         assistant_deltas
+            .into_iter()
             .enumerate()
             .map(|(index, delta)| UniversalStreamChoice {
                 index: index as u32,
@@ -825,20 +839,21 @@ fn response_to_stream_chunk(
             })
             .collect()
     } else {
-        let deltas: Vec<UniversalStreamDelta> = assistant_deltas.collect();
-        if deltas.is_empty() {
+        if assistant_deltas.is_empty() {
             Vec::new()
         } else {
             vec![UniversalStreamChoice {
                 index: 0,
-                delta: Some(Value::from(merge_assistant_stream_deltas(deltas))),
+                delta: Some(Value::from(merge_assistant_stream_deltas(assistant_deltas))),
                 finish_reason,
             }]
         }
     };
 
-    UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
-        .with_served_service_tier(response.served_service_tier)
+    Ok(
+        UniversalStreamChunk::new(response.id, response.model, choices, None, response.usage)
+            .with_served_service_tier(response.served_service_tier),
+    )
 }
 
 pub(crate) fn transform_stream_chunk_step(
@@ -860,7 +875,7 @@ pub(crate) fn transform_stream_chunk_step(
         DetectKind::Stream => source_adapter.stream_to_universal(chunk)?,
         DetectKind::Response => {
             let response = source_adapter.response_to_universal(chunk)?;
-            Some(response_to_stream_chunk(response, source_format))
+            Some(response_to_stream_chunk(response, source_format)?)
         }
         DetectKind::Request => {
             unreachable!("stream detection never falls back to request payloads")
@@ -2330,6 +2345,38 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "openai")]
+    fn test_transform_stream_chunk_rejects_shared_reasoning_and_tool_call_signatures() {
+        let payload = json!({
+            "id": "chatcmpl_123",
+            "object": "chat.completion",
+            "model": "gpt-5.6-luna",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "reasoning": "I should call the tool.",
+                    "reasoning_signature": "signature_one",
+                    "tool_calls": [{
+                        "id": "call_1",
+                        "type": "function",
+                        "function": { "name": "lookup", "arguments": "{}" }
+                    }]
+                },
+                "finish_reason": "tool_calls"
+            }]
+        });
+
+        let error = transform_stream_chunk(to_bytes(&payload), ProviderFormat::ChatCompletions)
+            .expect_err("shared reasoning and tool-call signatures should be rejected");
+
+        assert!(error
+            .to_string()
+            .contains("attached to both reasoning and tool-call parts"));
+    }
+
+    #[test]
     #[cfg(all(feature = "google", feature = "openai"))]
     fn test_transform_stream_chunk_google_prompt_block_to_chat_completions() {
         let input =
@@ -2492,7 +2539,7 @@ mod tests {
             finish_reasons: Vec::new(),
         };
 
-        let chunk = response_to_stream_chunk(response, ProviderFormat::Responses);
+        let chunk = response_to_stream_chunk(response, ProviderFormat::Responses).unwrap();
         assert_eq!(chunk.served_service_tier, Some(ServedServiceTier::Priority));
         let output = crate::providers::openai::responses_adapter::ResponsesAdapter
             .stream_from_universal(&chunk)

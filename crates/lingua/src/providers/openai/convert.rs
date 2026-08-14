@@ -2937,6 +2937,7 @@ pub fn universal_to_responses_input(
                         let mut reasoning_items: Vec<(Vec<String>, Option<String>)> = vec![];
                         let mut normal_parts: Vec<openai::InputContent> = vec![];
                         let mut sequenced_items: Vec<ResponsesSequencedInputItem> = vec![];
+                        let mut has_tool_call_signature = false;
 
                         for part in parts {
                             match part {
@@ -2957,10 +2958,11 @@ pub fn universal_to_responses_input(
                                     arguments,
                                     status,
                                     caller,
-                                    encrypted_content: _,
+                                    encrypted_content,
                                     provider_options,
                                     provider_executed,
                                 } => {
+                                    has_tool_call_signature |= encrypted_content.is_some();
                                     sequenced_items.push(ResponsesSequencedInputItem::ToolCall(
                                         ResponsesToolCallInfo {
                                             tool_call_id: tool_call_id.clone(),
@@ -3045,6 +3047,12 @@ pub fn universal_to_responses_input(
                                     normal_parts.push(TryFromLLM::try_from(other_part.clone())?);
                                 }
                             }
+                        }
+
+                        if reasoning_items.is_empty() && has_tool_call_signature {
+                            return Err(ConvertError::ContentConversionFailed {
+                                reason: "OpenAI Responses input cannot represent encrypted reasoning signatures attached only to function tool calls".to_string(),
+                            });
                         }
 
                         let has_reasoning = !reasoning_items.is_empty();
@@ -6875,6 +6883,34 @@ mod tests {
             AssistantContentPart::ToolCall { encrypted_content, .. }
                 if encrypted_content.as_deref() == Some("signature_123")
         ));
+    }
+
+    #[test]
+    fn responses_input_rejects_tool_only_reasoning_signatures() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "lookup".to_string(),
+                arguments: ToolCallArguments::from("{}".to_string()),
+                encrypted_content: Some("signature_123".to_string()),
+                provider_options: None,
+                status: None,
+                caller: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        }];
+
+        let error = universal_to_responses_input(&messages)
+            .expect_err("tool-only signatures should not be silently dropped");
+
+        assert!(matches!(
+            error,
+            ConvertError::ContentConversionFailed { .. }
+        ));
+        assert!(error
+            .to_string()
+            .contains("attached only to function tool calls"));
     }
 
     #[test]
