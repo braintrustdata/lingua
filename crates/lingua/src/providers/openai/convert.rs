@@ -3906,6 +3906,20 @@ impl TryFromLLM<Vec<Message>> for Vec<openai::OutputItem> {
                             });
                         }
                         AssistantContent::Array(parts) => {
+                            if parts.iter().any(|part| {
+                                matches!(
+                                    part,
+                                    AssistantContentPart::ToolCall {
+                                        encrypted_content: Some(_),
+                                        ..
+                                    }
+                                )
+                            }) {
+                                return Err(ConvertError::ContentConversionFailed {
+                                    reason: "OpenAI Responses output cannot represent encrypted reasoning signatures attached to function tool calls".to_string(),
+                                });
+                            }
+
                             // Track whether we've assigned the id to prevent duplicate IDs
                             let mut id_used = false;
                             let use_id = |used: &mut bool, id: &Option<String>| -> Option<String> {
@@ -7226,6 +7240,30 @@ mod tests {
                 "signature_two".to_string(),
             ]))
         );
+    }
+
+    #[test]
+    fn responses_output_rejects_tool_call_reasoning_signatures() {
+        let messages = vec![Message::Assistant {
+            content: AssistantContent::Array(vec![AssistantContentPart::ToolCall {
+                tool_call_id: "call_123".to_string(),
+                tool_name: "lookup".to_string(),
+                arguments: ToolCallArguments::from("{}".to_string()),
+                encrypted_content: Some("signature_123".to_string()),
+                provider_options: None,
+                status: None,
+                caller: None,
+                provider_executed: None,
+            }]),
+            id: None,
+        }];
+
+        let error = <Vec<openai::OutputItem> as TryFromLLM<Vec<Message>>>::try_from(messages)
+            .expect_err("Responses output should reject tool-call-only reasoning signatures");
+
+        assert!(error.to_string().contains(
+            "OpenAI Responses output cannot represent encrypted reasoning signatures attached to function tool calls"
+        ));
     }
 
     #[test]
