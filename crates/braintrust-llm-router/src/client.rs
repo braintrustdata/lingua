@@ -64,6 +64,12 @@ pub fn build_client(settings: &ClientSettings) -> Result<Client> {
         .pool_max_idle_per_host(settings.pool_max_idle_per_host)
         .user_agent(&settings.user_agent);
 
+    #[cfg(target_os = "macos")]
+    {
+        // Hickory snapshots the DNS configuration and can become stale after a network change.
+        builder = builder.no_hickory_dns();
+    }
+
     if settings.http1_only {
         builder = builder.http1_only();
     }
