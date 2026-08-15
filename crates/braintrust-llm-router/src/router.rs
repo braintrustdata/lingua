@@ -19,7 +19,9 @@ use crate::providers::{
     ClientHeaders, Provider, RemoteMediaPolicy,
 };
 use crate::retry::{RetryPolicy, RetryStrategy};
-use crate::streaming::{transform_provider_stream, RawStreamChunkCapture, ResponseStream};
+use crate::streaming::{
+    transform_provider_stream, RawResponseStream, RawStreamChunkCapture, ResponseStream,
+};
 use lingua::serde_json::Value;
 use lingua::ProviderFormat;
 use lingua::{ParsableResponseInfo, TransformError, TransformResult};
@@ -579,11 +581,18 @@ impl Router {
             payload,
             output_format,
             requires_json_response: _,
-            strategy: _,
+            strategy,
         } = request.inner;
-        let raw_stream = provider
-            .clone()
-            .complete_stream(payload, &auth, spec.as_ref(), format, client_headers)
+        let raw_stream = self
+            .execute_stream_with_retry(
+                provider,
+                &auth,
+                spec,
+                format,
+                payload,
+                strategy,
+                client_headers,
+            )
             .await?;
         Ok(transform_provider_stream(
             raw_stream,
@@ -1011,6 +1020,87 @@ impl Router {
             }
         }
     }
+
+    #[allow(clippy::too_many_arguments)]
+    async fn execute_stream_with_retry(
+        &self,
+        provider: Arc<dyn Provider>,
+        auth: &AuthConfig,
+        spec: Arc<ModelSpec>,
+        format: ProviderFormat,
+        payload: Bytes,
+        mut strategy: RetryStrategy,
+        client_headers: &ClientHeaders,
+    ) -> Result<RawResponseStream> {
+        #[cfg(feature = "tracing")]
+        let mut attempt = 0u32;
+
+        loop {
+            #[cfg(feature = "tracing")]
+            {
+                attempt += 1;
+            }
+
+            #[cfg(feature = "tracing")]
+            let result = {
+                let span = tracing::info_span!(
+                    "bt.router.provider.attempt",
+                    llm.provider = %provider.id(),
+                    attempt = attempt,
+                    http.url = tracing::field::Empty,
+                    http.status_code = tracing::field::Empty,
+                    http.response.version = tracing::field::Empty,
+                );
+                async {
+                    provider
+                        .complete_stream(
+                            payload.clone(),
+                            auth,
+                            spec.as_ref(),
+                            format,
+                            client_headers,
+                        )
+                        .await
+                }
+                .instrument(span.clone())
+                .await
+            };
+
+            #[cfg(not(feature = "tracing"))]
+            let result = provider
+                .complete_stream(payload.clone(), auth, spec.as_ref(), format, client_headers)
+                .await;
+
+            match result {
+                Ok(stream) => return Ok(stream),
+                Err(err) => {
+                    if let Some(delay) = strategy.next_delay(&err) {
+                        #[cfg(feature = "tracing")]
+                        tracing::info!(
+                            llm.provider = %provider.id(),
+                            attempt = attempt,
+                            delay_ms = delay.as_millis() as u64,
+                            error = %err,
+                            "retrying stream establishment after delay"
+                        );
+                        sleep(delay).await;
+                        continue;
+                    }
+                    return Err(match err {
+                        Error::Http(source) => Error::UpstreamUnavailable {
+                            provider: provider.id().to_string(),
+                            source: source.into(),
+                        },
+                        Error::Middleware(source) => Error::UpstreamUnavailable {
+                            provider: provider.id().to_string(),
+                            source: source.into(),
+                        },
+                        other => other,
+                    });
+                }
+            }
+        }
+    }
 }
 
 fn replace_transformed_response_model(bytes: Bytes, model: &str) -> Result<Bytes> {
@@ -1222,6 +1312,7 @@ mod tests {
     use async_trait::async_trait;
     use futures::{stream, StreamExt};
     use reqwest::header::HeaderMap;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Mutex;
 
     struct FakeProvider {
@@ -1310,6 +1401,59 @@ mod tests {
                     .into_iter()
                     .map(|chunk| Ok(StreamChunk::data(chunk))),
             )))
+        }
+
+        async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    struct FlakyStreamProvider {
+        attempts: Arc<AtomicUsize>,
+    }
+
+    #[async_trait]
+    impl Provider for FlakyStreamProvider {
+        fn id(&self) -> &'static str {
+            "flaky"
+        }
+
+        fn provider_formats(&self) -> Vec<ProviderFormat> {
+            vec![ProviderFormat::ChatCompletions]
+        }
+
+        async fn complete(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<Bytes> {
+            unimplemented!()
+        }
+
+        async fn complete_stream(
+            &self,
+            _payload: Bytes,
+            _auth: &AuthConfig,
+            _spec: &ModelSpec,
+            _format: ProviderFormat,
+            _client_headers: &ClientHeaders,
+        ) -> Result<RawResponseStream> {
+            if self.attempts.fetch_add(1, Ordering::SeqCst) == 0 {
+                let error = reqwest_middleware::ClientBuilder::new(reqwest::Client::new())
+                    .build()
+                    .get("http://127.0.0.1:1")
+                    .send()
+                    .await
+                    .expect_err("connection should fail");
+                return Err(Error::Middleware(error));
+            }
+
+            Ok(Box::pin(stream::iter([Ok(StreamChunk::data(
+                chat_stream_chunk_body(),
+            ))])))
         }
 
         async fn health_check(&self, _auth: &AuthConfig) -> Result<()> {
@@ -1909,6 +2053,50 @@ mod tests {
             captured.lock().expect("capture lock poisoned").as_slice(),
             &[raw_chunk]
         );
+    }
+
+    #[tokio::test]
+    async fn complete_stream_retries_transport_failure_before_stream_starts() {
+        let attempts = Arc::new(AtomicUsize::new(0));
+        let mut catalog = ModelCatalog::empty();
+        catalog.insert(
+            "gpt-5-mini".into(),
+            openai_spec("gpt-5-mini", ModelFlavor::Chat),
+        );
+        let router = Router::builder()
+            .with_catalog(Arc::new(catalog))
+            .with_retry_policy(RetryPolicy {
+                max_attempts: 1,
+                initial_delay: Duration::ZERO,
+                max_delay: Duration::ZERO,
+                exponential_base: 2.0,
+                jitter: false,
+            })
+            .add_provider(
+                "flaky",
+                FlakyStreamProvider {
+                    attempts: Arc::clone(&attempts),
+                },
+                dummy_auth(),
+                vec![ProviderFormat::ChatCompletions],
+            )
+            .build()
+            .expect("router builds");
+        let (prepared, _) = create_test_stream_request(
+            &router,
+            chat_request_body(),
+            "gpt-5-mini",
+            ProviderFormat::ChatCompletions,
+        )
+        .await
+        .expect("stream request prepares");
+
+        let _stream = router
+            .complete_stream(prepared, &ClientHeaders::default(), None)
+            .await
+            .expect("stream establishment retries");
+
+        assert_eq!(attempts.load(Ordering::SeqCst), 2);
     }
 
     #[tokio::test]
