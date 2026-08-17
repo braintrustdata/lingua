@@ -88,7 +88,7 @@ fn generate_openai_types() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("🔍 Parsing YAML OpenAPI spec...");
 
-    let schema: serde_json::Value = match serde_yaml::from_str(&openai_spec) {
+    let schema: serde_json::Value = match yaml_serde::from_str(&openai_spec) {
         Ok(value) => value,
         Err(e) => return Err(format!("failed to parse OpenAPI spec as YAML: {e}").into()),
     };
@@ -144,7 +144,7 @@ fn generate_openai_specific_types(openai_spec: &str) -> Result<(), Box<dyn std::
 
     // Extract OpenAI OpenAPI spec
     let full_spec: serde_json::Value =
-        serde_yaml::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
+        yaml_serde::from_str(openai_spec).expect("Failed to parse OpenAI OpenAPI spec");
 
     generate_openai_types_with_quicktype(&serde_json::to_string_pretty(&full_spec)?)?;
     println!("✅ OpenAI types generated successfully with quicktype");
