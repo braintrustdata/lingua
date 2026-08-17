@@ -2,4 +2,7 @@
 import type { McpToolApprovalFilter } from "./McpToolApprovalFilter";
 import type { McpToolApprovalSetting } from "./McpToolApprovalSetting";
 
+/**
+ * Specify which of the MCP server's tools require approval.
+ */
 export type RequireApproval = McpToolApprovalSetting | McpToolApprovalFilter;

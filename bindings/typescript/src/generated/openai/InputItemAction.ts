@@ -53,8 +53,18 @@ export type InputItemAction = {
  */
 button: ClickButtonType | null, 
 /**
+ * The keys being held while clicking.
+ *
+ * The keys being held while double-clicking.
+ *
+ * The keys being held while dragging the mouse.
+ *
  * The combination of keys the model is requesting to be pressed. This is an array of
  * strings, each representing a key.
+ *
+ * The keys being held while moving the mouse.
+ *
+ * The keys being held while scrolling.
  */
 keys: Array<string> | null, 
 /**
@@ -158,8 +168,26 @@ command: Array<string> | null,
 /**
  * Environment variables to set for the command.
  */
-env: { [key in string]?: string } | null, timeout_ms: bigint | null, user: string | null, working_directory: string | null, 
+env: { [key in string]?: string } | null, 
+/**
+ * Optional timeout in milliseconds for the command.
+ *
+ * Maximum wall-clock time in milliseconds to allow the shell commands to run.
+ */
+timeout_ms: bigint | null, 
+/**
+ * Optional user to run the command as.
+ */
+user: string | null, 
+/**
+ * Optional working directory to run the command in.
+ */
+working_directory: string | null, 
 /**
  * Ordered shell commands for the execution environment to run.
  */
-commands: Array<string> | null, max_output_length: bigint | null, };
+commands: Array<string> | null, 
+/**
+ * Maximum number of UTF-8 characters to capture from combined stdout and stderr output.
+ */
+max_output_length: bigint | null, };

@@ -60,7 +60,16 @@ type: HilariousType,
  * may increase input token usage. Use `low` for lower-cost rendering, or `high` to render
  * the file at higher quality. Defaults to `auto`.
  */
-detail: DetailEnum | null, file_id: string | null, image_url: string | null, 
+detail: DetailEnum | null, 
+/**
+ * The ID of the file to be sent to the model.
+ */
+file_id: string | null, 
+/**
+ * The URL of the image to be sent to the model. A fully qualified URL or base64 encoded
+ * image in a data URL.
+ */
+image_url: string | null, 
 /**
  * The content of the file to be sent to the model.
  */
