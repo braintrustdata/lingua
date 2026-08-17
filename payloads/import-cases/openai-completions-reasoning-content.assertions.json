@@ -1,0 +1,10 @@
+{
+  "expectedMessageCount": 2,
+  "expectedRolesInOrder": ["user", "assistant"],
+  "expectedAssistantContentPartTypes": [["reasoning", "text"]],
+  "mustContainText": [
+    "How many r's are in strawberry?",
+    "The r's are at positions 3, 8, and 9.",
+    "There are 3 r's in strawberry."
+  ]
+}

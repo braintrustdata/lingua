@@ -187,11 +187,14 @@ impl ReasoningSignature {
 ///
 /// These extension type uses `#[serde(flatten)]` to wrap the generated type while adding
 /// the `reasoning` field, keeping generated types faithful to the official spec.
+///
+/// The `reasoning_content` alias covers the DeepSeek/vLLM OpenAI-compatible convention,
+/// which carries chain-of-thought tokens in a `reasoning_content` sibling of `content`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCompletionResponseMessageExt {
     #[serde(flatten)]
     pub base: openai::ChatCompletionResponseMessage,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "reasoning_content", skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<String>,
     /// Encrypted reasoning signatures for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -217,7 +220,7 @@ pub struct ChatCompletionRequestMessageExt {
     pub tool_call_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<serde_json::Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "reasoning_content", skip_serializing_if = "Option::is_none")]
     pub reasoning: Option<ChatCompletionRequestReasoning>,
     /// Encrypted reasoning signatures for cross-provider roundtrips (e.g., Anthropic's signature)
     #[serde(skip_serializing_if = "Option::is_none")]
