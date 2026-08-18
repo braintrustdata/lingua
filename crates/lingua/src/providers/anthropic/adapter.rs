@@ -893,6 +893,7 @@ impl ProviderAdapter for AnthropicAdapter {
             Value::String(resp.model.as_deref().unwrap_or(PLACEHOLDER_MODEL).into()),
         );
         map.insert("stop_reason".into(), Value::String(stop_reason));
+        map.insert("stop_sequence".into(), Value::Null);
 
         let service_tier = resp
             .served_service_tier
@@ -1761,6 +1762,12 @@ mod tests {
         color: String,
     }
 
+    #[derive(Debug, Deserialize)]
+    struct AnthropicStopFieldsView {
+        stop_reason: String,
+        stop_sequence: Value,
+    }
+
     #[test]
     fn test_anthropic_detect_request() {
         let adapter = AnthropicAdapter;
@@ -1793,6 +1800,29 @@ mod tests {
             }
             other => panic!("expected unsupported service tier mapping, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn response_includes_null_stop_sequence_for_tool_use() {
+        let response = UniversalResponse {
+            id: Some("response-id".to_string()),
+            id_format: None,
+            model: Some("claude-sonnet-4-5-20250929".to_string()),
+            messages: Vec::new(),
+            usage: None,
+            served_service_tier: None,
+            finish_reason: Some(FinishReason::ToolCalls),
+            finish_reasons: vec![FinishReason::ToolCalls],
+        };
+
+        let serialized = AnthropicAdapter
+            .response_from_universal(&response)
+            .expect("tool-use response should serialize to Anthropic");
+        let stop_fields: AnthropicStopFieldsView = serde_json::from_value(serialized)
+            .expect("Anthropic response should include required stop fields");
+
+        assert_eq!(stop_fields.stop_reason, "tool_use");
+        assert_eq!(stop_fields.stop_sequence, Value::Null);
     }
 
     #[test]
