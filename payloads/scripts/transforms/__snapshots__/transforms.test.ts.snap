@@ -75,6 +75,7 @@ What would you like to do?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -125,6 +126,7 @@ exports[`anthropic → chat-completions > anthropicMidConversationSystemMessage 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -208,6 +210,7 @@ exports[`anthropic → chat-completions > anthropicMixedToolResultWithText > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -245,6 +248,7 @@ exports[`anthropic → chat-completions > anthropicOpus5DisabledThinkingHighEffo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -284,6 +288,7 @@ What would you like to do? Tell me a topic, task, or even just a bit of context,
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -347,6 +352,7 @@ So: most common - digits 0 and 1 (about 20.21% each); rarest - digits 6–9 (abo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -384,6 +390,7 @@ exports[`anthropic → chat-completions > fableTemperatureParam > response 1`] =
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -429,6 +436,7 @@ exports[`anthropic → chat-completions > imageContentParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -470,6 +478,7 @@ exports[`anthropic → chat-completions > instructionsParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -526,6 +535,7 @@ exports[`anthropic → chat-completions > jsonSchemaFormatParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -563,6 +573,7 @@ exports[`anthropic → chat-completions > maxCompletionTokensParam > response 1`
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -601,6 +612,7 @@ exports[`anthropic → chat-completions > metadataParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -649,6 +661,7 @@ exports[`anthropic → chat-completions > multimodalRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -687,6 +700,7 @@ exports[`anthropic → chat-completions > opus47AdaptiveThinkingReasoningEffortP
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -747,6 +761,7 @@ exports[`anthropic → chat-completions > outputConfigEffortWithJsonSchemaParam 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -806,6 +821,7 @@ exports[`anthropic → chat-completions > outputConfigJsonSchemaParam > response
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -865,6 +881,7 @@ exports[`anthropic → chat-completions > outputFormatJsonSchemaParam > response
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -928,6 +945,7 @@ exports[`anthropic → chat-completions > parallelToolCallsDisabledParam > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1023,6 +1041,7 @@ Want hourly details, a 7-day outlook, or a Celsius conversion?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1069,6 +1088,7 @@ exports[`anthropic → chat-completions > promptCacheKeyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1107,6 +1127,7 @@ exports[`anthropic → chat-completions > reasoningEffortLowParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1142,6 +1163,7 @@ exports[`anthropic → chat-completions > reasoningEffortMaxClampsToGpt5NanoPara
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1185,6 +1207,7 @@ Answer: 66 2/3 mph.",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1222,6 +1245,7 @@ exports[`anthropic → chat-completions > reasoningRequestTruncated > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1260,6 +1284,7 @@ exports[`anthropic → chat-completions > reasoningSummaryParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1297,6 +1322,7 @@ exports[`anthropic → chat-completions > reasoningWithOutput > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1335,6 +1361,7 @@ exports[`anthropic → chat-completions > responsesReasoningEffortMaxParam > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1400,6 +1427,7 @@ What would you like to do next? For example, tell me a code search term, or ask 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1438,6 +1466,7 @@ exports[`anthropic → chat-completions > safetyIdentifierParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1476,6 +1505,7 @@ exports[`anthropic → chat-completions > serviceTierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1513,6 +1543,7 @@ exports[`anthropic → chat-completions > simpleRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1550,6 +1581,7 @@ exports[`anthropic → chat-completions > simpleRequestTruncated > response 1`] 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1593,6 +1625,7 @@ exports[`anthropic → chat-completions > stopSequencesParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1636,6 +1669,7 @@ exports[`anthropic → chat-completions > systemMessageArrayContent > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1674,6 +1708,7 @@ exports[`anthropic → chat-completions > temperatureParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1730,6 +1765,7 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaParam > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1789,6 +1825,7 @@ exports[`anthropic → chat-completions > textFormatJsonSchemaWithDescriptionPar
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1826,6 +1863,7 @@ exports[`anthropic → chat-completions > thinkingDisabledParam > response 1`] =
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1889,6 +1927,7 @@ exports[`anthropic → chat-completions > toolCallRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -1951,6 +1990,7 @@ exports[`anthropic → chat-completions > toolChoiceAnyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2009,6 +2049,7 @@ exports[`anthropic → chat-completions > toolChoiceAutoParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2073,6 +2114,7 @@ I’ll tailor the answer. If you’d rather check right away, you can search for
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2140,6 +2182,7 @@ exports[`anthropic → chat-completions > toolChoiceRequiredParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2177,6 +2220,7 @@ exports[`anthropic → chat-completions > topKParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2215,6 +2259,7 @@ exports[`anthropic → chat-completions > topPParam > response 1`] = `
   "model": "gpt-4o-mini-2024-07-18",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2249,6 +2294,7 @@ exports[`anthropic → chat-completions > webSearchToolParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2286,6 +2332,7 @@ exports[`anthropic → chat-completions > webSearchUserLocationParam > response 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -2376,6 +2423,7 @@ Right, so the user offered a straightforward "hello world." No complex query the
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 73,
@@ -2423,6 +2471,7 @@ exports[`anthropic → google > anthropicMidConversationSystemMessage > response
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 40,
@@ -2531,6 +2580,7 @@ exports[`anthropic → google > anthropicMixedToolResultWithText > response 1`] 
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 88,
@@ -2575,6 +2625,7 @@ exports[`anthropic → google > anthropicOpus5DisabledThinkingHighEffortParam > 
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -2619,6 +2670,7 @@ exports[`anthropic → google > bedrockAnthropicContextManagementParam > respons
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 2,
@@ -2670,6 +2722,7 @@ exports[`anthropic → google > cacheControl1hParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
@@ -2720,6 +2773,7 @@ exports[`anthropic → google > cacheControl5mParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
@@ -2766,6 +2820,7 @@ exports[`anthropic → google > chatCompletionsAnthropicCacheControlParam > resp
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 15,
@@ -2818,6 +2873,7 @@ exports[`anthropic → google > chatCompletionsAssistantCacheControlParam > resp
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 18,
@@ -2866,6 +2922,7 @@ exports[`anthropic → google > chatCompletionsSystemCacheControlParam > respons
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 15,
@@ -2925,6 +2982,7 @@ Once you give me the code, I'll execute it and show you the output.",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
@@ -3048,6 +3106,7 @@ Now, let's count the occurrences of each digit (0-9) by looking at each position
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 75,
@@ -3099,6 +3158,7 @@ I need some content to work with!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3142,6 +3202,7 @@ exports[`anthropic → google > fableTemperatureParam > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3194,6 +3255,7 @@ It's a vibrant and lively shade, often described as **lime green**, **spring gre
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 261,
@@ -3244,6 +3306,7 @@ exports[`anthropic → google > instructionsParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3299,6 +3362,7 @@ exports[`anthropic → google > jsonSchemaFormatParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 17,
@@ -3342,6 +3406,7 @@ exports[`anthropic → google > maxCompletionTokensParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3385,6 +3450,7 @@ exports[`anthropic → google > metadataParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -3434,6 +3500,7 @@ exports[`anthropic → google > multimodalRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 267,
@@ -3490,6 +3557,7 @@ Alright, a simple arithmetic question. They've given me "2 + 2." The user, being
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -3578,6 +3646,7 @@ That's it. It's a simple, direct mapping with no need for complex transformation
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
@@ -3639,6 +3708,7 @@ exports[`anthropic → google > outputConfigJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
@@ -3700,6 +3770,7 @@ exports[`anthropic → google > outputFormatJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
@@ -3783,6 +3854,7 @@ exports[`anthropic → google > parallelToolCallsDisabledParam > response 1`] = 
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 39,
@@ -3902,6 +3974,7 @@ exports[`anthropic → google > parallelToolCallsRequest > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 151,
@@ -3950,6 +4023,7 @@ exports[`anthropic → google > promptCacheKeyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
@@ -4006,6 +4080,7 @@ Okay, here's the deal: a straightforward arithmetic question has been posed. Giv
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -4062,6 +4137,7 @@ Alright, a seemingly straightforward arithmetic question has popped up. It appea
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -4136,6 +4212,7 @@ Let's break down the journey:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -4179,6 +4256,7 @@ exports[`anthropic → google > reasoningRequestTruncated > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -4235,6 +4313,7 @@ Alright, I've been presented with what looks like a straightforward arithmetic p
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -4287,6 +4366,7 @@ However, the sky can also appear in many other colors depending on the time of d
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
@@ -4351,6 +4431,7 @@ Therefore, my final output, based on my analysis and the desired user experience
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -4414,6 +4495,7 @@ exports[`anthropic → google > responsesToolSearchInputParam > response 1`] = `
   "model": "gemini-3.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 30,
@@ -4458,6 +4540,7 @@ exports[`anthropic → google > safetyIdentifierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4501,6 +4584,7 @@ exports[`anthropic → google > serviceTierParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4544,6 +4628,7 @@ exports[`anthropic → google > simpleRequest > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 8,
@@ -4582,6 +4667,7 @@ exports[`anthropic → google > simpleRequestTruncated > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 10,
@@ -4626,6 +4712,7 @@ exports[`anthropic → google > stopSequencesParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 7,
@@ -4684,6 +4771,7 @@ SELECT
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 29,
@@ -4728,6 +4816,7 @@ exports[`anthropic → google > temperatureParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4785,6 +4874,7 @@ Please provide:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4843,6 +4933,7 @@ The more specific you are, the better I can assist you!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4899,6 +4990,7 @@ The more information you give me, the better I can assist you!",
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -4960,6 +5052,7 @@ exports[`anthropic → google > textFormatJsonSchemaParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
@@ -5024,6 +5117,7 @@ exports[`anthropic → google > textFormatJsonSchemaWithDescriptionParam > respo
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 9,
@@ -5067,6 +5161,7 @@ exports[`anthropic → google > thinkingDisabledParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 5,
@@ -5143,6 +5238,7 @@ exports[`anthropic → google > toolCallRequest > response 1`] = `
   "model": "gemini-3-flash-preview",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 73,
@@ -5219,6 +5315,7 @@ exports[`anthropic → google > toolChoiceAnyParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -5290,6 +5387,7 @@ exports[`anthropic → google > toolChoiceAutoParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -5361,6 +5459,7 @@ exports[`anthropic → google > toolChoiceNoneParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -5439,6 +5538,7 @@ exports[`anthropic → google > toolChoiceRequiredParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 37,
@@ -5483,6 +5583,7 @@ exports[`anthropic → google > topKParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -5527,6 +5628,7 @@ exports[`anthropic → google > topPParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -5572,6 +5674,7 @@ exports[`anthropic → google > webSearchToolAdvancedParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
@@ -5619,6 +5722,7 @@ Here's a rundown of the latest key developments:
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 4,
@@ -5662,6 +5766,7 @@ exports[`anthropic → google > webSearchUserLocationParam > response 1`] = `
   "model": "gemini-2.5-flash",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "input_tokens": 3,
@@ -5765,6 +5870,7 @@ Tell me your preferred language (or share another), and I’ll tailor it.",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -5818,6 +5924,7 @@ exports[`anthropic → responses > anthropicMidConversationSystemMessage > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -5892,6 +5999,7 @@ exports[`anthropic → responses > anthropicMixedToolResultWithText > response 1
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -5930,6 +6038,7 @@ exports[`anthropic → responses > anthropicOpus5DisabledThinkingHighEffortParam
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -5966,6 +6075,7 @@ exports[`anthropic → responses > bedrockAnthropicContextManagementParam > resp
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -6030,6 +6140,7 @@ Rarest digits: 6, 7, 8, and 9, each 264 times, which is 264/5760 = 11/240 ≈ 4.
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6090,6 +6201,7 @@ Tell me the desired length and audience (e.g., plain language for a general audi
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6132,6 +6244,7 @@ exports[`anthropic → responses > fableTemperatureParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6183,6 +6296,7 @@ exports[`anthropic → responses > imageContentParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6230,6 +6344,7 @@ exports[`anthropic → responses > instructionsParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6291,6 +6406,7 @@ exports[`anthropic → responses > jsonSchemaFormatParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6333,6 +6449,7 @@ exports[`anthropic → responses > maxCompletionTokensParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6378,6 +6495,7 @@ exports[`anthropic → responses > metadataParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6425,6 +6543,7 @@ exports[`anthropic → responses > multimodalRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6470,6 +6589,7 @@ exports[`anthropic → responses > opus47AdaptiveThinkingReasoningEffortParam > 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6537,6 +6657,7 @@ exports[`anthropic → responses > outputConfigEffortWithJsonSchemaParam > respo
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6601,6 +6722,7 @@ exports[`anthropic → responses > outputConfigJsonSchemaParam > response 1`] = 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6665,6 +6787,7 @@ exports[`anthropic → responses > outputFormatJsonSchemaParam > response 1`] = 
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6731,6 +6854,7 @@ exports[`anthropic → responses > parallelToolCallsDisabledParam > response 1`]
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6820,6 +6944,7 @@ Want a 7-day forecast or hourly details for either city?",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6875,6 +7000,7 @@ exports[`anthropic → responses > promptCacheKeyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6920,6 +7046,7 @@ exports[`anthropic → responses > reasoningEffortLowParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -6962,6 +7089,7 @@ exports[`anthropic → responses > reasoningEffortMaxClampsToGpt5NanoParam > res
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7015,6 +7143,7 @@ Answer: 66 2/3 mph (about 66.7 mph).",
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7053,6 +7182,7 @@ exports[`anthropic → responses > reasoningRequestTruncated > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7098,6 +7228,7 @@ exports[`anthropic → responses > reasoningSummaryParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7148,6 +7279,7 @@ If you tell me the time and location, I can describe what the sky would look lik
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7189,6 +7321,7 @@ exports[`anthropic → responses > responsesReasoningEffortMaxParam > response 1
   "model": "gpt-5.6-terra",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_creation_input_tokens": 0,
@@ -7272,6 +7405,7 @@ exports[`anthropic → responses > responsesToolSearchInputParam > response 1`] 
   "model": "gpt-5.5-2026-04-23",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7317,6 +7451,7 @@ exports[`anthropic → responses > safetyIdentifierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7360,6 +7495,7 @@ exports[`anthropic → responses > serviceTierParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7402,6 +7538,7 @@ exports[`anthropic → responses > simpleRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7440,6 +7577,7 @@ exports[`anthropic → responses > simpleRequestTruncated > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7498,6 +7636,7 @@ exports[`anthropic → responses > stopSequencesParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7546,6 +7685,7 @@ exports[`anthropic → responses > systemMessageArrayContent > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7624,6 +7764,7 @@ exports[`anthropic → responses > textFormatJsonSchemaParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7688,6 +7829,7 @@ exports[`anthropic → responses > textFormatJsonSchemaWithDescriptionParam > re
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7730,6 +7872,7 @@ exports[`anthropic → responses > thinkingDisabledParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7796,6 +7939,7 @@ exports[`anthropic → responses > toolCallRequest > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7861,6 +8005,7 @@ exports[`anthropic → responses > toolChoiceAnyParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7927,6 +8072,7 @@ Examples:
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -7988,6 +8134,7 @@ exports[`anthropic → responses > toolChoiceNoneParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -8056,6 +8203,7 @@ exports[`anthropic → responses > toolChoiceRequiredParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "tool_use",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -8098,6 +8246,7 @@ exports[`anthropic → responses > topKParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -8140,6 +8289,7 @@ exports[`anthropic → responses > topPParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "end_turn",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -8210,6 +8360,7 @@ exports[`anthropic → responses > webSearchToolAdvancedParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 4224,
@@ -8354,6 +8505,7 @@ exports[`anthropic → responses > webSearchToolParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
@@ -8404,6 +8556,7 @@ exports[`anthropic → responses > webSearchUserLocationParam > response 1`] = `
   "model": "gpt-5-nano-2025-08-07",
   "role": "assistant",
   "stop_reason": "max_tokens",
+  "stop_sequence": null,
   "type": "message",
   "usage": {
     "cache_read_input_tokens": 0,
