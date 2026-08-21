@@ -287,10 +287,14 @@ fn create_essential_openai_schemas(spec: &serde_json::Value) -> serde_json::Valu
         &mut processed,
     );
 
-    // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/
+    // Fix all $ref paths to point to #/definitions/ instead of #/components/schemas/, and
+    // lift branch descriptions so nullable anyOf properties document themselves too.
     let mut fixed_schemas = serde_json::Map::new();
     for (name, schema) in essential_schemas {
-        fixed_schemas.insert(name, fix_openai_schema_refs(&schema));
+        fixed_schemas.insert(
+            name,
+            hoist_openai_union_descriptions(&fix_openai_schema_refs(&schema)),
+        );
     }
 
     // Create a clean root schema with separated input/output types for both APIs
@@ -383,6 +387,58 @@ fn fix_openai_schema_refs(schema: &serde_json::Value) -> serde_json::Value {
         }
         other => other.clone(),
     }
+}
+
+/// Lift a `description` out of `anyOf`/`oneOf` branches onto the enclosing schema.
+///
+/// quicktype only reads `description` at the property level, so a nullable property
+/// written as `anyOf: [{type: string, description: ...}, {type: "null"}]` generates no
+/// doc comment, while the structurally equivalent plain property keeps its wording. That
+/// makes generated documentation depend on which of the two shapes upstream happened to
+/// use: `FunctionToolCallOutput.name` documents itself on `OutputItem`, but the identical
+/// `FunctionCallOutputItemParam.name` leaves `InputItem` undocumented.
+fn hoist_openai_union_descriptions(schema: &serde_json::Value) -> serde_json::Value {
+    match schema {
+        serde_json::Value::Object(obj) => {
+            let mut hoisted: serde_json::Map<String, serde_json::Value> = obj
+                .iter()
+                .map(|(key, value)| (key.clone(), hoist_openai_union_descriptions(value)))
+                .collect();
+
+            if !hoisted.contains_key("description") {
+                if let Some(description) = union_branch_description(&hoisted) {
+                    hoisted.insert("description".to_string(), description.into());
+                }
+            }
+
+            serde_json::Value::Object(hoisted)
+        }
+        serde_json::Value::Array(arr) => {
+            serde_json::Value::Array(arr.iter().map(hoist_openai_union_descriptions).collect())
+        }
+        other => other.clone(),
+    }
+}
+
+/// The description shared by every documented branch of an `anyOf`/`oneOf`.
+///
+/// Branches that exist only to make a property nullable carry no description of their own
+/// and are skipped. Unions whose branches document genuinely different alternatives are
+/// left alone, so one branch's wording is never promoted to describe all of them.
+fn union_branch_description(schema: &serde_json::Map<String, serde_json::Value>) -> Option<String> {
+    let branches = schema
+        .get("anyOf")
+        .or_else(|| schema.get("oneOf"))?
+        .as_array()?;
+
+    let mut descriptions = branches
+        .iter()
+        .filter_map(|branch| branch.get("description")?.as_str());
+
+    let first = descriptions.next()?;
+    descriptions
+        .all(|description| description == first)
+        .then(|| first.to_string())
 }
 
 // Extract schema references helper function (used by both OpenAI and Anthropic)
@@ -2301,6 +2357,102 @@ pub struct Status {}
         assert!(!processed.contains("pub type InputItemContentListType ="));
         assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
         assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
+    }
+
+    #[test]
+    fn hoists_nullable_anyof_branch_description_to_the_property() {
+        // Shape of FunctionCallOutputItemParam.namespace in specs/openai/openapi.yml.
+        let schema = serde_json::json!({
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "maxLength": 64,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9_-]+$",
+                            "description": "The namespace of the tool that produced the output."
+                        },
+                        { "type": "null" }
+                    ]
+                }
+            }
+        });
+
+        let hoisted = hoist_openai_union_descriptions(&schema);
+
+        assert_eq!(
+            hoisted["properties"]["namespace"]["description"],
+            "The namespace of the tool that produced the output."
+        );
+        // The branch itself is left intact so quicktype still sees the same type union.
+        assert_eq!(
+            hoisted["properties"]["namespace"]["anyOf"][0]["description"],
+            "The namespace of the tool that produced the output."
+        );
+    }
+
+    #[test]
+    fn keeps_an_existing_property_description_over_branch_descriptions() {
+        // Shape of FunctionCallOutputItemParam.output: the property already documents the
+        // union as a whole, so neither branch's narrower wording should replace it.
+        let schema = serde_json::json!({
+            "oneOf": [
+                { "type": "string", "description": "A JSON string of the output." },
+                { "type": "array", "description": "An array of content outputs." }
+            ],
+            "description": "Text, image, or file output of the function tool call."
+        });
+
+        let hoisted = hoist_openai_union_descriptions(&schema);
+
+        assert_eq!(
+            hoisted["description"],
+            "Text, image, or file output of the function tool call."
+        );
+    }
+
+    #[test]
+    fn leaves_unions_with_disagreeing_branch_descriptions_undocumented() {
+        let schema = serde_json::json!({
+            "anyOf": [
+                { "type": "string", "description": "A tool name." },
+                { "type": "integer", "description": "A tool index." }
+            ]
+        });
+
+        let hoisted = hoist_openai_union_descriptions(&schema);
+
+        assert!(hoisted.get("description").is_none());
+    }
+
+    #[test]
+    fn hoists_through_nested_definitions() {
+        let schema = serde_json::json!({
+            "definitions": {
+                "Item": {
+                    "properties": {
+                        "caller": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/definitions/ToolCallCallerParam",
+                                    "description": "The execution context that produced this tool call."
+                                },
+                                { "type": "null" }
+                            ]
+                        }
+                    }
+                }
+            }
+        });
+
+        let hoisted = hoist_openai_union_descriptions(&schema);
+
+        assert_eq!(
+            hoisted["definitions"]["Item"]["properties"]["caller"]["description"],
+            "The execution context that produced this tool call."
+        );
     }
 }
 
