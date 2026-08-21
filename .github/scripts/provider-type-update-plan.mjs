@@ -349,9 +349,10 @@ export function validatePlan(plan, expectedProvider) {
           );
           push(
             errors,
-            Array.isArray(live.cases) && live.cases.every(nonEmptyString),
+            live.cases === undefined ||
+              (Array.isArray(live.cases) && live.cases.every(nonEmptyString)),
             `${path}.tests.live_capture.cases`,
-            "must be an array of case names"
+            "must be an array of case names when present"
           );
           push(
             errors,

@@ -197,7 +197,7 @@ jobs:
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
         timeout-minutes: 20
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
@@ -292,7 +292,7 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -354,6 +354,11 @@ jobs:
             round-trip-only field. Audit generated public type names for upstream
             naming collisions and internal prefixes; do not accept a prefixed
             fallback such as `V1Main...` as a compatibility solution.
+            Separate deterministic generator and public-name compatibility work
+            from provider-semantic decisions. A generated-name normalization or
+            collision repair must be its own unblocked change id even when the
+            provider field using that type needs a human canonical-representation
+            decision. Do not place both concerns under one blocker.
 
             For every blocked change, fill the complete blocker schema with the
             decision question, concrete evidence, a recommended option,
@@ -404,7 +409,7 @@ jobs:
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 60
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -450,6 +455,9 @@ jobs:
             implementing that plan item. Resolve generated public-name collisions
             in `crates/generate-types`; do not accept internal prefixes such as
             `V1Main...` in exported Rust or TypeScript names.
+            Public-name normalization and collision repairs are deterministic
+            generator work and must be completed through their separate unblocked
+            plan items without implementing any blocked semantic mapping.
 
             If you change `crates/generate-types`, run
             `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
@@ -610,7 +618,7 @@ jobs:
         if: steps.mechanical_repair_task_trace.outcome != 'skipped'
         continue-on-error: true
         timeout-minutes: 35
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -955,7 +963,8 @@ jobs:
       - name: Snapshot Braintrust trace for verification
         id: integration_verification_task_trace
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         env:
@@ -972,11 +981,12 @@ jobs:
       - name: Verify generated provider integration
         id: integration_verification
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -1051,7 +1061,8 @@ jobs:
       - name: Validate integration verification report
         id: verification_report
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: |
@@ -1181,10 +1192,8 @@ jobs:
           if [ "${{ steps.generate.outcome }}" != "success" ]; then
             require_success "provider generation retry" "${{ steps.retry.outcome }}"
           fi
-          require_success "integration plan" "${{ steps.integration_plan.outcome }}"
           require_success "plan validation" "${{ steps.plan_validation.outcome }}"
           require_success "plan staging" "${{ steps.stage_plan.outcome }}"
-          require_success "implementation" "${{ steps.integration_implementation.outcome }}"
           require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
           require_success "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
           require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
@@ -1193,7 +1202,6 @@ jobs:
           require_success "payload tests" "${{ steps.payload_tests.outcome }}"
           require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
           require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
-          require_success "read-only verification" "${{ steps.integration_verification.outcome }}"
           require_success "verification report" "${{ steps.verification_report.outcome }}"
           require_success "recoverable patch" "${{ steps.update_patch.outcome }}"
 
@@ -1261,10 +1269,8 @@ jobs:
             (
               steps.changes.outputs.has_changes == 'true' &&
               (
-                steps.integration_plan.outcome != 'success' ||
                 steps.plan_validation.outcome != 'success' ||
                 steps.stage_plan.outcome != 'success' ||
-                steps.integration_implementation.outcome != 'success' ||
                 steps.post_implementation_plan.outcome != 'success' ||
                 steps.mechanical_validation.outcome != 'success' ||
                 steps.lingua_wasm.outcome == 'failure' ||
@@ -1277,7 +1283,6 @@ jobs:
                 steps.payload_tests.outcome == 'failure' ||
                 steps.typed_boundary.outcome == 'failure' ||
                 steps.cross_provider.outcome == 'failure' ||
-                steps.integration_verification.outcome != 'success' ||
                 steps.verification_report.outcome != 'success' ||
                 steps.update_patch.outcome != 'success' ||
                 steps.publication_readiness.outcome != 'success'

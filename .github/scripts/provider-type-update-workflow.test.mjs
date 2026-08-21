@@ -6,6 +6,14 @@ const workflow = readFileSync(
   new URL("../workflows/update-provider-types.yml", import.meta.url),
   "utf8"
 );
+const autofixWorkflow = readFileSync(
+  new URL("../workflows/provider-type-codex-autofix.yml", import.meta.url),
+  "utf8"
+);
+const claudeRetryAction = readFileSync(
+  new URL("../actions/claude-code-with-retry/action.yml", import.meta.url),
+  "utf8"
+);
 
 test("regenerates provider Rust after implementation before safety checks", () => {
   const regeneration = workflow.indexOf(
@@ -33,6 +41,51 @@ test("lets the implementation agent regenerate and validate generator fixes", ()
   assert.match(
     workflow,
     /If you change `crates\/generate-types`, run\s+`make generate-provider-types/
+  );
+});
+
+test("separates deterministic generated-name fixes from semantic blockers", () => {
+  assert.match(
+    workflow,
+    /A generated-name normalization or\s+collision repair must be its own unblocked change id/
+  );
+  assert.match(
+    workflow,
+    /Public-name normalization and collision repairs are deterministic\s+generator work/
+  );
+});
+
+test("retries every provider automation Claude phase once", () => {
+  assert.equal(
+    workflow.match(/uses: \.\/\.github\/actions\/claude-code-with-retry/g)
+      ?.length,
+    5
+  );
+  assert.equal(
+    autofixWorkflow.match(
+      /uses: \.\/\.github\/actions\/claude-code-with-retry/g
+    )?.length,
+    1
+  );
+  assert.doesNotMatch(workflow, /uses: anthropics\/claude-code-action/);
+  assert.doesNotMatch(
+    autofixWorkflow,
+    /uses: anthropics\/claude-code-action/
+  );
+  assert.equal(
+    claudeRetryAction.match(
+      /uses: anthropics\/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1/g
+    )?.length,
+    2
+  );
+  assert.match(claudeRetryAction, /if: steps\.primary\.outcome == 'failure'/);
+  assert.match(
+    claudeRetryAction,
+    /- name: Check Claude Code outcome\s+id: outcome\s+if: always\(\)/
+  );
+  assert.match(
+    claudeRetryAction,
+    /::error::Claude Code failed on both bounded attempts/
   );
 });
 
@@ -65,6 +118,30 @@ test("uses one bounded repair pass and revalidates before publication", () => {
     /require_success "mechanical validation" "\$\{\{ steps\.mechanical_validation\.outcome \}\}"/
   );
   assert.match(workflow, /steps\.publication_readiness\.outcome == 'success'/);
+});
+
+test("uses validated artifacts instead of raw Claude step outcomes", () => {
+  assert.doesNotMatch(workflow, /require_success "integration plan"/);
+  assert.doesNotMatch(workflow, /require_success "implementation"/);
+  assert.doesNotMatch(workflow, /require_success "read-only verification"/);
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_plan\.outcome != 'success'/
+  );
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_implementation\.outcome != 'success'/
+  );
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_verification\.outcome != 'success'/
+  );
+  assert.equal(
+    workflow.match(
+      /steps\.stage_plan\.outcome == 'success' &&\s+steps\.post_implementation_plan\.outcome == 'success' &&\s+steps\.mechanical_validation\.outcome == 'success'/g
+    )?.length,
+    3
+  );
 });
 
 test("protects AGENTS.md in planning, implementation, and path policy", () => {
