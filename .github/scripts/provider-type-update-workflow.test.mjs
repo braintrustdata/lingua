@@ -120,6 +120,30 @@ test("uses one bounded repair pass and revalidates before publication", () => {
   assert.match(workflow, /steps\.publication_readiness\.outcome == 'success'/);
 });
 
+test("uses validated artifacts instead of raw Claude step outcomes", () => {
+  assert.doesNotMatch(workflow, /require_success "integration plan"/);
+  assert.doesNotMatch(workflow, /require_success "implementation"/);
+  assert.doesNotMatch(workflow, /require_success "read-only verification"/);
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_plan\.outcome != 'success'/
+  );
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_implementation\.outcome != 'success'/
+  );
+  assert.doesNotMatch(
+    workflow,
+    /steps\.integration_verification\.outcome != 'success'/
+  );
+  assert.equal(
+    workflow.match(
+      /steps\.stage_plan\.outcome == 'success' &&\s+steps\.post_implementation_plan\.outcome == 'success' &&\s+steps\.mechanical_validation\.outcome == 'success'/g
+    )?.length,
+    3
+  );
+});
+
 test("protects AGENTS.md in planning, implementation, and path policy", () => {
   assert.match(
     workflow,

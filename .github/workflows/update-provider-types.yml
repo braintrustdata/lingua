@@ -963,7 +963,8 @@ jobs:
       - name: Snapshot Braintrust trace for verification
         id: integration_verification_task_trace
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         env:
@@ -980,7 +981,8 @@ jobs:
       - name: Verify generated provider integration
         id: integration_verification
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 45
@@ -1059,7 +1061,8 @@ jobs:
       - name: Validate integration verification report
         id: verification_report
         if: >-
-          steps.integration_implementation.outcome == 'success' &&
+          steps.stage_plan.outcome == 'success' &&
+          steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         run: |
@@ -1189,10 +1192,8 @@ jobs:
           if [ "${{ steps.generate.outcome }}" != "success" ]; then
             require_success "provider generation retry" "${{ steps.retry.outcome }}"
           fi
-          require_success "integration plan" "${{ steps.integration_plan.outcome }}"
           require_success "plan validation" "${{ steps.plan_validation.outcome }}"
           require_success "plan staging" "${{ steps.stage_plan.outcome }}"
-          require_success "implementation" "${{ steps.integration_implementation.outcome }}"
           require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
           require_success "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
           require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
@@ -1201,7 +1202,6 @@ jobs:
           require_success "payload tests" "${{ steps.payload_tests.outcome }}"
           require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
           require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
-          require_success "read-only verification" "${{ steps.integration_verification.outcome }}"
           require_success "verification report" "${{ steps.verification_report.outcome }}"
           require_success "recoverable patch" "${{ steps.update_patch.outcome }}"
 
@@ -1269,10 +1269,8 @@ jobs:
             (
               steps.changes.outputs.has_changes == 'true' &&
               (
-                steps.integration_plan.outcome != 'success' ||
                 steps.plan_validation.outcome != 'success' ||
                 steps.stage_plan.outcome != 'success' ||
-                steps.integration_implementation.outcome != 'success' ||
                 steps.post_implementation_plan.outcome != 'success' ||
                 steps.mechanical_validation.outcome != 'success' ||
                 steps.lingua_wasm.outcome == 'failure' ||
@@ -1285,7 +1283,6 @@ jobs:
                 steps.payload_tests.outcome == 'failure' ||
                 steps.typed_boundary.outcome == 'failure' ||
                 steps.cross_provider.outcome == 'failure' ||
-                steps.integration_verification.outcome != 'success' ||
                 steps.verification_report.outcome != 'success' ||
                 steps.update_patch.outcome != 'success' ||
                 steps.publication_readiness.outcome != 'success'
