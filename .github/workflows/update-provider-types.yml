@@ -197,7 +197,7 @@ jobs:
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
         timeout-minutes: 20
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
@@ -292,7 +292,7 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
         timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -354,6 +354,11 @@ jobs:
             round-trip-only field. Audit generated public type names for upstream
             naming collisions and internal prefixes; do not accept a prefixed
             fallback such as `V1Main...` as a compatibility solution.
+            Separate deterministic generator and public-name compatibility work
+            from provider-semantic decisions. A generated-name normalization or
+            collision repair must be its own unblocked change id even when the
+            provider field using that type needs a human canonical-representation
+            decision. Do not place both concerns under one blocker.
 
             For every blocked change, fill the complete blocker schema with the
             decision question, concrete evidence, a recommended option,
@@ -404,7 +409,7 @@ jobs:
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 60
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -450,6 +455,9 @@ jobs:
             implementing that plan item. Resolve generated public-name collisions
             in `crates/generate-types`; do not accept internal prefixes such as
             `V1Main...` in exported Rust or TypeScript names.
+            Public-name normalization and collision repairs are deterministic
+            generator work and must be completed through their separate unblocked
+            plan items without implementing any blocked semantic mapping.
 
             If you change `crates/generate-types`, run
             `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
@@ -610,7 +618,7 @@ jobs:
         if: steps.mechanical_repair_task_trace.outcome != 'skipped'
         continue-on-error: true
         timeout-minutes: 35
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
@@ -976,7 +984,7 @@ jobs:
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
         timeout-minutes: 45
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1 # v1.0.140
+        uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
