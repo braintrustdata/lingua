@@ -1780,9 +1780,18 @@ fn rewrite_google_schema_refs(
     match value {
         serde_json::Value::Object(object) => {
             if let Some(reference) = object.get_mut("$ref") {
-                if let Some(source_name) = reference.as_str() {
-                    if let Some(public_name) = public_names.get(source_name) {
-                        *reference = serde_json::Value::String(public_name.clone());
+                if let Some(reference_value) = reference.as_str() {
+                    let rewritten_reference = if reference_value.starts_with('#') {
+                        extract_type_name_from_ref(reference_value).and_then(|source_name| {
+                            public_names
+                                .get(&source_name)
+                                .map(|public_name| format!("#/definitions/{public_name}"))
+                        })
+                    } else {
+                        public_names.get(reference_value).cloned()
+                    };
+                    if let Some(rewritten_reference) = rewritten_reference {
+                        *reference = serde_json::Value::String(rewritten_reference);
                     }
                 }
             }
@@ -2372,7 +2381,7 @@ pub struct Status {}
 mod google_post_process_tests {
     use super::{
         add_type_enum_lowercase_aliases, create_essential_google_schemas,
-        preserve_google_public_enum_variant_names, serde_json,
+        extract_type_name_from_ref, preserve_google_public_enum_variant_names, serde_json,
     };
 
     fn discovery_spec_with_media_resolution_refs(refs: &[&str]) -> serde_json::Value {
@@ -2397,8 +2406,13 @@ mod google_post_process_tests {
             ),
         ]);
         for reference in refs {
+            let schema_name = if reference.starts_with('#') {
+                extract_type_name_from_ref(reference).unwrap()
+            } else {
+                (*reference).to_string()
+            };
             schemas.insert(
-                (*reference).to_string(),
+                schema_name,
                 serde_json::json!({
                     "type": "object",
                     "properties": { "level": { "type": "string" } }
@@ -2411,6 +2425,22 @@ mod google_post_process_tests {
     #[test]
     fn strips_google_v1main_schema_prefix_from_public_definitions_and_refs() {
         let spec = discovery_spec_with_media_resolution_refs(&["V1mainMediaResolution"]);
+
+        let generated = create_essential_google_schemas(&spec).unwrap();
+        let definitions = generated["definitions"].as_object().unwrap();
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["GenerateContentRequest"]["properties"]["mediaResolution0"]["$ref"],
+            "#/definitions/MediaResolution"
+        );
+    }
+
+    #[test]
+    fn strips_google_v1main_schema_prefix_from_fragment_refs() {
+        let spec =
+            discovery_spec_with_media_resolution_refs(&["#/definitions/V1mainMediaResolution"]);
 
         let generated = create_essential_google_schemas(&spec).unwrap();
         let definitions = generated["definitions"].as_object().unwrap();
