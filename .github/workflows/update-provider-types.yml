@@ -196,7 +196,6 @@ jobs:
         id: repair
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
-        timeout-minutes: 20
         uses: ./.github/actions/claude-code-with-retry
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
@@ -291,7 +290,6 @@ jobs:
         id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
-        timeout-minutes: 45
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -322,7 +320,7 @@ jobs:
             --max-turns 120
             --add-dir "${{ runner.temp }}"
             --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
-            --allowedTools "Agent(provider-spec-auditor),Agent(provider-capability-auditor),Agent(provider-semantic-auditor),Agent(provider-coverage-auditor),Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
+            --allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
             --disallowedTools "Edit,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: |
             This is the planning-only phase for provider `${{ matrix.provider }}`.
@@ -408,7 +406,6 @@ jobs:
         id: integration_implementation
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 60
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -617,7 +614,6 @@ jobs:
         id: mechanical_repair
         if: steps.mechanical_repair_task_trace.outcome != 'skipped'
         continue-on-error: true
-        timeout-minutes: 35
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -985,7 +981,6 @@ jobs:
           steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
-        timeout-minutes: 45
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
@@ -1120,11 +1115,11 @@ jobs:
             echo
             echo "Provider: \`${{ matrix.provider }}\`"
             echo
-            echo "Publication mode: \`${{ steps.plan_validation.outputs.has_blockers == 'true' && 'needs-design draft' || 'ready' }}\`"
+            echo "Publication mode: \`${{ (steps.plan_validation.outcome != 'success' || steps.stage_plan.outcome != 'success' || steps.post_implementation_plan.outcome != 'success' || steps.verification_report.outcome != 'success' || steps.verification_report.outputs.verdict != 'pass' || steps.plan_validation.outputs.has_blockers == 'true') && 'needs-review draft' || 'ready' }}\`"
             echo
             echo "Feedback: comment \`/bt good\` or \`/bt bad\` to log review feedback to the Braintrust trace."
             echo
-            if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+            if [ "${{ steps.plan_validation.outcome }}" = "success" ] && [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
               node .github/scripts/provider-type-update-plan.mjs render-blockers \
                 "$RUNNER_TEMP/provider-type-update-plan.json" \
                 "${{ matrix.provider }}"
@@ -1172,7 +1167,7 @@ jobs:
             echo "- Verification verdict: ${{ steps.verification_report.outputs.verdict }}"
             echo "- Recoverable binary patch archive: ${{ steps.update_patch.outcome }}"
             echo
-            echo "Ready PRs have no blockers and a passing verification verdict. Draft PRs may contain explicit human design blockers, but every automated safety and deterministic validation still passed. Failed runs retain the exact binary patch in the workflow artifact for manual recovery."
+            echo "Ready PRs have a validated plan with no blockers and a passing verification verdict. Missing or invalid advisory AI artifacts produce a needs-review draft. Failed deterministic checks retain the exact binary patch in the workflow artifact for manual recovery."
           } > "$RUNNER_TEMP/update-provider-types-pr-body.md"
 
       - name: Check publication readiness
@@ -1192,17 +1187,12 @@ jobs:
           if [ "${{ steps.generate.outcome }}" != "success" ]; then
             require_success "provider generation retry" "${{ steps.retry.outcome }}"
           fi
-          require_success "plan validation" "${{ steps.plan_validation.outcome }}"
-          require_success "plan staging" "${{ steps.stage_plan.outcome }}"
-          require_success "immutable plan revalidation" "${{ steps.post_implementation_plan.outcome }}"
           require_success "mechanical validation" "${{ steps.mechanical_validation.outcome }}"
           require_success "Lingua WASM build" "${{ steps.lingua_wasm.outcome }}"
-          require_success "capture case extraction" "${{ steps.capture_cases.outcome }}"
           require_success "payload fixture sync" "${{ steps.payload_sync.outcome }}"
           require_success "payload tests" "${{ steps.payload_tests.outcome }}"
           require_success "typed boundary check" "${{ steps.typed_boundary.outcome }}"
           require_success "cross-provider guard" "${{ steps.cross_provider.outcome }}"
-          require_success "verification report" "${{ steps.verification_report.outcome }}"
           require_success "recoverable patch" "${{ steps.update_patch.outcome }}"
 
           if [ -n "${{ steps.capture_cases.outputs.cases }}" ]; then
@@ -1221,17 +1211,13 @@ jobs:
           fi
 
           mode="ready"
-          if [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
+          if [ "${{ steps.plan_validation.outcome }}" != "success" ] ||
+            [ "${{ steps.stage_plan.outcome }}" != "success" ] ||
+            [ "${{ steps.post_implementation_plan.outcome }}" != "success" ] ||
+            [ "${{ steps.verification_report.outcome }}" != "success" ] ||
+            [ "${{ steps.verification_report.outputs.verdict }}" != "pass" ] ||
+            [ "${{ steps.plan_validation.outputs.has_blockers }}" = "true" ]; then
             mode="draft"
-            if [ "${{ steps.verification_report.outputs.verdict }}" != "fail" ]; then
-              failures+=(
-                "needs-design verification verdict: ${{ steps.verification_report.outputs.verdict }}"
-              )
-            fi
-          elif [ "${{ steps.verification_report.outputs.verdict }}" != "pass" ]; then
-            failures+=(
-              "ready verification verdict: ${{ steps.verification_report.outputs.verdict }}"
-            )
           fi
 
           if [ "${#failures[@]}" -ne 0 ]; then
@@ -1253,7 +1239,7 @@ jobs:
           base: ${{ github.ref_name }}
           branch: ${{ steps.branch.outputs.name }}
           commit-message: "Update ${{ matrix.provider }} provider types"
-          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs design] ' || '' }}Update ${{ matrix.provider }} provider types"
+          title: "${{ steps.publication_readiness.outputs.mode == 'draft' && '[Needs review] ' || '' }}Update ${{ matrix.provider }} provider types"
           body-path: ${{ runner.temp }}/update-provider-types-pr-body.md
           labels: ${{ steps.publication_readiness.outputs.mode == 'ready' && 'auto-sync' || '' }}
           draft: ${{ steps.publication_readiness.outputs.mode == 'draft' }}
@@ -1264,29 +1250,9 @@ jobs:
         if: >-
           (
             (steps.generate.outcome == 'failure' && steps.retry.outcome != 'success') ||
-            steps.retry.outcome == 'failure' ||
-            (steps.ts_types.outcome == 'failure' && steps.mechanical_validation.outcome != 'success') ||
             (
               steps.changes.outputs.has_changes == 'true' &&
-              (
-                steps.plan_validation.outcome != 'success' ||
-                steps.stage_plan.outcome != 'success' ||
-                steps.post_implementation_plan.outcome != 'success' ||
-                steps.mechanical_validation.outcome != 'success' ||
-                steps.lingua_wasm.outcome == 'failure' ||
-                steps.capture_cases.outcome == 'failure' ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'openai' && steps.live_capture_openai.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'anthropic' && steps.live_capture_anthropic.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && matrix.provider == 'google' && steps.live_capture_google.outcome != 'success') ||
-                (steps.capture_cases.outputs.cases != '' && steps.transform_capture.outcome != 'success') ||
-                steps.payload_sync.outcome != 'success' ||
-                steps.payload_tests.outcome == 'failure' ||
-                steps.typed_boundary.outcome == 'failure' ||
-                steps.cross_provider.outcome == 'failure' ||
-                steps.verification_report.outcome != 'success' ||
-                steps.update_patch.outcome != 'success' ||
-                steps.publication_readiness.outcome != 'success'
-              )
+              steps.publication_readiness.outcome != 'success'
             )
           )
         run: |

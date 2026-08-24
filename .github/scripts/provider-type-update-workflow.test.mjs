@@ -32,7 +32,12 @@ test("regenerates provider Rust after implementation before safety checks", () =
   );
 });
 
-test("lets the implementation agent regenerate and validate generator fixes", () => {
+test("lets planning invoke its auditors and implementation run required commands", () => {
+  assert.match(
+    workflow,
+    /--allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash\(git diff:\*\)/
+  );
+  assert.doesNotMatch(workflow, /Agent\(provider-spec-auditor\)/);
   assert.match(
     workflow,
     /Bash\(make generate-provider-types:\*\).*Bash\(make generate-types:\*\)/
@@ -68,10 +73,7 @@ test("retries every provider automation Claude phase once", () => {
     1
   );
   assert.doesNotMatch(workflow, /uses: anthropics\/claude-code-action/);
-  assert.doesNotMatch(
-    autofixWorkflow,
-    /uses: anthropics\/claude-code-action/
-  );
+  assert.doesNotMatch(autofixWorkflow, /uses: anthropics\/claude-code-action/);
   assert.equal(
     claudeRetryAction.match(
       /uses: anthropics\/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1/g
@@ -142,6 +144,63 @@ test("uses validated artifacts instead of raw Claude step outcomes", () => {
     )?.length,
     3
   );
+});
+
+test("treats missing AI artifacts as a draft instead of a failed run", () => {
+  const readinessStart = workflow.indexOf(
+    "- name: Check publication readiness"
+  );
+  const readinessEnd = workflow.indexOf("- name: Create PR", readinessStart);
+  const readinessStep = workflow.slice(readinessStart, readinessEnd);
+  const failureStart = workflow.indexOf(
+    "- name: Fail workflow if validation failed"
+  );
+  const failureEnd = workflow.indexOf("- name: Summary", failureStart);
+  const failureStep = workflow.slice(failureStart, failureEnd);
+
+  assert.doesNotMatch(readinessStep, /require_success "plan validation"/);
+  assert.doesNotMatch(readinessStep, /require_success "plan staging"/);
+  assert.doesNotMatch(readinessStep, /require_success "verification report"/);
+  assert.match(
+    readinessStep,
+    /steps\.plan_validation\.outcome \}\}" != "success"/
+  );
+  assert.match(
+    readinessStep,
+    /steps\.verification_report\.outputs\.verdict \}\}" != "pass"/
+  );
+  assert.match(readinessStep, /mode="draft"/);
+  assert.doesNotMatch(failureStep, /plan_validation|verification_report/);
+  assert.match(
+    failureStep,
+    /steps\.publication_readiness\.outcome != 'success'/
+  );
+});
+
+test("keeps deterministic validation failures blocking publication", () => {
+  for (const check of [
+    "mechanical validation",
+    "Lingua WASM build",
+    "payload fixture sync",
+    "payload tests",
+    "typed boundary check",
+    "cross-provider guard",
+    "recoverable patch",
+  ]) {
+    assert.match(workflow, new RegExp(`require_success "${check}"`));
+  }
+});
+
+test("does not spend a phase timeout before the retry can start", () => {
+  assert.doesNotMatch(workflow, /timeout-minutes:/);
+
+  const claudeStart = autofixWorkflow.indexOf(
+    "- name: Propose fixes for the Codex review"
+  );
+  const claudeEnd = autofixWorkflow.indexOf("- name:", claudeStart + 10);
+  const claudeStep = autofixWorkflow.slice(claudeStart, claudeEnd);
+  assert.doesNotMatch(claudeStep, /timeout-minutes:/);
+  assert.match(autofixWorkflow, /propose:[\s\S]*?timeout-minutes: 90/);
 });
 
 test("protects AGENTS.md in planning, implementation, and path policy", () => {
