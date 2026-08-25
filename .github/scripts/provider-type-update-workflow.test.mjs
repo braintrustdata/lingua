@@ -75,7 +75,7 @@ test("separates deterministic generated-name fixes from semantic blockers", () =
   );
 });
 
-test("retries mutating Claude phases but not advisory planning or verification", () => {
+test("runs each provider-update Claude phase at most once", () => {
   assert.equal(
     workflow.match(/uses: \.\/\.github\/actions\/claude-code-with-retry/g)
       ?.length,
@@ -103,7 +103,7 @@ test("retries mutating Claude phases but not advisory planning or verification",
     claudeRetryAction,
     /::error::Claude Code failed on both bounded attempts/
   );
-  assert.equal(workflow.match(/retry_on_failure: "false"/g)?.length, 2);
+  assert.equal(workflow.match(/retry_on_failure: "false"/g)?.length, 5);
   assert.match(
     claudeRetryAction,
     /steps\.primary\.outcome == 'failure' &&\s+inputs\.retry_on_failure == 'true'/
@@ -111,6 +111,27 @@ test("retries mutating Claude phases but not advisory planning or verification",
   assert.match(
     claudeRetryAction,
     /Claude Code failed and retry is disabled for this phase/
+  );
+});
+
+test("retries partial generation before invoking Claude repair", () => {
+  const initialGeneration = workflow.indexOf(
+    "- name: Update provider specifications and types"
+  );
+  const deterministicRetry = workflow.indexOf(
+    "- name: Retry provider update after partial generation"
+  );
+  const claudeRepair = workflow.indexOf("- name: Repair failed generation");
+
+  assert.ok(initialGeneration < deterministicRetry);
+  assert.ok(deterministicRetry < claudeRepair);
+  assert.match(
+    workflow,
+    /steps\.generate\.outcome == 'failure' &&\s+steps\.retry\.outcome == 'failure'/
+  );
+  assert.match(
+    workflow,
+    /require_ready "provider generation after repair" "\$\{\{ steps\.repair_retry\.outcome \}\}"/
   );
 });
 
@@ -168,7 +189,7 @@ test("uses one bounded repair pass and revalidates before publication", () => {
   );
   assert.match(
     workflow,
-    /require_success "mechanical validation" "\$\{\{ steps\.mechanical_validation\.outcome \}\}"/
+    /require_ready "mechanical validation" "\$\{\{ steps\.mechanical_validation\.outcome \}\}"/
   );
   assert.match(workflow, /steps\.publication_readiness\.outcome == 'success'/);
 });
@@ -199,9 +220,12 @@ test("uses validated artifacts instead of raw Claude step outcomes", () => {
 
 test("treats missing AI artifacts as a draft instead of a failed run", () => {
   const readinessStart = workflow.indexOf(
-    "- name: Check publication readiness"
+    "- name: Assess publication safety and mode"
   );
-  const readinessEnd = workflow.indexOf("- name: Create PR", readinessStart);
+  const readinessEnd = workflow.indexOf(
+    "- name: Build PR body",
+    readinessStart
+  );
   const readinessStep = workflow.slice(readinessStart, readinessEnd);
   const failureStart = workflow.indexOf(
     "- name: Fail workflow if validation failed"
@@ -214,7 +238,7 @@ test("treats missing AI artifacts as a draft instead of a failed run", () => {
   assert.doesNotMatch(readinessStep, /require_success "verification report"/);
   assert.match(
     readinessStep,
-    /steps\.plan_validation\.outcome \}\}" != "success"/
+    /"integration plan:\$\{\{ steps\.plan_validation\.outcome \}\}"/
   );
   assert.match(
     readinessStep,
@@ -228,7 +252,24 @@ test("treats missing AI artifacts as a draft instead of a failed run", () => {
   );
 });
 
-test("keeps deterministic validation failures blocking publication", () => {
+test("retries final PR publication without rerunning the provider update", () => {
+  assert.equal(
+    workflow.match(
+      /uses: peter-evans\/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676/g
+    )?.length,
+    2
+  );
+  assert.match(
+    workflow,
+    /- name: Retry continuation PR publication\s+id: create_pr_retry\s+if: steps\.create_pr\.outcome == 'failure'/
+  );
+  assert.match(
+    workflow,
+    /steps\.create_pr\.outcome != 'success' &&\s+steps\.create_pr_retry\.outcome != 'success'/
+  );
+});
+
+test("turns deterministic validation failures into continuation drafts", () => {
   for (const check of [
     "mechanical validation",
     "Lingua WASM build",
@@ -236,18 +277,38 @@ test("keeps deterministic validation failures blocking publication", () => {
     "payload tests",
     "typed boundary check",
     "cross-provider guard",
-    "recoverable patch",
   ]) {
-    assert.match(workflow, new RegExp(`require_success "${check}"`));
+    assert.match(workflow, new RegExp(`require_ready "${check}"`));
+    assert.doesNotMatch(workflow, new RegExp(`require_safe "${check}"`));
   }
+  assert.match(workflow, /review_reasons\+=/);
+  assert.match(workflow, /mode="draft"/);
+  assert.match(workflow, /This draft preserves the automation's partial work/);
+});
+
+test("publication safety hard-stops only unsafe paths or an unrecoverable local patch", () => {
+  assert.match(
+    workflow,
+    /require_safe "provider update path policy" "\$\{\{ steps\.path_policy\.outcome \}\}"/
+  );
+  assert.match(
+    workflow,
+    /require_safe "provider update path policy" "\$\{\{ steps\.post_repair_path_policy\.outcome \}\}"/
+  );
+  assert.match(
+    workflow,
+    /require_safe "recoverable patch" "\$\{\{ steps\.update_patch\.outcome \}\}"/
+  );
+  assert.equal(workflow.match(/require_safe "/g)?.length, 3);
+  assert.doesNotMatch(workflow, /require_safe "provider semantic policy"/);
 });
 
 test("bounds Claude phases and suppresses oversized action reports", () => {
   for (const [name, minutes] of [
-    ["Repair failed generation", 45],
+    ["Repair failed generation", 30],
     ["Plan generated provider integration", 30],
-    ["Implement generated provider integration", 75],
-    ["Repair deterministic provider validation", 45],
+    ["Implement generated provider integration", 40],
+    ["Repair deterministic provider validation", 30],
     ["Verify generated provider integration", 20],
   ]) {
     assert.match(

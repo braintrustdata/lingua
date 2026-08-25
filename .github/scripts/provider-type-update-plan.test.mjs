@@ -87,13 +87,13 @@ test("accepts a complete plan and extracts unique capture cases", () => {
   assert.deepEqual(captureCases(plan), ["anthropicContextWindowExceeded"]);
 });
 
-test("accepts omitted capture cases when live capture is not required", () => {
+test("captures payload cases even when extra live evidence is not required", () => {
   const plan = validPlan();
   plan.changes[0].tests.live_capture.required = false;
   delete plan.changes[0].tests.live_capture.cases;
 
   assert.deepEqual(validatePlan(plan, "anthropic"), []);
-  assert.deepEqual(captureCases(plan), []);
+  assert.deepEqual(captureCases(plan), ["anthropicContextWindowExceeded"]);
 });
 
 test("accepts a grouped non-semantic update without plan items", () => {

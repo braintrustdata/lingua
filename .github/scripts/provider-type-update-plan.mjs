@@ -455,6 +455,9 @@ export function captureCases(plan) {
   );
   for (const change of plan.changes ?? []) {
     if (blockerIds.has(change.id)) continue;
+    for (const name of change.tests?.payload_cases ?? []) {
+      cases.add(name);
+    }
     if (change.tests?.live_capture?.required) {
       for (const name of change.tests.live_capture.cases ?? []) {
         cases.add(name);
