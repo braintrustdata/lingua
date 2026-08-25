@@ -29,6 +29,7 @@ pub fn validate_anthropic_response(json: &str) -> Result<Message, ValidationErro
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::providers::anthropic::generated;
 
     #[test]
     fn test_validate_anthropic_request_minimal() {
@@ -142,7 +143,9 @@ mod tests {
     fn test_validate_anthropic_request_rejects_invalid_known_fields() {
         for (field, value) in [
             ("cache_control", r#""bad""#),
-            ("container", r#"{"id":"container_123"}"#),
+            // `container` accepts a bare id string or a ContainerParams object; an object whose
+            // `id` is not a string matches neither arm.
+            ("container", r#"{"id":5}"#),
             ("inference_geo", r#"{"region":"us"}"#),
             ("service_tier", r#""priority""#),
         ] {
@@ -164,6 +167,63 @@ mod tests {
             let result = validate_anthropic_request(&json);
             assert!(result.is_err(), "field should be typed: {field}");
         }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_container_id_string() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "container": "container_123"
+        }"#;
+
+        let request = validate_anthropic_request(json).expect("bare container id is valid");
+        assert_eq!(
+            request.container,
+            Some(generated::ContainerUnion::ContainerId(
+                "container_123".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_container_params_with_skills() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "container": {
+                "id": "container_123",
+                "skills": [
+                    { "skill_id": "pdf", "type": "anthropic", "version": "latest" }
+                ]
+            }
+        }"#;
+
+        let request = validate_anthropic_request(json).expect("container params are valid");
+        let Some(generated::ContainerUnion::ContainerParams(params)) = request.container else {
+            panic!(
+                "expected typed container params, got {:?}",
+                request.container
+            );
+        };
+        assert_eq!(params.id.as_deref(), Some("container_123"));
+        let skills = params.skills.expect("skills should be preserved");
+        assert_eq!(skills.len(), 1);
+        assert_eq!(skills[0].skill_id, "pdf");
+        assert_eq!(skills[0].skill_params_type, generated::SkillType::Anthropic);
+        assert_eq!(skills[0].version.as_deref(), Some("latest"));
     }
 
     #[test]

@@ -441,7 +441,7 @@ fn generate_anthropic_types_with_quicktype(
     let spec: serde_json::Value = serde_json::from_str(openapi_spec)?;
 
     // Extract essential Anthropic schemas for messages API
-    let essential_schemas = create_essential_anthropic_schemas(&spec);
+    let essential_schemas = create_essential_anthropic_schemas(&spec)?;
 
     println!("🏗️  Generating Anthropic types with quicktype...");
 
@@ -497,6 +497,8 @@ fn generate_anthropic_types_with_quicktype(
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
     processed_output = add_anthropic_tool_search_tool_variants(&processed_output);
+    processed_output = normalize_anthropic_public_names(&processed_output)?;
+    processed_output = remove_unreferenced_anthropic_types(&processed_output);
 
     let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
 
@@ -518,12 +520,16 @@ fn generate_anthropic_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_anthropic_schemas(spec: &serde_json::Value) -> serde_json::Value {
+fn create_essential_anthropic_schemas(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     // Automated approach: Preprocess schema to separate request/response types
     preprocess_anthropic_schema_for_separation(spec)
 }
 
-fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde_json::Value {
+fn preprocess_anthropic_schema_for_separation(
+    spec: &serde_json::Value,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     println!("🔧 Preprocessing Anthropic schema for request/response separation...");
 
     let default_map = serde_json::Map::new();
@@ -552,6 +558,11 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
     for schema_name in &response_schemas {
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
+
+    // Step 2b: Re-attach request union members that upstream dropped from the spec but the
+    // Messages API still accepts. Without this the generated union silently stops parsing
+    // payloads that Lingua has positive acceptance tests for.
+    retain_legacy_anthropic_request_blocks(all_schemas, &mut separated_schemas)?;
 
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
@@ -592,7 +603,107 @@ fn preprocess_anthropic_schema_for_separation(spec: &serde_json::Value) -> serde
         "definitions": separated_schemas
     });
 
-    root_schema
+    Ok(root_schema)
+}
+
+/// A request union member that upstream removed from the synchronized specification but that
+/// Lingua must keep generating, described by
+/// `crates/generate-types/legacy-schemas/anthropic-request-blocks.json`.
+#[derive(serde::Deserialize)]
+struct LegacyRequestBlocks {
+    retained_members: Vec<LegacyRequestBlock>,
+}
+
+#[derive(serde::Deserialize)]
+struct LegacyRequestBlock {
+    /// Name the member had in `components/schemas`.
+    schema_name: String,
+    /// Discriminated union the member has to be re-attached to.
+    union_schema: String,
+    /// Wire value of the union's discriminator property.
+    discriminator_value: String,
+    /// Why the member outlives its removal from the specification.
+    reason: String,
+    /// Member schema, copied verbatim from the spec revision that still declared it.
+    schema: serde_json::Value,
+}
+
+const ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH: &str =
+    "crates/generate-types/legacy-schemas/anthropic-request-blocks.json";
+
+/// Re-attach removed-but-still-accepted request union members to the preprocessed schema set.
+///
+/// A member is skipped as soon as the upstream specification declares it again, so the retention
+/// file never shadows an upstream definition and shrinks on its own.
+fn retain_legacy_anthropic_request_blocks(
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    separated_schemas: &mut serde_json::Map<String, serde_json::Value>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let raw = std::fs::read_to_string(ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH).map_err(|error| {
+        format!("failed to read {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}: {error}")
+    })?;
+    let retention: LegacyRequestBlocks = serde_json::from_str(&raw).map_err(|error| {
+        format!("failed to parse {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}: {error}")
+    })?;
+
+    for member in &retention.retained_members {
+        if all_schemas.contains_key(&member.schema_name) {
+            println!(
+                "🔁 Spec declares {} again; dropping its legacy retention entry is now safe",
+                member.schema_name
+            );
+            continue;
+        }
+
+        let member_ref = format!("#/definitions/{}", member.schema_name);
+        let union = separated_schemas
+            .get_mut(&member.union_schema)
+            .and_then(|union| union.as_object_mut())
+            .ok_or_else(|| {
+                format!(
+                    "legacy retention target union {} is not reachable from the request schemas; \
+                     update {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}",
+                    member.union_schema
+                )
+            })?;
+
+        let one_of = union
+            .get_mut("oneOf")
+            .and_then(|one_of| one_of.as_array_mut())
+            .ok_or_else(|| {
+                format!(
+                    "legacy retention target union {} has no oneOf member list",
+                    member.union_schema
+                )
+            })?;
+        one_of.push(serde_json::json!({ "$ref": member_ref }));
+
+        if let Some(mapping) = union
+            .get_mut("discriminator")
+            .and_then(|discriminator| discriminator.get_mut("mapping"))
+            .and_then(|mapping| mapping.as_object_mut())
+        {
+            mapping.insert(
+                member.discriminator_value.clone(),
+                serde_json::Value::String(format!("#/components/schemas/{}", member.schema_name)),
+            );
+        }
+
+        let member_schema = fix_anthropic_schema_refs(&member.schema);
+        let mut refs = std::collections::HashSet::new();
+        extract_schema_refs(&member_schema, &mut refs);
+        separated_schemas.insert(member.schema_name.clone(), member_schema);
+        for ref_name in refs {
+            add_dependencies_recursively(&ref_name, all_schemas, separated_schemas);
+        }
+
+        println!(
+            "🧷 Retained removed request union member {} (\"{}\") on {}: {}",
+            member.schema_name, member.discriminator_value, member.union_schema, member.reason
+        );
+    }
+
+    Ok(())
 }
 
 fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {
@@ -910,9 +1021,15 @@ fn post_process_quicktype_output_for_anthropic(quicktype_output: &str) -> String
     processed = add_export_path_to_all_ts_types(&processed, "anthropic/");
 
     // Only export entry point types that are actually used in our public API
-    // ts-rs will automatically export their transitive dependencies to the same directory
+    // ts-rs will automatically export their transitive dependencies to the same directory.
+    // Types that are still referenced from Rust but no longer sit on a transitive path from
+    // an entry point are pinned here as well: without them a published binding silently
+    // disappears whenever an unrelated schema change reroutes a reference.
     let entry_points = vec![
         "InputMessage", // Used by linguaToAnthropicMessages
+        "AllowedCaller",
+        "TentacledType",
+        "StickyType",
     ];
     processed = add_ts_export_to_types(&processed, &entry_points, "anthropic/");
 
@@ -1000,6 +1117,211 @@ pub struct ToolSearchTool {
         "    #[serde(untagged)]\n    Custom(CustomTool),",
         "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
+}
+
+/// Anthropic public type and variant names quicktype disambiguates behind placeholder
+/// identifiers, restored to the names the schema itself implies.
+///
+/// Quicktype appends `Class` to an object type whose preferred name a sibling union already
+/// claimed, and names an anonymous union member after its position (`Purple`, `Fluffy`, …)
+/// rather than its role. Both are pure identifier choices: every affected type keeps its
+/// serde attributes, so the emitted JSON is unchanged.
+const ANTHROPIC_PUBLIC_TYPE_NAMES: &[(&str, &str)] = &[("ContainerClass", "Container")];
+const ANTHROPIC_PUBLIC_VARIANT_NAMES: &[(&str, &str, &str)] =
+    &[("ContainerUnion", "PurpleString", "ContainerId")];
+
+fn normalize_anthropic_public_names(processed: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut normalized = processed.to_string();
+
+    for (generated_name, public_name) in ANTHROPIC_PUBLIC_TYPE_NAMES {
+        if !contains_rust_type_definition(&normalized, generated_name) {
+            continue;
+        }
+        if contains_rust_type_definition(&normalized, public_name) {
+            return Err(format!(
+                "Anthropic public name collision: '{generated_name}' cannot be restored to \
+                 '{public_name}' because '{public_name}' is already defined"
+            )
+            .into());
+        }
+        normalized = rename_rust_identifier(&normalized, generated_name, public_name);
+        println!("🔤 Restored generated type name {generated_name} to {public_name}");
+    }
+
+    for (enum_name, generated_variant, public_variant) in ANTHROPIC_PUBLIC_VARIANT_NAMES {
+        normalized = rename_enum_variant(&normalized, enum_name, generated_variant, public_variant);
+    }
+
+    Ok(normalized)
+}
+
+/// Replace every whole-word occurrence of a Rust identifier.
+fn rename_rust_identifier(source: &str, from: &str, to: &str) -> String {
+    let mut renamed = String::with_capacity(source.len());
+    let mut rest = source;
+
+    while let Some(offset) = rest.find(from) {
+        let before = rest[..offset].chars().next_back();
+        let after = rest[offset + from.len()..].chars().next();
+        let is_whole_word = !before.is_some_and(is_rust_identifier_char)
+            && !after.is_some_and(is_rust_identifier_char);
+
+        renamed.push_str(&rest[..offset]);
+        renamed.push_str(if is_whole_word { to } else { from });
+        rest = &rest[offset + from.len()..];
+    }
+
+    renamed.push_str(rest);
+    renamed
+}
+
+fn is_rust_identifier_char(character: char) -> bool {
+    character.is_alphanumeric() || character == '_'
+}
+
+/// Roots of the generated Anthropic public API: quicktype's request/response wrapper, plus
+/// the types Lingua's hand-written adapters deserialize directly out of fields that the tool
+/// generator deliberately keeps as `serde_json::Value`.
+const ANTHROPIC_GENERATED_ROOT_TYPES: &[&str] = &["AnthropicSchemas", "UserLocation"];
+
+/// Drop generated types that nothing reachable from the Anthropic roots references.
+///
+/// Quicktype walks the whole specification, so schemas that only describe fields Lingua
+/// keeps untyped — the per-member toolset `configs` overrides, for example — are emitted as
+/// standalone public types that no other type mentions. Deleting them keeps the generated
+/// public API to what is actually reachable without narrowing any wire shape, because the
+/// fields they described stay `serde_json::Value`.
+fn remove_unreferenced_anthropic_types(processed: &str) -> String {
+    let lines: Vec<&str> = processed.lines().collect();
+    let blocks = generated_type_blocks(&lines);
+
+    let mut reachable = std::collections::HashSet::new();
+    let mut pending: Vec<String> = ANTHROPIC_GENERATED_ROOT_TYPES
+        .iter()
+        .map(|root| (*root).to_string())
+        .collect();
+    while let Some(name) = pending.pop() {
+        if !reachable.insert(name.clone()) {
+            continue;
+        }
+        let Some(block) = blocks.iter().find(|block| block.name == name) else {
+            continue;
+        };
+        for candidate in &blocks {
+            if candidate.name != name
+                && !reachable.contains(&candidate.name)
+                && block_references_type(&lines, block, &candidate.name)
+            {
+                pending.push(candidate.name.clone());
+            }
+        }
+    }
+
+    let unreferenced: Vec<&GeneratedTypeBlock> = blocks
+        .iter()
+        .filter(|block| !reachable.contains(&block.name))
+        .collect();
+    if unreferenced.is_empty() {
+        return processed.to_string();
+    }
+
+    println!(
+        "🧹 Dropping {} unreferenced Anthropic types: {}",
+        unreferenced.len(),
+        unreferenced
+            .iter()
+            .map(|block| block.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+
+    let dropped: std::collections::HashSet<usize> = unreferenced
+        .iter()
+        .flat_map(|block| block.start..=block.end)
+        .collect();
+
+    lines
+        .iter()
+        .enumerate()
+        .filter(|(index, _)| !dropped.contains(index))
+        .map(|(_, line)| *line)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+struct GeneratedTypeBlock {
+    name: String,
+    /// First line of the type's leading doc comments and attributes.
+    start: usize,
+    /// Line holding the type's closing brace.
+    end: usize,
+}
+
+/// Split a generated provider file into its top-level type definitions.
+///
+/// Generated provider files contain nothing but type definitions formatted by `cargo fmt`,
+/// so a definition runs from its leading attributes to the next line that is a bare closing
+/// brace at column zero.
+fn generated_type_blocks(lines: &[&str]) -> Vec<GeneratedTypeBlock> {
+    let mut blocks = Vec::new();
+
+    for (index, line) in lines.iter().enumerate() {
+        let Some(name) = line
+            .strip_prefix("pub struct ")
+            .or_else(|| line.strip_prefix("pub enum "))
+            .map(|rest| rest.trim_end_matches(" {").trim().to_string())
+        else {
+            continue;
+        };
+
+        let mut start = index;
+        while start > 0 {
+            let previous = lines[start - 1];
+            if previous.starts_with("#[") || previous.starts_with("//") {
+                start -= 1;
+            } else {
+                break;
+            }
+        }
+
+        let Some(end) = lines
+            .iter()
+            .enumerate()
+            .skip(index)
+            .find(|(_, line)| **line == "}")
+            .map(|(end, _)| end)
+        else {
+            continue;
+        };
+
+        blocks.push(GeneratedTypeBlock { name, start, end });
+    }
+
+    blocks
+}
+
+/// Whether a type definition mentions `type_name` outside its own declaration and docs.
+fn block_references_type(lines: &[&str], block: &GeneratedTypeBlock, type_name: &str) -> bool {
+    lines[block.start..=block.end]
+        .iter()
+        .filter(|line| !line.trim_start().starts_with("//") && !line.starts_with("pub "))
+        .any(|line| contains_rust_identifier(line, type_name))
+}
+
+/// Whether `identifier` occurs in `line` on its own rather than inside a longer identifier.
+fn contains_rust_identifier(line: &str, identifier: &str) -> bool {
+    let mut rest = line;
+    while let Some(offset) = rest.find(identifier) {
+        let before = rest[..offset].chars().next_back();
+        let after = rest[offset + identifier.len()..].chars().next();
+        if !before.is_some_and(is_rust_identifier_char)
+            && !after.is_some_and(is_rust_identifier_char)
+        {
+            return true;
+        }
+        rest = &rest[offset + identifier.len()..];
+    }
+    false
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {

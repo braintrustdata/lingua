@@ -444,11 +444,20 @@ fn schema_name_to_variant(schema_name: &str) -> String {
 
     if let Some(idx) = schema_name.rfind('_') {
         let version = &schema_name[idx + 1..];
-        let name_part = schema_name[..idx].replace("Tool", "");
+        let name_part = strip_tool_suffix(&schema_name[..idx]);
         return format!("{}{}", name_part, version);
     }
 
-    schema_name.replace("Tool", "")
+    strip_tool_suffix(schema_name).to_string()
+}
+
+/// Drop the trailing `Tool` from a schema name so `WebSearchTool` becomes `WebSearch`.
+///
+/// Only the suffix is removed: names such as `BrowserToolset` describe a toolset family
+/// rather than a single tool, and stripping every `Tool` occurrence would mangle them into
+/// `Browserset`.
+fn strip_tool_suffix(schema_name: &str) -> &str {
+    schema_name.strip_suffix("Tool").unwrap_or(schema_name)
 }
 
 fn split_type_definitions(content: &str) -> Vec<(String, String)> {
@@ -568,5 +577,50 @@ mod tests {
             2
         );
         assert!(!generated.contains("pub response_inclusion: Option<String>,"));
+    }
+
+    #[test]
+    fn anthropic_toolset_tool_variants_keep_their_schema_derived_names() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r#"{
+                "components": {
+                    "schemas": {
+                        "BrowserToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "type": { "const": "browser_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        },
+                        "ComputerToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "type": { "const": "computer_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        },
+                        "WebSearchTool_20250305": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "const": "web_search", "type": "string" },
+                                "type": { "const": "web_search_20250305", "type": "string" }
+                            },
+                            "required": ["name", "type"]
+                        }
+                    }
+                }
+            }"#,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        assert!(generated.contains("    BrowserToolset20260801(BrowserToolset20260801),"));
+        assert!(generated.contains("    ComputerToolset20260801(ComputerToolset20260801),"));
+        assert!(!generated.contains("Browserset20260801"));
+        assert!(!generated.contains("Computerset20260801"));
+        // Single tools keep the established variant names that drop the `Tool` suffix.
+        assert!(generated.contains("    WebSearch20250305(WebSearchTool20250305),"));
     }
 }

@@ -3,4 +3,4 @@ import type { Base64ImageSourceContent } from "./Base64ImageSourceContent";
 import type { Base64ImageSourceType } from "./Base64ImageSourceType";
 import type { FluffyMediaType } from "./FluffyMediaType";
 
-export type RequestDocumentBlockSource = { data: string | null, media_type: FluffyMediaType | null, type: Base64ImageSourceType, content: Base64ImageSourceContent | null, url: string | null, };
+export type RequestDocumentBlockSource = { data: string | null, media_type: FluffyMediaType | null, type: Base64ImageSourceType, content: Base64ImageSourceContent | null, url: string | null, file_id: string | null, };
