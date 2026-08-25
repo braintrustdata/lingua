@@ -96,6 +96,33 @@ test("accepts omitted capture cases when live capture is not required", () => {
   assert.deepEqual(captureCases(plan), []);
 });
 
+test("accepts a grouped non-semantic update without plan items", () => {
+  const plan = validPlan();
+  plan.changes = [];
+  plan.non_semantic_changes = [
+    "Grouped description and example churn has no generated wire-shape effect.",
+  ];
+  plan.audit_reports.capabilities =
+    "Skipped because the compact inventory contains no capability changes.";
+  plan.audit_reports.semantics =
+    "Skipped because the compact inventory contains no semantic changes.";
+  plan.audit_reports.coverage =
+    "Skipped because no behavior requires additional coverage.";
+
+  assert.deepEqual(validatePlan(plan, "anthropic"), []);
+  assert.deepEqual(captureCases(plan), []);
+});
+
+test("requires evidence for an empty semantic change list", () => {
+  const plan = validPlan();
+  plan.changes = [];
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /must contain evidence when there are no semantic changes/
+  );
+});
+
 test("rejects a semantic change without payload coverage", () => {
   const plan = validPlan();
   plan.changes[0].tests.payload_cases = [];

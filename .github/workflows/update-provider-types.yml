@@ -196,13 +196,14 @@ jobs:
         id: repair
         if: steps.generate.outcome == 'failure'
         continue-on-error: true
+        timeout-minutes: 45
         uses: ./.github/actions/claude-code-with-retry
         env:
           APPEND_SYSTEM_PROMPT: ${{ steps.repair_messages.outputs.system_message }}
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -223,7 +224,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 80
+            --max-turns 60
             --allowedTools "Read,Glob,Grep,LS,Bash,WebSearch,WebFetch,Edit,Write"
             --disallowedTools "MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
           prompt: ${{ steps.repair_messages.outputs.user_message }}
@@ -290,11 +291,13 @@ jobs:
         id: integration_plan
         if: steps.changes.outputs.has_changes == 'true'
         continue-on-error: true
+        timeout-minutes: 30
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -317,7 +320,7 @@ jobs:
           claude_args: |
             --model claude-opus-5
             --effort medium
-            --max-turns 120
+            --max-turns 50
             --add-dir "${{ runner.temp }}"
             --tools "Agent,Skill,Read,Glob,Grep,LS,Bash,Write"
             --allowedTools "Agent,Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*)"
@@ -326,21 +329,30 @@ jobs:
             This is the planning-only phase for provider `${{ matrix.provider }}`.
             Invoke the `provider-type-update` skill and follow its planning phase.
 
-            Before inspecting the provider diff yourself, invoke these four named
-            subagents in parallel:
-            - `@provider-spec-auditor`
-            - `@provider-capability-auditor`
-            - `@provider-semantic-auditor`
-            - `@provider-coverage-auditor`
+            First invoke only `@provider-spec-auditor`. Have it reduce the raw
+            specification and generated-code diff into a compact inventory of
+            wire-shape and public-type semantic changes. It must group repeated
+            schema churn and separate documentation, ordering, example, and
+            formatting-only changes from behavior changes.
 
-            Wait for all four reports, then reconcile their evidence yourself.
-            Do not substitute your own audit for any missing subagent report.
+            If that inventory contains semantic changes, invoke
+            `@provider-capability-auditor`, `@provider-semantic-auditor`, and
+            `@provider-coverage-auditor` in parallel with only the relevant
+            semantic groups. They must not independently re-audit the complete
+            raw specification diff. If the inventory contains no semantic
+            changes, skip those three auditors.
 
             Do not modify any tracked file. Read
             `.github/scripts/provider-type-update-plan.mjs` and its tests for the
             exact schema. Write only the final JSON plan to
-            `$PROVIDER_UPDATE_PLAN_PATH`. The plan must inventory the complete
-            specification diff, not only compilation failures or generated Rust.
+            `$PROVIDER_UPDATE_PLAN_PATH`. Use one plan item per semantic change
+            group rather than one item per repeated schema occurrence. Exclude
+            documentation-only and mechanically equivalent changes from the
+            plan, but record the evidence used to classify them.
+            When there are no semantic changes, use an empty `changes` array,
+            put the grouped evidence in `non_semantic_changes`, and summarize
+            why the other three audits were skipped in their `audit_reports`
+            entries.
             Shared automation infrastructure is outside the scope of an automated
             provider update. Do not include `.github/**`, `pipelines/**`,
             `scripts/**`, `Makefile`, or `AGENTS.md` in implementation targets.
@@ -363,6 +375,10 @@ jobs:
             alternatives and their tradeoffs, likely affected files, and exact
             validation commands. The workflow renders this information directly
             into a draft PR for the human who finishes the update.
+
+            Write the JSON file before responding. Your final response must be
+            exactly `Wrote provider update plan.` Do not print the plan, auditor
+            reports, diffs, or any other analysis in the final response.
 
       - name: Validate integration plan
         id: plan_validation
@@ -406,11 +422,12 @@ jobs:
         id: integration_implementation
         if: steps.stage_plan.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 75
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -431,7 +448,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 160
+            --max-turns 100
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
             --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(make test-payloads:*),Bash(make typed-boundary-check:*),Bash(git diff:*),Bash(git status:*)"
             --disallowedTools "Agent,WebSearch,WebFetch,MultiEdit,Replace,NotebookEditCell,mcp__github__create_issue,mcp__github__create_issue_comment,mcp__github__update_issue,mcp__github__create_pr,mcp__github__create_or_update_file,mcp__github__delete_file,mcp__github_file_ops__commit_files,mcp__github_file_ops__delete_files"
@@ -462,7 +479,9 @@ jobs:
             are allowed only when produced by that command. Before finishing, run
             focused provider and generator tests plus clippy for every crate you
             changed. Do not report completion while a permitted deterministic
-            validation is failing. Leave the completed changes uncommitted.
+            validation is failing. Leave the completed changes uncommitted. Keep
+            the final response to one sentence and do not include diffs, logs, or
+            test output.
 
       - name: Remove staged implementation plan
         if: always() && steps.stage_plan.outcome == 'success'
@@ -614,11 +633,12 @@ jobs:
         id: mechanical_repair
         if: steps.mechanical_repair_task_trace.outcome != 'skipped'
         continue-on-error: true
+        timeout-minutes: 45
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -640,7 +660,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 100
+            --max-turns 60
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash"
             --allowedTools "Skill,Read,Glob,Grep,LS,Edit,Write,Bash(cargo test:*),Bash(cargo check:*),Bash(cargo build:*),Bash(cargo clippy:*),Bash(cargo fmt:*),Bash(make generate-provider-types:*),Bash(make generate-types:*),Bash(git diff:*),Bash(git status:*)"
@@ -671,7 +691,8 @@ jobs:
             Do not modify `plan.md`, `.github/**`, `pipelines/**`, `scripts/**`,
             `Makefile`, or `AGENTS.md`. Do not call live provider APIs. Finish by
             rerunning the focused commands you repaired. Leave changes
-            uncommitted.
+            uncommitted. Keep the final response to one sentence and do not
+            include diffs, logs, or test output.
 
       - name: Regenerate Rust provider types after mechanical repair
         id: post_repair_provider_types
@@ -981,11 +1002,13 @@ jobs:
           steps.post_implementation_plan.outcome == 'success' &&
           steps.mechanical_validation.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 20
         uses: ./.github/actions/claude-code-with-retry
         with:
           anthropic_api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           github_token: ${{ github.token }}
-          display_report: "true"
+          display_report: "false"
+          retry_on_failure: "false"
           plugin_marketplaces: |
             https://github.com/braintrustdata/braintrust-claude-plugin.git
           plugins: |
@@ -1008,7 +1031,7 @@ jobs:
             }
           claude_args: |
             --model claude-opus-5
-            --max-turns 120
+            --max-turns 40
             --add-dir "${{ runner.temp }}"
             --tools "Skill,Read,Glob,Grep,LS,Bash,Write"
             --allowedTools "Skill,Read,Glob,Grep,LS,Write,Bash(git diff:*),Bash(git status:*),Bash(git show:*),Bash(git ls-files:*),Bash(ls:*),Bash(head:*),Bash(cat:*),Bash(grep:*)"
@@ -1052,6 +1075,10 @@ jobs:
             uncertainty. Do not repeat completed checks or exhaust the turn
             budget on optional exploration. Write the report as soon as every
             required schema field has sufficient evidence.
+
+            Write the JSON file before responding. Your final response must be
+            exactly `Wrote provider update verification.` Do not print the
+            report, plan, diffs, or any other analysis in the final response.
 
       - name: Validate integration verification report
         id: verification_report

@@ -12,19 +12,26 @@ generated-code review.
 
 Do not edit tracked files during this phase.
 
-1. Read `AGENTS.md` and inspect the complete provider specification diff.
-2. Use the four provider audit agents in parallel:
-   - `provider-spec-auditor`
-   - `provider-capability-auditor`
-   - `provider-semantic-auditor`
-   - `provider-coverage-auditor`
-3. Reconcile their reports yourself. Subagent reports are evidence, not final
+1. Read `AGENTS.md` and inspect the generated public-type diff.
+2. Run `provider-spec-auditor` first to reduce the complete raw specification
+   diff into semantic change groups. It must collapse repeated schema churn and
+   separate documentation-only or mechanically equivalent changes.
+3. If semantic groups remain, give only those groups to
+   `provider-capability-auditor`, `provider-semantic-auditor`, and
+   `provider-coverage-auditor` in parallel. Do not have each agent independently
+   re-read the complete raw specification diff.
+4. Reconcile their reports yourself. Subagent reports are evidence, not final
    decisions.
-4. Write the structured JSON plan requested by the workflow.
-5. Cover every changed provider field or enum value. Do not focus only on
-   generated Rust compilation errors.
+5. Write the structured JSON plan requested by the workflow.
+6. Cover every semantic change group. Do not create separate plan items for
+   repeated occurrences of the same wire-shape change, or for description,
+   example, ordering, and formatting-only churn.
 
-For every change, classify these surfaces explicitly:
+When no semantic groups remain, write an empty `changes` array, record grouped
+evidence in `non_semantic_changes`, and mark the other audit reports as skipped
+with the reason.
+
+For every semantic change group, classify these surfaces explicitly:
 
 - generated type effect
 - model and capability matching
@@ -71,4 +78,3 @@ Do not edit tracked files.
 4. Write the structured verification report requested by the workflow.
 5. Fail verification for omissions, unsupported assumptions, or a plan item
    without corresponding implementation and tests.
-

@@ -14,6 +14,21 @@ const claudeRetryAction = readFileSync(
   new URL("../actions/claude-code-with-retry/action.yml", import.meta.url),
   "utf8"
 );
+const providerUpdateSkill = readFileSync(
+  new URL(
+    "../../.claude/skills/provider-type-update/SKILL.md",
+    import.meta.url
+  ),
+  "utf8"
+);
+const providerAuditors = [
+  "provider-spec-auditor.md",
+  "provider-capability-auditor.md",
+  "provider-semantic-auditor.md",
+  "provider-coverage-auditor.md",
+].map((name) =>
+  readFileSync(new URL(`../../.claude/agents/${name}`, import.meta.url), "utf8")
+);
 
 test("regenerates provider Rust after implementation before safety checks", () => {
   const regeneration = workflow.indexOf(
@@ -60,7 +75,7 @@ test("separates deterministic generated-name fixes from semantic blockers", () =
   );
 });
 
-test("retries every provider automation Claude phase once", () => {
+test("retries mutating Claude phases but not advisory planning or verification", () => {
   assert.equal(
     workflow.match(/uses: \.\/\.github\/actions\/claude-code-with-retry/g)
       ?.length,
@@ -80,7 +95,6 @@ test("retries every provider automation Claude phase once", () => {
     )?.length,
     2
   );
-  assert.match(claudeRetryAction, /if: steps\.primary\.outcome == 'failure'/);
   assert.match(
     claudeRetryAction,
     /- name: Check Claude Code outcome\s+id: outcome\s+if: always\(\)/
@@ -88,6 +102,15 @@ test("retries every provider automation Claude phase once", () => {
   assert.match(
     claudeRetryAction,
     /::error::Claude Code failed on both bounded attempts/
+  );
+  assert.equal(workflow.match(/retry_on_failure: "false"/g)?.length, 2);
+  assert.match(
+    claudeRetryAction,
+    /steps\.primary\.outcome == 'failure' &&\s+inputs\.retry_on_failure == 'true'/
+  );
+  assert.match(
+    claudeRetryAction,
+    /Claude Code failed and retry is disabled for this phase/
   );
 });
 
@@ -104,6 +127,34 @@ test("runs integration planning at medium effort", () => {
   assert.notEqual(planningStart, -1);
   assert.notEqual(planningEnd, -1);
   assert.match(planningStep, /--model claude-opus-5\s+--effort medium/);
+  assert.match(planningStep, /timeout-minutes: 30/);
+  assert.match(planningStep, /--max-turns 50/);
+  assert.match(planningStep, /display_report: "false"/);
+  assert.match(planningStep, /retry_on_failure: "false"/);
+  assert.match(planningStep, /exactly `Wrote provider update plan\.`/);
+});
+
+test("stages semantic auditing instead of multiplying full-diff reviews", () => {
+  assert.match(
+    workflow,
+    /First invoke only `@provider-spec-auditor`[\s\S]*If that inventory contains semantic changes/
+  );
+  assert.match(
+    workflow,
+    /They must not independently re-audit the complete\s+raw specification diff/
+  );
+  assert.match(
+    providerUpdateSkill,
+    /Run `provider-spec-auditor` first[\s\S]*Do not have each agent independently\s+re-read the complete raw specification diff/
+  );
+  assert.match(providerAuditors[0], /maxTurns: 25/);
+  assert.match(providerAuditors[0], /under 2,500 words/);
+  for (const auditor of providerAuditors.slice(1)) {
+    assert.match(
+      auditor,
+      /Do not\s+independently re-audit the complete raw\s+specification diff/
+    );
+  }
 });
 
 test("uses one bounded repair pass and revalidates before publication", () => {
@@ -191,8 +242,23 @@ test("keeps deterministic validation failures blocking publication", () => {
   }
 });
 
-test("does not spend a phase timeout before the retry can start", () => {
-  assert.doesNotMatch(workflow, /timeout-minutes:/);
+test("bounds Claude phases and suppresses oversized action reports", () => {
+  for (const [name, minutes] of [
+    ["Repair failed generation", 45],
+    ["Plan generated provider integration", 30],
+    ["Implement generated provider integration", 75],
+    ["Repair deterministic provider validation", 45],
+    ["Verify generated provider integration", 20],
+  ]) {
+    assert.match(
+      workflow,
+      new RegExp(`- name: ${name}[\\s\\S]*?timeout-minutes: ${minutes}`)
+    );
+  }
+  assert.equal(workflow.match(/display_report: "false"/g)?.length, 5);
+  assert.doesNotMatch(workflow, /display_report: "true"/);
+  assert.match(claudeRetryAction, /display_report:[\s\S]*?default: "false"/);
+  assert.match(workflow, /exactly `Wrote provider update verification\.`/);
 
   const claudeStart = autofixWorkflow.indexOf(
     "- name: Propose fixes for the Codex review"

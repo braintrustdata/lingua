@@ -153,12 +153,25 @@ export function validatePlan(plan, expectedProvider) {
     }
   }
 
-  push(
-    errors,
-    Array.isArray(plan.changes) && plan.changes.length > 0,
-    "$.changes",
-    "must contain at least one specification change"
-  );
+  push(errors, Array.isArray(plan.changes), "$.changes", "must be an array");
+  if (Array.isArray(plan.changes) && plan.changes.length === 0) {
+    push(
+      errors,
+      Array.isArray(plan.non_semantic_changes) &&
+        plan.non_semantic_changes.length > 0 &&
+        plan.non_semantic_changes.every(nonEmptyString),
+      "$.non_semantic_changes",
+      "must contain evidence when there are no semantic changes"
+    );
+  } else if (plan.non_semantic_changes !== undefined) {
+    push(
+      errors,
+      Array.isArray(plan.non_semantic_changes) &&
+        plan.non_semantic_changes.every(nonEmptyString),
+      "$.non_semantic_changes",
+      "must be an array of non-empty evidence strings"
+    );
+  }
   const ids = new Set();
   const blockedChangeIds = new Set();
   if (Array.isArray(plan.changes)) {

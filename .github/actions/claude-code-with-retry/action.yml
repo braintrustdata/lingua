@@ -1,5 +1,5 @@
-name: Claude Code with bounded retry
-description: Run Claude Code and retry the complete phase once after an action failure.
+name: Claude Code with optional bounded retry
+description: Run Claude Code and optionally retry the complete phase once after an action failure.
 
 inputs:
   anthropic_api_key:
@@ -15,7 +15,7 @@ inputs:
   display_report:
     description: Whether Claude Code should display its report.
     required: false
-    default: "true"
+    default: "false"
   plugin_marketplaces:
     description: Plugin marketplaces forwarded to Claude Code.
     required: false
@@ -39,6 +39,10 @@ inputs:
     description: Delay before the single retry attempt.
     required: false
     default: "20"
+  retry_on_failure:
+    description: Whether to retry the complete phase after the first action failure.
+    required: false
+    default: "true"
 
 outputs:
   successful_attempt:
@@ -64,7 +68,9 @@ runs:
         prompt: ${{ inputs.prompt }}
 
     - name: Wait before retrying Claude Code
-      if: steps.primary.outcome == 'failure'
+      if: >-
+        steps.primary.outcome == 'failure' &&
+        inputs.retry_on_failure == 'true'
       shell: bash
       env:
         RETRY_DELAY_SECONDS: ${{ inputs.retry_delay_seconds }}
@@ -81,7 +87,9 @@ runs:
 
     - name: Retry Claude Code
       id: retry
-      if: steps.primary.outcome == 'failure'
+      if: >-
+        steps.primary.outcome == 'failure' &&
+        inputs.retry_on_failure == 'true'
       continue-on-error: true
       uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1
       with:
@@ -101,12 +109,17 @@ runs:
       shell: bash
       env:
         PRIMARY_OUTCOME: ${{ steps.primary.outcome }}
+        RETRY_ENABLED: ${{ inputs.retry_on_failure }}
         RETRY_OUTCOME: ${{ steps.retry.outcome }}
       run: |
         set -euo pipefail
         if [ "$PRIMARY_OUTCOME" = "success" ]; then
           echo "successful_attempt=primary" >> "$GITHUB_OUTPUT"
           exit 0
+        fi
+        if [ "$RETRY_ENABLED" != "true" ]; then
+          echo "::error::Claude Code failed and retry is disabled for this phase"
+          exit 1
         fi
         if [ "$RETRY_OUTCOME" = "success" ]; then
           echo "successful_attempt=retry" >> "$GITHUB_OUTPUT"
