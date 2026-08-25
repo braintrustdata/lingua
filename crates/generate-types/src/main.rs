@@ -497,6 +497,9 @@ fn generate_anthropic_types_with_quicktype(
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
     processed_output = add_anthropic_tool_search_tool_variants(&processed_output);
+    processed_output = retain_anthropic_mid_conv_system_block_type(&processed_output)?;
+    processed_output = remove_orphaned_quicktype_artifact_types(&processed_output);
+    processed_output = normalize_anthropic_public_names(&processed_output)?;
 
     let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
 
@@ -1000,6 +1003,571 @@ pub struct ToolSearchTool {
         "    #[serde(untagged)]\n    Custom(CustomTool),",
         "    #[serde(rename = \"tool_search_tool_bm25\")]\n    ToolSearchToolBm25(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_bm25_20251119\")]\n    ToolSearchToolBm2520251119(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex\")]\n    ToolSearchToolRegex(ToolSearchTool),\n\n    #[serde(rename = \"tool_search_tool_regex_20251119\")]\n    ToolSearchToolRegex20251119(ToolSearchTool),\n\n    #[serde(untagged)]\n    Custom(CustomTool),",
     )
+}
+
+/// Keep the `mid_conv_system` member of the input content block union in the generated
+/// `InputContentBlockType` enum.
+///
+/// Anthropic's synchronized OpenAPI spec dropped `RequestMidConvSystemBlock` from
+/// `InputContentBlock`'s `oneOf`/discriminator mapping, so quicktype no longer emits the
+/// variant. The wire discriminator is still part of Lingua's accepted Anthropic input
+/// surface (see `InputContentBlockType.ts` in the checked-in TypeScript bindings and the
+/// mid-conversation system block import tests in
+/// `crates/lingua/src/providers/anthropic/convert.rs`), and the Anthropic SDK still ships
+/// `MidConversationSystemBlockParam`. Dropping the variant would make Lingua reject
+/// payloads it previously imported, so retain it here rather than in `generated.rs`.
+///
+/// The variant is inserted in the union's alphabetical slot so the generated TypeScript
+/// binding keeps its existing member order. Every shape this splice depends on is checked:
+/// a silent no-op would either drop the variant that `convert.rs` matches on or emit
+/// invalid Rust, so a missing enum or a missing anchor is a hard generation failure.
+fn retain_anthropic_mid_conv_system_block_type(processed: &str) -> Result<String, String> {
+    const ENUM_HEADER: &str = "pub enum InputContentBlockType {";
+    const ANCHOR: &str = "Image,";
+    const VARIANT: &str = "    #[serde(rename = \"mid_conv_system\")]\n    MidConvSystem,";
+
+    let enum_start = processed.find(ENUM_HEADER).ok_or_else(|| {
+        format!(
+            "Anthropic generation: `{ENUM_HEADER}` is missing, so the retained \
+                 `mid_conv_system` variant cannot be spliced in"
+        )
+    })?;
+    let body_start = enum_start + ENUM_HEADER.len();
+    let body_len = processed[body_start..].find("\n}").ok_or_else(|| {
+        format!(
+            "Anthropic generation: `{ENUM_HEADER}` has no closing brace, so the retained \
+                 `mid_conv_system` variant cannot be spliced in"
+        )
+    })?;
+    let body = &processed[body_start..body_start + body_len];
+
+    // Nothing to do when the spec (or a previous run) already provides the variant.
+    if body.contains("MidConvSystem") {
+        return Ok(processed.to_string());
+    }
+
+    // Insert after `Image,`, the variant that alphabetically precedes `mid_conv_system`.
+    let insert_at = body
+        .lines()
+        .scan(0usize, |offset, line| {
+            let line_start = *offset;
+            *offset += line.len() + 1;
+            Some((line_start, line))
+        })
+        .find(|(_, line)| line.trim() == ANCHOR)
+        .map(|(line_start, line)| body_start + line_start + line.len())
+        .ok_or_else(|| {
+            format!(
+                "Anthropic generation: `{ENUM_HEADER}` no longer contains the `{ANCHOR}` \
+                     anchor the retained `mid_conv_system` variant is ordered against"
+            )
+        })?;
+
+    let mut retained = processed.to_string();
+    retained.insert_str(insert_at, &format!("\n{VARIANT}"));
+    Ok(retained)
+}
+
+/// Adjectives quicktype assigns to anonymous schemas, in the order it hands them out.
+///
+/// Because the sequence is positional, every anonymous schema downstream of an added one
+/// shifts to the next adjective on the next specification bump. Names derived from this
+/// list are therefore neither meaningful nor stable and must not reach the public surface.
+const QUICKTYPE_ORDINAL_ADJECTIVES: [&str; 13] = [
+    "Purple",
+    "Fluffy",
+    "Tentacled",
+    "Sticky",
+    "Indigo",
+    "Indecent",
+    "Hilarious",
+    "Ambitious",
+    "Cunning",
+    "Magenta",
+    "Frisky",
+    "Mischievous",
+    "Braggadocious",
+];
+
+/// Word fragments quicktype produces when it unifies two structurally identical schemas and
+/// names the result from the longest common suffix of their titles. `BrowserFooConfig` and
+/// `ComputerFooConfig` share the suffix `erFooConfig`, which surfaces as `ErFooConfig`.
+const QUICKTYPE_MIS_DERIVED_FRAGMENTS: [&str; 1] = ["Er"];
+
+/// Returns the placeholder adjective a generated name was built from, if any.
+fn quicktype_placeholder_prefix(name: &str) -> Option<&'static str> {
+    QUICKTYPE_ORDINAL_ADJECTIVES
+        .iter()
+        .copied()
+        .find(|adjective| starts_with_name_fragment(name, adjective))
+}
+
+/// Returns the mis-derived word fragment a generated name was built from, if any.
+fn quicktype_mis_derived_fragment(name: &str) -> Option<&'static str> {
+    QUICKTYPE_MIS_DERIVED_FRAGMENTS
+        .iter()
+        .copied()
+        .find(|fragment| starts_with_name_fragment(name, fragment))
+}
+
+/// True when `name` begins with `fragment` and a new PascalCase word starts right after it.
+fn starts_with_name_fragment(name: &str, fragment: &str) -> bool {
+    name.len() > fragment.len()
+        && name.starts_with(fragment)
+        && name[fragment.len()..].starts_with(|c: char| c.is_ascii_uppercase())
+}
+
+/// A `pub struct` or `pub enum` definition located in generated source.
+struct GeneratedTypeBlock {
+    name: String,
+    /// Line of the `pub struct`/`pub enum` header.
+    header_line: usize,
+    /// First line of the item, including its doc comments and attributes.
+    start_line: usize,
+    /// Line holding the item's closing brace.
+    end_line: usize,
+}
+
+fn is_comment_line(line: &str) -> bool {
+    line.trim_start().starts_with("//")
+}
+
+fn is_attribute_line(line: &str) -> bool {
+    line.trim_start().starts_with("#[")
+}
+
+/// Locate every `pub struct`/`pub enum` definition in generated source.
+fn generated_type_blocks(lines: &[&str]) -> Vec<GeneratedTypeBlock> {
+    let mut blocks = Vec::new();
+    let mut index = 0usize;
+
+    while index < lines.len() {
+        let Some(name) = lines[index]
+            .strip_prefix("pub struct ")
+            .or_else(|| lines[index].strip_prefix("pub enum "))
+            .map(|rest| rest.trim_end_matches(['{', ' ']).to_string())
+        else {
+            index += 1;
+            continue;
+        };
+
+        let mut start_line = index;
+        while start_line > 0
+            && (is_attribute_line(lines[start_line - 1]) || is_comment_line(lines[start_line - 1]))
+        {
+            start_line -= 1;
+        }
+
+        let mut depth = 0usize;
+        let mut end_line = index;
+        for (offset, line) in lines.iter().enumerate().skip(index) {
+            if offset > index && is_comment_line(line) {
+                continue;
+            }
+            depth += line.matches('{').count();
+            depth = depth.saturating_sub(line.matches('}').count());
+            if depth == 0 {
+                end_line = offset;
+                break;
+            }
+        }
+
+        blocks.push(GeneratedTypeBlock {
+            name,
+            header_line: index,
+            start_line,
+            end_line,
+        });
+        index = end_line + 1;
+    }
+
+    blocks
+}
+
+/// Split a line into Rust identifier tokens.
+fn identifiers(line: &str) -> impl Iterator<Item = &str> {
+    line.split(|c: char| !c.is_ascii_alphanumeric() && c != '_')
+        .filter(|token| !token.is_empty())
+}
+
+/// Drop the orphaned types quicktype leaves behind when it merges schemas it should not.
+///
+/// Quicktype flattens the `Tool` `oneOf` into one struct that merges every variant's
+/// properties, unifying `BrowserToolsetConfigs` and `ComputerToolsetConfigs` into a single
+/// object named from their common suffix. `replace_tool_struct_with_enum` then deletes that
+/// merged struct in favour of a real tagged enum, leaving the merged config object and its
+/// member structs defined but referenced by nothing, still claiming public Rust and
+/// TypeScript names.
+///
+/// The merged object is removed rather than bound to the toolsets' `configs` field: it
+/// carries the union of the browser and computer member sets, so binding it would let each
+/// toolset accept the other's members, and its fields are all optional with no
+/// `deny_unknown_fields`, so it would silently drop member keys that the untyped
+/// `serde_json::Value` the toolsets carry today preserves.
+///
+/// Only orphans whose own name is a quicktype artifact seed the removal, and only types
+/// whose every referrer was removed cascade from them. Types that are orphaned for other
+/// reasons stay: `UserLocation` and `InputSchema` have no generated referrer because
+/// `schema_type_to_rust` binds tool `$ref` properties to `serde_json::Value`, yet
+/// `universal/tools.rs` deserializes into them as typed adapters.
+fn remove_orphaned_quicktype_artifact_types(processed: &str) -> String {
+    let lines: Vec<&str> = processed.lines().collect();
+    let blocks = generated_type_blocks(&lines);
+    let defined: std::collections::HashSet<&str> =
+        blocks.iter().map(|block| block.name.as_str()).collect();
+
+    let mut referrers: std::collections::HashMap<&str, std::collections::HashSet<&str>> = blocks
+        .iter()
+        .map(|block| (block.name.as_str(), std::collections::HashSet::new()))
+        .collect();
+    for block in &blocks {
+        for line in &lines[block.header_line..=block.end_line] {
+            if is_comment_line(line) || is_attribute_line(line) {
+                continue;
+            }
+            for token in identifiers(line) {
+                if token != block.name && defined.contains(token) {
+                    referrers
+                        .entry(token)
+                        .or_default()
+                        .insert(block.name.as_str());
+                }
+            }
+        }
+    }
+
+    let mut removed: std::collections::HashSet<&str> = blocks
+        .iter()
+        .filter(|block| {
+            quicktype_mis_derived_fragment(&block.name).is_some()
+                || quicktype_placeholder_prefix(&block.name).is_some()
+        })
+        .map(|block| block.name.as_str())
+        .filter(|name| referrers[name].is_empty())
+        .collect();
+
+    loop {
+        let cascaded: Vec<&str> = blocks
+            .iter()
+            .map(|block| block.name.as_str())
+            .filter(|name| !removed.contains(name))
+            .filter(|name| {
+                let referrers = &referrers[name];
+                !referrers.is_empty() && referrers.iter().all(|from| removed.contains(from))
+            })
+            .collect();
+        if cascaded.is_empty() {
+            break;
+        }
+        removed.extend(cascaded);
+    }
+
+    let mut dropped = vec![false; lines.len()];
+    for block in &blocks {
+        if !removed.contains(block.name.as_str()) {
+            continue;
+        }
+        for line in dropped
+            .iter_mut()
+            .take(block.end_line + 1)
+            .skip(block.start_line)
+        {
+            *line = true;
+        }
+        // Also drop the blank line that separated this item from the next one.
+        if let Some(next) = dropped.get_mut(block.end_line + 1) {
+            if lines[block.end_line + 1].is_empty() {
+                *next = true;
+            }
+        }
+    }
+
+    let mut retained: String = lines
+        .iter()
+        .zip(dropped)
+        .filter(|(_, dropped)| !dropped)
+        .map(|(line, _)| *line)
+        .collect::<Vec<_>>()
+        .join("\n");
+    if processed.ends_with('\n') {
+        retained.push('\n');
+    }
+    retained
+}
+
+/// Convert a wire field name to the PascalCase fragment quicktype would append to an owner.
+fn wire_name_to_pascal_case(wire_name: &str) -> String {
+    wire_name
+        .split('_')
+        .filter(|word| !word.is_empty())
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_ascii_uppercase().to_string() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect()
+}
+
+/// Replace whole-token occurrences of `from` with `to`.
+fn rename_identifier(source: &str, from: &str, to: &str) -> String {
+    let mut out = String::with_capacity(source.len());
+    let mut rest = source;
+
+    while let Some(found) = rest.find(from) {
+        let before_ok = rest[..found]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !c.is_ascii_alphanumeric() && c != '_');
+        let after = &rest[found + from.len()..];
+        let after_ok = after
+            .chars()
+            .next()
+            .is_none_or(|c| !c.is_ascii_alphanumeric() && c != '_');
+
+        out.push_str(&rest[..found]);
+        if before_ok && after_ok {
+            out.push_str(to);
+        } else {
+            out.push_str(from);
+        }
+        rest = after;
+    }
+
+    out.push_str(rest);
+    out
+}
+
+/// Give every generated public type and variant a name derived from the specification
+/// instead of from quicktype's naming placeholders.
+///
+/// Anonymous schemas are renamed after the struct and wire field that own them, which is the
+/// same `<Owner><Field>` shape quicktype already uses for named schemas and, unlike the
+/// ordinal adjective sequence, does not shift when an unrelated schema is added. Struct names
+/// carrying quicktype's `Class` collision suffix reclaim the base name when it is free.
+/// Anything still carrying a placeholder or a mis-derived fragment afterwards is a hard
+/// generation failure rather than a name that quietly reaches the public surface.
+fn normalize_anthropic_public_names(processed: &str) -> Result<String, String> {
+    let lines: Vec<&str> = processed.lines().collect();
+    let blocks = generated_type_blocks(&lines);
+    let defined: std::collections::HashSet<&str> =
+        blocks.iter().map(|block| block.name.as_str()).collect();
+
+    let owner_derived = owner_derived_names(&lines, &blocks);
+    let mut renames: Vec<(String, String)> = Vec::new();
+    let mut claimed: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    for block in &blocks {
+        let replacement = if quicktype_placeholder_prefix(&block.name).is_some() {
+            let candidates = owner_derived.get(block.name.as_str()).ok_or_else(|| {
+                format!(
+                    "Anthropic generation: `{}` is named from a quicktype placeholder but no \
+                     struct field refers to it, so no specification-derived name can be built",
+                    block.name
+                )
+            })?;
+            candidates
+                .iter()
+                .find(|candidate| !defined.contains(candidate.as_str()))
+                .cloned()
+                .ok_or_else(|| {
+                    format!(
+                        "Anthropic generation: every specification-derived name for `{}` ({}) \
+                         is already taken by another generated type",
+                        block.name,
+                        candidates.join(", ")
+                    )
+                })?
+        } else if let Some(base) = block.name.strip_suffix("Class") {
+            // Quicktype appends `Class` when an object schema competes for a name with a
+            // union it also generated. Take the base name back when nothing else holds it.
+            if base.is_empty() || defined.contains(base) {
+                continue;
+            }
+            base.to_string()
+        } else {
+            continue;
+        };
+
+        if !claimed.insert(replacement.clone()) {
+            return Err(format!(
+                "Anthropic generation: `{}` and another generated type both normalize to \
+                 `{replacement}`",
+                block.name
+            ));
+        }
+        renames.push((block.name.clone(), replacement));
+    }
+
+    let mut normalized = processed.to_string();
+    for (from, to) in &renames {
+        normalized = rename_identifier(&normalized, from, to);
+    }
+    normalized = normalize_placeholder_enum_variants(&normalized)?;
+    assert_anthropic_public_names_are_normalized(&normalized)?;
+    Ok(normalized)
+}
+
+/// Map each placeholder-named type to the `<OwnerStruct><WireField>` names its referring
+/// struct fields imply, sorted so the choice does not depend on definition order.
+fn owner_derived_names<'a>(
+    lines: &[&'a str],
+    blocks: &'a [GeneratedTypeBlock],
+) -> std::collections::HashMap<&'a str, Vec<String>> {
+    let mut derived: std::collections::HashMap<&str, std::collections::BTreeSet<String>> =
+        std::collections::HashMap::new();
+
+    for block in blocks {
+        let mut wire_name_override: Option<String> = None;
+        for line in &lines[block.header_line + 1..=block.end_line] {
+            if is_comment_line(line) {
+                continue;
+            }
+            if is_attribute_line(line) {
+                if let Some(rename) = serde_rename_value(line) {
+                    wire_name_override = Some(rename);
+                }
+                continue;
+            }
+            let Some((field, field_type)) = line.trim().trim_end_matches(',').split_once(':')
+            else {
+                wire_name_override = None;
+                continue;
+            };
+            let Some(field) = field.trim().strip_prefix("pub ") else {
+                wire_name_override = None;
+                continue;
+            };
+            let wire_name = wire_name_override
+                .take()
+                .unwrap_or_else(|| field.trim().trim_start_matches("r#").to_string());
+            let suffix = wire_name_to_pascal_case(&wire_name);
+            for token in identifiers(field_type) {
+                if quicktype_placeholder_prefix(token).is_some() {
+                    derived
+                        .entry(token)
+                        .or_default()
+                        .insert(format!("{}{suffix}", block.name));
+                }
+            }
+        }
+    }
+
+    derived
+        .into_iter()
+        .map(|(name, candidates)| (name, candidates.into_iter().collect()))
+        .collect()
+}
+
+fn serde_rename_value(attribute_line: &str) -> Option<String> {
+    let rest = attribute_line.trim().strip_prefix("#[serde(rename = \"")?;
+    let value = rest.split('"').next()?;
+    Some(value.to_string())
+}
+
+/// Rename placeholder-named enum variants after the type they wrap, matching the
+/// `Variant(Variant)` convention quicktype already uses for the sibling arms.
+fn normalize_placeholder_enum_variants(processed: &str) -> Result<String, String> {
+    let lines: Vec<&str> = processed.lines().collect();
+    let mut renamed: Vec<String> = lines.iter().map(|line| line.to_string()).collect();
+
+    for block in generated_type_blocks(&lines) {
+        if !lines[block.header_line].starts_with("pub enum ") {
+            continue;
+        }
+        let variants: Vec<String> = lines[block.header_line + 1..=block.end_line]
+            .iter()
+            .filter_map(|line| enum_variant_name(line))
+            .map(str::to_string)
+            .collect();
+
+        for offset in block.header_line + 1..=block.end_line {
+            let Some(variant) = enum_variant_name(lines[offset]) else {
+                continue;
+            };
+            let Some(placeholder) = quicktype_placeholder_prefix(variant) else {
+                continue;
+            };
+            let replacement = &variant[placeholder.len()..];
+            if variants.iter().any(|existing| existing == replacement) {
+                return Err(format!(
+                    "Anthropic generation: renaming `{}::{variant}` to `{replacement}` would \
+                     collide with an existing variant",
+                    block.name
+                ));
+            }
+            renamed[offset] = lines[offset].replacen(variant, replacement, 1);
+        }
+    }
+
+    let mut out = renamed.join("\n");
+    if processed.ends_with('\n') {
+        out.push('\n');
+    }
+    Ok(out)
+}
+
+fn enum_variant_name(line: &str) -> Option<&str> {
+    let trimmed = line.trim();
+    if trimmed.is_empty() || trimmed.starts_with("//") || trimmed.starts_with('#') {
+        return None;
+    }
+    let name = trimmed
+        .split_once('(')
+        .map(|(name, _)| name)
+        .unwrap_or_else(|| trimmed.trim_end_matches(','));
+    let mut chars = name.chars();
+    let is_variant = chars.next().is_some_and(|c| c.is_ascii_uppercase())
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_');
+    is_variant.then_some(name)
+}
+
+/// Fail generation when a quicktype naming placeholder or mis-derived fragment survived.
+fn assert_anthropic_public_names_are_normalized(processed: &str) -> Result<(), String> {
+    let lines: Vec<&str> = processed.lines().collect();
+
+    for block in generated_type_blocks(&lines) {
+        if let Some(placeholder) = quicktype_placeholder_prefix(&block.name) {
+            return Err(format!(
+                "Anthropic generation: type `{}` still carries quicktype's `{placeholder}` \
+                 naming placeholder",
+                block.name
+            ));
+        }
+        if let Some(fragment) = quicktype_mis_derived_fragment(&block.name) {
+            return Err(format!(
+                "Anthropic generation: type `{}` is named from the mis-derived word fragment \
+                 `{fragment}`",
+                block.name
+            ));
+        }
+        if block.name.ends_with("Class") {
+            return Err(format!(
+                "Anthropic generation: type `{}` still carries quicktype's `Class` collision \
+                 suffix",
+                block.name
+            ));
+        }
+
+        if !lines[block.header_line].starts_with("pub enum ") {
+            continue;
+        }
+        for line in &lines[block.header_line + 1..=block.end_line] {
+            let Some(variant) = enum_variant_name(line) else {
+                continue;
+            };
+            if let Some(placeholder) = quicktype_placeholder_prefix(variant) {
+                return Err(format!(
+                    "Anthropic generation: variant `{}::{variant}` still carries quicktype's \
+                     `{placeholder}` naming placeholder",
+                    block.name
+                ));
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn post_process_quicktype_output_for_openai(quicktype_output: &str) -> String {
@@ -2374,6 +2942,241 @@ pub struct Status {}
         assert!(!processed.contains("pub type InputItemContentListType ="));
         assert!(processed.contains("pub type InputContent = ContentOutputContentList;"));
         assert!(processed.contains("pub type FunctionCallItemStatus = Status;"));
+    }
+}
+
+#[cfg(test)]
+mod anthropic_post_process_tests {
+    use super::{
+        normalize_anthropic_public_names, remove_orphaned_quicktype_artifact_types,
+        retain_anthropic_mid_conv_system_block_type,
+    };
+
+    const INPUT_CONTENT_BLOCK_TYPE_ENUM: &str = r#"#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum InputContentBlockType {
+    Document,
+    Image,
+    Text,
+}
+"#;
+
+    #[test]
+    fn retains_mid_conv_system_variant_after_image() {
+        let retained = retain_anthropic_mid_conv_system_block_type(INPUT_CONTENT_BLOCK_TYPE_ENUM)
+            .expect("the generated enum still carries the `Image,` anchor");
+
+        assert!(retained.contains(
+            "    Image,\n    #[serde(rename = \"mid_conv_system\")]\n    MidConvSystem,\n    Text,"
+        ));
+    }
+
+    #[test]
+    fn is_idempotent_when_variant_already_present() {
+        let once = retain_anthropic_mid_conv_system_block_type(INPUT_CONTENT_BLOCK_TYPE_ENUM)
+            .expect("first splice should succeed");
+        let twice = retain_anthropic_mid_conv_system_block_type(&once)
+            .expect("re-splicing an already-retained variant should succeed");
+
+        assert_eq!(once, twice);
+        assert_eq!(twice.matches("MidConvSystem").count(), 1);
+    }
+
+    #[test]
+    fn fails_loudly_when_input_content_block_type_enum_is_absent() {
+        let error = retain_anthropic_mid_conv_system_block_type("pub enum SomethingElse {\n}\n")
+            .expect_err("a missing enum must fail generation instead of dropping the variant");
+
+        assert!(
+            error.contains("pub enum InputContentBlockType {"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn fails_loudly_when_image_variant_anchor_is_absent() {
+        let without_anchor = INPUT_CONTENT_BLOCK_TYPE_ENUM.replace("    Image,\n", "");
+
+        let error = retain_anthropic_mid_conv_system_block_type(&without_anchor)
+            .expect_err("a missing anchor must fail generation instead of emitting invalid Rust");
+
+        assert!(error.contains("Image,"), "{error}");
+    }
+
+    /// Quicktype output shaped like the Anthropic source blocks, parameterised by the two
+    /// ordinal adjectives it happened to hand out on a given run.
+    fn quicktype_named_source(source_adjective: &str, content_adjective: &str) -> String {
+        format!(
+            r#"#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct SourceSource {{
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_type: Option<{source_adjective}MediaType>,
+    #[serde(rename = "type")]
+    pub source_type: {source_adjective}Type,
+}}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub enum {source_adjective}MediaType {{
+    #[serde(rename = "image/png")]
+    ImagePng,
+}}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum {source_adjective}Type {{
+    Base64,
+    File,
+}}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(untagged)]
+#[ts(export_to = "anthropic/")]
+pub enum MessageContent {{
+    SourceSourceArray(Vec<SourceSource>),
+    {content_adjective}String(String),
+}}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ContainerClass {{
+    pub id: String,
+}}
+"#
+        )
+    }
+
+    #[test]
+    fn anthropic_generated_types_have_no_placeholder_names() {
+        let normalized =
+            normalize_anthropic_public_names(&quicktype_named_source("Purple", "Fluffy"))
+                .expect("every placeholder-named type is reachable from a struct field");
+
+        // Anonymous schemas take the name of the struct and wire field that own them.
+        assert!(normalized.contains("pub enum SourceSourceMediaType {"));
+        assert!(normalized.contains("pub enum SourceSourceType {"));
+        assert!(normalized.contains("pub media_type: Option<SourceSourceMediaType>,"));
+        assert!(normalized.contains("pub source_type: SourceSourceType,"));
+        // Untagged string arms follow the `Variant(Variant)` convention of their siblings.
+        assert!(normalized.contains("    String(String),"));
+        // The `Class` collision suffix is given back when the base name is free.
+        assert!(normalized.contains("pub struct Container {"));
+
+        assert!(!normalized.contains("Purple"), "{normalized}");
+        assert!(!normalized.contains("Fluffy"), "{normalized}");
+        assert!(!normalized.contains("ContainerClass"), "{normalized}");
+    }
+
+    #[test]
+    fn anthropic_generated_names_are_stable_across_regeneration() {
+        // A specification bump that inserts an unrelated anonymous schema shifts every later
+        // schema to the next adjective. Owner-derived names must not move with it.
+        let before = normalize_anthropic_public_names(&quicktype_named_source("Purple", "Fluffy"))
+            .expect("normalization should succeed");
+        let after =
+            normalize_anthropic_public_names(&quicktype_named_source("Tentacled", "Sticky"))
+                .expect("normalization should succeed");
+
+        assert_eq!(before, after);
+        assert_eq!(
+            normalize_anthropic_public_names(&before).expect("normalization is idempotent"),
+            before
+        );
+    }
+
+    #[test]
+    fn fails_loudly_when_a_placeholder_type_has_no_owning_field() {
+        let orphan = r#"#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub enum PurpleType {
+    Base64,
+}
+"#;
+
+        let error = normalize_anthropic_public_names(orphan)
+            .expect_err("an underivable placeholder name must fail generation");
+
+        assert!(error.contains("PurpleType"), "{error}");
+    }
+
+    /// The toolset `configs` cluster as quicktype leaves it: one merged object named from the
+    /// common suffix of `BrowserToolsetConfigs` and `ComputerToolsetConfigs`, referenced by
+    /// nothing once the flattened `Tool` struct has been replaced by the tagged enum.
+    const TOOLSET_CONFIGS_ORPHANS: &str = r#"#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserToolset20260801 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "unknown")]
+    pub configs: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ErToolsetConfigs {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub close_tab: Option<BrowserCloseTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub double_click: Option<ErDoubleClickConfig>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserCloseTabConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ErDoubleClickConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct UserLocation {
+    #[serde(rename = "type")]
+    pub user_location_type: UserLocationType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum UserLocationType {
+    Approximate,
+}
+"#;
+
+    #[test]
+    fn anthropic_generated_types_have_no_unreachable_config_structs() {
+        let pruned = remove_orphaned_quicktype_artifact_types(TOOLSET_CONFIGS_ORPHANS);
+
+        assert!(!pruned.contains("ErToolsetConfigs"), "{pruned}");
+        assert!(!pruned.contains("ErDoubleClickConfig"), "{pruned}");
+        // Cascades to members whose only referrer was the merged object.
+        assert!(!pruned.contains("BrowserCloseTabConfig"), "{pruned}");
+
+        // The toolset keeps its untyped `configs`, which preserves unknown member keys.
+        assert!(pruned.contains("pub configs: Option<serde_json::Value>,"));
+        // Orphans that are not quicktype artifacts stay: `universal/tools.rs` deserializes
+        // into them as typed adapters over the tools' `serde_json::Value` properties.
+        assert!(pruned.contains("pub struct UserLocation {"));
+        assert!(pruned.contains("pub enum UserLocationType {"));
+    }
+
+    #[test]
+    fn anthropic_generated_types_have_no_mis_derived_word_fragment_names() {
+        let error = normalize_anthropic_public_names(TOOLSET_CONFIGS_ORPHANS)
+            .expect_err("a mis-derived fragment name must fail generation");
+        assert!(error.contains("ErToolsetConfigs"), "{error}");
+
+        let pruned = remove_orphaned_quicktype_artifact_types(TOOLSET_CONFIGS_ORPHANS);
+        normalize_anthropic_public_names(&pruned)
+            .expect("pruning the merged config cluster leaves no mis-derived names");
     }
 }
 

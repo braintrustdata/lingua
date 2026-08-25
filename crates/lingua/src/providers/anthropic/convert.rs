@@ -244,7 +244,7 @@ fn anthropic_mid_conv_system_parts(
     parent_provider_options: Option<ProviderOptions>,
 ) -> Result<Vec<UserContentPart>, ConvertError> {
     match content {
-        generated::InputContentBlockContent::PurpleString(text) => {
+        generated::InputContentBlockContent::String(text) => {
             Ok(vec![UserContentPart::Text(TextContentPart {
                 text,
                 encrypted_content: None,
@@ -311,7 +311,7 @@ fn anthropic_system_message_content(
     content: generated::MessageContent,
 ) -> Result<UserContent, ConvertError> {
     match content {
-        generated::MessageContent::PurpleString(text) => Ok(UserContent::String(text)),
+        generated::MessageContent::String(text) => Ok(UserContent::String(text)),
         generated::MessageContent::InputContentBlockArray(blocks) => {
             let mut parts = Vec::new();
             for block in blocks {
@@ -426,7 +426,7 @@ fn normalize_anthropic_tool_schema(
 /// than adapter orchestration code.
 pub(crate) fn system_to_user_content(system: generated::System) -> UserContent {
     match system {
-        generated::System::PurpleString(text) => UserContent::String(text),
+        generated::System::String(text) => UserContent::String(text),
         generated::System::RequestTextBlockArray(blocks) => UserContent::Array(
             blocks
                 .into_iter()
@@ -484,10 +484,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         (block.tool_use_id, block.content)
                                     {
                                         let output = match content {
-                                            generated::InputContentBlockContent::PurpleString(
-                                                s,
-                                            ) => serde_json::from_str(&s)
-                                                .unwrap_or(serde_json::Value::String(s)),
+                                            generated::InputContentBlockContent::String(s) => {
+                                                serde_json::from_str(&s)
+                                                    .unwrap_or(serde_json::Value::String(s))
+                                            }
                                             generated::InputContentBlockContent::BlockArray(
                                                 blocks,
                                             ) => serde_json::to_value(blocks).map_err(|e| {
@@ -550,7 +550,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
             }),
             generated::MessageRole::User => {
                 let content = match input_msg.content {
-                    generated::MessageContent::PurpleString(text) => UserContent::String(text),
+                    generated::MessageContent::String(text) => UserContent::String(text),
                     generated::MessageContent::InputContentBlockArray(blocks) => {
                         let mut content_parts = Vec::new();
 
@@ -699,7 +699,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
             }
             generated::MessageRole::Assistant => {
                 let content = match input_msg.content {
-                    generated::MessageContent::PurpleString(text) => AssistantContent::String(text),
+                    generated::MessageContent::String(text) => AssistantContent::String(text),
                     generated::MessageContent::InputContentBlockArray(blocks) => {
                         let mut content_parts = Vec::new();
 
@@ -871,7 +871,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
         match msg {
             Message::User { content } => {
                 let anthropic_content = match content {
-                    UserContent::String(text) => generated::MessageContent::PurpleString(text),
+                    UserContent::String(text) => generated::MessageContent::String(text),
                     UserContent::Array(parts) => {
                         for part in &parts {
                             let UserContentPart::File {
@@ -919,6 +919,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Text,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content: None,
@@ -929,6 +930,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -964,6 +966,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     text: Some(text),
                                                                     input_content_block_type: generated::InputContentBlockType::Text,
                                                                     source: None,
+                                                                    transformations: None,
                                                                     context: None,
                                                                     title: None,
                                                                     content: None,
@@ -974,6 +977,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                                     id: None,
                                                                     input: None,
                                                                     name: None,
+                                                                    toolset_name: None,
                                                                     is_error: None,
                                                                     tool_use_id: None,
                                                                     file_id: None,
@@ -1043,9 +1047,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     media_type: anthropic_media_type,
                                                     source_type,
                                                     url: source_url,
+                                                    file_id: None,
                                                     content: None,
                                                 },
                                             )),
+                                            transformations: None,
                                             context: None,
                                             title: None,
                                             content: None,
@@ -1056,6 +1062,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             id: None,
                                             input: None,
                                             name: None,
+                                            toolset_name: None,
                                             is_error: None,
                                             tool_use_id: None,
                                             file_id: None,
@@ -1128,9 +1135,11 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     generated::Base64ImageSourceType::Text
                                                 },
                                                 url: if is_url { Some(data_str) } else { None },
+                                                file_id: None,
                                                 content: None,
                                             },
                                         )),
+                                        transformations: None,
                                         context,
                                         title,
                                         content: None,
@@ -1141,6 +1150,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -1159,7 +1169,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
             }
             Message::Assistant { content, .. } => {
                 let content = match content {
-                    AssistantContent::String(text) => generated::MessageContent::PurpleString(text),
+                    AssistantContent::String(text) => generated::MessageContent::String(text),
                     AssistantContent::Array(parts) => {
                         let mut blocks = Vec::new();
                         for part in parts {
@@ -1179,6 +1189,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Text,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content: None,
@@ -1189,6 +1200,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -1204,6 +1216,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     input_content_block_type:
                                         generated::InputContentBlockType::Thinking,
                                     source: None,
+                                    transformations: None,
                                     context: None,
                                     title: None,
                                     content: None,
@@ -1215,6 +1228,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     id: None,
                                     input: None,
                                     name: None,
+                                    toolset_name: None,
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
@@ -1250,6 +1264,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     text: None,
                                     input_content_block_type: block_type,
                                     source: None,
+                                    transformations: None,
                                     context: None,
                                     title: None,
                                     content: None,
@@ -1260,6 +1275,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     id: Some(tool_call_id.clone()),
                                     input: input_map,
                                     name: Some(tool_name.clone()),
+                                    toolset_name: None,
                                     is_error: None,
                                     tool_use_id: None,
                                     file_id: None,
@@ -1278,6 +1294,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ServerToolUse,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content: None,
@@ -1293,6 +1310,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 name: Some(tool_discovery::tool_search_name(
                                     &discovery_tool_name,
                                 )),
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: None,
                                 file_id: None,
@@ -1321,6 +1339,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::WebSearchToolResult,
                                         source: None,
+                                        transformations: None,
                                         context: None,
                                         title: None,
                                         content,
@@ -1331,6 +1350,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         is_error: None,
                                         tool_use_id: Some(tool_call_id.clone()),
                                         file_id: None,
@@ -1362,9 +1382,9 @@ impl TryFromLLM<Message> for generated::InputMessage {
                         ToolContentPart::ToolResult(tool_result) => {
                             let content = match &tool_result.output {
                                 serde_json::Value::String(s) => {
-                                    Some(generated::InputContentBlockContent::PurpleString(s.clone()))
+                                    Some(generated::InputContentBlockContent::String(s.clone()))
                                 }
-                                other => Some(generated::InputContentBlockContent::PurpleString(
+                                other => Some(generated::InputContentBlockContent::String(
                                     serde_json::to_string(other)
                                         .map_err(|e| ConvertError::JsonSerializationFailed {
                                             field: "tool_result_output".to_string(),
@@ -1380,6 +1400,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ToolResult,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content,
@@ -1390,6 +1411,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: Some(tool_result.tool_call_id),
                                 file_id: None,
@@ -1403,6 +1425,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 input_content_block_type:
                                     generated::InputContentBlockType::ToolSearchToolResult,
                                 source: None,
+                                transformations: None,
                                 context: None,
                                 title: None,
                                 content: Some(tool_discovery::input_result_content(
@@ -1415,6 +1438,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 is_error: None,
                                 tool_use_id: Some(tool_discovery::tool_search_call_id(
                                     &discovery_result.tool_call_id,
@@ -1502,6 +1526,7 @@ fn text_input_content_block(text: String) -> generated::InputContentBlock {
         text: Some(text),
         input_content_block_type: generated::InputContentBlockType::Text,
         source: None,
+        transformations: None,
         context: None,
         title: None,
         content: None,
@@ -1512,6 +1537,7 @@ fn text_input_content_block(text: String) -> generated::InputContentBlock {
         id: None,
         input: None,
         name: None,
+        toolset_name: None,
         is_error: None,
         tool_use_id: None,
         file_id: None,
@@ -1522,7 +1548,7 @@ fn input_message_content_blocks(
     content: generated::MessageContent,
 ) -> Vec<generated::InputContentBlock> {
     match content {
-        generated::MessageContent::PurpleString(text) => vec![text_input_content_block(text)],
+        generated::MessageContent::String(text) => vec![text_input_content_block(text)],
         generated::MessageContent::InputContentBlockArray(blocks) => blocks,
     }
 }
@@ -1537,13 +1563,13 @@ fn try_merge_adjacent_user_tool_result_message(
     }
 
     let previous_is_pure_tool_result = match &previous.content {
-        generated::MessageContent::PurpleString(_) => false,
+        generated::MessageContent::String(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty() && blocks.iter().all(input_content_block_is_tool_result)
         }
     };
     let current_is_pure_non_tool_result = match &current.content {
-        generated::MessageContent::PurpleString(_) => true,
+        generated::MessageContent::String(_) => true,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty()
                 && blocks
@@ -1560,7 +1586,7 @@ fn try_merge_adjacent_user_tool_result_message(
 
     let previous_content = std::mem::replace(
         &mut previous.content,
-        generated::MessageContent::PurpleString(String::new()),
+        generated::MessageContent::String(String::new()),
     );
     let mut blocks = input_message_content_blocks(previous_content);
     blocks.extend(input_message_content_blocks(current.content));
@@ -1570,7 +1596,7 @@ fn try_merge_adjacent_user_tool_result_message(
 
 fn input_message_has_tool_search_result(message: &generated::InputMessage) -> bool {
     match &message.content {
-        generated::MessageContent::PurpleString(_) => false,
+        generated::MessageContent::String(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => blocks.iter().any(|block| {
             block.input_content_block_type == generated::InputContentBlockType::ToolSearchToolResult
         }),
@@ -1579,7 +1605,7 @@ fn input_message_has_tool_search_result(message: &generated::InputMessage) -> bo
 
 fn input_message_is_pure_tool_search_result(message: &generated::InputMessage) -> bool {
     match &message.content {
-        generated::MessageContent::PurpleString(_) => false,
+        generated::MessageContent::String(_) => false,
         generated::MessageContent::InputContentBlockArray(blocks) => {
             !blocks.is_empty()
                 && blocks.iter().all(|block| {
@@ -1596,7 +1622,7 @@ fn input_message_tool_search_result_ids(message: &generated::InputMessage) -> Op
     }
 
     match &message.content {
-        generated::MessageContent::PurpleString(_) => None,
+        generated::MessageContent::String(_) => None,
         generated::MessageContent::InputContentBlockArray(blocks) => Some(
             blocks
                 .iter()
@@ -1608,7 +1634,7 @@ fn input_message_tool_search_result_ids(message: &generated::InputMessage) -> Op
 
 fn input_message_tool_search_call_ids(message: &generated::InputMessage) -> Vec<String> {
     match &message.content {
-        generated::MessageContent::PurpleString(_) => Vec::new(),
+        generated::MessageContent::String(_) => Vec::new(),
         generated::MessageContent::InputContentBlockArray(blocks) => blocks
             .iter()
             .filter_map(|block| {
@@ -1672,7 +1698,7 @@ fn try_merge_adjacent_assistant_tool_discovery_message(
 
     let previous_content = std::mem::replace(
         &mut previous.content,
-        generated::MessageContent::PurpleString(String::new()),
+        generated::MessageContent::String(String::new()),
     );
     let mut blocks = input_message_content_blocks(previous_content);
     blocks.extend(input_message_content_blocks(current.content));
@@ -2093,6 +2119,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                             id: None,
                             input: None,
                             name: None,
+                            toolset_name: None,
                             content: None,
                             tool_use_id: None,
                             file_id: None,
@@ -2116,6 +2143,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2137,6 +2165,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: None,
                                         input: None,
                                         name: None,
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2179,6 +2208,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         id: Some(tool_call_id.clone()),
                                         input: input_map,
                                         name: Some(tool_name.clone()),
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2210,6 +2240,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                         name: Some(tool_discovery::tool_search_name(
                                             &discovery_tool_name,
                                         )),
+                                        toolset_name: None,
                                         content: None,
                                         tool_use_id: None,
                                         file_id: None,
@@ -2248,6 +2279,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                             id: None,
                                             input: None,
                                             name: None,
+                                            toolset_name: None,
                                             content,
                                             tool_use_id: Some(tool_call_id.clone()),
                                             file_id: None,
@@ -2278,6 +2310,7 @@ impl TryFromLLM<Vec<Message>> for Vec<generated::ContentBlock> {
                                 id: None,
                                 input: None,
                                 name: None,
+                                toolset_name: None,
                                 content: Some(tool_discovery::response_result_content(
                                     discovery_result.tools,
                                 )?),
@@ -2804,7 +2837,7 @@ mod tests {
         }
         assert_eq!(input_messages[1].role, generated::MessageRole::User);
         match &input_messages[1].content {
-            generated::MessageContent::PurpleString(text) => assert_eq!(text, "second"),
+            generated::MessageContent::String(text) => assert_eq!(text, "second"),
             other => panic!("expected second user turn to remain separate, got {other:?}"),
         }
     }
@@ -2832,7 +2865,7 @@ mod tests {
 
         assert_eq!(input_messages.len(), 2);
         match &input_messages[0].content {
-            generated::MessageContent::PurpleString(text) => assert_eq!(text, "before"),
+            generated::MessageContent::String(text) => assert_eq!(text, "before"),
             other => panic!("expected first user turn to remain separate, got {other:?}"),
         }
         match &input_messages[1].content {
@@ -3579,8 +3612,10 @@ mod tests {
                         media_type: None,
                         source_type: generated::Base64ImageSourceType::Url,
                         url: Some("https://example.com/report.pdf".to_string()),
+                        file_id: None,
                         content: None,
                     })),
+                    transformations: None,
                     context: None,
                     title: Some("Doc".to_string()),
                     content: None,
@@ -3591,6 +3626,7 @@ mod tests {
                     id: None,
                     input: None,
                     name: None,
+                    toolset_name: None,
                     is_error: None,
                     tool_use_id: None,
                     file_id: None,
@@ -3806,5 +3842,159 @@ mod tests {
         let err = CustomTool::try_from(&tool).expect_err("null type should fail");
         assert!(matches!(err, ConvertError::InvalidToolSchema { .. }));
         assert!(err.to_string().contains("root type is required"));
+    }
+
+    /// A browser toolset entry carrying every field the spec defines for it.
+    fn browser_toolset_json() -> Value {
+        json!({
+            "type": "browser_toolset_20260801",
+            "allowed_callers": ["direct", "code_execution_20260521"],
+            "cache_control": { "type": "ephemeral" },
+            "configs": {
+                "navigate": { "enabled": true, "defer_loading": false },
+                "javascript_exec": { "enabled": false },
+            },
+        })
+    }
+
+    fn computer_toolset_json() -> Value {
+        json!({
+            "type": "computer_toolset_20260801",
+            "allowed_callers": ["direct"],
+            "configs": {
+                "screenshot": { "enabled": true },
+                "cursor_position": { "enabled": false },
+            },
+        })
+    }
+
+    #[test]
+    fn test_browser_computer_toolsets_deserialize_and_roundtrip() {
+        // The spec added browser_toolset_20260801 / computer_toolset_20260801. They are
+        // handled by the generic builtin passthrough, so what needs proving is that the
+        // tagged variants are matched rather than falling through to untagged Custom, and
+        // that a universal round trip reproduces the identical variant.
+        for (json, expected_type) in [
+            (browser_toolset_json(), "browser_toolset_20260801"),
+            (computer_toolset_json(), "computer_toolset_20260801"),
+        ] {
+            let tool: Tool = crate::serde_json::from_value(json.clone())
+                .unwrap_or_else(|e| panic!("{expected_type} must deserialize into Tool: {e}"));
+            match (&tool, expected_type) {
+                (Tool::BrowserToolset20260801(_), "browser_toolset_20260801")
+                | (Tool::ComputerToolset20260801(_), "computer_toolset_20260801") => {}
+                (other, _) => {
+                    panic!("{expected_type} deserialized as the wrong variant: {other:?}")
+                }
+            }
+
+            let universal = UniversalTool::from(&tool);
+            match &universal.tool_type {
+                UniversalToolType::Builtin {
+                    provider,
+                    builtin_type,
+                    ..
+                } => {
+                    assert_eq!(builtin_type, expected_type);
+                    assert_eq!(*provider, BuiltinToolProvider::Anthropic);
+                }
+                other => panic!("expected builtin tool type for {expected_type}, got {other:?}"),
+            }
+
+            let roundtripped = Tool::try_from(&universal)
+                .unwrap_or_else(|e| panic!("{expected_type} must convert back to Tool: {e}"));
+            assert_eq!(
+                tool, roundtripped,
+                "roundtrip must preserve the {expected_type} tool variant"
+            );
+        }
+    }
+
+    #[test]
+    fn test_browser_toolset_configs_survive_universal_builtin_passthrough() {
+        let json = browser_toolset_json();
+        let tool: Tool =
+            crate::serde_json::from_value(json.clone()).expect("valid browser toolset");
+
+        let universal = UniversalTool::from(&tool);
+        let UniversalToolType::Builtin { config, .. } = &universal.tool_type else {
+            panic!("browser toolset must import as a builtin tool");
+        };
+
+        // The whole provider tool JSON travels as the builtin config, including the nested
+        // per-member configs object and the allowed_callers / cache_control siblings.
+        let config = config.as_ref().expect("builtin config must be populated");
+        assert_eq!(config["configs"]["navigate"]["enabled"], json!(true));
+        assert_eq!(config["configs"]["navigate"]["defer_loading"], json!(false));
+        assert_eq!(
+            config["configs"]["javascript_exec"]["enabled"],
+            json!(false)
+        );
+        assert_eq!(config["allowed_callers"], json["allowed_callers"]);
+        assert_eq!(config["cache_control"]["type"], json!("ephemeral"));
+    }
+
+    #[test]
+    fn test_browser_toolset_configs_round_trip_is_non_lossy() {
+        // `configs` is generated as untyped provider JSON rather than bound to quicktype's
+        // merged toolset-configs struct, so re-exporting must reproduce the request byte for
+        // byte instead of narrowing it to a known member set.
+        for json in [browser_toolset_json(), computer_toolset_json()] {
+            let tool: Tool = crate::serde_json::from_value(json.clone()).expect("valid toolset");
+            let universal = UniversalTool::from(&tool);
+            let exported = Tool::try_from(&universal).expect("toolset must re-export");
+
+            assert_eq!(
+                crate::serde_json::to_value(&exported).expect("toolset serializes"),
+                json
+            );
+        }
+    }
+
+    #[test]
+    fn test_toolset_configs_unknown_member_keys_are_preserved_or_rejected_explicitly() {
+        // A member key this build does not know about must not be silently dropped: the
+        // untyped configs field carries it through the universal layer unchanged.
+        let json = json!({
+            "type": "browser_toolset_20260801",
+            "configs": { "member_added_after_this_build": { "enabled": true } },
+        });
+
+        let tool: Tool = crate::serde_json::from_value(json.clone())
+            .expect("an unknown member key must still deserialize");
+        let universal = UniversalTool::from(&tool);
+        let exported = Tool::try_from(&universal).expect("toolset must re-export");
+
+        assert_eq!(
+            crate::serde_json::to_value(&exported).expect("toolset serializes"),
+            json,
+            "unknown toolset member keys must survive the universal round trip"
+        );
+    }
+
+    #[test]
+    fn test_new_toolsets_error_as_unsupported_on_chat_completions_target() {
+        // Matching bash_20250124 and computer_20250124: dated Anthropic server tools have no
+        // Chat Completions or Responses equivalent and must fail loudly, not degrade.
+        for json in [browser_toolset_json(), computer_toolset_json()] {
+            let tool: Tool = crate::serde_json::from_value(json).expect("valid toolset");
+            let universal = UniversalTool::from(&tool);
+
+            let chat_error = universal
+                .to_openai_chat_value()
+                .expect_err("toolsets have no Chat Completions equivalent");
+            assert!(
+                matches!(chat_error, ConvertError::UnsupportedToolType { .. }),
+                "expected UnsupportedToolType, got {chat_error:?}"
+            );
+
+            let responses_error = universal
+                .to_responses_value()
+                .expect_err("toolsets have no Responses equivalent");
+            assert!(
+                matches!(responses_error, ConvertError::UnsupportedToolType { .. }),
+                "expected UnsupportedToolType, got {responses_error:?}"
+            );
+        }
     }
 }

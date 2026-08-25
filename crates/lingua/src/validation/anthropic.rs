@@ -142,7 +142,9 @@ mod tests {
     fn test_validate_anthropic_request_rejects_invalid_known_fields() {
         for (field, value) in [
             ("cache_control", r#""bad""#),
-            ("container", r#"{"id":"container_123"}"#),
+            // `container` accepts `string | ContainerParams | null`, so an object with a
+            // non-string `id` matches neither arm.
+            ("container", r#"{"id":5}"#),
             ("inference_geo", r#"{"region":"us"}"#),
             ("service_tier", r#""priority""#),
         ] {
@@ -164,6 +166,51 @@ mod tests {
             let result = validate_anthropic_request(&json);
             assert!(result.is_err(), "field should be typed: {field}");
         }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_container_string_and_params() {
+        for value in [
+            r#""container_123""#,
+            r#"{"id":"container_123"}"#,
+            r#"{"skills":[{"skill_id":"pdf","type":"anthropic","version":"latest"}]}"#,
+        ] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-3-5-sonnet-20241022",
+                    "messages": [
+                        {{
+                            "role": "user",
+                            "content": "Hello"
+                        }}
+                    ],
+                    "max_tokens": 1024,
+                    "container": {}
+                }}"#,
+                value
+            );
+
+            let result = validate_anthropic_request(&json);
+            assert!(result.is_ok(), "container should be accepted: {value}");
+        }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_rejects_container_skill_without_type() {
+        let json = r#"{
+            "model": "claude-3-5-sonnet-20241022",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Hello"
+                }
+            ],
+            "max_tokens": 1024,
+            "container": {"skills": [{"skill_id": "pdf"}]}
+        }"#;
+
+        let result = validate_anthropic_request(json);
+        assert!(result.is_err());
     }
 
     #[test]

@@ -444,11 +444,20 @@ fn schema_name_to_variant(schema_name: &str) -> String {
 
     if let Some(idx) = schema_name.rfind('_') {
         let version = &schema_name[idx + 1..];
-        let name_part = schema_name[..idx].replace("Tool", "");
+        let name_part = strip_tool_suffix(&schema_name[..idx]);
         return format!("{}{}", name_part, version);
     }
 
-    schema_name.replace("Tool", "")
+    strip_tool_suffix(schema_name).to_string()
+}
+
+/// Drop the redundant trailing `Tool` from a tool schema name (`BashTool` -> `Bash`).
+///
+/// Only a suffix is stripped: removing every occurrence would mangle names that merely
+/// contain the word, turning `BrowserToolset_20260801` into `Browserset20260801` instead
+/// of `BrowserToolset20260801`.
+fn strip_tool_suffix(name: &str) -> &str {
+    name.strip_suffix("Tool").unwrap_or(name)
 }
 
 fn split_type_definitions(content: &str) -> Vec<(String, String)> {
@@ -568,5 +577,55 @@ mod tests {
             2
         );
         assert!(!generated.contains("pub response_inclusion: Option<String>,"));
+    }
+
+    #[test]
+    fn anthropic_toolset_variant_names_match_their_wire_tag() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r#"{
+                "components": {
+                    "schemas": {
+                        "BashTool_20250124": {
+                            "type": "object",
+                            "properties": {
+                                "name": { "const": "bash", "type": "string" },
+                                "type": { "const": "bash_20250124", "type": "string" }
+                            },
+                            "required": ["name", "type"]
+                        },
+                        "BrowserToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "type": { "const": "browser_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        },
+                        "ComputerToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "type": { "const": "computer_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        }
+                    }
+                }
+            }"#,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        // Only a trailing `Tool` is redundant; `BrowserToolset` must survive intact.
+        assert!(generated.contains(
+            "#[serde(rename = \"browser_toolset_20260801\")]\n    BrowserToolset20260801(BrowserToolset20260801),"
+        ));
+        assert!(generated.contains(
+            "#[serde(rename = \"computer_toolset_20260801\")]\n    ComputerToolset20260801(ComputerToolset20260801),"
+        ));
+        assert!(generated
+            .contains("#[serde(rename = \"bash_20250124\")]\n    Bash20250124(BashTool20250124),"));
+        assert!(!generated.contains("Browserset20260801"), "{generated}");
+        assert!(!generated.contains("Computerset20260801"), "{generated}");
     }
 }
