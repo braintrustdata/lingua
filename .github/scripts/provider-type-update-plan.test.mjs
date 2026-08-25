@@ -5,6 +5,7 @@ import {
   captureCases,
   hasBlockers,
   renderBlockers,
+  renderProviderOnly,
   validatePlan,
   validateVerification,
 } from "./provider-type-update-plan.mjs";
@@ -77,6 +78,57 @@ function validPlan() {
   };
 }
 
+function providerOnlyPlan() {
+  const plan = validPlan();
+  const change = plan.changes[0];
+  change.id = "browser-toolset";
+  change.source = {
+    path: "specification.json",
+    symbol: "BrowserToolset20260801",
+    summary: "Adds a provider-defined browser harness toolset.",
+  };
+  change.root_cause =
+    "The provider added a harness protocol that the caller executes.";
+  change.expected_behavior =
+    "Native requests validate and pass through byte-for-byte; cross-provider transforms reject the toolset explicitly.";
+  change.expected_diff_impact =
+    "Generated bindings and focused native passthrough tests change; cross-provider snapshots do not.";
+  change.generated_type_effect = status("affected");
+  change.surfaces = {
+    model_capabilities: status(),
+    request_import: status("affected"),
+    request_export: status("not_applicable"),
+    response_import: status("not_applicable"),
+    response_export: status("not_applicable"),
+    streaming: status("not_applicable"),
+    universal_semantics: status("not_applicable"),
+    cross_provider: status("affected"),
+  };
+  change.mapping = {
+    decision: "provider_only",
+    rationale:
+      "Browser execution and state belong to the provider-defined harness, not the portable universal model.",
+  };
+  change.implementation_targets = [
+    "crates/generate-types/src/main.rs",
+    "crates/lingua/src/providers/anthropic/convert.rs",
+  ];
+  change.tests = {
+    unit: [
+      "browser_toolset_native_request_is_passthrough",
+      "browser_toolset_cross_provider_transform_is_rejected",
+    ],
+    payload_cases: [],
+    live_capture: {
+      required: false,
+      rationale:
+        "Provider-only harness features use offline native passthrough and rejection tests.",
+    },
+    commands: ["cargo test -p lingua anthropic"],
+  };
+  return plan;
+}
+
 test("accepts a complete plan and extracts unique capture cases", () => {
   const plan = validPlan();
   assert.deepEqual(validatePlan(plan, "anthropic"), []);
@@ -111,6 +163,108 @@ test("accepts a grouped non-semantic update without plan items", () => {
 
   assert.deepEqual(validatePlan(plan, "anthropic"), []);
   assert.deepEqual(captureCases(plan), []);
+});
+
+test("accepts provider-only harness changes without a human blocker", () => {
+  const plan = providerOnlyPlan();
+
+  assert.deepEqual(validatePlan(plan, "anthropic"), []);
+  assert.equal(hasBlockers(plan), false);
+  assert.deepEqual(captureCases(plan), []);
+});
+
+test("provider-only changes cannot affect universal semantics", () => {
+  const plan = providerOnlyPlan();
+  plan.changes[0].surfaces.universal_semantics = status("affected");
+  plan.changes[0].implementation_targets.push(
+    "crates/lingua/src/universal/message.rs"
+  );
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /provider_only.*universal_semantics.*not_applicable/
+  );
+});
+
+test("provider-only changes require explicit cross-provider rejection", () => {
+  const plan = providerOnlyPlan();
+  plan.changes[0].surfaces.cross_provider = status("not_affected");
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /provider_only.*cross_provider.*affected/
+  );
+});
+
+test("provider-only changes require focused native and rejection tests", () => {
+  const plan = providerOnlyPlan();
+  plan.changes[0].tests.unit = [];
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /provider_only.*focused unit tests/
+  );
+});
+
+test("provider-only changes do not schedule payload or live captures", () => {
+  const plan = providerOnlyPlan();
+  plan.changes[0].tests.payload_cases = ["anthropicBrowserToolsetParam"];
+  plan.changes[0].tests.live_capture = {
+    required: true,
+    cases: ["anthropicBrowserToolsetParam"],
+    rationale: "Exercise the provider endpoint.",
+  };
+
+  const errors = validatePlan(plan, "anthropic").join("\n");
+  assert.match(errors, /provider_only.*payload_cases.*empty/);
+  assert.match(errors, /provider_only.*live_capture.required.*false/);
+  assert.deepEqual(captureCases(plan), []);
+});
+
+test("provider-only changes cannot target universal, expected-difference, or payload files", () => {
+  for (const target of [
+    "crates/lingua/src/universal/message.rs",
+    "crates/coverage-report/src/requests_expected_differences.json",
+    "payloads/cases/params.ts",
+  ]) {
+    const plan = providerOnlyPlan();
+    plan.changes[0].implementation_targets.push(target);
+
+    assert.match(
+      validatePlan(plan, "anthropic").join("\n"),
+      /provider_only.*must not target universal types, expected-difference files, or payload artifacts/
+    );
+  }
+});
+
+test("provider-only changes cannot be reported as human blockers", () => {
+  const plan = providerOnlyPlan();
+  plan.blockers = [
+    {
+      change_id: "browser-toolset",
+      question: "What universal browser representation should be added?",
+      evidence: "No universal browser type exists.",
+      recommendation: "Add a universal browser type.",
+      alternatives: ["Reject the feature."],
+      affected_files: ["crates/lingua/src/universal/message.rs"],
+      validation_commands: ["cargo test -p lingua anthropic"],
+    },
+  ];
+
+  assert.match(
+    validatePlan(plan, "anthropic").join("\n"),
+    /provider_only.*must not be listed as a human blocker/
+  );
+});
+
+test("renders provider-only scope decisions for the PR body", () => {
+  const markdown = renderProviderOnly(providerOnlyPlan());
+
+  assert.match(markdown, /## Provider-only changes/);
+  assert.match(markdown, /BrowserToolset20260801/);
+  assert.match(markdown, /pass through byte-for-byte/);
+  assert.match(markdown, /cross-provider transforms reject/);
+  assert.match(markdown, /provider-defined harness/);
 });
 
 test("requires evidence for an empty semantic change list", () => {

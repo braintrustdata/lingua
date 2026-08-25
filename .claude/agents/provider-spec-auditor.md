@@ -25,6 +25,11 @@ For each semantic change group, report:
 - evidence with file paths and symbols
 - uncertainty or blockers
 
+Flag groups that appear to require provider-owned execution or
+provider-defined harness state so the semantic auditor can classify them as
+provider-only. Do not treat their lack of a universal representation as a
+blocker by itself.
+
 Also report grouped non-semantic churn with enough evidence for the parent to
 exclude it from the plan. Do not propose direct edits to `generated.rs`. Keep
 the complete report under 2,500 words.

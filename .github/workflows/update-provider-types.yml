@@ -386,10 +386,27 @@ jobs:
             `scripts/**`, `Makefile`, or `AGENTS.md` in implementation targets.
             Provider type generation fixes belong in `crates/generate-types`.
 
-            Treat any provider semantic without a non-lossy universal
-            representation as blocked and ask for a canonical representation
-            decision. Never plan a `provider_options` marker or other opaque
-            round-trip-only field. Audit generated public type names for upstream
+            Classify provider-hosted execution and provider-defined harness protocols
+            as `provider_only`. This includes hosted code execution, browser or
+            computer control, provider-defined toolsets and result blocks, hosted
+            search or retrieval, containers and skills, MCP or connector state,
+            provider-scoped file handles, and encrypted continuation state.
+            Generic caller-defined function tools remain candidates for portable mapping;
+            provider-specific `tool_use` wire syntax alone does not make them
+            provider-only.
+
+            A `provider_only` item is unblocked. Plan generated/native wire
+            acceptance, format detection, byte-preserving same-format passthrough,
+            and an explicit unsupported error for cross-provider transformation.
+            Set `universal_semantics` to `not_applicable` and `cross_provider` to
+            `affected`. Use focused offline unit tests and leave payload cases and
+            live capture cases empty. Do not target universal types or
+            expected-difference files.
+
+            Treat a semantic as blocked only when portable mapping is intended but
+            its non-lossy universal representation is unclear. Never plan a
+            `provider_options` marker or other opaque round-trip-only field. Audit
+            generated public type names for upstream
             naming collisions and internal prefixes; do not accept a prefixed
             fallback such as `V1Main...` as a compatibility solution.
             Separate deterministic generator and public-name compatibility work
@@ -490,8 +507,9 @@ jobs:
             Invoke the `provider-type-update` skill and follow its implementation
             phase. Read and implement the validated plan in `plan.md`.
 
-            Implement every unblocked plan item, including focused tests and
-            payload cases. Treat every change id listed in `plan.md`'s
+            Implement every unblocked plan item, including focused tests and any
+            payload cases required by the plan. Provider-only items use focused
+            unit tests and have no payload cases. Treat every change id listed in `plan.md`'s
             `blockers` array as out of scope: do not implement it, add a fixture
             for it, or invent a workaround. Do not edit `plan.md`, `AGENTS.md`, or any
             `generated.rs` file directly,
@@ -505,6 +523,13 @@ jobs:
             Public-name normalization and collision repairs are deterministic
             generator work and must be completed through their separate unblocked
             plan items without implementing any blocked semantic mapping.
+
+            For every `provider_only` item:
+            - preserve complete native wire acceptance in generated types and validation;
+            - add focused tests for byte-preserving same-format passthrough;
+            - reject cross-provider transformation with an explicit unsupported error.
+            Do not add universal fields, cross-provider mappings, expected-difference entries,
+            payload cases, or live captures for `provider_only` items.
 
             If you change `crates/generate-types`, run
             `make generate-provider-types PROVIDER=${{ matrix.provider }}` so the
@@ -706,6 +731,12 @@ jobs:
             unblocked implementation work. Every change id in the plan's
             `blockers` array remains out of scope; do not implement it or invent
             a workaround.
+
+            Preserve the plan's provider-only boundary during repair. A
+            `provider_only` item may change generated/native provider code and
+            focused unit tests only; do not repair it by adding universal fields,
+            cross-provider mappings, expected differences, payload cases, or live
+            captures.
 
             Initial validation outcomes:
             - Rust provider regeneration: `${{ steps.post_implementation_provider_types.outcome }}`
@@ -1098,6 +1129,11 @@ jobs:
             Treat any new `provider_options` round-trip marker, opaque replay-only
             field, generated public-name collision, or leaked internal prefix such
             as `V1Main...` as blocking even if compilation succeeds.
+            For every `provider_only` plan item, verify native wire acceptance,
+            byte-preserving same-format passthrough, and explicit cross-provider rejection.
+            Treat any universal-model expansion or expected-difference entry for a
+            `provider_only` item as blocking. Also fail verification if such an
+            item added a payload case, transform snapshot, or live capture.
             If the validated plan has human blockers, verify that every blocked
             change was left untouched and include those unresolved decisions as
             blocking findings with a `fail` verdict. That is the expected report
@@ -1287,6 +1323,14 @@ jobs:
                 echo "Human blocker details are available in the archived plan artifact."
               echo
               echo
+            fi
+            if [ "${{ steps.plan_validation.outcome }}" = "success" ]; then
+              provider_only_markdown=$(node .github/scripts/provider-type-update-plan.mjs render-provider-only \
+                "$RUNNER_TEMP/provider-type-update-plan.json" \
+                "${{ matrix.provider }}")
+              if [ -n "$provider_only_markdown" ]; then
+                printf '%s\n\n' "$provider_only_markdown"
+              fi
             fi
             echo "**Validation**"
             echo

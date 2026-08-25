@@ -75,6 +75,58 @@ test("separates deterministic generated-name fixes from semantic blockers", () =
   );
 });
 
+test("classifies hosted and harness protocols as provider-only", () => {
+  assert.match(
+    workflow,
+    /Classify provider-hosted execution and provider-defined harness protocols[\s\S]*`provider_only`/
+  );
+  assert.match(
+    workflow,
+    /Generic caller-defined function tools remain candidates for portable mapping/
+  );
+  assert.match(
+    providerUpdateSkill,
+    /Provider-only boundary[\s\S]*code execution[\s\S]*same-format passthrough/
+  );
+  assert.match(
+    providerAuditors[2],
+    /provider-owned execution or\s+provider-defined harness state[\s\S]*provider-only/
+  );
+});
+
+test("implements provider-only changes as passthrough plus rejection", () => {
+  assert.match(
+    workflow,
+    /For every `provider_only` item:[\s\S]*byte-preserving same-format passthrough[\s\S]*explicit unsupported error/
+  );
+  assert.match(
+    workflow,
+    /Do not add universal fields, cross-provider mappings, expected-difference entries,[\s\S]*payload cases, or live captures for `provider_only` items/
+  );
+  assert.match(
+    providerUpdateSkill,
+    /Do not\s+add payload cases or live captures for provider-only items/
+  );
+});
+
+test("verification enforces the provider-only boundary", () => {
+  assert.match(
+    workflow,
+    /For every `provider_only` plan item, verify native wire acceptance,[\s\S]*same-format passthrough[\s\S]*cross-provider rejection/
+  );
+  assert.match(
+    workflow,
+    /Treat any universal-model expansion or expected-difference entry for a[\s\S]*`provider_only` item as blocking/
+  );
+});
+
+test("publishes provider-only scope decisions in the PR body", () => {
+  assert.match(
+    workflow,
+    /provider-type-update-plan\.mjs render-provider-only[\s\S]*provider-type-update-plan\.json/
+  );
+});
+
 test("runs each provider-update Claude phase at most once", () => {
   assert.equal(
     workflow.match(/uses: \.\/\.github\/actions\/claude-code-with-retry/g)

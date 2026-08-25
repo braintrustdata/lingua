@@ -45,6 +45,11 @@ const FORBIDDEN_IMPLEMENTATION_TARGET_FRAGMENTS = [
   "Makefile",
   "AGENTS.md",
 ];
+const PROVIDER_ONLY_FORBIDDEN_TARGET_FRAGMENTS = [
+  "crates/lingua/src/universal/",
+  "expected_differences",
+  "payloads/",
+];
 const VERIFICATION_CHECKS = [
   "plan_coverage",
   "generated_source_integrity",
@@ -174,6 +179,7 @@ export function validatePlan(plan, expectedProvider) {
   }
   const ids = new Set();
   const blockedChangeIds = new Set();
+  const providerOnlyChangeIds = new Set();
   if (Array.isArray(plan.changes)) {
     plan.changes.forEach((change, index) => {
       const path = `$.changes[${index}]`;
@@ -268,6 +274,45 @@ export function validatePlan(plan, expectedProvider) {
         }
       }
 
+      const providerOnly = change.mapping?.decision === "provider_only";
+      if (providerOnly) {
+        providerOnlyChangeIds.add(change.id);
+        push(
+          errors,
+          change.generated_type_effect?.status === "affected",
+          `${path}.generated_type_effect.status`,
+          "provider_only changes must keep generated provider types current"
+        );
+        push(
+          errors,
+          change.surfaces?.universal_semantics?.status === "not_applicable",
+          `${path}.surfaces.universal_semantics.status`,
+          "provider_only changes require universal_semantics to be not_applicable"
+        );
+        push(
+          errors,
+          change.surfaces?.cross_provider?.status === "affected",
+          `${path}.surfaces.cross_provider.status`,
+          "provider_only changes require cross_provider to be affected by explicit rejection"
+        );
+        push(
+          errors,
+          ["request_import", "response_import", "streaming"].some(
+            (surface) => change.surfaces?.[surface]?.status === "affected"
+          ),
+          `${path}.surfaces`,
+          "provider_only changes must mark the relevant import or streaming path affected"
+        );
+        push(
+          errors,
+          !SURFACES.some(
+            (surface) => change.surfaces?.[surface]?.status === "blocked"
+          ),
+          `${path}.surfaces`,
+          "provider_only changes must not create human mapping blockers"
+        );
+      }
+
       const affectedSurfaces = SURFACES.filter(
         (surface) => change.surfaces?.[surface]?.status === "affected"
       );
@@ -293,6 +338,18 @@ export function validatePlan(plan, expectedProvider) {
             !targetsAutomationInfrastructure,
             `${path}.implementation_targets[${targetIndex}]`,
             "must not target shared workflow, pipeline, script, Makefile, or AGENTS.md infrastructure"
+          );
+          const violatesProviderOnlyBoundary =
+            providerOnly &&
+            typeof target === "string" &&
+            PROVIDER_ONLY_FORBIDDEN_TARGET_FRAGMENTS.some((fragment) =>
+              target.includes(fragment)
+            );
+          push(
+            errors,
+            !violatesProviderOnlyBoundary,
+            `${path}.implementation_targets[${targetIndex}]`,
+            "provider_only changes must not target universal types, expected-difference files, or payload artifacts"
           );
         });
       }
@@ -341,10 +398,28 @@ export function validatePlan(plan, expectedProvider) {
         );
         push(
           errors,
-          !payloadAffected || nonEmptyStringArray(change.tests.payload_cases),
+          providerOnly ||
+            !payloadAffected ||
+            nonEmptyStringArray(change.tests.payload_cases),
           `${path}.tests.payload_cases`,
           "must include a payload case when a semantic data path is affected"
         );
+        if (providerOnly) {
+          push(
+            errors,
+            nonEmptyStringArray(change.tests.unit) &&
+              change.tests.unit.length >= 2,
+            `${path}.tests.unit`,
+            "provider_only changes must include focused unit tests for both native passthrough and cross-provider rejection"
+          );
+          push(
+            errors,
+            Array.isArray(change.tests.payload_cases) &&
+              change.tests.payload_cases.length === 0,
+            `${path}.tests.payload_cases`,
+            "provider_only changes require payload_cases to be empty"
+          );
+        }
 
         const live = change.tests.live_capture;
         push(
@@ -379,6 +454,21 @@ export function validatePlan(plan, expectedProvider) {
             `${path}.tests.live_capture.cases`,
             "must contain a case when live capture is required"
           );
+          if (providerOnly) {
+            push(
+              errors,
+              live.required === false,
+              `${path}.tests.live_capture.required`,
+              "provider_only changes require live_capture.required to be false"
+            );
+            push(
+              errors,
+              live.cases === undefined ||
+                (Array.isArray(live.cases) && live.cases.length === 0),
+              `${path}.tests.live_capture.cases`,
+              "provider_only changes must not schedule live capture cases"
+            );
+          }
         }
       }
     });
@@ -402,6 +492,12 @@ export function validatePlan(plan, expectedProvider) {
         ids.has(blocker.change_id),
         `${path}.change_id`,
         "must reference a change id"
+      );
+      push(
+        errors,
+        !providerOnlyChangeIds.has(blocker.change_id),
+        `${path}.change_id`,
+        "provider_only changes must not be listed as a human blocker"
       );
       push(
         errors,
@@ -455,6 +551,7 @@ export function captureCases(plan) {
   );
   for (const change of plan.changes ?? []) {
     if (blockerIds.has(change.id)) continue;
+    if (change.mapping?.decision === "provider_only") continue;
     for (const name of change.tests?.payload_cases ?? []) {
       cases.add(name);
     }
@@ -500,6 +597,29 @@ export function renderBlockers(plan) {
       lines.push(`    - \`${command}\``);
     }
     lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
+}
+
+export function renderProviderOnly(plan) {
+  const changes = (plan.changes ?? []).filter(
+    (change) => change.mapping?.decision === "provider_only"
+  );
+  if (changes.length === 0) return "";
+
+  const lines = [
+    "## Provider-only changes",
+    "",
+    "These native wire features are accepted and passed through unchanged, but cross-provider transformation is intentionally unsupported:",
+    "",
+  ];
+
+  for (const change of changes) {
+    const label = change.source?.symbol ?? change.id;
+    lines.push(`- \`${label}\` (\`${change.id}\`)`);
+    lines.push(`  - **Native contract:** ${change.expected_behavior}`);
+    lines.push(`  - **Scope decision:** ${change.mapping.rationale}`);
   }
 
   return lines.join("\n").trimEnd();
@@ -605,7 +725,7 @@ function main(argv) {
   const [command, path, provider] = argv;
   if (!command || !path) {
     throw new Error(
-      "Usage: provider-type-update-plan.mjs validate|validate-structure|has-blockers|render-blockers|capture-cases|verify|verify-structure|verdict <path> [provider]"
+      "Usage: provider-type-update-plan.mjs validate|validate-structure|has-blockers|render-blockers|render-provider-only|capture-cases|verify|verify-structure|verdict <path> [provider]"
     );
   }
   const value = loadJson(path);
@@ -645,6 +765,16 @@ function main(argv) {
       process.exitCode = 1;
     } else {
       console.log(renderBlockers(value));
+    }
+    return;
+  }
+  if (command === "render-provider-only") {
+    const errors = validatePlan(value, provider);
+    if (errors.length) {
+      printErrors("Plan", errors);
+      process.exitCode = 1;
+    } else {
+      console.log(renderProviderOnly(value));
     }
     return;
   }
