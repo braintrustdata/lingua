@@ -1,0 +1,21 @@
+[
+  {
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_reasoning_before_call",
+        "content": [],
+        "encrypted_content": "encrypted_reasoning_test_value",
+        "summary": []
+      },
+      {
+        "type": "function_call",
+        "id": "fc_weather",
+        "call_id": "call_weather",
+        "name": "get_weather",
+        "arguments": "{\"city\":\"Springfield\"}",
+        "status": "completed"
+      }
+    ]
+  }
+]
