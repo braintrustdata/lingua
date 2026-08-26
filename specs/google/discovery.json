@@ -435,6 +435,7 @@
     "corpora": {
       "methods": {
         "create": {
+          "deprecated": true,
           "description": "Creates an empty `Corpus`.",
           "flatPath": "v1beta/corpora",
           "httpMethod": "POST",
@@ -450,6 +451,7 @@
           }
         },
         "delete": {
+          "deprecated": true,
           "description": "Deletes a `Corpus`.",
           "flatPath": "v1beta/corpora/{corporaId}",
           "httpMethod": "DELETE",
@@ -477,6 +479,7 @@
           }
         },
         "get": {
+          "deprecated": true,
           "description": "Gets information about a specific `Corpus`.",
           "flatPath": "v1beta/corpora/{corporaId}",
           "httpMethod": "GET",
@@ -499,6 +502,7 @@
           }
         },
         "list": {
+          "deprecated": true,
           "description": "Lists all `Corpora` owned by the user.",
           "flatPath": "v1beta/corpora",
           "httpMethod": "GET",
@@ -739,6 +743,91 @@
           },
           "response": {
             "$ref": "GenerateContentResponse"
+          }
+        }
+      }
+    },
+    "environments": {
+      "methods": {
+        "create": {
+          "description": "Creates an environment.",
+          "flatPath": "v1beta/environments:create",
+          "httpMethod": "POST",
+          "id": "generativelanguage.environments.create",
+          "parameterOrder": [],
+          "parameters": {},
+          "path": "v1beta/environments:create",
+          "request": {
+            "$ref": "CreateEnvironmentRequest"
+          },
+          "response": {
+            "$ref": "Environment"
+          }
+        },
+        "delete": {
+          "description": "Deletes an environment.",
+          "flatPath": "v1beta/environments/{id}:delete",
+          "httpMethod": "DELETE",
+          "id": "generativelanguage.environments.delete",
+          "parameterOrder": [
+            "id"
+          ],
+          "parameters": {
+            "id": {
+              "description": "Required. The identifier of the environment to delete.",
+              "location": "path",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1beta/environments/{id}:delete",
+          "response": {
+            "$ref": "Empty"
+          }
+        },
+        "get": {
+          "description": "Gets an environment.",
+          "flatPath": "v1beta/environments/{id}:get",
+          "httpMethod": "GET",
+          "id": "generativelanguage.environments.get",
+          "parameterOrder": [
+            "id"
+          ],
+          "parameters": {
+            "id": {
+              "description": "Required. The identifier of the environment to retrieve.",
+              "location": "path",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1beta/environments/{id}:get",
+          "response": {
+            "$ref": "Environment"
+          }
+        },
+        "list": {
+          "description": "Lists environments.",
+          "flatPath": "v1beta/environments:list",
+          "httpMethod": "GET",
+          "id": "generativelanguage.environments.list",
+          "parameterOrder": [],
+          "parameters": {
+            "pageSize": {
+              "description": "Maximum number of environments to return. If unspecified, defaults to 50. Maximum is 1000.",
+              "format": "int32",
+              "location": "query",
+              "type": "integer"
+            },
+            "pageToken": {
+              "description": "Pagination token.",
+              "location": "query",
+              "type": "string"
+            }
+          },
+          "path": "v1beta/environments:list",
+          "response": {
+            "$ref": "ListEnvironmentsResponse"
           }
         }
       }
@@ -1302,6 +1391,7 @@
           }
         },
         "batchEmbedText": {
+          "deprecated": true,
           "description": "Generates multiple embeddings from the model given input text in a synchronous call.",
           "flatPath": "v1beta/models/{modelsId}:batchEmbedText",
           "httpMethod": "POST",
@@ -1352,6 +1442,7 @@
           }
         },
         "countMessageTokens": {
+          "deprecated": true,
           "description": "Runs a model's tokenizer on a string and returns the token count.",
           "flatPath": "v1beta/models/{modelsId}:countMessageTokens",
           "httpMethod": "POST",
@@ -1377,6 +1468,7 @@
           }
         },
         "countTextTokens": {
+          "deprecated": true,
           "description": "Runs a model's tokenizer on a text and returns the token count.",
           "flatPath": "v1beta/models/{modelsId}:countTextTokens",
           "httpMethod": "POST",
@@ -1452,6 +1544,7 @@
           }
         },
         "embedText": {
+          "deprecated": true,
           "description": "Generates an embedding from the model given an input message.",
           "flatPath": "v1beta/models/{modelsId}:embedText",
           "httpMethod": "POST",
@@ -1477,6 +1570,7 @@
           }
         },
         "generateAnswer": {
+          "deprecated": true,
           "description": "Generates a grounded answer from the model given an input `GenerateAnswerRequest`.",
           "flatPath": "v1beta/models/{modelsId}:generateAnswer",
           "httpMethod": "POST",
@@ -1527,6 +1621,7 @@
           }
         },
         "generateMessage": {
+          "deprecated": true,
           "description": "Generates a response from the model given an input `MessagePrompt`.",
           "flatPath": "v1beta/models/{modelsId}:generateMessage",
           "httpMethod": "POST",
@@ -1552,6 +1647,7 @@
           }
         },
         "generateText": {
+          "deprecated": true,
           "description": "Generates a response from the model given an input message.",
           "flatPath": "v1beta/models/{modelsId}:generateText",
           "httpMethod": "POST",
@@ -1823,6 +1919,7 @@
           }
         },
         "create": {
+          "deprecated": true,
           "description": "Creates a tuned model. Check intermediate tuning progress (if any) through the [google.longrunning.Operations] service. Access status and results through the Operations service. Example: GET /v1/tunedModels/az2mb0bpw6i/operations/000-111-222",
           "flatPath": "v1beta/tunedModels",
           "httpMethod": "POST",
@@ -1844,6 +1941,7 @@
           }
         },
         "delete": {
+          "deprecated": true,
           "description": "Deletes a tuned model.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}",
           "httpMethod": "DELETE",
@@ -1891,6 +1989,7 @@
           }
         },
         "generateText": {
+          "deprecated": true,
           "description": "Generates a response from the model given an input message.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}:generateText",
           "httpMethod": "POST",
@@ -1916,6 +2015,7 @@
           }
         },
         "get": {
+          "deprecated": true,
           "description": "Gets information about a specific TunedModel.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}",
           "httpMethod": "GET",
@@ -1938,6 +2038,7 @@
           }
         },
         "list": {
+          "deprecated": true,
           "description": "Lists created tuned models.",
           "flatPath": "v1beta/tunedModels",
           "httpMethod": "GET",
@@ -1967,6 +2068,7 @@
           }
         },
         "patch": {
+          "deprecated": true,
           "description": "Updates a tuned model.",
           "flatPath": "v1beta/tunedModels/{tunedModelsId}",
           "httpMethod": "PATCH",
@@ -2258,7 +2360,7 @@
       }
     }
   },
-  "revision": "20260717",
+  "revision": "20260823",
   "rootUrl": "https://generativelanguage.googleapis.com/",
   "schemas": {
     "AsyncBatchEmbedContentRequest": {
@@ -2345,19 +2447,58 @@
       "id": "AudioTranscriptionConfig",
       "properties": {
         "adaptationPhrases": {
+          "deprecated": true,
           "description": "Optional. A list of phrases used for speech adaptation, which biases the ASR model to improve recognition of these specific terms.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
+        "customVocabulary": {
+          "description": "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms (product names, proper nouns, jargon).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "diarization": {
+          "description": "Optional. Configures speaker diarization.",
+          "type": "boolean"
+        },
         "languageAuto": {
           "$ref": "LanguageAuto",
+          "deprecated": true,
           "description": "Optional. The model will detect the language automatically."
+        },
+        "languageCodes": {
+          "description": "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "languageHints": {
           "$ref": "LanguageHints",
+          "deprecated": true,
           "description": "Optional. Specifies one or more languages in the audio."
+        },
+        "mode": {
+          "description": "Optional. Configures transcription mode. Supported values: `VERBATIM`, `SMART`. If unspecified, defaults to `VERBATIM` transcription. In `SMART` mode, the model performs disfluency removal (eliminating filler words, repetitions, and false starts), light grammatical cleanup, automatic formatting (paragraphs, bullet points, numbered lists), and minor user edits (inline self-corrections). Timestamps and diarization are incompatible with mode `SMART`.",
+          "enum": [
+            "MODE_UNSPECIFIED",
+            "VERBATIM",
+            "SMART"
+          ],
+          "enumDescriptions": [
+            "Unspecified transcription mode.",
+            "Verbatim transcription mode.",
+            "Smart transcription mode."
+          ],
+          "type": "string"
+        },
+        "wordTimestamp": {
+          "description": "Optional. Configures word-level timestamp generation.",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -3373,6 +3514,36 @@
       },
       "type": "object"
     },
+    "CreateEnvironmentRequest": {
+      "description": "Request for `CreateEnvironment`.",
+      "id": "CreateEnvironmentRequest",
+      "properties": {
+        "networkAllowlist": {
+          "$ref": "EnvironmentNetworkEgressAllowlist",
+          "description": "Allow only specific domains."
+        },
+        "networkMode": {
+          "description": "Network egress mode.",
+          "enum": [
+            "NETWORK_MODE_UNSPECIFIED",
+            "DISABLED"
+          ],
+          "enumDescriptions": [
+            "Default value. Unused.",
+            "All network egress is blocked."
+          ],
+          "type": "string"
+        },
+        "sources": {
+          "description": "Sources to be mounted into the environment.",
+          "items": {
+            "$ref": "Source"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
     "CreateFileRequest": {
       "description": "Request for `CreateFile`.",
       "id": "CreateFileRequest",
@@ -3669,6 +3840,24 @@
             "Run retrieval only when system decides it is necessary."
           ],
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "EgressRule": {
+      "description": "A network egress rule that controls which external domains the environment is allowed to reach. Each rule identifies a target domain and, optionally, a set of HTTP headers to inject into every matching outbound request.",
+      "id": "EgressRule",
+      "properties": {
+        "domain": {
+          "description": "The domain pattern to match for this rule. Use an exact hostname (e.g., `github.com`), a wildcard prefix (e.g., `*.googleapis.com`), or `*` to match all domains.",
+          "type": "string"
+        },
+        "transform": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Headers to inject into requests matching this rule. Key: header name (e.g., \"Authorization\"). Value: header value (e.g., \"Bearer your-token\").",
+          "type": "object"
         }
       },
       "type": "object"
@@ -3996,6 +4185,97 @@
       "description": "A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }",
       "id": "Empty",
       "properties": {},
+      "type": "object"
+    },
+    "Environment": {
+      "description": "An execution environment for an agent.",
+      "id": "Environment",
+      "properties": {
+        "created": {
+          "description": "Output only. The time at which the environment was created in ISO 8601 format (YYYY-MM-DDThh:mm:ssZ).",
+          "readOnly": true,
+          "type": "string"
+        },
+        "fileCount": {
+          "description": "Output only. The number of files in the environment, output only.",
+          "format": "int64",
+          "readOnly": true,
+          "type": "string"
+        },
+        "id": {
+          "description": "Required. Output only. The ID of the environment.",
+          "readOnly": true,
+          "type": "string"
+        },
+        "lastAccessed": {
+          "description": "Output only. The time at which the environment was last accessed in ISO 8601 format (YYYY-MM-DDThh:mm:ssZ).",
+          "readOnly": true,
+          "type": "string"
+        },
+        "networkAllowlist": {
+          "$ref": "EnvironmentNetworkEgressAllowlist",
+          "description": "Allow only specific domains."
+        },
+        "networkMode": {
+          "description": "Network egress mode.",
+          "enum": [
+            "NETWORK_MODE_UNSPECIFIED",
+            "DISABLED"
+          ],
+          "enumDescriptions": [
+            "Default value. Unused.",
+            "All network egress is blocked."
+          ],
+          "type": "string"
+        },
+        "sizeBytes": {
+          "description": "Output only. The total size of the environment files in bytes, output only.",
+          "format": "int64",
+          "readOnly": true,
+          "type": "string"
+        },
+        "sources": {
+          "description": "Sources to be mounted into the environment.",
+          "items": {
+            "$ref": "Source"
+          },
+          "type": "array"
+        },
+        "status": {
+          "description": "Output only. The status of the environment container.",
+          "enum": [
+            "STATUS_UNSPECIFIED",
+            "ACTIVE",
+            "EXPIRED"
+          ],
+          "enumDescriptions": [
+            "",
+            "",
+            ""
+          ],
+          "readOnly": true,
+          "type": "string"
+        },
+        "updated": {
+          "description": "Output only. The time at which the environment was last updated in ISO 8601 format (YYYY-MM-DDThh:mm:ssZ).",
+          "readOnly": true,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "EnvironmentNetworkEgressAllowlist": {
+      "description": "Network egress configuration for the environment.",
+      "id": "EnvironmentNetworkEgressAllowlist",
+      "properties": {
+        "allowlist": {
+          "description": "List of allowed domains and their configurations.",
+          "items": {
+            "$ref": "EgressRule"
+          },
+          "type": "array"
+        }
+      },
       "type": "object"
     },
     "Example": {
@@ -5047,8 +5327,13 @@
       "id": "GenerationConfig",
       "properties": {
         "_responseJsonSchema": {
+          "deprecated": true,
           "description": "Optional. Output schema of the generated response. This is an alternative to `response_schema` that accepts [JSON Schema](https://json-schema.org/). If set, `response_schema` must be omitted, but `response_mime_type` is required. While the full JSON Schema may be sent, not all features are supported. Specifically, only the following properties are supported: - `$id` - `$defs` - `$ref` - `$anchor` - `type` - `format` - `title` - `description` - `enum` (for strings and numbers) - `items` - `prefixItems` - `minItems` - `maxItems` - `minimum` - `maximum` - `anyOf` - `oneOf` (interpreted the same as `anyOf`) - `properties` - `additionalProperties` - `required` The non-standard `propertyOrdering` property may also be set. Cyclic references are unrolled to a limited degree and, as such, may only be used within non-required properties. (Nullable properties are not sufficient.) If `$ref` is set on a sub-schema, no other properties, except for than those starting as a `$`, may be set.",
           "type": "any"
+        },
+        "audioTranscriptionConfig": {
+          "$ref": "AudioTranscriptionConfig",
+          "description": "Optional. Config for audio transcription (speech recognition)."
         },
         "candidateCount": {
           "description": "Optional. Number of generated responses to return. If unset, this will default to 1. Please note that this doesn't work for previous generation models (Gemini 1.0 family)",
@@ -5140,6 +5425,7 @@
         },
         "responseSchema": {
           "$ref": "Schema",
+          "deprecated": true,
           "description": "Optional. Output schema of the generated candidate text. Schemas must be a subset of the [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema) and can be objects, primitives or arrays. If set, a compatible `response_mime_type` must also be set. Compatible MIME types: `application/json`: Schema for JSON response. Refer to the [JSON text generation guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details."
         },
         "seed": {
@@ -5461,6 +5747,33 @@
         "initialHistoryInClientContent": {
           "description": "Optional. If true, after sending `setup_complete`, the server will wait and at first process `client_content` messages until `turn_complete` is `true`. This initial history will not trigger a model call and may end with role `MODEL`. After `turn_complete` is `true`, the client can start the realtime conversation via `realtime_input`.",
           "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "HttpBody": {
+      "description": "Message that represents an arbitrary HTTP body. It should only be used for payload formats that can't be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.",
+      "id": "HttpBody",
+      "properties": {
+        "contentType": {
+          "description": "The HTTP Content-Type header value specifying the content type of the body.",
+          "type": "string"
+        },
+        "data": {
+          "description": "The HTTP request/response body as raw binary.",
+          "format": "byte",
+          "type": "string"
+        },
+        "extensions": {
+          "description": "Application specific response metadata. Must be set in the first response for streaming APIs.",
+          "items": {
+            "additionalProperties": {
+              "description": "Properties of the object. Contains field @type with type URL.",
+              "type": "any"
+            },
+            "type": "object"
+          },
+          "type": "array"
         }
       },
       "type": "object"
@@ -5871,16 +6184,19 @@
       "type": "object"
     },
     "LanguageAuto": {
+      "deprecated": true,
       "description": "Indicates the language of the audio should be automatically detected.",
       "id": "LanguageAuto",
       "properties": {},
       "type": "object"
     },
     "LanguageHints": {
+      "deprecated": true,
       "description": "Provides hints to the model about possible languages present in the audio.",
       "id": "LanguageHints",
       "properties": {
         "languageCodes": {
+          "deprecated": true,
           "description": "Required. BCP-47 language codes.",
           "items": {
             "type": "string"
@@ -5956,6 +6272,24 @@
         },
         "nextPageToken": {
           "description": "A token, which can be sent as `page_token` to retrieve the next page. If this field is omitted, there are no more pages.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ListEnvironmentsResponse": {
+      "description": "Response for `ListEnvironments`.",
+      "id": "ListEnvironmentsResponse",
+      "properties": {
+        "environments": {
+          "description": "Environments belonging to the provided project.",
+          "items": {
+            "$ref": "Environment"
+          },
+          "type": "array"
+        },
+        "nextPageToken": {
+          "description": "Pagination token.",
           "type": "string"
         }
       },
@@ -6493,8 +6827,22 @@
           "$ref": "Blob",
           "description": "Inline media bytes."
         },
+        "mediaProcessing": {
+          "description": "Optional. How the model processes this part's media for understanding. Only meaningful for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore this field.",
+          "enum": [
+            "MEDIA_PROCESSING_UNSPECIFIED",
+            "STATIC",
+            "AGENTIC"
+          ],
+          "enumDescriptions": [
+            "Default. Uses model-specific processing (3.5 Pro+ -> `AGENTIC`, older models -> `STATIC`).",
+            "Fixed-rate frame extraction. All frames placed in context.",
+            "Model-driven dynamic navigation. Recommended for most use cases."
+          ],
+          "type": "string"
+        },
         "mediaResolution": {
-          "$ref": "MediaResolution",
+          "$ref": "V1mainMediaResolution",
           "description": "Optional. Media resolution for the input media."
         },
         "partMetadata": {
@@ -6600,7 +6948,7 @@
       "id": "PrebuiltVoiceConfig",
       "properties": {
         "voiceName": {
-          "description": "The name of the preset voice to use.",
+          "description": "Optional. The name of the preset voice to use.",
           "type": "string"
         }
       },
@@ -7273,6 +7621,44 @@
       },
       "type": "object"
     },
+    "Source": {
+      "description": "A source to be mounted into the environment.",
+      "id": "Source",
+      "properties": {
+        "content": {
+          "description": "The inline content if `type` is `INLINE`.",
+          "type": "string"
+        },
+        "encoding": {
+          "description": "Optional encoding for inline content (e.g. `base64`).",
+          "type": "string"
+        },
+        "source": {
+          "description": "The source of the environment. For Cloud Storage, this is the Cloud Storage path. For GitHub, this is the GitHub path.",
+          "type": "string"
+        },
+        "target": {
+          "description": "Where the source should appear in the environment.",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "TYPE_UNSPECIFIED",
+            "GCS",
+            "INLINE",
+            "REPOSITORY"
+          ],
+          "enumDescriptions": [
+            "",
+            "A Cloud Storage bucket.",
+            "Inline content.",
+            "A generic repository. The protocol prefix in the source URL identifies the provider (e.g., github://, gcs://)."
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "SpeakerVoiceConfig": {
       "description": "The configuration for a single speaker in a multi speaker setup.",
       "id": "SpeakerVoiceConfig",
@@ -7475,7 +7861,7 @@
       "type": "object"
     },
     "Tool": {
-      "description": "Tool details that the model may use to generate response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. Next ID: 16",
+      "description": "Tool details that the model may use to generate response. A `Tool` is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. Next ID: 17",
       "id": "Tool",
       "properties": {
         "codeExecution": {
@@ -7537,6 +7923,10 @@
         },
         "id": {
           "description": "Optional. Unique identifier of the tool call. The server returns the tool response with the matching `id`.",
+          "type": "string"
+        },
+        "toolName": {
+          "description": "Optional. The name of the tool that was called.",
           "type": "string"
         },
         "toolType": {
@@ -8019,6 +8409,95 @@
         "totalTokenCount": {
           "description": "Total token count for the generation request (prompt + thoughts + response candidates).",
           "format": "int32",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "V1mainCreateTunedModelMetadata": {
+      "description": "Metadata about the state and progress of creating a tuned model returned from the long-running operation",
+      "id": "V1mainCreateTunedModelMetadata",
+      "properties": {
+        "completedPercent": {
+          "description": "The completed percentage for the tuning operation.",
+          "format": "float",
+          "type": "number"
+        },
+        "completedSteps": {
+          "description": "The number of steps completed.",
+          "format": "int32",
+          "type": "integer"
+        },
+        "snapshots": {
+          "description": "Metrics collected during tuning.",
+          "items": {
+            "$ref": "V1mainTuningSnapshot"
+          },
+          "type": "array"
+        },
+        "totalSteps": {
+          "description": "The total number of tuning steps.",
+          "format": "int32",
+          "type": "integer"
+        },
+        "tunedModel": {
+          "description": "Name of the tuned model associated with the tuning operation.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "V1mainMediaResolution": {
+      "description": "Media resolution for tokenization.",
+      "id": "V1mainMediaResolution",
+      "properties": {
+        "level": {
+          "description": "The tokenization quality used for given media. for Gemini API support .",
+          "enum": [
+            "MEDIA_RESOLUTION_UNSPECIFIED",
+            "MEDIA_RESOLUTION_LOW",
+            "MEDIA_RESOLUTION_MEDIUM",
+            "MEDIA_RESOLUTION_HIGH",
+            "MEDIA_RESOLUTION_ULTRA_HIGH"
+          ],
+          "enumDescriptions": [
+            "Media resolution has not been set.",
+            "Media resolution set to low.",
+            "Media resolution set to medium.",
+            "Media resolution set to high.",
+            "Media resolution set to ultra high."
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "V1mainTuningSnapshot": {
+      "description": "Record for a single tuning step.",
+      "id": "V1mainTuningSnapshot",
+      "properties": {
+        "computeTime": {
+          "description": "Output only. The timestamp when this metric was computed.",
+          "format": "google-datetime",
+          "readOnly": true,
+          "type": "string"
+        },
+        "epoch": {
+          "description": "Output only. The epoch this step was part of.",
+          "format": "int32",
+          "readOnly": true,
+          "type": "integer"
+        },
+        "meanLoss": {
+          "description": "Output only. The mean loss of the training examples for this step.",
+          "format": "float",
+          "readOnly": true,
+          "type": "number"
+        },
+        "step": {
+          "description": "Output only. The tuning step.",
+          "format": "int32",
+          "readOnly": true,
           "type": "integer"
         }
       },

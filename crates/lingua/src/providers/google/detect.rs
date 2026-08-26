@@ -208,4 +208,79 @@ mod tests {
         let result = try_parse_google(&payload);
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_part_media_resolution_level_ultra_high_parses() {
+        // Part-level mediaResolution is the object-shaped `MediaResolution` schema, whose `Level`
+        // enum carries ULTRA_HIGH. Discovery moved this schema under a version-package-prefixed
+        // id; the wire contract must be unchanged by that retype.
+        let payload = json!({
+            "contents": [{
+                "role": "user",
+                "parts": [{
+                    "text": "Describe this",
+                    "mediaResolution": {"level": "MEDIA_RESOLUTION_ULTRA_HIGH"}
+                }]
+            }]
+        });
+
+        let parsed = try_parse_google(&payload).expect("part mediaResolution must parse");
+        let contents = parsed.contents.clone().expect("contents");
+        let parts = contents[0].parts.clone().expect("parts");
+        let media_resolution = parts[0]
+            .media_resolution
+            .clone()
+            .expect("mediaResolution present");
+        assert_eq!(
+            media_resolution.level,
+            Some(generated::Level::MediaResolutionUltraHigh)
+        );
+
+        let reserialized = serde_json::to_value(&parsed).expect("re-serialize");
+        assert_eq!(reserialized, payload);
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_is_flat_string() {
+        // generationConfig.mediaResolution is a flat enum, not the object-shaped Part-level type.
+        // Naming MediaResolutionEnum here makes a future generated rename a compile-time failure.
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "generationConfig": {"mediaResolution": "MEDIA_RESOLUTION_MEDIUM"}
+        });
+
+        let parsed = try_parse_google(&payload).expect("flat mediaResolution must parse");
+        let generation_config = parsed.generation_config.clone().expect("generationConfig");
+        let media_resolution: Option<generated::MediaResolutionEnum> =
+            generation_config.media_resolution;
+        assert_eq!(
+            media_resolution,
+            Some(generated::MediaResolutionEnum::MediaResolutionMedium)
+        );
+
+        let reserialized = serde_json::to_value(&parsed).expect("re-serialize");
+        assert_eq!(
+            reserialized["generationConfig"]["mediaResolution"],
+            json!("MEDIA_RESOLUTION_MEDIUM")
+        );
+
+        // The Part-level object shape is not accepted here.
+        let object_shaped = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "generationConfig": {"mediaResolution": {"level": "MEDIA_RESOLUTION_MEDIUM"}}
+        });
+        assert!(try_parse_google(&object_shaped).is_err());
+    }
+
+    #[test]
+    fn test_generation_config_media_resolution_rejects_ultra_high() {
+        // Intentional asymmetry: the generationConfig enum has four values while the Part-level
+        // Level enum has five. ULTRA_HIGH is only valid on a Part.
+        let payload = json!({
+            "contents": [{"role": "user", "parts": [{"text": "Hello"}]}],
+            "generationConfig": {"mediaResolution": "MEDIA_RESOLUTION_ULTRA_HIGH"}
+        });
+
+        assert!(try_parse_google(&payload).is_err());
+    }
 }

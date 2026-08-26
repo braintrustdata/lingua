@@ -5,6 +5,7 @@ import type { ExecutableCode } from "./ExecutableCode";
 import type { FileData } from "./FileData";
 import type { FunctionCall } from "./FunctionCall";
 import type { FunctionResponse } from "./FunctionResponse";
+import type { MediaProcessing } from "./MediaProcessing";
 import type { MediaResolution } from "./MediaResolution";
 import type { ToolCall } from "./ToolCall";
 import type { ToolResponse } from "./ToolResponse";
@@ -44,6 +45,12 @@ functionResponse: FunctionResponse | null,
  * Inline media bytes.
  */
 inlineData: Blob | null, 
+/**
+ * Optional. How the model processes this part's media for understanding. Only meaningful
+ * for video parts (`inline_data` or `file_data` with video mime). Non-video parts ignore
+ * this field.
+ */
+mediaProcessing: MediaProcessing | null, 
 /**
  * Optional. Media resolution for the input media.
  */

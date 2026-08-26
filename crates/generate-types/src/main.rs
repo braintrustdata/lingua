@@ -1627,7 +1627,7 @@ fn generate_google_types_with_quicktype(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🏗️  Generating Google types with quicktype...");
 
-    let essential_schemas = create_essential_google_schemas(spec);
+    let essential_schemas = create_essential_google_schemas(spec)?;
 
     let temp_schema_path = std::env::temp_dir().join("google_schemas.json");
     let schema_json =
@@ -1688,7 +1688,45 @@ fn generate_google_types_with_quicktype(
     Ok(())
 }
 
-fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Value {
+/// Prefix Google leaks into some Discovery schema ids from its internal proto package
+/// (`google.ai.generativelanguage.v1main`).
+const GOOGLE_DISCOVERY_INTERNAL_ID_PREFIX: &str = "V1main";
+
+/// Map a Discovery schema id onto the public type name it should generate.
+///
+/// Google publishes a few schemas under version-package-prefixed ids (for example
+/// `V1mainMediaResolution`). Those prefixes are an upstream implementation detail and must not
+/// reach exported Rust or TypeScript names, so they are stripped before quicktype runs.
+fn normalize_google_discovery_type_name(type_name: &str) -> &str {
+    type_name
+        .strip_prefix(GOOGLE_DISCOVERY_INTERNAL_ID_PREFIX)
+        .filter(|stripped| stripped.starts_with(char::is_uppercase))
+        .unwrap_or(type_name)
+}
+
+/// Reject a Discovery document where two reachable schemas would generate the same public name.
+///
+/// Silently overwriting one schema with another would change a public type's meaning without any
+/// signal, so this fails generation instead. Only reachable schemas are checked: Google defines
+/// unreachable pairs such as `TuningSnapshot` and `V1mainTuningSnapshot` that never reach the
+/// generated module.
+fn claim_google_public_type_name(
+    type_name: &str,
+    public_name: &str,
+    claimed_names: &mut std::collections::HashMap<String, String>,
+) -> Result<(), String> {
+    if let Some(existing) = claimed_names.get(public_name) {
+        return Err(format!(
+            "Google Discovery schemas `{existing}` and `{type_name}` both generate the public \
+             type name `{public_name}`. Resolve the collision before generating types."
+        ));
+    }
+
+    claimed_names.insert(public_name.to_string(), type_name.to_string());
+    Ok(())
+}
+
+fn create_essential_google_schemas(spec: &serde_json::Value) -> Result<serde_json::Value, String> {
     let default_map = serde_json::Map::new();
     let all_schemas = spec
         .get("schemas")
@@ -1696,6 +1734,7 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         .unwrap_or(&default_map);
 
     let mut essential_schemas = serde_json::Map::new();
+    let mut claimed_names = std::collections::HashMap::new();
     let mut processed = std::collections::HashSet::new();
 
     // Root types for the Generative Language API
@@ -1706,8 +1745,9 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
             root_type,
             all_schemas,
             &mut essential_schemas,
+            &mut claimed_names,
             &mut processed,
-        );
+        )?;
     }
 
     // Convert all Discovery-format schemas to JSON Schema format
@@ -1732,27 +1772,24 @@ fn create_essential_google_schemas(spec: &serde_json::Value) -> serde_json::Valu
         "definitions": fixed_schemas
     });
 
-    root_schema
+    Ok(root_schema)
 }
 
 fn add_google_schema_with_dependencies(
     type_name: &str,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     essential_schemas: &mut serde_json::Map<String, serde_json::Value>,
+    claimed_names: &mut std::collections::HashMap<String, String>,
     processed: &mut std::collections::HashSet<String>,
-) {
+) -> Result<(), String> {
     if processed.contains(type_name) {
-        return;
+        return Ok(());
     }
 
     processed.insert(type_name.to_string());
 
-    let Some(schema) = all_schemas
-        .get(type_name)
-        .cloned()
-        .or_else(|| google_missing_discovery_schema(type_name))
-    else {
-        return;
+    let Some(schema) = all_schemas.get(type_name).cloned() else {
+        return Ok(());
     };
 
     {
@@ -1762,7 +1799,10 @@ fn add_google_schema_with_dependencies(
         if let Some(obj) = cleaned.as_object_mut() {
             obj.remove("id");
         }
-        essential_schemas.insert(type_name.to_string(), cleaned);
+
+        let public_name = normalize_google_discovery_type_name(type_name);
+        claim_google_public_type_name(type_name, public_name, claimed_names)?;
+        essential_schemas.insert(public_name.to_string(), cleaned);
 
         // Find and add referenced types (Discovery uses bare $ref names)
         let mut refs = std::collections::HashSet::new();
@@ -1773,43 +1813,13 @@ fn add_google_schema_with_dependencies(
                 &ref_name,
                 all_schemas,
                 essential_schemas,
+                claimed_names,
                 processed,
-            );
+            )?;
         }
     }
-}
 
-fn google_missing_discovery_schema(type_name: &str) -> Option<serde_json::Value> {
-    match type_name {
-        // The live Google Discovery spec references MediaResolution from Part but does not
-        // currently include a MediaResolution entry in schemas. Preserve the schema shape
-        // from prior Discovery specs so generation can remain fully typed.
-        "MediaResolution" => Some(serde_json::json!({
-            "description": "Media resolution for the input media.",
-            "type": "object",
-            "properties": {
-                "level": {
-                    "description": "The media resolution level.",
-                    "type": "string",
-                    "enum": [
-                        "MEDIA_RESOLUTION_UNSPECIFIED",
-                        "MEDIA_RESOLUTION_LOW",
-                        "MEDIA_RESOLUTION_MEDIUM",
-                        "MEDIA_RESOLUTION_HIGH",
-                        "MEDIA_RESOLUTION_ULTRA_HIGH"
-                    ],
-                    "enumDescriptions": [
-                        "Media resolution has not been set.",
-                        "Media resolution set to low.",
-                        "Media resolution set to medium.",
-                        "Media resolution set to high.",
-                        "Media resolution set to ultra high."
-                    ]
-                }
-            }
-        })),
-        _ => None,
-    }
+    Ok(())
 }
 
 fn extract_discovery_refs(value: &serde_json::Value, refs: &mut std::collections::HashSet<String>) {
@@ -1851,7 +1861,10 @@ fn convert_discovery_schema_to_json_schema(schema: &serde_json::Value) -> serde_
                         if !ref_str.starts_with('#') {
                             fixed_obj.insert(
                                 key.clone(),
-                                serde_json::Value::String(format!("#/definitions/{}", ref_str)),
+                                serde_json::Value::String(format!(
+                                    "#/definitions/{}",
+                                    normalize_google_discovery_type_name(ref_str)
+                                )),
                             );
                         } else {
                             fixed_obj.insert(key.clone(), value.clone());
@@ -2333,5 +2346,202 @@ mod google_post_process_tests {
 
         assert!(output.contains("#[serde(rename = \"NONE\")]\n    None,"));
         assert!(!output.contains("ModeNone"));
+    }
+}
+
+#[cfg(test)]
+mod google_discovery_naming_tests {
+    use super::{
+        create_essential_google_schemas, normalize_google_discovery_type_name, serde_json,
+        GOOGLE_DISCOVERY_INTERNAL_ID_PREFIX,
+    };
+    use std::path::{Path, PathBuf};
+
+    fn repository_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+    }
+
+    /// Both the raw Discovery spelling (`V1main`) and quicktype's PascalCase of it (`V1Main`).
+    fn has_internal_version_prefix(type_name: &str) -> bool {
+        type_name.starts_with(GOOGLE_DISCOVERY_INTERNAL_ID_PREFIX)
+            || type_name.starts_with("V1Main")
+    }
+
+    fn discovery_spec_with_media_resolution() -> serde_json::Value {
+        serde_json::json!({
+            "schemas": {
+                "GenerateContentRequest": {
+                    "id": "GenerateContentRequest",
+                    "type": "object",
+                    "properties": {"contents": {"$ref": "Part"}}
+                },
+                "GenerateContentResponse": {
+                    "id": "GenerateContentResponse",
+                    "type": "object",
+                    "properties": {}
+                },
+                "Part": {
+                    "id": "Part",
+                    "type": "object",
+                    "properties": {"mediaResolution": {"$ref": "V1mainMediaResolution"}}
+                },
+                "V1mainMediaResolution": {
+                    "id": "V1mainMediaResolution",
+                    "description": "Media resolution for tokenization.",
+                    "type": "object",
+                    "properties": {
+                        "level": {"type": "string", "enum": ["MEDIA_RESOLUTION_ULTRA_HIGH"]}
+                    }
+                },
+                // Google ships this unreachable pair, whose ids collide once normalized.
+                "TuningSnapshot": {"id": "TuningSnapshot", "type": "object", "properties": {}},
+                "V1mainTuningSnapshot": {
+                    "id": "V1mainTuningSnapshot",
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        })
+    }
+
+    #[test]
+    fn normalizes_only_version_package_prefixed_discovery_ids() {
+        assert_eq!(
+            normalize_google_discovery_type_name("V1mainMediaResolution"),
+            "MediaResolution"
+        );
+        assert_eq!(
+            normalize_google_discovery_type_name("V1mainTuningSnapshot"),
+            "TuningSnapshot"
+        );
+        // Not a package prefix: nothing follows it, or what follows is not a new type name.
+        assert_eq!(normalize_google_discovery_type_name("V1main"), "V1main");
+        assert_eq!(
+            normalize_google_discovery_type_name("V1mainline"),
+            "V1mainline"
+        );
+        assert_eq!(normalize_google_discovery_type_name("Part"), "Part");
+    }
+
+    #[test]
+    fn strips_version_package_prefix_from_definitions_and_refs() {
+        let spec = discovery_spec_with_media_resolution();
+
+        let schemas = create_essential_google_schemas(&spec).expect("schema generation");
+        let definitions = schemas["definitions"].as_object().expect("definitions");
+
+        assert!(definitions.contains_key("MediaResolution"));
+        assert!(!definitions.contains_key("V1mainMediaResolution"));
+        assert_eq!(
+            definitions["Part"]["properties"]["mediaResolution"]["$ref"],
+            serde_json::json!("#/definitions/MediaResolution")
+        );
+        assert_eq!(
+            definitions["MediaResolution"]["description"],
+            serde_json::json!("Media resolution for tokenization.")
+        );
+        // Unreachable schemas never generate a type, so their normalized ids cannot collide.
+        assert!(!definitions.contains_key("TuningSnapshot"));
+    }
+
+    #[test]
+    fn rejects_a_normalized_name_that_collides_with_a_reachable_schema() {
+        let mut spec = discovery_spec_with_media_resolution();
+        let schemas = spec["schemas"].as_object_mut().expect("schemas object");
+        schemas.insert(
+            "MediaResolution".to_string(),
+            serde_json::json!({"id": "MediaResolution", "type": "object", "properties": {}}),
+        );
+        schemas["GenerateContentResponse"]["properties"]["mediaResolution"] =
+            serde_json::json!({"$ref": "MediaResolution"});
+
+        let error = create_essential_google_schemas(&spec).expect_err("collision must fail");
+
+        assert!(error.contains("V1mainMediaResolution"), "{error}");
+        assert!(error.contains("MediaResolution"), "{error}");
+    }
+
+    #[test]
+    fn does_not_backfill_a_dangling_ref_with_a_local_schema() {
+        // The generator must only emit schemas the Discovery document actually defines, so an
+        // upstream change can never be shadowed by a stale hand-written copy.
+        let spec = serde_json::json!({
+            "schemas": {
+                "GenerateContentRequest": {
+                    "id": "GenerateContentRequest",
+                    "type": "object",
+                    "properties": {"mediaResolution": {"$ref": "MediaResolution"}}
+                },
+                "GenerateContentResponse": {
+                    "id": "GenerateContentResponse",
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        });
+
+        let schemas = create_essential_google_schemas(&spec).expect("schema generation");
+        let definitions = schemas["definitions"].as_object().expect("definitions");
+
+        assert!(!definitions.contains_key("MediaResolution"));
+    }
+
+    #[test]
+    fn generated_google_names_have_no_internal_version_prefix() {
+        let root = repository_root();
+
+        let generated =
+            std::fs::read_to_string(root.join("crates/lingua/src/providers/google/generated.rs"))
+                .expect("google generated.rs");
+
+        for line in generated.lines() {
+            let trimmed = line.trim_start();
+            for keyword in ["pub struct ", "pub enum ", "pub type "] {
+                let Some(rest) = trimmed.strip_prefix(keyword) else {
+                    continue;
+                };
+                let name = rest
+                    .split(|c: char| !c.is_alphanumeric() && c != '_')
+                    .next()
+                    .unwrap_or_default();
+                assert!(
+                    !has_internal_version_prefix(name),
+                    "generated Rust type `{name}` leaks an internal Discovery version prefix"
+                );
+            }
+        }
+
+        let bindings = root.join("bindings/typescript/src/generated/google");
+        for entry in std::fs::read_dir(&bindings).expect("google bindings directory") {
+            let path = entry.expect("binding entry").path();
+            assert_binding_has_no_internal_version_prefix(&path);
+        }
+    }
+
+    fn assert_binding_has_no_internal_version_prefix(path: &Path) {
+        let file_name = path
+            .file_stem()
+            .expect("binding file stem")
+            .to_string_lossy()
+            .into_owned();
+        assert!(
+            !has_internal_version_prefix(&file_name),
+            "generated TypeScript binding `{file_name}` leaks an internal Discovery version prefix"
+        );
+
+        let contents = std::fs::read_to_string(path).expect("binding contents");
+        for line in contents.lines() {
+            let Some(rest) = line.trim_start().strip_prefix("export type ") else {
+                continue;
+            };
+            let name = rest
+                .split(|c: char| !c.is_alphanumeric() && c != '_')
+                .next()
+                .unwrap_or_default();
+            assert!(
+                !has_internal_version_prefix(name),
+                "generated TypeScript type `{name}` leaks an internal Discovery version prefix"
+            );
+        }
     }
 }
