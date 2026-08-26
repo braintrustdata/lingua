@@ -8,7 +8,9 @@ use crate::providers::anthropic::convert::{
 };
 use crate::providers::anthropic::generated as anthropic;
 use crate::providers::google::generated as google;
-use crate::providers::openai::convert::messages_to_chat_completion_messages;
+use crate::providers::openai::convert::{
+    messages_to_chat_completion_display_messages, messages_to_chat_completion_messages,
+};
 use crate::providers::openai::generated as openai;
 use crate::providers::openai::ChatCompletionRequestMessageExt;
 use crate::universal::{convert::TryFromLLM, Message};
@@ -130,6 +132,16 @@ pub fn lingua_to_chat_completions_messages(value: JsValue) -> Result<JsValue, Js
     let messages: Vec<Message> = serde_wasm_bindgen::from_value(value)
         .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
     let chat_messages = messages_to_chat_completion_messages(messages)
+        .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
+    serialize_to_js(&chat_messages, "result")
+}
+
+/// Convert array of Lingua Messages to display-safe Chat Completions messages
+#[wasm_bindgen]
+pub fn lingua_to_chat_completions_display_messages(value: JsValue) -> Result<JsValue, JsValue> {
+    let messages: Vec<Message> = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse input: {}", e)))?;
+    let chat_messages = messages_to_chat_completion_display_messages(messages)
         .map_err(|e| JsValue::from_str(&format!("Conversion error: {:?}", e)))?;
     serialize_to_js(&chat_messages, "result")
 }

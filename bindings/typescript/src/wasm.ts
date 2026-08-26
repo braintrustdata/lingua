@@ -8,6 +8,7 @@ export {
 
   // Chat Completions API conversions
   chatCompletionsMessagesToLingua,
+  linguaToChatCompletionsDisplayMessages,
   linguaToChatCompletionsMessages,
 
   // Responses API conversions

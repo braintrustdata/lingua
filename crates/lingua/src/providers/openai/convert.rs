@@ -5045,6 +5045,21 @@ pub(crate) fn messages_to_chat_completion_messages(
     Ok(result)
 }
 
+/// Convert universal messages to a display-safe Chat Completions shape.
+///
+/// Display output preserves reasoning text and tool calls but omits encrypted
+/// reasoning signatures, which are replay-only and may use a non-provider array shape.
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) fn messages_to_chat_completion_display_messages(
+    messages: Vec<Message>,
+) -> Result<Vec<ChatCompletionRequestMessageExt>, ConvertError> {
+    let mut chat_messages = messages_to_chat_completion_messages(messages)?;
+    for message in &mut chat_messages {
+        message.reasoning_signature = None;
+    }
+    Ok(chat_messages)
+}
+
 /// Convert a single tool result into a chat completions tool-role message.
 pub(crate) fn tool_result_to_chat_completion_message(
     result: ToolResultContentPart,
@@ -6662,6 +6677,59 @@ mod tests {
         assert_eq!(
             replayed_signatures,
             vec!["signature_one".to_string(), "signature_two".to_string()]
+        );
+    }
+
+    #[test]
+    fn display_chat_messages_omit_reasoning_signatures_and_keep_tool_calls() {
+        let responses_items = json!([
+            {
+                "type": "reasoning",
+                "id": "reasoning_123",
+                "content": [],
+                "encrypted_content": "reasoning_signature",
+                "summary": []
+            },
+            {
+                "type": "function_call",
+                "id": "function_call_123",
+                "call_id": "call_123",
+                "name": "lookup_weather",
+                "arguments": "{\"city\":\"Springfield\"}",
+                "status": "completed"
+            }
+        ]);
+        let messages = try_parse_responses_items_for_import(&responses_items)
+            .expect("Responses items should import");
+
+        let replay_messages = messages_to_chat_completion_messages(messages.clone())
+            .expect("replay conversion should succeed");
+        assert_eq!(
+            replay_messages[0].reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "reasoning_signature".to_string()
+            ]))
+        );
+        assert_eq!(
+            replay_messages[0]
+                .tool_calls
+                .as_ref()
+                .expect("tool calls should be preserved")
+                .len(),
+            1
+        );
+
+        let display_messages = messages_to_chat_completion_display_messages(messages)
+            .expect("display conversion should succeed");
+        assert_eq!(display_messages[0].reasoning_signature, None);
+        assert!(display_messages[0].reasoning.is_some());
+        assert_eq!(
+            display_messages[0]
+                .tool_calls
+                .as_ref()
+                .expect("tool calls should be preserved")
+                .len(),
+            1
         );
     }
 

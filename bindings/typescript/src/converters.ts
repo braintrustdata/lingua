@@ -150,6 +150,20 @@ export const linguaToChatCompletionsMessages = createFromLinguaConverter<
   ChatCompletionRequestMessage[]
 >(() => getWasm().lingua_to_chat_completions_messages, "Chat Completions");
 
+/**
+ * Convert Lingua Messages to Chat Completions messages for display.
+ *
+ * This conversion retains reasoning and tool calls while omitting encrypted
+ * reasoning signatures that are only needed for provider replay.
+ *
+ * @throws {ConversionError} If conversion fails
+ */
+export const linguaToChatCompletionsDisplayMessages =
+  createFromLinguaConverter<Message[], ChatCompletionRequestMessage[]>(
+    () => getWasm().lingua_to_chat_completions_display_messages,
+    "Chat Completions display"
+  );
+
 // ============================================================================
 // Responses API Conversions
 // ============================================================================
