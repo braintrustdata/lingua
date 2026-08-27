@@ -97,7 +97,7 @@ pub fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String 
     out
 }
 
-pub fn enforce_anthropic_toolset_config_strictness(
+pub fn enforce_anthropic_closed_request_types(
     existing: &str,
     spec: &serde_json::Value,
 ) -> Result<String, Box<dyn std::error::Error>> {
@@ -124,6 +124,21 @@ pub fn enforce_anthropic_toolset_config_strictness(
                 strict_config_types.insert(schema_name_to_rust_type(schema_name));
             }
         }
+    }
+    for schema_name in [
+        "RequestImageTransformations",
+        "ContainerParams",
+        "SkillParams",
+    ] {
+        if schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("additionalProperties"))
+            .and_then(|value| value.as_bool())
+            != Some(false)
+        {
+            return Err(format!("{schema_name} is no longer a closed object").into());
+        }
+        strict_config_types.insert(schema_name_to_rust_type(schema_name));
     }
 
     let mut output = existing.to_string();
@@ -728,6 +743,8 @@ pub fn preserve_anthropic_source_types(
     let definitions = split_type_definitions(existing);
     let source = definition_named(&definitions, "Source")?;
     let document_source = definition_named(&definitions, "RequestDocumentBlockSource")?;
+    let nested_image_source = definition_named(&definitions, "SourceSource")?;
+    let nested_image_source_type = definition_named(&definitions, "PurpleType")?;
     let precise_source = r##"
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -774,12 +791,28 @@ pub enum RequestDocumentBlockSource {
         url: String,
     },
 }"##;
+    let precise_nested_image_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum SourceSource {
+    Base64 {
+        data: String,
+        media_type: PurpleMediaType,
+    },
+    File {
+        file_id: String,
+    },
+    Url {
+        url: String,
+    },
+}"##;
 
-    Ok(existing.replacen(source, precise_source, 1).replacen(
-        document_source,
-        precise_document_source,
-        1,
-    ))
+    Ok(existing
+        .replacen(source, precise_source, 1)
+        .replacen(document_source, precise_document_source, 1)
+        .replacen(nested_image_source, precise_nested_image_source, 1)
+        .replacen(nested_image_source_type, "", 1))
 }
 
 fn definition_named<'a>(
@@ -1140,7 +1173,7 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::{
-        enforce_anthropic_toolset_config_strictness, generate_all_tool_code,
+        enforce_anthropic_closed_request_types, generate_all_tool_code,
         generate_anthropic_browser_state_types, preserve_anthropic_required_nullable_fields,
         preserve_anthropic_source_types,
     };
@@ -1368,6 +1401,19 @@ pub struct Source {
 pub struct RequestDocumentBlockSource {
     pub data: Option<String>,
     pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct SourceSource {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub enum PurpleType {
+    Base64,
+    File,
+    Url,
 }"#;
 
         let generated = preserve_anthropic_source_types(quicktype, &spec)
@@ -1378,6 +1424,8 @@ pub struct RequestDocumentBlockSource {
         assert!(generated.contains("Url {\n        url: String,"));
         assert!(!generated.contains("file_id: Option<String>"));
         assert!(generated.contains("pub enum RequestDocumentBlockSource"));
+        assert!(generated.contains("pub enum SourceSource"));
+        assert!(!generated.contains("pub enum PurpleType"));
     }
 
     #[test]
@@ -1393,20 +1441,44 @@ pub struct BrowserCloseTabConfig {
 #[derive(Debug, Clone)]
 pub struct ComputerCursorPositionConfig {
     pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestImageTransformations {
+    pub oversized_image: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ContainerParams {
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SkillParams {
+    pub skill_id: String,
 }"#;
 
-        let generated = enforce_anthropic_toolset_config_strictness(quicktype, &spec)
-            .expect("toolset member configs should be made strict");
+        let generated = enforce_anthropic_closed_request_types(quicktype, &spec)
+            .expect("closed request types should be made strict");
 
         assert_eq!(
             generated.matches("#[serde(deny_unknown_fields)]").count(),
-            2
+            5
         );
         assert!(
             generated.contains("#[serde(deny_unknown_fields)]\npub struct BrowserCloseTabConfig")
         );
         assert!(generated
             .contains("#[serde(deny_unknown_fields)]\npub struct ComputerCursorPositionConfig"));
+        for type_name in [
+            "RequestImageTransformations",
+            "ContainerParams",
+            "SkillParams",
+        ] {
+            assert!(generated.contains(&format!(
+                "#[serde(deny_unknown_fields)]\npub struct {type_name}"
+            )));
+        }
     }
 
     #[test]

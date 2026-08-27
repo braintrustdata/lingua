@@ -319,6 +319,7 @@ pub enum ContainerUnion {
 
 /// Container parameters with skills to be loaded.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct ContainerParams {
     /// Container id
@@ -331,6 +332,7 @@ pub struct ContainerParams {
 
 /// Specification for a skill to be loaded in a container (request model).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct SkillParams {
     /// Skill ID
@@ -822,18 +824,19 @@ pub enum ContentBlockSourceContentItemType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub struct SourceSource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<PurpleMediaType>,
-    #[serde(rename = "type")]
-    pub source_type: PurpleType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_id: Option<String>,
+pub enum SourceSource {
+    Base64 {
+        data: String,
+        media_type: PurpleMediaType,
+    },
+    File {
+        file_id: String,
+    },
+    Url {
+        url: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -849,20 +852,12 @@ pub enum PurpleMediaType {
     ImageWebp,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "anthropic/")]
-pub enum PurpleType {
-    Base64,
-    File,
-    Url,
-}
-
 /// Configures the transformations the server applies to this image before the model observes
 /// it. Each key names a condition the server transforms images for; its value selects the
 /// transformation applied. Omitted keys keep their default behavior, and an empty object is
 /// equivalent to omitting the field.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct RequestImageTransformations {
     /// What the server does when this image exceeds the model's maximum image size. `"downsize"`

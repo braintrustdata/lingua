@@ -307,6 +307,24 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_rejects_unknown_container_fields() {
+        for container in [
+            r#"{"id":"container_123","bogus":true}"#,
+            r#"{"skills":[{"skill_id":"pdf","type":"anthropic","bogus":true}]}"#,
+        ] {
+            let json = format!(
+                r#"{{
+                    "model":"claude-opus-4-1",
+                    "messages":[{{"role":"user","content":"Hello"}}],
+                    "max_tokens":16,
+                    "container":{container}
+                }}"#
+            );
+            assert!(validate_anthropic_request(&json).is_err());
+        }
+    }
+
+    #[test]
     fn test_validate_anthropic_request_accepts_tool_search_tool() {
         let json = r#"{
             "model": "claude-3-5-sonnet-20241022",
@@ -474,6 +492,27 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_rejects_unknown_image_transformations() {
+        let json = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"image",
+                    "source":{
+                        "type":"base64",
+                        "media_type":"image/png",
+                        "data":"aW1hZ2U="
+                    },
+                    "transformations":{"bogus":true}
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(json).is_err());
+    }
+
+    #[test]
     fn test_validate_anthropic_request_restricts_toolset_name_to_tool_blocks() {
         let invalid = r#"{
             "model":"claude-opus-4-1",
@@ -590,6 +629,31 @@ mod tests {
             "max_tokens":16
         }"#;
         assert!(validate_anthropic_request(valid).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_requires_nested_image_file_source_ids() {
+        let invalid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"document",
+                    "source":{
+                        "type":"content",
+                        "content":[{"type":"image","source":{"type":"file"}}]
+                    }
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(invalid).is_err());
+
+        let valid = invalid.replace(
+            "\"source\":{\"type\":\"file\"}",
+            "\"source\":{\"type\":\"file\",\"file_id\":\"file_123\"}",
+        );
+        assert!(validate_anthropic_request(&valid).is_ok());
     }
 
     #[test]
