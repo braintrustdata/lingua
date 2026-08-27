@@ -407,6 +407,7 @@ pub struct InputContentBlock {
     /// transformation applied. Omitted keys keep their default behavior, and an empty object is
     /// equivalent to omitting the field.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub transformations: Option<RequestImageTransformations>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<String>,
@@ -713,6 +714,7 @@ pub struct NonBrowserBlock {
     /// transformation applied. Omitted keys keep their default behavior, and an empty object is
     /// equivalent to omitting the field.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub transformations: Option<RequestImageTransformations>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Vec<RequestTextBlock>>,
@@ -761,6 +763,7 @@ pub enum SourceUnion {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum Source {
     Base64 {
@@ -812,6 +815,7 @@ pub struct ContentBlockSourceContentItem {
     /// transformation applied. Omitted keys keep their default behavior, and an empty object is
     /// equivalent to omitting the field.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub transformations: Option<RequestImageTransformations>,
 }
 
@@ -825,6 +829,7 @@ pub enum ContentBlockSourceContentItemType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum SourceSource {
     Base64 {
@@ -866,6 +871,7 @@ pub struct RequestImageTransformations {
     /// naming the image's dimensions and the largest dimensions that fit, so you can scale the
     /// image deliberately — your image is never silently scaled down.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
     pub oversized_image: Option<OversizedImage>,
 }
 
@@ -908,6 +914,7 @@ pub enum Base64ImageSourceMediaType {
 /// tab that is active after this call; whenever `tabs` is non-empty,
 /// exactly one entry is marked.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserStateTabEntry {
     /// Whether this tab is the active tab after this call. Whenever `tabs` is non-empty, exactly
@@ -1027,6 +1034,7 @@ pub enum RequestDocumentBlockType {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum RequestDocumentBlockSource {
     Base64 {

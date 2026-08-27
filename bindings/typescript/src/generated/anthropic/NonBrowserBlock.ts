@@ -36,4 +36,4 @@ cache_control: CacheControlEphemeral | null, citations: Citations | null, text: 
  * transformation applied. Omitted keys keep their default behavior, and an empty object is
  * equivalent to omitting the field.
  */
-transformations: RequestImageTransformations | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, tool_name: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };
+transformations?: RequestImageTransformations | null, content: Array<RequestTextBlock> | null, title: string | null, context: string | null, tool_name: string | null, encrypted_content: string | null, page_age: string | null, url: string | null, };

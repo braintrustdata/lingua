@@ -449,6 +449,45 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_rejects_unknown_source_fields() {
+        for block_type in ["image", "document"] {
+            let json = format!(
+                r#"{{
+                    "model":"claude-opus-4-1",
+                    "messages":[{{
+                        "role":"user",
+                        "content":[{{
+                            "type":"{block_type}",
+                            "source":{{"type":"file","file_id":"file_123","bogus":true}}
+                        }}]
+                    }}],
+                    "max_tokens":16
+                }}"#
+            );
+            assert!(validate_anthropic_request(&json).is_err());
+        }
+
+        let nested = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"document",
+                    "source":{
+                        "type":"content",
+                        "content":[{
+                            "type":"image",
+                            "source":{"type":"file","file_id":"file_123","bogus":true}
+                        }]
+                    }
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(nested).is_err());
+    }
+
+    #[test]
     fn test_validate_anthropic_request_restricts_transformations_to_images() {
         for block in [
             r#"{"type":"text","text":"Hello","transformations":{}}"#,
@@ -729,6 +768,8 @@ mod tests {
         }"#;
 
         assert!(validate_anthropic_request(json).is_ok());
+        let invalid = json.replace("\"active\": true", "\"active\": true, \"bogus\": true");
+        assert!(validate_anthropic_request(&invalid).is_err());
     }
 
     #[test]

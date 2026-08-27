@@ -15,4 +15,4 @@ export type RequestImageTransformations = {
  * naming the image's dimensions and the largest dimensions that fit, so you can scale the
  * image deliberately — your image is never silently scaled down.
  */
-oversized_image: OversizedImage | null, };
+oversized_image?: OversizedImage | null, };

@@ -21,4 +21,4 @@ cache_control: CacheControlEphemeral | null, citations: Array<RequestLocationCit
  * transformation applied. Omitted keys keep their default behavior, and an empty object is
  * equivalent to omitting the field.
  */
-transformations: RequestImageTransformations | null, };
+transformations?: RequestImageTransformations | null, };

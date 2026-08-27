@@ -129,6 +129,7 @@ pub fn enforce_anthropic_closed_request_types(
         "RequestImageTransformations",
         "ContainerParams",
         "SkillParams",
+        "BrowserStateTabEntry",
     ] {
         if schemas
             .get(schema_name)
@@ -155,6 +156,47 @@ pub fn enforce_anthropic_closed_request_types(
         output = output.replacen(&block, &replacement, 1);
     }
 
+    Ok(output)
+}
+
+pub fn preserve_anthropic_optional_transformation_fields(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for (schema_name, field_name) in [
+        ("RequestImageBlock", "transformations"),
+        ("RequestImageTransformations", "oversized_image"),
+    ] {
+        let required = schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("required"))
+            .and_then(|required| required.as_array());
+        if required.is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some(field_name))
+        }) {
+            return Err(format!("{schema_name}.{field_name} is no longer optional").into());
+        }
+    }
+
+    let mut output = existing.to_string();
+    for (field_name, field_type) in [
+        ("transformations", "RequestImageTransformations"),
+        ("oversized_image", "OversizedImage"),
+    ] {
+        let old = format!(
+            "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub {field_name}: Option<{field_type}>,"
+        );
+        if !output.contains(&old) {
+            return Err(format!("Missing generated optional {field_name} field").into());
+        }
+        let new = format!(
+            "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    #[ts(optional = nullable)]\n    pub {field_name}: Option<{field_type}>,"
+        );
+        output = output.replace(&old, &new);
+    }
     Ok(output)
 }
 
@@ -748,6 +790,7 @@ pub fn preserve_anthropic_source_types(
     let precise_source = r##"
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum Source {
     Base64 {
@@ -771,6 +814,7 @@ pub enum Source {
     let precise_document_source = r##"
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum RequestDocumentBlockSource {
     Base64 {
@@ -794,6 +838,7 @@ pub enum RequestDocumentBlockSource {
     let precise_nested_image_source = r##"
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub enum SourceSource {
     Base64 {
@@ -1174,8 +1219,8 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 mod tests {
     use super::{
         enforce_anthropic_closed_request_types, generate_all_tool_code,
-        generate_anthropic_browser_state_types, preserve_anthropic_required_nullable_fields,
-        preserve_anthropic_source_types,
+        generate_anthropic_browser_state_types, preserve_anthropic_optional_transformation_fields,
+        preserve_anthropic_required_nullable_fields, preserve_anthropic_source_types,
     };
     use big_serde_json as serde_json;
 
@@ -1426,6 +1471,10 @@ pub enum PurpleType {
         assert!(generated.contains("pub enum RequestDocumentBlockSource"));
         assert!(generated.contains("pub enum SourceSource"));
         assert!(!generated.contains("pub enum PurpleType"));
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            3
+        );
     }
 
     #[test]
@@ -1456,6 +1505,11 @@ pub struct ContainerParams {
 #[derive(Debug, Clone)]
 pub struct SkillParams {
     pub skill_id: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct BrowserStateTabEntry {
+    pub tab_id: String,
 }"#;
 
         let generated = enforce_anthropic_closed_request_types(quicktype, &spec)
@@ -1463,7 +1517,7 @@ pub struct SkillParams {
 
         assert_eq!(
             generated.matches("#[serde(deny_unknown_fields)]").count(),
-            5
+            6
         );
         assert!(
             generated.contains("#[serde(deny_unknown_fields)]\npub struct BrowserCloseTabConfig")
@@ -1474,6 +1528,7 @@ pub struct SkillParams {
             "RequestImageTransformations",
             "ContainerParams",
             "SkillParams",
+            "BrowserStateTabEntry",
         ] {
             assert!(generated.contains(&format!(
                 "#[serde(deny_unknown_fields)]\npub struct {type_name}"
@@ -1501,5 +1556,34 @@ pub struct Container {
             "#[serde(deserialize_with = \"super::deserialize_required_nullable\")]\n    pub skills: Option<Vec<ContainerSkill>>"
         ));
         assert!(!generated.contains("skip_serializing_if = \"Option::is_none\""));
+    }
+
+    #[test]
+    fn anthropic_transformation_fields_remain_optional_in_typescript() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct InputContentBlock {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transformations: Option<RequestImageTransformations>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RequestImageTransformations {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub oversized_image: Option<OversizedImage>,
+}"#;
+
+        let generated = preserve_anthropic_optional_transformation_fields(quicktype, &spec)
+            .expect("transformation fields should remain optional");
+
+        assert_eq!(generated.matches("#[ts(optional = nullable)]").count(), 2);
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub transformations: Option<RequestImageTransformations>"
+        ));
+        assert!(generated.contains(
+            "#[ts(optional = nullable)]\n    pub oversized_image: Option<OversizedImage>"
+        ));
     }
 }
