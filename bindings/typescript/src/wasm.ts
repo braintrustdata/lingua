@@ -8,7 +8,6 @@ export {
 
   // Chat Completions API conversions
   chatCompletionsMessagesToLingua,
-  linguaToChatCompletionsDisplayMessages,
   linguaToChatCompletionsMessages,
 
   // Responses API conversions
@@ -48,7 +47,6 @@ export {
 
 // Re-export types
 export type {
-  ChatCompletionDisplayMessage,
   StreamSessionChunk,
   TransformStreamChunkResult,
   TransformStreamSessionHandle,

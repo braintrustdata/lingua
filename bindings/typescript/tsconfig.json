@@ -14,6 +14,6 @@
     "moduleResolution": "bundler",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*", "type-tests/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }

@@ -19,9 +19,6 @@ describe("Node.js exports", () => {
     const exports = await import("../src/index");
 
     expect(typeof exports.chatCompletionsMessagesToLingua).toBe("function");
-    expect(typeof exports.linguaToChatCompletionsDisplayMessages).toBe(
-      "function"
-    );
     expect(typeof exports.linguaToChatCompletionsMessages).toBe("function");
     expect(typeof exports.anthropicMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
@@ -95,112 +92,6 @@ describe("Node.js exports", () => {
 
     const messages = importMessagesFromSpans([{ input }]);
     expect(messages.length).toBe(5);
-  });
-
-  test("should keep a function call displayable when preceded by reasoning", async () => {
-    const {
-      importMessagesFromSpans,
-      linguaToChatCompletionsDisplayMessages,
-      linguaToChatCompletionsMessages,
-    } = await import("../src/index");
-
-    const messages = importMessagesFromSpans([
-      {
-        output: [
-          {
-            type: "reasoning",
-            id: "reasoning_123",
-            content: [],
-            encrypted_content: "reasoning_signature",
-            summary: [],
-          },
-          {
-            type: "function_call",
-            id: "function_call_123",
-            call_id: "call_123",
-            name: "lookup_weather",
-            arguments: '{"city":"Springfield"}',
-            status: "completed",
-          },
-        ],
-      },
-    ]);
-
-    const replayMessages = linguaToChatCompletionsMessages(messages);
-    expect(replayMessages).toMatchObject([
-      {
-        role: "assistant",
-        reasoning_signature: ["reasoning_signature"],
-        tool_calls: [
-          {
-            id: "call_123",
-            type: "function",
-            function: {
-              name: "lookup_weather",
-              arguments: '{"city":"Springfield"}',
-            },
-          },
-        ],
-      },
-    ]);
-
-    const displayMessages = linguaToChatCompletionsDisplayMessages(messages);
-    expect(displayMessages[0]?.reasoning).toBe("");
-    expect(displayMessages).toMatchObject([
-      {
-        role: "assistant",
-        reasoning: "",
-        tool_calls: [
-          {
-            id: "call_123",
-            type: "function",
-            function: {
-              name: "lookup_weather",
-              arguments: '{"city":"Springfield"}',
-            },
-          },
-        ],
-      },
-    ]);
-    expect(displayMessages[0]).not.toHaveProperty("reasoning_signature");
-  });
-
-  test("should ignore distinct reasoning and tool call signatures for display", async () => {
-    const { linguaToChatCompletionsDisplayMessages } = await import(
-      "../src/index"
-    );
-
-    const displayMessages = linguaToChatCompletionsDisplayMessages([
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "reasoning",
-            text: "thinking",
-            encrypted_content: "reasoning_signature",
-          },
-          {
-            type: "tool_call",
-            tool_call_id: "call_123",
-            tool_name: "lookup_weather",
-            arguments: {
-              type: "valid",
-              value: { city: "Springfield" },
-            },
-            encrypted_content: "tool_call_signature",
-          },
-        ],
-      },
-    ]);
-
-    expect(displayMessages).toMatchObject([
-      {
-        role: "assistant",
-        reasoning: "thinking",
-        tool_calls: [{ id: "call_123" }],
-      },
-    ]);
-    expect(displayMessages[0]).not.toHaveProperty("reasoning_signature");
   });
 
   test("should return plain numeric arrays for imported anthropic tool_use arguments", async () => {

@@ -5045,39 +5045,6 @@ pub(crate) fn messages_to_chat_completion_messages(
     Ok(result)
 }
 
-/// Convert universal messages to a display-safe Chat Completions shape.
-///
-/// Display output preserves reasoning text and tool calls but omits encrypted
-/// reasoning signatures, which are replay-only and may use a non-provider array shape.
-#[cfg(any(target_arch = "wasm32", test))]
-pub(crate) fn messages_to_chat_completion_display_messages(
-    mut messages: Vec<Message>,
-) -> Result<Vec<ChatCompletionRequestMessageExt>, ConvertError> {
-    for message in &mut messages {
-        let Message::Assistant {
-            content: AssistantContent::Array(parts),
-            ..
-        } = message
-        else {
-            continue;
-        };
-
-        for part in parts {
-            match part {
-                AssistantContentPart::Reasoning {
-                    encrypted_content, ..
-                }
-                | AssistantContentPart::ToolCall {
-                    encrypted_content, ..
-                } => *encrypted_content = None,
-                _ => {}
-            }
-        }
-    }
-
-    messages_to_chat_completion_messages(messages)
-}
-
 /// Convert a single tool result into a chat completions tool-role message.
 pub(crate) fn tool_result_to_chat_completion_message(
     result: ToolResultContentPart,
@@ -6699,7 +6666,7 @@ mod tests {
     }
 
     #[test]
-    fn display_chat_messages_omit_reasoning_signatures_and_keep_tool_calls() {
+    fn chat_messages_keep_reasoning_signatures_and_tool_calls() {
         let responses_items = json!([
             {
                 "type": "reasoning",
@@ -6730,64 +6697,6 @@ mod tests {
         );
         assert_eq!(
             replay_messages[0]
-                .tool_calls
-                .as_ref()
-                .expect("tool calls should be preserved")
-                .len(),
-            1
-        );
-
-        let display_messages = messages_to_chat_completion_display_messages(messages)
-            .expect("display conversion should succeed");
-        assert_eq!(display_messages[0].reasoning_signature, None);
-        assert!(display_messages[0].reasoning.is_some());
-        assert_eq!(
-            display_messages[0]
-                .tool_calls
-                .as_ref()
-                .expect("tool calls should be preserved")
-                .len(),
-            1
-        );
-    }
-
-    #[test]
-    fn display_chat_messages_ignore_distinct_reasoning_and_tool_call_signatures() {
-        let messages: Vec<Message> = serde_json::from_value(json!([
-            {
-                "role": "assistant",
-                "content": [
-                    {
-                        "type": "reasoning",
-                        "text": "thinking",
-                        "encrypted_content": "reasoning_signature"
-                    },
-                    {
-                        "type": "tool_call",
-                        "tool_call_id": "call_123",
-                        "tool_name": "lookup_weather",
-                        "arguments": {
-                            "type": "valid",
-                            "value": { "city": "Springfield" }
-                        },
-                        "encrypted_content": "tool_call_signature"
-                    }
-                ]
-            }
-        ]))
-        .expect("universal messages should deserialize");
-
-        let replay_error = messages_to_chat_completion_messages(messages.clone())
-            .expect_err("replay conversion should reject distinct signature provenance");
-        assert!(replay_error
-            .to_string()
-            .contains("cannot preserve distinct reasoning and tool-call provenance"));
-
-        let display_messages = messages_to_chat_completion_display_messages(messages)
-            .expect("display conversion should ignore replay-only signatures");
-        assert_eq!(display_messages[0].reasoning_signature, None);
-        assert_eq!(
-            display_messages[0]
                 .tool_calls
                 .as_ref()
                 .expect("tool calls should be preserved")

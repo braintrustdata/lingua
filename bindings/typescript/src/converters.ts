@@ -14,11 +14,6 @@ import type { ChatCompletionRequestMessage } from "./generated/openai/ChatComple
 import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
 
-/** A display-safe Chat Completions message with Lingua's reasoning extension. */
-export type ChatCompletionDisplayMessage = ChatCompletionRequestMessage & {
-  reasoning?: string;
-};
-
 type GoogleContent = Record<string, unknown>;
 type ImportSpan = {
   input?: unknown;
@@ -154,20 +149,6 @@ export const linguaToChatCompletionsMessages = createFromLinguaConverter<
   Message[],
   ChatCompletionRequestMessage[]
 >(() => getWasm().lingua_to_chat_completions_messages, "Chat Completions");
-
-/**
- * Convert Lingua Messages to Chat Completions messages for display.
- *
- * This conversion retains reasoning and tool calls while omitting encrypted
- * reasoning signatures that are only needed for provider replay.
- *
- * @throws {ConversionError} If conversion fails
- */
-export const linguaToChatCompletionsDisplayMessages =
-  createFromLinguaConverter<Message[], ChatCompletionDisplayMessage[]>(
-    () => getWasm().lingua_to_chat_completions_display_messages,
-    "Chat Completions display"
-  );
 
 // ============================================================================
 // Responses API Conversions

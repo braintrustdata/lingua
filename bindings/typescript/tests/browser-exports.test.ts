@@ -42,9 +42,6 @@ describe("Browser exports", () => {
     const exports = await import("../src/index.browser");
 
     expect(typeof exports.chatCompletionsMessagesToLingua).toBe("function");
-    expect(typeof exports.linguaToChatCompletionsDisplayMessages).toBe(
-      "function"
-    );
     expect(typeof exports.linguaToChatCompletionsMessages).toBe("function");
     expect(typeof exports.anthropicMessagesToLingua).toBe("function");
     expect(typeof exports.linguaToAnthropicMessages).toBe("function");
