@@ -1,0 +1,20 @@
+{
+  "expectedMessageCount": 1,
+  "expectedRolesInOrder": [
+    "assistant"
+  ],
+  "expectedAssistantContentPartTypes": [
+    [
+      "reasoning",
+      "tool_call"
+    ]
+  ],
+  "expectedReasoningEncryptedContent": [
+    "encrypted_reasoning_test_value"
+  ],
+  "mustContainText": [
+    "call_weather",
+    "get_weather",
+    "Springfield"
+  ]
+}

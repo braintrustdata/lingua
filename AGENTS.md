@@ -15,6 +15,7 @@ Lingua is a universal message format that compiles to provider-specific formats 
 - **Explicit error handling**: All errors must be properly handled, never silently swallowed
 - **No hidden marker fields**: Do not encode provider semantics via internal marker keys (for example in `provider_options`) to fake lossless roundtrips.
 - **Ask when non-lossy mapping is unclear**: If the universal type cannot represent a provider feature non-lossily, stop and ask for clarification on the intended canonical representation before implementing a workaround.
+- **Keep provider converters faithful**: Do not add display-only, redacted, or otherwise lossy variants of a provider conversion to work around replay-only fields. Render or redact messages in the consuming presentation layer. A shared presentation API requires explicit approval and a provider-neutral contract.
 - **No unapproved fallback logic**: Do not add ad-hoc fallback parsing/translation paths (for example `fallback_*` helpers) without checking with the programmer first.
 - **Typed boundaries only**: At provider boundaries, parse into well-defined typed structs/enums. Do not add lenient raw-JSON parsing that guesses defaults for required fields (for example defaulting missing `role` to `user`, lowercasing unknown roles, or inventing empty `content`).
 - **Do not handwrite provider-format structs**: Do not manually define Rust structs/enums that represent provider wire formats when generated or canonical provider types already exist. Fix generation or add typed adapters around canonical types instead.

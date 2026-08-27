@@ -6666,6 +6666,46 @@ mod tests {
     }
 
     #[test]
+    fn chat_messages_keep_reasoning_signatures_and_tool_calls() {
+        let responses_items = json!([
+            {
+                "type": "reasoning",
+                "id": "reasoning_123",
+                "content": [],
+                "encrypted_content": "reasoning_signature",
+                "summary": []
+            },
+            {
+                "type": "function_call",
+                "id": "function_call_123",
+                "call_id": "call_123",
+                "name": "lookup_weather",
+                "arguments": "{\"city\":\"Springfield\"}",
+                "status": "completed"
+            }
+        ]);
+        let messages = try_parse_responses_items_for_import(&responses_items)
+            .expect("Responses items should import");
+
+        let replay_messages = messages_to_chat_completion_messages(messages.clone())
+            .expect("replay conversion should succeed");
+        assert_eq!(
+            replay_messages[0].reasoning_signature,
+            Some(ReasoningSignature::Multiple(vec![
+                "reasoning_signature".to_string()
+            ]))
+        );
+        assert_eq!(
+            replay_messages[0]
+                .tool_calls
+                .as_ref()
+                .expect("tool calls should be preserved")
+                .len(),
+            1
+        );
+    }
+
+    #[test]
     fn responses_input_assigns_assistant_id_to_first_split_reasoning_item() {
         let message = Message::Assistant {
             content: AssistantContent::Array(vec![
