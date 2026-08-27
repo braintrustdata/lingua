@@ -93,7 +93,18 @@ pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, Val
 
 /// Validates a JSON string as an Anthropic messages response
 pub fn validate_anthropic_response(json: &str) -> Result<Message, ValidationError> {
-    validate_json(json)
+    let response: Message = validate_json(json)?;
+    for block in &response.content {
+        if block.toolset_name.is_some()
+            && block.content_block_type != generated::ContentBlockType::ToolUse
+        {
+            return Err(ValidationError::DeserializationFailed(format!(
+                "Anthropic toolset_name is not valid on {:?} response content blocks",
+                block.content_block_type
+            )));
+        }
+    }
+    Ok(response)
 }
 
 #[cfg(test)]
@@ -586,6 +597,8 @@ mod tests {
         for tool in [
             r#"{"type":"browser_toolset_20260801","name":"browser"}"#,
             r#"{"type":"computer_toolset_20260801","display_number":1}"#,
+            r#"{"type":"browser_toolset_20260801","configs":{"close_tab":{"bogus":true}}}"#,
+            r#"{"type":"computer_toolset_20260801","configs":{"cursor_position":{"bogus":true}}}"#,
         ] {
             let json = format!(
                 r#"{{
@@ -676,5 +689,61 @@ mod tests {
 
         let result = validate_anthropic_response(json);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_response_restricts_toolset_name_to_tool_use_blocks() {
+        let invalid = r#"{
+            "id":"msg_123",
+            "type":"message",
+            "role":"assistant",
+            "content":[{"type":"text","text":"Hello","toolset_name":"browser"}],
+            "model":"claude-opus-4-1",
+            "stop_reason":"end_turn",
+            "usage":{"input_tokens":10,"output_tokens":20}
+        }"#;
+        assert!(validate_anthropic_response(invalid).is_err());
+
+        let valid = r#"{
+            "id":"msg_123",
+            "type":"message",
+            "role":"assistant",
+            "content":[{
+                "type":"tool_use",
+                "id":"toolu_123",
+                "name":"navigate",
+                "input":{"url":"https://example.com"},
+                "toolset_name":"browser"
+            }],
+            "model":"claude-opus-4-1",
+            "stop_reason":"tool_use",
+            "usage":{"input_tokens":10,"output_tokens":20}
+        }"#;
+        assert!(validate_anthropic_response(valid).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_response_requires_nullable_container_skills() {
+        let missing = r#"{
+            "id":"msg_123",
+            "type":"message",
+            "role":"assistant",
+            "content":[{"type":"text","text":"Hello"}],
+            "container":{"id":"container_123","expires_at":"2026-08-28T00:00:00Z"},
+            "model":"claude-opus-4-1",
+            "stop_reason":"end_turn",
+            "usage":{"input_tokens":10,"output_tokens":20}
+        }"#;
+        assert!(validate_anthropic_response(missing).is_err());
+
+        let explicit_null = missing.replace(
+            "\"expires_at\":\"2026-08-28T00:00:00Z\"",
+            "\"expires_at\":\"2026-08-28T00:00:00Z\",\"skills\":null",
+        );
+        let response = validate_anthropic_response(&explicit_null)
+            .expect("an explicit null skills field should be valid");
+        let serialized = crate::serde_json::to_value(response)
+            .expect("validated Anthropic response should serialize");
+        assert!(serialized["container"]["skills"].is_null());
     }
 }

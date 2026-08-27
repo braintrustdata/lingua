@@ -97,6 +97,93 @@ pub fn replace_tool_struct_with_enum(existing: &str, tool_code: &str) -> String 
     out
 }
 
+pub fn enforce_anthropic_toolset_config_strictness(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let mut strict_config_types = HashSet::new();
+
+    for toolset_configs in ["BrowserToolsetConfigs", "ComputerToolsetConfigs"] {
+        let properties = schemas
+            .get(toolset_configs)
+            .and_then(|schema| schema.get("properties"))
+            .and_then(|properties| properties.as_object())
+            .ok_or_else(|| format!("Missing {toolset_configs} properties"))?;
+
+        for property in properties.values() {
+            let Some(schema_name) = nullable_referenced_schema_name(property) else {
+                continue;
+            };
+            if schemas
+                .get(schema_name)
+                .and_then(|schema| schema.get("additionalProperties"))
+                .and_then(|value| value.as_bool())
+                == Some(false)
+            {
+                strict_config_types.insert(schema_name_to_rust_type(schema_name));
+            }
+        }
+    }
+
+    let mut output = existing.to_string();
+    for (name, block) in split_type_definitions(existing) {
+        if !strict_config_types.contains(&name) || block.contains("#[serde(deny_unknown_fields)]") {
+            continue;
+        }
+        let derive_end = block
+            .find("#[derive(")
+            .and_then(|start| block[start..].find('\n').map(|end| start + end + 1))
+            .ok_or_else(|| format!("Missing derive attribute for {name}"))?;
+        let mut replacement = block.clone();
+        replacement.insert_str(derive_end, "#[serde(deny_unknown_fields)]\n");
+        output = output.replacen(&block, &replacement, 1);
+    }
+
+    Ok(output)
+}
+
+pub fn preserve_anthropic_required_nullable_fields(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let container = schemas.get("Container").ok_or("Missing Container schema")?;
+    let skills_is_required = container
+        .get("required")
+        .and_then(|required| required.as_array())
+        .is_some_and(|required| {
+            required
+                .iter()
+                .any(|field| field.as_str() == Some("skills"))
+        });
+    let skills_is_nullable = container
+        .get("properties")
+        .and_then(|properties| properties.get("skills"))
+        .and_then(|skills| skills.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .is_some_and(|variants| {
+            variants
+                .iter()
+                .any(|variant| variant.get("type").and_then(|value| value.as_str()) == Some("null"))
+        });
+    if !skills_is_required || !skills_is_nullable {
+        return Err("Container.skills is no longer required and nullable".into());
+    }
+
+    let (_, block) = split_type_definitions(existing)
+        .into_iter()
+        .find(|(name, _)| name == "Container")
+        .ok_or("Missing generated Container type")?;
+    let old = "    #[serde(skip_serializing_if = \"Option::is_none\")]\n    pub skills: Option<Vec<ContainerSkill>>,";
+    let new = "    #[serde(deserialize_with = \"super::deserialize_required_nullable\")]\n    pub skills: Option<Vec<ContainerSkill>>,";
+    if !block.contains(old) {
+        return Err("Missing generated optional Container.skills field".into());
+    }
+    let replacement = block.replacen(old, new, 1);
+    Ok(existing.replacen(&block, &replacement, 1))
+}
+
 // -------------------------------------------------------------------------
 // Extraction functions
 // -------------------------------------------------------------------------
@@ -1053,7 +1140,8 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 #[cfg(test)]
 mod tests {
     use super::{
-        generate_all_tool_code, generate_anthropic_browser_state_types,
+        enforce_anthropic_toolset_config_strictness, generate_all_tool_code,
+        generate_anthropic_browser_state_types, preserve_anthropic_required_nullable_fields,
         preserve_anthropic_source_types,
     };
     use big_serde_json as serde_json;
@@ -1290,5 +1378,56 @@ pub struct RequestDocumentBlockSource {
         assert!(generated.contains("Url {\n        url: String,"));
         assert!(!generated.contains("file_id: Option<String>"));
         assert!(generated.contains("pub enum RequestDocumentBlockSource"));
+    }
+
+    #[test]
+    fn anthropic_toolset_member_configs_reject_unknown_fields() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct BrowserCloseTabConfig {
+    pub enabled: Option<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ComputerCursorPositionConfig {
+    pub enabled: Option<bool>,
+}"#;
+
+        let generated = enforce_anthropic_toolset_config_strictness(quicktype, &spec)
+            .expect("toolset member configs should be made strict");
+
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            2
+        );
+        assert!(
+            generated.contains("#[serde(deny_unknown_fields)]\npub struct BrowserCloseTabConfig")
+        );
+        assert!(generated
+            .contains("#[serde(deny_unknown_fields)]\npub struct ComputerCursorPositionConfig"));
+    }
+
+    #[test]
+    fn anthropic_container_skills_remains_required_and_nullable() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug, Clone)]
+pub struct Container {
+    pub expires_at: String,
+    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skills: Option<Vec<ContainerSkill>>,
+}"#;
+
+        let generated = preserve_anthropic_required_nullable_fields(quicktype, &spec)
+            .expect("Container.skills should preserve required-nullable semantics");
+
+        assert!(generated.contains(
+            "#[serde(deserialize_with = \"super::deserialize_required_nullable\")]\n    pub skills: Option<Vec<ContainerSkill>>"
+        ));
+        assert!(!generated.contains("skip_serializing_if = \"Option::is_none\""));
     }
 }

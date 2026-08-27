@@ -2590,6 +2590,7 @@ pub enum AllowedCaller {
 
 /// ``close_tab``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserCloseTabConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2604,6 +2605,7 @@ pub struct BrowserCloseTabConfig {
 
 /// ``cursor_position``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct ComputerCursorPositionConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2618,6 +2620,7 @@ pub struct ComputerCursorPositionConfig {
 
 /// ``file_upload``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserFileUploadConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2632,6 +2635,7 @@ pub struct BrowserFileUploadConfig {
 
 /// ``find``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserFindConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2646,6 +2650,7 @@ pub struct BrowserFindConfig {
 
 /// ``form_input``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserFormInputConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2660,6 +2665,7 @@ pub struct BrowserFormInputConfig {
 
 /// ``get_page_text``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserGetPageTextConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2674,6 +2680,7 @@ pub struct BrowserGetPageTextConfig {
 
 /// ``hover``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserHoverConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2688,6 +2695,7 @@ pub struct BrowserHoverConfig {
 
 /// ``javascript_exec``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserJavascriptExecConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2702,6 +2710,7 @@ pub struct BrowserJavascriptExecConfig {
 
 /// ``list_tabs``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserListTabsConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2716,6 +2725,7 @@ pub struct BrowserListTabsConfig {
 
 /// ``navigate``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserNavigateConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2730,6 +2740,7 @@ pub struct BrowserNavigateConfig {
 
 /// ``new_tab``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserNewTabConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2744,6 +2755,7 @@ pub struct BrowserNewTabConfig {
 
 /// ``read_console``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserReadConsoleConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2758,6 +2770,7 @@ pub struct BrowserReadConsoleConfig {
 
 /// ``read_network``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserReadNetworkConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2772,6 +2785,7 @@ pub struct BrowserReadNetworkConfig {
 
 /// ``read_page``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserReadPageConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2786,6 +2800,7 @@ pub struct BrowserReadPageConfig {
 
 /// ``scroll_to``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserScrollToConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2800,6 +2815,7 @@ pub struct BrowserScrollToConfig {
 
 /// ``switch_tab``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserSwitchTabConfig {
     /// Defer loading for this member. Must resolve to the same value on every enabled member of
@@ -2957,7 +2973,7 @@ pub struct Container {
     /// Identifier for the container used in this request
     pub id: String,
     /// Skills loaded in the container
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(deserialize_with = "super::deserialize_required_nullable")]
     pub skills: Option<Vec<ContainerSkill>>,
 }
 

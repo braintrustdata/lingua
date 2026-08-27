@@ -13,6 +13,16 @@ pub mod generated;
 pub mod params;
 pub(crate) mod tool_discovery;
 
+pub(crate) fn deserialize_required_nullable<'de, D, T>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de>,
+{
+    <Option<T> as serde::Deserialize>::deserialize(deserializer)
+}
+
 #[cfg(test)]
 pub mod test_anthropic;
 

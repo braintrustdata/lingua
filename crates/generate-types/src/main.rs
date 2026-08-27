@@ -5,7 +5,8 @@
 use big_serde_json as serde_json;
 use std::path::PathBuf;
 use tool_generator::{
-    generate_all_tool_code, preserve_anthropic_browser_state_types,
+    enforce_anthropic_toolset_config_strictness, generate_all_tool_code,
+    preserve_anthropic_browser_state_types, preserve_anthropic_required_nullable_fields,
     preserve_anthropic_source_types, replace_tool_struct_with_enum,
 };
 
@@ -499,10 +500,12 @@ fn generate_anthropic_types_with_quicktype(
     if let Ok(tool_code) = generate_all_tool_code("anthropic", &spec) {
         processed_output = replace_tool_struct_with_enum(&processed_output, &tool_code);
     }
+    processed_output = enforce_anthropic_toolset_config_strictness(&processed_output, &spec)?;
     processed_output = preserve_anthropic_browser_state_types(&processed_output, &spec)?;
     processed_output = preserve_anthropic_source_types(&processed_output, &spec)?;
     processed_output = add_anthropic_tool_search_tool_variants(&processed_output);
     processed_output = normalize_anthropic_public_names(&processed_output)?;
+    processed_output = preserve_anthropic_required_nullable_fields(&processed_output, &spec)?;
     processed_output = remove_unreferenced_anthropic_types(&processed_output);
 
     let dest_path = "crates/lingua/src/providers/anthropic/generated.rs";
