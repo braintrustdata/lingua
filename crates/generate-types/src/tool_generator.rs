@@ -386,9 +386,9 @@ fn generate_tool_struct_direct(
             let rust_type = match (provider, prop_name.as_str()) {
                 ("anthropic", "allowed_callers") => "Vec<AllowedCaller>".to_string(),
                 ("anthropic", "response_inclusion") => "ResponseInclusion".to_string(),
-                ("anthropic", "configs") => nullable_referenced_schema_type(prop_schema)
+                ("anthropic", "configs") => typed_referenced_schema_type(prop_schema)
                     .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
-                _ if typed_references => nullable_referenced_schema_type(prop_schema)
+                _ if typed_references => typed_referenced_schema_type(prop_schema)
                     .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
                 _ => schema_type_to_rust(prop_schema, all_schemas),
             };
@@ -512,8 +512,323 @@ fn nullable_referenced_schema_name(schema: &serde_json::Value) -> Option<&str> {
         .next_back()
 }
 
-fn nullable_referenced_schema_type(schema: &serde_json::Value) -> Option<String> {
-    nullable_referenced_schema_name(schema).map(schema_name_to_rust_type)
+fn typed_referenced_schema_type(schema: &serde_json::Value) -> Option<String> {
+    if let Some(schema_name) = schema
+        .get("$ref")
+        .and_then(|reference| reference.as_str())
+        .and_then(|reference| reference.split('/').next_back())
+    {
+        return Some(schema_name_to_rust_type(schema_name));
+    }
+
+    if let Some(variants) = schema
+        .get("anyOf")
+        .or_else(|| schema.get("oneOf"))
+        .and_then(|variants| variants.as_array())
+    {
+        let non_null = variants
+            .iter()
+            .filter(|variant| variant.get("type").and_then(|value| value.as_str()) != Some("null"))
+            .collect::<Vec<_>>();
+        if non_null.len() == 1 {
+            return typed_referenced_schema_type(non_null[0]);
+        }
+
+        let referenced_names = non_null
+            .iter()
+            .filter_map(|variant| {
+                variant
+                    .get("$ref")
+                    .and_then(|reference| reference.as_str())
+                    .and_then(|reference| reference.split('/').next_back())
+            })
+            .collect::<Vec<_>>();
+        if schema.get("discriminator").is_some() && referenced_names.len() == non_null.len() {
+            return common_schema_name_prefix(&referenced_names).map(schema_name_to_rust_type);
+        }
+    }
+
+    if schema.get("type").and_then(|value| value.as_str()) == Some("array") {
+        return schema
+            .get("items")
+            .and_then(typed_referenced_schema_type)
+            .map(|item_type| format!("Vec<{item_type}>"));
+    }
+
+    None
+}
+
+fn common_schema_name_prefix<'a>(names: &[&'a str]) -> Option<&'a str> {
+    let first = *names.first()?;
+    let mut end = first.len();
+    for name in &names[1..] {
+        end = first
+            .char_indices()
+            .take_while(|(index, character)| {
+                *index < end && *index < name.len() && name[*index..].starts_with(*character)
+            })
+            .map(|(index, character)| index + character.len_utf8())
+            .last()
+            .unwrap_or(0);
+    }
+    let prefix = first[..end].trim_end_matches('_');
+    (!prefix.is_empty()).then_some(prefix)
+}
+
+/// Replace quicktype's flattened request tool-result browser state shapes with the
+/// discriminated types from the Anthropic schema. Non-browser tool-result blocks retain
+/// quicktype's existing flattened representation to keep this correction narrowly scoped.
+pub fn preserve_anthropic_browser_state_types(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let definitions = split_type_definitions(existing);
+    let block = definition_named(&definitions, "Block")?;
+    let block_type = definition_named(&definitions, "WebSearchToolResultBlockItemType")?;
+    let flattened_state_change = definition_named(&definitions, "BrowserStateChange")?;
+    let flattened_state_change_type = definition_named(&definitions, "StateChangeType")?;
+
+    let non_browser_block = remove_struct_fields(
+        &block.replace("pub struct Block {", "pub struct NonBrowserBlock {"),
+        &["block_type", "state_changes", "tabs"],
+    );
+    let precise_types = generate_anthropic_browser_state_types(spec)?;
+    let replacement = format!("\n{precise_types}\n\n{non_browser_block}");
+
+    let mut processed = existing.replacen(block, &replacement, 1);
+    for obsolete in [
+        block_type,
+        flattened_state_change,
+        flattened_state_change_type,
+    ] {
+        processed = processed.replacen(obsolete, "", 1);
+    }
+    Ok(processed)
+}
+
+fn definition_named<'a>(
+    definitions: &'a [(String, String)],
+    name: &str,
+) -> Result<&'a str, Box<dyn std::error::Error>> {
+    definitions
+        .iter()
+        .find_map(|(definition_name, block)| (definition_name == name).then_some(block.as_str()))
+        .ok_or_else(|| format!("generated Anthropic type `{name}` was not found").into())
+}
+
+fn remove_struct_fields(block: &str, removed_fields: &[&str]) -> String {
+    let mut output = Vec::new();
+    let mut pending = Vec::new();
+    let mut inside_struct = false;
+
+    for line in block.lines() {
+        if !inside_struct {
+            output.push(line);
+            inside_struct = line.trim_start().starts_with("pub struct ");
+            continue;
+        }
+
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("///") || trimmed.starts_with("#[") || trimmed.is_empty() {
+            pending.push(line);
+            continue;
+        }
+
+        if let Some(field_name) = trimmed
+            .strip_prefix("pub ")
+            .and_then(|field| field.split(':').next())
+        {
+            if !removed_fields.contains(&field_name) {
+                output.append(&mut pending);
+                output.push(line);
+            } else {
+                pending.clear();
+            }
+            continue;
+        }
+
+        output.append(&mut pending);
+        output.push(line);
+    }
+
+    output.join("\n")
+}
+
+fn generate_anthropic_browser_state_types(
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    let browser_state_schema = schemas
+        .get("RequestBrowserStateBlock")
+        .ok_or("RequestBrowserStateBlock schema not found")?;
+    let state_change_union = browser_state_schema
+        .get("properties")
+        .and_then(|properties| properties.get("state_changes"))
+        .and_then(non_null_schema)
+        .and_then(|array| array.get("items"))
+        .ok_or("RequestBrowserStateBlock.state_changes union not found")?;
+
+    let mut segments = vec![generate_request_tool_result_block_enum(schemas)?];
+    segments.push(generate_tool_struct_direct(
+        "RequestBrowserStateBlock",
+        browser_state_schema,
+        schemas,
+        "anthropic",
+        true,
+    ));
+    segments.push(generate_tagged_reference_enum(
+        "BrowserStateChange",
+        state_change_union,
+        schemas,
+        "anthropic",
+    )?);
+
+    for schema_name in referenced_variant_names(state_change_union)? {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("referenced Anthropic schema `{schema_name}` not found"))?;
+        segments.push(generate_tool_struct_direct(
+            schema_name,
+            schema,
+            schemas,
+            "anthropic",
+            true,
+        ));
+    }
+
+    Ok(segments.join("\n\n"))
+}
+
+fn generate_request_tool_result_block_enum(
+    schemas: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let item_union = schemas
+        .get("RequestToolResultBlock")
+        .and_then(|schema| schema.get("properties"))
+        .and_then(|properties| properties.get("content"))
+        .and_then(|content| content.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .and_then(|variants| {
+            variants.iter().find_map(|variant| {
+                (variant.get("type").and_then(|value| value.as_str()) == Some("array"))
+                    .then(|| variant.get("items"))
+                    .flatten()
+            })
+        })
+        .ok_or("RequestToolResultBlock content item union not found")?;
+    let mapping = item_union
+        .get("discriminator")
+        .and_then(|discriminator| discriminator.get("mapping"))
+        .and_then(|mapping| mapping.as_object())
+        .ok_or("RequestToolResultBlock content discriminator mapping not found")?;
+
+    let mut output = String::from(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n\
+#[serde(tag = \"type\")]\n\
+#[ts(export_to = \"anthropic/\")]\n\
+pub enum Block {\n",
+    );
+    for (tag, reference) in mapping {
+        let schema_name = reference
+            .as_str()
+            .and_then(|reference| reference.split('/').next_back())
+            .ok_or("invalid request tool-result content schema reference")?;
+        let rust_name = schema_name_to_rust_type(schema_name);
+        let variant = rust_name
+            .strip_prefix("Request")
+            .and_then(|name| name.strip_suffix("Block"))
+            .unwrap_or(&rust_name);
+        let payload = if schema_name == "RequestBrowserStateBlock" {
+            "RequestBrowserStateBlock"
+        } else {
+            "NonBrowserBlock"
+        };
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    {variant}({payload}),\n"
+        ));
+    }
+    // Quicktype shares this `Block` type with RequestWebSearchToolResultBlock.content.
+    // Preserve that schema arm while tightening only the browser-state variant.
+    if let Some(web_search_result) = schemas.get("RequestWebSearchResultBlock") {
+        let tag = web_search_result
+            .get("properties")
+            .and_then(|properties| properties.get("type"))
+            .and_then(|schema_type| schema_type.get("const"))
+            .and_then(|value| value.as_str())
+            .ok_or("RequestWebSearchResultBlock has no constant type discriminator")?;
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    WebSearchResult(NonBrowserBlock),\n"
+        ));
+    }
+    output.push_str("}\n");
+    Ok(output)
+}
+
+fn generate_tagged_reference_enum(
+    enum_name: &str,
+    union_schema: &serde_json::Value,
+    schemas: &serde_json::Map<String, serde_json::Value>,
+    provider: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let mut output = format!(
+        "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n\
+#[serde(tag = \"type\")]\n\
+#[ts(export_to = \"{provider}/\")]\n\
+pub enum {enum_name} {{\n"
+    );
+    for schema_name in referenced_variant_names(union_schema)? {
+        let schema = schemas
+            .get(schema_name)
+            .ok_or_else(|| format!("referenced Anthropic schema `{schema_name}` not found"))?;
+        let tag = schema
+            .get("properties")
+            .and_then(|properties| properties.get("type"))
+            .and_then(|schema_type| schema_type.get("const"))
+            .and_then(|value| value.as_str())
+            .ok_or_else(|| format!("schema `{schema_name}` has no constant type discriminator"))?;
+        let rust_name = schema_name_to_rust_type(schema_name);
+        let variant = rust_name.strip_prefix(enum_name).unwrap_or(&rust_name);
+        output.push_str(&format!(
+            "    #[serde(rename = \"{tag}\")]\n    {variant}({rust_name}),\n"
+        ));
+    }
+    output.push_str("}\n");
+    Ok(output)
+}
+
+fn referenced_variant_names(
+    union_schema: &serde_json::Value,
+) -> Result<Vec<&str>, Box<dyn std::error::Error>> {
+    let variants = union_schema
+        .get("oneOf")
+        .or_else(|| union_schema.get("anyOf"))
+        .and_then(|variants| variants.as_array())
+        .ok_or("discriminated union variants not found")?;
+    variants
+        .iter()
+        .map(|variant| {
+            variant
+                .get("$ref")
+                .and_then(|reference| reference.as_str())
+                .and_then(|reference| reference.split('/').next_back())
+                .ok_or("discriminated union variant is not a schema reference")
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(Into::into)
+}
+
+fn non_null_schema(schema: &serde_json::Value) -> Option<&serde_json::Value> {
+    schema
+        .get("anyOf")
+        .or_else(|| schema.get("oneOf"))
+        .and_then(|variants| variants.as_array())
+        .and_then(|variants| {
+            let mut non_null = variants.iter().filter(|variant| {
+                variant.get("type").and_then(|value| value.as_str()) != Some("null")
+            });
+            let schema = non_null.next()?;
+            non_null.next().is_none().then_some(schema)
+        })
 }
 
 // -------------------------------------------------------------------------
@@ -648,7 +963,7 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 
 #[cfg(test)]
 mod tests {
-    use super::generate_all_tool_code;
+    use super::{generate_all_tool_code, generate_anthropic_browser_state_types};
     use big_serde_json as serde_json;
 
     #[test]
@@ -806,5 +1121,26 @@ mod tests {
             2
         );
         assert!(!generated.contains("pub configs: Option<serde_json::Value>,"));
+    }
+
+    #[test]
+    fn anthropic_browser_state_types_preserve_discriminated_requirements() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+
+        let generated = generate_anthropic_browser_state_types(&spec)
+            .expect("browser state types should be generated from the Anthropic schema");
+
+        assert!(generated.contains("#[serde(tag = \"type\")]"));
+        assert!(generated.contains("pub enum Block"));
+        assert!(generated.contains("BrowserState(RequestBrowserStateBlock)"));
+        assert!(generated.contains("WebSearchResult(NonBrowserBlock)"));
+        assert!(generated.contains("pub tabs: Vec<BrowserStateTabEntry>,"));
+        assert!(generated.contains("pub state_changes: Option<Vec<BrowserStateChange>>,"));
+        assert!(generated.contains("pub enum BrowserStateChange"));
+        assert!(generated.contains("DownloadStarted(BrowserStateChangeDownloadStarted)"));
+        assert!(generated.contains("pub download_id: String,"));
+        assert!(generated.contains("pub url: String,"));
     }
 }

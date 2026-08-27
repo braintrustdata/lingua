@@ -561,6 +561,121 @@ pub enum InputContentBlockContent {
     Request(Request),
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type")]
+#[ts(export_to = "anthropic/")]
+pub enum Block {
+    #[serde(rename = "browser_state")]
+    BrowserState(RequestBrowserStateBlock),
+    #[serde(rename = "document")]
+    Document(NonBrowserBlock),
+    #[serde(rename = "image")]
+    Image(NonBrowserBlock),
+    #[serde(rename = "search_result")]
+    SearchResult(NonBrowserBlock),
+    #[serde(rename = "text")]
+    Text(NonBrowserBlock),
+    #[serde(rename = "tool_reference")]
+    ToolReference(NonBrowserBlock),
+    #[serde(rename = "web_search_result")]
+    WebSearchResult(NonBrowserBlock),
+}
+
+/// The caller's browser state after a browser toolset member call —
+/// the full inventory of open tabs, which tab is active, and any side
+/// effects (tabs opened, download state changes) the call produced.
+///
+/// At most one per `tool_result`, only on a non-error result answering a
+/// browser toolset member `tool_use`. The server renders the
+/// model-visible text from it; the model never sees the raw fields.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct RequestBrowserStateBlock {
+    /// Create a cache control breakpoint at this content block.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<CacheControlEphemeral>,
+    /// Tabs opened and download state changes during this call. "Nothing to report" is expressed by omitting the field, never by an empty list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_changes: Option<Vec<BrowserStateChange>>,
+    /// All tabs open in the browser after this call — the full inventory, not a delta. May be empty. Whenever non-empty, exactly one entry carries `active: true`.
+    pub tabs: Vec<BrowserStateTabEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type")]
+#[ts(export_to = "anthropic/")]
+pub enum BrowserStateChange {
+    #[serde(rename = "tab_opened")]
+    TabOpened(BrowserStateChangeTabOpened),
+    #[serde(rename = "download_started")]
+    DownloadStarted(BrowserStateChangeDownloadStarted),
+    #[serde(rename = "download_completed")]
+    DownloadCompleted(BrowserStateChangeDownloadCompleted),
+    #[serde(rename = "download_failed")]
+    DownloadFailed(BrowserStateChangeDownloadFailed),
+}
+
+/// A tab this call's execution opened that remains open at its end —
+/// the creation delta of the `tabs` inventory, not an event log.
+///
+/// Carries only the `tab_id`; the tab's `title` and `url` live on its
+/// `tabs` entry, which must include the same `tab_id`. A tab opened
+/// during a failed call gets no deferred `tab_opened`; it simply appears
+/// in the next result's `tabs` inventory.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateChangeTabOpened {
+    /// The `tab_id` of the opened tab, present in `tabs`.
+    pub tab_id: String,
+}
+
+/// A file download that started during this call.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateChangeDownloadStarted {
+    /// The caller-assigned identifier for this download, stable across the state changes reporting it.
+    pub download_id: String,
+    /// The final post-redirect URL the download was served from.
+    pub url: String,
+}
+
+/// A file download that finished during this call, reported with the
+/// same `download_id` as its `download_started` — or without a prior
+/// `download_started`, when the download finished during the call that
+/// started it (at most one state change per `download_id` per result).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateChangeDownloadCompleted {
+    /// The caller-assigned identifier for this download, stable across the state changes reporting it.
+    pub download_id: String,
+    /// Where the executor saved the file, on the executor's filesystem. Only included when another tool in the same environment can read the file at that path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    /// The completed download's size.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size_bytes: Option<i64>,
+    /// The final post-redirect URL the download was served from.
+    pub url: String,
+}
+
+/// A file download that failed — or was cancelled — during this call.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserStateChangeDownloadFailed {
+    /// The caller-assigned identifier for this download, stable across the state changes reporting it.
+    pub download_id: String,
+    /// The failure or cancellation detail, when known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+    /// The final post-redirect URL the download was served from.
+    pub url: String,
+}
+
 /// Regular text content.
 ///
 /// Image content specified directly as base64 data or as a reference via a URL.
@@ -581,7 +696,7 @@ pub enum InputContentBlockContent {
 /// model-visible text from it; the model never sees the raw fields.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
-pub struct Block {
+pub struct NonBrowserBlock {
     /// Create a cache control breakpoint at this content block.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache_control: Option<CacheControlEphemeral>,
@@ -589,8 +704,6 @@ pub struct Block {
     pub citations: Option<Citations>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
-    #[serde(rename = "type")]
-    pub block_type: WebSearchToolResultBlockItemType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<SourceUnion>,
     /// Configures the transformations the server applies to this image before the model observes
@@ -607,37 +720,12 @@ pub struct Block {
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_name: Option<String>,
-    /// Tabs opened and download state changes during this call. "Nothing to report" is expressed
-    /// by omitting the field, never by an empty list.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state_changes: Option<Vec<BrowserStateChange>>,
-    /// All tabs open in the browser after this call — the full inventory, not a delta. May be
-    /// empty. Whenever non-empty, exactly one entry carries `active: true`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tabs: Option<Vec<BrowserStateTabEntry>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page_age: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "anthropic/")]
-pub enum WebSearchToolResultBlockItemType {
-    #[serde(rename = "browser_state")]
-    BrowserState,
-    Document,
-    Image,
-    #[serde(rename = "search_result")]
-    SearchResult,
-    Text,
-    #[serde(rename = "tool_reference")]
-    ToolReference,
-    #[serde(rename = "web_search_result")]
-    WebSearchResult,
 }
 
 /// Regular text content.
@@ -819,63 +907,6 @@ pub enum Base64ImageSourceType {
     File,
     Text,
     Url,
-}
-
-/// A tab this call's execution opened that remains open at its end —
-/// the creation delta of the `tabs` inventory, not an event log.
-///
-/// Carries only the `tab_id`; the tab's `title` and `url` live on its
-/// `tabs` entry, which must include the same `tab_id`. A tab opened
-/// during a failed call gets no deferred `tab_opened`; it simply appears
-/// in the next result's `tabs` inventory.
-///
-/// A file download that started during this call.
-///
-/// A file download that finished during this call, reported with the
-/// same `download_id` as its `download_started` — or without a prior
-/// `download_started`, when the download finished during the call that
-/// started it (at most one state change per `download_id` per result).
-///
-/// A file download that failed — or was cancelled — during this call.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[ts(export_to = "anthropic/")]
-pub struct BrowserStateChange {
-    /// The `tab_id` of the opened tab, present in `tabs`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tab_id: Option<String>,
-    #[serde(rename = "type")]
-    pub browser_state_change_type: StateChangeType,
-    /// The caller-assigned identifier for this download, stable across the state changes
-    /// reporting it.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub download_id: Option<String>,
-    /// The final post-redirect URL the download was served from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
-    /// Where the executor saved the file, on the executor's filesystem. Only included when
-    /// another tool in the same environment can read the file at that path.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub path: Option<String>,
-    /// The completed download's size.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub size_bytes: Option<i64>,
-    /// The failure or cancellation detail, when known.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "anthropic/")]
-pub enum StateChangeType {
-    #[serde(rename = "download_completed")]
-    DownloadCompleted,
-    #[serde(rename = "download_failed")]
-    DownloadFailed,
-    #[serde(rename = "download_started")]
-    DownloadStarted,
-    #[serde(rename = "tab_opened")]
-    TabOpened,
 }
 
 /// One open browser tab reported in a `browser_state` block's `tabs`

@@ -287,6 +287,79 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_requires_browser_state_tabs() {
+        let json = r#"{
+            "model": "claude-opus-4-1",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_123",
+                    "content": [{"type": "browser_state"}]
+                }]
+            }],
+            "max_tokens": 16
+        }"#;
+
+        assert!(validate_anthropic_request(json).is_err());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_requires_browser_state_change_fields() {
+        let json = r#"{
+            "model": "claude-opus-4-1",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_123",
+                    "content": [{
+                        "type": "browser_state",
+                        "tabs": [],
+                        "state_changes": [{
+                            "type": "download_started",
+                            "download_id": "download_123"
+                        }]
+                    }]
+                }]
+            }],
+            "max_tokens": 16
+        }"#;
+
+        assert!(validate_anthropic_request(json).is_err());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_typed_browser_state() {
+        let json = r#"{
+            "model": "claude-opus-4-1",
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_123",
+                    "content": [{
+                        "type": "browser_state",
+                        "tabs": [{
+                            "tab_id": "tab_123",
+                            "title": "Example",
+                            "url": "https://example.com",
+                            "active": true
+                        }],
+                        "state_changes": [{
+                            "type": "tab_opened",
+                            "tab_id": "tab_123"
+                        }]
+                    }]
+                }]
+            }],
+            "max_tokens": 16
+        }"#;
+
+        assert!(validate_anthropic_request(json).is_ok());
+    }
+
+    #[test]
     fn test_validate_anthropic_response_minimal() {
         let json = r#"{
             "id": "msg_123",
