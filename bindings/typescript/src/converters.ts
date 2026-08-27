@@ -14,6 +14,11 @@ import type { ChatCompletionRequestMessage } from "./generated/openai/ChatComple
 import type { InputItem } from "./generated/openai/InputItem";
 import type { InputMessage } from "./generated/anthropic/InputMessage";
 
+/** A display-safe Chat Completions message with Lingua's reasoning extension. */
+export type ChatCompletionDisplayMessage = ChatCompletionRequestMessage & {
+  reasoning?: string;
+};
+
 type GoogleContent = Record<string, unknown>;
 type ImportSpan = {
   input?: unknown;
@@ -159,7 +164,7 @@ export const linguaToChatCompletionsMessages = createFromLinguaConverter<
  * @throws {ConversionError} If conversion fails
  */
 export const linguaToChatCompletionsDisplayMessages =
-  createFromLinguaConverter<Message[], ChatCompletionRequestMessage[]>(
+  createFromLinguaConverter<Message[], ChatCompletionDisplayMessage[]>(
     () => getWasm().lingua_to_chat_completions_display_messages,
     "Chat Completions display"
   );

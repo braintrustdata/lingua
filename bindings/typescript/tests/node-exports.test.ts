@@ -145,6 +145,7 @@ describe("Node.js exports", () => {
     ]);
 
     const displayMessages = linguaToChatCompletionsDisplayMessages(messages);
+    expect(displayMessages[0]?.reasoning).toBe("");
     expect(displayMessages).toMatchObject([
       {
         role: "assistant",
@@ -159,6 +160,44 @@ describe("Node.js exports", () => {
             },
           },
         ],
+      },
+    ]);
+    expect(displayMessages[0]).not.toHaveProperty("reasoning_signature");
+  });
+
+  test("should ignore distinct reasoning and tool call signatures for display", async () => {
+    const { linguaToChatCompletionsDisplayMessages } = await import(
+      "../src/index"
+    );
+
+    const displayMessages = linguaToChatCompletionsDisplayMessages([
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "reasoning",
+            text: "thinking",
+            encrypted_content: "reasoning_signature",
+          },
+          {
+            type: "tool_call",
+            tool_call_id: "call_123",
+            tool_name: "lookup_weather",
+            arguments: {
+              type: "valid",
+              value: { city: "Springfield" },
+            },
+            encrypted_content: "tool_call_signature",
+          },
+        ],
+      },
+    ]);
+
+    expect(displayMessages).toMatchObject([
+      {
+        role: "assistant",
+        reasoning: "thinking",
+        tool_calls: [{ id: "call_123" }],
       },
     ]);
     expect(displayMessages[0]).not.toHaveProperty("reasoning_signature");

@@ -48,6 +48,7 @@ export {
 
 // Re-export types
 export type {
+  ChatCompletionDisplayMessage,
   StreamSessionChunk,
   TransformStreamChunkResult,
   TransformStreamSessionHandle,
