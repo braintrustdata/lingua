@@ -95,9 +95,7 @@ fn validate_anthropic_input_message(
             generated::InputContentBlockType::Image | generated::InputContentBlockType::Document
         ) {
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
-                if source.source_type == generated::Base64ImageSourceType::File
-                    || source.file_id.is_some()
-                {
+                if matches!(source, generated::Source::File { .. }) {
                     let (from, to) = match block.input_content_block_type {
                         generated::InputContentBlockType::Image => (
                             "Anthropic file-backed image source",
@@ -561,8 +559,16 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         // Convert Anthropic image source to universal format
                                         match source {
                                             generated::SourceUnion::Source(purple_source) => {
-                                                if let Some(data) = purple_source.data {
-                                                    let media_type = purple_source.media_type.map(|mt| match mt {
+                                                if let generated::Source::Base64 {
+                                                    data,
+                                                    media_type,
+                                                }
+                                                | generated::Source::Text {
+                                                    data,
+                                                    media_type,
+                                                } = purple_source
+                                                {
+                                                    let media_type = Some(match media_type {
                                                         generated::Base64ImageSourceMediaType::ImageJpeg => "image/jpeg".to_string(),
                                                         generated::Base64ImageSourceMediaType::ImagePng => "image/png".to_string(),
                                                         generated::Base64ImageSourceMediaType::ImageGif => "image/gif".to_string(),
@@ -614,11 +620,24 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                         // Extract data and media_type from source
                                         match source {
                                             generated::SourceUnion::Source(s) => {
-                                                let data = s.data.clone().or_else(|| s.url.clone());
-                                                let media_type = s
-                                                    .media_type
-                                                    .as_ref()
-                                                    .map(|mt| match mt {
+                                                let (data, source_media_type) = match s {
+                                                    generated::Source::Base64 {
+                                                        data,
+                                                        media_type,
+                                                    }
+                                                    | generated::Source::Text {
+                                                        data,
+                                                        media_type,
+                                                    } => (Some(data.clone()), Some(media_type)),
+                                                    generated::Source::Url { url } => {
+                                                        (Some(url.clone()), None)
+                                                    }
+                                                    generated::Source::Content { .. } => {
+                                                        (None, None)
+                                                    }
+                                                    generated::Source::File { .. } => continue,
+                                                };
+                                                let media_type = source_media_type.map(|mt| match mt {
                                                         generated::Base64ImageSourceMediaType::ImageJpeg => {
                                                             "image/jpeg".to_string()
                                                         }
@@ -856,6 +875,24 @@ impl TryFromLLM<Message> for generated::InputMessage {
                     UserContent::String(text) => generated::MessageContent::PurpleString(text),
                     UserContent::Array(parts) => {
                         for part in &parts {
+                            if let UserContentPart::Image {
+                                image: Value::String(data),
+                                media_type: Some(media_type),
+                                transformations: Some(_),
+                                ..
+                            } = part
+                            {
+                                let is_url =
+                                    data.starts_with("http://") || data.starts_with("https://");
+                                if !is_url && media_type == "application/pdf" {
+                                    return Err(ConvertError::UnsupportedMapping {
+                                        from: "Lingua image transformations on PDF content"
+                                            .to_string(),
+                                        to: "Anthropic document input",
+                                    });
+                                }
+                            }
+
                             let UserContentPart::File {
                                 data: Value::String(data),
                                 media_type,
@@ -976,13 +1013,8 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             }
                                         }
 
-                                        let (source_type, source_url, source_data, anthropic_media_type) = if is_url {
-                                            (
-                                                generated::Base64ImageSourceType::Url,
-                                                Some(image_data),
-                                                None,
-                                                None,
-                                            )
+                                        let anthropic_media_type = if is_url {
+                                            None
                                         } else {
                                             // Base64 data - parse media_type (images and PDFs only)
                                             let anthropic_media_type =
@@ -1005,12 +1037,7 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     // Text types are handled above, shouldn't reach here
                                                     _ => None,
                                                 });
-                                            (
-                                                generated::Base64ImageSourceType::Base64,
-                                                None,
-                                                Some(image_data),
-                                                anthropic_media_type,
-                                            )
+                                            anthropic_media_type
                                         };
 
                                         // Block type: only PDF uses Document, everything else is Image
@@ -1026,16 +1053,14 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                             citations: None,
                                             text: None,
                                             input_content_block_type: block_type,
-                                            source: Some(generated::SourceUnion::Source(
-                                                generated::Source {
-                                                    data: source_data,
-                                                    media_type: anthropic_media_type,
-                                                    source_type,
-                                                    url: source_url,
-                                                    file_id: None,
-                                                    content: None,
-                                                },
-                                            )),
+                                            source: Some(generated::SourceUnion::Source(if is_url {
+                                                generated::Source::Url { url: image_data }
+                                            } else {
+                                                generated::Source::Base64 {
+                                                    data: image_data,
+                                                    media_type: anthropic_media_type?,
+                                                }
+                                            })),
                                             transformations:
                                                 anthropic_image_transformations_from_universal(
                                                     transformations,
@@ -1106,25 +1131,13 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                         input_content_block_type:
                                             generated::InputContentBlockType::Document,
                                         source: Some(generated::SourceUnion::Source(
-                                            generated::Source {
-                                                data: if is_url {
-                                                    None
-                                                } else {
-                                                    Some(data_str.clone())
-                                                },
-                                                media_type: if is_url {
-                                                    None
-                                                } else {
-                                                    anthropic_media_type
-                                                },
-                                                source_type: if is_url {
-                                                    generated::Base64ImageSourceType::Url
-                                                } else {
-                                                    generated::Base64ImageSourceType::Text
-                                                },
-                                                url: if is_url { Some(data_str) } else { None },
-                                                file_id: None,
-                                                content: None,
+                                            if is_url {
+                                                generated::Source::Url { url: data_str }
+                                            } else {
+                                                generated::Source::Text {
+                                                    data: data_str,
+                                                    media_type: anthropic_media_type?,
+                                                }
                                             },
                                         )),
                                         transformations: None,
@@ -3569,11 +3582,9 @@ mod tests {
             ));
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Text
+                    source,
+                    generated::Source::Text { data, .. } if data == "base64encodeddata"
                 ));
-                assert_eq!(source.data.as_deref(), Some("base64encodeddata"));
-                assert!(source.url.is_none());
             } else {
                 panic!("Expected SourceSource");
             }
@@ -3608,14 +3619,10 @@ mod tests {
             ));
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Url
+                    source,
+                    generated::Source::Url { url }
+                        if url == "https://example.com/report.pdf"
                 ));
-                assert_eq!(
-                    source.url.as_deref(),
-                    Some("https://example.com/report.pdf")
-                );
-                assert!(source.data.is_none());
             } else {
                 panic!("Expected SourceSource");
             }
@@ -3632,13 +3639,8 @@ mod tests {
                     citations: None,
                     text: None,
                     input_content_block_type: generated::InputContentBlockType::Document,
-                    source: Some(generated::SourceUnion::Source(generated::Source {
-                        data: None,
-                        media_type: None,
-                        source_type: generated::Base64ImageSourceType::Url,
-                        url: Some("https://example.com/report.pdf".to_string()),
-                        file_id: None,
-                        content: None,
+                    source: Some(generated::SourceUnion::Source(generated::Source::Url {
+                        url: "https://example.com/report.pdf".to_string(),
                     })),
                     transformations: None,
                     context: None,
@@ -3715,13 +3717,10 @@ mod tests {
             // Verify URL source type is used
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 assert!(matches!(
-                    source.source_type,
-                    generated::Base64ImageSourceType::Url
+                    source,
+                    generated::Source::Url { url }
+                        if url == "https://example.com/image.jpg"
                 ));
-                assert_eq!(
-                    source.url,
-                    Some("https://example.com/image.jpg".to_string())
-                );
             } else {
                 panic!("Expected SourceSource");
             }
@@ -3781,6 +3780,30 @@ mod tests {
                 OversizedImagePolicy::Error => generated::OversizedImage::Error,
             };
             assert_eq!(transformations.oversized_image, Some(expected));
+        }
+    }
+
+    #[test]
+    fn test_anthropic_pdf_image_transformations_are_rejected() {
+        let message = Message::User {
+            content: UserContent::Array(vec![UserContentPart::Image {
+                image: serde_json::Value::String("cGRm".to_string()),
+                media_type: Some("application/pdf".to_string()),
+                transformations: Some(ImageTransformations {
+                    oversized_image: Some(OversizedImagePolicy::Downsize),
+                }),
+                provider_options: None,
+            }]),
+        };
+
+        let error = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+            .expect_err("Anthropic document blocks do not accept image transformations");
+        match error {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Lingua image transformations on PDF content");
+                assert_eq!(to, "Anthropic document input");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
         }
     }
 

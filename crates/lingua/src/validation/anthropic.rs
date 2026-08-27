@@ -305,6 +305,30 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_requires_file_source_ids() {
+        for block_type in ["image", "document"] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-opus-4-1",
+                    "messages": [{{
+                        "role": "user",
+                        "content": [{{
+                            "type": "{block_type}",
+                            "source": {{"type": "file"}}
+                        }}]
+                    }}],
+                    "max_tokens": 16
+                }}"#
+            );
+
+            assert!(
+                validate_anthropic_request(&json).is_err(),
+                "{block_type} file sources require file_id"
+            );
+        }
+    }
+
+    #[test]
     fn test_validate_anthropic_request_requires_browser_state_change_fields() {
         let json = r#"{
             "model": "claude-opus-4-1",

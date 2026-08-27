@@ -606,6 +606,86 @@ pub fn preserve_anthropic_browser_state_types(
     Ok(processed)
 }
 
+/// Replace quicktype's flattened image/document source struct with a tagged enum.
+/// Anthropic requires variant-specific fields (notably `file_id` for `type: "file"`),
+/// which a single struct with optional fields cannot express at either the Rust or
+/// TypeScript boundary.
+pub fn preserve_anthropic_source_types(
+    existing: &str,
+    spec: &serde_json::Value,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let schemas = get_schemas(spec).ok_or("No components.schemas in Anthropic spec")?;
+    for schema_name in ["FileImageSource", "FileDocumentSource"] {
+        let required = schemas
+            .get(schema_name)
+            .and_then(|schema| schema.get("required"))
+            .and_then(|required| required.as_array())
+            .ok_or_else(|| format!("{schema_name}.required not found"))?;
+        if !required
+            .iter()
+            .any(|field| field.as_str() == Some("file_id"))
+        {
+            return Err(format!("{schema_name}.file_id is not required").into());
+        }
+    }
+
+    let definitions = split_type_definitions(existing);
+    let source = definition_named(&definitions, "Source")?;
+    let document_source = definition_named(&definitions, "RequestDocumentBlockSource")?;
+    let precise_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum Source {
+    Base64 {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Url {
+        url: String,
+    },
+}"##;
+    let precise_document_source = r##"
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[ts(export_to = "anthropic/")]
+pub enum RequestDocumentBlockSource {
+    Base64 {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Url {
+        url: String,
+    },
+}"##;
+
+    Ok(existing.replacen(source, precise_source, 1).replacen(
+        document_source,
+        precise_document_source,
+        1,
+    ))
+}
+
 fn definition_named<'a>(
     definitions: &'a [(String, String)],
     name: &str,
@@ -963,7 +1043,10 @@ fn split_type_definitions(content: &str) -> Vec<(String, String)> {
 
 #[cfg(test)]
 mod tests {
-    use super::{generate_all_tool_code, generate_anthropic_browser_state_types};
+    use super::{
+        generate_all_tool_code, generate_anthropic_browser_state_types,
+        preserve_anthropic_source_types,
+    };
     use big_serde_json as serde_json;
 
     #[test]
@@ -1142,5 +1225,32 @@ mod tests {
         assert!(generated.contains("DownloadStarted(BrowserStateChangeDownloadStarted)"));
         assert!(generated.contains("pub download_id: String,"));
         assert!(generated.contains("pub url: String,"));
+    }
+
+    #[test]
+    fn anthropic_source_types_preserve_variant_requirements() {
+        let spec: serde_json::Value =
+            serde_json::from_str(include_str!("../../../specs/anthropic/openapi.yml"))
+                .expect("checked-in Anthropic spec should be valid JSON");
+        let quicktype = r#"#[derive(Debug)]
+pub struct Source {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct RequestDocumentBlockSource {
+    pub data: Option<String>,
+    pub file_id: Option<String>,
+}"#;
+
+        let generated = preserve_anthropic_source_types(quicktype, &spec)
+            .expect("source types should be generated from the Anthropic schema");
+
+        assert!(generated.contains("#[serde(tag = \"type\", rename_all = \"snake_case\")]"));
+        assert!(generated.contains("File {\n        file_id: String,"));
+        assert!(generated.contains("Url {\n        url: String,"));
+        assert!(!generated.contains("file_id: Option<String>"));
+        assert!(generated.contains("pub enum RequestDocumentBlockSource"));
     }
 }

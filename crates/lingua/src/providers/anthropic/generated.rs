@@ -758,20 +758,26 @@ pub enum SourceUnion {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub struct Source {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<Base64ImageSourceMediaType>,
-    #[serde(rename = "type")]
-    pub source_type: Base64ImageSourceType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Base64ImageSourceContent>,
+pub enum Source {
+    Base64 {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: Base64ImageSourceMediaType,
+    },
+    Url {
+        url: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -896,17 +902,6 @@ pub enum Base64ImageSourceMediaType {
     ImageWebp,
     #[serde(rename = "text/plain")]
     TextPlain,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "snake_case")]
-#[ts(export_to = "anthropic/")]
-pub enum Base64ImageSourceType {
-    Base64,
-    Content,
-    File,
-    Text,
-    Url,
 }
 
 /// One open browser tab reported in a `browser_state` block's `tabs`
@@ -1036,20 +1031,26 @@ pub enum RequestDocumentBlockType {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export_to = "anthropic/")]
-pub struct RequestDocumentBlockSource {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<FluffyMediaType>,
-    #[serde(rename = "type")]
-    pub source_type: Base64ImageSourceType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Base64ImageSourceContent>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub file_id: Option<String>,
+pub enum RequestDocumentBlockSource {
+    Base64 {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Content {
+        content: Base64ImageSourceContent,
+    },
+    File {
+        file_id: String,
+    },
+    Text {
+        data: String,
+        media_type: FluffyMediaType,
+    },
+    Url {
+        url: String,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
