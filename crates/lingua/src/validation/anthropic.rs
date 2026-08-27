@@ -250,6 +250,43 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_rejects_scalar_toolset_configs() {
+        for toolset_type in ["browser_toolset_20260801", "computer_toolset_20260801"] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-opus-4-1",
+                    "messages": [{{"role": "user", "content": "Hello"}}],
+                    "max_tokens": 16,
+                    "tools": [{{"type": "{toolset_type}", "configs": 5}}]
+                }}"#
+            );
+
+            assert!(
+                validate_anthropic_request(&json).is_err(),
+                "scalar configs should be rejected for {toolset_type}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_accepts_typed_toolset_configs() {
+        let json = r#"{
+            "model": "claude-opus-4-1",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "max_tokens": 16,
+            "tools": [{
+                "type": "browser_toolset_20260801",
+                "configs": {
+                    "navigate": {"enabled": false},
+                    "screenshot": {"defer_loading": true}
+                }
+            }]
+        }"#;
+
+        assert!(validate_anthropic_request(json).is_ok());
+    }
+
+    #[test]
     fn test_validate_anthropic_response_minimal() {
         let json = r#"{
             "id": "msg_123",

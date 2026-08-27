@@ -90,14 +90,28 @@ fn validate_anthropic_input_message(
             });
         }
 
-        if block.input_content_block_type == generated::InputContentBlockType::Image {
+        if matches!(
+            block.input_content_block_type,
+            generated::InputContentBlockType::Image | generated::InputContentBlockType::Document
+        ) {
             if let Some(generated::SourceUnion::Source(source)) = &block.source {
                 if source.source_type == generated::Base64ImageSourceType::File
                     || source.file_id.is_some()
                 {
+                    let (from, to) = match block.input_content_block_type {
+                        generated::InputContentBlockType::Image => (
+                            "Anthropic file-backed image source",
+                            "universal image content",
+                        ),
+                        generated::InputContentBlockType::Document => (
+                            "Anthropic file-backed document source",
+                            "universal file content",
+                        ),
+                        _ => unreachable!("guarded to image and document blocks"),
+                    };
                     return Err(ConvertError::UnsupportedMapping {
-                        from: "Anthropic file-backed image source".to_string(),
-                        to: "universal image content",
+                        from: from.to_string(),
+                        to,
                     });
                 }
             }
@@ -2703,6 +2717,29 @@ mod tests {
             ConvertError::UnsupportedMapping { from, to } => {
                 assert_eq!(from, "Anthropic file-backed image source");
                 assert_eq!(to, "universal image content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_file_backed_document_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "document",
+                "source": {
+                    "type": "file",
+                    "file_id": "file_123"
+                }
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic file-backed document source");
+                assert_eq!(to, "universal file content");
             }
             other => panic!("expected unsupported mapping error, got {other:?}"),
         }

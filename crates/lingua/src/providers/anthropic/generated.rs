@@ -1424,6 +1424,273 @@ pub struct BashTool20250124 {
     pub strict: Option<bool>,
 }
 
+/// ``double_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserDoubleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``hold_key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserHoldKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserLeftClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click_drag``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserLeftClickDragConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_down``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserLeftMouseDownConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_up``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserLeftMouseUpConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``middle_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserMiddleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``mouse_move``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserMouseMoveConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``right_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserRightClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``screenshot``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserScreenshotConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``scroll``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserScrollConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``triple_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserTripleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``wait``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserWaitConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``zoom``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserZoomConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// Per-member configuration for ``browser_toolset_20260801``: one
+/// optional field per member tool, keyed by the member name — the same
+/// name the member's ``tool_use`` blocks carry. Every member is an
+/// accepted key, and a member's defaults apply wherever its key is
+/// absent. Unknown keys are rejected: the field set is this toolset
+/// version's complete member set.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserToolsetConfigs {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub close_tab: Option<BrowserCloseTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub double_click: Option<BrowserDoubleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_upload: Option<BrowserFileUploadConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub find: Option<BrowserFindConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub form_input: Option<BrowserFormInputConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub get_page_text: Option<BrowserGetPageTextConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hold_key: Option<BrowserHoldKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hover: Option<BrowserHoverConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub javascript_exec: Option<BrowserJavascriptExecConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<BrowserKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click: Option<BrowserLeftClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click_drag: Option<BrowserLeftClickDragConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_down: Option<BrowserLeftMouseDownConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_up: Option<BrowserLeftMouseUpConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_tabs: Option<BrowserListTabsConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub middle_click: Option<BrowserMiddleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mouse_move: Option<BrowserMouseMoveConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub navigate: Option<BrowserNavigateConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_tab: Option<BrowserNewTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_console: Option<BrowserReadConsoleConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_network: Option<BrowserReadNetworkConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub read_page: Option<BrowserReadPageConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right_click: Option<BrowserRightClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screenshot: Option<BrowserScreenshotConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scroll: Option<BrowserScrollConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scroll_to: Option<BrowserScrollToConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub switch_tab: Option<BrowserSwitchTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub triple_click: Option<BrowserTripleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wait: Option<BrowserWaitConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub zoom: Option<BrowserZoomConfig>,
+}
+
 /// The browser toolset: a single ``tools[]`` entry (carrying no
 /// ``name``) that declares the browser tool family. The model is served
 /// the family's tool with any members disabled via ``configs`` removed
@@ -1439,8 +1706,7 @@ pub struct BrowserToolset20260801 {
     pub cache_control: Option<serde_json::Value>,
     /// Sparse per-member overrides, keyed by member name. Absent, null, and {} are equivalent; a member's defaults apply wherever its key is absent.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "unknown")]
-    pub configs: Option<serde_json::Value>,
+    pub configs: Option<BrowserToolsetConfigs>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -1529,6 +1795,245 @@ pub struct CodeExecutionTool20260521 {
     pub strict: Option<bool>,
 }
 
+/// ``double_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerDoubleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``hold_key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerHoldKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``key``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerKeyConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerLeftClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_click_drag``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerLeftClickDragConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_down``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerLeftMouseDownConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``left_mouse_up``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerLeftMouseUpConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``middle_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerMiddleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``mouse_move``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerMouseMoveConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``right_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerRightClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``screenshot``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerScreenshotConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``scroll``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerScrollConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``triple_click``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerTripleClickConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``wait``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerWaitConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``zoom``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerZoomConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// Per-member configuration for ``computer_toolset_20260801``: one
+/// optional field per member tool, keyed by the member name — the same
+/// name the member's ``tool_use`` blocks carry. Every member is an
+/// accepted key, and a member's defaults apply wherever its key is
+/// absent. Unknown keys are rejected: the field set is this toolset
+/// version's complete member set.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerToolsetConfigs {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor_position: Option<ComputerCursorPositionConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub double_click: Option<ComputerDoubleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hold_key: Option<ComputerHoldKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<ComputerKeyConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click: Option<ComputerLeftClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_click_drag: Option<ComputerLeftClickDragConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_down: Option<ComputerLeftMouseDownConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub left_mouse_up: Option<ComputerLeftMouseUpConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub middle_click: Option<ComputerMiddleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mouse_move: Option<ComputerMouseMoveConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub right_click: Option<ComputerRightClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screenshot: Option<ComputerScreenshotConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scroll: Option<ComputerScrollConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub triple_click: Option<ComputerTripleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wait: Option<ComputerWaitConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub zoom: Option<ComputerZoomConfig>,
+}
+
 /// The computer toolset: a single ``tools[]`` entry (carrying no
 /// ``name``) that declares the computer tool family. The model is
 /// served the family's tool with any members disabled via ``configs``
@@ -1548,8 +2053,7 @@ pub struct ComputerToolset20260801 {
     pub cache_control: Option<serde_json::Value>,
     /// Sparse per-member overrides, keyed by member name. Absent, null, and {} are equivalent; a member's defaults apply wherever its key is absent.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[ts(type = "unknown")]
-    pub configs: Option<serde_json::Value>,
+    pub configs: Option<ComputerToolsetConfigs>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -2018,6 +2522,230 @@ pub enum AllowedCaller {
     #[serde(rename = "code_execution_20260521")]
     CodeExecution20260521,
     Direct,
+}
+
+/// ``close_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserCloseTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``cursor_position``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerCursorPositionConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``file_upload``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFileUploadConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``find``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFindConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``form_input``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserFormInputConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``get_page_text``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserGetPageTextConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``hover``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserHoverConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``javascript_exec``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserJavascriptExecConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``list_tabs``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserListTabsConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``navigate``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserNavigateConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``new_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserNewTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_console``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadConsoleConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_network``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadNetworkConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``read_page``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserReadPageConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``scroll_to``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserScrollToConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
+/// ``switch_tab``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserSwitchTabConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of
+    /// the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's
+    /// documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
 }
 
 /// How this tool's result blocks appear in the API response when the result was consumed by

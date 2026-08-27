@@ -1075,17 +1075,14 @@ fn is_rust_identifier_char(character: char) -> bool {
 }
 
 /// Roots of the generated Anthropic public API: quicktype's request/response wrapper, plus
-/// the types Lingua's hand-written adapters deserialize directly out of fields that the tool
-/// generator deliberately keeps as `serde_json::Value`.
+/// types Lingua's hand-written adapters deserialize directly.
 const ANTHROPIC_GENERATED_ROOT_TYPES: &[&str] = &["AnthropicSchemas", "UserLocation"];
 
 /// Drop generated types that nothing reachable from the Anthropic roots references.
 ///
-/// Quicktype walks the whole specification, so schemas that only describe fields Lingua
-/// keeps untyped — the per-member toolset `configs` overrides, for example — are emitted as
-/// standalone public types that no other type mentions. Deleting them keeps the generated
-/// public API to what is actually reachable without narrowing any wire shape, because the
-/// fields they described stay `serde_json::Value`.
+/// Quicktype walks the whole specification and emits standalone types for schemas that the
+/// generated public boundary does not reference. Deleting those types keeps the public API to
+/// the request/response graph, including references restored by the typed tool generator.
 fn remove_unreferenced_anthropic_types(processed: &str) -> String {
     let lines: Vec<&str> = processed.lines().collect();
     let blocks = generated_type_blocks(&lines);

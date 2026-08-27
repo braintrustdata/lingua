@@ -233,8 +233,13 @@ fn generate_tool_structs(
         if let Some(schema) = all_schemas.get(client_schema) {
             if seen.insert(gen_name.to_string()) {
                 // Generate the struct with potentially renamed name
-                let mut code =
-                    generate_tool_struct_direct(client_schema, schema, all_schemas, provider);
+                let mut code = generate_tool_struct_direct(
+                    client_schema,
+                    schema,
+                    all_schemas,
+                    provider,
+                    false,
+                );
 
                 // Rename Tool -> CustomTool if needed
                 if client_schema == "Tool" {
@@ -251,10 +256,27 @@ fn generate_tool_structs(
         let schema_name = &provider_tool.schema_name;
 
         if let Some(schema) = all_schemas.get(schema_name) {
+            if provider == "anthropic" {
+                if let Some(config_schema_name) = schema
+                    .get("properties")
+                    .and_then(|properties| properties.get("configs"))
+                    .and_then(nullable_referenced_schema_name)
+                {
+                    generate_referenced_schema_structs(
+                        config_schema_name,
+                        all_schemas,
+                        provider,
+                        &mut seen,
+                        &mut generated_structs,
+                    );
+                }
+            }
+
             let rust_name = schema_name_to_rust_type(schema_name);
 
             if seen.insert(rust_name.clone()) {
-                let code = generate_tool_struct_direct(schema_name, schema, all_schemas, provider);
+                let code =
+                    generate_tool_struct_direct(schema_name, schema, all_schemas, provider, false);
                 generated_structs.push(code);
             }
         }
@@ -313,6 +335,7 @@ fn generate_tool_struct_direct(
     schema: &serde_json::Value,
     all_schemas: &serde_json::Map<String, serde_json::Value>,
     provider: &str,
+    typed_references: bool,
 ) -> String {
     let rust_name = schema_name_to_rust_type(schema_name);
 
@@ -327,6 +350,14 @@ fn generate_tool_struct_direct(
 
     // Add derives
     output.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
+    if typed_references
+        && schema
+            .get("additionalProperties")
+            .and_then(|value| value.as_bool())
+            == Some(false)
+    {
+        output.push_str("#[serde(deny_unknown_fields)]\n");
+    }
     output.push_str(&format!("#[ts(export_to = \"{}/\")]\n", provider));
     output.push_str(&format!("pub struct {} {{\n", rust_name));
 
@@ -355,6 +386,10 @@ fn generate_tool_struct_direct(
             let rust_type = match (provider, prop_name.as_str()) {
                 ("anthropic", "allowed_callers") => "Vec<AllowedCaller>".to_string(),
                 ("anthropic", "response_inclusion") => "ResponseInclusion".to_string(),
+                ("anthropic", "configs") => nullable_referenced_schema_type(prop_schema)
+                    .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
+                _ if typed_references => nullable_referenced_schema_type(prop_schema)
+                    .unwrap_or_else(|| schema_type_to_rust(prop_schema, all_schemas)),
                 _ => schema_type_to_rust(prop_schema, all_schemas),
             };
             let is_required = required.contains(prop_name);
@@ -392,6 +427,93 @@ fn generate_tool_struct_direct(
 
     output.push_str("}\n");
     output
+}
+
+fn generate_referenced_schema_structs(
+    schema_name: &str,
+    all_schemas: &serde_json::Map<String, serde_json::Value>,
+    provider: &str,
+    seen: &mut HashSet<String>,
+    generated_structs: &mut Vec<String>,
+) {
+    let rust_name = schema_name_to_rust_type(schema_name);
+    if !seen.insert(rust_name) {
+        return;
+    }
+
+    let Some(schema) = all_schemas.get(schema_name) else {
+        return;
+    };
+
+    let mut dependencies = Vec::new();
+    collect_referenced_schema_names(schema, &mut dependencies);
+    for dependency in dependencies {
+        generate_referenced_schema_structs(
+            &dependency,
+            all_schemas,
+            provider,
+            seen,
+            generated_structs,
+        );
+    }
+
+    generated_structs.push(generate_tool_struct_direct(
+        schema_name,
+        schema,
+        all_schemas,
+        provider,
+        true,
+    ));
+}
+
+fn collect_referenced_schema_names(schema: &serde_json::Value, names: &mut Vec<String>) {
+    match schema {
+        serde_json::Value::Object(object) => {
+            if let Some(name) = object
+                .get("$ref")
+                .and_then(|reference| reference.as_str())
+                .and_then(|reference| reference.split('/').next_back())
+            {
+                if !names.iter().any(|existing| existing == name) {
+                    names.push(name.to_string());
+                }
+            }
+            for value in object.values() {
+                collect_referenced_schema_names(value, names);
+            }
+        }
+        serde_json::Value::Array(array) => {
+            for value in array {
+                collect_referenced_schema_names(value, names);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn nullable_referenced_schema_name(schema: &serde_json::Value) -> Option<&str> {
+    schema
+        .get("$ref")
+        .and_then(|reference| reference.as_str())
+        .or_else(|| {
+            schema
+                .get("anyOf")
+                .or_else(|| schema.get("oneOf"))
+                .and_then(|variants| variants.as_array())
+                .and_then(|variants| {
+                    let mut references = variants.iter().filter_map(|variant| {
+                        variant.get("$ref").and_then(|reference| reference.as_str())
+                    });
+                    let reference = references.next()?;
+                    references.next().is_none().then_some(reference)
+                })
+        })?
+        .split('/')
+        .next_back()
+}
+
+fn nullable_referenced_schema_type(schema: &serde_json::Value) -> Option<String> {
+    nullable_referenced_schema_name(schema).map(schema_name_to_rust_type)
 }
 
 // -------------------------------------------------------------------------
@@ -622,5 +744,67 @@ mod tests {
         assert!(!generated.contains("Computerset20260801"));
         // Single tools keep the established variant names that drop the `Tool` suffix.
         assert!(generated.contains("    WebSearch20250305(WebSearchTool20250305),"));
+    }
+
+    #[test]
+    fn anthropic_toolset_configs_use_referenced_schema_types() {
+        let spec: serde_json::Value = serde_json::from_str(
+            r##"{
+                "components": {
+                    "schemas": {
+                        "BrowserToolsetConfigs": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "navigate": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserNavigateConfig" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserNavigateConfig": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "anyOf": [
+                                        { "type": "boolean" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserToolset_20260801": {
+                            "type": "object",
+                            "properties": {
+                                "configs": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserToolsetConfigs" },
+                                        { "type": "null" }
+                                    ]
+                                },
+                                "type": { "const": "browser_toolset_20260801", "type": "string" }
+                            },
+                            "required": ["type"]
+                        }
+                    }
+                }
+            }"##,
+        )
+        .expect("test spec should be valid JSON");
+
+        let generated = generate_all_tool_code("anthropic", &spec)
+            .expect("Anthropic tool generation should succeed");
+
+        assert!(generated.contains("pub configs: Option<BrowserToolsetConfigs>,"));
+        assert!(generated.contains("pub navigate: Option<BrowserNavigateConfig>,"));
+        assert!(generated.contains("pub struct BrowserNavigateConfig"));
+        assert_eq!(
+            generated.matches("#[serde(deny_unknown_fields)]").count(),
+            2
+        );
+        assert!(!generated.contains("pub configs: Option<serde_json::Value>,"));
     }
 }
