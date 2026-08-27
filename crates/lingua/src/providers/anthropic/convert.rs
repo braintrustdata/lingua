@@ -23,8 +23,8 @@ use crate::universal::tools::{
 };
 use crate::universal::{
     convert::TryFromLLM, message::ProviderOptions, AssistantContent, AssistantContentPart,
-    CacheControl, Message, TextContentPart, ToolCallArguments, ToolContentPart,
-    ToolResultContentPart, UserContent, UserContentPart,
+    CacheControl, ImageTransformations, Message, OversizedImagePolicy, TextContentPart,
+    ToolCallArguments, ToolContentPart, ToolResultContentPart, UserContent, UserContentPart,
 };
 use crate::util::media::parse_base64_data_url;
 
@@ -44,6 +44,32 @@ fn anthropic_file_provider_options_view(
             opts.options.clone(),
         ))
         .ok()
+    })
+}
+
+fn universal_image_transformations_from_anthropic(
+    transformations: Option<generated::RequestImageTransformations>,
+) -> Option<ImageTransformations> {
+    let oversized_image = transformations?.oversized_image.map(|policy| match policy {
+        generated::OversizedImage::Downsize => OversizedImagePolicy::Downsize,
+        generated::OversizedImage::Error => OversizedImagePolicy::Error,
+    });
+
+    oversized_image.map(|oversized_image| ImageTransformations {
+        oversized_image: Some(oversized_image),
+    })
+}
+
+fn anthropic_image_transformations_from_universal(
+    transformations: Option<ImageTransformations>,
+) -> Option<generated::RequestImageTransformations> {
+    let oversized_image = transformations?.oversized_image.map(|policy| match policy {
+        OversizedImagePolicy::Downsize => generated::OversizedImage::Downsize,
+        OversizedImagePolicy::Error => generated::OversizedImage::Error,
+    });
+
+    oversized_image.map(|oversized_image| generated::RequestImageTransformations {
+        oversized_image: Some(oversized_image),
     })
 }
 
@@ -223,90 +249,6 @@ where
     }))
 }
 
-fn combine_anthropic_text_provider_options(
-    inherited: Option<ProviderOptions>,
-    own: Option<ProviderOptions>,
-) -> Option<ProviderOptions> {
-    match (inherited, own) {
-        (None, None) => None,
-        (Some(options), None) | (None, Some(options)) => Some(options),
-        (Some(inherited), Some(own)) => {
-            let mut options = inherited.options;
-            options.extend(own.options);
-            Some(ProviderOptions { options })
-        }
-    }
-}
-
-fn anthropic_mid_conv_system_parts(
-    content: generated::InputContentBlockContent,
-    parent_cache_control: Option<CacheControl>,
-    parent_provider_options: Option<ProviderOptions>,
-) -> Result<Vec<UserContentPart>, ConvertError> {
-    match content {
-        generated::InputContentBlockContent::PurpleString(text) => {
-            Ok(vec![UserContentPart::Text(TextContentPart {
-                text,
-                encrypted_content: None,
-                cache_control: parent_cache_control,
-                provider_options: parent_provider_options,
-            })])
-        }
-        generated::InputContentBlockContent::BlockArray(blocks) => {
-            let mut parts = Vec::new();
-            let mut inherited_parent_cache_control = parent_cache_control;
-            let mut inherited_parent_options = parent_provider_options;
-            for block in blocks {
-                if let Some(text) = block.text {
-                    let cache_control =
-                        universal_cache_control_from_serde(block.cache_control.clone())
-                            .or_else(|| inherited_parent_cache_control.take());
-                    let provider_options = combine_anthropic_text_provider_options(
-                        inherited_parent_options.take(),
-                        anthropic_text_provider_options(
-                            None::<generated::CacheControlEphemeral>,
-                            block.citations,
-                        )?,
-                    );
-                    parts.push(UserContentPart::Text(TextContentPart {
-                        text,
-                        encrypted_content: None,
-                        cache_control,
-                        provider_options,
-                    }));
-                }
-                if let Some(content) = block.content {
-                    for text_block in content {
-                        let cache_control =
-                            universal_cache_control_from_serde(text_block.cache_control.clone())
-                                .or_else(|| inherited_parent_cache_control.take());
-                        let provider_options = combine_anthropic_text_provider_options(
-                            inherited_parent_options.take(),
-                            anthropic_text_provider_options(
-                                None::<generated::CacheControlEphemeral>,
-                                text_block.citations,
-                            )?,
-                        );
-                        parts.push(UserContentPart::Text(TextContentPart {
-                            text: text_block.text,
-                            encrypted_content: None,
-                            cache_control,
-                            provider_options,
-                        }));
-                    }
-                }
-            }
-            Ok(parts)
-        }
-        generated::InputContentBlockContent::Request(_) => {
-            Err(ConvertError::ContentConversionFailed {
-                reason: "web search tool result errors cannot be used as Anthropic system content"
-                    .to_string(),
-            })
-        }
-    }
-}
-
 fn anthropic_system_message_content(
     content: generated::MessageContent,
 ) -> Result<UserContent, ConvertError> {
@@ -322,21 +264,6 @@ fn anthropic_system_message_content(
                                 text,
                                 block.cache_control,
                                 block.citations,
-                            )?);
-                        }
-                    }
-                    generated::InputContentBlockType::MidConvSystem => {
-                        let parent_cache_control =
-                            universal_cache_control_from_anthropic(block.cache_control);
-                        let parent_provider_options = anthropic_text_provider_options(
-                            None::<generated::CacheControlEphemeral>,
-                            block.citations,
-                        )?;
-                        if let Some(content) = block.content {
-                            parts.extend(anthropic_mid_conv_system_parts(
-                                content,
-                                parent_cache_control,
-                                parent_provider_options,
                             )?);
                         }
                     }
@@ -576,6 +503,10 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                     }
                                 }
                                 generated::InputContentBlockType::Image => {
+                                    let transformations =
+                                        universal_image_transformations_from_anthropic(
+                                            block.transformations,
+                                        );
                                     if let Some(source) = block.source {
                                         // Convert Anthropic image source to universal format
                                         match source {
@@ -592,6 +523,7 @@ impl TryFromLLM<generated::InputMessage> for Message {
                                                     content_parts.push(UserContentPart::Image {
                                                         image: serde_json::Value::String(data),
                                                         media_type,
+                                                        transformations,
                                                         provider_options: None,
                                                     });
                                                 }
@@ -937,7 +869,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                     })
                                 },
                                 UserContentPart::Image {
-                                    image, media_type, ..
+                                    image,
+                                    media_type,
+                                    transformations,
+                                    ..
                                 } => {
                                     // Convert universal image back to Anthropic format
                                     let data = match image {
@@ -1051,7 +986,10 @@ impl TryFromLLM<Message> for generated::InputMessage {
                                                     content: None,
                                                 },
                                             )),
-                                            transformations: None,
+                                            transformations:
+                                                anthropic_image_transformations_from_universal(
+                                                    transformations,
+                                                ),
                                             context: None,
                                             title: None,
                                             content: None,
@@ -3224,94 +3162,6 @@ mod tests {
     }
 
     #[test]
-    fn test_anthropic_mid_conv_system_imports_to_system_message() {
-        let input: generated::InputMessage = serde_json::from_value(json!({
-            "role": "system",
-            "content": [
-                {
-                    "type": "mid_conv_system",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Use the updated policy.",
-                            "cache_control": { "type": "ephemeral" }
-                        }
-                    ]
-                }
-            ]
-        }))
-        .unwrap();
-
-        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
-
-        match message {
-            Message::System {
-                content: UserContent::Array(parts),
-            } => {
-                assert_eq!(parts.len(), 1);
-                match &parts[0] {
-                    UserContentPart::Text(text) => {
-                        assert_eq!(text.text, "Use the updated policy.");
-                        assert_eq!(
-                            text.cache_control
-                                .as_ref()
-                                .expect("cache_control should be preserved")
-                                .cache_control_type,
-                            crate::universal::CacheControlType::Ephemeral
-                        );
-                    }
-                    other => panic!("expected text part, got {other:?}"),
-                }
-            }
-            other => panic!("expected system message with array content, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn test_anthropic_mid_conv_system_import_preserves_parent_cache_control() {
-        let input: generated::InputMessage = serde_json::from_value(json!({
-            "role": "system",
-            "content": [
-                {
-                    "type": "mid_conv_system",
-                    "cache_control": { "type": "ephemeral" },
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Use the updated policy."
-                        }
-                    ]
-                }
-            ]
-        }))
-        .unwrap();
-
-        let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap();
-
-        match message {
-            Message::System {
-                content: UserContent::Array(parts),
-            } => {
-                assert_eq!(parts.len(), 1);
-                match &parts[0] {
-                    UserContentPart::Text(text) => {
-                        assert_eq!(text.text, "Use the updated policy.");
-                        assert_eq!(
-                            text.cache_control
-                                .as_ref()
-                                .expect("parent cache_control should be preserved")
-                                .cache_control_type,
-                            crate::universal::CacheControlType::Ephemeral
-                        );
-                    }
-                    other => panic!("expected text part, got {other:?}"),
-                }
-            }
-            other => panic!("expected system message with array content, got {other:?}"),
-        }
-    }
-
-    #[test]
     fn test_json_schema_response_format_to_anthropic_is_lossy_for_unsupported_keywords() {
         let config = ResponseFormatConfig {
             format_type: Some(ResponseFormatType::JsonSchema),
@@ -3666,6 +3516,7 @@ mod tests {
         let image_part = UserContentPart::Image {
             image: serde_json::Value::String("https://example.com/image.jpg".to_string()),
             media_type: Some("image/jpeg".to_string()),
+            transformations: None,
             provider_options: None,
         };
 
@@ -3701,6 +3552,60 @@ mod tests {
             }
         } else {
             panic!("Expected InputContentBlockArray");
+        }
+    }
+
+    #[test]
+    fn test_anthropic_image_transformations_round_trip() {
+        for (wire_value, expected_policy) in [
+            ("downsize", OversizedImagePolicy::Downsize),
+            ("error", OversizedImagePolicy::Error),
+        ] {
+            let input: generated::InputMessage = serde_json::from_value(json!({
+                "role": "user",
+                "content": [{
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": "aW1hZ2U="
+                    },
+                    "transformations": { "oversized_image": wire_value }
+                }]
+            }))
+            .expect("Anthropic image request should deserialize");
+
+            let message = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+                .expect("Anthropic image request should import");
+            let Message::User {
+                content: UserContent::Array(parts),
+            } = &message
+            else {
+                panic!("expected universal user image message");
+            };
+            let UserContentPart::Image {
+                transformations: Some(transformations),
+                ..
+            } = &parts[0]
+            else {
+                panic!("expected universal image transformations");
+            };
+            assert_eq!(transformations.oversized_image, Some(expected_policy));
+
+            let output = <generated::InputMessage as TryFromLLM<Message>>::try_from(message)
+                .expect("universal image request should export to Anthropic");
+            let generated::MessageContent::InputContentBlockArray(blocks) = output.content else {
+                panic!("expected Anthropic content block array");
+            };
+            let transformations = blocks[0]
+                .transformations
+                .as_ref()
+                .expect("Anthropic transformations should be preserved");
+            let expected = match expected_policy {
+                OversizedImagePolicy::Downsize => generated::OversizedImage::Downsize,
+                OversizedImagePolicy::Error => generated::OversizedImage::Error,
+            };
+            assert_eq!(transformations.oversized_image, Some(expected));
         }
     }
 

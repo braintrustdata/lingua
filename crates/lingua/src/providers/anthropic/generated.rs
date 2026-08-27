@@ -386,11 +386,6 @@ pub enum MessageContent {
 ///
 /// A content block that represents a file to be uploaded to the container
 /// Files uploaded via this block will be available in the container's input directory.
-///
-/// System instructions that appear mid-conversation.
-///
-/// Use this block to provide or update system-level instructions at a specific
-/// point in the conversation, rather than only via the top-level `system` parameter.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export_to = "anthropic/")]
 pub struct InputContentBlock {
@@ -415,7 +410,6 @@ pub struct InputContentBlock {
     pub context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
-    /// System instruction text blocks.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<InputContentBlockContent>,
     /// The `signature` value of this thinking block, exactly as returned by the API in a
@@ -1144,8 +1138,6 @@ pub enum InputContentBlockType {
     ContainerUpload,
     Document,
     Image,
-    #[serde(rename = "mid_conv_system")]
-    MidConvSystem,
     #[serde(rename = "redacted_thinking")]
     RedactedThinking,
     #[serde(rename = "search_result")]

@@ -57,6 +57,8 @@ pub enum UserContentPart {
         #[ts(optional)]
         media_type: Option<String>,
         #[ts(optional)]
+        transformations: Option<ImageTransformations>,
+        #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
     File {
@@ -68,6 +70,24 @@ pub enum UserContentPart {
         #[ts(optional)]
         provider_options: Option<ProviderOptions>,
     },
+}
+
+/// Provider-neutral image preprocessing directives.
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ImageTransformations {
+    #[ts(optional)]
+    pub oversized_image: Option<OversizedImagePolicy>,
+}
+
+/// Requested behavior when an image exceeds the target model's maximum image size.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export, rename_all = "snake_case")]
+pub enum OversizedImagePolicy {
+    Downsize,
+    Error,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -393,4 +413,48 @@ pub struct ToolErrorContentPart {
     pub tool_name: String,
     pub error: String,
     pub provider_metadata: Option<ProviderMetadata>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::serde_json::json;
+
+    #[test]
+    fn image_transformations_serialize_as_typed_policy() {
+        let part = UserContentPart::Image {
+            image: json!("aW1hZ2U="),
+            media_type: Some("image/jpeg".to_string()),
+            transformations: Some(ImageTransformations {
+                oversized_image: Some(OversizedImagePolicy::Error),
+            }),
+            provider_options: None,
+        };
+
+        let value = serde_json::to_value(&part).expect("image part should serialize");
+        assert_eq!(
+            value,
+            json!({
+                "type": "image",
+                "image": "aW1hZ2U=",
+                "media_type": "image/jpeg",
+                "transformations": { "oversized_image": "error" },
+                "provider_options": null
+            })
+        );
+
+        let round_trip: UserContentPart =
+            serde_json::from_value(value).expect("image part should deserialize");
+        let UserContentPart::Image {
+            transformations: Some(transformations),
+            ..
+        } = round_trip
+        else {
+            panic!("expected image transformations");
+        };
+        assert_eq!(
+            transformations.oversized_image,
+            Some(OversizedImagePolicy::Error)
+        );
+    }
 }

@@ -1,0 +1,26 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "max_tokens": 16,
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image",
+          "source": {
+            "type": "base64",
+            "media_type": "image/jpeg",
+            "data": "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q=="
+          },
+          "transformations": {
+            "oversized_image": "error"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Describe the image in one word."
+        }
+      ]
+    }
+  ]
+}

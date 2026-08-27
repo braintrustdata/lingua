@@ -559,11 +559,6 @@ fn preprocess_anthropic_schema_for_separation(
         add_dependencies_recursively(schema_name, all_schemas, &mut separated_schemas);
     }
 
-    // Step 2b: Re-attach request union members that upstream dropped from the spec but the
-    // Messages API still accepts. Without this the generated union silently stops parsing
-    // payloads that Lingua has positive acceptance tests for.
-    retain_legacy_anthropic_request_blocks(all_schemas, &mut separated_schemas)?;
-
     // Step 3: Now clean the main request/response schemas to remove conflicting fields
     for schema_name in &request_schemas {
         if let Some(schema) = separated_schemas.get(schema_name) {
@@ -604,106 +599,6 @@ fn preprocess_anthropic_schema_for_separation(
     });
 
     Ok(root_schema)
-}
-
-/// A request union member that upstream removed from the synchronized specification but that
-/// Lingua must keep generating, described by
-/// `crates/generate-types/legacy-schemas/anthropic-request-blocks.json`.
-#[derive(serde::Deserialize)]
-struct LegacyRequestBlocks {
-    retained_members: Vec<LegacyRequestBlock>,
-}
-
-#[derive(serde::Deserialize)]
-struct LegacyRequestBlock {
-    /// Name the member had in `components/schemas`.
-    schema_name: String,
-    /// Discriminated union the member has to be re-attached to.
-    union_schema: String,
-    /// Wire value of the union's discriminator property.
-    discriminator_value: String,
-    /// Why the member outlives its removal from the specification.
-    reason: String,
-    /// Member schema, copied verbatim from the spec revision that still declared it.
-    schema: serde_json::Value,
-}
-
-const ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH: &str =
-    "crates/generate-types/legacy-schemas/anthropic-request-blocks.json";
-
-/// Re-attach removed-but-still-accepted request union members to the preprocessed schema set.
-///
-/// A member is skipped as soon as the upstream specification declares it again, so the retention
-/// file never shadows an upstream definition and shrinks on its own.
-fn retain_legacy_anthropic_request_blocks(
-    all_schemas: &serde_json::Map<String, serde_json::Value>,
-    separated_schemas: &mut serde_json::Map<String, serde_json::Value>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let raw = std::fs::read_to_string(ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH).map_err(|error| {
-        format!("failed to read {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}: {error}")
-    })?;
-    let retention: LegacyRequestBlocks = serde_json::from_str(&raw).map_err(|error| {
-        format!("failed to parse {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}: {error}")
-    })?;
-
-    for member in &retention.retained_members {
-        if all_schemas.contains_key(&member.schema_name) {
-            println!(
-                "🔁 Spec declares {} again; dropping its legacy retention entry is now safe",
-                member.schema_name
-            );
-            continue;
-        }
-
-        let member_ref = format!("#/definitions/{}", member.schema_name);
-        let union = separated_schemas
-            .get_mut(&member.union_schema)
-            .and_then(|union| union.as_object_mut())
-            .ok_or_else(|| {
-                format!(
-                    "legacy retention target union {} is not reachable from the request schemas; \
-                     update {ANTHROPIC_LEGACY_REQUEST_BLOCKS_PATH}",
-                    member.union_schema
-                )
-            })?;
-
-        let one_of = union
-            .get_mut("oneOf")
-            .and_then(|one_of| one_of.as_array_mut())
-            .ok_or_else(|| {
-                format!(
-                    "legacy retention target union {} has no oneOf member list",
-                    member.union_schema
-                )
-            })?;
-        one_of.push(serde_json::json!({ "$ref": member_ref }));
-
-        if let Some(mapping) = union
-            .get_mut("discriminator")
-            .and_then(|discriminator| discriminator.get_mut("mapping"))
-            .and_then(|mapping| mapping.as_object_mut())
-        {
-            mapping.insert(
-                member.discriminator_value.clone(),
-                serde_json::Value::String(format!("#/components/schemas/{}", member.schema_name)),
-            );
-        }
-
-        let member_schema = fix_anthropic_schema_refs(&member.schema);
-        let mut refs = std::collections::HashSet::new();
-        extract_schema_refs(&member_schema, &mut refs);
-        separated_schemas.insert(member.schema_name.clone(), member_schema);
-        for ref_name in refs {
-            add_dependencies_recursively(&ref_name, all_schemas, separated_schemas);
-        }
-
-        println!(
-            "🧷 Retained removed request union member {} (\"{}\") on {}: {}",
-            member.schema_name, member.discriminator_value, member.union_schema, member.reason
-        );
-    }
-
-    Ok(())
 }
 
 fn analyze_anthropic_endpoints(spec: &serde_json::Value) -> (Vec<String>, Vec<String>) {

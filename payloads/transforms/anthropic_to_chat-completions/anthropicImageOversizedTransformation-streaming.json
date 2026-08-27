@@ -1,0 +1,3 @@
+{
+  "error": "Conversion from universal format failed: Unsupported mapping: cannot convert Lingua image transformations.oversized_image `error` to OpenAI Chat Completions image input"
+}
