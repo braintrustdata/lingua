@@ -2,7 +2,7 @@
 Anthropic format validation.
 */
 
-use crate::providers::anthropic::generated::{CreateMessageParams, Message};
+use crate::providers::anthropic::generated::{self, CreateMessageParams, Message};
 use crate::providers::anthropic::params::first_openai_only_field;
 use crate::validation::{validate_json, ValidationError};
 
@@ -17,8 +17,26 @@ pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, Val
             field
         )));
     }
-    crate::serde_json::from_value(value)
-        .map_err(|e| ValidationError::DeserializationFailed(e.to_string()))
+    let request: CreateMessageParams = crate::serde_json::from_value(value)
+        .map_err(|e| ValidationError::DeserializationFailed(e.to_string()))?;
+
+    for message in &request.messages {
+        let generated::MessageContent::InputContentBlockArray(blocks) = &message.content else {
+            continue;
+        };
+        for block in blocks {
+            if block.transformations.is_some()
+                && block.input_content_block_type != generated::InputContentBlockType::Image
+            {
+                return Err(ValidationError::DeserializationFailed(format!(
+                    "Anthropic image transformations are not valid on {:?} content blocks",
+                    block.input_content_block_type
+                )));
+            }
+        }
+    }
+
+    Ok(request)
 }
 
 /// Validates a JSON string as an Anthropic messages response
@@ -29,7 +47,6 @@ pub fn validate_anthropic_response(json: &str) -> Result<Message, ValidationErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::anthropic::generated;
 
     #[test]
     fn test_validate_anthropic_request_minimal() {
@@ -326,6 +343,49 @@ mod tests {
                 "{block_type} file sources require file_id"
             );
         }
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_restricts_transformations_to_images() {
+        for block in [
+            r#"{"type":"text","text":"Hello","transformations":{}}"#,
+            r#"{
+                "type":"document",
+                "source":{
+                    "type":"base64",
+                    "media_type":"application/pdf",
+                    "data":"cGRm"
+                },
+                "transformations":{}
+            }"#,
+        ] {
+            let json = format!(
+                r#"{{
+                    "model":"claude-opus-4-1",
+                    "messages":[{{"role":"user","content":[{block}]}}],
+                    "max_tokens":16
+                }}"#
+            );
+            assert!(validate_anthropic_request(&json).is_err());
+        }
+
+        let valid_image = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"image",
+                    "source":{
+                        "type":"base64",
+                        "media_type":"image/png",
+                        "data":"aW1hZ2U="
+                    },
+                    "transformations":{"oversized_image":"downsize"}
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(valid_image).is_ok());
     }
 
     #[test]
