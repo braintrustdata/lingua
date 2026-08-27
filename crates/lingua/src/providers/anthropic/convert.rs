@@ -73,6 +73,40 @@ fn anthropic_image_transformations_from_universal(
     })
 }
 
+fn validate_anthropic_input_message(
+    input_msg: &generated::InputMessage,
+) -> Result<(), ConvertError> {
+    let generated::MessageContent::InputContentBlockArray(blocks) = &input_msg.content else {
+        return Ok(());
+    };
+
+    for block in blocks {
+        if let Some(toolset_name) = &block.toolset_name {
+            return Err(ConvertError::UnsupportedMapping {
+                from: format!(
+                    "Anthropic toolset member content with toolset_name '{toolset_name}'"
+                ),
+                to: "universal tool content",
+            });
+        }
+
+        if block.input_content_block_type == generated::InputContentBlockType::Image {
+            if let Some(generated::SourceUnion::Source(source)) = &block.source {
+                if source.source_type == generated::Base64ImageSourceType::File
+                    || source.file_id.is_some()
+                {
+                    return Err(ConvertError::UnsupportedMapping {
+                        from: "Anthropic file-backed image source".to_string(),
+                        to: "universal image content",
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 #[serde(default)]
 struct AnthropicToolUseProviderOptionsView {
@@ -387,6 +421,8 @@ impl TryFromLLM<generated::InputMessage> for Message {
     type Error = ConvertError;
 
     fn try_from(input_msg: generated::InputMessage) -> Result<Self, Self::Error> {
+        validate_anthropic_input_message(&input_msg)?;
+
         // Check if this is a user message that contains only tool results
         // If so, convert it to a Tool message instead
         if let generated::MessageRole::User = input_msg.role {
@@ -1865,6 +1901,15 @@ impl TryFromLLM<Vec<generated::ContentBlock>> for Vec<Message> {
         let mut content_parts = Vec::new();
 
         for block in content_blocks {
+            if let Some(toolset_name) = &block.toolset_name {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: format!(
+                        "Anthropic toolset member content with toolset_name '{toolset_name}'"
+                    ),
+                    to: "universal tool content",
+                });
+            }
+
             match block.content_block_type {
                 generated::ContentBlockType::Text => {
                     if let Some(text) = block.text {
@@ -2638,6 +2683,99 @@ mod tests {
             } => assert_eq!(text, "Follow the project style guide."),
             other => panic!("expected system message, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn anthropic_file_backed_image_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "image",
+                "source": {
+                    "type": "file",
+                    "file_id": "file_123"
+                }
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(from, "Anthropic file-backed image source");
+                assert_eq!(to, "universal image content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_tool_use_with_toolset_name_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "assistant",
+            "content": [{
+                "type": "tool_use",
+                "id": "toolu_123",
+                "name": "navigate",
+                "toolset_name": "browser",
+                "input": {"url": "https://example.com"}
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        match err {
+            ConvertError::UnsupportedMapping { from, to } => {
+                assert_eq!(
+                    from,
+                    "Anthropic toolset member content with toolset_name 'browser'"
+                );
+                assert_eq!(to, "universal tool content");
+            }
+            other => panic!("expected unsupported mapping error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn anthropic_input_tool_result_with_toolset_name_is_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_123",
+                "toolset_name": "browser",
+                "content": "done"
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input).unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic toolset member content with toolset_name 'browser'"
+        ));
+    }
+
+    #[test]
+    fn anthropic_response_tool_use_with_toolset_name_is_rejected_explicitly() {
+        let blocks: Vec<generated::ContentBlock> = serde_json::from_value(json!([{
+            "type": "tool_use",
+            "id": "toolu_123",
+            "name": "navigate",
+            "toolset_name": "browser",
+            "input": {"url": "https://example.com"}
+        }]))
+        .unwrap();
+
+        let err = <Vec<Message> as TryFromLLM<Vec<generated::ContentBlock>>>::try_from(blocks)
+            .unwrap_err();
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic toolset member content with toolset_name 'browser'"
+        ));
     }
 
     #[test]
