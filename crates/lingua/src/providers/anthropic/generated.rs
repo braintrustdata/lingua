@@ -1728,6 +1728,7 @@ pub struct BrowserToolsetConfigs {
 /// the family's tool with any members disabled via ``configs`` removed
 /// from its schema.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct BrowserToolset20260801 {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2075,6 +2076,7 @@ pub struct ComputerToolsetConfigs {
 /// ``type``, ``configs``, and ``cache_control``; zoom is controlled
 /// via ``configs.zoom.enabled``.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
 #[ts(export_to = "anthropic/")]
 pub struct ComputerToolset20260801 {
     #[serde(skip_serializing_if = "Option::is_none")]

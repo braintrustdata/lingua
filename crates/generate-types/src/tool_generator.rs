@@ -350,7 +350,11 @@ fn generate_tool_struct_direct(
 
     // Add derives
     output.push_str("#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]\n");
-    if typed_references
+    let strict_toolset = matches!(
+        schema_name,
+        "BrowserToolset_20260801" | "ComputerToolset_20260801"
+    );
+    if (typed_references || strict_toolset)
         && schema
             .get("additionalProperties")
             .and_then(|value| value.as_bool())
@@ -1107,6 +1111,7 @@ mod tests {
                     "schemas": {
                         "BrowserToolset_20260801": {
                             "type": "object",
+                            "additionalProperties": false,
                             "properties": {
                                 "type": { "const": "browser_toolset_20260801", "type": "string" }
                             },
@@ -1114,6 +1119,7 @@ mod tests {
                         },
                         "ComputerToolset_20260801": {
                             "type": "object",
+                            "additionalProperties": false,
                             "properties": {
                                 "type": { "const": "computer_toolset_20260801", "type": "string" }
                             },
@@ -1138,6 +1144,12 @@ mod tests {
 
         assert!(generated.contains("    BrowserToolset20260801(BrowserToolset20260801),"));
         assert!(generated.contains("    ComputerToolset20260801(ComputerToolset20260801),"));
+        assert!(generated.contains(
+            "#[serde(deny_unknown_fields)]\n#[ts(export_to = \"anthropic/\")]\npub struct BrowserToolset20260801"
+        ));
+        assert!(generated.contains(
+            "#[serde(deny_unknown_fields)]\n#[ts(export_to = \"anthropic/\")]\npub struct ComputerToolset20260801"
+        ));
         assert!(!generated.contains("Browserset20260801"));
         assert!(!generated.contains("Computerset20260801"));
         // Single tools keep the established variant names that drop the `Tool` suffix.

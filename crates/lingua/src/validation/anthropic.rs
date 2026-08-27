@@ -33,6 +33,39 @@ pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, Val
                     block.input_content_block_type
                 )));
             }
+            if block.toolset_name.is_some()
+                && !matches!(
+                    block.input_content_block_type,
+                    generated::InputContentBlockType::ToolUse
+                        | generated::InputContentBlockType::ToolResult
+                )
+            {
+                return Err(ValidationError::DeserializationFailed(format!(
+                    "Anthropic toolset_name is not valid on {:?} content blocks",
+                    block.input_content_block_type
+                )));
+            }
+            if let Some(generated::InputContentBlockContent::BlockArray(nested_blocks)) =
+                &block.content
+            {
+                for nested in nested_blocks {
+                    let (nested, allows_transformations) = match nested {
+                        generated::Block::BrowserState(_) => continue,
+                        generated::Block::Image(block) => (block, true),
+                        generated::Block::Document(block)
+                        | generated::Block::SearchResult(block)
+                        | generated::Block::Text(block)
+                        | generated::Block::ToolReference(block)
+                        | generated::Block::WebSearchResult(block) => (block, false),
+                    };
+                    if nested.transformations.is_some() && !allows_transformations {
+                        return Err(ValidationError::DeserializationFailed(
+                            "Anthropic image transformations are not valid on this nested content block"
+                                .to_string(),
+                        ));
+                    }
+                }
+            }
         }
     }
 
@@ -386,6 +419,96 @@ mod tests {
             "max_tokens":16
         }"#;
         assert!(validate_anthropic_request(valid_image).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_restricts_toolset_name_to_tool_blocks() {
+        let invalid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{"type":"text","text":"Hello","toolset_name":"browser"}]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(invalid).is_err());
+
+        let valid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"assistant",
+                "content":[{
+                    "type":"tool_use",
+                    "id":"toolu_123",
+                    "name":"navigate",
+                    "toolset_name":"browser",
+                    "input":{"url":"https://example.com"}
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(valid).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_restricts_nested_transformations_to_images() {
+        let invalid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"tool_result",
+                    "tool_use_id":"toolu_123",
+                    "content":[{
+                        "type":"text",
+                        "text":"done",
+                        "transformations":{"oversized_image":"error"}
+                    }]
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(invalid).is_err());
+
+        let valid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"tool_result",
+                    "tool_use_id":"toolu_123",
+                    "content":[{
+                        "type":"image",
+                        "source":{
+                            "type":"base64",
+                            "media_type":"image/png",
+                            "data":"aW1hZ2U="
+                        },
+                        "transformations":{"oversized_image":"error"}
+                    }]
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(valid).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_rejects_unknown_toolset_fields() {
+        for tool in [
+            r#"{"type":"browser_toolset_20260801","name":"browser"}"#,
+            r#"{"type":"computer_toolset_20260801","display_number":1}"#,
+        ] {
+            let json = format!(
+                r#"{{
+                    "model":"claude-opus-4-1",
+                    "messages":[{{"role":"user","content":"Hello"}}],
+                    "tools":[{tool}],
+                    "max_tokens":16
+                }}"#
+            );
+            assert!(validate_anthropic_request(&json).is_err());
+        }
     }
 
     #[test]
