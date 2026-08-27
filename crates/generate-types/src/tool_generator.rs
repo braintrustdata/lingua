@@ -381,8 +381,13 @@ fn generate_tool_struct_direct(
 
     if let Some(properties) = props {
         for (prop_name, prop_schema) in properties {
-            // Skip the "type" field - it's handled by serde tag on the enum
-            if prop_name == "type" {
+            // Skip discriminators. The two toolset config maps are the exception: `type` is the
+            // name of a configurable member tool there, not this object's discriminator.
+            let preserves_type_member = matches!(
+                schema_name,
+                "BrowserToolsetConfigs" | "ComputerToolsetConfigs"
+            );
+            if prop_name == "type" && !preserves_type_member {
                 continue;
             }
 
@@ -1171,10 +1176,28 @@ mod tests {
                                         { "$ref": "#/components/schemas/BrowserNavigateConfig" },
                                         { "type": "null" }
                                     ]
+                                },
+                                "type": {
+                                    "anyOf": [
+                                        { "$ref": "#/components/schemas/BrowserTypeConfig" },
+                                        { "type": "null" }
+                                    ]
                                 }
                             }
                         },
                         "BrowserNavigateConfig": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "enabled": {
+                                    "anyOf": [
+                                        { "type": "boolean" },
+                                        { "type": "null" }
+                                    ]
+                                }
+                            }
+                        },
+                        "BrowserTypeConfig": {
                             "type": "object",
                             "additionalProperties": false,
                             "properties": {
@@ -1210,11 +1233,14 @@ mod tests {
 
         assert!(generated.contains("pub configs: Option<BrowserToolsetConfigs>,"));
         assert!(generated.contains("pub navigate: Option<BrowserNavigateConfig>,"));
+        assert!(generated.contains("pub r#type: Option<BrowserTypeConfig>,"));
         assert!(generated.contains("pub struct BrowserNavigateConfig"));
+        assert!(generated.contains("pub struct BrowserTypeConfig"));
         assert_eq!(
             generated.matches("#[serde(deny_unknown_fields)]").count(),
-            2
+            3
         );
+        assert!(!generated.contains("pub r#type: String,"));
         assert!(!generated.contains("pub configs: Option<serde_json::Value>,"));
     }
 

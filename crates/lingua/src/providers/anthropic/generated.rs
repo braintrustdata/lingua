@@ -1625,6 +1625,19 @@ pub struct BrowserTripleClickConfig {
     pub enabled: Option<bool>,
 }
 
+/// ``type``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct BrowserTypeConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
 /// ``wait``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(deny_unknown_fields)]
@@ -1717,6 +1730,8 @@ pub struct BrowserToolsetConfigs {
     pub switch_tab: Option<BrowserSwitchTabConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub triple_click: Option<BrowserTripleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<BrowserTypeConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wait: Option<BrowserWaitConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1997,6 +2012,19 @@ pub struct ComputerTripleClickConfig {
     pub enabled: Option<bool>,
 }
 
+/// ``type``'s config overrides.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(deny_unknown_fields)]
+#[ts(export_to = "anthropic/")]
+pub struct ComputerTypeConfig {
+    /// Defer loading for this member. Must resolve to the same value on every enabled member of the toolset.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub defer_loading: Option<bool>,
+    /// Whether this member is offered to the model. Default is per member, per the toolset's documentation. A member whose enabled resolves false is withheld from the served schema.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+}
+
 /// ``wait``'s config overrides.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(deny_unknown_fields)]
@@ -2061,6 +2089,8 @@ pub struct ComputerToolsetConfigs {
     pub scroll: Option<ComputerScrollConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub triple_click: Option<ComputerTripleClickConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<ComputerTypeConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wait: Option<ComputerWaitConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -66,6 +66,25 @@ pub fn validate_anthropic_request(json: &str) -> Result<CreateMessageParams, Val
                     }
                 }
             }
+            if let Some(generated::SourceUnion::Source(generated::Source::Content {
+                content:
+                    generated::Base64ImageSourceContent::ContentBlockSourceContentItemArray(
+                        nested_blocks,
+                    ),
+            })) = &block.source
+            {
+                for nested in nested_blocks {
+                    if nested.transformations.is_some()
+                        && nested.content_block_source_content_item_type
+                            != generated::ContentBlockSourceContentItemType::Image
+                    {
+                        return Err(ValidationError::DeserializationFailed(
+                            "Anthropic image transformations are not valid on this document content-source block"
+                                .to_string(),
+                        ));
+                    }
+                }
+            }
         }
     }
 
@@ -337,6 +356,28 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_anthropic_request_accepts_type_toolset_member_configs() {
+        for toolset_type in ["browser_toolset_20260801", "computer_toolset_20260801"] {
+            let json = format!(
+                r#"{{
+                    "model": "claude-opus-4-1",
+                    "messages": [{{"role": "user", "content": "Hello"}}],
+                    "max_tokens": 16,
+                    "tools": [{{
+                        "type": "{toolset_type}",
+                        "configs": {{"type": {{"enabled": false}}}}
+                    }}]
+                }}"#
+            );
+
+            assert!(
+                validate_anthropic_request(&json).is_ok(),
+                "type member config should be accepted for {toolset_type}"
+            );
+        }
+    }
+
+    #[test]
     fn test_validate_anthropic_request_requires_browser_state_tabs() {
         let json = r#"{
             "model": "claude-opus-4-1",
@@ -486,6 +527,53 @@ mod tests {
                         },
                         "transformations":{"oversized_image":"error"}
                     }]
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(valid).is_ok());
+    }
+
+    #[test]
+    fn test_validate_anthropic_request_restricts_document_source_transformations_to_images() {
+        let invalid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"document",
+                    "source":{
+                        "type":"content",
+                        "content":[{
+                            "type":"text",
+                            "text":"contents",
+                            "transformations":{"oversized_image":"error"}
+                        }]
+                    }
+                }]
+            }],
+            "max_tokens":16
+        }"#;
+        assert!(validate_anthropic_request(invalid).is_err());
+
+        let valid = r#"{
+            "model":"claude-opus-4-1",
+            "messages":[{
+                "role":"user",
+                "content":[{
+                    "type":"document",
+                    "source":{
+                        "type":"content",
+                        "content":[{
+                            "type":"image",
+                            "source":{
+                                "type":"base64",
+                                "media_type":"image/png",
+                                "data":"aW1hZ2U="
+                            },
+                            "transformations":{"oversized_image":"error"}
+                        }]
+                    }
                 }]
             }],
             "max_tokens":16
