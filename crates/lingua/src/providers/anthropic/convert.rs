@@ -81,17 +81,28 @@ fn validate_anthropic_input_message(
     };
 
     for block in blocks {
-        if matches!(
-            &block.content,
-            Some(generated::InputContentBlockContent::BlockArray(nested_blocks))
-                if nested_blocks
-                    .iter()
-                    .any(|nested| matches!(nested, generated::Block::BrowserState(_)))
-        ) {
-            return Err(ConvertError::UnsupportedMapping {
-                from: "Anthropic browser_state tool result".to_string(),
-                to: "universal tool content",
-            });
+        if let Some(generated::InputContentBlockContent::BlockArray(nested_blocks)) = &block.content
+        {
+            if nested_blocks
+                .iter()
+                .any(|nested| matches!(nested, generated::Block::BrowserState(_)))
+            {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic browser_state tool result".to_string(),
+                    to: "universal tool content",
+                });
+            }
+            if nested_blocks.iter().any(|nested| {
+                matches!(
+                    nested,
+                    generated::Block::Image(image) if image.transformations.is_some()
+                )
+            }) {
+                return Err(ConvertError::UnsupportedMapping {
+                    from: "Anthropic nested image transformations".to_string(),
+                    to: "universal tool content",
+                });
+            }
         }
 
         if let Some(toolset_name) = &block.toolset_name {
@@ -2910,6 +2921,36 @@ mod tests {
                 ref from,
                 to: "universal tool content"
             } if from == "Anthropic browser_state tool result"
+        ));
+    }
+
+    #[test]
+    fn anthropic_nested_image_transformations_are_rejected_explicitly() {
+        let input = input_message(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": "toolu_image_123",
+                "content": [{
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": "aW1hZ2U="
+                    },
+                    "transformations": {"oversized_image": "error"}
+                }]
+            }]
+        }));
+
+        let err = <Message as TryFromLLM<generated::InputMessage>>::try_from(input)
+            .expect_err("nested image transformations have no universal representation");
+        assert!(matches!(
+            err,
+            ConvertError::UnsupportedMapping {
+                ref from,
+                to: "universal tool content"
+            } if from == "Anthropic nested image transformations"
         ));
     }
 
